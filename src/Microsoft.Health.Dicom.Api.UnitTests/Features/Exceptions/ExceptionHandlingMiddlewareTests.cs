@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -44,6 +46,9 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new ServiceUnavailableException(), HttpStatusCode.ServiceUnavailable };
         yield return new object[] { new ItemNotFoundException(new Exception()), HttpStatusCode.InternalServerError };
         yield return new object[] { new CustomServerException(), HttpStatusCode.ServiceUnavailable };
+        yield return new object[] { new BadHttpRequestException("Unexpected end of request content."), HttpStatusCode.BadRequest };
+        yield return new object[] { new IOException("The request stream was aborted."), HttpStatusCode.BadRequest };
+        yield return new object[] { new ConnectionResetException(string.Empty), HttpStatusCode.BadRequest };
     }
 
     [Theory]
