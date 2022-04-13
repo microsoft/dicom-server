@@ -147,9 +147,9 @@ public partial class RetrieveTransactionResourceTests
     {
         get
         {
-            yield return new object[] { RequestOriginalContentTestFolder, "*" };
-            yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null };
-            yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1" };
+            yield return new object[] { Path.Combine(TestFileFolder, RequestOriginalContentTestFolder), "*" };
+            yield return new object[] { Path.Combine(TestFileFolder, FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder), null };
+            yield return new object[] { Path.Combine(TestFileFolder, FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder), "1.2.840.10008.1.2.1" };
         }
     }
 
