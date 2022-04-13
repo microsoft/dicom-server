@@ -1,6 +1,6 @@
 version: "3.8"
 
 services:
-  web:
+  dicomweb:
     environment:
       DicomServer__Features__EnableDataPartitions: "true"

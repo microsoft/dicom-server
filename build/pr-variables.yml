@@ -1,8 +1,8 @@
 variables:
   prNumber: $(system.pullRequest.pullRequestNumber)
   deploymentName: 'msh-dicom-pr-$(prNumber)'
-  testEnvironmentUrl: 'http://localhost:63839/'
-  testFeaturesEnabledEnvironmentUrl: 'http://localhost:63839/'
+  testEnvironmentUrl: 'http://localhost:8080/'
+  testFeaturesEnabledEnvironmentUrl: 'http://localhost:8080/'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'

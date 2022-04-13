@@ -1,14 +1,7 @@
 version: "3.8"
 
 services:
-  web:
-    image: ${DOCKER_REGISTRY-}microsofthealthdicomweb
+  dicomweb:
     environment:
       ASPNETCORE_URLS: "https://+:8080"
     user: root
-    ports:
-      - "63839:8080"
-    volumes:
-      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
-  functions:
-    image: ${DOCKER_REGISTRY-}microsofthealthdicomfunctions

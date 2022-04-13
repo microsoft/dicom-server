@@ -10,29 +10,30 @@ This quickstart guide details how to build and run the Medical Imaging Server fo
 
 You can easily run and debug the Medical Imaging Server for DICOM right from Visual Studio. Simply open up the solution file *Microsoft.Health.Dicom.sln* in Visual Studio 2019 (or later) and run the "docker-compose" project. This should build each of the images and run the containers locally without any additional action.
 
-Once it's ready, a web page should open automatically for the URL `https://localhost:63839` where you can communicate with the Medical Imaging Server for DICOM.
+Once it's ready, a web page should open automatically for the URL `https://localhost:8080` where you can communicate with the Medical Imaging Server for DICOM.
 
 ## Command Line
 
 Run the following command from the root of the `microsoft/dicom-server` repository, replacing `<SA_PASSWORD>` with your chosen password (be sure to follow the [SQL Server password complexity requirements](https://docs.microsoft.com/sql/relational-databases/security/password-policy?view=sql-server-ver15#password-complexity)):
 
 ```bash
-env SAPASSWORD='<SA_PASSWORD>' docker-compose -f samples/docker/docker-compose.yaml -p dicom-server up -d
+docker-compose -p healthcare -f docker/docker-compose.yml up --build -d
 ```
 
-Given the DICOM API is likely to start before the SQL server is ready, you may need to restart the API container once the SQL server is healthy. This can be done using `docker restart <container-name>`, i.e. docker restart `docker restart docker_dicom-api_1`.
+If you wish to specify your own SQL admin password, you can include one as well:
+
+```bash
+env SAPASSWORD='<SA_PASSWORD>' docker-compose -p healthcare -f docker/docker-compose.yml up --build -d
+```
 
 Once deployed the Medical Imaging Server for DICOM should be available at `http://localhost:8080/`.
 
-Additionally if uncommented in the docker-compose file the
-* SQL Server is able to be browsed using a TCP connection to `localhost:1433`
-* the storage containers can be examined via [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/) using the [default storage emulator connection string](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#connect-to-the-emulator-account-using-the-well-known-account-name-and-key)
-* [FHIR](https://github.com/microsoft/fhir-server) can be accessible via `http://localhost:8081`
+### Including DICOMcast
 
-You can also connect to them via their IP rather rather than expose them on localhost. The following command will help you understand the ports & ips the services are exposed on
+If you also want to include DICOMcast, simply add one more file to the `docker-compose up` command:
 
 ```bash
-docker inspect -f 'Name: {{.Name}} - IPs: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} - Ports: {{.Config.ExposedPorts}}' $(docker ps -aq)
+docker-compose -p healthcare -f docker/docker-compose.yml -f docker/docker-compose.cast.yml up --build -d
 ```
 
 ### Run in Docker with a custom configuration
@@ -58,9 +59,25 @@ docker run -d \
     microsoft.health.dicom.web
 ```
 
+## Connecting to Dependencies
+
+By default, the storage services like `azurite` and `sql` are not exposed locally, but you may connect to them directly by uncommenting the `ports` element in the `docker-compose.yml` file. Be sure those ports aren't already in-use locally! Without changing the values, the following ports are used:
+* SQL Server exposes a TCP connection on port `1433`
+  * In a SQL connection string, use `localhost:1433` or even `tcp:(local)`
+* Azurite, the Azure Storage Emulator, exposes the blob service on port `10000`, the queue service on port `10001`, and the table service on port `10002`
+  * The emulator uses a well-defined [connection string](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-emulator#connect-to-the-emulator-account-using-the-well-known-account-name-and-key)
+  * Use [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/) to browse its contents
+* [FHIR](https://github.com/microsoft/fhir-server) can be accessible via `http://localhost:8081`
+
+You can also connect to them via their IP address rather rather than via localhost. The following command will help you understand the IPs and ports by which the services are exposed:
+
+```bash
+docker inspect -f 'Name: {{.Name}} - IPs: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}} - Ports: {{.Config.ExposedPorts}}' $(docker ps -aq)
+```
+
 ## Next steps
 
-Once deployment is complete you can access your Medical Imaging Server at `https://localhost:63839` or `https://localhost:8080` depending on the above mechanism. Make sure to specify the version as part of the url when making requests. More information can be found in the [Api Versioning Documentation](../api-versioning.md)
+Once deployment is complete you can access your Medical Imaging Server at `https://localhost:8080`. Make sure to specify the version as part of the url when making requests. More information can be found in the [Api Versioning Documentation](../api-versioning.md)
 
 * [Use Medical Imaging Server for DICOM APIs](../tutorials/use-the-medical-imaging-server-apis.md)
 * [Upload DICOM files via the Electron Tool](../../tools/dicom-web-electron)

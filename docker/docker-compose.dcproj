@@ -5,11 +5,11 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>336b1fb4-eef8-4e11-bdd5-818983d4e1cd</ProjectGuid>
-    <DockerComposeProjectName>Dicom</DockerComposeProjectName>
+    <DockerComposeProjectName>healthcare</DockerComposeProjectName>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>web</DockerServiceName>
-    <AdditionalComposeFilePaths>docker-compose.https.yml</AdditionalComposeFilePaths>
+    <DockerServiceName>dicomweb</DockerServiceName>
+    <AdditionalComposeFilePaths>docker-compose.https.yml;docker-compose.vs.yml</AdditionalComposeFilePaths>
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
@@ -37,6 +37,7 @@
     <None Include="docker-compose.*.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
+    <None Remove="docker-compose.cast*.yml" />
     <None Include="functions\Dockerfile" />
     <None Include="sql\Dockerfile" />
   </ItemGroup>
