@@ -125,11 +125,9 @@ internal class AspNetCoreMultipartReader : IMultipartReader
             // The stream must be consumed before the next ReadNextSectionAsync is called.
             // Also, the stream returned by the MultipartReader is not seekable. We need to make
             // it seekable so that we can process the stream multiple times.
-            MultipartBodyPart part = new MultipartBodyPart(
+            return new MultipartBodyPart(
                 contentType,
                 await _seekableStreamConverter.ConvertAsync(section.Body, cancellationToken));
-
-            return part;
         }
         catch (InvalidDataException)
         {

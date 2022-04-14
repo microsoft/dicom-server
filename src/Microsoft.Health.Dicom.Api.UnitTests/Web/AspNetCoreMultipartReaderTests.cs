@@ -10,11 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
-using Microsoft.Health.Dicom.Api.UnitTests.Features.Context;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Web;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -30,14 +28,10 @@ public class AspNetCoreMultipartReaderTests
     private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
     private readonly ISeekableStreamConverter _seekableStreamConverter;
-    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly DefaultDicomRequestContext _dicomRequestContext = new DefaultDicomRequestContext();
 
     public AspNetCoreMultipartReaderTests()
     {
         _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
-        _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
     }
 
     [Fact]
@@ -180,7 +174,6 @@ public class AspNetCoreMultipartReaderTests
             MultipartBodyPart result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
-            Assert.Equal(0, _dicomRequestContextAccessor.RequestContext.InstanceCount);
         }
     }
 
@@ -287,24 +280,17 @@ public class AspNetCoreMultipartReaderTests
             AspNetCoreMultipartReader aspNetCoreMultipartReader = Create(requestContentType, stream, seekableStreamConverter);
 
             MultipartBodyPart result = null;
-            int numberOfParts = 0;
 
             foreach (Func<MultipartBodyPart, Task> validator in validators)
             {
                 result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
                 await validator(result);
-
-                if (result != null)
-                {
-                    numberOfParts++;
-                }
             }
 
             result = await aspNetCoreMultipartReader.ReadNextBodyPartAsync(cancellationToken: default);
 
             Assert.Null(result);
-            Assert.Equal(numberOfParts, _dicomRequestContextAccessor.RequestContext.InstanceCount);
         }
     }
 

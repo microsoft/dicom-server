@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Api.UnitTests.Features.Context;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -44,11 +45,14 @@ public class DicomStoreServiceTests
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly DefaultDicomRequestContext _dicomRequestContext = new DefaultDicomRequestContext();
+
     private readonly StoreService _storeService;
 
     public DicomStoreServiceTests()
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
+        _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
 
         _storeService = new StoreService(
             _storeResponseBuilder,
@@ -87,6 +91,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DatasetDoesNotMatchSOPClass));
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.InstanceCount);
     }
 
     [Fact]
@@ -185,6 +190,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.Received(0).AddSuccess(_dicomDataset1);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
+        Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.InstanceCount);
     }
 
     [Fact]
