@@ -31,4 +31,9 @@ public class FeatureConfiguration
     /// Enable UPS-RS feature
     /// </summary>
     public bool EnableUpsRs { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether bulk export is enabled.
+    /// </summary>
+    public bool EnableExport { get; set; }
 }
