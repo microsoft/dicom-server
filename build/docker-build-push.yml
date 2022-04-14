@@ -10,13 +10,13 @@ steps:
     displayName: Login
     inputs:
       command: login
-      containerRegistry: TODO
+      containerRegistry: 'dicomoss.azurecr.io'
 
   - task: Docker@2
     displayName: 'Build dicom-server'
     inputs:
       command: 'build'
-      containerRegistry: TODO
+      containerRegistry: 'dicomoss.azurecr.io'
       Dockerfile: 'src/Microsoft.Health.Dicom.Web/Dockerfile'
       buildContext: '$(Build.Repository.LocalPath)'
       arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
@@ -27,7 +27,7 @@ steps:
     displayName: 'Build dicom-cast'
     inputs:
       command: 'build'
-      containerRegistry: TODO
+      containerRegistry: 'dicomoss.azurecr.io'
       Dockerfile: 'converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Dockerfile'
       buildContext: '$(Build.Repository.LocalPath)'
       arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
@@ -38,7 +38,7 @@ steps:
     displayName: 'Push dicom-server'
     inputs:
       command: 'push'
-      containerRegistry: TODO
+      containerRegistry: 'dicomoss.azurecr.io'
       repository: dicom-server
       tags: ${{ parameters.tag }}
 
@@ -46,7 +46,7 @@ steps:
     displayName: 'Push dicom-cast'
     inputs:
       command: 'push'
-      containerRegistry: TODO
+      containerRegistry: 'dicomoss.azurecr.io'
       repository: dicom-cast
       tags: ${{ parameters.tag }}
 
@@ -54,4 +54,4 @@ steps:
     displayName: Logout
     inputs:
       command: logout
-      containerRegistry: TODO
+      containerRegistry: 'dicomoss.azurecr.io'
