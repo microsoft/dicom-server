@@ -49,6 +49,7 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new BadHttpRequestException("Unexpected end of request content."), HttpStatusCode.BadRequest };
         yield return new object[] { new IOException("The request stream was aborted."), HttpStatusCode.BadRequest };
         yield return new object[] { new ConnectionResetException(string.Empty), HttpStatusCode.BadRequest };
+        yield return new object[] { new OperationCanceledException(), HttpStatusCode.BadRequest };
     }
 
     [Theory]

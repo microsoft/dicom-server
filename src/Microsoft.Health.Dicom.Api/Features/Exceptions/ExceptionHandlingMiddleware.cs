@@ -81,6 +81,7 @@ public class ExceptionHandlingMiddleware
             case BadHttpRequestException br when br.Message.Equals("Unexpected end of request content.", StringComparison.OrdinalIgnoreCase):
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
             case ConnectionResetException _:
+            case OperationCanceledException _:
                 statusCode = HttpStatusCode.BadRequest;
                 break;
             case ResourceNotFoundException _:
