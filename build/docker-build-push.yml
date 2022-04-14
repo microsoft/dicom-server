@@ -6,43 +6,52 @@ parameters:
     type: string
 
 steps:
-  - task: DockerCompose@0
-    displayName: 'Build Dicom Server Image'
+  - task: Docker@2
+    displayName: Login
     inputs:
-      action: Build services
-      azureSubscriptionEndpoint: $(azureSubscriptionName)
-      azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: $(dicomServerComposeLocation)
-      projectName: linux
-      additionalImageTags: ${{parameters.tag}}
-      arguments: '--build-arg CONTINUOUS_INTEGRATION_BUILD=true'
+      command: login
+      containerRegistry: TODO
 
-  - task: DockerCompose@0
-    displayName: 'Push Dicom Server Image'
+  - task: Docker@2
+    displayName: 'Build dicom-server'
     inputs:
-      action: Push services
-      azureSubscriptionEndpoint: $(azureSubscriptionName)
-      azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: $(dicomServerComposeLocation)
-      projectName: linux
-      additionalImageTags: ${{parameters.tag}}
+      command: 'build'
+      containerRegistry: TODO
+      Dockerfile: 'src/Microsoft.Health.Dicom.Web/Dockerfile'
+      buildContext: '$(Build.Repository.LocalPath)'
+      arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
+      repository: dicom-server
+      tags: ${{ parameters.tag }}
 
-  - task: DockerCompose@0
-    displayName: 'Build Dicom cast Server Image'
+  - task: Docker@2
+    displayName: 'Build dicom-cast'
     inputs:
-      action: Build services
-      azureSubscriptionEndpoint: $(azureSubscriptionName)
-      azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: $(dicomCastComposeLocation)
-      projectName: linux
-      additionalImageTags: ${{parameters.tag}}
+      command: 'build'
+      containerRegistry: TODO
+      Dockerfile: 'converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Dockerfile'
+      buildContext: '$(Build.Repository.LocalPath)'
+      arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
+      repository: dicom-cast
+      tags: ${{ parameters.tag }}
 
-  - task: DockerCompose@0
-    displayName: 'Push Dicom cast Server Image'
+  - task: Docker@2
+    displayName: 'Push dicom-server'
     inputs:
-      action: Push services
-      azureSubscriptionEndpoint: $(azureSubscriptionName)
-      azureContainerRegistry: $(azureContainerRegistry)
-      dockerComposeFile: $(dicomCastComposeLocation)
-      projectName: linux
-      additionalImageTags: ${{parameters.tag}}
+      command: 'push'
+      containerRegistry: TODO
+      repository: dicom-server
+      tags: ${{ parameters.tag }}
+
+  - task: Docker@2
+    displayName: 'Push dicom-cast'
+    inputs:
+      command: 'push'
+      containerRegistry: TODO
+      repository: dicom-cast
+      tags: ${{ parameters.tag }}
+
+  - task: Docker@2
+    displayName: Logout
+    inputs:
+      command: logout
+      containerRegistry: TODO

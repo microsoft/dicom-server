@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  dicomweb:
+  dicomserver:
     environment:
       ASPNETCORE_URLS: "https://+:8080"
     user: root

@@ -8,14 +8,14 @@ services:
     environment:
       TableStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       Fhir__Endpoint: "http://fhir:8080"
-      DicomWeb__endpoint: "http://dicomweb:8080"
+      DicomWeb__endpoint: "http://dicomserver:8080"
       DicomCastWorker__PollInterval: "00:00:05"
       Logging__Console__IncludeScopes: "true"
     restart: always
     depends_on:
       - azurite
       - fhir
-      - dicomweb
+      - dicomserver
 
   fhir:
     image: healthplatformregistry.azurecr.io/r4_fhir-server:release

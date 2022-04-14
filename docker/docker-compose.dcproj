@@ -8,7 +8,7 @@
     <DockerComposeProjectName>healthcare</DockerComposeProjectName>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>dicomweb</DockerServiceName>
+    <DockerServiceName>dicomserver</DockerServiceName>
     <AdditionalComposeFilePaths>docker-compose.https.yml;docker-compose.vs.yml</AdditionalComposeFilePaths>
     <Platforms>x64</Platforms>
   </PropertyGroup>

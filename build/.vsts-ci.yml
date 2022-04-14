@@ -9,6 +9,12 @@ trigger:
   branches:
     include:
     - main
+  paths:
+    include:
+    - '*'
+    exclude:
+    - '*.md'
+    - docs
 
 pr: none
 

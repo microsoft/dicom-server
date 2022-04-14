@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  dicomweb:
+  dicomserver:
     image: ${DOCKER_REGISTRY-}microsofthealthdicomweb
   functions:
     image: ${DOCKER_REGISTRY-}microsofthealthdicomfunctions

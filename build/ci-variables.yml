@@ -13,7 +13,5 @@ variables:
   buildConfiguration: 'Release'
   imageTag: '$(build.BuildNumber)'
   azureContainerRegistry: 'dicomoss.azurecr.io'
-  dicomServerComposeLocation: 'docker/docker-compose.yml'
-  dicomCastComposeLocation: 'converter/dicom-cast/build/docker/docker-compose.yaml'
   deleteDataOnStartup: 'false'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria

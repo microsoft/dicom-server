@@ -38,25 +38,23 @@ docker-compose -p healthcare -f docker/docker-compose.yml -f docker/docker-compo
 
 ### Run in Docker with a custom configuration
 
-To build the `dicom-api` image run the following command from the root of the `microsoft/dicom-server`repository:
+To build the `dicom-server` image run the following command from the root of the `microsoft/dicom-server`repository:
 
 ```bash
-docker build -f src/microsoft.health.dicom.web/Dockerfile -t microsoft.health.dicom.web .
+docker build -f src/microsoft.health.dicom.web/Dockerfile -t dicom-server .
 ```
 
 When running the container, additional configuration details can also be specified such as:
 
 ```bash
 docker run -d \
-    -e DicomServer__Security__Enabled="false"
-    -e SqlServer__ConnectionString="Server=tcp:<sql-server-fqdn>,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=<sql-sa-password>;MultipleActiveResultSets=False;Connection Timeout=30;" \
+    -e DicomServer__Security__Enabled="false" \
+    -e SqlServer__ConnectionString="Server=tcp:<sql-server-fqdn>,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=<sql-sa-password>;MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true" \
     -e SqlServer__AllowDatabaseCreation="true" \
     -e SqlServer__Initialize="true" \
-    -e DataStore="SqlServer" \
-    -e BlobStore__ConnectionString="<blob-connection-string" \
-    -p 8080:8080
-    microsoft.health.dicom.web
-    microsoft.health.dicom.web
+    -e BlobStore__ConnectionString="<blob-connection-string>" \
+    -p 8080:8080 \
+    dicom-server
 ```
 
 ## Connecting to Dependencies
