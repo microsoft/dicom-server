@@ -131,6 +131,7 @@ The query API will return one of the following status codes in the response:
 | Code                      | Description |
 | :------------------------ | :---------- |
 | 200 (OK)                  | The response payload contains all the matching resource. |
+| 206 (Partial Content)     | The response payload contains only some of the search results, and the rest can be requested through the appropriate request. |
 | 204 (No Content)          | The search completed successfully but returned no results. |
 | 400 (Bad Request)         | The was a problem with the request. For example, invalid Query Parameter syntax. Response body contains details of the failure. |
 | 401 (Unauthorized)        | The client is not authenticated. |
@@ -142,6 +143,7 @@ The query API will return one of the following status codes in the response:
 - Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
 - Matching is case insensitive and accent insensitive for PN VR types.
 - Matching is case insensitive and accent sensitive for other string VR types.
+- If there is a scenario where canceling a Workitem and querying the same happens at the same time, then the query will most likely exclude the Workitem that is getting updated and the response code will be 206 (Partial Content).
 
 ## Request Cancellation
 

@@ -10,6 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -31,7 +32,15 @@ public class WorkitemQueryResponseBuilderTests
             .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
             .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
 
-        DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(dataset, query);
+        var datasets = new List<DicomDataset>
+        {
+            dataset
+        };
+
+        var response = WorkitemQueryResponseBuilder.BuildWorkitemQueryResponse(datasets, query);
+        DicomDataset responseDataset = response.ResponseDatasets.FirstOrDefault();
+
+        Assert.NotNull(responseDataset);
         var tags = responseDataset.Select(i => i.Tag).ToList();
 
         Assert.Contains(DicomTag.WorklistLabel, tags); // Valid include
@@ -53,12 +62,45 @@ public class WorkitemQueryResponseBuilderTests
             .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
             .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
 
-        DicomDataset responseDataset = WorkitemQueryResponseBuilder.GenerateResponseDataset(dataset, query);
+        var datasets = new List<DicomDataset>
+        {
+            dataset
+        };
+
+        var response = WorkitemQueryResponseBuilder.BuildWorkitemQueryResponse(datasets, query);
+        DicomDataset responseDataset = response.ResponseDatasets.FirstOrDefault();
+
+        Assert.NotNull(responseDataset);
         var tags = responseDataset.Select(i => i.Tag).ToList();
 
         Assert.Contains(DicomTag.MedicalAlerts, tags); // Required return attribute
         Assert.Contains(DicomTag.SnoutID, tags); // Not a required return attribute - set by 'all'
 
         Assert.DoesNotContain(DicomTag.TransactionUID, tags); // should never be included
+    }
+
+    [Fact]
+    public void GivenWorkitem_WithIncludeFieldAndPartialMatchingResult_ValidPartialContentReturned()
+    {
+        var includeField = new QueryIncludeField(new List<DicomTag> { DicomTag.WorklistLabel });
+        var filters = new List<QueryFilterCondition>()
+        {
+            new StringSingleValueMatchCondition(new QueryTag(DicomTag.PatientName), "Foo"),
+        };
+        var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
+        var dataset = Samples
+            .CreateRandomWorkitemInstanceDataset()
+            .AddOrUpdate(new DicomLongString(DicomTag.MedicalAlerts))
+            .AddOrUpdate(new DicomShortString(DicomTag.SnoutID));
+
+        var datasets = new List<DicomDataset>
+        {
+            dataset,
+            null
+        };
+
+        var response = WorkitemQueryResponseBuilder.BuildWorkitemQueryResponse(datasets, query);
+        Assert.Single(response.ResponseDatasets);
+        Assert.Equal(WorkitemResponseStatus.PartialContent, response.Status);
     }
 }

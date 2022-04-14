@@ -48,10 +48,4 @@ public sealed class BatchCreationArguments
         MaxParallelBatches = maxParallelBatches;
         MaxWatermark = maxWatermark;
     }
-
-    internal static BatchCreationArguments FromOptions(long? maxWatermark, QueryTagIndexingOptions indexingOptions)
-    {
-        EnsureArg.IsNotNull(indexingOptions, nameof(indexingOptions));
-        return new BatchCreationArguments(maxWatermark, indexingOptions.BatchSize, indexingOptions.MaxParallelBatches);
-    }
 }
