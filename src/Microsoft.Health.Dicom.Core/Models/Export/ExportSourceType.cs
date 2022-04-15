@@ -5,8 +5,18 @@
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
+/// <summary>
+/// Specifies the kind of format used to describe the data set to be exported.
+/// </summary>
 public enum ExportSourceType
 {
+    /// <summary>
+    /// Specifies an unknown source format.
+    /// </summary>
     Unknown,
+
+    /// <summary>
+    /// Specifies a list of DICOM identifiers.
+    /// </summary>
     Identifiers,
 }

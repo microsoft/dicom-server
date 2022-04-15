@@ -4,12 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Models.Common;
 
-namespace Microsoft.Health.Dicom.Core.Models.Export;
+namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public class ExportDestination
+internal sealed class ExportIdentifiers
 {
-    public ExportDestinationType Type { get; set; }
-
-    public IReadOnlyDictionary<string, string> Configuration { get; set; }
+    public IReadOnlyList<DicomIdentifier> Values { get; set; }
 }

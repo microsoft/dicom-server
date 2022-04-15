@@ -604,6 +604,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read invalid JSON token type &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidJsonToken {
+            get {
+                return ResourceManager.GetString("InvalidJsonToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: specified limit value &apos;{0}&apos; is not a valid integer..
         /// </summary>
         internal static string InvalidLimitValue {

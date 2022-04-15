@@ -28,6 +28,9 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
+/// <summary>
+/// Represents an API controller for export operations.
+/// </summary>
 [ApiVersion("1.0-prerelease")]
 [ApiVersion("1")]
 [ServiceFilter(typeof(Features.Audit.AuditLoggingFilterAttribute))]
@@ -38,16 +41,35 @@ public class ExportController : ControllerBase
     private readonly ILogger<ExportController> _logger;
     private readonly bool _enabled;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ExportController"/> class based on the given options.
+    /// </summary>
+    /// <param name="mediator">An <see cref="IMediator"/> used to send requests.</param>
+    /// <param name="options">Options concerning which features are enabled.</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="mediator"/>, <paramref name="options"/>, or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     public ExportController(
         IMediator mediator,
-        IOptions<FeatureConfiguration> featureConfiguration,
+        IOptions<FeatureConfiguration> options,
         ILogger<ExportController> logger)
     {
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _enabled = EnsureArg.IsNotNull(featureConfiguration?.Value.EnableExport, nameof(featureConfiguration)).GetValueOrDefault();
+        _enabled = EnsureArg.IsNotNull(options?.Value.EnableExport, nameof(options)).GetValueOrDefault();
     }
 
+    /// <summary>
+    /// Asynchronously starts the export operation.
+    /// </summary>
+    /// <param name="spec">The specification that details the source and destination for the export.</param>
+    /// <returns>
+    /// A task that represents the asynchronous export operation. The value of its <see cref="Task{TResult}.Result"/>
+    /// property contains the <see cref="IActionResult"/>. Upon success, the result will contain an
+    /// <see cref="OperationReference"/> detailing the new export operation instance. Otherwise, the status code
+    /// provides details as to why the request failed.
+    /// </returns>
     [HttpPost]
     [BodyModelStateValidator]
     [Produces(KnownContentTypes.ApplicationJson)]
@@ -61,13 +83,14 @@ public class ExportController : ControllerBase
     [AuditEventType(AuditEventSubType.Export)]
     public async Task<IActionResult> ExportInstancesAsync([Required][FromBody] ExportSpecification spec)
     {
+        EnsureArg.IsNotNull(spec, nameof(spec));
+
         return await GetResultIfEnabledAsync(
             async (x, token) =>
             {
-                EnsureArg.IsNotNull(x, nameof(x));
                 _logger.LogInformation("DICOM Web Export request received to export instances from '{Source}' to '{Sink}'.", x.Source.Type, x.Destination.Type);
 
-                ExportInstancesResponse response = await _mediator.ExportInstancesAsync(x, HttpContext.RequestAborted);
+                ExportInstancesResponse response = await _mediator.ExportInstancesAsync(x, token);
 
                 Response.AddLocationHeader(response.Operation.Href);
                 return StatusCode((int)HttpStatusCode.Accepted, response.Operation);

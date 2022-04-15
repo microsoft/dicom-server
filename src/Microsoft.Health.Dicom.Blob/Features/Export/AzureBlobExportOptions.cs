@@ -3,11 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Models.Export;
+using System;
 
-public class ExportManifest
+namespace Microsoft.Health.Dicom.Blob.Features.Export;
+
+internal sealed class AzureBlobExportOptions
 {
-    public ExportSourceType Type { get; set; }
+    public Uri ContainerUri { get; set; }
 
-    public object Input { get; set; }
+    public string Path { get; set; }
+
+    public string SasToken { get; set; }
 }
