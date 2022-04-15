@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Functions.Duplicate;
 /// </summary>
 public class DuplicationOptions
 {
-    internal const string SectionName = "Duplication";
+    internal const string SectionName = "Duplicate";
 
     /// <summary>
     /// Gets or sets the number of DICOM instances processed by a single activity.

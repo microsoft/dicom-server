@@ -42,6 +42,7 @@ public partial class DuplicationDurableFunction
         logger = context.CreateReplaySafeLogger(logger);
         DuplicateCheckpoint input = context.GetInput<DuplicateCheckpoint>();
 
+        // TODO: only 1 place to config instead from both Web appconfig and Function host.json.
         // Backfill batching options
         input.Batching ??= new BatchingOptions
         {

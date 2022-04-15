@@ -172,6 +172,14 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<UidAsInstanceName>()
+            .Scoped()
+            .AsSelf();
+
+        services.Add<WatermarkAsInstanceName>()
+            .Scoped()
+            .AsSelf();
+
         if (_featureConfiguration.EnableExtendedQueryTags)
         {
             services.Add<ExtendedQueryTagEntryValidator>()

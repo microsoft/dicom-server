@@ -41,4 +41,24 @@ public static class DicomFunctionsBuilderRegistrationExtensions
 
         return functionsBuilder;
     }
+
+
+    public static IDicomFunctionsBuilder AddFileStorageDataStore(
+        this IDicomFunctionsBuilder functionsBuilder,
+        IConfiguration configuration,
+        string containerName)
+    {
+        EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+        var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+        functionsBuilder.Services
+            .AddSingleton<BlobStoreConfigurationSection>()
+            .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
+            .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
+            .AddBlobServiceClient(blobConfig)
+            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, c => c.ContainerName = containerName);
+
+        return functionsBuilder;
+    }
 }
