@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -12,13 +13,14 @@ namespace Microsoft.Health.Dicom.Functions.Client.Extensions;
 
 internal static class DurableOrchestrationStatusExtensions
 {
+    private static readonly IReadOnlyDictionary<string, DicomOperation> NameOperationMapping = new Dictionary<string, DicomOperation>(StringComparer.OrdinalIgnoreCase)
+    {
+        { FunctionNames.ReindexInstances, DicomOperation.Reindex },
+        { FunctionNames.DuplicateInstances, DicomOperation.Duplicate },
+    };
     public static DicomOperation GetDicomOperation(this DurableOrchestrationStatus status)
     {
         EnsureArg.IsNotNull(status, nameof(status));
-
-        return status.Name != null &&
-            status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
-            ? DicomOperation.Reindex
-            : DicomOperation.Unknown;
+        return NameOperationMapping.GetValueOrDefault(status.Name ?? string.Empty, DicomOperation.Unknown);
     }
 }

@@ -8,4 +8,5 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 internal static class FunctionNames
 {
     public const string ReindexInstances = "ReindexInstancesAsync";
+    public const string DuplicateInstances = "DuplicateInstancesAsync";
 }

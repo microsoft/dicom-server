@@ -17,4 +17,7 @@ internal class DicomFunctionOptions
 
     [Required]
     public FanOutFunctionOptions Indexing { get; set; }
+
+    [Required]
+    public FanOutFunctionOptions Duplicate { get; set; }
 }

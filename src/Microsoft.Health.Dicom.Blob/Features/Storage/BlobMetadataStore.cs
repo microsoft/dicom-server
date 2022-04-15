@@ -158,6 +158,7 @@ public class BlobMetadataStore : IMetadataStore
         var duplicatedBlob = GetInstanceBlockBlob(identifier, duplicated: true);
         if (!await duplicatedBlob.ExistsAsync(cancellationToken))
         {
+            // TODO: what if copy failed (source doesn't exist, write permission lost etc.)
             var operation = await duplicatedBlob.StartCopyFromUriAsync(blob.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
         }

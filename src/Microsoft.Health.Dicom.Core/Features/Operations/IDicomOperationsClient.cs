@@ -52,4 +52,6 @@ public interface IDicomOperationsClient
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
+
+    Task<Guid> StartDuplicatingInstancesAsync(CancellationToken cancellationToken = default);
 }

@@ -137,6 +137,26 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return confirmedTags.Count > 0 ? operationId : throw new ExtendedQueryTagsAlreadyExistsException();
     }
 
+    /// <inheritdoc/>
+    public async Task<Guid> StartDuplicatingInstancesAsync(CancellationToken cancellationToken = default)
+    {
+
+        // Start the re-indexing orchestration
+        Guid operationId = _guidFactory.Create();
+
+        // TODO: Pass token when supported
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Duplicate.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new DuplicateInput
+            {
+                Batching = _options.Duplicate.Batching
+            });
+
+        _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
+        return operationId;
+    }
+
     // Note that the Durable Task Framework does not preserve the original CreatedTime
     // when an orchestration is restarted via ContinueAsNew, so we may store the original
     // in the checkpoint
@@ -144,6 +164,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         => type switch
         {
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
+            DicomOperation.Duplicate => status.Input?.ToObject<DuplicateCheckpoint>() ?? new DuplicateCheckpoint(),
             _ => NullOperationCheckpoint.Value,
         };
 
@@ -164,6 +185,9 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 }
 
                 return tagPaths.Select(x => _urlResolver.ResolveQueryTagUri(x.Path)).ToList();
+            case DicomOperation.Duplicate:
+                // Duplicate operation returns no resources.
+                return new List<Uri>();
             default:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }

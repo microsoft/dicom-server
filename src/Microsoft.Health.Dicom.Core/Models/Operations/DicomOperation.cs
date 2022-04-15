@@ -19,4 +19,6 @@ public enum DicomOperation
     /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
     /// </summary>
     Reindex,
+
+    Duplicate,
 }
