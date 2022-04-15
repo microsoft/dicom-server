@@ -38,6 +38,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private readonly IGuidFactory _guidFactory;
     private readonly DicomFunctionOptions _options;
     private readonly ILogger _logger;
+    public const string DuplicationOperationId = "a4f08bd4b1284deca955cc5cc576cc0c";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DicomAzureFunctionsClient"/> class.
@@ -141,20 +142,39 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     public async Task<Guid> StartDuplicatingInstancesAsync(CancellationToken cancellationToken = default)
     {
 
-        // Start the re-indexing orchestration
-        Guid operationId = _guidFactory.Create();
+        // Start the duplication orchestration
+        string operationId = DuplicationOperationId;
 
-        // TODO: Pass token when supported
-        string instanceId = await _durableClient.StartNewAsync(
-            _options.Duplicate.Name,
-            operationId.ToString(OperationId.FormatSpecifier),
-            new DuplicateInput
+        var existingInstance = await _durableClient.GetStatusAsync(operationId);
+        if (existingInstance == null
+            || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Failed
+            || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Terminated
+            || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Canceled)
+        {
+            try
             {
-                Batching = _options.Duplicate.Batching
-            });
+                // if not started or stop in the middle, restart it.
+                // TODO: Pass token when supported
+                string instanceId = await _durableClient.StartNewAsync(
+                    _options.Duplicate.Name,
+                    operationId,
+                    new DuplicateInput
+                    {
+                        Batching = _options.Duplicate.Batching
+                    });
+                _logger.LogInformation("Successfully started duplicate operation with ID '{InstanceId}'.", instanceId);
 
-        _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
-        return operationId;
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Failed to started duplicate operation with ID '{InstanceId}'.", operationId);
+            }
+        }
+        else
+        {
+            _logger.LogInformation("Duplicate operation with ID '{InstanceId}' has already been started by other clients.", operationId);
+        }
+        return Guid.Parse(operationId);
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
