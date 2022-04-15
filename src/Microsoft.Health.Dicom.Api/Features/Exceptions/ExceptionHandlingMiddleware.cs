@@ -57,12 +57,12 @@ public class ExceptionHandlingMiddleware
 
         if (exceptionDispatchInfo != null)
         {
-            IActionResult result = MapExceptionToResult(exceptionDispatchInfo.SourceException, context);
+            IActionResult result = MapExceptionToResult(exceptionDispatchInfo.SourceException);
             await ExecuteResultAsync(context, result);
         }
     }
 
-    private IActionResult MapExceptionToResult(Exception exception, HttpContext context)
+    private IActionResult MapExceptionToResult(Exception exception)
     {
         HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
         string message = exception.Message;

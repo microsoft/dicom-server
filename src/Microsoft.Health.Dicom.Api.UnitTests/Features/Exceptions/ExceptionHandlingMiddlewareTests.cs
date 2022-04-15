@@ -54,7 +54,7 @@ public class ExceptionHandlingMiddlewareTests
 
     [Theory]
     [MemberData(nameof(GetExceptionToStatusCodeMapping))]
-    public async Task GivenAnException_WhenMiddlewareIsExecuted_ThenCorrectStatusCodeShouldBeRetruned(Exception exception, HttpStatusCode expectedStatusCode)
+    public async Task GivenAnException_WhenMiddlewareIsExecuted_ThenCorrectStatusCodeShouldBeReturned(Exception exception, HttpStatusCode expectedStatusCode)
     {
         ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw exception);
 
