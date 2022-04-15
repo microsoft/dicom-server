@@ -30,6 +30,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
     {
         EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
+        EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
 
         var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
         functionsBuilder.Services
@@ -50,6 +51,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
     {
         EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
+        EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
 
         var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
         functionsBuilder.Services
@@ -57,7 +59,10 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
             .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
             .AddBlobServiceClient(blobConfig)
-            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, c => c.ContainerName = containerName);
+            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, (c) =>
+             {
+                 c.ContainerName = containerName;
+             });
 
         return functionsBuilder;
     }

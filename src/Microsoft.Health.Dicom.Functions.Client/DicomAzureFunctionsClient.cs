@@ -146,6 +146,15 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         string operationId = DuplicationOperationId;
 
         var existingInstance = await _durableClient.GetStatusAsync(operationId);
+        if (existingInstance == null)
+        {
+            _logger.LogDebug("No existing duplicate operation.");
+        }
+        else
+        {
+            _logger.LogDebug("Existing duplicate operation is in status: '{Status}'", existingInstance.RuntimeStatus);
+        }
+
         if (existingInstance == null
             || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Failed
             || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Terminated

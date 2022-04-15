@@ -3,7 +3,8 @@
   "BlobStore": {
     "ConnectionString": null,
     "Containers": {
-      "Metadata": "metadatacontainer"
+      "Metadata": "metadatacontainer",
+      "File": "dicomwebcontainer"
     },
     "Initialization": {
       "RetryDelay": "00:00:15",
@@ -29,6 +30,16 @@
       "BatchSize": 100,
       "BatchThreadCount": 5,
       "MaxParallelBatches": 10,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
+    },
+    "Duplicate": {
+      "BatchSize": 1,
+      "BatchThreadCount": 1,
+      "MaxParallelBatches": 1,
       "RetryOptions": {
         "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
