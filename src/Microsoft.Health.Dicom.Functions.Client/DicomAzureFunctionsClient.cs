@@ -155,10 +155,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             _logger.LogDebug("Existing duplicate operation is in status: '{Status}'", existingInstance.RuntimeStatus);
         }
 
-        if (existingInstance == null
-            || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Failed
-            || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Terminated
-            || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Canceled)
+        if (existingInstance == null || StoppedInTheMiddle(existingInstance))
         {
             try
             {
@@ -181,9 +178,21 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         }
         else
         {
-            _logger.LogInformation("Duplicate operation with ID '{InstanceId}' has already been started by other clients.", operationId);
+            if (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
+            {
+                _logger.LogInformation("Duplicate operation with ID '{InstanceId}' has been completed successfully.", operationId);
+            }
+            else
+            {
+                _logger.LogInformation("Duplicate operation with ID '{InstanceId}' has already been started by other clients.", operationId);
+            }
         }
         return Guid.Parse(operationId);
+    }
+
+    private static bool StoppedInTheMiddle(DurableOrchestrationStatus status)
+    {
+        return status.RuntimeStatus == OrchestrationRuntimeStatus.Canceled || status.RuntimeStatus == OrchestrationRuntimeStatus.Failed || status.RuntimeStatus == OrchestrationRuntimeStatus.Terminated;
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
