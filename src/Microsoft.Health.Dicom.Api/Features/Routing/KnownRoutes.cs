@@ -53,7 +53,7 @@ public static class KnownRoutes
     public const string QueryInstancesInStudyRoute = StudyRoute + "/" + InstancesRouteSegment;
     public const string QueryInstancesInSeriesRoute = SeriesRoute + "/" + InstancesRouteSegment;
 
-    public const string ExportInstancesRoute = InstancesRouteSegment + "/" + ExportSegment;
+    public const string ExportInstancesRoute = ExportSegment;
 
     public const string ChangeFeed = "changefeed";
     public const string ChangeFeedLatest = ChangeFeed + "/" + "latest";
