@@ -22,7 +22,7 @@ public class LazyMultipartReadOnlyStream : Stream
 #pragma warning restore CA1844 // Provide memory-based overrides of async methods when subclassing 'Stream'
 {
 #pragma warning disable CA2213 // Disposable fields should be disposed, (disposed in ReadAsync)
-    private readonly IAsyncEnumerator<DicomStreamContent> _asyncEnumerator;
+    private readonly IAsyncEnumerator<IHttpStreamContent> _asyncEnumerator;
 #pragma warning restore CA2213 // Disposable fields should be disposed
     private readonly int _bufferSize;
     private const string Crlf = "\r\n";
@@ -32,13 +32,13 @@ public class LazyMultipartReadOnlyStream : Stream
     private const int KB = 1024;
 
     private byte[] _buffer;
-    private DicomStreamContent _currentStreamContent;
+    private IHttpStreamContent _currentStreamContent;
     private int _bufferPosition;
     private int _bufferLength;
     private bool _terminating;
 
     public LazyMultipartReadOnlyStream(
-        IAsyncEnumerable<DicomStreamContent> enumerableStreams,
+        IAsyncEnumerable<IHttpStreamContent> enumerableStreams,
         string boundary,
         int bufferSize,
         CancellationToken cancellation)
