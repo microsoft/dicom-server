@@ -49,7 +49,7 @@ When running the container, additional configuration details can also be specifi
 ```bash
 docker run -d \
     -e DicomServer__Security__Enabled="false" \
-    -e SqlServer__ConnectionString="Server=tcp:<sql-server-fqdn>,1433;Initial Catalog=DICOM;Persist Security Info=False;User ID=sa;Password=<sql-sa-password>;MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true" \
+    -e SqlServer__ConnectionString="Server=tcp:<sql-server-fqdn>,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=<sql-sa-password>;MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true" \
     -e SqlServer__AllowDatabaseCreation="true" \
     -e SqlServer__Initialize="true" \
     -e BlobStore__ConnectionString="<blob-connection-string>" \
