@@ -13,19 +13,19 @@ namespace Microsoft.Health.Dicom.Core.Extensions;
 /// </summary>
 public static class DicomElementExtensions
 {
-    public static string GetFirstValueOrDefault(this DicomElement dicomElement)
+    public static T GetFirstValueOrDefault<T>(this DicomElement dicomElement)
     {
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
         if (dicomElement.Count == 0)
         {
-            return default(string);
+            return default(T);
         }
 
         if (dicomElement.Count == 1)
         {
-            return dicomElement.Get<string>();
+            return dicomElement.Get<T>();
         }
-        return dicomElement.Get<string>(0);
+        return dicomElement.Get<T>(0);
     }
 
 }

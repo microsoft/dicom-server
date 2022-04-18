@@ -167,7 +167,7 @@ public class StoreResponseBuilderTests
 
         // We have 2 items: RetrieveURL and ReferencedSOPSequence.
         Assert.Equal(2, response.Dataset.Count());
-        Assert.Equal("1", response.Dataset.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
+        Assert.Equal("1", response.Dataset.GetFirstValueOrDefault<string>(DicomTag.RetrieveURL));
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class StoreResponseBuilderTests
 
         // We have 3 items: RetrieveURL, FailedSOPSequence, and ReferencedSOPSequence.
         Assert.Equal(3, response.Dataset.Count());
-        Assert.Equal("1", response.Dataset.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
+        Assert.Equal("1", response.Dataset.GetFirstValueOrDefault<string>(DicomTag.RetrieveURL));
     }
 
     [Fact]

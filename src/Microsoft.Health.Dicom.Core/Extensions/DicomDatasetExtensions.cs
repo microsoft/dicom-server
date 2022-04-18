@@ -73,17 +73,22 @@ public static class DicomDatasetExtensions
     /// <param name="expectedVR">Expected VR of the element.</param>
     /// <remarks>If expectedVR is provided, and not match, will return default<typeparamref name="T"/></remarks>
     /// <returns>The value if the value exists; otherwise, the default value for the type <typeparamref name="T"/>.</returns>
-    public static T GetSingleValueOrDefault<T>(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
+    public static T GetFirstValueOrDefault<T>(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-
-        // If VR doesn't match, return default(T)
-        if (expectedVR != null && dicomDataset.GetDicomItem<DicomElement>(dicomTag)?.ValueRepresentation != expectedVR)
+        DicomElement element = dicomDataset.GetDicomItem<DicomElement>(dicomTag);
+        if (element == null)
         {
             return default;
         }
 
-        return dicomDataset.GetSingleValueOrDefault<T>(dicomTag, default);
+        // If VR doesn't match, return default(T)
+        if (expectedVR != null && element.ValueRepresentation != expectedVR)
+        {
+            return default;
+        }
+
+        return element.GetFirstValueOrDefault<T>();
     }
 
     /// <summary>
@@ -97,7 +102,7 @@ public static class DicomDatasetExtensions
     public static DateTime? GetStringDateAsDate(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-        string stringDate = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
+        string stringDate = dicomDataset.GetFirstValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
         return DateTime.TryParseExact(stringDate, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result) ? result : null;
     }
 
@@ -113,7 +118,7 @@ public static class DicomDatasetExtensions
     public static Tuple<DateTime?, DateTime?> GetStringDateTimeAsLiteralAndUtcDateTimes(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-        string stringDateTime = dicomDataset.GetSingleValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
+        string stringDateTime = dicomDataset.GetFirstValueOrDefault<string>(dicomTag, expectedVR: expectedVR);
 
         if (string.IsNullOrEmpty(stringDateTime))
         {
@@ -166,7 +171,7 @@ public static class DicomDatasetExtensions
     private static TimeSpan? GetTimezoneOffsetFromUtcAsTimeSpan(this DicomDataset dicomDataset)
     {
         // Cannot parse it directly as TimeSpan as the offset needs to follow specific formats.
-        string offset = dicomDataset.GetSingleValueOrDefault<string>(DicomTag.TimezoneOffsetFromUTC, expectedVR: DicomVR.SH);
+        string offset = dicomDataset.GetFirstValueOrDefault<string>(DicomTag.TimezoneOffsetFromUTC, expectedVR: DicomVR.SH);
 
         if (!string.IsNullOrEmpty(offset))
         {
@@ -203,7 +208,7 @@ public static class DicomDatasetExtensions
 
         try
         {
-            result = dicomDataset.GetSingleValueOrDefault<DateTime>(dicomTag, expectedVR: expectedVR).Ticks;
+            result = dicomDataset.GetFirstValueOrDefault<DateTime>(dicomTag, expectedVR: expectedVR).Ticks;
         }
         catch (Exception)
         {

@@ -81,7 +81,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         {
             { DicomTag.ReferencedSOPInstanceUID, dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) },
             { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance).ToString() },
-            { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID) },
+            { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
         if (warningReasonCode.HasValue)
@@ -117,11 +117,11 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
         failedSop.AddValueIfNotNull(
             DicomTag.ReferencedSOPClassUID,
-            dicomDataset?.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID));
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
 
         failedSop.AddValueIfNotNull(
             DicomTag.ReferencedSOPInstanceUID,
-            dicomDataset?.GetSingleValueOrDefault<string>(DicomTag.SOPInstanceUID));
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
 
         failedSopSequence.Items.Add(failedSop);
     }
