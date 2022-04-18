@@ -16,7 +16,7 @@ internal class UidValidation : IElementValidation
 
     public void Validate(DicomElement dicomElement)
     {
-        string value = dicomElement.Get<string>();
+        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
     }

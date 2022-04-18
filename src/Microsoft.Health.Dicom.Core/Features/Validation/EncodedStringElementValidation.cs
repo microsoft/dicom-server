@@ -33,7 +33,7 @@ internal class EncodedStringElementValidation : IElementValidation
 
     private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode)
     {
-        string value = element.Get<string>();
+        string value = element.GetFirstValueOrDefault<string>();
 
         try
         {

@@ -17,7 +17,7 @@ internal class DateValidation : IElementValidation
 
     public void Validate(DicomElement dicomElement)
     {
-        string value = dicomElement.Get<string>();
+        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         if (string.IsNullOrEmpty(value))
         {
