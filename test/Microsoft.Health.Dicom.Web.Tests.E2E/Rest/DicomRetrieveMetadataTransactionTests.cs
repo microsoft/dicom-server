@@ -34,7 +34,6 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
 
     [Theory]
     [InlineData("application/data")]
-    [InlineData("application/json")]
     public async Task GivenAnIncorrectAcceptHeader_WhenRetrievingResource_ThenNotAcceptableIsReturned(string acceptHeader)
     {
         // Study

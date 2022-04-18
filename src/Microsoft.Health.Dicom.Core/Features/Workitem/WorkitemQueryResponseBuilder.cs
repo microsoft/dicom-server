@@ -8,6 +8,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
@@ -67,10 +68,32 @@ public static class WorkitemQueryResponseBuilder
     };
 
     /// <summary>
+    /// Builds workitem query response
+    /// </summary>
+    /// <returns></returns>
+    public static QueryWorkitemResourceResponse BuildWorkitemQueryResponse(IReadOnlyList<DicomDataset> datasets, BaseQueryExpression queryExpression)
+    {
+        var status = WorkitemResponseStatus.NoContent;
+
+        if (datasets.Any(x => x == null))
+        {
+            status = WorkitemResponseStatus.PartialContent;
+        }
+        else if (datasets.Any())
+        {
+            status = WorkitemResponseStatus.Success;
+        }
+
+        var workitemResponses = datasets.Where(x => x != null).Select(m => GenerateResponseDataset(m, queryExpression)).ToList();
+
+        return new QueryWorkitemResourceResponse(workitemResponses, status);
+    }
+
+    /// <summary>
     /// Includes workitem attributes as specified in
     /// <see href='https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.9.2'/>.
     /// </summary>
-    public static DicomDataset GenerateResponseDataset(DicomDataset dicomDataset, BaseQueryExpression queryExpression)
+    private static DicomDataset GenerateResponseDataset(DicomDataset dicomDataset, BaseQueryExpression queryExpression)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));

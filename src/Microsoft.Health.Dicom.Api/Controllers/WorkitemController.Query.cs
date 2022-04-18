@@ -30,7 +30,7 @@ public partial class WorkitemController
     /// </summary>
     /// <returns>ObjectResult which contains list of dicomdataset</returns>
     [HttpGet]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson }, allowSingle: true, allowMultiple: false)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
@@ -50,6 +50,6 @@ public partial class WorkitemController
             options.ToBaseQueryParameters(Request.Query),
             cancellationToken: HttpContext.RequestAborted);
 
-        return response.ResponseDatasets.Any() ? StatusCode((int)HttpStatusCode.OK, response.ResponseDatasets) : NoContent();
+        return response.ResponseDatasets.Any() ? StatusCode((int)response.Status.QueryResponseToHttpStatusCode(), response.ResponseDatasets) : NoContent();
     }
 }

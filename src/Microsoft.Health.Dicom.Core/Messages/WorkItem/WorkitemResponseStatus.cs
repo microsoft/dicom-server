@@ -34,4 +34,14 @@ public enum WorkitemResponseStatus
     /// Workitem instance already exist.
     /// </summary>
     Conflict,
+
+    /// <summary>
+    /// All matching workitem instance(s) found
+    /// </summary>
+    NoContent,
+
+    /// <summary>
+    /// Only partial workitem instance(s) found
+    /// </summary>
+    PartialContent,
 }

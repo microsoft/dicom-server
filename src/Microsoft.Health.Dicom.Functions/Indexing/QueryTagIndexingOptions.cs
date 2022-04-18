@@ -35,12 +35,6 @@ public class QueryTagIndexingOptions
     public int MaxParallelBatches { get; set; } = 10;
 
     /// <summary>
-    /// Gets the maximum number of DICOM instances that are processed concurrently
-    /// across all activities for a single orchestration instance.
-    /// </summary>
-    public int MaxParallelCount => BatchSize * MaxParallelBatches;
-
-    /// <summary>
     /// Gets or sets the <see cref="ActivityRetryOptions"/> for re-indexing activities.
     /// </summary>
     public ActivityRetryOptions RetryOptions { get; set; }

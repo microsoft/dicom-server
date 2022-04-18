@@ -47,8 +47,8 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomTag filmTag = DicomTag.NumberOfFilms;
 
         // Try to delete these extended query tags.
-        await CleanupExtendedQueryTag(genderTag);
-        await CleanupExtendedQueryTag(filmTag);
+        await _tagManager.DeleteExtendedQueryTagAsync(genderTag.GetPath());
+        await _tagManager.DeleteExtendedQueryTagAsync(filmTag.GetPath());
 
         // Define DICOM files
         DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -107,7 +107,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         string tagValue = "053Y";
 
         // Try to delete this extended query tag if it exists.
-        await CleanupExtendedQueryTag(tag);
+        await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
 
         // Define DICOM files
         DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
@@ -208,8 +208,8 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
     {
         DicomTag dsTag = DicomTag.PatientSize;
         DicomTag isTag = DicomTag.ReferencedFrameNumber;
-        await CleanupExtendedQueryTag(dsTag);
-        await CleanupExtendedQueryTag(isTag);
+        await _tagManager.DeleteExtendedQueryTagAsync(dsTag.GetPath());
+        await _tagManager.DeleteExtendedQueryTagAsync(isTag.GetPath());
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
         var dataSet = dicomFile.Dataset.NotValidated();
         dataSet.Add(dsTag, "InvalidDSValue");
@@ -223,7 +223,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
     {
         DicomTag tag = DicomTag.StageNumber;
 
-        await CleanupExtendedQueryTag(tag);
+        await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
 
         // add extended query tag
         Assert.Equal(
@@ -237,18 +237,6 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         dataSet.Add(tag, "InvalidISValue");
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
-    }
-
-    private async Task CleanupExtendedQueryTag(DicomTag tag)
-    {
-        // Try to delete this extended query tag.
-        try
-        {
-            await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
-        }
-        catch (DicomWebException)
-        {
-        }
     }
 
     public static IEnumerable<object[]> GetRequestBodyWithMissingProperty

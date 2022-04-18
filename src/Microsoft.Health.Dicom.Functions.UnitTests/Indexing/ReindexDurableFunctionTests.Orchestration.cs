@@ -34,7 +34,7 @@ public partial class ReindexDurableFunctionTests
         DateTime createdTime = DateTime.UtcNow;
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
-        var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
+        var expectedInput = new ReindexCheckpoint { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
         var expectedTags = new List<ExtendedQueryTagStoreEntry>
         {
             new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
@@ -46,7 +46,7 @@ public partial class ReindexDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
         context
-            .GetInput<ReindexInput>()
+            .GetInput<ReindexCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -58,7 +58,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)))
+                Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
@@ -70,7 +70,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
                 nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(operationId)))
+                Arg.Is(GetPredicate()))
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
         // Invoke the orchestration
@@ -79,7 +79,7 @@ public partial class ReindexDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<ReindexInput>();
+            .GetInput<ReindexCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -97,7 +97,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)));
+                Arg.Is(GetPredicate(null)));
 
         foreach (WatermarkRange batch in expectedBatches)
         {
@@ -120,11 +120,11 @@ public partial class ReindexDurableFunctionTests
              .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
                 nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(operationId)));
+                Arg.Is(GetPredicate()));
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<ReindexInput>(x => GetPredicate(createdTime, expectedTags, expectedBatches, 50)(x)),
+                Arg.Is<ReindexCheckpoint>(x => GetPredicate(createdTime, expectedTags, expectedBatches, 50)(x)),
                 false);
     }
 
@@ -136,7 +136,7 @@ public partial class ReindexDurableFunctionTests
         _options.MaxParallelBatches = 2;
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
-        var expectedInput = new ReindexInput
+        var expectedInput = new ReindexCheckpoint
         {
             Completed = new WatermarkRange(36, 42),
             CreatedTime = DateTime.UtcNow,
@@ -152,7 +152,7 @@ public partial class ReindexDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<ReindexInput>()
+            .GetInput<ReindexCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -179,7 +179,7 @@ public partial class ReindexDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<ReindexInput>();
+            .GetInput<ReindexCheckpoint>();
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -224,7 +224,7 @@ public partial class ReindexDurableFunctionTests
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<ReindexInput>(x => GetPredicate(expectedInput.CreatedTime.Value, expectedTags, expectedBatches, 42)(x)),
+                Arg.Is<ReindexCheckpoint>(x => GetPredicate(expectedInput.CreatedTime.Value, expectedTags, expectedBatches, 42)(x)),
                 false);
     }
 
@@ -232,7 +232,7 @@ public partial class ReindexDurableFunctionTests
     public async Task GivenNoInstances_WhenReindexingInstances_ThenComplete()
     {
         var expectedBatches = new List<WatermarkRange>();
-        var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
+        var expectedInput = new ReindexCheckpoint { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
         var expectedTags = new List<ExtendedQueryTagStoreEntry>
         {
             new ExtendedQueryTagStoreEntry(1, "01010101", "AS", null, QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
@@ -243,7 +243,7 @@ public partial class ReindexDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<ReindexInput>()
+            .GetInput<ReindexCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -255,7 +255,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)))
+                Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<int>>(
@@ -270,7 +270,7 @@ public partial class ReindexDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<ReindexInput>();
+            .GetInput<ReindexCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -288,7 +288,7 @@ public partial class ReindexDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
                 nameof(ReindexDurableFunction.GetInstanceBatchesV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate((long?)null)));
+                Arg.Is(GetPredicate(null)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
@@ -318,7 +318,7 @@ public partial class ReindexDurableFunctionTests
     public async Task GivenNoRemainingInstances_WhenReindexingInstances_ThenComplete(long start, long end)
     {
         var expectedBatches = new List<WatermarkRange>();
-        var expectedInput = new ReindexInput
+        var expectedInput = new ReindexCheckpoint
         {
             Completed = new WatermarkRange(start, end),
             CreatedTime = DateTime.UtcNow,
@@ -334,7 +334,7 @@ public partial class ReindexDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<ReindexInput>()
+            .GetInput<ReindexCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -361,7 +361,7 @@ public partial class ReindexDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<ReindexInput>();
+            .GetInput<ReindexCheckpoint>();
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -406,13 +406,13 @@ public partial class ReindexDurableFunctionTests
     [Fact]
     public async Task GivenNoQueryTags_WhenReindexingInstances_ThenComplete()
     {
-        var expectedInput = new ReindexInput { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
+        var expectedInput = new ReindexCheckpoint { QueryTagKeys = new List<int> { 1, 2, 3, 4, 5 } };
         var expectedTags = new List<ExtendedQueryTagStoreEntry>();
 
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<ReindexInput>()
+            .GetInput<ReindexCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -427,7 +427,7 @@ public partial class ReindexDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<ReindexInput>();
+            .GetInput<ReindexCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<ExtendedQueryTagStoreEntry>>(
@@ -509,12 +509,9 @@ public partial class ReindexDurableFunctionTests
             && x.ThreadCount == _options.BatchThreadCount;
     }
 
-    private static Expression<Predicate<GetInstanceStatusInput>> GetPredicate(string instanceId)
+    private static Expression<Predicate<GetInstanceStatusOptions>> GetPredicate()
     {
-        return x => x.InstanceId == instanceId
-            && !x.ShowHistory
-            && !x.ShowHistoryOutput
-            && !x.ShowInput;
+        return x => !x.ShowHistory && !x.ShowHistoryOutput && !x.ShowInput;
     }
 
     private static Predicate<object> GetPredicate(
@@ -523,7 +520,7 @@ public partial class ReindexDurableFunctionTests
         IReadOnlyList<WatermarkRange> expectedBatches,
         long end)
     {
-        return x => x is ReindexInput r
+        return x => x is ReindexCheckpoint r
             && r.QueryTagKeys.SequenceEqual(queryTags.Select(y => y.Key))
             && r.Completed == new WatermarkRange(expectedBatches[expectedBatches.Count - 1].Start, end)
             && r.CreatedTime == createdTime;

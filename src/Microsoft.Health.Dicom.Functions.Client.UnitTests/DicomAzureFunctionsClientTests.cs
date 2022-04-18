@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -32,6 +33,7 @@ public class DicomAzureFunctionsClientTests
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IUrlResolver _urlResolver;
     private readonly IGuidFactory _guidFactory;
+    private readonly DicomFunctionOptions _options;
     private readonly DicomAzureFunctionsClient _client;
 
     public DicomAzureFunctionsClientTests()
@@ -43,11 +45,24 @@ public class DicomAzureFunctionsClientTests
         _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
         _urlResolver = Substitute.For<IUrlResolver>();
         _guidFactory = Substitute.For<IGuidFactory>();
+        _options = new DicomFunctionOptions
+        {
+            Indexing = new FanOutFunctionOptions
+            {
+                Name = FunctionNames.ReindexInstances,
+                Batching = new BatchingOptions
+                {
+                    MaxParallelCount = 1,
+                    Size = 100,
+                },
+            }
+        };
         _client = new DicomAzureFunctionsClient(
             durableClientFactory,
             _extendedQueryTagStore,
             _urlResolver,
             _guidFactory,
+            Options.Create(_options),
             NullLogger<DicomAzureFunctionsClient>.Instance);
     }
 
@@ -58,21 +73,25 @@ public class DicomAzureFunctionsClientTests
         IExtendedQueryTagStore extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
         IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
         IGuidFactory guidFactory = Substitute.For<IGuidFactory>();
+        var options = Options.Create(new DicomFunctionOptions());
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(null, extendedQueryTagStore, urlResolver, guidFactory, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(null, extendedQueryTagStore, urlResolver, guidFactory, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, null, urlResolver, guidFactory, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, null, urlResolver, guidFactory, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, null, guidFactory, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, null, guidFactory, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, null, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, null, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, guidFactory, null));
+            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, guidFactory, null, NullLogger<DicomAzureFunctionsClient>.Instance));
+
+        Assert.Throws<ArgumentNullException>(
+            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, guidFactory, options, null));
     }
 
     [Fact]
@@ -136,7 +155,7 @@ public class DicomAzureFunctionsClientTests
                 History = null,
                 Input = populateInput
                     ? JObject.FromObject(
-                        new ReindexInput
+                        new ReindexCheckpoint
                         {
                             Completed = new WatermarkRange(21, 100),
                             CreatedTime = overrideCreatedTime ? createdTime.AddHours(-1) : null,

@@ -95,7 +95,7 @@ public partial class ReindexDurableFunction
     [Obsolete("Please use GetInstanceBatchesV2Async instead.")]
     [FunctionName(nameof(GetInstanceBatchesAsync))]
     public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync([ActivityTrigger] long? maxWatermark, ILogger logger)
-        => GetInstanceBatchesV2Async(BatchCreationArguments.FromOptions(maxWatermark, _options), logger);
+        => GetInstanceBatchesV2Async(new BatchCreationArguments(maxWatermark, _options.BatchSize, _options.MaxParallelBatches), logger);
 
     /// <summary>
     /// Asynchronously retrieves the next set of instance batches based on the configured options.
