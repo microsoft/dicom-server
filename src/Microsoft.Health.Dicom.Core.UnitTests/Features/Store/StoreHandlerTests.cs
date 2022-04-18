@@ -66,7 +66,7 @@ public class StoreHandlerTests
 
         IDicomInstanceEntry[] dicomInstanceEntries = Array.Empty<IDicomInstanceEntry>();
         IDicomInstanceEntryReader dicomInstanceEntryReader = Substitute.For<IDicomInstanceEntryReader>();
-        var storeResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
+        var storeResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
         using var source = new CancellationTokenSource();
 
         dicomInstanceEntryReader.ReadAsync(DefaultContentType, Stream.Null, source.Token).Returns(dicomInstanceEntries);

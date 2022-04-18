@@ -9,10 +9,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Store;
 
 public sealed class StoreResponse
 {
-    public StoreResponse(StoreResponseStatus status, DicomDataset responseDataset)
+    public StoreResponse(StoreResponseStatus status, DicomDataset responseDataset, string warning)
     {
         Status = status;
         Dataset = responseDataset;
+        Warning = warning;
     }
 
     public StoreResponseStatus Status { get; }

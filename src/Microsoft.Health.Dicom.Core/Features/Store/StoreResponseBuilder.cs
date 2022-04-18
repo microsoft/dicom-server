@@ -58,7 +58,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             _dataset.Add(DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid).ToString());
         }
 
-        return new StoreResponse(status, _dataset);
+        return new StoreResponse(status, _dataset, _message);
     }
 
     /// <inheritdoc />

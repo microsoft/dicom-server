@@ -24,7 +24,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 public class DicomStoreServiceTests
 {
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-    private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
+    private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
         studyInstanceUid: "1",

@@ -372,6 +372,12 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         var response = await _instancesManager.StoreAsync(new DicomFile(dataset));
 
+        foreach (var item in response.ResponseHeaders.Warning)
+        {
+            Assert.Equal(299, item.Code);
+            Assert.Equal("_:", item.Agent);
+            Assert.Equal("\"One or more indexed Dicom tag(s) have multiple values, only first value is indexed.\"", item.Text);
+        }
     }
 
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders
