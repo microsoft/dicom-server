@@ -137,6 +137,7 @@ public class RetrieveMetadataServiceTests
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
         Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count);
+        Assert.Equal(response.ResponseMetadata.Count(), _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -164,6 +165,7 @@ public class RetrieveMetadataServiceTests
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
         Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count);
+        Assert.Equal(response.ResponseMetadata.Count(), _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -189,6 +191,7 @@ public class RetrieveMetadataServiceTests
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
         Assert.Single(response.ResponseMetadata);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     private List<VersionedInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key)

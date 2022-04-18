@@ -124,7 +124,7 @@ public class RetrieveResourceServiceTests
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
 
         // Validate instance count is added to dicom request context
-        Assert.Equal(streamsAndStoredFiles.Count, _dicomRequestContextAccessor.RequestContext.InstanceCount);
+        Assert.Equal(streamsAndStoredFiles.Count, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class RetrieveResourceServiceTests
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
 
         // Validate instance count is added to dicom request context
-        Assert.Equal(streamsAndStoredFiles.Count, _dicomRequestContextAccessor.RequestContext.InstanceCount);
+        Assert.Equal(streamsAndStoredFiles.Count, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -276,7 +276,7 @@ public class RetrieveResourceServiceTests
         streamAndStoredFile.Value.Dispose();
 
         // Validate instance count is added to dicom request context
-        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.InstanceCount);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -357,8 +357,8 @@ public class RetrieveResourceServiceTests
 
         streamAndStoredFile.Value.Dispose();
 
-        // Validate instance count is added to dicom request context
-        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.InstanceCount);
+        // Validate part count is equal to the number of frames returned
+        Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Theory]

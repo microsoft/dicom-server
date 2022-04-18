@@ -91,7 +91,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DatasetDoesNotMatchSOPClass));
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
-        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.InstanceCount);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.Received(0).AddSuccess(_dicomDataset1);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
-        Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.InstanceCount);
+        Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]

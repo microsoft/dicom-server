@@ -77,7 +77,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
 
-            _dicomRequestContextAccessor.RequestContext.InstanceCount = retrieveInstances.Count();
+            _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
 
             // we will only support retrieving multiple instance if requested in original format, since we can do lazyStreams
             if (retrieveInstances.Count() > 1 && !isOriginalTransferSyntaxRequested)
@@ -121,6 +121,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                             isOriginalTransferSyntaxRequested,
                             requestedTransferSyntax);
 
+                        _dicomRequestContextAccessor.RequestContext.PartCount = message.Frames.Count();
                         _dicomRequestContextAccessor.RequestContext.BytesTranscoded = needsTranscoding ? frameStreams.Sum(f => f.Length) : 0;
 
                         IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(

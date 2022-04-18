@@ -84,7 +84,7 @@ public class StoreService : IStoreService
     {
         if (instanceEntries != null)
         {
-            _dicomRequestContextAccessor.RequestContext.InstanceCount = instanceEntries.Count;
+            _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
 
