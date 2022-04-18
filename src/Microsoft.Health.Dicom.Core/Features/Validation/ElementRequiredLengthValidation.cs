@@ -52,7 +52,7 @@ internal class ElementRequiredLengthValidation : IElementValidation
 
     private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
     {
-        if (value?.Size != ExpectedLength)
+        if (value == null || value.Size == 0 || value.Size % ExpectedLength != 0)
         {
             throw new ElementValidationException(
                 name,
@@ -67,7 +67,8 @@ internal class ElementRequiredLengthValidation : IElementValidation
         value = string.Empty;
         if (StringVrs.Contains(dicomElement.ValueRepresentation))
         {
-            value = dicomElement.Get<string>();
+            // Only validate the first element
+            value = dicomElement.GetFirstValueOrDefault<string>();
             return true;
         }
 

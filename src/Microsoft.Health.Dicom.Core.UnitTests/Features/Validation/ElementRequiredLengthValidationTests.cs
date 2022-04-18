@@ -17,9 +17,9 @@ public class ElementRequiredLengthValidationTests
     [Fact]
     public void GivenBinaryValueNotRequiredLength_WhenValidating_ThenShouldThrows()
     {
-        DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new int[] { int.MaxValue }));
+        DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new byte[] { byte.MaxValue }));
         var ex = Assert.Throws<ElementValidationException>(() => new ElementRequiredLengthValidation(4).Validate(element));
-        Assert.Equal(ValidationErrorCode.MultipleValues, ex.ErrorCode);
+        Assert.Equal(ValidationErrorCode.UnexpectedLength, ex.ErrorCode);
     }
 
     [Fact]
