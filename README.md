@@ -12,7 +12,7 @@ The Medical Imaging Server for DICOM is a .NET Core implementation of DICOMweb&t
 
 Azure Health Data Service [DICOM service](https://docs.microsoft.com/en-us/azure/healthcare-apis/dicom/deploy-dicom-services-in-azure) is a managed service and recommended for production deployment.
 
-Only the nuget libraries released from this repo are supported.
+Only the Nuget libraries released from this repo are meant to be used in production.
 Review [maintainance guide]( ./docs/resources/dicom-server-maintaince-guide.md) if you want to manage your own deployment from this repo.   
 
 
