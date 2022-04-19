@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
+using FellowOakDicom.IO;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Xunit;
 
@@ -13,10 +14,17 @@ public class DicomElementExtensionsTests
 {
 
     [Fact]
-    public void GivenDicomElementWithMultipleValue_WhenCallGetFirstValueOrDefault_ThenShouldReturnFirstOne()
+    public void GivenDicomElementWithMultipleValues_WhenCallGetFirstValueOrDefault_ThenShouldReturnFirstOne()
     {
         DicomElement element = new DicomLongString(DicomTag.StudyDescription, "Value1", "Value2");
         Assert.Equal("Value1", element.GetFirstValueOrDefault<string>());
+    }
+
+    [Fact]
+    public void GivenDicomElementWithMultipleBinaryValues_WhenCallGetFirstValueOrDefault_ThenShouldReturnFirstOne()
+    {
+        DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new byte[] { 1, 2, 3 }));
+        Assert.Equal(513, element.GetFirstValueOrDefault<short>());
     }
 
     [Fact]

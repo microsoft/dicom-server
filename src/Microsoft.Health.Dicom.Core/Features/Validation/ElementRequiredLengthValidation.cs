@@ -52,7 +52,8 @@ internal class ElementRequiredLengthValidation : IElementValidation
 
     private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
     {
-        if (value == null || value.Size == 0 || value.Size % ExpectedLength != 0)
+        // We only validate first value, as long as long value.Size>=ExpectedLength, we are good to go.
+        if (value == null || value.Size == 0 || value.Size < ExpectedLength)
         {
             throw new ElementValidationException(
                 name,
