@@ -26,6 +26,8 @@ public static class AuditEventSubType
 
     public const string Store = "store";
 
+    public const string Export = "export";
+
     public const string Operation = "operation";
 
     public const string AddWorkitem = "add-workitem";

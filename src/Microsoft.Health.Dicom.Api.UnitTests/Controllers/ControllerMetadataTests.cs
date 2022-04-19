@@ -10,6 +10,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Api.Modules;
 using Xunit;
 
@@ -24,15 +25,15 @@ public class ControllerMetadataTests
 
     [Fact]
     public void GivenApi_WhenCountingControllers_ThenFindExpectedNumber()
-        => Assert.Equal(9, _controllerTypes.Count);
+        => Assert.Equal(10, _controllerTypes.Count);
 
     [Theory]
-    [InlineData("1.0-prerelease")]
+    [InlineData("1.0-prerelease", nameof(ExportController))]
     [InlineData("1")]
-    public void GivenControllers_WhenQueryingApiVersion_ThenFindCorrectValue(string version)
+    public void GivenControllers_WhenQueryingApiVersion_ThenFindCorrectValue(string version, params string[] exclusions)
     {
         var expected = ApiVersion.Parse(version);
-        foreach (Type controllerType in _controllerTypes)
+        foreach (Type controllerType in _controllerTypes.Where(x => !exclusions.Contains(x.Name)))
         {
             Attribute[] apiVersions = Attribute.GetCustomAttributes(controllerType, typeof(ApiVersionAttribute));
             Assert.Contains(apiVersions.Cast<ApiVersionAttribute>(), x => x.Versions.Single() == expected);

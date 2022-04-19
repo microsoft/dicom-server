@@ -74,38 +74,39 @@ public class ExceptionHandlingMiddleware
                 message = DicomApiResource.InvalidSyntax;
                 statusCode = HttpStatusCode.BadRequest;
                 break;
-            case ValidationException _:
-            case NotSupportedException _:
-            case AuditHeaderCountExceededException _:
-            case AuditHeaderTooLargeException _:
+            case FormatException:
+            case ValidationException:
+            case NotSupportedException:
+            case AuditHeaderCountExceededException:
+            case AuditHeaderTooLargeException:
+            case ConnectionResetException:
+            case OperationCanceledException:
             case BadHttpRequestException br when br.Message.Equals("Unexpected end of request content.", StringComparison.OrdinalIgnoreCase):
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
-            case ConnectionResetException _:
-            case OperationCanceledException _:
                 statusCode = HttpStatusCode.BadRequest;
                 break;
-            case ResourceNotFoundException _:
+            case ResourceNotFoundException:
                 statusCode = HttpStatusCode.NotFound;
                 break;
-            case NotAcceptableException _:
-            case TranscodingException _:
+            case NotAcceptableException:
+            case TranscodingException:
                 statusCode = HttpStatusCode.NotAcceptable;
                 break;
-            case DataStoreException _:
+            case DataStoreException:
                 statusCode = HttpStatusCode.ServiceUnavailable;
                 break;
-            case InstanceAlreadyExistsException _:
-            case ExtendedQueryTagsAlreadyExistsException _:
-            case ExtendedQueryTagsOutOfDateException _:
+            case InstanceAlreadyExistsException:
+            case ExtendedQueryTagsAlreadyExistsException:
+            case ExtendedQueryTagsOutOfDateException:
                 statusCode = HttpStatusCode.Conflict;
                 break;
-            case UnsupportedMediaTypeException _:
+            case UnsupportedMediaTypeException:
                 statusCode = HttpStatusCode.UnsupportedMediaType;
                 break;
-            case ServiceUnavailableException _:
+            case ServiceUnavailableException:
                 statusCode = HttpStatusCode.ServiceUnavailable;
                 break;
-            case ItemNotFoundException _:
+            case ItemNotFoundException:
                 // One of the required resources is missing.
                 statusCode = HttpStatusCode.InternalServerError;
                 break;
@@ -113,7 +114,7 @@ public class ExceptionHandlingMiddleware
                 _logger.LogInformation("Expected data actions not available: {DataActions}", udae.ExpectedDataActions);
                 statusCode = HttpStatusCode.Forbidden;
                 break;
-            case DicomServerException _:
+            case DicomServerException:
                 statusCode = HttpStatusCode.ServiceUnavailable;
                 break;
         }

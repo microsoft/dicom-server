@@ -532,6 +532,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The string &apos;{0}&apos; was not recognized as a valid DICOM identifier..
+        /// </summary>
+        internal static string InvalidDicomIdentifier {
+            get {
+                return ResourceManager.GetString("InvalidDicomIdentifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DICOM instance is invalid..
         /// </summary>
         internal static string InvalidDicomInstance {
@@ -591,6 +600,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidIncludeAllFields {
             get {
                 return ResourceManager.GetString("InvalidIncludeAllFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read invalid JSON token type &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidJsonToken {
+            get {
+                return ResourceManager.GetString("InvalidJsonToken", resourceCulture);
             }
         }
         
