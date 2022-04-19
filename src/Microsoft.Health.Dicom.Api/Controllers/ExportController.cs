@@ -31,7 +31,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 /// <summary>
 /// Represents an API controller for export operations.
 /// </summary>
-[ApiVersion("1.0-prerelease")]
 [ApiVersion("1")]
 [ServiceFilter(typeof(Features.Audit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
@@ -57,7 +56,7 @@ public class ExportController : ControllerBase
     {
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _enabled = EnsureArg.IsNotNull(options?.Value.EnableExport, nameof(options)).GetValueOrDefault();
+        _enabled = EnsureArg.IsNotNull(options?.Value?.EnableExport, nameof(options)).GetValueOrDefault();
     }
 
     /// <summary>
