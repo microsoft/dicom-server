@@ -87,6 +87,7 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Cors));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
