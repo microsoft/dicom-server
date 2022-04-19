@@ -121,7 +121,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                             isOriginalTransferSyntaxRequested,
                             requestedTransferSyntax);
 
-                        _dicomRequestContextAccessor.RequestContext.PartCount = message.Frames.Count();
+                        _dicomRequestContextAccessor.RequestContext.PartCount = frameStreams.Count;
                         _dicomRequestContextAccessor.RequestContext.BytesTranscoded = needsTranscoding ? frameStreams.Sum(f => f.Length) : 0;
 
                         IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(
