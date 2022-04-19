@@ -24,8 +24,7 @@ public interface IStoreDatasetValidator
     /// <param name="cancellationToken">The cancellation token</param>
     /// <exception cref="DatasetValidationException">Thrown when the validation fails.</exception>
     /// <returns>
-    /// True if there is no warning.
-    /// False if there are any warnings.
+    /// ValidationWarnings.
     /// </returns>
     Task<ValidationWarnings> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
 }
