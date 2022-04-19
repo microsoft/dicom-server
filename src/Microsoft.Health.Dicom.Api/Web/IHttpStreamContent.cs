@@ -8,10 +8,8 @@ using System.IO;
 
 namespace Microsoft.Health.Dicom.Api.Web;
 
-public class DicomStreamContent : IHttpStreamContent
+public interface IHttpStreamContent
 {
-    public Stream Stream { get; init; }
-
-    // could not use HttpContentHeaders since it has no public constructors. HttpHeaders is abstract class
-    public IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
+    IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
+    Stream Stream { get; init; }
 }
