@@ -24,6 +24,15 @@ public class DicomDatasetExtensionsTests
     private readonly DicomDataset _dicomDataset = new DicomDataset().NotValidated();
 
     [Fact]
+    public void GivenDicomTagWithMultipleValue_WhenGetFirstValueOrDefaultIsCalled_ThenShouldReturnFirstOne()
+    {
+        DicomTag tag = DicomTag.AbortReason;
+        DicomElement element = new DicomLongString(tag, "Value1", "Value2");
+        _dicomDataset.Add(element);
+        Assert.Equal("Value1", _dicomDataset.GetFirstValueOrDefault<string>(tag));
+    }
+
+    [Fact]
     public void GivenDicomTagWithDifferentVR_WhenGetFirstValueOrDefaultIsCalled_ThenShouldReturnNull()
     {
         DicomTag tag = DicomTag.AbortReason;
