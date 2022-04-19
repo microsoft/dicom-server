@@ -196,7 +196,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 299 _: &quot;{0}&quot;.
+        ///   Looks up a localized string similar to 299: {0}.
         /// </summary>
         internal static string WarningHeader {
             get {

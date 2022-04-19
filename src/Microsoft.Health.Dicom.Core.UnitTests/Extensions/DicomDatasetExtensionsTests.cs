@@ -24,7 +24,7 @@ public class DicomDatasetExtensionsTests
     private readonly DicomDataset _dicomDataset = new DicomDataset().NotValidated();
 
     [Fact]
-    public void GivenDicomTagWithDifferentVR_WhenGetSingleOrDefaultIsCalled_ThenShouldReturnNull()
+    public void GivenDicomTagWithDifferentVR_WhenGetFirstValueOrDefaultIsCalled_ThenShouldReturnNull()
     {
         DicomTag tag = DicomTag.AbortReason;
         DicomVR expectedVR = DicomVR.CS;
@@ -34,7 +34,7 @@ public class DicomDatasetExtensionsTests
     }
 
     [Fact]
-    public void GivenDicomTagDoesNotExist_WhenGetSingleOrDefaultIsCalled_ThenDefaultValueShouldBeReturned()
+    public void GivenDicomTagDoesNotExist_WhenGetFirstValueOrDefaultIsCalled_ThenDefaultValueShouldBeReturned()
     {
         Assert.Equal(default, _dicomDataset.GetFirstValueOrDefault<string>(DicomTag.StudyInstanceUID));
         Assert.Equal(default, _dicomDataset.GetFirstValueOrDefault<DateTime>(DicomTag.AcquisitionDateTime));
@@ -42,7 +42,7 @@ public class DicomDatasetExtensionsTests
     }
 
     [Fact]
-    public void GivenDicomTagExists_WhenGetSingleOrDefaultIsCalled_ThenCorrectValueShouldBeReturned()
+    public void GivenDicomTagExists_WhenGetFirstValueOrDefaultIsCalled_ThenCorrectValueShouldBeReturned()
     {
         const string expectedValue = "IA";
 

@@ -173,7 +173,7 @@
     <comment>{0} is field.</comment>
   </data>
   <data name="WarningHeader" xml:space="preserve">
-    <value>299 _: "{0}"</value>
+    <value>299: {0}</value>
     <comment>{0} is the warning message</comment>
   </data>
 </root>
