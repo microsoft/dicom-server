@@ -19,4 +19,4 @@ Below is a list of things to consider if you want to mantain your own deployment
 
 <br>
 
-> For getting started quickly and to run production workloads at scale with 99.9 SLA and all the mentioned things managed for you, we recommend the [Azure Health Data Services](https://docs.microsoft.com/en-us/azure/healthcare-apis/dicom/dicom-services-overview).
+We recommend trying [Azure Health Data Services](https://azure.microsoft.com/en-us/services/health-data-services/#overview) to get up-and-running quickly for production workloads. Our managed service takes care of all of the aforementioned complexity with a guaranteed SLA. Learn more about our managed DICOM Server offering [here](https://docs.microsoft.com/en-us/azure/healthcare-apis/dicom/dicom-services-overview).
