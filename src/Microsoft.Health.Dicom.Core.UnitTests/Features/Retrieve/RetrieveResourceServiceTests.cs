@@ -122,6 +122,9 @@ public class RetrieveResourceServiceTests
 
         // Dispose created streams.
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
+
+        // Validate instance count is added to dicom request context
+        Assert.Equal(streamsAndStoredFiles.Count, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -210,6 +213,9 @@ public class RetrieveResourceServiceTests
 
         // Dispose created streams.
         streamsAndStoredFiles.ToList().ForEach(x => x.Value.Dispose());
+
+        // Validate instance count is added to dicom request context
+        Assert.Equal(streamsAndStoredFiles.Count, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -268,6 +274,9 @@ public class RetrieveResourceServiceTests
 
         // Dispose created streams.
         streamAndStoredFile.Value.Dispose();
+
+        // Validate instance count is added to dicom request context
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -347,6 +356,9 @@ public class RetrieveResourceServiceTests
         ValidateDicomRequestIsPopulated();
 
         streamAndStoredFile.Value.Dispose();
+
+        // Validate part count is equal to the number of frames returned
+        Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Theory]

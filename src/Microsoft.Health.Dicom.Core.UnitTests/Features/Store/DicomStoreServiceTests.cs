@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -42,16 +43,21 @@ public class DicomStoreServiceTests
     private readonly IStoreDatasetValidator _dicomDatasetValidator = Substitute.For<IStoreDatasetValidator>();
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
+
     private readonly StoreService _storeService;
 
     public DicomStoreServiceTests()
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
+        _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
 
         _storeService = new StoreService(
             _storeResponseBuilder,
             _dicomDatasetValidator,
             _storeOrchestrator,
+            _dicomRequestContextAccessor,
             NullLogger<StoreService>.Instance);
     }
 
@@ -84,6 +90,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DatasetDoesNotMatchSOPClass));
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -182,6 +189,7 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.Received(0).AddSuccess(_dicomDataset1);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
+        Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
