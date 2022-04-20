@@ -60,3 +60,4 @@ steps:
     inputs:
       command: logout
       containerRegistry: 'dicomoss.azurecr.io'
+    condition: always()
