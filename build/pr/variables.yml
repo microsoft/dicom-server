@@ -6,6 +6,7 @@ variables:
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'
+  azureSubscriptionId: 'a1766500-6fd5-4f5c-8515-607798271014'
   azureSubscriptionName: 'Dicom OSS'
   buildConfiguration: 'Release'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria

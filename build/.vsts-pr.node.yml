@@ -11,7 +11,7 @@ pr:
     - tools/dicom-web-electron
 
 variables:
-- template: pr-variables.yml
+- template: pr/variables.yml
 
 trigger: none
 
@@ -19,8 +19,8 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-  - template: build-electron.yml
-  - template: analyze.yml
+  - template: common/build-electron.yml
+  - template: common/analyze.yml
     parameters:
       analyzeARMTemplates: false
       analyzeBinaries: false

@@ -4,6 +4,9 @@
 parameters:
   - name: tag
     type: string
+  - name: push
+    type: boolean
+    default: true
 
 steps:
   - task: Docker@2
@@ -34,21 +37,23 @@ steps:
       repository: dicom-cast
       tags: ${{ parameters.tag }}
 
-  - task: Docker@2
-    displayName: 'Push dicom-server'
-    inputs:
-      command: 'push'
-      containerRegistry: 'dicomoss.azurecr.io'
-      repository: dicom-server
-      tags: ${{ parameters.tag }}
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: 'Push dicom-server'
+      inputs:
+        command: 'push'
+        containerRegistry: 'dicomoss.azurecr.io'
+        repository: dicom-server
+        tags: ${{ parameters.tag }}
 
-  - task: Docker@2
-    displayName: 'Push dicom-cast'
-    inputs:
-      command: 'push'
-      containerRegistry: 'dicomoss.azurecr.io'
-      repository: dicom-cast
-      tags: ${{ parameters.tag }}
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: 'Push dicom-cast'
+      inputs:
+        command: 'push'
+        containerRegistry: 'dicomoss.azurecr.io'
+        repository: dicom-cast
+        tags: ${{ parameters.tag }}
 
   - task: Docker@2
     displayName: Logout

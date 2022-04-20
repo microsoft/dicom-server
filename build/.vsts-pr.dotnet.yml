@@ -17,7 +17,7 @@ pr:
 trigger: none
 
 variables:
-- template: pr-variables.yml
+- template: pr/variables.yml
 
 stages:
 - stage: UpdateVersion
@@ -27,7 +27,7 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: ./update-semver.yml
+    - template: ./common/update-semver.yml
     - powershell: |
         $buildNumber = "$(GitVersion.SemVer)" -replace "\.", ""
         Write-Host "##vso[build.updatebuildnumber]$buildNumber"
@@ -50,10 +50,25 @@ stages:
     pool:
      vmImage: 'ubuntu-latest'
     steps:
-    - template: build-dotnet.yml
+    - template: common/build-dotnet.yml
       parameters:
         packageArtifacts: true
         packageNugets: false
+
+- stage: DockerBuild
+  displayName: 'Build Docker'
+  dependsOn:
+  - BuildDotNet
+  jobs:
+  - job: Docker
+    displayName: docker build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: common/docker-build-push.yml
+      parameters:
+        tag: $(imageTag)
+        push: false
 
 - stage: AnalyzeSecurity
   displayName: 'Run Security Analysis'
@@ -64,7 +79,7 @@ stages:
     pool:
       vmImage: 'windows-latest'
     steps:
-    - template: analyze.yml
+    - template: common/analyze.yml
       parameters:
         analyzePackages: false
 
@@ -73,31 +88,25 @@ stages:
   dependsOn:
   - BuildDotNet
   jobs:
-  - template: versioning.yml
+  - template: common/versioning.yml
 
 - stage: RunIntegrationTests
   displayName: 'Run Integration tests'
   dependsOn:
   - BuildDotNet
   jobs:
-  - template: run-integration-tests.yml
-    parameters:
-      runLocally: true
+  - template: pr/run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E tests'
   dependsOn:
   - BuildDotNet
   jobs:
-  - template: run-e2e-tests.yml
-    parameters:
-      runLocally: true
+  - template: pr/run-e2e-tests.yml
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
   dependsOn:
   - BuildDotNet
   jobs:
-  - template: run-e2e-features-enabled-tests.yml
-    parameters:
-      runLocally: true
+  - template: pr/run-e2e-features-enabled-tests.yml

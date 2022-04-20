@@ -13,7 +13,7 @@ pr:
 trigger: none
 
 variables:
-- template: pr-variables.yml
+- template: pr/variables.yml
 
 # Note: ARMory currently only works on Windows
 pool:
@@ -47,7 +47,7 @@ steps:
     inputs:
       deploymentScope: 'Resource Group'
       azureResourceManagerConnection: '$(azureSubscriptionName)'
-      subscriptionId: 'a1766500-6fd5-4f5c-8515-607798271014'
+      subscriptionId: '$(azureSubscriptionId)'
       action: 'Create Or Update Resource Group'
       resourceGroupName: '$(appServicePlanResourceGroup)'
       location: 'West US 2'
@@ -57,7 +57,7 @@ steps:
       deploymentMode: 'Validation'
       deploymentName: 'ValidateDicom$(System.PullRequest.PullRequestNumber)'
 
-  - template: analyze.yml
+  - template: common/analyze.yml
     parameters:
       analyzeBinaries: false
       analyzePackages: false
