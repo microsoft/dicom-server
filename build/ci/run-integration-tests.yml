@@ -19,4 +19,4 @@ jobs:
 
         dotnet dev-certs https
 
-  - template: common/run-integration-tests.yml
+  - template: ../common/run-integration-tests.yml

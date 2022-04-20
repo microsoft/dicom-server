@@ -20,7 +20,7 @@ jobs:
       for i in {1..6}; do docker exec sql-server sh -c "/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P L0ca1P@ssw0rd -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'" && exit 0 || sleep 5; done; exit 1
     displayName: 'Start Docker Dependencies'
 
-  - template: common/run-integration-tests.yml
+  - template: ../common/run-integration-tests.yml
 
   - script: |
       docker stop azure-storage

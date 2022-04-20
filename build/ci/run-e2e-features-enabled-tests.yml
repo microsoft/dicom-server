@@ -27,4 +27,4 @@ jobs:
 
         dotnet dev-certs https
 
-  - template: common/run-e2e-features-enabled-tests.yml
+  - template: ../common/run-e2e-features-enabled-tests.yml

@@ -30,7 +30,7 @@ steps:
       failOnAlert: true
 
   - ${{ if eq(parameters.packageArtifacts, 'true') }}:
-    - template: common/package.yml
+    - template: package.yml
 
   - ${{ if eq(parameters.packageNugets, 'true') }}:
-    - template: common/package-nugets.yml
+    - template: package-nugets.yml
