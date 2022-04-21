@@ -31,7 +31,7 @@ public static class KeyVaultClientRegistrationExtensions
         configureAction?.Invoke(config);
 
         // conditional KeyVault registration to support running on local docker
-        if (string.IsNullOrWhiteSpace(config.Endpoint))
+        if (!string.IsNullOrWhiteSpace(config.Endpoint))
         {
 
             dicomServerBuilder.Services.AddAzureClients(
