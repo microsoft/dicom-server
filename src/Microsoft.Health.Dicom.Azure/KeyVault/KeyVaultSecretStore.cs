@@ -8,11 +8,11 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.AzureKeyVault;
 
-public class SecretStore : ISecretStore
+public class KeyVaultSecretStore : ISecretStore
 {
     private readonly SecretClient _secretClient;
 
-    public SecretStore(SecretClient secretClient)
+    public KeyVaultSecretStore(SecretClient secretClient)
     {
         _secretClient = secretClient;
     }

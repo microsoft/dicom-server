@@ -41,7 +41,7 @@ public static class KeyVaultClientRegistrationExtensions
                         .WithCredential(new DefaultAzureCredential());
                     });
 
-            dicomServerBuilder.Services.AddScoped<ISecretStore, SecretStore>();
+            dicomServerBuilder.Services.AddScoped<ISecretStore, KeyVaultSecretStore>();
         }
 
         return dicomServerBuilder;
