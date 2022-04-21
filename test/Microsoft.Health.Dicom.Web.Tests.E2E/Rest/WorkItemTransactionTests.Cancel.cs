@@ -71,6 +71,15 @@ public partial class WorkItemTransactionTests
         // Verify
         Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid) + "\"", exception.ResponseMessage);
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+
+        // Verify Warning Header
+        Assert.Single(exception.ResponseHeaders.Warning);
+        foreach (var warning in exception.ResponseHeaders.Warning)
+        {
+            Assert.Equal(299, warning.Code);
+            Assert.Equal(_fixture.TestDicomWebServer.BaseAddress.Host, warning.Agent);
+            Assert.Equal("\"The UPS is already in the requested state of CANCELED.\"", warning.Text);
+        }
     }
 
     [Fact]

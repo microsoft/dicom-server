@@ -66,4 +66,14 @@ public class HttpResponseExtensionsTests
         Assert.Single(headerValue);
         Assert.Equal(string.Join(",", tags), headerValue[0]); // Should continue to be escaped!
     }
+
+    [Fact]
+    public void GivenHostAndMessage_WhenSetWarningHeader_ThenShouldHaveExpectedValue()
+    {
+        var context = new DefaultHttpContext();
+        string host = "host";
+        string message = "message";
+        context.Response.SetWarning(host, message);
+        Assert.Equal($"299 {host}: \"{message}\"", context.Response.Headers.Warning);
+    }
 }

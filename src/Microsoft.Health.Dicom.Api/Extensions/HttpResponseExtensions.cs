@@ -25,6 +25,19 @@ internal static class HttpResponseExtensions
         response.Headers.Add(HeaderNames.Location, locationUrl.IsAbsoluteUri ? locationUrl.AbsoluteUri : GetRelativeUri(locationUrl));
     }
 
+    /// <summary>
+    /// Set Response Warning header.
+    /// </summary>
+    /// <param name="response">The httpResponse.</param>
+    /// <param name="host">Host name.</param>
+    /// <param name="message">The warning message.</param>
+    public static void SetWarning(this HttpResponse response, string host, string message)
+    {
+        EnsureArg.IsNotNull(response, nameof(response));
+        EnsureArg.IsNotEmptyOrWhiteSpace(message, nameof(message));
+        response.Headers.Warning = string.Format(DicomApiResource.WarningHeader, host ?? string.Empty, message);
+    }
+
     public static bool TryAddErroneousAttributesHeader(this HttpResponse response, IReadOnlyCollection<string> erroneousAttributes)
     {
         EnsureArg.IsNotNull(response, nameof(response));
