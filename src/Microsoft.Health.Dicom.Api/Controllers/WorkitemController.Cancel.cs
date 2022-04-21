@@ -63,9 +63,16 @@ public partial class WorkitemController
         if (response.Status is Core.Messages.Workitem.WorkitemResponseStatus.Conflict
             && !string.IsNullOrEmpty(response.Message))
         {
-            Response.SetWarning(Request.Host.Host, response.Message);
+            Response.SetWarning(Core.Models.HttpWarningCode.MiscPersistentWarning, GetHost(), response.Message);
         }
 
         return StatusCode((int)response.Status.CancelResponseToHttpStatusCode(), response.Message);
+    }
+
+    private string GetHost()
+    {
+        string host = Request.Host.Host;
+        // As Dicom standard, should append colon after service. https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_11.7.3.2.html
+        return string.IsNullOrWhiteSpace(host) ? host : host + ":";
     }
 }

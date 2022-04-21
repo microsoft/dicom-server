@@ -77,7 +77,7 @@ public partial class WorkItemTransactionTests
         foreach (var warning in exception.ResponseHeaders.Warning)
         {
             Assert.Equal(299, warning.Code);
-            Assert.Equal(_fixture.TestDicomWebServer.BaseAddress.Host, warning.Agent);
+            Assert.Equal(_fixture.TestDicomWebServer.BaseAddress.Host + ":", warning.Agent);
             Assert.Equal("\"The UPS is already in the requested state of CANCELED.\"", warning.Text);
         }
     }

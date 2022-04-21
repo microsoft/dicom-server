@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Extensions;
@@ -68,12 +69,31 @@ public class HttpResponseExtensionsTests
     }
 
     [Fact]
-    public void GivenHostAndMessage_WhenSetWarningHeader_ThenShouldHaveExpectedValue()
+    public void GivenValidInput_WhenSetWarningHeader_ThenShouldHaveExpectedValue()
     {
         var context = new DefaultHttpContext();
+        var warningCode = Core.Models.HttpWarningCode.MiscPersistentWarning;
         string host = "host";
         string message = "message";
-        context.Response.SetWarning(host, message);
-        Assert.Equal($"299 {host}: \"{message}\"", context.Response.Headers.Warning);
+        context.Response.SetWarning(warningCode, host, message);
+        var warning = WarningHeaderValue.Parse(context.Response.Headers.Warning);
+        Assert.Equal((int)warningCode, warning.Code);
+        Assert.Equal(host, warning.Agent);
+        Assert.Equal("\"" + message + "\"", warning.Text);
+
+    }
+
+    [Fact]
+    public void GivenEmptyHost_WhenSetWarningHeader_ThenShouldHaveExpectedValue()
+    {
+        var context = new DefaultHttpContext();
+        var warningCode = Core.Models.HttpWarningCode.MiscPersistentWarning;
+        string host = string.Empty;
+        string message = "message";
+        context.Response.SetWarning(warningCode, host, message);
+        var warning = WarningHeaderValue.Parse(context.Response.Headers.Warning);
+        Assert.Equal((int)warningCode, warning.Code);
+        Assert.Equal("-", warning.Agent);
+        Assert.Equal("\"" + message + "\"", warning.Text);
     }
 }
