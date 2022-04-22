@@ -1,0 +1,29 @@
+# DESCRIPTION:
+# Builds the JavaScript tools
+
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - build
+    - tools/dicom-web-electron
+
+variables:
+- template: pr/variables.yml
+
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - template: common/build-electron.yml
+  - template: common/analyze.yml
+    parameters:
+      analyzeARMTemplates: false
+      analyzeBinaries: false
+      analyzePackages: false
+      runAntiMalware: false
+      credScanDirectory: '$(Build.Repository.LocalPath)/tools/dicom-web-electron'

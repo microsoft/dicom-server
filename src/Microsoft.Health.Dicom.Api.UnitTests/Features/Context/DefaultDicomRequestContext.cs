@@ -28,6 +28,8 @@ public class DefaultDicomRequestContext : IDicomRequestContext
 
     public long ResponseSize { get; set; }
 
+    public int PartCount { get; set; }
+
     public string Method { get; set; }
 
     public Uri BaseUri { get; set; }

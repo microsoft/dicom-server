@@ -55,11 +55,13 @@
     "Statuses": [ "Completed" ]
   },
   "SqlServer": {
-    "TransientFaultRetryPolicy": {
-      "InitialDelay": "00:00:00.100",
-      "RetryCount": 3,
-      "Factor": 2,
-      "FastFirst": true
+    "Retry": {
+      "Mode": "Exponential",
+      "Settings ": {
+        "NumberOfTries": 5,
+        "DeltaTime": "00:00:01",
+        "MaxTimeInterval": "00:00:20"
+      }
     }
   }
 }

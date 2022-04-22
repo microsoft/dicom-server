@@ -15,6 +15,8 @@ internal static class HttpResponseExtensions
 {
     public const string ErroneousAttributesHeader = "erroneous-dicom-attributes";
 
+    // ExampleRoot is necessary as GetComponents, like many of the URI members, throws an exception
+    // when used on relative URI instances. As a workaround, we use it to help perform operations on relative URIs.
     private static readonly Uri ExampleRoot = new Uri("https://example.com/", UriKind.Absolute);
 
     public static void AddLocationHeader(this HttpResponse response, Uri locationUrl)
@@ -39,7 +41,5 @@ internal static class HttpResponseExtensions
     }
 
     private static string GetRelativeUri(Uri uri)
-        // ExampleRoot is necessary as GetComponents, like many of the URI members, throws an exception
-        // when used on relative URI instances. As a workaround, we make it absolute temporarily.
         => new Uri(ExampleRoot, uri).GetComponents(UriComponents.AbsoluteUri & ~UriComponents.SchemeAndServer & ~UriComponents.UserInfo, UriFormat.UriEscaped);
 }

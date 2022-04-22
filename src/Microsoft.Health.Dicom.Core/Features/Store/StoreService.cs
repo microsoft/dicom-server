@@ -11,6 +11,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
@@ -55,6 +56,7 @@ public class StoreService : IStoreService
     private readonly IStoreResponseBuilder _storeResponseBuilder;
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly ILogger _logger;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
@@ -64,11 +66,13 @@ public class StoreService : IStoreService
         IStoreResponseBuilder storeResponseBuilder,
         IStoreDatasetValidator dicomDatasetValidator,
         IStoreOrchestrator storeOrchestrator,
+        IDicomRequestContextAccessor dicomRequestContextAccessor,
         ILogger<StoreService> logger)
     {
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
+        _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
@@ -80,6 +84,7 @@ public class StoreService : IStoreService
     {
         if (instanceEntries != null)
         {
+            _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
 

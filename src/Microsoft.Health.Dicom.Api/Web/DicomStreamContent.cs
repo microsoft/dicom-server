@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Microsoft.Health.Dicom.Api.Web;
 
-public class DicomStreamContent
+public class DicomStreamContent : IHttpStreamContent
 {
     public Stream Stream { get; init; }
 

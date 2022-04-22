@@ -1,0 +1,17 @@
+variables:
+  deploymentName: 'dcm-ci-permanent'
+  testEnvironmentUrl: 'https://$(deploymentName).azurewebsites.net/'
+  testFeaturesEnabledEnvironmentUrl: 'https://$(deploymentName)-featuresenabled.azurewebsites.net/'
+  testApplicationScope: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com/.default'
+  testApplicationResource: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com'
+  resourceGroupName: $(deploymentName)
+  resourceGroupRegion: 'southcentralus'
+  appServicePlanResourceGroup: 'msh-dicom-pr'
+  appServicePlanName: $(appServicePlanResourceGroup)-$(resourceGroupRegion)
+  azureServiceConnectionOid: '44b9da1a-ae16-4c0e-90e1-a96745ea86c9'
+  azureSubscriptionName: 'Dicom OSS'
+  buildConfiguration: 'Release'
+  imageTag: '$(build.BuildNumber)'
+  azureContainerRegistry: 'dicomoss.azurecr.io'
+  deleteDataOnStartup: 'false'
+  skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
