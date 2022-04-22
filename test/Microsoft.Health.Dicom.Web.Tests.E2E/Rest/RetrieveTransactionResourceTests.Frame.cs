@@ -36,7 +36,7 @@ public partial class RetrieveTransactionResourceTests
     [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, DicomWebConstants.ImageJpeg2000MediaType, "1.2.840.10008.1.2.4.90")]
     public async Task GivenSupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnExpectedContent(string testDataFolder, string mediaType, string transferSyntax)
     {
-        TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
+        TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(Path.Combine(TestFileFolder, testDataFolder));
         DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
         var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 

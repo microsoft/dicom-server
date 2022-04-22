@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ public partial class RetrieveTransactionResourceTests
     [InlineData(FromExplicitVRLittleEndianToJPEG2000LosslessTestFolder, "1.2.840.10008.1.2.4.90")]
     public async Task GivenSinglePartAcceptHeader_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(string testDataFolder, string transferSyntax)
     {
-        TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(testDataFolder);
+        TranscoderTestData transcoderTestData = TranscoderTestDataHelper.GetTestData(Path.Combine(TestFileFolder, testDataFolder));
         DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
         var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
@@ -146,9 +147,9 @@ public partial class RetrieveTransactionResourceTests
     {
         get
         {
-            yield return new object[] { RequestOriginalContentTestFolder, "*" };
-            yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, null };
-            yield return new object[] { FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder, "1.2.840.10008.1.2.1" };
+            yield return new object[] { Path.Combine(TestFileFolder, RequestOriginalContentTestFolder), "*" };
+            yield return new object[] { Path.Combine(TestFileFolder, FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder), null };
+            yield return new object[] { Path.Combine(TestFileFolder, FromJPEG2000LosslessToExplicitVRLittleEndianTestFolder), "1.2.840.10008.1.2.1" };
         }
     }
 

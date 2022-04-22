@@ -1,0 +1,63 @@
+# DESCRIPTION:
+# Builds and pushes a docker image for dicom-server and dicom-cast
+
+parameters:
+  - name: tag
+    type: string
+  - name: push
+    type: boolean
+    default: true
+
+steps:
+  - task: Docker@2
+    displayName: Login
+    inputs:
+      command: login
+      containerRegistry: '$(azureContainerRegistry)'
+
+  - task: Docker@2
+    displayName: 'Build dicom-server'
+    inputs:
+      command: 'build'
+      containerRegistry: '$(azureContainerRegistry)'
+      Dockerfile: 'src/Microsoft.Health.Dicom.Web/Dockerfile'
+      buildContext: '$(Build.Repository.LocalPath)'
+      arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
+      repository: dicom-server
+      tags: ${{ parameters.tag }}
+
+  - task: Docker@2
+    displayName: 'Build dicom-cast'
+    inputs:
+      command: 'build'
+      containerRegistry: '$(azureContainerRegistry)'
+      Dockerfile: 'converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting/Dockerfile'
+      buildContext: '$(Build.Repository.LocalPath)'
+      arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
+      repository: dicom-cast
+      tags: ${{ parameters.tag }}
+
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: 'Push dicom-server'
+      inputs:
+        command: 'push'
+        containerRegistry: '$(azureContainerRegistry)'
+        repository: dicom-server
+        tags: ${{ parameters.tag }}
+
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: 'Push dicom-cast'
+      inputs:
+        command: 'push'
+        containerRegistry: '$(azureContainerRegistry)'
+        repository: dicom-cast
+        tags: ${{ parameters.tag }}
+
+  - task: Docker@2
+    displayName: Logout
+    inputs:
+      command: logout
+      containerRegistry: '$(azureContainerRegistry)'
+    condition: always()

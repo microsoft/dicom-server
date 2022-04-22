@@ -8,7 +8,7 @@ API Version number are set within the route. Example:
 `/v1/studies`
 
 To add a route, use the `[VersionedRoute]` attribute to automatically add the version number to the route. Example:
-```C#   
+```C#
 [HttpPost]
 [VersionedRoute("studies")]
 public async Task<IActionResult> PostAsync(string studyInstanceUid = null)
@@ -39,7 +39,7 @@ Bug fixes are not considered breaking changes.
 
 ### Prerelease versions
 
-Adding a version with the status "prerelease" is a good idea if you have breaking changes to add that are still prone to change, or are not production ready. 
+Adding a version with the status "prerelease" is a good idea if you have breaking changes to add that are still prone to change, or are not production ready.
 Prerelease versions may experience breaking changes and are not recommended for customers to use in production environments.
 
 `[ApiVersion("x.0-prerelease")]`
@@ -49,7 +49,7 @@ or
 `ApiVersion prereleaseVersion = new ApiVersion(x, 0, "prerelease");`
 
 ### Testing for breaking changes
-Currently we have a test in our pr and ci pipeline that checks to make sure that any defined api versions do not have any breaking changes (changes that are not backward compatible). We use [OpenAPI-diff](https://github.com/OpenAPITools/openapi-diff) to compare a baseline OpenApi Doc for each version with a version that is generated after the build step in the pipeline. If there are breaking changes detected between the baseline that is checked into the repo and the OpenApi doc generated in the pipeline, then the pipeline fails. 
+Currently we have a test in our pr and ci pipeline that checks to make sure that any defined api versions do not have any breaking changes (changes that are not backward compatible). We use [OpenAPI-diff](https://github.com/OpenAPITools/openapi-diff) to compare a baseline OpenApi Doc for each version with a version that is generated after the build step in the pipeline. If there are breaking changes detected between the baseline that is checked into the repo and the OpenApi doc generated in the pipeline, then the pipeline fails.
 
 ### How to increment the version
 
@@ -57,9 +57,9 @@ Currently we have a test in our pr and ci pipeline that checks to make sure that
 2. Add the new version number to `test/Microsoft.Health.Dicom.Api.UnitTests/Features/Routing/UrlResolverTests.cs` to test the new endpoints.
 3. Test to verify the breaking changes were not added to the previous version(s).
 4. Do the following to add the checks in the pr and ci pipeline to verify that developers do not accidentally create breaking changes.
-    1. Add the new version to the arguments in `build/versioning.yml`. The powershell script takes in an array of versions so the new version can just be added to the argument.
+    1. Add the new version to the arguments in `build/common/versioning.yml`. The powershell script takes in an array of versions so the new version can just be added to the argument.
     1. Generate the yaml file for the new version and save it to `/dicom-server/swagger/{Version}/swagger.yaml`. This will allow us to use this as the new baseline to compare against in the pr and ci pipelines to make sure there are no breaking changes introduced accidentally. The step needs to only be done once for each new version, however if the version is still in development then it can be updated multiple times.
-5. Update the index.html file in the electron tool `tools\dicom-web-electron\index.html` to allow for the user to select the new version. 
+5. Update the index.html file in the electron tool `tools\dicom-web-electron\index.html` to allow for the user to select the new version.
 
 ## Deprecation
 

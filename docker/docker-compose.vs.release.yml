@@ -1,7 +1,7 @@
-version: "3.4"
+version: "3.8"
 
 services:
-  microsoft.health.dicom.web:
+  dicomserver:
     build:
       args:
         BUILD_CONFIGURATION: "Release"
