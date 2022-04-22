@@ -37,10 +37,10 @@ jobs:
         Write-Host "##vso[task.setvariable variable=sqlAdminPassword;isSecret=true;isOutput=true]$sqlAdminPassword"
 
         $templateParameters = @{
-            appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
-            appServicePlanName = "$(appServicePlanName)"
             serviceName = "$(deploymentName)"
             functionAppName = "$(deploymentName)-functions"
+            appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
+            appServicePlanName = "$(appServicePlanName)"
             additionalDicomServerConfigProperties = $additionalProperties
             sqlAdminPassword = $sqlAdminPassword
             securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
