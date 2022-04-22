@@ -1,0 +1,14 @@
+variables:
+  prNumber: $(system.pullRequest.pullRequestNumber)
+  deploymentName: 'msh-dicom-pr-$(prNumber)'
+  testEnvironmentUrl: 'http://localhost:8080/'
+  testFeaturesEnabledEnvironmentUrl: 'http://localhost:8080/'
+  resourceGroupName: $(deploymentName)
+  resourceGroupRegion: 'southcentralus'
+  appServicePlanResourceGroup: 'msh-dicom-pr'
+  azureSubscriptionId: 'a1766500-6fd5-4f5c-8515-607798271014'
+  azureSubscriptionName: 'Dicom OSS'
+  azureContainerRegistry: 'dicomoss.azurecr.io'
+  buildConfiguration: 'Release'
+  imageTag: '$(build.BuildNumber)'
+  skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
