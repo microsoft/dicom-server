@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30011.22
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32414.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4EB555C8-F221-4663-B314-58AF0331A225}"
 	ProjectSection(SolutionItems) = preProject
@@ -24,6 +24,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.TableStorage.UnitTests", "src\Microsoft.Health.DicomCast.TableStorage.UnitTests\Microsoft.Health.DicomCast.TableStorage.UnitTests.csproj", "{1444027E-07DA-412E-8E74-F077F5520530}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.TableStorage", "src\Microsoft.Health.DicomCast.TableStorage\Microsoft.Health.DicomCast.TableStorage.csproj", "{0DFB24D5-5E2F-435D-A435-F70CD1824F08}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Forks", "Forks", "{62ABDCE3-F68B-4618-8A25-EB8D2B116663}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom.Serialization", "..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj", "{88055084-3313-4896-A5AE-D9A7C3A774C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +59,10 @@ Global
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08}.Debug|x64.Build.0 = Debug|x64
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08}.Release|x64.ActiveCfg = Release|x64
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08}.Release|x64.Build.0 = Release|x64
+		{88055084-3313-4896-A5AE-D9A7C3A774C5}.Debug|x64.ActiveCfg = Debug|x64
+		{88055084-3313-4896-A5AE-D9A7C3A774C5}.Debug|x64.Build.0 = Debug|x64
+		{88055084-3313-4896-A5AE-D9A7C3A774C5}.Release|x64.ActiveCfg = Release|x64
+		{88055084-3313-4896-A5AE-D9A7C3A774C5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,6 +74,7 @@ Global
 		{3CCE3438-139A-420A-8A60-1144CADA95A1} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{1444027E-07DA-412E-8E74-F077F5520530} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{88055084-3313-4896-A5AE-D9A7C3A774C5} = {62ABDCE3-F68B-4618-8A25-EB8D2B116663}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4EF00533-B2AE-4B1B-B4AF-9799AD9F69E2}
