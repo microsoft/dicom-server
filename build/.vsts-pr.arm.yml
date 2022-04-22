@@ -1,0 +1,65 @@
+# DESCRIPTION:
+# Validates the ARM templates in the event of changes
+
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - build
+    - samples/templates
+
+trigger: none
+
+variables:
+- template: pr/variables.yml
+
+# Note: ARMory currently only works on Windows
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+  - task: PowerShell@2
+    displayName: 'Run ARM Test Toolkit'
+    inputs:
+      targetType: 'inline'
+      script: |
+        Invoke-WebRequest -URI "https://aka.ms/arm-ttk-latest" -OutFile "$(Agent.TempDirectory)/arm-ttk-latest.zip"
+        Expand-Archive -Path "$(Agent.TempDirectory)/arm-ttk-latest.zip" -DestinationPath "$(Agent.TempDirectory)/arm-ttk-latest"
+        Get-ChildItem -Path "$(Agent.TempDirectory)/arm-ttk-latest/*" -Recurse | Unblock-File
+        Import-Module "$(Agent.TempDirectory)/arm-ttk-latest/arm-ttk/arm-ttk.psd1"
+
+        # Test 'default-azuredeploy.json'
+        $TestResults = Test-AzTemplate -TemplatePath "$(Build.Repository.LocalPath)/samples/templates/default-azuredeploy.json"
+        $Errors = $TestResults | Select-Object -ExpandProperty Errors
+
+        echo $TestResults
+
+        if ($Errors.Length > 0)
+        {
+            throw 'There were 1 or more errors in the ARM template.'
+        }
+      pwsh: true
+
+  - task: AzureResourceManagerTemplateDeployment@3
+    displayName: 'Validate ARM Template'
+    inputs:
+      deploymentScope: 'Resource Group'
+      azureResourceManagerConnection: '$(azureSubscriptionName)'
+      subscriptionId: '$(azureSubscriptionId)'
+      action: 'Create Or Update Resource Group'
+      resourceGroupName: '$(appServicePlanResourceGroup)'
+      location: 'West US 2'
+      templateLocation: 'Linked artifact'
+      csmFile: '$(Build.Repository.LocalPath)/samples/templates/default-azuredeploy.json'
+      overrideParameters: '-serviceName "$(deploymentName)" -location "$(resourceGroupRegion)" -sqlAdminPassword "T3stP@ssw0rd"'
+      deploymentMode: 'Validation'
+      deploymentName: 'ValidateDicom$(System.PullRequest.PullRequestNumber)'
+
+  - template: common/analyze.yml
+    parameters:
+      analyzeBinaries: false
+      analyzePackages: false
+      runAntiMalware: false
+      credScanDirectory: '$(Build.Repository.LocalPath)/samples/templates'

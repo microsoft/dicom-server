@@ -1,6 +1,5 @@
 parameters:
   packageArtifacts: true
-  analyzeSecurity: true
   packageNugets: true
 
 steps:
@@ -8,12 +7,6 @@ steps:
     displayName: 'Use .NET sdk'
     inputs:
       useGlobalJson: true
-
-  # SQL Code-Gen (TODO: Delete once shared components moves to .NET 6.0)
-  - task: UseDotNet@2
-    displayName: 'Use .NET 5.x SDK'
-    inputs:
-      version: '5.x'
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet build $(buildConfiguration)'
