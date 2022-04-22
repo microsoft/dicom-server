@@ -39,7 +39,7 @@ jobs:
         $templateParameters = @{
             serviceName = "$(deploymentName)"
             functionAppName = "$(deploymentName)-functions"
-            createAppServicePlan = $false
+            appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
             appServicePlanName = "$(appServicePlanName)"
             additionalDicomServerConfigProperties = $additionalProperties
             sqlAdminPassword = $sqlAdminPassword

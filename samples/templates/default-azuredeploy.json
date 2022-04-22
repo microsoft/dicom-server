@@ -105,11 +105,11 @@
                 "description": "Name of App Service Plan (existing or new). If empty, a name will be generated."
             }
         },
-        "createAppServicePlan": {
-            "type": "bool",
-            "defaultValue": true,
+        "appServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
             "metadata": {
-                "description": "Indicates whether a new app service plan should be created."
+                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
             }
         },
         "deployApplicationInsights": {
@@ -186,8 +186,9 @@
     "variables": {
         "serviceName": "[toLower(parameters('serviceName'))]",
         "functionAppName": "[if(empty(parameters('functionAppName')), concat(variables('serviceName'),'-functions'), toLower(parameters('functionAppName')))]",
+        "appServicePlanResourceGroup": "[if(empty(parameters('appServicePlanResourceGroup')), resourceGroup().name, parameters('appServicePlanResourceGroup'))]",
         "appServicePlanName": "[if(empty(parameters('appServicePlanName')), concat(variables('serviceName'),'-asp'), parameters('appServicePlanName'))]",
-        "appServicePlanResourceId": "[resourceId('Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
+        "appServicePlanResourceId": "[resourceId(variables('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', variables('appServicePlanName'))]",
         "appServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceName'))]",
         "functionAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
@@ -231,7 +232,7 @@
     },
     "resources": [
         {
-            "condition": "[parameters('createAppServicePlan')]",
+            "condition": "[empty(parameters('appServicePlanResourceGroup'))]",
             "apiVersion": "2020-12-01",
             "name": "[variables('appServicePlanName')]",
             "type": "Microsoft.Web/serverfarms",
