@@ -397,8 +397,7 @@
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
             "properties": {
-                "Application_Type": "web",
-                "AppId": "[variables('serviceName')]"
+                "Application_Type": "web"
             }
         },
         {
