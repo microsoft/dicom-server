@@ -10,6 +10,13 @@
                 "description": "Name of the DICOM Service Web App."
             }
         },
+        "appServicePlanResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the resource group containing App Service Plan. If empty, your deployment resource group is used."
+            }
+        },
         "appServicePlanName": {
             "type": "string",
             "defaultValue": "",
@@ -55,7 +62,7 @@
     "variables": {
         "loweredServiceName": "[toLower(parameters('serviceName'))]",
         "featuresEnabledServiceName": "[concat(variables('loweredServiceName'),'-featuresenabled')]",
-        "appServicePlanResourceId": "[resourceId('Microsoft.Web/serverfarms/', parameters('appServicePlanName'))]",
+        "appServicePlanResourceId": "[resourceId(parameters('appServicePlanResourceGroup'), 'Microsoft.Web/serverfarms/', parameters('appServicePlanName'))]",
         "featuresEnabledAppServiceResourceId": "[resourceId('Microsoft.Web/sites', variables('featuresEnabledServiceName'))]",
         "dicomDatabaseName": "DicomWithPartitions",
         "staticDicomServerConfigProperties": {
