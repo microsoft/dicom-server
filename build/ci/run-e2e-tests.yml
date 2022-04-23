@@ -2,7 +2,7 @@ jobs:
 - job: SetupAndRun
   displayName: 'E2E Tests'
   pool:
-    vmImage: 'ubuntu-latest'
+    vmImage: 'windows-latest'
   steps:
   - task: UseDotNet@2
     displayName: 'Use .Net Core sdk'
