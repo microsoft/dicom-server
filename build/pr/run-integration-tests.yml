@@ -4,6 +4,11 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
+  - task: UseDotNet@2
+    displayName: 'Use .Net Core sdk'
+    inputs:
+      useGlobalJson: true
+
   - bash: |
       # Set Environment Variables
       echo "##vso[task.setvariable variable=BlobStore__ConnectionString]UseDevelopmentStorage=true"
