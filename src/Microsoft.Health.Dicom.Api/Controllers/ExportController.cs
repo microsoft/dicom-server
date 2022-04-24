@@ -62,7 +62,7 @@ public class ExportController : ControllerBase
     /// <summary>
     /// Asynchronously starts the export operation.
     /// </summary>
-    /// <param name="spec">The specification that details the source and destination for the export.</param>
+    /// <param name="specification">The specification that details the source and destination for the export.</param>
     /// <returns>
     /// A task that represents the asynchronous export operation. The value of its <see cref="Task{TResult}.Result"/>
     /// property contains the <see cref="IActionResult"/>. Upon success, the result will contain an
@@ -80,9 +80,9 @@ public class ExportController : ControllerBase
     [PartitionRoute(KnownRoutes.ExportInstancesRoute)]
     [VersionedPartitionRoute(KnownRoutes.ExportInstancesRoute)]
     [AuditEventType(AuditEventSubType.Export)]
-    public async Task<IActionResult> ExportInstancesAsync([Required][FromBody] ExportSpecification spec)
+    public async Task<IActionResult> ExportInstancesAsync([Required][FromBody] ExportSpecification specification)
     {
-        EnsureArg.IsNotNull(spec, nameof(spec));
+        EnsureArg.IsNotNull(specification, nameof(specification));
 
         return await GetResultIfEnabledAsync(
             async (x, token) =>
@@ -94,7 +94,7 @@ public class ExportController : ControllerBase
                 Response.AddLocationHeader(response.Operation.Href);
                 return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
             },
-            spec);
+            specification);
     }
 
     private async ValueTask<IActionResult> GetResultIfEnabledAsync<T>(Func<T, CancellationToken, Task<IActionResult>> factoryAsync, T input)

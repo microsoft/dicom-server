@@ -3,11 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+using System;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
-internal static class FunctionNames
+namespace Microsoft.Health.Dicom.Core.Features.Export;
+
+public interface IExportSourceProvider
 {
-    public const string ExportDicomFiles = "ExportDicomFilesAsync";
+    ExportSourceType Type { get; }
 
-    public const string ReindexInstances = "ReindexInstancesAsync";
+    IExportSource Create(IServiceProvider provider, IConfiguration input);
+
+    void Validate(object input);
 }

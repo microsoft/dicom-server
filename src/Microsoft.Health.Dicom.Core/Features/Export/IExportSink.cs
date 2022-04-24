@@ -3,11 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-internal static class FunctionNames
+namespace Microsoft.Health.Dicom.Core.Features.Export;
+
+public interface IExportSink : IAsyncDisposable
 {
-    public const string ExportDicomFiles = "ExportDicomFilesAsync";
+    event EventHandler<CopyFailureEventArgs> CopyFailure;
 
-    public const string ReindexInstances = "ReindexInstancesAsync";
+    Uri ErrorHref { get; }
+
+    Task<bool> CopyAsync(SourceElement element, CancellationToken cancellationToken = default);
 }
