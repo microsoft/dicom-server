@@ -10,21 +10,21 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 [SuppressMessage("Performance", "CA1815:Override equals and operator equals on value types", Justification = "Not meant for comparison.")]
-public readonly struct SourceElement
+public readonly struct ReadResult
 {
     public VersionedInstanceIdentifier Identifier { get; }
 
     public ReadFailureEventArgs Failure { get; }
 
-    private SourceElement(VersionedInstanceIdentifier identifier, ReadFailureEventArgs failure)
+    private ReadResult(VersionedInstanceIdentifier identifier, ReadFailureEventArgs failure)
     {
         Identifier = identifier;
         Failure = failure;
     }
 
-    public static SourceElement ForIdentifier(VersionedInstanceIdentifier identifier)
-        => new SourceElement(EnsureArg.IsNotNull(identifier, nameof(identifier)), null);
+    public static ReadResult ForIdentifier(VersionedInstanceIdentifier identifier)
+        => new ReadResult(EnsureArg.IsNotNull(identifier, nameof(identifier)), null);
 
-    public static SourceElement ForFailure(ReadFailureEventArgs args)
-        => new SourceElement(null, args);
+    public static ReadResult ForFailure(ReadFailureEventArgs args)
+        => new ReadResult(null, args);
 }

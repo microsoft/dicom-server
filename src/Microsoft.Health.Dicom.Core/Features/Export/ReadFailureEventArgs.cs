@@ -5,20 +5,20 @@
 
 using System;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 /// <summary>
-/// Provides data for the event <see cref="IExportSink.CopyFailure"/>.
+/// Provides data for the event <see cref="IExportSource.ReadFailure"/>.
 /// </summary>
-public sealed class CopyFailureEventArgs : EventArgs
+public sealed class ReadFailureEventArgs : EventArgs
 {
     /// <summary>
-    /// Gets the identifier for the DICOM file that failed to copy.
+    /// Gets the identifier for the DICOM file(s) that failed to be read.
     /// </summary>
-    /// <value>The versioned instance identifier including its watermark.</value>
-    public VersionedInstanceIdentifier Identifier { get; }
+    /// <value>An identifier representing a study, series, or SOP instance.</value>
+    public DicomIdentifier Identifier { get; }
 
     /// <summary>
     /// Gets the exception that caused the failure.
@@ -27,16 +27,16 @@ public sealed class CopyFailureEventArgs : EventArgs
     public Exception Exception { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CopyFailureEventArgs"/> class.
+    /// Initializes a new instance of the <see cref="ReadFailureEventArgs"/> class.
     /// </summary>
-    /// <param name="identifier">An identifier for the DICOM file that failed to copy.</param>
-    /// <param name="exception">The exception raised by the copy failure.</param>
+    /// <param name="identifier">An identifier for the DICOM file(s) that failed to be read.</param>
+    /// <param name="exception">The exception raised by the read failure.</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="identifier"/> or <paramref name="exception"/> is <see langword="null"/>.
+    /// <paramref name="exception"/> is <see langword="null"/>.
     /// </exception>
-    public CopyFailureEventArgs(VersionedInstanceIdentifier identifier, Exception exception)
+    public ReadFailureEventArgs(DicomIdentifier identifier, Exception exception)
     {
-        Identifier = EnsureArg.IsNotNull(identifier, nameof(identifier));
+        Identifier = identifier;
         Exception = EnsureArg.IsNotNull(exception, nameof(exception));
     }
 }

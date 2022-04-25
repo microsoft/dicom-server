@@ -14,6 +14,10 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
 
     public long Failed { get; }
 
+    [Newtonsoft.Json.JsonIgnore]
+    [System.Text.Json.Serialization.JsonIgnore]
+    public long Total => Exported + Failed;
+
     public ExportProgress(long exported, long failed)
     {
         Exported = EnsureArg.IsGte(exported, 0, nameof(exported));

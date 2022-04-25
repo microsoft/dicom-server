@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,7 +27,6 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
 
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
-
         logger = context.CreateReplaySafeLogger(logger);
 
         // Are we done?
@@ -40,15 +40,15 @@ public partial class ExportDurableFunction
         logger.LogInformation(
             "Starting to export to '{Sink}' starting from DCM file #{Offset}.",
             input.Destination.Type,
-            input.Progress.Exported + input.Progress.Failed + 1);
+            input.Progress.Total + 1);
+
         await using IExportSource source = _sourceFactory.CreateSource(input.Source);
 
         // Start export in parallel
         var exportTasks = new List<Task<ExportProgress>>();
         for (int i = 0; i < input.Batching.MaxParallelCount; i++)
         {
-            TypedConfiguration<ExportSourceType> batch = source.DequeueBatch(input.Batching.Size);
-            if (batch == null)
+            if (!source.TryDequeueBatch(input.Batching.Size, out TypedConfiguration<ExportSourceType> batch))
                 break; // All done
 
             exportTasks.Add(context.CallActivityWithRetryAsync<ExportProgress>(
@@ -72,7 +72,7 @@ public partial class ExportDurableFunction
                 Batching = input.Batching,
                 CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 Destination = input.Destination,
-                ErrorHref = input.ErrorHref ?? _sinkFactory.CreateSink(input.Destination, context.GetOperationId()).ErrorHref,
+                ErrorHref = input.ErrorHref ?? await context.CallActivityWithRetryAsync<Uri>(nameof(GetErrorHrefAsync), _options.RetryOptions, input.Destination),
                 Progress = input.Progress.Add(result),
                 Source = source.Configuration,
             });

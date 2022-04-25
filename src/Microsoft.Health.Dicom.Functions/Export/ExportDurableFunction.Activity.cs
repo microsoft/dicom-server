@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -10,8 +12,10 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
+using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -32,27 +36,45 @@ public partial class ExportDurableFunction
         source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
         sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
 
+        bool[] exports;
         ExportProgress progress = default;
+        IAsyncEnumerator<ReadResult> sourceEnumerator = source.GetAsyncEnumerator();
         do
         {
-            Task<bool>[] exportTasks = await source.Select(x => sink.CopyAsync(x)).ToArrayAsync();
+            // Only process a subset of the batch at a time based on the desired number of threads
+            exports = await Task.WhenAll(
+                await sourceEnumerator
+                    .Take(_options.BatchThreadCount)
+                    .Select(x => sink.CopyAsync(x))
+                    .ToArrayAsync());
 
             // Compute success metrics
-            bool[] results = await Task.WhenAll(exportTasks);
-            progress = results.Aggregate<bool, ExportProgress>(
-                default,
-                (state, success) => success
-                    ? new ExportProgress(state.Exported + 1, state.Failed)
-                    : new ExportProgress(state.Exported, state.Failed + 1));
-
-            logger.LogInformation("Successfully exported {Files} DCM files.", progress.Exported);
-            if (progress.Failed > 0)
+            if (exports.Length > 0)
             {
-                logger.LogWarning("Failed to export {Files} DCM files.", progress.Failed);
+                progress = exports.Aggregate<bool, ExportProgress>(
+                    default,
+                    (state, success) => success
+                        ? new ExportProgress(state.Exported + 1, state.Failed)
+                        : new ExportProgress(state.Exported, state.Failed + 1));
+
+                logger.LogInformation("Successfully exported {Files} DCM files.", progress.Exported);
+                if (progress.Failed > 0)
+                {
+                    logger.LogWarning("Failed to export {Files} DCM files.", progress.Failed);
+                }
             }
+        } while (exports.Length > 0);
 
-            return progress;
-        } while (true);
+        return progress;
+    }
 
+    [FunctionName(nameof(GetErrorHrefAsync))]
+    public async Task<Uri> GetErrorHrefAsync([ActivityTrigger] IDurableActivityContext context)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        TypedConfiguration<ExportDestinationType> destination = context.GetInput<TypedConfiguration<ExportDestinationType>>();
+        await using IExportSink sink = _sinkFactory.CreateSink(destination, context.GetOperationId());
+        return sink.ErrorHref;
     }
 }
