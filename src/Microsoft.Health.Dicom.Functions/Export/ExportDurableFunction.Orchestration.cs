@@ -21,13 +21,23 @@ namespace Microsoft.Health.Dicom.Functions.Export;
 
 public partial class ExportDurableFunction
 {
+    /// <summary>
+    /// Asynchronously exports DICOM files to a user-specified sink.
+    /// </summary>
+    /// <param name="context">The context for the orchestration instance.</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>A task representing the <see cref="ExportDicomFilesAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="FormatException">Orchestration instance ID is invalid.</exception>
     [FunctionName(nameof(ExportDicomFilesAsync))]
     public async Task ExportDicomFilesAsync([OrchestrationTrigger] IDurableOrchestrationContext context, ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
+        logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
 
         ExportCheckpoint input = context.GetInput<ExportCheckpoint>();
-        logger = context.CreateReplaySafeLogger(logger);
 
         // Are we done?
         if (input.Source == null)
@@ -63,7 +73,7 @@ public partial class ExportDurableFunction
 
         // Await the export and count how many instances were exported
         ExportProgress[] exportResults = await Task.WhenAll(exportTasks);
-        ExportProgress result = exportResults.Aggregate<ExportProgress, ExportProgress>(default, (x, y) => x.Add(y));
+        ExportProgress iterationProgress = exportResults.Aggregate<ExportProgress, ExportProgress>(default, (x, y) => x + y);
 
         // Export the next set of batches
         context.ContinueAsNew(
@@ -73,7 +83,7 @@ public partial class ExportDurableFunction
                 CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 Destination = input.Destination,
                 ErrorHref = input.ErrorHref ?? await context.CallActivityWithRetryAsync<Uri>(nameof(GetErrorHrefAsync), _options.RetryOptions, input.Destination),
-                Progress = input.Progress.Add(result),
+                Progress = input.Progress + iterationProgress,
                 Source = source.Configuration,
             });
     }

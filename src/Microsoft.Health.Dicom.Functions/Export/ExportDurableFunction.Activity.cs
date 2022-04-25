@@ -22,6 +22,19 @@ namespace Microsoft.Health.Dicom.Functions.Export;
 
 public partial class ExportDurableFunction
 {
+    /// <summary>
+    /// Asynchronously exports a batch of DICOM files to a user-specified sink.
+    /// </summary>
+    /// <param name="context">The context for the activity.</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="ExportBatchAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property contains the number a summary of the export
+    /// operation's progress.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [FunctionName(nameof(ExportBatchAsync))]
     public async Task<ExportProgress> ExportBatchAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
@@ -68,6 +81,15 @@ public partial class ExportDurableFunction
         return progress;
     }
 
+    /// <summary>
+    /// Asynchronously retrieves the URI for the error resource in the user-specified sink.
+    /// </summary>
+    /// <param name="context">The context for the activity.</param>
+    /// <returns>
+    /// A task representing the <see cref="ExportBatchAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property contains the URI.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
     [FunctionName(nameof(GetErrorHrefAsync))]
     public async Task<Uri> GetErrorHrefAsync([ActivityTrigger] IDurableActivityContext context)
     {

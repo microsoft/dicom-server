@@ -9,6 +9,9 @@ using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
 
+/// <summary>
+/// Represents configurable settings that control the execution of export operations.
+/// </summary>
 public class ExportOptions
 {
     internal const string SectionName = "Export";
@@ -20,7 +23,8 @@ public class ExportOptions
     public int BatchThreadCount { get; set; } = 5;
 
     /// <summary>
-    /// Gets or sets the <see cref="ActivityRetryOptions"/> for re-indexing activities.
+    /// Gets or sets the <see cref="ActivityRetryOptions"/> for export activities.
     /// </summary>
+    [Required]
     public ActivityRetryOptions RetryOptions { get; set; }
 }
