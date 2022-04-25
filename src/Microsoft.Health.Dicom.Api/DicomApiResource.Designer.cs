@@ -194,14 +194,5 @@ namespace Microsoft.Health.Dicom.Api {
                 return ResourceManager.GetString("UnsupportedField", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 299 {0}: &quot;{1}&quot;.
-        /// </summary>
-        internal static string WarningHeader {
-            get {
-                return ResourceManager.GetString("WarningHeader", resourceCulture);
-            }
-        }
     }
 }
