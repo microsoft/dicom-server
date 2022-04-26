@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.7.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.6.1" />
     <PackageReference Include="Microsoft.Health.Operations" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Operations.Functions" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
