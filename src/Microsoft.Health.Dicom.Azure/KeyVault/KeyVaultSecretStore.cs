@@ -3,7 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Security.KeyVault.Secrets;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.AzureKeyVault;
@@ -14,6 +17,7 @@ public class KeyVaultSecretStore : ISecretStore
 
     public KeyVaultSecretStore(SecretClient secretClient)
     {
+        EnsureArg.IsNotNull(secretClient, nameof(secretClient));
         _secretClient = secretClient;
     }
 

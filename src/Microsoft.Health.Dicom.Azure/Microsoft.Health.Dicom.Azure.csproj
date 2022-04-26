@@ -3,7 +3,6 @@
   <PropertyGroup>
     <Description>Implementation of Azure dependencies used in DICOM core library</Description>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>

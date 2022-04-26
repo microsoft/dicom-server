@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using Azure.Identity;
 using EnsureThat;
 using Microsoft.Extensions.Azure;
@@ -14,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
 namespace Microsoft.Health.Dicom.Azure.Registration;
+
 public static class KeyVaultClientRegistrationExtensions
 {
     public static IDicomServerBuilder AddKeyVaultClient(
@@ -33,7 +35,6 @@ public static class KeyVaultClientRegistrationExtensions
         // conditional KeyVault registration to support running on local docker
         if (!string.IsNullOrWhiteSpace(config.Endpoint))
         {
-
             dicomServerBuilder.Services.AddAzureClients(
                     builder =>
                     {
