@@ -205,6 +205,24 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     }
 
     /// <inheritdoc />
+    public async Task<DicomDataset> RetrieveWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
+
+        var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+        var workitemMetadata = await _indexWorkitemStore
+            .GetWorkitemMetadataAsync(partitionKey, workitemInstanceUid, cancellationToken)
+            .ConfigureAwait(false);
+
+        var dataset = await _workitemStore
+            .GetWorkitemAsync(workitemMetadata, cancellationToken)
+            .ConfigureAwait(false);
+
+        return dataset;
+    }
+
+    /// <inheritdoc />
     private async Task TryAddWorkitemCleanupAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
     {
         if (null == identifier)

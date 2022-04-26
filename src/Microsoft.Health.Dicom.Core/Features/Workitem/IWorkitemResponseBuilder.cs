@@ -26,6 +26,12 @@ public interface IWorkitemResponseBuilder
     CancelWorkitemResponse BuildCancelResponse();
 
     /// <summary>
+    /// Builds the response for retrieve workitem
+    /// </summary>
+    /// <returns>An instance of <see cref="RetrieveWorkitemResponse"/> representing the response.</returns>
+    RetrieveWorkitemResponse BuildRetrieveWorkitemResponse();
+
+    /// <summary>
     /// Adds a successful entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
