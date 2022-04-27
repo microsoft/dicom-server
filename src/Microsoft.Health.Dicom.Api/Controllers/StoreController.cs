@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -95,7 +96,7 @@ public class StoreController : ControllerBase
             HttpContext.RequestAborted);
         if (!string.IsNullOrEmpty(storeResponse.Warning))
         {
-            Response.Headers.Warning = string.Format(DicomApiResource.WarningHeader, storeResponse.Warning);
+            Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), storeResponse.Warning);
         }
 
         return StatusCode(
