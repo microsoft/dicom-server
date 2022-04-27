@@ -9,7 +9,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 public class TestDicomWebServerFactory
 {
-    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, bool enableDataPartitions = default)
+    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, bool enableDataPartitions = false)
     {
         string environmentUrl = GetEnvironmentUrl(enableDataPartitions);
 
@@ -26,7 +26,7 @@ public class TestDicomWebServerFactory
         return new RemoteTestDicomWebServer(new Uri(environmentUrl));
     }
 
-    private static string GetEnvironmentUrl(bool enableDataPartitions = default)
+    private static string GetEnvironmentUrl(bool enableDataPartitions = false)
     {
         return enableDataPartitions ? Environment.GetEnvironmentVariable("TestFeaturesEnabledEnvironmentUrl") : Environment.GetEnvironmentVariable("TestEnvironmentUrl");
     }

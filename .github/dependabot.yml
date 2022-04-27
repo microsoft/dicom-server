@@ -59,7 +59,7 @@ updates:
     open-pull-requests-limit: 30
 
   - package-ecosystem: "docker"
-    directory: "/converter/dicom-cast/build/docker"
+    directory: "/converter/dicom-cast/src/Microsoft.Health.DicomCast.Hosting"
     schedule:
       interval: "daily"
       time: "09:00"

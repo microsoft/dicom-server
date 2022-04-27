@@ -3,98 +3,120 @@
 name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
 
 variables:
-- template: ci-variables.yml
+- template: ci/variables.yml
+
+parameters:
+- name: push
+  displayName: Push
+  type: boolean
+  default: true
 
 trigger:
   branches:
     include:
     - main
+  paths:
+    include:
+    - '*'
+    exclude:
+    - '*.md'
+    - docs
 
 pr: none
 
 stages:
 - stage: UpdateVersion
   displayName: 'Determine Semantic Version'
-  dependsOn: []
   jobs:
-  - job: Semver
+  - job: GitVersion
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
     steps:
-    - template: ./update-semver.yml
+    - template: ./common/update-semver.yml
 
-- stage: BuildRunUnitTests
+- stage: BuildElectron
+  displayName: 'Build Electron Tool'
+  jobs:
+  - job: NodeJs
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: common/build-electron.yml
+
+- stage: BuildDotNet
   displayName: 'Build and Run Unit Tests'
   dependsOn:
   - UpdateVersion
   variables:
-    assemblySemVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemVer']]
-    assemblySemFileVer: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
-    informationalVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.InformationalVersion']]
-    majorMinorPatch: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
-    nuGetVersion: $[stageDependencies.UpdateVersion.Semver.outputs['DicomVersion.GitVersion.SemVer']]
+    assemblySemVer: $[stageDependencies.UpdateVersion.GitVersion.outputs['DicomVersion.GitVersion.AssemblySemVer']]
+    assemblySemFileVer: $[stageDependencies.UpdateVersion.GitVersion.outputs['DicomVersion.GitVersion.AssemblySemFileVer']]
+    informationalVersion: $[stageDependencies.UpdateVersion.GitVersion.outputs['DicomVersion.GitVersion.InformationalVersion']]
+    majorMinorPatch: $[stageDependencies.UpdateVersion.GitVersion.outputs['DicomVersion.GitVersion.MajorMinorPatch']]
+    nuGetVersion: $[stageDependencies.UpdateVersion.GitVersion.outputs['DicomVersion.GitVersion.SemVer']]
   jobs:
-  - job: Linux
+  - job: DotNet
+    displayName: 'Build DICOM Projects'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: build.yml
+    - template: common/build-dotnet.yml
 
 - stage: AnalyzeSecurity
   displayName: 'Run Security Analysis'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
-  - job: Windows
+  - job: Guardian
     pool:
-      vmImage: $(windowsVmImage)
+      vmImage: 'windows-latest'
     steps:
-    - template: analyze.yml
+    - template: common/analyze.yml
 
 - stage: DeployTestEnvironment
   displayName: 'Deploy Test Environment'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
-  - template: deploy.yml
+  - template: ci/deploy.yml
 
 - stage: ValidateAPIVersioning
   displayName: 'Detect Breaking Changes In API'
   dependsOn:
-  - BuildRunUnitTests
+  - BuildDotNet
   jobs:
-  - template: versioning.yml
+  - template: common/versioning.yml
 
 - stage: DeployFeaturesEnabledWebapp
   displayName: 'Deploy features-enabled webapp'
-  dependsOn: 
+  dependsOn:
   - DeployTestEnvironment
   jobs:
-  - template: deploy-features-enabled-webapp.yml
+  - template: ci/deploy-features-enabled-webapp.yml
 
 - stage: RunIntegrationTests
   displayName: 'Run Integration Tests'
   dependsOn:
   - DeployTestEnvironment
   jobs:
-  - template: run-integration-tests.yml
+  - template: ci/run-integration-tests.yml
 
 - stage: RunE2ETests
   displayName: 'Run E2E Tests'
   dependsOn:
   - DeployTestEnvironment
   jobs:
-  - template: run-e2e-tests.yml
+  - template: ci/run-e2e-tests.yml
 
 - stage: RunE2EFeaturesEnabledTests
   displayName: 'Run E2E features-enabled tests'
   dependsOn:
   - DeployFeaturesEnabledWebapp
   jobs:
-  - template: run-e2e-features-enabled-tests.yml
+  - template: ci/run-e2e-features-enabled-tests.yml
 
 - stage: PublishNuget
   displayName: 'Publish NuGet Packages'
+  condition: eq(${{ parameters.push }}, true)
   dependsOn:
   - AnalyzeSecurity
   - ValidateAPIVersioning
@@ -104,9 +126,9 @@ stages:
   jobs:
   - job: PublishNugets
     pool:
-      vmImage: $(windowsVmImage)
+      vmImage: 'windows-latest'
     steps:
-    - template: publish-nuget.yml
+    - template: ci/publish-nuget.yml
 
 - stage: PublishContainer
   displayName: 'Publish Docker CI Container'
@@ -118,9 +140,11 @@ stages:
   - RunE2EFeaturesEnabledTests
   jobs:
   - job: 'Docker'
+    displayName: 'Build and Push Docker Images'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: docker-build-push.yml
+    - template: common/docker-build-push.yml
       parameters:
         tag: $(imageTag)
+        push: ${{ parameters.push }}

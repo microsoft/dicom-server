@@ -1,7 +1,8 @@
 jobs:
 - job: SetupAndRun
+  displayName: 'Integration Tests'
   pool:
-    vmImage: $(windowsVmImage)
+    vmImage: 'ubuntu-latest'
   steps:
   - task: UseDotNet@2
     displayName: 'Use .Net Core sdk'
@@ -23,17 +24,4 @@ jobs:
 
         dotnet dev-certs https
 
-  - task: DownloadBuildArtifacts@0
-    inputs:
-      buildType: 'current'
-      downloadType: 'single'
-      downloadPath: '$(System.ArtifactsDirectory)'
-      artifactName: 'IntegrationTests'
-
-  - task: VSTest@2
-    displayName: 'Integration Tests'
-    inputs:
-      testAssemblyVer2: '**\*Tests.Integration.dll'
-      searchFolder: '$(System.ArtifactsDirectory)'
-      runInParallel: true
-
+  - template: ../common/run-integration-tests.yml

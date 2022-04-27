@@ -88,15 +88,15 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
         });
         var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, SqlRetryLogicBaseProvider);
 
+        SqlTransactionHandler = new SqlTransactionHandler();
+
+        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
+
         var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 
         SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
 
         _schemaInitializer = new SchemaInitializer(configOptions, schemaManagerDataStore, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
-
-        SqlTransactionHandler = new SqlTransactionHandler();
-
-        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
 
         var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 

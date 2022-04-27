@@ -1,7 +1,8 @@
 jobs:
-- job: provision
+- job: Provision
+  displayName: 'Provision DICOM'
   pool:
-    vmImage: $(windowsVmImage)
+    vmImage: 'windows-latest'
   steps:
   - task: AzurePowerShell@4
     displayName: 'New Resource Group'
@@ -36,10 +37,10 @@ jobs:
         Write-Host "##vso[task.setvariable variable=sqlAdminPassword;isSecret=true;isOutput=true]$sqlAdminPassword"
 
         $templateParameters = @{
-            appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
-            appServicePlanName = "$(appServicePlanName)"
             serviceName = "$(deploymentName)"
             functionAppName = "$(deploymentName)-functions"
+            appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
+            appServicePlanName = "$(appServicePlanName)"
             additionalDicomServerConfigProperties = $additionalProperties
             sqlAdminPassword = $sqlAdminPassword
             securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
@@ -52,6 +53,7 @@ jobs:
         Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
 
   - task: DownloadBuildArtifacts@0
+    displayName: 'Download Deployment Binaries'
     inputs:
       buildType: 'current'
       downloadType: 'single'

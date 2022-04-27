@@ -1,0 +1,6 @@
+version: "3.8"
+
+services:
+  dicomserver:
+    volumes:
+      - ~/.aspnet/https:/root/.aspnet/https:r
