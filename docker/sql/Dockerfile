@@ -6,7 +6,7 @@
 
 # Ubuntu 20.04 LTS ("Focal Fossa")
 # MS SQL Sever does not yet support later versions
-FROM ubuntu:20.04@sha256:115822d64890aae5cde3c1e85ace4cc97308bb1fd884dac62f4db0a16dbddb36
+FROM ubuntu:20.10@sha256:a7b08558af07bcccca994b01e1c84f1d14a2156e0099fcf7fcf73f52d082791e
 
 # Install SQL Server 2019 and after its prerequisites
 RUN export DEBIAN_FRONTEND=noninteractive && \
