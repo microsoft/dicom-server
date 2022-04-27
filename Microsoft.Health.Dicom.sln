@@ -55,6 +55,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fork", "fork", "{1DCC477B-C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom.Serialization", "fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj", "{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Azure", "src\Microsoft.Health.Dicom.Azure\Microsoft.Health.Dicom.Azure.csproj", "{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -137,6 +139,10 @@ Global
 		{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9}.Debug|x64.Build.0 = Debug|x64
 		{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9}.Release|x64.ActiveCfg = Release|x64
 		{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9}.Release|x64.Build.0 = Release|x64
+		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Debug|x64.ActiveCfg = Debug|x64
+		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Debug|x64.Build.0 = Debug|x64
+		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Release|x64.ActiveCfg = Release|x64
+		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -160,6 +166,7 @@ Global
 		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
 		{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9} = {1DCC477B-C893-434B-B90E-EDED5E60FC7D}
+		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True

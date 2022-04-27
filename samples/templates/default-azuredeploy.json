@@ -204,9 +204,10 @@
             "DicomServer__Features__EnableExtendedQueryTags": "true",
             "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
-            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
+            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]",
+            "KeyVault__Endpoint": "[variables('keyVaultEndpoint')]"
         },
-          // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
+        // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
         "staticDicomFunctionAppConfigProperties": {
             "AzureWebJobsDisableHomepage": "true",
             "CONTAINER_NAME": "azure-webjobs-secrets",
@@ -218,6 +219,7 @@
         "combinedDicomFunctionAppConfigProperties": "[union(variables('staticDicomFunctionAppConfigProperties'), parameters('additionalDicomFunctionAppConfigProperties'))]",
         "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('serviceName'))]",
         "dicomDatabaseName": "Dicom",
+        "keyVaultEndpoint": "[concat('https://', variables('serviceName'), '.vault.azure.net/')]",
         "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(replace(variables('serviceName'), '-', '')))), uniquestring(resourceGroup().id))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",

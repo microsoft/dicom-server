@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.Azure\Microsoft.Health.Dicom.Azure.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Blob\Microsoft.Health.Dicom.Blob.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj" />
