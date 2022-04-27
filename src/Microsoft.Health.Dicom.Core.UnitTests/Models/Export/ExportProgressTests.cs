@@ -20,7 +20,7 @@ public class ExportProgressTests
 
         ExportProgress actual = x + y;
         Assert.Equal(success1 + success2, actual.Exported);
-        Assert.Equal(failure1 + failure2, actual.Exported);
+        Assert.Equal(failure1 + failure2, actual.Failed);
         Assert.Equal(success1 + success2 + failure1 + failure2, actual.Total);
     }
 }
