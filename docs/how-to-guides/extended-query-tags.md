@@ -71,7 +71,7 @@ The following VR types are supported:
 
 > You can add up to 128 extended query tags.
 
-> If multiple values are specified for DICOM tag, only first one is indexed.
+> Only index the first value of a single valued data element that incorrectly has multiple values.
 
 #### Responses
 
