@@ -52,6 +52,8 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 
 > Only transfer syntaxes with explicit Value Representations are accepted.
 
+> If multiple values are specified for DICOM tag, only first one is indexed.
+
 ### Store Response Status Codes
 
 | Code                         | Description |
@@ -408,7 +410,7 @@ If includefield=all, below attributes are included along with default attributes
 Along with those below attributes are returned:
 
 - All the match query parameters and UIDs in the resource url.
-- IncludeField attributes supported at that resource level. 
+- IncludeField attributes supported at that resource level.
 - If the target resource is All Series, then Study level attributes are also returned.
 - If the target resource is All Instances, then Study and Series level attributes are also returned.
 - If the target resource is Study's Instances, then Series level attributes are also returned.
