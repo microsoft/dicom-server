@@ -5,6 +5,12 @@ name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:-r)
 variables:
 - template: ci/variables.yml
 
+parameters:
+- name: push
+  displayName: Push
+  type: boolean
+  default: true
+
 trigger:
   branches:
     include:
@@ -110,6 +116,7 @@ stages:
 
 - stage: PublishNuget
   displayName: 'Publish NuGet Packages'
+  condition: eq(${{ parameters.push }}, true)
   dependsOn:
   - AnalyzeSecurity
   - ValidateAPIVersioning
@@ -140,3 +147,4 @@ stages:
     - template: common/docker-build-push.yml
       parameters:
         tag: $(imageTag)
+        push: ${{ parameters.push }}

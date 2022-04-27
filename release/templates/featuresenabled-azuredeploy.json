@@ -75,8 +75,10 @@
             "DicomServer__Security__Enabled": "true",
             "DicomServer__Security__Authorization__Enabled": "true",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
-            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]"
+            "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]",
+            "KeyVault__Endpoint": "[variables('keyVaultEndpoint')]"
         },
+        "keyVaultEndpoint": "[concat('https://', variables('loweredServiceName'), '.vault.azure.net/')]",
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers/', variables('loweredServiceName'))]",
         "sqlServerConnectionStringWithPartitionsName": "SqlServerConnectionStringWithPartitions",
