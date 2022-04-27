@@ -61,22 +61,16 @@ public partial class ExportDurableFunction
                     .Select(x => sink.CopyAsync(x))
                     .ToArrayAsync());
 
-            // Compute success metrics
-            if (exports.Length > 0)
-            {
-                progress = exports.Aggregate<bool, ExportProgress>(
-                    default,
-                    (state, success) => success
-                        ? new ExportProgress(state.Exported + 1, state.Failed)
-                        : new ExportProgress(state.Exported, state.Failed + 1));
-
-                logger.LogInformation("Successfully exported {Files} DCM files.", progress.Exported);
-                if (progress.Failed > 0)
-                {
-                    logger.LogWarning("Failed to export {Files} DCM files.", progress.Failed);
-                }
-            }
+            progress += exports
+                .Select(success => success ? new ExportProgress(1, 0) : new ExportProgress(0, 1))
+                .Aggregate(default(ExportProgress), (x, y) => x + y);
         } while (exports.Length > 0);
+
+        logger.LogInformation("Successfully exported {Files} DCM files.", progress.Exported);
+        if (progress.Failed > 0)
+        {
+            logger.LogWarning("Failed to export {Files} DCM files.", progress.Failed);
+        }
 
         return progress;
     }

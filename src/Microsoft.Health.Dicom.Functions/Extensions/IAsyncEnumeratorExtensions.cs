@@ -20,7 +20,7 @@ internal static class IAsyncEnumeratorExtensions
     {
         EnsureArg.IsNotNull(source, nameof(source));
 
-        for (int i = 0; await source.MoveNextAsync(cancellationToken) && i < Math.Max(0, count); i++)
+        for (int i = 0; i < Math.Max(0, count) && await source.MoveNextAsync(cancellationToken); i++)
         {
             yield return source.Current;
         }
