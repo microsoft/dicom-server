@@ -41,7 +41,6 @@ public partial class WorkitemController
             .RetrieveWorkitemAsync(workitemInstanceUid, cancellationToken: HttpContext.RequestAborted)
             .ConfigureAwait(false);
 
-        // TODO: Need to revisit this
         return response.Status == WorkitemResponseStatus.Success
             ? Ok(response.Dataset)
             : NoContent();

@@ -50,15 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Features\Workitem\WorkitemDatasetValidator.Add.cs" />
-    <None Remove="Features\Workitem\WorkitemDatasetValidator.Cancel.cs" />
-    <None Remove="Features\Workitem\WorkitemService.Add.cs" />
-    <None Remove="Features\Workitem\WorkitemService.Cancel.cs" />
-    <None Remove="Features\Workitem\WorkitemService.Query.cs" />
-    <None Remove="Features\Workitem\WorkitemService.Retrieve.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 

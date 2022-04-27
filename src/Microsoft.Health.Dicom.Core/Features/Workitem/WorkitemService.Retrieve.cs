@@ -33,8 +33,6 @@ public partial class WorkitemService
             _responseBuilder.AddSuccess(dicomDataset);
 
             _logger.LogInformation("Successfully retrieved the DICOM instance work-item entry for Workitem Instance UID '{WorkitemInstanceUid}'", workitemInstanceUid);
-
-            return _responseBuilder.BuildRetrieveWorkitemResponse();
         }
         catch (Exception ex)
         {
@@ -51,8 +49,8 @@ public partial class WorkitemService
             }
 
             _responseBuilder.AddFailure(failureCode, ex.Message);
-
-            return null;
         }
+
+        return _responseBuilder.BuildRetrieveWorkitemResponse();
     }
 }

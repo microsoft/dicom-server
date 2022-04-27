@@ -141,6 +141,11 @@ public partial class DicomWebClient : IDicomWebClient
         return GenerateRequestUri(string.Format(DicomWebConstants.CancelWorkitemUriFormat, workitemUid), partitionName);
     }
 
+    private Uri GenerateWorkitemRetrieveRequestUri(string workitemUid, string partitionName = default)
+    {
+        return GenerateRequestUri(string.Format(DicomWebConstants.BaseWorkitemUriFormat, workitemUid), partitionName);
+    }
+
     private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(httpContent, nameof(httpContent));
@@ -211,6 +216,20 @@ public partial class DicomWebClient : IDicomWebClient
         {
             yield return await DicomFile.OpenAsync(stream).ConfigureAwait(false);
         }
+    }
+
+    private static async Task<T> Deserialize<T>(HttpContent content)
+    {
+        string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
+
+        if (string.IsNullOrEmpty(contentText))
+        {
+            return default(T);
+        }
+
+        var dataset = JsonSerializer.Deserialize<T>(contentText, JsonSerializerOptions);
+
+        return dataset;
     }
 
     private static async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
