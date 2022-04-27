@@ -31,7 +31,7 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
 
     public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
 
-    protected TestDicomWebServer TestDicomWebServer { get; }
+    public TestDicomWebServer TestDicomWebServer { get; }
 
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new RecyclableMemoryStreamManager();
 

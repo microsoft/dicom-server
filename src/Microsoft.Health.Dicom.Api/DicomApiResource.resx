@@ -172,8 +172,4 @@
     <value>The field is not supported: "{0}".</value>
     <comment>{0} is field.</comment>
   </data>
-  <data name="WarningHeader" xml:space="preserve">
-    <value>299: {0}</value>
-    <comment>{0} is the warning message</comment>
-  </data>
 </root>
