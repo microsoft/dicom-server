@@ -20,28 +20,6 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
-  - task: PowerShell@2
-    displayName: 'Run ARM Test Toolkit'
-    inputs:
-      targetType: 'inline'
-      script: |
-        Invoke-WebRequest -URI "https://aka.ms/arm-ttk-latest" -OutFile "$(Agent.TempDirectory)/arm-ttk-latest.zip"
-        Expand-Archive -Path "$(Agent.TempDirectory)/arm-ttk-latest.zip" -DestinationPath "$(Agent.TempDirectory)/arm-ttk-latest"
-        Get-ChildItem -Path "$(Agent.TempDirectory)/arm-ttk-latest/*" -Recurse | Unblock-File
-        Import-Module "$(Agent.TempDirectory)/arm-ttk-latest/arm-ttk/arm-ttk.psd1"
-
-        # Test 'default-azuredeploy.json'
-        $TestResults = Test-AzTemplate -TemplatePath "$(Build.Repository.LocalPath)/samples/templates/default-azuredeploy.json"
-        $Errors = $TestResults | Select-Object -ExpandProperty Errors
-
-        echo $TestResults
-
-        if ($Errors.Length > 0)
-        {
-            throw 'There were 1 or more errors in the ARM template.'
-        }
-      pwsh: true
-
   - task: AzureResourceManagerTemplateDeployment@3
     displayName: 'Validate ARM Template'
     inputs:
