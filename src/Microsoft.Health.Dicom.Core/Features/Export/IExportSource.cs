@@ -43,5 +43,6 @@ public interface IExportSource : IAsyncEnumerable<ReadResult>, IAsyncDisposable
     /// <returns>
     /// <see langword="true"/> if the source contains any elements; otherwise <see langword="false"/>.
     /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is less than <c>1</c>.</exception>
     bool TryDequeueBatch(int size, out TypedConfiguration<ExportSourceType> batch);
 }

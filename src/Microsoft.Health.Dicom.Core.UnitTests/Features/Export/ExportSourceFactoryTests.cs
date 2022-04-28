@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
@@ -20,7 +21,7 @@ public class ExportSourceFactoryTests
     public void GivenNoProviders_WhenCreatingSource_ThenThrowException()
     {
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
-        Assert.Throws<KeyNotFoundException>(() => factory.CreateSource(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }));
+        Assert.Throws<KeyNotFoundException>(() => factory.CreateSource(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }, PartitionEntry.Default));
     }
 
     [Fact]
@@ -28,17 +29,18 @@ public class ExportSourceFactoryTests
     {
         IServiceProvider serviceProvider = Substitute.For<IServiceProvider>();
         IConfiguration config = Substitute.For<IConfiguration>();
+        var partition = PartitionEntry.Default;
         var source = new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers, Configuration = config };
         IExportSource expected = Substitute.For<IExportSource>();
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
-        provider.Create(serviceProvider, config).Returns(expected);
+        provider.Create(serviceProvider, config, partition).Returns(expected);
 
         var factory = new ExportSourceFactory(serviceProvider, new IExportSourceProvider[] { provider });
-        Assert.Same(expected, factory.CreateSource(source));
+        Assert.Same(expected, factory.CreateSource(source, partition));
 
-        provider.Received(1).Create(serviceProvider, config);
+        provider.Received(1).Create(serviceProvider, config, partition);
     }
 
     [Fact]

@@ -21,7 +21,7 @@ public interface IInstanceStore
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
-    Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+    Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
         int partitionKey,
         string studyInstanceUid,
         CancellationToken cancellationToken = default);
@@ -34,7 +34,7 @@ public interface IInstanceStore
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
-    Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+    Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
         int partitionKey,
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -49,7 +49,7 @@ public interface IInstanceStore
     /// <param name="sopInstanceUid">The instance identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
-    Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+    Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
         int partitionKey,
         string studyInstanceUid,
         string seriesInstanceUid,

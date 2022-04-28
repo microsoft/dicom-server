@@ -4,11 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Models.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-internal sealed class ExportIdentifiers
+internal sealed class IdentifierExportOptions
 {
-    public IReadOnlyList<DicomIdentifier> Values { get; set; }
+    public IReadOnlyList<string> Values { get; set; }
 }

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -43,13 +44,16 @@ public sealed class ExportSourceFactory
     /// is based on given <paramref name="source"/>.
     /// </summary>
     /// <param name="source">The configuration for a specific source type.</param>
+    /// <param name="partition">The data partition.</param>
     /// <returns>The corresponding <see cref="IExportSource"/> instance.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="source"/> or <paramref name="partition"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="KeyNotFoundException">
     /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
     /// </exception>
-    public IExportSource CreateSource(TypedConfiguration<ExportSourceType> source)
-        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type).Create(_serviceProvider, source.Configuration);
+    public IExportSource CreateSource(TypedConfiguration<ExportSourceType> source, PartitionEntry partition)
+        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type).Create(_serviceProvider, source.Configuration, partition);
 
     /// <summary>
     /// Ensures that the given configuration can be used to create a valid source.

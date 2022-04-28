@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Web;
@@ -37,6 +38,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 public class ExportController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IDicomRequestContext _context;
     private readonly ILogger<ExportController> _logger;
     private readonly bool _enabled;
 
@@ -44,6 +46,7 @@ public class ExportController : ControllerBase
     /// Initializes a new instance of the <see cref="ExportController"/> class based on the given options.
     /// </summary>
     /// <param name="mediator">An <see cref="IMediator"/> used to send requests.</param>
+    /// <param name="context">Dicom-specific request context.</param>
     /// <param name="options">Options concerning which features are enabled.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <exception cref="ArgumentNullException">
@@ -51,10 +54,12 @@ public class ExportController : ControllerBase
     /// </exception>
     public ExportController(
         IMediator mediator,
+        IDicomRequestContext context,
         IOptions<FeatureConfiguration> options,
         ILogger<ExportController> logger)
     {
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
+        _context = EnsureArg.IsNotNull(context, nameof(context));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _enabled = EnsureArg.IsNotNull(options?.Value?.EnableExport, nameof(options)).GetValueOrDefault();
     }
@@ -89,7 +94,7 @@ public class ExportController : ControllerBase
             {
                 _logger.LogInformation("DICOM Web Export request received to export instances from '{Source}' to '{Sink}'.", x.Source.Type, x.Destination.Type);
 
-                ExportInstancesResponse response = await _mediator.ExportInstancesAsync(x, token);
+                ExportInstancesResponse response = await _mediator.ExportInstancesAsync(x, _context.DataPartitionEntry, token);
 
                 Response.AddLocationHeader(response.Operation.Href);
                 return StatusCode((int)HttpStatusCode.Accepted, response.Operation);

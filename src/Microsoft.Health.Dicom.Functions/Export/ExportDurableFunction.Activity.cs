@@ -42,7 +42,7 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         ExportBatchArguments args = context.GetInput<ExportBatchArguments>();
-        await using IExportSource source = _sourceFactory.CreateSource(args.Source);
+        await using IExportSource source = _sourceFactory.CreateSource(args.Source, args.Partition);
         await using IExportSink sink = _sinkFactory.CreateSink(args.Destination, context.GetOperationId());
 
         // Export
