@@ -1093,6 +1093,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unsupported export destination &apos;{0}&apos;..
+        /// </summary>
+        internal static string UnsupportedExportDestination {
+            get {
+                return ResourceManager.GetString("UnsupportedExportDestination", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported export source &apos;{0}&apos;..
+        /// </summary>
+        internal static string UnsupportedExportSource {
+            get {
+                return ResourceManager.GetString("UnsupportedExportSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters, attributes and the levels..
         /// </summary>
         internal static string UnsupportedSearchParameter {

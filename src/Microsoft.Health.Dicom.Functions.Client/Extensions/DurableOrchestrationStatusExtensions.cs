@@ -16,10 +16,15 @@ internal static class DurableOrchestrationStatusExtensions
     {
         EnsureArg.IsNotNull(status, nameof(status));
 
-        // TODO: Add export
-        return status.Name != null &&
-            status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase)
-            ? DicomOperation.Reindex
-            : DicomOperation.Unknown;
+        if (status?.Name != null)
+        {
+            if (status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.Reindex;
+
+            if (status.Name.StartsWith(FunctionNames.ExportDicomFiles, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.Export;
+        }
+
+        return DicomOperation.Unknown;
     }
 }

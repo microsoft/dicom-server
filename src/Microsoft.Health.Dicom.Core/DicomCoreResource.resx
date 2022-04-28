@@ -577,4 +577,12 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Read invalid JSON token type '{0}'.</value>
     <comment>{0} Actual token type.</comment>
   </data>
+  <data name="UnsupportedExportDestination" xml:space="preserve">
+    <value>Unsupported export destination '{0}'.</value>
+    <comment>{0} Destination</comment>
+  </data>
+  <data name="UnsupportedExportSource" xml:space="preserve">
+    <value>Unsupported export source '{0}'.</value>
+    <comment>{0} Source</comment>
+  </data>
 </root>
