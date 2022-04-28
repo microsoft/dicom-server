@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -94,6 +95,25 @@ internal class DicomTagsManager : IAsyncDisposable
 
         var response = await _dicomWebClient.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);
         return await response.GetValueAsync();
+    }
+
+    public async IAsyncEnumerable<ExtendedQueryTagError> GetTagErrorsAsync(string tagPath, int pageSize = 100, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(tagPath, nameof(tagPath));
+        EnsureArg.IsGte(pageSize, 1, nameof(pageSize));
+
+        int offset = 0;
+        IReadOnlyList<ExtendedQueryTagError> page;
+        do
+        {
+            page = await GetTagErrorsAsync(tagPath, pageSize, offset, cancellationToken);
+            offset += page.Count;
+
+            foreach (ExtendedQueryTagError error in page)
+            {
+                yield return error;
+            }
+        } while (page.Count > 0);
     }
 
     public async Task<GetExtendedQueryTagEntry> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default)
