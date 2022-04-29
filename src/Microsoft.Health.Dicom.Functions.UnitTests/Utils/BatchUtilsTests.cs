@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Export;
-
-public partial class DuplicateDurableFunctionTests
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Utils;
+public class BatchUtilsTests
 {
-
 }

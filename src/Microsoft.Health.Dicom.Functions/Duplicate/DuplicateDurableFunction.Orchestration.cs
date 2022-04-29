@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Models.Duplicate;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Duplicate.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Duplicate;
@@ -58,7 +59,8 @@ public partial class DuplicateDurableFunction
         if (batches.Count > 0)
         {
             // Note that batches are in reverse order because we start from the highest watermark
-            var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
+            // Example: [8,11][4,7][1,3]
+            var batchRange = BatchUtils.GetBatchRange(batches);
 
             logger.LogInformation("Beginning to duplicate the range {Range}.", batchRange);
             await Task.WhenAll(batches
@@ -71,7 +73,7 @@ public partial class DuplicateDurableFunction
             logger.LogInformation("Completed duplicating the range {Range}. Continuing with new execution...", batchRange);
 
             WatermarkRange completed = input.Completed.HasValue
-                ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
+                ? input.Completed.Value.Merge(batchRange)
                 : batchRange;
 
             context.ContinueAsNew(

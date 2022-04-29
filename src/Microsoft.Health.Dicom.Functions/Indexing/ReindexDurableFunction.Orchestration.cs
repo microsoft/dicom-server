@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing;
@@ -71,7 +72,7 @@ public partial class ReindexDurableFunction
             if (batches.Count > 0)
             {
                 // Note that batches are in reverse order because we start from the highest watermark
-                var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
+                var batchRange = BatchUtils.GetBatchRange(batches);
 
                 logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                 await Task.WhenAll(batches
@@ -83,9 +84,7 @@ public partial class ReindexDurableFunction
                 // Create a new orchestration with the same instance ID to process the remaining data
                 logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
-                WatermarkRange completed = input.Completed.HasValue
-                    ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
-                    : batchRange;
+                WatermarkRange completed = input.Completed.HasValue ? input.Completed.Value.Merge(batchRange) : batchRange;
 
                 context.ContinueAsNew(
                     new ReindexCheckpoint

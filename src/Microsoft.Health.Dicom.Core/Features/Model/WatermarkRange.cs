@@ -52,6 +52,16 @@ public readonly struct WatermarkRange : IEquatable<WatermarkRange>
         end = End;
     }
 
+    public WatermarkRange Merge(WatermarkRange range)
+    {
+        if (Start > range.Start)
+        {
+            return range.Merge(this);
+        }
+        EnsureArg.Equals(End, range.Start - 1);
+        return new WatermarkRange(Start, range.End);
+    }
+
     public override string ToString()
         => "[" + Start + ", " + End + "]";
 }

@@ -28,4 +28,18 @@ internal static class BatchUtils
             await Task.WhenAll(tasks);
         }
     }
+
+    public static WatermarkRange GetBatchRange(IReadOnlyList<WatermarkRange> batches, bool ascending = false)
+    {
+        EnsureArg.IsNotNull(batches, nameof(batches));
+        EnsureArg.IsGt(batches.Count, 0, nameof(batches));
+        if (ascending)
+        {
+            return new WatermarkRange(batches[0].Start, batches[^1].End);
+        }
+        else
+        {
+            return new WatermarkRange(batches[^1].Start, batches[0].End);
+        }
+    }
 }

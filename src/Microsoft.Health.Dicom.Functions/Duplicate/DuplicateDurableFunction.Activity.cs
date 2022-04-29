@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Duplicate.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Functions.Utils;
 
 namespace Microsoft.Health.Dicom.Functions.Duplicate;
 public partial class DuplicateDurableFunction
@@ -72,17 +72,7 @@ public partial class DuplicateDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-        for (int i = 0; i < instanceIdentifiers.Count; i += arguments.ThreadCount)
-        {
-            var tasks = new List<Task>();
-            for (int j = i; j < Math.Min(instanceIdentifiers.Count, i + arguments.ThreadCount); j++)
-            {
-                tasks.Add(_instanceDuplicater.DuplicateInstanceAsync(instanceIdentifiers[j]));
-            }
-
-            await Task.WhenAll(tasks);
-        }
-
+        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers, arguments.ThreadCount, id => _instanceDuplicater.DuplicateInstanceAsync(id));
         logger.LogInformation("Completed duplicating instances in the range {Range}.", arguments.WatermarkRange);
     }
 
