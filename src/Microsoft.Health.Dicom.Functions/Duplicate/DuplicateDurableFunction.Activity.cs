@@ -96,7 +96,7 @@ public partial class DuplicateDurableFunction
 
         logger.LogInformation("Completing the duplicate operation {OperationId}", context.InstanceId);
 
-        // TODO: maybe need to update database
+        // TODO: update table storage to mark as completed.
         return Task.CompletedTask;
     }
 }

@@ -50,7 +50,6 @@ public partial class DuplicateDurableFunction
             Size = _options.BatchSize,
         };
 
-
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
             nameof(GetDuplicateInstanceBatchesAsync),
             _options.RetryOptions,
