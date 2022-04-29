@@ -71,7 +71,7 @@ The following VR types are supported:
 
 > You can add up to 128 extended query tags.
 
-> Only index the first value of a single valued data element that incorrectly has multiple values.
+> Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
 
 #### Responses
 
