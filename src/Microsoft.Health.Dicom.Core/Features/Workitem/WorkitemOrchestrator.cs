@@ -190,20 +190,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             .ConfigureAwait(false);
     }
 
-    private async Task<DicomDataset> TryGetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
-    {
-        try
-        {
-            return await GetWorkitemBlobAsync(identifier, cancellationToken)
-            .ConfigureAwait(false);
-        }
-        catch (ItemNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "Workitem [{Identifier}] blob doesn't exist due to simultaneous GET and UPDATE request or it could just be missing.", identifier);
-            return null;
-        }
-    }
-
     /// <inheritdoc />
     public async Task<DicomDataset> RetrieveWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken = default)
     {
@@ -220,6 +206,20 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             .ConfigureAwait(false);
 
         return dataset;
+    }
+
+    private async Task<DicomDataset> TryGetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GetWorkitemBlobAsync(identifier, cancellationToken)
+            .ConfigureAwait(false);
+        }
+        catch (ItemNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Workitem [{Identifier}] blob doesn't exist due to simultaneous GET and UPDATE request or it could just be missing.", identifier);
+            return null;
+        }
     }
 
     /// <inheritdoc />

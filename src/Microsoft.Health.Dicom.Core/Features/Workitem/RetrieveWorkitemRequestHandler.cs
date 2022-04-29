@@ -29,9 +29,9 @@ public sealed class RetrieveWorkitemRequestHandler : BaseHandler, IRequestHandle
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken).ConfigureAwait(false) != DataActions.Write)
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            throw new UnauthorizedDicomActionException(DataActions.Write);
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
         return await _workItemService

@@ -35,7 +35,7 @@ public partial class WorkitemController
     [AuditEventType(AuditEventSubType.RetrieveWorkitem)]
     public async Task<IActionResult> RetrieveAsync(string workitemInstanceUid)
     {
-        _logger.LogInformation("Search workitem for WorkitemInstanceUid: '{WorkitemInstanceUid}'.", workitemInstanceUid);
+        _logger.LogInformation("Search workitem.");
 
         var response = await _mediator
             .RetrieveWorkitemAsync(workitemInstanceUid, cancellationToken: HttpContext.RequestAborted)
