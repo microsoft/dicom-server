@@ -14,13 +14,13 @@ namespace Microsoft.Health.Dicom.Functions.Duplicate;
 /// Represents the Azure Durable Functions that perform the re-indexing of previously added DICOM instances
 /// based on new tags configured by the user.
 /// </summary>
-public partial class DuplicationDurableFunction
+public partial class DuplicateDurableFunction
 {
     private readonly IInstanceStore _instanceStore;
     private readonly DuplicationOptions _options;
     private readonly IInstanceDuplicater _instanceDuplicater;
 
-    public DuplicationDurableFunction(
+    public DuplicateDurableFunction(
         IInstanceStore instanceStore,
         IInstanceDuplicater instanceDuplicater,
         IOptions<DuplicationOptions> configOptions)

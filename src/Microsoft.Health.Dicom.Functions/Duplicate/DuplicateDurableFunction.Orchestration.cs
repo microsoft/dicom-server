@@ -19,7 +19,7 @@ using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Duplicate;
 
-public partial class DuplicationDurableFunction
+public partial class DuplicateDurableFunction
 {
     /// <summary>
     /// Asynchronously creates an index for the provided query tags over the previously added data.

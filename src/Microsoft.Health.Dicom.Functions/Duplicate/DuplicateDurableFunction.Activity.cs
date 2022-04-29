@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Functions.Duplicate.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Duplicate;
-public partial class DuplicationDurableFunction
+public partial class DuplicateDurableFunction
 {
 
     /// <summary>
