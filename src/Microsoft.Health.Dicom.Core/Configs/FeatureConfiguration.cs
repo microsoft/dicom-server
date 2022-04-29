@@ -36,4 +36,14 @@ public class FeatureConfiguration
     /// Gets or sets a value indicating whether bulk export is enabled.
     /// </summary>
     public bool EnableExport { get; set; }
+
+    /// <summary>
+    /// Enables Dual write blob for migration
+    /// </summary>
+    public bool EnableDualWrite { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the service is created new to use new blob format
+    /// </summary>
+    public bool SupportNewBlobFormatForNewService { get; set; }
 }

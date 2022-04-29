@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -14,6 +16,7 @@ using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -27,21 +30,35 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
+    private readonly bool _enableDualWrite;
+    private readonly bool _supportNewBlobFormatForNewService;
+    private readonly DicomFileNameWithUID _fileNameWithUID;
+    private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
     public BlobFileStore(
         BlobServiceClient client,
+        DicomFileNameWithUID fileNameWithUID,
+        DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-        IOptions<BlobOperationOptions> options)
+        IOptions<BlobOperationOptions> options,
+        IOptions<FeatureConfiguration> featureConfiguration)
     {
         EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(fileNameWithUID, nameof(fileNameWithUID));
+        EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(options?.Value, nameof(options));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.BlobContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _options = options.Value;
+        _fileNameWithUID = fileNameWithUID;
+        _nameWithPrefix = nameWithPrefix;
+        _enableDualWrite = featureConfiguration.Value.EnableDualWrite;
+        _supportNewBlobFormatForNewService = featureConfiguration.Value.SupportNewBlobFormatForNewService;
     }
 
     /// <inheritdoc />
@@ -53,19 +70,15 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+        BlockBlobClient[] blobs = GetInstanceBlockBlobs(versionedInstanceIdentifier);
         stream.Seek(0, SeekOrigin.Begin);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
 
         try
         {
-            await blob.UploadAsync(
-                stream,
-                blobUploadOptions,
-                cancellationToken);
-
-            return blob.Uri;
+            await Task.WhenAll(blobs.Select(blob => blob.UploadAsync(stream, blobUploadOptions, cancellationToken)));
+            return blobs[0].Uri;
         }
         catch (Exception ex)
         {
@@ -80,9 +93,9 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+        BlockBlobClient[] blobs = GetInstanceBlockBlobs(versionedInstanceIdentifier);
 
-        await ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
+        await Task.WhenAll(blobs.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
     }
 
     /// <inheritdoc />
@@ -123,11 +136,48 @@ public class BlobFileStore : IFileStore
         return fileProperties;
     }
 
+    // TODO: This should removed once we migrate everything and the global flag is turned on
     private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        string blobName = $"{versionedInstanceIdentifier.StudyInstanceUid}/{versionedInstanceIdentifier.SeriesInstanceUid}/{versionedInstanceIdentifier.SopInstanceUid}_{versionedInstanceIdentifier.Version}.dcm";
+        string blobName;
+        if (_supportNewBlobFormatForNewService)
+        {
+            blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
+        }
+        else
+        {
+            blobName = _fileNameWithUID.GetInstanceFileName(versionedInstanceIdentifier);
+        }
 
         return _container.GetBlockBlobClient(blobName);
+    }
+
+    private BlockBlobClient[] GetInstanceBlockBlobs(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        var clients = new List<BlockBlobClient>();
+
+        string blobName;
+
+        if (_supportNewBlobFormatForNewService)
+        {
+            blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
+            clients.Add(_container.GetBlockBlobClient(blobName));
+        }
+        else if (_enableDualWrite)
+        {
+            blobName = _fileNameWithUID.GetInstanceFileName(versionedInstanceIdentifier);
+            clients.Add(_container.GetBlockBlobClient(blobName));
+
+            blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
+            clients.Add(_container.GetBlockBlobClient(blobName));
+        }
+        else
+        {
+            blobName = _fileNameWithUID.GetInstanceFileName(versionedInstanceIdentifier);
+            clients.Add(_container.GetBlockBlobClient(blobName));
+        }
+
+        return clients.ToArray();
     }
 
     private static async Task ExecuteAsync(Func<Task> action)

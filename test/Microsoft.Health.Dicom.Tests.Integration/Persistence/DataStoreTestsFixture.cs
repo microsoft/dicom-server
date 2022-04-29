@@ -14,6 +14,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.IO;
@@ -68,8 +69,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
         await blobClientInitializer.InitializeDataStoreAsync(
                                         new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-        FileStore = new BlobFileStore(_blobClient, optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()));
-        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, optionsMonitor, Options.Create(AppSerializerOptions.Json));
+        FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithUID>(), Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), Options.Create(Substitute.For<FeatureConfiguration>()));
+        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, Substitute.For<DicomFileNameWithUID>(), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<FeatureConfiguration>()), optionsMonitor, Options.Create(AppSerializerOptions.Json));
     }
 
     public async Task DisposeAsync()
