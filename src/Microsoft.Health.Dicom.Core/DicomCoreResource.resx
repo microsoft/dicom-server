@@ -585,4 +585,8 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Unsupported export source '{0}'.</value>
     <comment>{0} Source</comment>
   </data>
+  <data name="MissingProperty" xml:space="preserve">
+    <value>Missing value for property '{0}'.</value>
+    <comment>{0} Property Name</comment>
+  </data>
 </root>

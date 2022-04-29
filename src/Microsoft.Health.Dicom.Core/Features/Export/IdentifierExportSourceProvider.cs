@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
+using System.Linq;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models.Common;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
@@ -20,7 +22,14 @@ internal sealed class IdentifierExportSourceProvider : IExportSourceProvider
 
     public IExportSource Create(IServiceProvider provider, IConfiguration config, PartitionEntry partition)
     {
-        throw new NotImplementedException();
+        EnsureArg.IsNotNull(provider, nameof(provider));
+        EnsureArg.IsNotNull(config, nameof(config));
+        EnsureArg.IsNotNull(partition, nameof(partition));
+
+        return new IdentifierExportSource(
+            provider.GetRequiredService<IInstanceStore>(),
+            partition,
+            config.Get<IdentifierExportOptions>());
     }
 
     public void Validate(IConfiguration config)
@@ -28,22 +37,9 @@ internal sealed class IdentifierExportSourceProvider : IExportSourceProvider
         EnsureArg.IsNotNull(config, nameof(config));
 
         IdentifierExportOptions options = config.Get<IdentifierExportOptions>();
-        if ((options.Values?.Count).GetValueOrDefault() == 0)
-            throw new ValidationException("No identifiers found.");
+        List<ValidationResult> errors = options.Validate(new ValidationContext(this)).ToList();
 
-        try
-        {
-            foreach (string value in options.Values)
-            {
-                if (value == null)
-                    throw new ValidationException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value));
-
-                DicomIdentifier.Parse(value);
-            }
-        }
-        catch (FormatException ex)
-        {
-            throw new ValidationException(ex.Message, ex.InnerException);
-        }
+        if (errors.Count > 0)
+            throw new ValidationException(errors.First().ErrorMessage);
     }
 }

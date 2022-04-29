@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -43,5 +44,6 @@ public interface IExportSinkProvider
     /// </remarks>
     /// <param name="config">The sink-specific configuration.</param>
     /// <exception cref="ArgumentNullException"><paramref name="config"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ValidationException">There were one or more problems with the <paramref name="config"/>.</exception>
     void Validate(IConfiguration config);
 }
