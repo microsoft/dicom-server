@@ -17,6 +17,7 @@ public class DurableOrchestrationStatusExtensionsTests
     [InlineData("foo", DicomOperation.Unknown)]
     [InlineData("Unknown", DicomOperation.Unknown)]
     [InlineData(FunctionNames.ReindexInstances, DicomOperation.Reindex)]
+    [InlineData(FunctionNames.ExportDicomFiles, DicomOperation.Export)]
     [InlineData("reindexINSTANCESasync", DicomOperation.Reindex)]
     public void GivenOrchestrationStatus_WhenGettingDicomOperation_ThenConvertNameToType(string name, DicomOperation expected)
     {

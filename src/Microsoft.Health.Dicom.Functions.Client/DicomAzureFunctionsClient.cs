@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.DurableTask;
@@ -125,7 +126,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 QueryTagKeys = tagKeys
             });
 
-        _logger.LogInformation("Successfully started new orchestration instance with ID '{InstanceId}'.", instanceId);
+        _logger.LogInformation("Successfully started new re-index orchestration instance with ID '{InstanceId}'.", instanceId);
 
         // Associate the tags to the operation and confirm their processing
         IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
@@ -137,12 +138,37 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return confirmedTags.Count > 0 ? operationId : throw new ExtendedQueryTagsAlreadyExistsException();
     }
 
+    /// <inheritdoc/>
+    public async Task<Guid> StartExportingFilesAsync(ExportSpecification specification, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(specification, nameof(specification));
+
+        // Start the re-indexing orchestration
+        Guid operationId = _guidFactory.Create();
+
+        // TODO: Pass token when supported
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Export.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new ExportInput
+            {
+                Batching = _options.Export.Batching,
+                Destination = specification.Destination,
+                Source = specification.Source,
+            });
+
+        _logger.LogInformation("Successfully started new export orchestration instance with ID '{InstanceId}'.", instanceId);
+
+        return operationId;
+    }
+
     // Note that the Durable Task Framework does not preserve the original CreatedTime
     // when an orchestration is restarted via ContinueAsNew, so we may store the original
     // in the checkpoint
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
+            DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,
         };
@@ -154,6 +180,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     {
         switch (type)
         {
+            case DicomOperation.Export:
+                return null;
             case DicomOperation.Reindex:
                 List<int> tagKeys = resourceIds?.Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToList();
 
