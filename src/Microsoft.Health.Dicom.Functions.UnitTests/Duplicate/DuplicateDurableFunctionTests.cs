@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Functions.Duplicate;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Export;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Duplicate;
 
 public partial class DuplicateDurableFunctionTests
 {
