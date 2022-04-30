@@ -58,7 +58,7 @@ public readonly struct WatermarkRange : IEquatable<WatermarkRange>
         {
             return range.Merge(this);
         }
-        EnsureArg.Equals(End, range.Start - 1);
+        EnsureArg.IsTrue(End == range.Start - 1, nameof(range));
         return new WatermarkRange(Start, range.End);
     }
 

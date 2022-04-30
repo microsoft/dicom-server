@@ -67,7 +67,6 @@ public class BatchUtilsTests
         Assert.Equal(new WatermarkRange(1, 5), BatchUtils.GetBatchRange(new[] { range1, range2 }, ascending: true));
     }
 
-
     [Fact]
     public void GivenDescendingBatches_WhenGetBatchRange_ThenShouldReturnExpected()
     {
