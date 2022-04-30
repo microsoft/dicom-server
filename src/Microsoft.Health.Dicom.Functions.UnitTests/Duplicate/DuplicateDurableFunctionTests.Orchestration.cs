@@ -9,7 +9,6 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Duplicate;
 using Microsoft.Health.Dicom.Functions.Duplicate;
@@ -82,7 +81,7 @@ public partial class DuplicateDurableFunctionTests
                 .CallActivityWithRetryAsync(
                     nameof(DuplicateDurableFunction.DuplicateBatchAsync),
                     _options.RetryOptions,
-                    Arg.Is(GetPredicate(batch.End)));
+                    Arg.Is(GetPredicate(batch)));
         }
 
         await context
@@ -220,9 +219,10 @@ public partial class DuplicateDurableFunctionTests
                 Arg.Any<object>());
         await context
             .Received(1)
-            .CallActivityWithRetryAsync<IReadOnlyList<int>>(
+            .CallActivityWithRetryAsync(
                 nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
-                _options.RetryOptions, input: null);
+                _options.RetryOptions,
+                Arg.Any<object>());
 
         await context
              .DidNotReceive()
@@ -280,56 +280,7 @@ public partial class DuplicateDurableFunctionTests
                 Arg.Any<object>());
         await context
             .Received(1)
-            .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
-                _options.RetryOptions,
-                input: null);
-        await context
-             .DidNotReceive()
-             .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
-                nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
-        context
-            .DidNotReceiveWithAnyArgs()
-            .ContinueAsNew(default, default);
-    }
-
-    [Fact]
-    public async Task GivenNoQueryTags_WhenDuplicateingInstances_ThenComplete()
-    {
-        var expectedInput = new DuplicateCheckpoint();
-        var expectedTags = new List<ExtendedQueryTagStoreEntry>();
-
-        // Arrange the input
-        IDurableOrchestrationContext context = CreateContext();
-        context
-            .GetInput<DuplicateCheckpoint>()
-            .Returns(expectedInput);
-
-        // Invoke the orchestration
-        await _function.DuplicateInstancesAsync(context, NullLogger.Instance);
-
-        // Assert behavior
-        context
-            .Received(1)
-            .GetInput<DuplicateCheckpoint>();
-
-        await context
-            .DidNotReceive()
-            .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
-        await context
-            .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.DuplicateBatchAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
-        await context
-            .DidNotReceive()
-            .CallActivityWithRetryAsync<IReadOnlyList<int>>(
                 nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
