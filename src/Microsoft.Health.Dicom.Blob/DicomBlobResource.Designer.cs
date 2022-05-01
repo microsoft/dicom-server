@@ -61,7 +61,16 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please do not specify both ConnectionString and ContainerName with ContainerUri..
+        ///   Looks up a localized string similar to When specifying ConnectionString, do not include the SAS token separately. Instead, include the SAS token as part of the ConnectionString property..
+        /// </summary>
+        internal static string CombineSasToken {
+            get {
+                return ResourceManager.GetString("CombineSasToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
         /// </summary>
         internal static string ConflictingExportBlobConnections {
             get {

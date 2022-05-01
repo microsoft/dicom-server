@@ -41,6 +41,9 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
         {
             if (string.IsNullOrEmpty(ConnectionString) || string.IsNullOrEmpty(ContainerName))
                 results.Add(new ValidationResult(DicomBlobResource.MissingExportBlobConnection));
+
+            if (!string.IsNullOrEmpty(SasToken))
+                results.Add(new ValidationResult(DicomBlobResource.CombineSasToken));
         }
         else if (!string.IsNullOrEmpty(ConnectionString) || !string.IsNullOrEmpty(ContainerName))
         {
@@ -69,7 +72,7 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
         }
         else
         {
-            return new BlobContainerClient(ConnectionString, ContainerName);
+            return new BlobContainerClient(ConnectionString, ContainerName, options);
         }
     }
 

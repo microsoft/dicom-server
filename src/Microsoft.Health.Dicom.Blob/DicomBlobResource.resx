@@ -117,8 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CombineSasToken" xml:space="preserve">
+    <value>When specifying ConnectionString, do not include the SAS token separately. Instead, include the SAS token as part of the ConnectionString property.</value>
+  </data>
   <data name="ConflictingExportBlobConnections" xml:space="preserve">
-    <value>Please do not specify both ConnectionString and ContainerName with ContainerUri.</value>
+    <value>ConnectionString and ContainerName cannot be specified along with ContainerUri.</value>
   </data>
   <data name="ContainerDoesNotExist" xml:space="preserve">
     <value>Azure blob container '{0}' does not exist.</value>
