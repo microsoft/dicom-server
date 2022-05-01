@@ -63,7 +63,7 @@ public partial class ExportDurableFunctionTests
                 x => { x[1] = batches[0]; return true; },
                 x => { x[1] = batches[1]; return true; });
         source.Configuration.Returns(nextSource);
-        _sourceProvider.Create(_serviceProvider, input.Source.Configuration, input.Partition).Returns(source);
+        _sourceProvider.CreateSourceAsync(_serviceProvider, input.Source.Configuration, input.Partition).Returns(source);
 
         context
             .GetInput<ExportCheckpoint>()
@@ -100,7 +100,7 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        _sourceProvider.Received(1).Create(_serviceProvider, input.Source.Configuration, input.Partition);
+        await _sourceProvider.Received(1).CreateSourceAsync(_serviceProvider, input.Source.Configuration, input.Partition);
         source
             .Received(2)
             .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>());
@@ -169,7 +169,7 @@ public partial class ExportDurableFunctionTests
                 x => { x[1] = batch; return true; },
                 x => { x[1] = null; return false; });
         source.Configuration.Returns((TypedConfiguration<ExportSourceType>)null);
-        _sourceProvider.Create(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition).Returns(source);
+        _sourceProvider.CreateSourceAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition).Returns(source);
 
         context
             .GetInput<ExportCheckpoint>()
@@ -188,7 +188,7 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        _sourceProvider.Received(1).Create(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition);
+        await _sourceProvider.Received(1).CreateSourceAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition);
         source
             .Received(2)
             .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>());
@@ -250,7 +250,7 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        _sourceProvider.DidNotReceiveWithAnyArgs().Create(default, default, default);
+        await _sourceProvider.DidNotReceiveWithAnyArgs().CreateSourceAsync(default, default, default, default);
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<ExportProgress>(

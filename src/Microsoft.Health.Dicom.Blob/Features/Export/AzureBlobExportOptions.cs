@@ -7,13 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
-internal sealed class AzureBlobExportOptions : IValidatableObject
+internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
 {
     public Uri ContainerUri { get; set; }
 
@@ -26,6 +31,8 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
     public string FilePattern { get; set; } = "Results/%Study%/%Series%/%SopInstance%.dcm";
 
     public string SasToken { get; set; }
+
+    internal SecretKey Secrets { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -64,5 +71,50 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
         {
             return new BlobContainerClient(ConnectionString, ContainerName);
         }
+    }
+
+    public async Task ClassifyAsync(ISecretStore secretStore, string secretName, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(secretStore, nameof(secretStore));
+
+        if (!string.IsNullOrEmpty(ConnectionString) || !string.IsNullOrEmpty(SasToken))
+        {
+            var values = new BlobSecrets
+            {
+                ConnectionString = ConnectionString,
+                SasToken = SasToken,
+            };
+
+            string version = await secretStore.SetSecretAsync(
+                secretName,
+                JsonSerializer.Serialize(values),
+                cancellationToken);
+
+            Secrets = new SecretKey { Name = secretName, Version = version };
+
+            ConnectionString = null;
+            SasToken = null;
+        }
+    }
+
+    public async Task DeclassifyAsync(ISecretStore secretStore, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(secretStore, nameof(secretStore));
+
+        if (Secrets != null)
+        {
+            string json = await secretStore.GetSecretAsync(Secrets.Name, Secrets.Version, cancellationToken);
+            var values = JsonSerializer.Deserialize<BlobSecrets>(json);
+
+            ConnectionString = values.ConnectionString;
+            SasToken = values.SasToken;
+        }
+    }
+
+    private sealed class BlobSecrets
+    {
+        public string ConnectionString { get; set; }
+
+        public string SasToken { get; set; }
     }
 }

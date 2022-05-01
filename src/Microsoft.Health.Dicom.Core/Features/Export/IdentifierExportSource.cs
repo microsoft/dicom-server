@@ -26,7 +26,7 @@ internal sealed class IdentifierExportSource : IExportSource
 {
     public event EventHandler<ReadFailureEventArgs> ReadFailure;
 
-    public TypedConfiguration<ExportSourceType> Configuration => throw new NotImplementedException();
+    public TypedConfiguration<ExportSourceType> Configuration => GetConfiguration();
 
     private readonly IInstanceStore _instanceStore;
     private readonly PartitionEntry _partition;
@@ -84,24 +84,33 @@ internal sealed class IdentifierExportSource : IExportSource
     {
         EnsureArg.IsGt(size, 0, nameof(size));
 
-        int count = Math.Min(size, _options.Values.Count - _startIndex);
-        if (count > 0)
+        batch = GetConfiguration(size, remove: true);
+        return batch != null;
+    }
+
+    private TypedConfiguration<ExportSourceType> GetConfiguration(int? maxSize = null, bool remove = false)
+    {
+        int count = maxSize.HasValue
+            ? Math.Min(maxSize.GetValueOrDefault(), _options.Values.Count - _startIndex)
+            : _options.Values.Count - _startIndex;
+
+        if (count == 0)
+            return null;
+
+        // Create a configuration that describes the source over this subset
+        var source = new TypedConfiguration<ExportSourceType>
         {
-            batch = new TypedConfiguration<ExportSourceType>
-            {
-                Configuration = new ConfigurationBuilder().AddInMemoryCollection().Build(),
-                Type = ExportSourceType.Identifiers,
-            };
+            Configuration = new ConfigurationBuilder().AddInMemoryCollection().Build(),
+            Type = ExportSourceType.Identifiers,
+        };
 
-            // Add the subset of data
-            for (int i = _startIndex; i < _startIndex + count; i++)
-                batch.Configuration[nameof(IdentifierExportOptions.Values) + ':' + i.ToString(CultureInfo.InvariantCulture)] = _options.Values[i];
+        for (int i = _startIndex; i < _startIndex + count; i++)
+            source.Configuration[nameof(IdentifierExportOptions.Values) + ':' + i.ToString(CultureInfo.InvariantCulture)] = _options.Values[i];
 
+        // Optional move the _startIndex to avoid future consumption
+        if (remove)
             _startIndex += count;
-            return true;
-        }
 
-        batch = default;
-        return false;
+        return source;
     }
 }

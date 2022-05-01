@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -18,15 +20,18 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Export;
 public class ExportSourceFactoryTests
 {
     [Fact]
-    public void GivenNoProviders_WhenCreatingSource_ThenThrowException()
+    public async Task GivenNoProviders_WhenCreatingSource_ThenThrowException()
     {
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
-        Assert.Throws<KeyNotFoundException>(() => factory.CreateSource(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }, PartitionEntry.Default));
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => factory.CreateSourceAsync(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }, PartitionEntry.Default));
     }
 
     [Fact]
-    public void GivenValidProviders_WhenCreatingSource_ThenReturnSource()
+    public async Task GivenValidProviders_WhenCreatingSource_ThenReturnSource()
     {
+        using var tokenSource = new CancellationTokenSource();
+
         IServiceProvider serviceProvider = Substitute.For<IServiceProvider>();
         IConfiguration config = Substitute.For<IConfiguration>();
         var partition = PartitionEntry.Default;
@@ -35,33 +40,40 @@ public class ExportSourceFactoryTests
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
-        provider.Create(serviceProvider, config, partition).Returns(expected);
+        provider.CreateSourceAsync(serviceProvider, config, partition, tokenSource.Token).Returns(expected);
 
         var factory = new ExportSourceFactory(serviceProvider, new IExportSourceProvider[] { provider });
-        Assert.Same(expected, factory.CreateSource(source, partition));
+        Assert.Same(expected, await factory.CreateSourceAsync(source, partition, tokenSource.Token));
 
-        provider.Received(1).Create(serviceProvider, config, partition);
+        await provider.Received(1).CreateSourceAsync(serviceProvider, config, partition, tokenSource.Token);
     }
 
     [Fact]
-    public void GivenNoProviders_WhenValidating_ThenThrowException()
+    public async Task GivenNoProviders_WhenValidating_ThenThrowException()
     {
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
-        Assert.Throws<KeyNotFoundException>(() => factory.Validate(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }));
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => factory.ValidateAsync(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }));
     }
 
     [Fact]
-    public void GivenValidProviders_WhenValidate_ThenInvokeCorrectMethod()
+    public async Task GivenValidProviders_WhenValidate_ThenInvokeCorrectMethod()
     {
+        using var tokenSource = new CancellationTokenSource();
+
         IConfiguration config = Substitute.For<IConfiguration>();
         var source = new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers, Configuration = config };
+        IConfiguration expectedConfig = Substitute.For<IConfiguration>();
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
+        provider.ValidateAsync(config, tokenSource.Token).Returns(expectedConfig);
 
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), new IExportSourceProvider[] { provider });
-        factory.Validate(source);
+        TypedConfiguration<ExportSourceType> actual = await factory.ValidateAsync(source, tokenSource.Token);
 
-        provider.Received(1).Validate(config);
+        await provider.Received(1).ValidateAsync(config, tokenSource.Token);
+        Assert.Equal(ExportSourceType.Identifiers, actual.Type);
+        Assert.Same(expectedConfig, actual.Configuration);
     }
 }

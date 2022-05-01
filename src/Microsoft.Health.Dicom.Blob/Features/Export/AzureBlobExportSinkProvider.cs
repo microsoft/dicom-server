@@ -9,6 +9,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +20,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
@@ -25,26 +28,34 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
 {
     public ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
-    public IExportSink Create(IServiceProvider provider, IConfiguration config, Guid operationId)
+    private readonly ISecretStore _secretStore;
+
+    public AzureBlobExportSinkProvider(ISecretStore secretStore)
+        => _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
+
+    public async Task<IExportSink> CreateSinkAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(provider, nameof(provider));
         EnsureArg.IsNotNull(config, nameof(config));
 
         AzureBlobExportOptions options = config.Get<AzureBlobExportOptions>();
+        await options.DeclassifyAsync(_secretStore, cancellationToken);
+
         return new AzureBlobExportSink(
             provider.GetRequiredService<IFileStore>(),
             options.GetBlobContainerClient(provider.GetRequiredService<IOptionsMonitor<BlobClientOptions>>().Get("Export")),
-            Options.Create(new AzureBlobExportFormatOptions
-            {
-                ErrorEncoding = Encoding.UTF8,
-                ErrorFile = RelativeUriPath.Combine(ExportFilePattern.Format(options.Folder ?? string.Empty, operationId), "errors.json"),
-                FilePattern = options.FilePattern,
-                OperationId = operationId,
-            }),
+            Options.Create(
+                new AzureBlobExportFormatOptions
+                {
+                    ErrorEncoding = Encoding.UTF8,
+                    ErrorFile = RelativeUriPath.Combine(ExportFilePattern.Format(options.Folder ?? string.Empty, operationId), "errors.json"),
+                    FilePattern = options.FilePattern,
+                    OperationId = operationId,
+                }),
             provider.GetRequiredService<IOptions<BlobOperationOptions>>());
     }
 
-    public void Validate(IConfiguration config)
+    public async Task<IConfiguration> ValidateAsync(IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(config, nameof(config));
 
@@ -58,6 +69,12 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
         // Post-processing
         config[nameof(AzureBlobExportOptions.FilePattern)] = ParsePattern(options.FilePattern, nameof(ExportFilePattern));
         config[nameof(AzureBlobExportOptions.Folder)] = ParsePattern(options.Folder, nameof(ExportFilePattern), ExportPatternPlaceholders.Operation);
+
+        // Store any secrets
+        await options.ClassifyAsync(_secretStore, operationId.ToString(OperationId.FormatSpecifier), cancellationToken);
+
+        // TODO: Transform
+        return config;
     }
 
     private static string ParsePattern(string pattern, string name, ExportPatternPlaceholders placeholders = ExportPatternPlaceholders.All)
