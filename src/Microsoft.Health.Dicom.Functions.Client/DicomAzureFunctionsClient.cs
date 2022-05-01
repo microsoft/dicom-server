@@ -14,14 +14,11 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -34,9 +31,8 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 internal class DicomAzureFunctionsClient : IDicomOperationsClient
 {
     private readonly IDurableClient _durableClient;
-    private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IUrlResolver _urlResolver;
-    private readonly IGuidFactory _guidFactory;
+    private readonly IDicomOperationsResourceStore _resourceStore;
     private readonly DicomFunctionOptions _options;
     private readonly ILogger _logger;
 
@@ -45,26 +41,23 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     /// </summary>
     /// <param name="durableClientFactory">The client for interacting with durable functions.</param>
     /// <param name="urlResolver">A helper for building URLs for other APIs.</param>
-    /// <param name="extendedQueryTagStore">An extended query tag store for resolving the query tag IDs.</param>
-    /// <param name="guidFactory">A factory for creating instances of <see cref="Guid"/>.</param>
+    /// <param name="resourceStore">A store for resolving DICOM resources that are the subject of operations.</param>
     /// <param name="options">Options for configuring the functions.</param>
     /// <param name="logger">A logger for diagnostic information.</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="durableClientFactory"/>, <paramref name="urlResolver"/>,
-    /// <paramref name="extendedQueryTagStore"/>, <paramref name="guidFactory"/> is <see langword="null"/>.
+    /// <paramref name="durableClientFactory"/>, <paramref name="urlResolver"/>, or
+    /// <paramref name="resourceStore"/> is <see langword="null"/>.
     /// </exception>
     public DicomAzureFunctionsClient(
         IDurableClientFactory durableClientFactory,
-        IExtendedQueryTagStore extendedQueryTagStore,
         IUrlResolver urlResolver,
-        IGuidFactory guidFactory,
+        IDicomOperationsResourceStore resourceStore,
         IOptions<DicomFunctionOptions> options,
         ILogger<DicomAzureFunctionsClient> logger)
     {
         _durableClient = EnsureArg.IsNotNull(durableClientFactory, nameof(durableClientFactory)).CreateClient();
         _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
-        _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-        _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
+        _resourceStore = EnsureArg.IsNotNull(resourceStore, nameof(resourceStore));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
@@ -108,13 +101,10 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartReindexingInstancesAsync(Guid operationId, IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
         EnsureArg.HasItems(tagKeys, nameof(tagKeys));
-
-        // Start the re-indexing orchestration
-        Guid operationId = _guidFactory.Create();
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
@@ -128,23 +118,13 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
         _logger.LogInformation("Successfully started new re-index orchestration instance with ID '{InstanceId}'.", instanceId);
 
-        // Associate the tags to the operation and confirm their processing
-        IReadOnlyList<ExtendedQueryTagStoreEntry> confirmedTags = await _extendedQueryTagStore.AssignReindexingOperationAsync(
-            tagKeys,
-            operationId,
-            returnIfCompleted: true,
-            cancellationToken: cancellationToken);
-
-        return confirmedTags.Count > 0 ? operationId : throw new ExtendedQueryTagsAlreadyExistsException();
+        return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
     /// <inheritdoc/>
-    public async Task<Guid> StartExportingFilesAsync(ExportSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
-
-        // Start the re-indexing orchestration
-        Guid operationId = _guidFactory.Create();
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
@@ -159,7 +139,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
         _logger.LogInformation("Successfully started new export orchestration instance with ID '{InstanceId}'.", instanceId);
 
-        return operationId;
+        return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
@@ -183,15 +163,17 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             case DicomOperation.Export:
                 return null;
             case DicomOperation.Reindex:
+                IReadOnlyList<Uri> tagPaths = Array.Empty<Uri>();
                 List<int> tagKeys = resourceIds?.Select(x => int.Parse(x, CultureInfo.InvariantCulture)).ToList();
-
-                IReadOnlyCollection<ExtendedQueryTagStoreEntry> tagPaths = Array.Empty<ExtendedQueryTagStoreEntry>();
                 if (tagKeys?.Count > 0)
                 {
-                    tagPaths = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(tagKeys, cancellationToken);
+                    tagPaths = await _resourceStore
+                        .ResolveQueryTagKeysAsync(tagKeys, cancellationToken)
+                        .Select(x => _urlResolver.ResolveQueryTagUri(x))
+                        .ToListAsync(cancellationToken);
                 }
 
-                return tagPaths.Select(x => _urlResolver.ResolveQueryTagUri(x.Path)).ToList();
+                return tagPaths;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }

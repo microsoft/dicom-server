@@ -186,14 +186,14 @@ public static class DicomMediatorExtensions
         return mediator.Send(new UpdateExtendedQueryTagRequest(tagPath, newValue), cancellationToken);
     }
 
-    public static Task<ExportInstancesResponse> ExportInstancesAsync(
+    public static Task<ExportResponse> ExportAsync(
        this IMediator mediator,
        ExportSpecification spec,
        PartitionEntry partition,
        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ExportInstancesRequest(spec, partition), cancellationToken);
+        return mediator.Send(new ExportRequest(spec, partition), cancellationToken);
     }
 
     public static Task<OperationStateResponse> GetOperationStateAsync(

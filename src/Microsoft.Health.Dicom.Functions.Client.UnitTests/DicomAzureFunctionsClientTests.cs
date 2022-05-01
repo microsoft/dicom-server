@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -13,13 +12,12 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
 using Microsoft.Health.Operations;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -30,9 +28,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests;
 public class DicomAzureFunctionsClientTests
 {
     private readonly IDurableClient _durableClient;
-    private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IUrlResolver _urlResolver;
-    private readonly IGuidFactory _guidFactory;
+    private readonly IDicomOperationsResourceStore _resourceStore;
     private readonly DicomFunctionOptions _options;
     private readonly DicomAzureFunctionsClient _client;
 
@@ -42,9 +39,8 @@ public class DicomAzureFunctionsClientTests
         _durableClient = Substitute.For<IDurableClient>();
         durableClientFactory.CreateClient().Returns(_durableClient);
 
-        _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
         _urlResolver = Substitute.For<IUrlResolver>();
-        _guidFactory = Substitute.For<IGuidFactory>();
+        _resourceStore = Substitute.For<IDicomOperationsResourceStore>();
         _options = new DicomFunctionOptions
         {
             Indexing = new FanOutFunctionOptions
@@ -59,9 +55,8 @@ public class DicomAzureFunctionsClientTests
         };
         _client = new DicomAzureFunctionsClient(
             durableClientFactory,
-            _extendedQueryTagStore,
             _urlResolver,
-            _guidFactory,
+            _resourceStore,
             Options.Create(_options),
             NullLogger<DicomAzureFunctionsClient>.Instance);
     }
@@ -72,26 +67,23 @@ public class DicomAzureFunctionsClientTests
         IDurableClientFactory durableClientFactory = Substitute.For<IDurableClientFactory>();
         IExtendedQueryTagStore extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
         IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
-        IGuidFactory guidFactory = Substitute.For<IGuidFactory>();
+        IDicomOperationsResourceStore resourceStore = Substitute.For<IDicomOperationsResourceStore>();
         var options = Options.Create(new DicomFunctionOptions());
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(null, extendedQueryTagStore, urlResolver, guidFactory, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(null, urlResolver, resourceStore, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, null, urlResolver, guidFactory, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, null, resourceStore, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, null, guidFactory, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, null, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, null, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, null, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, guidFactory, null, NullLogger<DicomAzureFunctionsClient>.Instance));
-
-        Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, extendedQueryTagStore, urlResolver, guidFactory, options, null));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, options, null));
     }
 
     [Fact]
@@ -105,7 +97,6 @@ public class DicomAzureFunctionsClientTests
         Assert.Null(await _client.GetStateAsync(Guid.Parse(instanceId), source.Token));
 
         await _durableClient.Received(1).GetStatusAsync(instanceId, showInput: true);
-        await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().GetExtendedQueryTagsAsync((IReadOnlyList<int>)default);
         _urlResolver.DidNotReceiveWithAnyArgs().ResolveQueryTagUri(default);
     }
 
@@ -127,7 +118,6 @@ public class DicomAzureFunctionsClientTests
         Assert.Null(await _client.GetStateAsync(Guid.Parse(instanceId), source.Token));
 
         await _durableClient.Received(1).GetStatusAsync(instanceId, showInput: true);
-        await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().GetExtendedQueryTagsAsync((IReadOnlyList<int>)default);
         _urlResolver.DidNotReceiveWithAnyArgs().ResolveQueryTagUri(default);
     }
 
@@ -168,23 +158,6 @@ public class DicomAzureFunctionsClientTests
                 Output = null,
                 RuntimeStatus = OrchestrationRuntimeStatus.Running,
             });
-        _extendedQueryTagStore
-            .GetExtendedQueryTagsAsync(
-                Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(tagKeys)),
-                source.Token)
-            .Returns(
-                tagPaths
-                    .Select((path, i) => new ExtendedQueryTagStoreJoinEntry(
-                        tagKeys[i],
-                        path,
-                        "AS",
-                        null,
-                        QueryTagLevel.Instance,
-                        ExtendedQueryTagStatus.Adding,
-                        QueryStatus.Enabled,
-                        0,
-                        operationId))
-                    .ToList());
 
         for (int i = 0; i < tagPaths.Length; i++)
         {
@@ -205,11 +178,6 @@ public class DicomAzureFunctionsClientTests
 
         if (populateInput)
         {
-            await _extendedQueryTagStore
-            .Received(1)
-            .GetExtendedQueryTagsAsync(
-                Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(tagKeys)),
-                source.Token);
             foreach (string path in tagPaths)
             {
                 _urlResolver.Received(1).ResolveQueryTagUri(path);
@@ -222,11 +190,9 @@ public class DicomAzureFunctionsClientTests
     {
         using var source = new CancellationTokenSource();
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartReindexingInstancesAsync(null, source.Token));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartReindexingInstancesAsync(Guid.NewGuid(), null, source.Token));
 
-        _guidFactory.DidNotReceiveWithAnyArgs().Create();
         await _durableClient.DidNotReceiveWithAnyArgs().StartNewAsync(default, default);
-        await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().AssignReindexingOperationAsync(default, default);
     }
 
     [Fact]
@@ -234,82 +200,39 @@ public class DicomAzureFunctionsClientTests
     {
         using var source = new CancellationTokenSource();
 
-        await Assert.ThrowsAsync<ArgumentException>(() => _client.StartReindexingInstancesAsync(Array.Empty<int>(), source.Token));
+        await Assert.ThrowsAsync<ArgumentException>(() => _client.StartReindexingInstancesAsync(Guid.NewGuid(), Array.Empty<int>(), source.Token));
 
-        _guidFactory.DidNotReceiveWithAnyArgs().Create();
         await _durableClient.DidNotReceiveWithAnyArgs().StartNewAsync(default, default);
-        await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().AssignReindexingOperationAsync(default, default);
-    }
-
-    [Fact]
-    public async Task GivenNoAssignedKeys_WhenStartingReindex_ThenThrowAlreadyExistsException()
-    {
-        string instanceId = OperationId.Generate();
-        Guid operationId = Guid.Parse(instanceId);
-        int[] tagKeys = new int[] { 10, 42 };
-        using var source = new CancellationTokenSource();
-
-        _guidFactory.Create().Returns(operationId);
-        _durableClient
-            .StartNewAsync(
-                FunctionNames.ReindexInstances,
-                instanceId,
-                Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(tagKeys)))
-            .Returns(instanceId);
-        _extendedQueryTagStore
-            .AssignReindexingOperationAsync(tagKeys, operationId, true, source.Token)
-            .Returns(Array.Empty<ExtendedQueryTagStoreEntry>());
-
-        await Assert.ThrowsAsync<ExtendedQueryTagsAlreadyExistsException>(() => _client.StartReindexingInstancesAsync(tagKeys, source.Token));
-
-        _guidFactory.Received(1).Create();
-        await _durableClient
-            .Received(1)
-            .StartNewAsync(
-                FunctionNames.ReindexInstances,
-                instanceId,
-                Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(tagKeys)));
-        await _extendedQueryTagStore.Received(1).AssignReindexingOperationAsync(tagKeys, operationId, true, source.Token);
     }
 
     [Fact]
     public async Task GivenAssignedKeys_WhenStartingReindex_ThenReturnInstanceId()
     {
         string instanceId = OperationId.Generate();
-        Guid operationId = Guid.Parse(instanceId);
-        int[] tagKeys = new int[] { 10, 42 };
+        var operationId = Guid.Parse(instanceId);
+        var tagKeys = new int[] { 10, 42 };
+        var uri = new Uri("http://my-operation/" + operationId);
+
         using var source = new CancellationTokenSource();
 
-        _guidFactory.Create().Returns(operationId);
         _durableClient
             .StartNewAsync(
                 FunctionNames.ReindexInstances,
                 instanceId,
                 Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(tagKeys)))
             .Returns(instanceId);
-        _extendedQueryTagStore
-            .AssignReindexingOperationAsync(tagKeys, operationId, true, source.Token)
-            .Returns(tagKeys
-                .Select(x => new ExtendedQueryTagStoreEntry(
-                    x,
-                    x.ToString(),
-                    "DA",
-                    null,
-                    QueryTagLevel.Study,
-                    ExtendedQueryTagStatus.Adding,
-                    QueryStatus.Enabled,
-                    0))
-                .ToArray());
+        _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
-        Assert.Equal(operationId, await _client.StartReindexingInstancesAsync(tagKeys, source.Token));
+        OperationReference actual = await _client.StartReindexingInstancesAsync(operationId, tagKeys, source.Token);
+        Assert.Equal(operationId, actual.Id);
+        Assert.Equal(uri, actual.Href);
 
-        _guidFactory.Received(1).Create();
         await _durableClient
             .Received(1)
             .StartNewAsync(
                 FunctionNames.ReindexInstances,
                 instanceId,
                 Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(tagKeys)));
-        await _extendedQueryTagStore.Received(1).AssignReindexingOperationAsync(tagKeys, operationId, true, source.Token);
+        _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
     }
 }

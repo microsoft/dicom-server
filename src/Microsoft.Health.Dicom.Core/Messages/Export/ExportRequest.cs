@@ -10,13 +10,13 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
-public sealed class ExportInstancesRequest : IRequest<ExportInstancesResponse>
+public sealed class ExportRequest : IRequest<ExportResponse>
 {
     public ExportSpecification Specification { get; }
 
     public PartitionEntry Partition { get; }
 
-    public ExportInstancesRequest(ExportSpecification spec, PartitionEntry partition)
+    public ExportRequest(ExportSpecification spec, PartitionEntry partition)
     {
         Specification = EnsureArg.IsNotNull(spec, nameof(spec));
         Partition = EnsureArg.IsNotNull(partition, nameof(partition));

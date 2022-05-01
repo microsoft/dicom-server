@@ -10,24 +10,27 @@ using System.Runtime.Serialization;
 namespace Microsoft.Health.Dicom.Core.Features.Security;
 
 [Flags]
-[SuppressMessage("Design", "CA1028:Enum Storage should be Int32", Justification = "Reserve additional bits for actions.")]
-public enum DataActions : ulong
+[SuppressMessage("Usage", "CA2217:Do not mark enums with FlagsAttribute", Justification = "False positive due to All member.")]
+public enum DataActions : long
 {
     [EnumMember(Value = "none")]
-    None = 0,
+    None = 0x0,
 
     [EnumMember(Value = "read")]
-    Read = 1,
+    Read = 0x1,
 
     [EnumMember(Value = "write")]
-    Write = 1 << 1,
+    Write = 0x2,
 
     [EnumMember(Value = "delete")]
-    Delete = 1 << 2,
+    Delete = 0x4,
 
     [EnumMember(Value = "manageExtendedQueryTags")]
-    ManageExtendedQueryTags = 1 << 3,    // Allow to manage extended query tags.
+    ManageExtendedQueryTags = 0x8,
+
+    [EnumMember(Value = "export")]
+    Export = 0x10,
 
     [EnumMember(Value = "*")]
-    All = (ManageExtendedQueryTags << 1) - 1,
+    All = ~None
 }

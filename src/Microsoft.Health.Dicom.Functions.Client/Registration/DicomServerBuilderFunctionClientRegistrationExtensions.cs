@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Client;
@@ -46,7 +45,6 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         IServiceCollection services = dicomServerBuilder.Services;
-        services.TryAddSingleton(GuidFactory.Default);
         services.AddOptions<DicomFunctionOptions>()
             .Bind(configuration.GetSection(DicomFunctionOptions.SectionName))
             .ValidateDataAnnotations();
