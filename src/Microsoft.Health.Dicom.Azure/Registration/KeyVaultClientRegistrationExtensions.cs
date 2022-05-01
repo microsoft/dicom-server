@@ -10,7 +10,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Azure.Config;
-using Microsoft.Health.Dicom.AzureKeyVault;
+using Microsoft.Health.Dicom.Azure.KeyVault;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
@@ -43,6 +43,10 @@ public static class KeyVaultClientRegistrationExtensions
                     });
 
             dicomServerBuilder.Services.AddScoped<ISecretStore, KeyVaultSecretStore>();
+        }
+        else
+        {
+            dicomServerBuilder.Services.AddScoped<ISecretStore, InMemorySecretStore>();
         }
 
         return dicomServerBuilder;

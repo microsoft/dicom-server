@@ -22,9 +22,13 @@ public interface ISecretStore
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
-    /// <returns>A task representing the <see cref="DeleteSecretAsync"/> operation.</returns>
+    /// <returns>
+    /// A task representing the <see cref="DeleteSecretAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is <see langword="true"/> if the
+    /// secret was successfully deleted; otherwise, <see langword="false"/> if it does not exist.
+    /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task DeleteSecretAsync(string name, CancellationToken cancellationToken = default);
+    Task<bool> DeleteSecretAsync(string name, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously retrieves the secret with the given name.

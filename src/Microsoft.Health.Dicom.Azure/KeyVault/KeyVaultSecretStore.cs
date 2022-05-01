@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,26 +13,46 @@ using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 
-namespace Microsoft.Health.Dicom.AzureKeyVault;
+namespace Microsoft.Health.Dicom.Azure.KeyVault;
 
-[SuppressMessage("Microsoft.Performance", "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is instantiated via dependency injection.")]
 internal sealed class KeyVaultSecretStore : ISecretStore
 {
     private readonly SecretClient _secretClient;
 
+    private const string SecretNotFoundErrorCode = "SecretNotFound";
+
     public KeyVaultSecretStore(SecretClient secretClient)
         => _secretClient = EnsureArg.IsNotNull(secretClient, nameof(secretClient));
 
-    public async Task DeleteSecretAsync(string name, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteSecretAsync(string name, CancellationToken cancellationToken = default)
     {
-        DeleteSecretOperation operation = await _secretClient.StartDeleteSecretAsync(name, cancellationToken);
+        DeleteSecretOperation operation;
+        try
+        {
+            operation = await _secretClient.StartDeleteSecretAsync(name, cancellationToken);
+        }
+        catch (RequestFailedException rfe) when (rfe.ErrorCode == SecretNotFoundErrorCode)
+        {
+            return false;
+        }
+
         await operation.WaitForCompletionAsync(cancellationToken);
+        return true;
     }
 
     public async Task<string> GetSecretAsync(string name, string version = null, CancellationToken cancellationToken = default)
     {
-        Response<KeyVaultSecret> secret = await _secretClient.GetSecretAsync(name, version, cancellationToken);
-        return secret.Value.Value;
+        try
+        {
+            Response<KeyVaultSecret> response = await _secretClient.GetSecretAsync(name, version, cancellationToken);
+            return response.Value.Value;
+        }
+        catch (RequestFailedException rfe) when (rfe.ErrorCode == SecretNotFoundErrorCode)
+        {
+            throw new KeyNotFoundException(
+                string.Format(CultureInfo.CurrentCulture, DicomAzureResource.SecretNotFound, name, version),
+                rfe);
+        }
     }
 
     public IAsyncEnumerable<string> ListSecretsAsync(CancellationToken cancellationToken = default)

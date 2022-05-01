@@ -4,13 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.Health.Dicom.AzureKeyVault;
+using Microsoft.Health.Dicom.Azure.KeyVault;
 using NSubstitute;
 using Xunit;
 
@@ -28,10 +29,28 @@ public class KeyVaultSecretStoreTests
     }
 
     [Fact]
-    public async Task GivenKeyVault_WhenDeletingSecret_ThenRemove()
+    public async Task GivenMissingSecret_WhenDeletingSecret_ThenReturnFalse()
     {
-        using var tokenSource = new CancellationTokenSource();
         const string secretName = "MySecret";
+        using var tokenSource = new CancellationTokenSource();
+
+        DeleteSecretOperation operation = Substitute.For<DeleteSecretOperation>();
+        _secretClient
+            .StartDeleteSecretAsync(secretName, tokenSource.Token)
+            .Returns(Task.FromException<DeleteSecretOperation>(
+                new RequestFailedException(404, "Not found", "SecretNotFound", null)));
+
+        Assert.False(await _secretStore.DeleteSecretAsync(secretName, tokenSource.Token));
+
+        await _secretClient.Received(1).StartDeleteSecretAsync(secretName, tokenSource.Token);
+        await operation.DidNotReceiveWithAnyArgs().WaitForCompletionAsync(default);
+    }
+
+    [Fact]
+    public async Task GivenValidSecret_WhenDeletingSecret_ThenReturnTrue()
+    {
+        const string secretName = "MySecret";
+        using var tokenSource = new CancellationTokenSource();
 
         DeleteSecretOperation operation = Substitute.For<DeleteSecretOperation>();
         _secretClient.StartDeleteSecretAsync(secretName, tokenSource.Token).Returns(operation);
@@ -39,16 +58,33 @@ public class KeyVaultSecretStoreTests
             .WaitForCompletionAsync(tokenSource.Token)
             .Returns(Substitute.For<Response<DeletedSecret>>());
 
-        await _secretStore.DeleteSecretAsync(secretName, tokenSource.Token);
+        Assert.True(await _secretStore.DeleteSecretAsync(secretName, tokenSource.Token));
 
         await _secretClient.Received(1).StartDeleteSecretAsync(secretName, tokenSource.Token);
         await operation.Received(1).WaitForCompletionAsync(tokenSource.Token);
     }
 
+    [Fact]
+    public async Task GivenMissingSecret_WhenGettingSecret_ThenThrowException()
+    {
+        const string secretName = "MySecret", version = "12345";
+        using var tokenSource = new CancellationTokenSource();
+
+        Response<KeyVaultSecret> response = Substitute.For<Response<KeyVaultSecret>>();
+        _secretClient
+            .GetSecretAsync(secretName, version, tokenSource.Token)
+            .Returns(Task.FromException<Response<KeyVaultSecret>>(
+                new RequestFailedException(404, "Not found", "SecretNotFound", null)));
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => _secretStore.GetSecretAsync(secretName, version, tokenSource.Token));
+
+        await _secretClient.Received(1).GetSecretAsync(secretName, version, tokenSource.Token);
+    }
+
     [Theory]
     [InlineData("Secret1", "12345", "foo")]
     [InlineData("Secret2", null, "bar")]
-    public async Task GivenKeyVault_WhenGettingSecret_ThenRemove(string name, string version, string value)
+    public async Task GivenValidSecret_WhenGettingSecret_ThenGetValue(string name, string version, string value)
     {
         using var tokenSource = new CancellationTokenSource();
 
