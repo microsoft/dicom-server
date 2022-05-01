@@ -70,6 +70,15 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Azure blob container &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string ContainerDoesNotExist {
+            get {
+                return ResourceManager.GetString("ContainerDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not parse pattern for &apos;{0}&apos; for property &apos;{1}&apos;..
         /// </summary>
         internal static string InvalidPattern {

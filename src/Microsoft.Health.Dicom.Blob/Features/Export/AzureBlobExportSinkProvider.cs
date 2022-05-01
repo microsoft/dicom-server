@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -66,15 +67,17 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
         if (results.Count > 0)
             throw new ValidationException(results.First().ErrorMessage);
 
-        // Post-processing
-        config[nameof(AzureBlobExportOptions.FilePattern)] = ParsePattern(options.FilePattern, nameof(ExportFilePattern));
-        config[nameof(AzureBlobExportOptions.Folder)] = ParsePattern(options.Folder, nameof(ExportFilePattern), ExportPatternPlaceholders.Operation);
+        // Post-process
+        options.FilePattern = ParsePattern(options.FilePattern, nameof(ExportFilePattern));
+        options.Folder = ParsePattern(options.Folder, nameof(ExportFilePattern), ExportPatternPlaceholders.Operation);
 
         // Store any secrets
         await options.ClassifyAsync(_secretStore, operationId.ToString(OperationId.FormatSpecifier), cancellationToken);
 
-        // TODO: Transform
-        return config;
+        // Create a new configuration
+        IConfiguration validated = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        validated.Set(options);
+        return validated;
     }
 
     private static string ParsePattern(string pattern, string name, ExportPatternPlaceholders placeholders = ExportPatternPlaceholders.All)

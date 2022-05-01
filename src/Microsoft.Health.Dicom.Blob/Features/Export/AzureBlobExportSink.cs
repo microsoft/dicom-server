@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +83,8 @@ internal sealed class AzureBlobExportSink : IExportSink
     {
         // TODO: Should we create the container if it's not present?
         if (!await _dest.ExistsAsync(cancellationToken))
-            throw new IOException("");
+            throw new IOException(
+                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name));
 
         AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
         await client.CreateIfNotExistsAsync(cancellationToken: cancellationToken);

@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using EnsureThat;
@@ -44,7 +44,6 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
     private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(JObject config)
         => EnumeratePairs(string.Empty, config);
 
-    [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Boolean types in JSON are lowercase.")]
     private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(string path, JToken token)
     {
         if (token is JObject section)
@@ -71,14 +70,14 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
                 // We could circumvent this by parsing this with JRaw types or manually enumerating the JSON.
                 yield return token.Type switch
                 {
-                    JTokenType.Boolean => KeyValuePair.Create(path, token.Value<bool>().ToString().ToLowerInvariant()), // bool type returns "True"/"False" for ToString()
-                    JTokenType.Date => KeyValuePair.Create(path, token.Value<DateTime>().ToString("O", CultureInfo.InvariantCulture)),
-                    JTokenType.Float => KeyValuePair.Create(path, token.Value<float>().ToString(CultureInfo.InvariantCulture)),
-                    JTokenType.Guid => KeyValuePair.Create(path, token.Value<Guid>().ToString("D", CultureInfo.InvariantCulture)),
-                    JTokenType.Integer => KeyValuePair.Create(path, token.Value<int>().ToString(CultureInfo.InvariantCulture)),
-                    JTokenType.String => KeyValuePair.Create(path, token.Value<string>()),
-                    JTokenType.TimeSpan => KeyValuePair.Create(path, token.Value<TimeSpan>().ToString("c", CultureInfo.InvariantCulture)),
-                    JTokenType.Uri => KeyValuePair.Create(path, token.Value<Uri>().ToString()), // URL may be relative. TODO: Should we try to use AbsoluteUri when possible?
+                    JTokenType.Boolean => KeyValuePair.Create(path, ConvertToString<bool>(value)),
+                    JTokenType.Date => KeyValuePair.Create(path, ConvertToString<DateTime>(value)),
+                    JTokenType.Float => KeyValuePair.Create(path, ConvertToString<float>(value)),
+                    JTokenType.Guid => KeyValuePair.Create(path, ConvertToString<Guid>(value)),
+                    JTokenType.Integer => KeyValuePair.Create(path, ConvertToString<int>(value)),
+                    JTokenType.String => KeyValuePair.Create(path, value.Value<string>()),
+                    JTokenType.TimeSpan => KeyValuePair.Create(path, ConvertToString<TimeSpan>(value)),
+                    JTokenType.Uri => KeyValuePair.Create(path, ConvertToString<Uri>(value)),
                     _ => throw new JsonException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidJsonToken, token.Type))
                 };
             }
@@ -108,4 +107,7 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
 
     private static string GetPath(string current, string key)
         => string.IsNullOrEmpty(current) ? key : current + ':' + key;
+
+    private static string ConvertToString<T>(JValue value)
+        => TypeDescriptor.GetConverter(typeof(T)).ConvertToInvariantString(value.Value<T>());
 }

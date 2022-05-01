@@ -120,6 +120,10 @@
   <data name="ConflictingExportBlobConnections" xml:space="preserve">
     <value>Please do not specify both ConnectionString and ContainerName with ContainerUri.</value>
   </data>
+  <data name="ContainerDoesNotExist" xml:space="preserve">
+    <value>Azure blob container '{0}' does not exist.</value>
+    <comment>{0} Container Name</comment>
+  </data>
   <data name="InvalidPattern" xml:space="preserve">
     <value>Could not parse pattern for '{0}' for property '{1}'.</value>
     <comment>{0} Pattern. {1} Property Name</comment>
