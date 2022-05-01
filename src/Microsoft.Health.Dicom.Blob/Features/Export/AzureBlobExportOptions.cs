@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -30,8 +29,6 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
 
     public string FilePattern { get; set; } = "Results/%Study%/%Series%/%SopInstance%.dcm";
 
-    public string SasToken { get; set; }
-
     internal SecretKey Secrets { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -41,9 +38,6 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
         {
             if (string.IsNullOrEmpty(ConnectionString) || string.IsNullOrEmpty(ContainerName))
                 results.Add(new ValidationResult(DicomBlobResource.MissingExportBlobConnection));
-
-            if (!string.IsNullOrEmpty(SasToken))
-                results.Add(new ValidationResult(DicomBlobResource.CombineSasToken));
         }
         else if (!string.IsNullOrEmpty(ConnectionString) || !string.IsNullOrEmpty(ContainerName))
         {
@@ -62,11 +56,7 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
     {
         EnsureArg.IsNotNull(options, nameof(options));
 
-        if (!string.IsNullOrWhiteSpace(SasToken))
-        {
-            return new BlobContainerClient(ContainerUri, new AzureSasCredential(SasToken), options);
-        }
-        else if (ContainerUri != null)
+        if (ContainerUri != null)
         {
             return new BlobContainerClient(ContainerUri, options);
         }
@@ -80,24 +70,21 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
     {
         EnsureArg.IsNotNull(secretStore, nameof(secretStore));
 
-        if (!string.IsNullOrEmpty(ConnectionString) || !string.IsNullOrEmpty(SasToken))
+        // TODO: Should we detect if the ContainerUri actually has a SAS token before storing the secret?
+        var values = new BlobSecrets
         {
-            var values = new BlobSecrets
-            {
-                ConnectionString = ConnectionString,
-                SasToken = SasToken,
-            };
+            ConnectionString = ConnectionString,
+            ContainerUri = ContainerUri,
+        };
 
-            string version = await secretStore.SetSecretAsync(
-                secretName,
-                JsonSerializer.Serialize(values),
-                cancellationToken);
+        string version = await secretStore.SetSecretAsync(
+            secretName,
+            JsonSerializer.Serialize(values),
+            cancellationToken);
 
-            Secrets = new SecretKey { Name = secretName, Version = version };
-
-            ConnectionString = null;
-            SasToken = null;
-        }
+        Secrets = new SecretKey { Name = secretName, Version = version };
+        ConnectionString = null;
+        ContainerUri = null;
     }
 
     public async Task DeclassifyAsync(ISecretStore secretStore, CancellationToken cancellationToken = default)
@@ -107,10 +94,11 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
         if (Secrets != null)
         {
             string json = await secretStore.GetSecretAsync(Secrets.Name, Secrets.Version, cancellationToken);
-            var values = JsonSerializer.Deserialize<BlobSecrets>(json);
+            BlobSecrets values = JsonSerializer.Deserialize<BlobSecrets>(json);
 
             ConnectionString = values.ConnectionString;
-            SasToken = values.SasToken;
+            ContainerUri = values.ContainerUri;
+            Secrets = null;
         }
     }
 
@@ -118,6 +106,6 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
     {
         public string ConnectionString { get; set; }
 
-        public string SasToken { get; set; }
+        public Uri ContainerUri { get; set; }
     }
 }

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Text;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
@@ -28,7 +29,7 @@ internal static class ExportFilePattern
 
                 string p = pattern.Substring(i, j - i);
                 if (placeholders.HasFlag(ExportPatternPlaceholders.Operation) && p.Equals(nameof(ExportPatternPlaceholders.Operation), StringComparison.OrdinalIgnoreCase))
-                    builder.Append("0:N");
+                    builder.Append($"0:{OperationId.FormatSpecifier}");
                 else if (placeholders.HasFlag(ExportPatternPlaceholders.Study) && p.Equals(nameof(ExportPatternPlaceholders.Study), StringComparison.OrdinalIgnoreCase))
                     builder.Append('1');
                 else if (placeholders.HasFlag(ExportPatternPlaceholders.Series) && p.Equals(nameof(ExportPatternPlaceholders.Series), StringComparison.OrdinalIgnoreCase))
