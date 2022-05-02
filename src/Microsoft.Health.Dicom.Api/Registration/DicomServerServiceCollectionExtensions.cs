@@ -179,19 +179,6 @@ public static class DicomServerServiceCollectionExtensions
                 if (env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
-                    app.UseSwagger(c =>
-                    {
-                        c.RouteTemplate = "{documentName}/api.{json|yaml}";
-                    });
-
-                    //Disabling swagger ui until accesability team gets back to us
-                    //app.UseSwaggerUI(options =>
-                    //{
-                    //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
-                    //    {
-                    //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
-                    //    }
-                    //});
                 }
 
                 app.UseAudit();
@@ -201,6 +188,21 @@ public static class DicomServerServiceCollectionExtensions
                 app.UseAuthentication();
 
                 app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
+
+                // Dependency on URSA scan. We should see how other teams do this.
+                app.UseSwagger(c =>
+                {
+                    c.RouteTemplate = "{documentName}/api.{json|yaml}";
+                });
+
+                //Disabling swagger ui until accesability team gets back to us
+                //app.UseSwaggerUI(options =>
+                //{
+                //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+                //    {
+                //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
+                //    }
+                //});
 
                 next(app);
             };

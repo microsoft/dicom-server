@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
 
@@ -19,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Operations;
 public interface IDicomOperationsClient
 {
     /// <summary>
-    /// Fetches the state of a long-running operation for the given <paramref name="operationId"/>.
+    /// Asynchronously retrieves the state of a long-running operation for the given <paramref name="operationId"/>.
     /// </summary>
     /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
     /// <param name="cancellationToken">
@@ -34,14 +35,14 @@ public interface IDicomOperationsClient
     Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
+    /// Asynchronously begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
     /// </summary>
     /// <param name="tagKeys">A collection of 1 or more existing query tag keys.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
-    /// A task representing the <see cref="StartReindexingInstancesAsync(IReadOnlyCollection{int}, CancellationToken)"/>
+    /// A task representing the <see cref="StartReindexingInstancesAsync"/>
     /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
     /// that is performing the asynchronous addition.
     /// </returns>
@@ -52,4 +53,20 @@ public interface IDicomOperationsClient
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously begins the export of files as detailed in the given <paramref name="specification"/>.
+    /// </summary>
+    /// <param name="specification">The specification that details the source and destination for the export.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="StartExportingFilesAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
+    /// that is performing the asynchronous addition.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="specification"/> is <see langword="null"/>.</exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<Guid> StartExportingFilesAsync(ExportSpecification specification, CancellationToken cancellationToken = default);
 }
