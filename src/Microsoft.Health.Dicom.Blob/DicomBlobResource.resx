@@ -124,9 +124,16 @@
     <value>Azure blob container '{0}' does not exist.</value>
     <comment>{0} Container Name</comment>
   </data>
+  <data name="InvalidEscapeSequence" xml:space="preserve">
+    <value>'{0}' is an invalid escape sequence.</value>
+    <comment>{0} Escape Sequence</comment>
+  </data>
   <data name="InvalidPattern" xml:space="preserve">
     <value>Could not parse pattern for '{0}' for property '{1}'.</value>
     <comment>{0} Pattern. {1} Property Name</comment>
+  </data>
+  <data name="MalformedPlaceholder" xml:space="preserve">
+    <value>Could not find closing % for placeholder.</value>
   </data>
   <data name="MissingExportBlobConnection" xml:space="preserve">
     <value>Please specify both ConnectionString and ContainerName.</value>
@@ -134,5 +141,9 @@
   <data name="MissingProperty" xml:space="preserve">
     <value>Missing value for property '{0}'.</value>
     <comment>{0} Property Name</comment>
+  </data>
+  <data name="UnknownPlaceholder" xml:space="preserve">
+    <value>Placeholder '{0}' is not recognized.</value>
+    <comment>{0} Placeholder</comment>
   </data>
 </root>

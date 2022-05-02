@@ -19,15 +19,25 @@ internal static class ExportFilePattern
         var builder = new StringBuilder();
         for (int i = 0; i < pattern.Length; i++)
         {
-            if (pattern[i] == '%')
+            if (pattern[i] == '\\')
+            {
+                if (++i == pattern.Length)
+                    throw new FormatException(string.Format(CultureInfo.CurrentCulture, DicomBlobResource.InvalidEscapeSequence, "\\"));
+
+                if (pattern[i] != '%')
+                    throw new FormatException(string.Format(CultureInfo.CurrentCulture, DicomBlobResource.InvalidEscapeSequence, "\\" + pattern[i]));
+
+                builder.Append(pattern[i]);
+            }
+            else if (pattern[i] == '%')
             {
                 builder.Append('{');
 
                 int j = pattern.IndexOf('%', i + 1);
                 if (j == -1)
-                    throw new FormatException("Missing end character");
+                    throw new FormatException(DicomBlobResource.MalformedPlaceholder);
 
-                string p = pattern.Substring(i, j - i);
+                string p = pattern.Substring(i + 1, j - i - 1);
                 if (placeholders.HasFlag(ExportPatternPlaceholders.Operation) && p.Equals(nameof(ExportPatternPlaceholders.Operation), StringComparison.OrdinalIgnoreCase))
                     builder.Append($"0:{OperationId.FormatSpecifier}");
                 else if (placeholders.HasFlag(ExportPatternPlaceholders.Study) && p.Equals(nameof(ExportPatternPlaceholders.Study), StringComparison.OrdinalIgnoreCase))
@@ -37,7 +47,7 @@ internal static class ExportFilePattern
                 else if (placeholders.HasFlag(ExportPatternPlaceholders.SopInstance) && p.Equals(nameof(ExportPatternPlaceholders.SopInstance), StringComparison.OrdinalIgnoreCase))
                     builder.Append('3');
                 else
-                    throw new FormatException("Unrecognized placeholder");
+                    throw new FormatException(string.Format(CultureInfo.CurrentCulture, DicomBlobResource.UnknownPlaceholder, p));
 
                 builder.Append('}');
                 i = j; // Move ahead

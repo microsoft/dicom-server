@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -47,14 +48,13 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
             provider.GetRequiredService<IFileStore>(),
             options.GetBlobContainerClient(provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export")),
             Options.Create(
-                new AzureBlobExportFormatOptions
-                {
-                    ErrorEncoding = Encoding.UTF8,
-                    ErrorFile = RelativeUriPath.Combine(ExportFilePattern.Format(options.Folder ?? string.Empty, operationId), "errors.json"),
-                    FilePattern = options.FilePattern,
-                    OperationId = operationId,
-                }),
-            provider.GetRequiredService<IOptions<BlobOperationOptions>>());
+                new AzureBlobExportFormatOptions(
+                    operationId,
+                    options.FilePattern,
+                    RelativeUriPath.Combine(options.Folder ?? string.Empty, "errors.json"),
+                    Encoding.UTF8)),
+            provider.GetRequiredService<IOptions<BlobOperationOptions>>(),
+            provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
     }
 
     public async Task<IConfiguration> ValidateAsync(IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
@@ -70,8 +70,8 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
             throw new ValidationException(results.First().ErrorMessage);
 
         // Post-process
-        options.FilePattern = ParsePattern(options.FilePattern, nameof(ExportFilePattern));
-        options.Folder = ParsePattern(options.Folder, nameof(ExportFilePattern), ExportPatternPlaceholders.Operation);
+        ParsePattern(options.FilePattern, nameof(ExportFilePattern));
+        ParsePattern(options.Folder, nameof(ExportFilePattern), ExportPatternPlaceholders.Operation);
 
         // Store any secrets
         await options.ClassifyAsync(_secretStore, operationId.ToString(OperationId.FormatSpecifier), cancellationToken);

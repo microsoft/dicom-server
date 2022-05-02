@@ -27,7 +27,7 @@ internal static class RelativeUriPath
         }
         else
         {
-            return second[0] == '/' ? string.Concat(first, second) : string.Concat(first, second.AsSpan(1));
+            return second[0] == '/' ? string.Concat(first, second) : string.Concat(first, "/", second);
         }
     }
 }

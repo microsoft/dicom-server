@@ -79,11 +79,29 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is an invalid escape sequence..
+        /// </summary>
+        internal static string InvalidEscapeSequence {
+            get {
+                return ResourceManager.GetString("InvalidEscapeSequence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not parse pattern for &apos;{0}&apos; for property &apos;{1}&apos;..
         /// </summary>
         internal static string InvalidPattern {
             get {
                 return ResourceManager.GetString("InvalidPattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find closing % for placeholder..
+        /// </summary>
+        internal static string MalformedPlaceholder {
+            get {
+                return ResourceManager.GetString("MalformedPlaceholder", resourceCulture);
             }
         }
         
@@ -102,6 +120,15 @@ namespace Microsoft.Health.Dicom.Blob {
         internal static string MissingProperty {
             get {
                 return ResourceManager.GetString("MissingProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Placeholder &apos;{0}&apos; is not recognized..
+        /// </summary>
+        internal static string UnknownPlaceholder {
+            get {
+                return ResourceManager.GetString("UnknownPlaceholder", resourceCulture);
             }
         }
     }

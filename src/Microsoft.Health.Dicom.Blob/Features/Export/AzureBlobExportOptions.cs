@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -79,7 +80,7 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
 
         string version = await secretStore.SetSecretAsync(
             secretName,
-            JsonSerializer.Serialize(values),
+            JsonSerializer.Serialize(values, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
             cancellationToken);
 
         Secrets = new SecretKey { Name = secretName, Version = version };
