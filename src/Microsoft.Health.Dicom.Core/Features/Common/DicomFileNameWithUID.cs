@@ -7,7 +7,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common;
-public class DicomFileNameWithUID : IDicomFileNameBuilder
+public class DicomFileNameWithUid : IDicomFileNameBuilder
 {
     public string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier)
     {

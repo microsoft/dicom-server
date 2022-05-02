@@ -32,19 +32,19 @@ public class BlobFileStore : IFileStore
     private readonly BlobOperationOptions _options;
     private readonly bool _enableDualWrite;
     private readonly bool _supportNewBlobFormatForNewService;
-    private readonly DicomFileNameWithUID _fileNameWithUID;
+    private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
     public BlobFileStore(
         BlobServiceClient client,
-        DicomFileNameWithUID fileNameWithUID,
+        DicomFileNameWithUid nameWithUid,
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
         IOptions<FeatureConfiguration> featureConfiguration)
     {
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(fileNameWithUID, nameof(fileNameWithUID));
+        EnsureArg.IsNotNull(nameWithUid, nameof(nameWithUid));
         EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(options?.Value, nameof(options));
@@ -55,7 +55,7 @@ public class BlobFileStore : IFileStore
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _options = options.Value;
-        _fileNameWithUID = fileNameWithUID;
+        _nameWithUid = nameWithUid;
         _nameWithPrefix = nameWithPrefix;
         _enableDualWrite = featureConfiguration.Value.EnableDualWrite;
         _supportNewBlobFormatForNewService = featureConfiguration.Value.SupportNewBlobFormatForNewService;
@@ -146,7 +146,7 @@ public class BlobFileStore : IFileStore
         }
         else
         {
-            blobName = _fileNameWithUID.GetInstanceFileName(versionedInstanceIdentifier);
+            blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
         }
 
         return _container.GetBlockBlobClient(blobName);
@@ -165,7 +165,7 @@ public class BlobFileStore : IFileStore
         }
         else if (_enableDualWrite)
         {
-            blobName = _fileNameWithUID.GetInstanceFileName(versionedInstanceIdentifier);
+            blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
 
             blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
@@ -173,7 +173,7 @@ public class BlobFileStore : IFileStore
         }
         else
         {
-            blobName = _fileNameWithUID.GetInstanceFileName(versionedInstanceIdentifier);
+            blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
         }
 

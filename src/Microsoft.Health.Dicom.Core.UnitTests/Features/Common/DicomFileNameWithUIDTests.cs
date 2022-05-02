@@ -10,20 +10,20 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Common;
 
-public class DicomFileNameWithUIDTests
+public class DicomFileNameWithUidTests
 {
-    private readonly DicomFileNameWithUID _nameWithUID;
+    private readonly DicomFileNameWithUid _nameWithUid;
 
-    public DicomFileNameWithUIDTests()
+    public DicomFileNameWithUidTests()
     {
-        _nameWithUID = new DicomFileNameWithUID();
+        _nameWithUid = new DicomFileNameWithUid();
     }
 
     [Fact]
     public void GivenIdentifier_GetFileNames_ShouldReturnExpectedValues()
     {
         VersionedInstanceIdentifier instanceIdentifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
-        Assert.Equal($"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}.dcm", _nameWithUID.GetInstanceFileName(instanceIdentifier));
-        Assert.Equal($"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}_metadata.json", _nameWithUID.GetMetadataFileName(instanceIdentifier));
+        Assert.Equal($"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}.dcm", _nameWithUid.GetInstanceFileName(instanceIdentifier));
+        Assert.Equal($"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}_metadata.json", _nameWithUid.GetMetadataFileName(instanceIdentifier));
     }
 }

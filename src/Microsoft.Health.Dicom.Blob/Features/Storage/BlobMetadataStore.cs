@@ -41,13 +41,13 @@ public class BlobMetadataStore : IMetadataStore
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly bool _enableDualWrite;
     private readonly bool _supportNewBlobFormatForNewService;
-    private readonly DicomFileNameWithUID _fileNameWithUID;
+    private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
     public BlobMetadataStore(
         BlobServiceClient client,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-        DicomFileNameWithUID fileNameWithUID,
+        DicomFileNameWithUid fileNameWithUid,
         DicomFileNameWithPrefix nameWithPrefix,
         IOptions<FeatureConfiguration> featureConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
@@ -55,7 +55,7 @@ public class BlobMetadataStore : IMetadataStore
     {
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-        EnsureArg.IsNotNull(fileNameWithUID, nameof(fileNameWithUID));
+        EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
         EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
@@ -67,7 +67,7 @@ public class BlobMetadataStore : IMetadataStore
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _jsonSerializerOptions = jsonSerializerOptions.Value;
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-        _fileNameWithUID = fileNameWithUID;
+        _nameWithUid = fileNameWithUid;
         _nameWithPrefix = nameWithPrefix;
         _enableDualWrite = featureConfiguration.Value.EnableDualWrite;
         _supportNewBlobFormatForNewService = featureConfiguration.Value.SupportNewBlobFormatForNewService;
@@ -150,7 +150,7 @@ public class BlobMetadataStore : IMetadataStore
         }
         else
         {
-            blobName = _fileNameWithUID.GetMetadataFileName(versionedInstanceIdentifier);
+            blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
         }
 
         return _container.GetBlockBlobClient(blobName);
@@ -169,7 +169,7 @@ public class BlobMetadataStore : IMetadataStore
         }
         else if (_enableDualWrite)
         {
-            blobName = _fileNameWithUID.GetMetadataFileName(versionedInstanceIdentifier);
+            blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
 
             blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
@@ -177,7 +177,7 @@ public class BlobMetadataStore : IMetadataStore
         }
         else
         {
-            blobName = _fileNameWithUID.GetMetadataFileName(versionedInstanceIdentifier);
+            blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
         }
 
