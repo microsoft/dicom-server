@@ -48,6 +48,9 @@ internal static class ConfigurationBinderExtensions
 
     private static void CopyToConfiguration(IConfiguration configuration, Type type, object value, BinderOptions options)
     {
+        if (value == null)
+            return;
+
         if (IsLiteralType(type))
         {
             if (configuration is not IConfigurationSection section)
@@ -81,14 +84,14 @@ internal static class ConfigurationBinderExtensions
         }
         else
         {
-            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static;
-            bindingFlags |= options.BindNonPublicProperties ? BindingFlags.Public : BindingFlags.NonPublic;
+            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public;
+            if (options.BindNonPublicProperties)
+                bindingFlags |= BindingFlags.NonPublic;
+
             foreach (PropertyInfo p in type.GetProperties(bindingFlags))
-                CopyToConfiguration(configuration.GetSection(p.Name), p.PropertyType, p.GetValue(p), options);
+                CopyToConfiguration(configuration.GetSection(p.Name), p.PropertyType, p.GetValue(value), options);
         }
     }
-
-
 
     private static bool IsLiteralType(Type type)
         => type == typeof(sbyte)

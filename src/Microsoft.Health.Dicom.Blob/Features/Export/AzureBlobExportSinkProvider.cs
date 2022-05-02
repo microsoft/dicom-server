@@ -11,7 +11,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,12 +38,14 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
         EnsureArg.IsNotNull(provider, nameof(provider));
         EnsureArg.IsNotNull(config, nameof(config));
 
-        AzureBlobExportOptions options = config.Get<AzureBlobExportOptions>();
+        var options = new AzureBlobExportOptions();
+        config.Bind(options, c => c.BindNonPublicProperties = true);
+
         await options.DeclassifyAsync(_secretStore, cancellationToken);
 
         return new AzureBlobExportSink(
             provider.GetRequiredService<IFileStore>(),
-            options.GetBlobContainerClient(provider.GetRequiredService<IOptionsMonitor<BlobClientOptions>>().Get("Export")),
+            options.GetBlobContainerClient(provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export")),
             Options.Create(
                 new AzureBlobExportFormatOptions
                 {
@@ -61,9 +62,10 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
         EnsureArg.IsNotNull(config, nameof(config));
 
         // Validate
-        AzureBlobExportOptions options = config.Get<AzureBlobExportOptions>();
-        List<ValidationResult> results = options.Validate(new ValidationContext(this)).ToList();
+        var options = new AzureBlobExportOptions();
+        config.Bind(options);
 
+        List<ValidationResult> results = options.Validate(new ValidationContext(this)).ToList();
         if (results.Count > 0)
             throw new ValidationException(results.First().ErrorMessage);
 
@@ -76,7 +78,7 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
 
         // Create a new configuration
         IConfiguration validated = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        validated.Set(options);
+        validated.Set(options, c => c.BindNonPublicProperties = true);
         return validated;
     }
 

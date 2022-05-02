@@ -88,7 +88,7 @@ public class AzureBlobExportOptionsTests
         const string secretName = "MySecret";
         const string version = "123";
         const string connectionString = "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar";
-        Uri containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
+        var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
         using var tokenSource = new CancellationTokenSource();
 
         // Note: Typically these values don't both exist together

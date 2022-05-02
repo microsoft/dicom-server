@@ -23,7 +23,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal sealed class AzureBlobExportSink : IExportSink
 {
-    public Uri ErrorHref => new Uri(_dest.Uri, _output.ErrorFile);
+    public Uri ErrorHref => new Uri(
+        new Uri(_dest.Uri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.Unescaped), UriKind.Absolute),
+        _output.ErrorFile);
 
     public event EventHandler<CopyFailureEventArgs> CopyFailure;
 
@@ -45,7 +47,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         _dest = EnsureArg.IsNotNull(dest, nameof(source));
         _output = EnsureArg.IsNotNull(outputOptions?.Value, nameof(outputOptions));
         _options = EnsureArg.IsNotNull(blobOptions?.Value, nameof(blobOptions));
-        _errorWriter = new StreamWriter(new MemoryStream(BlockSize), _output.ErrorEncoding, bufferSize: 0, leaveOpen: false);
+        _errorWriter = new StreamWriter(new MemoryStream(BlockSize), _output.ErrorEncoding, leaveOpen: false);
     }
 
     public async Task<bool> CopyAsync(ReadResult value, CancellationToken cancellationToken = default)
