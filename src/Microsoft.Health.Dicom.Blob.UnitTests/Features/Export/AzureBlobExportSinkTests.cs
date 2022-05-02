@@ -49,6 +49,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         _fileStore = Substitute.For<IFileStore>();
         _destClient = Substitute.For<BlobContainerClient>();
+        _destClient.Uri.Returns(new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute));
         _destBlob = Substitute.For<BlobClient>();
         _errorStream = new MemoryStream();
         _errorBlob = Substitute.For<AppendBlobClient>();
@@ -64,7 +65,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _output = new AzureBlobExportFormatOptions(
             operationId,
             "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm",
-            "%Operation%/Errors.json",
+            "%Operation%/Errors.log",
             Encoding.UTF8);
         _blobOptions = new BlobOperationOptions
         {
@@ -76,6 +77,12 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _jsonOptions = new JsonSerializerOptions();
         _jsonOptions.Converters.Add(new DicomIdentifierJsonConverter());
         _sink = new AzureBlobExportSink(_fileStore, _destClient, Options.Create(_output), Options.Create(_blobOptions), Options.Create(_jsonOptions));
+    }
+
+    [Fact]
+    public void GivenSink_WhenGettingErrorHref_ContainValuesProperly()
+    {
+        Assert.Equal($"https://unit-test.blob.core.windows.net/mycontainer/{_output.OperationId:N}/Errors.log", _sink.ErrorHref.AbsoluteUri);
     }
 
     [Fact]
@@ -98,21 +105,102 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         await _destBlob
             .Received(1)
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token);
+        await _errorBlob
+            .DidNotReceiveWithAnyArgs()
+            .AppendBlockAsync(default, default, default, default, default);
     }
 
     [Fact]
-    public async Task GivenInvalidReadResult_WhenCopying_ThenCopyToDestination()
+    public async Task GivenInvalidReadResult_WhenCopying_ThenWriteToErrorLog()
     {
         var failure = new ReadFailureEventArgs(DicomIdentifier.ForSeries("1.2.3", "4.5"), new FileNotFoundException("Cannot find series."));
         using var tokenSource = new CancellationTokenSource();
 
-        _destClient.GetAppendBlobClient(default).ReturnsForAnyArgs(_errorBlob);
+        _destClient.GetAppendBlobClient($"{_output.OperationId:N}/Errors.log").Returns(_errorBlob);
+
         Assert.False(await _sink.CopyAsync(ReadResult.ForFailure(failure), tokenSource.Token));
 
+        await _fileStore.DidNotReceiveWithAnyArgs().GetFileAsync(default, default);
+        _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(default);
+        await _destBlob.DidNotReceiveWithAnyArgs().UploadAsync(default(Stream), default(BlobUploadOptions), default);
+
+        // Extension method appears to prevent the match
+        // _destClient.Received(1).GetAppendBlobClient($"{_output.OperationId:N}/Errors.json");
+
         // Check errors
-        ExportErrorLogEntry error = await GetErrorsAsync().SingleAsync();
+        ExportErrorLogEntry error = await GetErrorsAsync(tokenSource.Token).SingleAsync();
         Assert.Equal(DicomIdentifier.ForSeries("1.2.3", "4.5"), error.Identifier);
         Assert.Equal("Cannot find series.", error.Error);
+    }
+
+    [Fact]
+    public async Task GivenCopyFailure_WhenCopying_ThenWriteToErrorLog()
+    {
+        var identifier = new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1);
+        using var fileStream = new MemoryStream();
+        using var tokenSource = new CancellationTokenSource();
+
+        _fileStore.GetFileAsync(identifier, tokenSource.Token).Returns(fileStream);
+        _destClient.GetBlobClient($"{_output.OperationId:N}/Results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
+        _destBlob
+            .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
+            .Returns(Task.FromException<Response<BlobContentInfo>>(new IOException("Unable to copy.")));
+        _destClient.GetAppendBlobClient($"{_output.OperationId:N}/Errors.log").Returns(_errorBlob);
+
+        Assert.False(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
+
+        await _fileStore.Received(1).GetFileAsync(identifier, tokenSource.Token);
+        _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/Results/1.2/3.4.5/6.7.8.9.10.dcm");
+        await _destBlob
+            .Received(1)
+            .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token);
+
+        // Extension method appears to prevent the match
+        // _destClient.Received(1).GetAppendBlobClient($"{_output.OperationId:N}/Errors.json");
+
+        // Check errors
+        ExportErrorLogEntry error = await GetErrorsAsync(tokenSource.Token).SingleAsync();
+        Assert.Equal(DicomIdentifier.ForInstance("1.2", "3.4.5", "6.7.8.9.10"), error.Identifier);
+        Assert.Equal("Unable to copy.", error.Error);
+    }
+
+    [Fact]
+    public async Task GivenMissingContainer_WhenInitializing_ThenThrow()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        Response<bool> response = Substitute.For<Response<bool>>();
+        response.Value.Returns(false);
+        _destClient.ExistsAsync(tokenSource.Token).Returns(Task.FromResult(response));
+
+        await Assert.ThrowsAsync<IOException>(() => _sink.InitializeAsync(tokenSource.Token));
+
+        await _destClient.Received(1).ExistsAsync(tokenSource.Token);
+        await _errorBlob
+            .DidNotReceiveWithAnyArgs()
+            .AppendBlockAsync(default, default, default, default, default);
+    }
+
+    [Fact]
+    public async Task GivenValidContainer_WhenInitializing_ThenCreateErrorLog()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        Response<bool> response = Substitute.For<Response<bool>>();
+        response.Value.Returns(true);
+        _destClient.ExistsAsync(tokenSource.Token).Returns(Task.FromResult(response));
+        _destClient.GetAppendBlobClient($"{_output.OperationId:N}/Errors.log").Returns(_errorBlob);
+        _errorBlob
+            .CreateIfNotExistsAsync(default, default, tokenSource.Token)
+            .Returns(Substitute.For<Response<BlobContentInfo>>());
+
+        await _sink.InitializeAsync(tokenSource.Token);
+
+        await _destClient.Received(1).ExistsAsync(tokenSource.Token);
+        await _errorBlob.Received(1).CreateIfNotExistsAsync(default, default, tokenSource.Token);
+
+        // Extension method appears to prevent the match
+        // _destClient.Received(1).GetAppendBlobClient($"{_output.OperationId:N}/Errors.json");
     }
 
     public async ValueTask DisposeAsync()
@@ -124,6 +212,10 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     private async IAsyncEnumerable<ExportErrorLogEntry> GetErrorsAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         await _sink.FlushErrorsAsync(cancellationToken);
+
+        await _errorBlob
+            .Received(1)
+            .AppendBlockAsync(Arg.Any<Stream>(), null, null, null, cancellationToken);
 
         _errorStream.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(_errorStream, Encoding.UTF8);

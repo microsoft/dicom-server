@@ -50,8 +50,8 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
             Options.Create(
                 new AzureBlobExportFormatOptions(
                     operationId,
-                    options.FilePattern,
-                    RelativeUriPath.Combine(options.Folder ?? string.Empty, "errors.json"),
+                    options.FilePattern.Trim(),
+                    RelativeUriPath.Combine(options.Folder?.Trim() ?? string.Empty, "Errors.log"),
                     Encoding.UTF8)),
             provider.GetRequiredService<IOptions<BlobOperationOptions>>(),
             provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
@@ -86,7 +86,7 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
     {
         try
         {
-            return ExportFilePattern.Parse(pattern.Trim(), placeholders);
+            return ExportFilePattern.Parse(pattern, placeholders);
         }
         catch (FormatException fe)
         {
