@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -28,18 +29,23 @@ internal sealed class IdentifierExportSourceProvider : IExportSourceProvider
         EnsureArg.IsNotNull(config, nameof(config));
         EnsureArg.IsNotNull(partition, nameof(partition));
 
+        var options = new IdentifierExportOptions();
+        config.Bind(options);
+
         return Task.FromResult<IExportSource>(
             new IdentifierExportSource(
                 provider.GetRequiredService<IInstanceStore>(),
                 partition,
-                config.Get<IdentifierExportOptions>()));
+                Options.Create(options)));
     }
 
     public Task<IConfiguration> ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(config, nameof(config));
 
-        IdentifierExportOptions options = config.Get<IdentifierExportOptions>();
+        var options = new IdentifierExportOptions();
+        config.Bind(options);
+
         List<ValidationResult> errors = options.Validate(new ValidationContext(this)).ToList();
 
         return errors.Count > 0

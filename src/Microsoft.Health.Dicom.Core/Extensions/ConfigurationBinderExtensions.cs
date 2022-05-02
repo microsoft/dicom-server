@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
@@ -54,10 +55,19 @@ internal static class ConfigurationBinderExtensions
         if (IsLiteralType(type))
         {
             if (configuration is not IConfigurationSection section)
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                        string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidTypeBinding, type.Name));
 
-            TypeConverter converter = TypeDescriptor.GetConverter(type);
-            section.Value = converter.ConvertToInvariantString(value);
+            // Special-case DateTime types to use round-trip
+            if (type == typeof(DateTime) || type == typeof(DateTimeOffset))
+            {
+                section.Value = ((IFormattable)value).ToString("O", CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                TypeConverter converter = TypeDescriptor.GetConverter(type);
+                section.Value = converter.ConvertToInvariantString(value);
+            }
         }
         else if (type.IsArray || IsArrayLike(type))
         {
@@ -67,7 +77,8 @@ internal static class ConfigurationBinderExtensions
                 elementType = type.GetElementType();
                 if (type.IsArray && type.GetArrayRank() > 1)
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException(
+                        string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidArrayRank, type.GetArrayRank()));
                 }
             }
             else
@@ -88,7 +99,7 @@ internal static class ConfigurationBinderExtensions
             if (options.BindNonPublicProperties)
                 bindingFlags |= BindingFlags.NonPublic;
 
-            foreach (PropertyInfo p in type.GetProperties(bindingFlags))
+            foreach (PropertyInfo p in type.GetProperties(bindingFlags).Where(x => x.CanWrite && x.CanRead))
                 CopyToConfiguration(configuration.GetSection(p.Name), p.PropertyType, p.GetValue(value), options);
         }
     }

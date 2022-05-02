@@ -494,6 +494,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Array rank {0} is not supported..
+        /// </summary>
+        internal static string InvalidArrayRank {
+            get {
+                return ResourceManager.GetString("InvalidArrayRank", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
@@ -720,6 +729,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidTransferSyntaxValue {
             get {
                 return ResourceManager.GetString("InvalidTransferSyntaxValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string InvalidTypeBinding {
+            get {
+                return ResourceManager.GetString("InvalidTypeBinding", resourceCulture);
             }
         }
         

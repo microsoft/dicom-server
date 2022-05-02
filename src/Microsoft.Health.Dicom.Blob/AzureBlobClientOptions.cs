@@ -10,5 +10,5 @@ namespace Microsoft.Health.Dicom.Blob;
 /// <inheritdoc cref="BlobClientOptions" />
 public sealed class AzureBlobClientOptions : BlobClientOptions
 {
-    // This class is a workaround for using IOptions as the BlobClientOptions ctor isn't used
+    // This class is a workaround for using IOptions as the BlobClientOptions ctor cannot be used as-is
 }

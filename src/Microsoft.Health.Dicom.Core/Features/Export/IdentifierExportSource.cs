@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -34,11 +35,11 @@ internal sealed class IdentifierExportSource : IExportSource
 
     private int _startIndex;
 
-    public IdentifierExportSource(IInstanceStore instanceStore, PartitionEntry partition, IdentifierExportOptions options)
+    public IdentifierExportSource(IInstanceStore instanceStore, PartitionEntry partition, IOptions<IdentifierExportOptions> options)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _partition = EnsureArg.IsNotNull(partition, nameof(partition));
-        _options = EnsureArg.IsNotNull(options, nameof(options));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
     }
 
     public ValueTask DisposeAsync()
@@ -52,32 +53,35 @@ internal sealed class IdentifierExportSource : IExportSource
             // Identifier has already been validated
             var identifier = DicomIdentifier.Parse(_options.Values[i]);
 
-            try
+            // Attempt to read the data
+            IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
             {
-                // Attempt to read the data
-                IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
-                {
-                    ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, identifier.StudyInstanceUid, cancellationToken),
-                    ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                    _ => await _instanceStore.GetInstanceIdentifierAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
-                };
+                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, identifier.StudyInstanceUid, cancellationToken),
+                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
+                _ => await _instanceStore.GetInstanceIdentifierAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
+            };
 
-                if (instances.Count == 0)
-                    throw new FileNotFoundException("Cannot find any matching instances");
-
-                results = instances.Select(ReadResult.ForIdentifier);
+            if (instances.Count > 0)
+            {
+                foreach (VersionedInstanceIdentifier read in instances)
+                    yield return ReadResult.ForIdentifier(read);
             }
-            catch (Exception ex)
+            else
             {
-                var args = new ReadFailureEventArgs(identifier, ex);
+                var args = new ReadFailureEventArgs(
+                    identifier,
+                    new FileNotFoundException(
+                        identifier.Type switch
+                        {
+                            ResourceType.Study => DicomCoreResource.StudyNotFound,
+                            ResourceType.Series => DicomCoreResource.SeriesNotFound,
+                            _ => DicomCoreResource.InstanceNotFound,
+                        }));
+
                 ReadFailure?.Invoke(this, args);
-                results = new ReadResult[] { ReadResult.ForFailure(args) };
+                yield return ReadResult.ForFailure(args);
             }
         }
-
-        // Actual yield the results (either resolved identifiers or errors)
-        foreach (ReadResult result in results)
-            yield return result;
     }
 
     public bool TryDequeueBatch(int size, out TypedConfiguration<ExportSourceType> batch)
