@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
+using Azure.Identity;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -20,6 +21,7 @@ using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Export;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -173,7 +175,35 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         response.Value.Returns(false);
         _destClient.ExistsAsync(tokenSource.Token).Returns(Task.FromResult(response));
 
-        await Assert.ThrowsAsync<IOException>(() => _sink.InitializeAsync(tokenSource.Token));
+        await Assert.ThrowsAsync<SinkInitializationFailureException>(() => _sink.InitializeAsync(tokenSource.Token));
+
+        await _destClient.Received(1).ExistsAsync(tokenSource.Token);
+        await _errorBlob
+            .DidNotReceiveWithAnyArgs()
+            .AppendBlockAsync(default, default, default, default, default);
+    }
+
+    [Theory]
+    [InlineData(nameof(AggregateException))]
+    [InlineData(nameof(AuthenticationFailedException))]
+    [InlineData(nameof(RequestFailedException))]
+    public async Task GivenThrownException_WhenInitializing_ThenWrapAndThrow(string exception)
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        Response<bool> response = Substitute.For<Response<bool>>();
+        response.Value.Returns(false);
+
+        // Note: It's more likely the permissions response would be thrown when trying to append to the blob
+        _destClient.ExistsAsync(tokenSource.Token).Returns(
+            Task.FromException<Response<bool>>(exception switch
+            {
+                nameof(AggregateException) => new AggregateException(new RequestFailedException("Connection Failed")),
+                nameof(AuthenticationFailedException) => new AuthenticationFailedException("Invalid tenant."),
+                _ => new RequestFailedException("Insufficient Permissions"),
+            }));
+
+        await Assert.ThrowsAsync<SinkInitializationFailureException>(() => _sink.InitializeAsync(tokenSource.Token));
 
         await _destClient.Received(1).ExistsAsync(tokenSource.Token);
         await _errorBlob

@@ -117,12 +117,24 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BlobStorageAuthenticateFailure" xml:space="preserve">
+    <value>Unable to authenticate for Azure Blob Storage container '{0}' in account '{1}'.</value>
+    <comment>{0} Container name. {1} Account name.</comment>
+  </data>
+  <data name="BlobStorageConnectionFailure" xml:space="preserve">
+    <value>Cannot connect to Azure Blob Storage container '{0}' in account '{1}'.</value>
+    <comment>{0} Container name. {1} Account name.</comment>
+  </data>
+  <data name="BlobStorageRequestFailure" xml:space="preserve">
+    <value>Failed to write to Azure Blob Storage container '{0}' in account '{1}'.</value>
+    <comment>{0} Container name. {1} Account name.</comment>
+  </data>
   <data name="ConflictingExportBlobConnections" xml:space="preserve">
     <value>ConnectionString and ContainerName cannot be specified along with ContainerUri.</value>
   </data>
   <data name="ContainerDoesNotExist" xml:space="preserve">
-    <value>Azure blob container '{0}' does not exist.</value>
-    <comment>{0} Container Name</comment>
+    <value>Azure Blob Storage container '{0}' does not exist in account '{1}'.</value>
+    <comment>{0} Container name. {1} Account name.</comment>
   </data>
   <data name="InvalidEscapeSequence" xml:space="preserve">
     <value>'{0}' is an invalid escape sequence.</value>

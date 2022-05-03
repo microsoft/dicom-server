@@ -61,6 +61,33 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to authenticate for Azure Blob Storage container &apos;{0}&apos; in account &apos;{1}&apos;..
+        /// </summary>
+        internal static string BlobStorageAuthenticateFailure {
+            get {
+                return ResourceManager.GetString("BlobStorageAuthenticateFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot connect to Azure Blob Storage container &apos;{0}&apos; in account &apos;{1}&apos;..
+        /// </summary>
+        internal static string BlobStorageConnectionFailure {
+            get {
+                return ResourceManager.GetString("BlobStorageConnectionFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to write to Azure Blob Storage container &apos;{0}&apos; in account &apos;{1}&apos;..
+        /// </summary>
+        internal static string BlobStorageRequestFailure {
+            get {
+                return ResourceManager.GetString("BlobStorageRequestFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
         /// </summary>
         internal static string ConflictingExportBlobConnections {
@@ -70,7 +97,7 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Azure blob container &apos;{0}&apos; does not exist..
+        ///   Looks up a localized string similar to Azure Blob Storage container &apos;{0}&apos; does not exist in account &apos;{1}&apos;..
         /// </summary>
         internal static string ContainerDoesNotExist {
             get {

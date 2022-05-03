@@ -18,6 +18,7 @@ using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
+using ComponentModelValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions;
 
@@ -76,6 +77,7 @@ public class ExceptionHandlingMiddleware
                 break;
             case FormatException:
             case ValidationException:
+            case ComponentModelValidationException:
             case NotSupportedException:
             case AuditHeaderCountExceededException:
             case AuditHeaderTooLargeException:

@@ -18,6 +18,7 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Core;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Common;
@@ -104,22 +105,28 @@ internal sealed class AzureBlobExportSink : IExportSink
         {
             if (!await _dest.ExistsAsync(cancellationToken))
                 throw new IOException(
-                    string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name));
+                    string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name, _dest.AccountName));
 
             AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
             await client.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
         }
         catch (AggregateException ae) when (ae.InnerException is RequestFailedException)
         {
-            throw new IOException("Can't connect", ae);
+            throw new SinkInitializationFailureException(
+                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.BlobStorageConnectionFailure, _dest.Name, _dest.AccountName),
+                ae);
         }
         catch (AuthenticationFailedException afe)
         {
-            throw new IOException("Auth failed", afe);
+            throw new SinkInitializationFailureException(
+                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.BlobStorageAuthenticateFailure, _dest.Name, _dest.AccountName),
+                afe);
         }
         catch (RequestFailedException rfe)
         {
-            throw new IOException("Request failed", rfe);
+            throw new SinkInitializationFailureException(
+                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.BlobStorageRequestFailure, _dest.Name, _dest.AccountName),
+                rfe);
         }
     }
 

@@ -15,7 +15,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
@@ -43,6 +46,15 @@ public class DicomAzureFunctionsClientTests
         _resourceStore = Substitute.For<IDicomOperationsResourceStore>();
         _options = new DicomFunctionOptions
         {
+            Export = new FanOutFunctionOptions
+            {
+                Name = FunctionNames.ExportDicomFiles,
+                Batching = new BatchingOptions
+                {
+                    MaxParallelCount = 2,
+                    Size = 50,
+                },
+            },
             Indexing = new FanOutFunctionOptions
             {
                 Name = FunctionNames.ReindexInstances,
@@ -206,7 +218,7 @@ public class DicomAzureFunctionsClientTests
     }
 
     [Fact]
-    public async Task GivenAssignedKeys_WhenStartingReindex_ThenReturnInstanceId()
+    public async Task GivenAssignedKeys_WhenStartingReindex_ThenStartOrchestration()
     {
         string instanceId = OperationId.Generate();
         var operationId = Guid.Parse(instanceId);
@@ -234,5 +246,57 @@ public class DicomAzureFunctionsClientTests
                 instanceId,
                 Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(tagKeys)));
         _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
+    }
+
+    [Fact]
+    public async Task GivenNullArgs_WhenStartingExport_ThenThrowArgumentNullException()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), null, PartitionEntry.Default));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), null));
+    }
+
+    [Fact]
+    public async Task GivenValidArgs_WhenStartingExport_ThenStartOrchestration()
+    {
+        var operationId = Guid.NewGuid();
+        var spec = new ExportSpecification
+        {
+            Destination = new TypedConfiguration<ExportDestinationType>(),
+            Source = new TypedConfiguration<ExportSourceType>(),
+        };
+        var partition = new PartitionEntry(17, "test");
+        var url = new Uri("http://foo.com/bar/operations/" + operationId.ToString(OperationId.FormatSpecifier));
+
+        _durableClient
+            .StartNewAsync(
+                FunctionNames.ExportDicomFiles,
+                operationId.ToString(OperationId.FormatSpecifier),
+                Arg.Is<ExportInput>(x => ReferenceEquals(_options.Export.Batching, x.Batching)
+                    && ReferenceEquals(spec.Destination, x.Destination)
+                    && ReferenceEquals(partition, x.Partition)
+                    && ReferenceEquals(spec.Source, x.Source)))
+            .Returns(operationId.ToString(OperationId.FormatSpecifier));
+        _urlResolver
+            .ResolveOperationStatusUri(operationId)
+            .Returns(url);
+
+        using var tokenSource = new CancellationTokenSource();
+        OperationReference actual = await _client.StartExportAsync(operationId, spec, partition, tokenSource.Token);
+
+        await _durableClient
+            .Received(1)
+            .StartNewAsync(
+                FunctionNames.ExportDicomFiles,
+                operationId.ToString(OperationId.FormatSpecifier),
+                Arg.Is<ExportInput>(x => ReferenceEquals(_options.Export.Batching, x.Batching)
+                    && ReferenceEquals(spec.Destination, x.Destination)
+                    && ReferenceEquals(partition, x.Partition)
+                    && ReferenceEquals(spec.Source, x.Source)));
+        _urlResolver
+            .Received(1)
+            .ResolveOperationStatusUri(operationId);
+
+        Assert.Equal(operationId, actual.Id);
+        Assert.Equal(url, actual.Href);
     }
 }
