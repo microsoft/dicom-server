@@ -104,7 +104,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         try
         {
             if (!await _dest.ExistsAsync(cancellationToken))
-                throw new IOException(
+                throw new SinkInitializationFailureException(
                     string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name, _dest.AccountName));
 
             AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);

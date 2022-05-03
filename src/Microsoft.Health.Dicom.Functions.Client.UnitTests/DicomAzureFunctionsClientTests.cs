@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -171,6 +172,15 @@ public class DicomAzureFunctionsClientTests
                 RuntimeStatus = OrchestrationRuntimeStatus.Running,
             });
 
+        if (populateInput)
+        {
+            _resourceStore
+                .ResolveQueryTagKeysAsync(
+                    Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(tagKeys)),
+                    source.Token)
+                .Returns(tagPaths.ToAsyncEnumerable());
+        }
+
         for (int i = 0; i < tagPaths.Length; i++)
         {
             _urlResolver.ResolveQueryTagUri(tagPaths[i]).Returns(expectedResourceUrls[i]);
@@ -187,6 +197,15 @@ public class DicomAzureFunctionsClientTests
         Assert.Equal(DicomOperation.Reindex, actual.Type);
 
         await _durableClient.Received(1).GetStatusAsync(instanceId, showInput: true);
+
+        if (populateInput)
+        {
+            _resourceStore
+                .Received(1)
+                .ResolveQueryTagKeysAsync(
+                    Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(tagKeys)),
+                    source.Token);
+        }
 
         if (populateInput)
         {

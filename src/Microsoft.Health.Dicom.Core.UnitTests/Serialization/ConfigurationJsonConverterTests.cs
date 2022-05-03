@@ -58,7 +58,7 @@ public class ConfigurationJsonConverterTests
         Assert.Equal("zero", actual["array:0"]);
         Assert.Equal("one", actual["array:1"]);
         Assert.Equal("two", actual["array:2"]);
-        Assert.Equal("true", actual["object:bool"]);
+        Assert.Equal("True", actual["object:bool"]);
         Assert.Equal("1.2345", actual["object:nested:float"]);
         Assert.Null(actual["object:nested:null"]);
         Assert.Null(actual["object:nested:empty"]);

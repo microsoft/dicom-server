@@ -50,7 +50,7 @@ public class AzureBlobExportSinkProviderTests
     {
         var operationId = Guid.NewGuid();
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
-        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/errors.json", UriKind.Absolute);
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/Errors.log", UriKind.Absolute);
         const string version = "1";
 
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
@@ -81,19 +81,19 @@ public class AzureBlobExportSinkProviderTests
     }
 
     [Theory]
-    [InlineData("%Study%", "%SopInstance%.dcm")]
-    [InlineData("%Series%", "%SopInstance%.dcm")]
-    [InlineData("%SopInstance%", "%SopInstance%.dcm")]
-    [InlineData("%Operation%", "%Foo%.dcm")]
-    public async Task GivenInvalidPattern_WhenValidatingOptions_ThenThrow(string folder, string file)
+    [InlineData("%SopInstance%.dcm", "%Study%/Errors.log")]
+    [InlineData("%SopInstance%.dcm", "%Series%/Errors.log")]
+    [InlineData("%SopInstance%.dcm", "%SopInstance%/Errors.log")]
+    [InlineData("%Foo%.dcm", "%Operation%/Errors.log")]
+    public async Task GivenInvalidPattern_WhenValidatingOptions_ThenThrow(string file, string error)
     {
         var operationId = Guid.NewGuid();
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
 
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         configuration[nameof(AzureBlobExportOptions.ContainerUri)] = containerUri.AbsoluteUri;
-        configuration[nameof(AzureBlobExportOptions.Folder)] = folder;
-        configuration[nameof(AzureBlobExportOptions.FilePattern)] = file;
+        configuration[nameof(AzureBlobExportOptions.DicomFilePattern)] = file;
+        configuration[nameof(AzureBlobExportOptions.ErrorLogPattern)] = error;
 
         using var tokenSource = new CancellationTokenSource();
 

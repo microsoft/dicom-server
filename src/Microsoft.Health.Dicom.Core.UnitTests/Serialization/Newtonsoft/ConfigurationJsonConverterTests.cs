@@ -29,6 +29,7 @@ public class ConfigurationJsonConverterTests
   ""string"": ""hello"",
   ""integer"": 42,
   ""date"": ""2022-04-14T23:39:26.7818757Z"",
+  ""dateOffset"": ""2022-05-03T15:35:57.2628853-07:00"",
   ""guid"": ""138f3a3f-4de3-46b4-9c59-f4b33adfd50d"",
   ""time"": ""1.23:45:32.1"",
   ""uri"": ""http://example.com/unit/test?foo=bar"",
@@ -53,13 +54,14 @@ public class ConfigurationJsonConverterTests
         Assert.Equal("hello", actual["string"]);
         Assert.Equal("42", actual["integer"]);
         Assert.Equal("2022-04-14T23:39:26.7818757Z", actual["date"]);
+        Assert.Equal("2022-05-03T15:35:57.2628853-07:00", actual["dateOffset"]);
         Assert.Equal("138f3a3f-4de3-46b4-9c59-f4b33adfd50d", actual["guid"]);
         Assert.Equal("1.23:45:32.1", actual["time"]);
         Assert.Equal("http://example.com/unit/test?foo=bar", actual["uri"]);
         Assert.Equal("zero", actual["array:0"]);
         Assert.Equal("one", actual["array:1"]);
         Assert.Equal("two", actual["array:2"]);
-        Assert.Equal("true", actual["object:bool"]);
+        Assert.Equal("True", actual["object:bool"]);
         Assert.Equal("1.2345", actual["object:nested:float"]);
         Assert.Null(actual["object:nested:null"]);
         Assert.Null(actual["object:nested:empty"]);
@@ -75,6 +77,7 @@ public class ConfigurationJsonConverterTests
     ""2"": ""two""
   },
   ""date"": ""2022-04-14T23:39:26.7818757Z"",
+  ""dateOffset"": ""2022-05-03T15:35:57.2628853-07:00"",
   ""guid"": ""138f3a3f-4de3-46b4-9c59-f4b33adfd50d"",
   ""integer"": ""42"",
   ""object"": {
@@ -96,6 +99,7 @@ public class ConfigurationJsonConverterTests
                     KeyValuePair.Create("string", "hello"),
                     KeyValuePair.Create("integer", "42"),
                     KeyValuePair.Create("date", "2022-04-14T23:39:26.7818757Z"),
+                    KeyValuePair.Create("dateOffset", "2022-05-03T15:35:57.2628853-07:00"),
                     KeyValuePair.Create("guid", "138f3a3f-4de3-46b4-9c59-f4b33adfd50d"),
                     KeyValuePair.Create("time", "1.23:45:32.1"),
                     KeyValuePair.Create("uri", "http://example.com/unit/test?foo=bar"),

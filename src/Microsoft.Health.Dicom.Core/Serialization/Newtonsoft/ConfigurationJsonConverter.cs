@@ -71,7 +71,7 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
                 yield return token.Type switch
                 {
                     JTokenType.Boolean => KeyValuePair.Create(path, ConvertToString<bool>(value)),
-                    JTokenType.Date => KeyValuePair.Create(path, ConvertToString<DateTime>(value)),
+                    JTokenType.Date => KeyValuePair.Create(path, value.Value<DateTime>().ToString("O", CultureInfo.InvariantCulture)),
                     JTokenType.Float => KeyValuePair.Create(path, ConvertToString<float>(value)),
                     JTokenType.Guid => KeyValuePair.Create(path, ConvertToString<Guid>(value)),
                     JTokenType.Integer => KeyValuePair.Create(path, ConvertToString<int>(value)),

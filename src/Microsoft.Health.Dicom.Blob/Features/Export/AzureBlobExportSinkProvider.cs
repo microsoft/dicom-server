@@ -50,8 +50,8 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
             Options.Create(
                 new AzureBlobExportFormatOptions(
                     operationId,
-                    options.FilePattern.Trim(),
-                    RelativeUriPath.Combine(options.Folder?.Trim() ?? string.Empty, "Errors.log"),
+                    options.DicomFilePattern.Trim(),
+                    options.ErrorLogPattern.Trim(),
                     Encoding.UTF8)),
             provider.GetRequiredService<IOptions<BlobOperationOptions>>(),
             provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
@@ -70,8 +70,8 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
             throw new ValidationException(results.First().ErrorMessage);
 
         // Post-process
-        ParsePattern(options.FilePattern, nameof(ExportFilePattern));
-        ParsePattern(options.Folder, nameof(ExportFilePattern), ExportPatternPlaceholders.Operation);
+        ParsePattern(options.DicomFilePattern, nameof(AzureBlobExportOptions.DicomFilePattern));
+        ParsePattern(options.ErrorLogPattern, nameof(AzureBlobExportOptions.ErrorLogPattern), ExportPatternPlaceholders.Operation);
 
         // Store any secrets
         await options.ClassifyAsync(_secretStore, operationId.ToString(OperationId.FormatSpecifier), cancellationToken);

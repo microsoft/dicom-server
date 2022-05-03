@@ -26,9 +26,9 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
 
     public string ContainerName { get; set; }
 
-    public string Folder { get; set; } = "%Operation%";
+    public string DicomFilePattern { get; set; } = "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm";
 
-    public string FilePattern { get; set; } = "Results/%Study%/%Series%/%SopInstance%.dcm";
+    public string ErrorLogPattern { get; set; } = "%Operation%/Errors.log";
 
     internal SecretKey Secrets { get; set; }
 
@@ -37,18 +37,23 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
         var results = new List<ValidationResult>();
         if (ContainerUri == null)
         {
-            if (string.IsNullOrEmpty(ConnectionString) || string.IsNullOrEmpty(ContainerName))
+            if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(ContainerName))
                 results.Add(new ValidationResult(DicomBlobResource.MissingExportBlobConnection));
         }
-        else if (!string.IsNullOrEmpty(ConnectionString) || !string.IsNullOrEmpty(ContainerName))
+        else if (!string.IsNullOrWhiteSpace(ConnectionString) || !string.IsNullOrWhiteSpace(ContainerName))
         {
             results.Add(new ValidationResult(DicomBlobResource.ConflictingExportBlobConnections));
         }
 
-        if (string.IsNullOrEmpty(FilePattern))
+        if (string.IsNullOrWhiteSpace(DicomFilePattern))
             results.Add(new ValidationResult(
-                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.MissingProperty, nameof(FilePattern)),
-                new string[] { nameof(FilePattern) }));
+                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.MissingProperty, nameof(DicomFilePattern)),
+                new string[] { nameof(DicomFilePattern) }));
+
+        if (string.IsNullOrWhiteSpace(ErrorLogPattern))
+            results.Add(new ValidationResult(
+                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.MissingProperty, nameof(ErrorLogPattern)),
+                new string[] { nameof(ErrorLogPattern) }));
 
         return results;
     }

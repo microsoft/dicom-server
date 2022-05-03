@@ -80,17 +80,24 @@ public class AddExtendedQueryTagServiceTests
         _extendedQueryTagStore
             .AddExtendedQueryTagsAsync(
                 Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
-                Arg.Is(128),
-                Arg.Is(false),
-                Arg.Is(_tokenSource.Token))
+                128,
+                false,
+                _tokenSource.Token)
             .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
         _guidFactory.Create().Returns(operationId);
         _client
             .StartReindexingInstancesAsync(
-                Arg.Is(operationId),
+                operationId,
                 Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
-                Arg.Is(_tokenSource.Token))
+                _tokenSource.Token)
             .Returns(expected);
+        _extendedQueryTagStore
+            .AssignReindexingOperationAsync(
+                Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == storeEntry.Key),
+                operationId,
+                true,
+                _tokenSource.Token)
+            .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
 
         OperationReference actual = await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token);
         Assert.Same(expected, actual);
@@ -100,15 +107,22 @@ public class AddExtendedQueryTagServiceTests
             .Received(1)
             .AddExtendedQueryTagsAsync(
                 Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
-                Arg.Is(128),
-                Arg.Is(false),
-                Arg.Is(_tokenSource.Token));
+                128,
+                false,
+                _tokenSource.Token);
         _guidFactory.Received(1).Create();
         await _client
             .Received(1)
             .StartReindexingInstancesAsync(
-                Arg.Is(operationId),
+                operationId,
                 Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
-                Arg.Is(_tokenSource.Token));
+                _tokenSource.Token);
+        await _extendedQueryTagStore
+            .Received(1)
+            .AssignReindexingOperationAsync(
+                Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == storeEntry.Key),
+                operationId,
+                true,
+                _tokenSource.Token);
     }
 }
