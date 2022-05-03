@@ -91,12 +91,18 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             // There are only success.
             status = WorkitemResponseStatus.Success;
         }
-        else if (failureReason == FailureReasonCodes.ProcessingFailure)
+        else if (failureReason == FailureReasonCodes.ProcessingFailure ||
+                 failureReason == FailureReasonCodes.UpsInstanceNotFound)
         {
             status = WorkitemResponseStatus.NotFound;
         }
+        else if (failureReason == FailureReasonCodes.UpsIsAlreadyCompleted ||
+                 failureReason == FailureReasonCodes.UpsIsAlreadyCanceled)
+        {
+            status = WorkitemResponseStatus.Conflict;
+        }
 
-        return new RetrieveWorkitemResponse(status, _dataset);
+        return new RetrieveWorkitemResponse(status, _dataset, _message);
     }
 
     /// <inheritdoc />

@@ -9,6 +9,7 @@ using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -41,8 +42,11 @@ public partial class WorkitemController
             .RetrieveWorkitemAsync(workitemInstanceUid, cancellationToken: HttpContext.RequestAborted)
             .ConfigureAwait(false);
 
-        return response.Status == WorkitemResponseStatus.Success
-            ? Ok(response.Dataset)
-            : NoContent();
+        if (response.Status == WorkitemResponseStatus.Success)
+        {
+            return Ok(response.Dataset);
+        }
+
+        return StatusCode((int)response.Status.RetrieveResponseToHttpStatusCode(), response.Message);
     }
 }

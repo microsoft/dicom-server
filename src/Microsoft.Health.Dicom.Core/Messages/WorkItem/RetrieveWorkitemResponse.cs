@@ -10,12 +10,16 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 public sealed class RetrieveWorkitemResponse
 {
-    public RetrieveWorkitemResponse(WorkitemResponseStatus status, DicomDataset responseDataset)
+    public RetrieveWorkitemResponse(WorkitemResponseStatus status, DicomDataset responseDataset, string message = null)
     {
         Dataset = EnsureArg.IsNotNull(responseDataset, nameof(responseDataset));
         Status = status;
+        Message = message;
     }
 
     public DicomDataset Dataset { get; }
+
     public WorkitemResponseStatus Status { get; }
+
+    public string Message { get; }
 }

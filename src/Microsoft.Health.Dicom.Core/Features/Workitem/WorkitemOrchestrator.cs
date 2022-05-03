@@ -191,21 +191,12 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     }
 
     /// <inheritdoc />
-    public async Task<DicomDataset> RetrieveWorkitemAsync(string workitemInstanceUid, CancellationToken cancellationToken = default)
+    public async Task<DicomDataset> RetrieveWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
+        EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
 
-        var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
-
-        var workitemMetadata = await _indexWorkitemStore
-            .GetWorkitemMetadataAsync(partitionKey, workitemInstanceUid, cancellationToken)
+        return await TryGetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken)
             .ConfigureAwait(false);
-
-        var dataset = await _workitemStore
-            .GetWorkitemAsync(workitemMetadata, cancellationToken)
-            .ConfigureAwait(false);
-
-        return dataset;
     }
 
     private async Task<DicomDataset> TryGetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
@@ -213,7 +204,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         try
         {
             return await GetWorkitemBlobAsync(identifier, cancellationToken)
-            .ConfigureAwait(false);
+                .ConfigureAwait(false);
         }
         catch (ItemNotFoundException ex)
         {
