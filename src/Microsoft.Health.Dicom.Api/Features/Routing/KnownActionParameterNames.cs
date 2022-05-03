@@ -13,6 +13,7 @@ internal class KnownActionParameterNames
     internal const string SeriesInstanceUid = "seriesInstanceUid";
     internal const string SopInstanceUid = "sopInstanceUid";
     internal const string WorkItemInstanceUid = "workitemInstanceUid";
+    internal const string WorkItemState = "workitemState";
     internal const string Frames = "frames";
     internal const string TagPath = "tagPath";
     internal const string OperationId = "operationId";
