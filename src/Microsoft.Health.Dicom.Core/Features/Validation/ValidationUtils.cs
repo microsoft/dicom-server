@@ -3,20 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using System.Linq;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
-
-/// <summary>
-/// Validation on Dicom Element.
-/// </summary>
-internal interface IElementValidation
+internal static class ValidationUtils
 {
-    /// <summary>
-    /// Validate DicomElement
-    /// </summary>
-    /// <param name="dicomElement">The dicom element</param>
-    /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement);
+    public static bool ContainsControlExceptEsc(string text)
+        => text != null && text.Any(c => char.IsControl(c) && (c != '\u001b'));
 }

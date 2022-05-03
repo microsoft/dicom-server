@@ -12,7 +12,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class ElementMaxLengthValidation : ElementValidation
+internal class ElementMaxLengthValidation : IElementValidation
 {
     public ElementMaxLengthValidation(int maxLength)
     {
@@ -22,11 +22,9 @@ internal class ElementMaxLengthValidation : ElementValidation
 
     public int MaxLength { get; }
 
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
-
-        string value = dicomElement.Get<string>();
+        string value = dicomElement.GetFirstValueOrDefault<string>();
         Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
     }
 

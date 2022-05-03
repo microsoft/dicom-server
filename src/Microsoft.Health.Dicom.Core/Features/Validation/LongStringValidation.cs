@@ -13,13 +13,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 /// <summary>
 /// Validate Dicom VR LO 
 /// </summary>
-internal class LongStringValidation : ElementValidation
+internal class LongStringValidation : IElementValidation
 {
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
-
-        string value = dicomElement.Get<string>();
+        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name);
     }
@@ -33,7 +31,7 @@ internal class LongStringValidation : ElementValidation
 
         ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
-        if (value.Contains('\\', StringComparison.OrdinalIgnoreCase) || ContainsControlExceptEsc(value))
+        if (value.Contains('\\', StringComparison.OrdinalIgnoreCase) || ValidationUtils.ContainsControlExceptEsc(value))
         {
             throw new ElementValidationException(name, DicomVR.LO, value, ValidationErrorCode.InvalidCharacters);
         }

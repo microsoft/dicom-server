@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 public class DicomStoreServiceTests
 {
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-    private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset());
+    private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
         studyInstanceUid: "1",
@@ -88,7 +88,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, Arg.Is<ushort?>(v => v.Value == FailureReasonCodes.DatasetDoesNotMatchSOPClass));
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, null);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
@@ -182,12 +182,15 @@ public class DicomStoreServiceTests
         dicomInstanceEntryToFail.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         _dicomDatasetValidator
-            .When(dicomDatasetMinimumRequirementValidator => dicomDatasetMinimumRequirementValidator.ValidateAsync(_dicomDataset2, null, Arg.Any<CancellationToken>()))
-            .Do(_ => throw new Exception());
+            .When(datasetVaidator => datasetVaidator.ValidateAsync(_dicomDataset2, null, Arg.Any<CancellationToken>()))
+            .Do(_ =>
+            {
+                throw new Exception();
+            });
 
         await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 
-        _storeResponseBuilder.Received(0).AddSuccess(_dicomDataset1);
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, null);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
         Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
     }

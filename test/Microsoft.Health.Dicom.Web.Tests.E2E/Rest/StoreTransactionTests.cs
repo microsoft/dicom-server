@@ -363,6 +363,18 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    [Fact]
+    public async Task GivenDicomTagWithMultipleValues_WhenStoring_ThenShouldSucceeWithWarning()
+    {
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset().NotValidated();
+        DicomLongString studyDescription = new DicomLongString(DicomTag.StudyDescription, "Value1", "Value2");
+        dataset.AddOrUpdate(studyDescription);
+
+        var response = await _instancesManager.StoreAsync(new DicomFile(dataset));
+
+        // TODO:  Verify warning content after https://microsofthealth.visualstudio.com/Health/_workitems/edit/91168 is fixed.
+    }
+
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders
     {
         get
