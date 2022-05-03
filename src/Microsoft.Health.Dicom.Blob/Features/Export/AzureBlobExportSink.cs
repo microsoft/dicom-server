@@ -9,6 +9,8 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -98,12 +100,27 @@ internal sealed class AzureBlobExportSink : IExportSink
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         // TODO: Should we create the container if it's not present?
-        if (!await _dest.ExistsAsync(cancellationToken))
-            throw new IOException(
-                string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name));
+        try
+        {
+            if (!await _dest.ExistsAsync(cancellationToken))
+                throw new IOException(
+                    string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name));
 
-        AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
-        await client.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+            AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
+            await client.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+        }
+        catch (AggregateException ae) when (ae.InnerException is RequestFailedException)
+        {
+            throw new IOException("Can't connect", ae);
+        }
+        catch (AuthenticationFailedException afe)
+        {
+            throw new IOException("Auth failed", afe);
+        }
+        catch (RequestFailedException rfe)
+        {
+            throw new IOException("Request failed", rfe);
+        }
     }
 
     internal async ValueTask FlushErrorsAsync(CancellationToken cancellationToken = default)
