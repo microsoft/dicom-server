@@ -35,6 +35,7 @@ public class ConfigurationBinderExtensionsTests
         };
 
         ExampleOptions.ByteArray = new byte[] { 1, 2, 3 };
+        ExampleOptions.Flag = true;
         ExampleOptions.SByteNumber = 7;
         ExampleOptions.ShortEnumerable = new short[] { 4, 5, 6, 7, 8 };
 
@@ -52,12 +53,15 @@ public class ConfigurationBinderExtensionsTests
         IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection().Build();
         config.Set(options);
 
+        Assert.Equal("True", config[nameof(ExampleOptions.Flag)]);
         Assert.Equal("7", config[nameof(ExampleOptions.SByteNumber)]);
         Assert.Equal("2468", config[nameof(ExampleOptions.UIntNumber)]);
         Assert.Equal("98765", config[nameof(ExampleOptions.LongNumber)]);
         Assert.Equal("1357911", config[nameof(ExampleOptions.ULongNumber)]);
         Assert.Equal("-10.11", config[nameof(ExampleOptions.FloatNumber)]);
         Assert.Equal("3.14", config[nameof(ExampleOptions.DoubleNumber)]);
+        Assert.Null(config[nameof(ExampleOptions.Ignored1)]);
+        Assert.Null(config[nameof(ExampleOptions.Ignored2)]);
 
         section = config.GetSection(nameof(ExampleOptions.ByteArray));
         Assert.Equal(3, section.GetChildren().Count(x => x.Value != null));
@@ -79,6 +83,7 @@ public class ConfigurationBinderExtensionsTests
         Assert.Equal("Hello World", config[nameof(NestedOptions.Text)]);
         Assert.Equal("1000-10-10T10:10:10.0000000Z", config[nameof(NestedOptions.DateAndTime)]);
         Assert.Equal("2000-02-02T00:00:00.0000000+03:00", config[nameof(NestedOptions.OffsetDateAndTime)]);
+        Assert.Null(config[nameof(NestedOptions.Ignored3)]);
 
         section = config.GetSection(nameof(NestedOptions.UShortCollection));
         Assert.Equal(1, section.GetChildren().Count(x => x.Value != null));
@@ -88,6 +93,8 @@ public class ConfigurationBinderExtensionsTests
         Assert.Equal("11.22:33:44", config[nameof(ReallyNestedOptions.Duration)]);
         Assert.Equal("a5980f6d-abe4-4495-a972-8b9844962d28", config[nameof(ReallyNestedOptions.Id)]);
         Assert.Equal("https://www.bing.com", config[nameof(ReallyNestedOptions.Resource)]);
+        Assert.Null(config[nameof(ReallyNestedOptions.Ignored4)]);
+        Assert.Null(config[nameof(ReallyNestedOptions.Ignored5)]);
 
         section = config.GetSection(nameof(ReallyNestedOptions.IntList));
         Assert.Equal(4, section.GetChildren().Count(x => x.Value != null));
@@ -99,11 +106,15 @@ public class ConfigurationBinderExtensionsTests
 
     private sealed class ExampleOptions
     {
+        public static bool Flag { get; set; }
+
         public static sbyte SByteNumber { get; set; }
 
         public static byte[] ByteArray { get; set; }
 
         public static IEnumerable<short> ShortEnumerable { get; set; }
+
+        internal static int Ignored1 { get; set; }
 
         public uint UIntNumber { get; set; }
 
@@ -116,6 +127,8 @@ public class ConfigurationBinderExtensionsTests
         public double DoubleNumber { get; set; }
 
         public NestedOptions Nested { get; set; }
+
+        internal string Ignored2 { get; set; }
     }
 
     private sealed class NestedOptions
@@ -133,6 +146,8 @@ public class ConfigurationBinderExtensionsTests
         public DateTime DateAndTime { get; set; }
 
         public DateTimeOffset OffsetDateAndTime { get; set; }
+
+        public char Ignored3 => '~';
     }
 
     private sealed class ReallyNestedOptions
@@ -144,5 +159,15 @@ public class ConfigurationBinderExtensionsTests
         public Guid Id { get; set; }
 
         public Uri Resource { get; set; }
+
+        public double Ignored4
+        {
+            set
+            {
+                Ignored5 = value;
+            }
+        }
+
+        public double Ignored5;
     }
 }

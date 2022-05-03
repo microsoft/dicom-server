@@ -105,7 +105,8 @@ internal static class ConfigurationBinderExtensions
     }
 
     private static bool IsLiteralType(Type type)
-        => type == typeof(sbyte)
+        => type == typeof(bool)
+        || type == typeof(sbyte)
         || type == typeof(byte)
         || type == typeof(short)
         || type == typeof(ushort)

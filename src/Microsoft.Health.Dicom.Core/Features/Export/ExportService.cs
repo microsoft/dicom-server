@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 
@@ -33,9 +34,10 @@ internal sealed class ExportService : IExportService
         _client = EnsureArg.IsNotNull(client, nameof(client));
     }
 
-    public async Task<OperationReference> StartExportAsync(ExportSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartExportAsync(ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
+        EnsureArg.IsNotNull(partition, nameof(partition));
 
         Guid operationId = _guidFactory.Create();
 
@@ -44,6 +46,6 @@ internal sealed class ExportService : IExportService
         specification.Destination = await _sinkFactory.ValidateAsync(specification.Destination, operationId, cancellationToken);
 
         // Start the operation
-        return await _client.StartExportAsync(operationId, specification, cancellationToken);
+        return await _client.StartExportAsync(operationId, specification, partition, cancellationToken);
     }
 }

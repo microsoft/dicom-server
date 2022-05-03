@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
@@ -56,6 +57,7 @@ public interface IDicomOperationsClient
     /// </summary>
     /// <param name="operationId">The desired ID for the long-running export operation.</param>
     /// <param name="specification">The specification that details the source and destination for the export.</param>
+    /// <param name="partition">The data partition containing the files to export.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
@@ -64,7 +66,9 @@ public interface IDicomOperationsClient
     /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains a reference
     /// to the newly started operation.
     /// </returns>
-    /// <exception cref="ArgumentNullException"><paramref name="specification"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="specification"/> or <paramref name="partition"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
 }

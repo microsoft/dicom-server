@@ -5,6 +5,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 
@@ -12,5 +13,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 internal interface IExportService
 {
-    Task<OperationReference> StartExportAsync(ExportSpecification specification, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartExportAsync(ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
 }
