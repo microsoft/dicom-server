@@ -37,6 +37,16 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.PartialContent, HttpStatusCode.PartialContent },
         };
 
+    private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> ChangeStateResponseStatusToHttpStatusCodeMapping =
+        new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
+        {
+            { WorkitemResponseStatus.Success, HttpStatusCode.OK },
+            { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
+            { WorkitemResponseStatus.NoContent, HttpStatusCode.NotFound },
+            { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
+            { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
+        };
+
     /// <summary>
     /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
     /// </summary>
@@ -60,4 +70,12 @@ public static class WorkitemResponseStatusExtensions
     /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
     public static HttpStatusCode QueryResponseToHttpStatusCode(this WorkitemResponseStatus status)
         => QueryResponseStatusToHttpStatusCodeMapping[status];
+
+    /// <summary>
+    /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
+    /// </summary>
+    /// <param name="status">The status to convert.</param>
+    /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
+    public static HttpStatusCode ChangeStateResponseToHttpStatusCode(this WorkitemResponseStatus status)
+        => ChangeStateResponseStatusToHttpStatusCodeMapping[status];
 }

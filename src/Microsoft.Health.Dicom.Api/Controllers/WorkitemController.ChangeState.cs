@@ -4,22 +4,31 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Net;
-using FellowOakDicom;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Extensions;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
 public partial class WorkitemController
 {
     /// <summary>
-    /// This action requests a UPS Instance on the Origin-Server. It corresponds to the UPS DIMSE N-GET operation.
+    /// This transaction is used to change the state of a Workitem.
+    /// It corresponds to the UPS DIMSE N-ACTION operation "Change UPS State".
+    /// State changes are used to claim ownership, complete, or cancel a Workitem.
     /// </summary>
     [HttpPut]
-    [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
+    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionChangeStateWorkitemInstance)]
@@ -27,10 +36,24 @@ public partial class WorkitemController
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedChangeStateWorkitemInstance)]
     [Route(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]
-    public IActionResult ChangeStateAsync(string workitemInstanceUid, string workitemState)
+    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, string workitemState)
     {
         _logger.LogInformation("Change workitem state to {WorkitemState}.", workitemState);
 
-        return new StatusCodeResult((int)HttpStatusCode.NotFound);
+        var response = await _mediator
+                    .ChangeWorkitemStateAsync(
+                        Request.Body,
+                        Request.ContentType,
+                        workitemInstanceUid,
+                        workitemState,
+                        cancellationToken: HttpContext.RequestAborted)
+                    .ConfigureAwait(false);
+
+        if (response.Status == WorkitemResponseStatus.Success)
+        {
+            return Ok();
+        }
+
+        return StatusCode((int)response.Status.ChangeStateResponseToHttpStatusCode(), response.Message);
     }
 }

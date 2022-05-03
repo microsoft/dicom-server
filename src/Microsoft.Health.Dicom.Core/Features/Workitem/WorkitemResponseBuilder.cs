@@ -81,6 +81,29 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
         return new CancelWorkitemResponse(status, _message);
     }
 
+    public ChangeWorkitemStateResponse BuildChangeWorkitemStateResponse()
+    {
+        var status = WorkitemResponseStatus.Failure;
+
+        if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
+        {
+            // There are only success.
+            status = WorkitemResponseStatus.Success;
+        }
+        else if (failureReason == FailureReasonCodes.ProcessingFailure ||
+                 failureReason == FailureReasonCodes.UpsInstanceNotFound)
+        {
+            status = WorkitemResponseStatus.NotFound;
+        }
+        else if (failureReason == FailureReasonCodes.UpsIsAlreadyCompleted ||
+                 failureReason == FailureReasonCodes.UpsIsAlreadyCanceled)
+        {
+            status = WorkitemResponseStatus.Conflict;
+        }
+
+        return new ChangeWorkitemStateResponse(status, _message);
+    }
+
     /// <inheritdoc />
     public void AddSuccess(DicomDataset dicomDataset)
     {

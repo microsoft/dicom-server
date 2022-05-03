@@ -26,6 +26,12 @@ public interface IWorkitemResponseBuilder
     CancelWorkitemResponse BuildCancelResponse();
 
     /// <summary>
+    /// Builds the response for change workitem state.
+    /// </summary>
+    /// <returns>An instance of <see cref="ChangeWorkitemStateResponse"/> representing the response.</returns>
+    ChangeWorkitemStateResponse BuildChangeWorkitemStateResponse();
+
+    /// <summary>
     /// Adds a successful entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
