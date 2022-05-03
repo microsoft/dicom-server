@@ -42,6 +42,7 @@ public static class WorkitemResponseStatusExtensions
         new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
         {
             { WorkitemResponseStatus.Success, HttpStatusCode.OK },
+            { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
             { WorkitemResponseStatus.NoContent, HttpStatusCode.NotFound },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
             { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
