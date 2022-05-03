@@ -39,8 +39,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private readonly bool _enableDualWrite;
-    private readonly bool _supportNewBlobFormatForNewService;
+    private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
@@ -49,7 +48,7 @@ public class BlobMetadataStore : IMetadataStore
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
         DicomFileNameWithUid fileNameWithUid,
         DicomFileNameWithPrefix nameWithPrefix,
-        IOptions<FeatureConfiguration> featureConfiguration,
+        IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
@@ -57,7 +56,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
         EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
 
@@ -69,8 +68,7 @@ public class BlobMetadataStore : IMetadataStore
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         _nameWithUid = fileNameWithUid;
         _nameWithPrefix = nameWithPrefix;
-        _enableDualWrite = featureConfiguration.Value.EnableDualWrite;
-        _supportNewBlobFormatForNewService = featureConfiguration.Value.SupportNewBlobFormatForNewService;
+        _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
     }
 
     /// <inheritdoc />
@@ -84,7 +82,7 @@ public class BlobMetadataStore : IMetadataStore
         // Creates a copy of the dataset with bulk data removed.
         DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-        BlockBlobClient[] blobs = GetInstanceBlockBlobs(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
 
         try
         {
@@ -116,7 +114,7 @@ public class BlobMetadataStore : IMetadataStore
     public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient[] blobs = GetInstanceBlockBlobs(versionedInstanceIdentifier);
+        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
         await Task.WhenAll(blobs.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
     }
@@ -140,11 +138,10 @@ public class BlobMetadataStore : IMetadataStore
         }, cancellationToken);
     }
 
-    // TODO: This should removed once we migrate everything and the global flag is turned on
     private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
         string blobName;
-        if (_supportNewBlobFormatForNewService)
+        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
         {
             blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
         }
@@ -156,18 +153,19 @@ public class BlobMetadataStore : IMetadataStore
         return _container.GetBlockBlobClient(blobName);
     }
 
-    private BlockBlobClient[] GetInstanceBlockBlobs(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    // TODO: This should removed once we migrate everything and the global flag is turned on
+    private BlockBlobClient[] GetInstanceBlockBlobClients(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
         var clients = new List<BlockBlobClient>();
 
         string blobName;
 
-        if (_supportNewBlobFormatForNewService)
+        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
         {
             blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
         }
-        else if (_enableDualWrite)
+        else if (_blobMigrationFormatType == BlobMigrationFormatType.Dual)
         {
             blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));

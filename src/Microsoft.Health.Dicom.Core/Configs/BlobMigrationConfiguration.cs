@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Model;
+namespace Microsoft.Health.Dicom.Core.Configs;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common;
-public interface IDicomFileNameBuilder
+public class BlobMigrationConfiguration
 {
-    string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier);
-
-    string GetMetadataFileName(VersionedInstanceIdentifier instanceIdentifier);
+    /// <summary>
+    /// Gets or sets the blob format type to write or read blobs
+    /// </summary>
+    public BlobMigrationFormatType FormatType { get; set; }
 }

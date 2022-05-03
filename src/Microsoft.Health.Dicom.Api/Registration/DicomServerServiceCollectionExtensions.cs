@@ -94,6 +94,7 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);

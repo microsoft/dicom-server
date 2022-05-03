@@ -30,8 +30,7 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
-    private readonly bool _enableDualWrite;
-    private readonly bool _supportNewBlobFormatForNewService;
+    private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
@@ -41,14 +40,14 @@ public class BlobFileStore : IFileStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
-        IOptions<FeatureConfiguration> featureConfiguration)
+        IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(nameWithUid, nameof(nameWithUid));
         EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(options?.Value, nameof(options));
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.BlobContainerConfigurationName);
@@ -57,8 +56,7 @@ public class BlobFileStore : IFileStore
         _options = options.Value;
         _nameWithUid = nameWithUid;
         _nameWithPrefix = nameWithPrefix;
-        _enableDualWrite = featureConfiguration.Value.EnableDualWrite;
-        _supportNewBlobFormatForNewService = featureConfiguration.Value.SupportNewBlobFormatForNewService;
+        _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
     }
 
     /// <inheritdoc />
@@ -70,7 +68,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient[] blobs = GetInstanceBlockBlobs(versionedInstanceIdentifier);
+        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
         stream.Seek(0, SeekOrigin.Begin);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
@@ -93,7 +91,7 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient[] blobs = GetInstanceBlockBlobs(versionedInstanceIdentifier);
+        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
         await Task.WhenAll(blobs.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
     }
@@ -136,11 +134,11 @@ public class BlobFileStore : IFileStore
         return fileProperties;
     }
 
-    // TODO: This should removed once we migrate everything and the global flag is turned on
+
     private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
         string blobName;
-        if (_supportNewBlobFormatForNewService)
+        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
         {
             blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
         }
@@ -152,18 +150,19 @@ public class BlobFileStore : IFileStore
         return _container.GetBlockBlobClient(blobName);
     }
 
-    private BlockBlobClient[] GetInstanceBlockBlobs(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    // TODO: This should removed once we migrate everything and the global flag is turned on
+    private BlockBlobClient[] GetInstanceBlockBlobClients(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
         var clients = new List<BlockBlobClient>();
 
         string blobName;
 
-        if (_supportNewBlobFormatForNewService)
+        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
         {
             blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
         }
-        else if (_enableDualWrite)
+        else if (_blobMigrationFormatType == BlobMigrationFormatType.Dual)
         {
             blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));

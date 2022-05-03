@@ -4,20 +4,24 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common;
-public class DicomFileNameWithUid : IDicomFileNameBuilder
+namespace Microsoft.Health.Dicom.Blob.Features.Storage;
+public class DicomFileNameWithPrefix : IDicomFileNameBuilder
 {
+    public const int MaxPrefixLength = 3;
+
     public string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}.dcm";
+
+        return $"{HashingHelper.Hash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}.dcm";
     }
 
     public string GetMetadataFileName(VersionedInstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}_metadata.json";
+        return $"{HashingHelper.Hash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_metadata.json";
     }
 }

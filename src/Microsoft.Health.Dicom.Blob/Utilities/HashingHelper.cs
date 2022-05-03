@@ -7,7 +7,7 @@ using System.Text;
 using EnsureThat;
 using HashDepot;
 
-namespace Microsoft.Health.Dicom.Core.Features.Common;
+namespace Microsoft.Health.Dicom.Blob.Utilities;
 internal static class HashingHelper
 {
     /// <summary>
