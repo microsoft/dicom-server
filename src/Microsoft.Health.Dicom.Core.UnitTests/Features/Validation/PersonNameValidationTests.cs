@@ -20,6 +20,13 @@ public class PersonNameValidationTests
         new PersonNameValidation().Validate(element);
     }
 
+    [Fact]
+    public void GivenMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
+    {
+        DicomElement element = new DicomPersonName(DicomTag.PatientName, new string[] { "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz", "abc^efg^hij^pqr^lmn^xyz" });
+        new PersonNameValidation().Validate(element);
+    }
+
     [Theory]
     [InlineData("abc^xyz=abc^xyz=abc^xyz=abc^xyz", ValidationErrorCode.PersonNameExceedMaxGroups)] // too many groups (>3)
     [InlineData("abc^efg^hij^pqr^lmn^xyz", ValidationErrorCode.PersonNameExceedMaxComponents)]  // to many group components

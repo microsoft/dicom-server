@@ -167,7 +167,7 @@ public class StoreResponseBuilderTests
 
         // We have 2 items: RetrieveURL and ReferencedSOPSequence.
         Assert.Equal(2, response.Dataset.Count());
-        Assert.Equal("1", response.Dataset.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
+        Assert.Equal("1", response.Dataset.GetFirstValueOrDefault<string>(DicomTag.RetrieveURL));
     }
 
     [Fact]
@@ -197,19 +197,14 @@ public class StoreResponseBuilderTests
 
         // We have 3 items: RetrieveURL, FailedSOPSequence, and ReferencedSOPSequence.
         Assert.Equal(3, response.Dataset.Count());
-        Assert.Equal("1", response.Dataset.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
+        Assert.Equal("1", response.Dataset.GetFirstValueOrDefault<string>(DicomTag.RetrieveURL));
     }
 
     [Fact]
     public void GivenInvalidUidValue_WhenResponseIsBuilt_ThenItShouldNotThrowException()
     {
         // Create a DICOM dataset with invalid UID value.
-        var dicomDataset = new DicomDataset()
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            AutoValidate = false,
-#pragma warning restore CS0618 // Type or member is obsolete
-        };
+        var dicomDataset = new DicomDataset().NotValidated();
 
         dicomDataset.Add(DicomTag.SOPClassUID, "invalid");
 
@@ -223,5 +218,14 @@ public class StoreResponseBuilderTests
         ValidationHelpers.ValidateFailedSopSequence(
             response.Dataset,
             (null, "invalid", 500));
+    }
+
+    [Fact]
+    public void GivenWarning_WhenResponseIsBuilt_ThenItShouldHaveExpectedWarning()
+    {
+        string warning = "WarningMessage";
+        _storeResponseBuilder.SetWarningMessage(warning);
+        var response = _storeResponseBuilder.BuildResponse(studyInstanceUid: null);
+        Assert.Equal(warning, response.Warning);
     }
 }

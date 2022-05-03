@@ -585,4 +585,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Unsupported export source '{0}'.</value>
     <comment>{0} Source</comment>
   </data>
+  <data name="IndexedDicomTagHasMultipleValues" xml:space="preserve">
+    <value>One or more indexed Dicom tag(s) have multiple values, only first value is indexed.</value>
+  </data>
 </root>

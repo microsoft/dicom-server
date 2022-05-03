@@ -31,6 +31,14 @@ public class EncodedStringElementValidationTests
         Assert.Contains(expectedError.GetMessage(), exception.Message);
     }
 
+
+    [Fact]
+    public void GivenDicomStringElementWithMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
+    {
+        var element = new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff"), "ABC");
+        _validation.Validate(element);
+    }
+
     public static IEnumerable<object[]> ValidElements = new object[][]
     {
         new object[] { new DicomDateTime(DicomTag.EffectiveDateTime, DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss'.'ffffff'+'0000")) },

@@ -31,4 +31,12 @@ public class DateValidationTests
         DicomDate element = new DicomDate(DicomTag.Date, value);
         _validation.Validate(element);
     }
+
+    [Fact]
+    public void GivenDAValidateMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
+    {
+        // First one is valid, while second is invalid
+        DicomDate element = new DicomDate(DicomTag.Date, "20210313", "20100141");
+        _validation.Validate(element);
+    }
 }

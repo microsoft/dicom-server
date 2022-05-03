@@ -41,4 +41,30 @@ public class HttpRequestExtensionsTests
     {
         Assert.Throws<ArgumentNullException>(() => HttpRequestExtensions.GetAcceptHeaders(null));
     }
+
+    [Fact]
+    public void GivenHttpRequest_WhenGetHostAndFollowDicomStandard_ThenShouldReturnExpectedValue()
+    {
+        string host = "host1";
+        var httpRequest = Substitute.For<HttpRequest>();
+        httpRequest.Host.Returns(new HostString(host));
+        Assert.Equal(host + ":", httpRequest.GetHost(dicomStandards: true));
+    }
+
+    [Fact]
+    public void GivenHttpRequestHavingNoHost_WhenGetHost_ThenShouldReturnExpectedValue()
+    {
+        var httpRequest = Substitute.For<HttpRequest>();
+        httpRequest.Host.Returns(new HostString(string.Empty));
+        Assert.Equal(string.Empty, httpRequest.GetHost(dicomStandards: true));
+    }
+
+    [Fact]
+    public void GivenHttpRequest_WhenGetHostNotFollowingDicomStandard_ThenShouldReturnExpectedValue()
+    {
+        string host = "host1";
+        var httpRequest = Substitute.For<HttpRequest>();
+        httpRequest.Host.Returns(new HostString(host));
+        Assert.Equal(host, httpRequest.GetHost(dicomStandards: false));
+    }
 }

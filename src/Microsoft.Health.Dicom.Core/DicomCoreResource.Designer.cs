@@ -476,6 +476,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to One or more indexed Dicom tag(s) have multiple values, only first value is indexed..
+        /// </summary>
+        internal static string IndexedDicomTagHasMultipleValues {
+            get {
+                return ResourceManager.GetString("IndexedDicomTagHasMultipleValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DICOM instance already exists..
         /// </summary>
         internal static string InstanceAlreadyExists {

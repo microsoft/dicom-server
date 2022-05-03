@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class ElementRequiredLengthValidation : ElementValidation
+internal class ElementRequiredLengthValidation : IElementValidation
 {
     private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
     {
@@ -37,9 +37,8 @@ internal class ElementRequiredLengthValidation : ElementValidation
         ExpectedLength = expectedLength;
     }
 
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
         DicomVR vr = dicomElement.ValueRepresentation;
         if (TryGetAsString(dicomElement, out string value))
         {
@@ -53,7 +52,8 @@ internal class ElementRequiredLengthValidation : ElementValidation
 
     private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)
     {
-        if (value?.Size != ExpectedLength)
+        // We only validate first value, as long as long value.Size>=ExpectedLength, we are good to go.
+        if (value == null || value.Size == 0 || value.Size < ExpectedLength)
         {
             throw new ElementValidationException(
                 name,
@@ -68,7 +68,8 @@ internal class ElementRequiredLengthValidation : ElementValidation
         value = string.Empty;
         if (StringVrs.Contains(dicomElement.ValueRepresentation))
         {
-            value = dicomElement.Get<string>();
+            // Only validate the first element
+            value = dicomElement.GetFirstValueOrDefault<string>();
             return true;
         }
 
