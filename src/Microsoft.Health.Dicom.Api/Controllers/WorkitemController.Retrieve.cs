@@ -28,6 +28,7 @@ public partial class WorkitemController
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [VersionedPartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance)]
