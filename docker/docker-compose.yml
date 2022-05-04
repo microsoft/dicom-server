@@ -42,7 +42,7 @@ services:
     depends_on:
       - azurite
   azurite:
-    image: mcr.microsoft.com/azure-storage/azurite:3.16.0@sha256:8e186cbe7dac4dcd09acbae93369ebbc2873a5e737c81939a0ede2ffd78c5805
+    image: mcr.microsoft.com/azure-storage/azurite:3.17.1@sha256:a28cb0a2954c5aacc0015982c9e21ca2cfd7dfe91a21c5d57f02a1b247f80911
     # # These port bindings [source]:[dest] can be uncommented to connect to the storage emulator via Microsoft Azure Storage Explorer
     # # Note that the source ports may need to change if a storage emulator is already running on localhost
     # ports:
