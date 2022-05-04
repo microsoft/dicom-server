@@ -28,9 +28,9 @@ public static class ValidationHelpers
         {
             DicomDataset actual = sequence.ElementAt(i);
 
-            Assert.Equal(expectedValues[i].SopInstanceUid, actual.GetSingleValueOrDefault<string>(DicomTag.ReferencedSOPInstanceUID));
-            Assert.Equal(expectedValues[i].RetrieveUri, actual.GetSingleValueOrDefault<string>(DicomTag.RetrieveURL));
-            Assert.Equal(expectedValues[i].SopClassUid, actual.GetSingleValueOrDefault<string>(DicomTag.ReferencedSOPClassUID));
+            Assert.Equal(expectedValues[i].SopInstanceUid, actual.GetFirstValueOrDefault<string>(DicomTag.ReferencedSOPInstanceUID));
+            Assert.Equal(expectedValues[i].RetrieveUri, actual.GetFirstValueOrDefault<string>(DicomTag.RetrieveURL));
+            Assert.Equal(expectedValues[i].SopClassUid, actual.GetFirstValueOrDefault<string>(DicomTag.ReferencedSOPClassUID));
         }
     }
 
@@ -48,7 +48,7 @@ public static class ValidationHelpers
             ValidateNullOrCorrectValue(expectedValues[i].SopInstanceUid, actual, DicomTag.ReferencedSOPInstanceUID);
             ValidateNullOrCorrectValue(expectedValues[i].SopClassUid, actual, DicomTag.ReferencedSOPClassUID);
 
-            Assert.Equal(expectedValues[i].FailureReason, actual.GetSingleValueOrDefault<ushort>(DicomTag.FailureReason));
+            Assert.Equal(expectedValues[i].FailureReason, actual.GetFirstValueOrDefault<ushort>(DicomTag.FailureReason));
         }
 
         void ValidateNullOrCorrectValue(string expectedValue, DicomDataset actual, DicomTag dicomTag)
@@ -59,7 +59,7 @@ public static class ValidationHelpers
             }
             else
             {
-                Assert.Equal(expectedValue, actual.GetSingleValueOrDefault<string>(dicomTag));
+                Assert.Equal(expectedValue, actual.GetFirstValueOrDefault<string>(dicomTag));
             }
         }
     }

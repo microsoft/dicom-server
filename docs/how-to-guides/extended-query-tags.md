@@ -22,7 +22,7 @@ To help manage the supported tags in a given DICOM server instance, the followin
 | GET        .../extendedquerytags/{tagPath}/errors | [List Extended Query Tag Errors](#list-extended-query-tag-errors) |
 | GET        .../operations/{operationId}           | [Get Operation](#get-operation)                              |
 
-### Add Extended Query Tags 
+### Add Extended Query Tags
 
 Add one or more extended query tags and starts a long-running operation that re-indexes current DICOM instances on the specified tag(s).
 
@@ -67,9 +67,11 @@ The following VR types are supported:
 | UL   | Unsigned Long         | X                     |                |                |
 | US   | Unsigned Short        | X                     |                |                |
 
-> Note: Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
+> Sequential tags i.e. tags under a tag of type Sequence of Items (SQ) are currently not supported.
 
-> Note: You can add up to 128 extended query tags.
+> You can add up to 128 extended query tags.
+
+> Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
 
 #### Responses
 
@@ -219,7 +221,7 @@ GET .../operations/{operationId}
 
 ### Tag Status
 
-The [Status](#extended-query-tag-status) of Extended query tag indicates current status. When an extended query tag is first added, its status is set to `Adding`, and a long-running operation is kicked off to reindex existing DICOM instances. After the operation is completed, the tag status is updated to `Ready`. The extended query tag can now be used in [QIDO](../resources/conformance-statement.md#search-qido-rs). 
+The [Status](#extended-query-tag-status) of Extended query tag indicates current status. When an extended query tag is first added, its status is set to `Adding`, and a long-running operation is kicked off to reindex existing DICOM instances. After the operation is completed, the tag status is updated to `Ready`. The extended query tag can now be used in [QIDO](../resources/conformance-statement.md#search-qido-rs).
 
 For example, if the tag Manufacturer Model Name (0008,1090) is added, and in `Ready` status, hereafter the following queries can be used to filter stored instances by Manufacturer Model Name:
 
@@ -317,7 +319,7 @@ Represents a long-running operation.
 | PercentComplete | Integer                               | Percentage of work that has been completed by the operation  |
 | Resources       | string`[]`                            | Collection of resources locations that the operation is creating or manipulating |
 
-**Example:** a running reindex operation. 
+**Example:** a running reindex operation.
 
 ```json
 {

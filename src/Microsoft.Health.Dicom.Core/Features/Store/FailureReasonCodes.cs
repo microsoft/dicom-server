@@ -52,14 +52,6 @@ internal static class FailureReasonCodes
     public const ushort PendingSopInstance = 45071;
 
     /// <summary>
-    /// Data Set does not match SOP Class
-    /// </summary>
-    /// <remarks>
-    /// The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance.
-    /// </remarks>
-    public const ushort DatasetDoesNotMatchSOPClass = 45063;
-
-    /// <summary>
     /// FAILURE - Specified SOP Instance UID does not exist or is not a UPS Instance managed by this SCP
     /// </summary>
     /// <remarks>

@@ -64,12 +64,22 @@ public class StoreDatasetValidatorTests
     [Fact]
     public async Task GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
     {
-        await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
+        Assert.Equal(ValidationWarnings.None, await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
+    }
+
+    [Fact]
+    public async Task GivenDicomDatasetHavingDicomTagWithMultipleValues_WhenValidated_ThenItShouldReturnWarnings()
+    {
+        DicomElement element = new DicomLongString(DicomTag.StudyDescription, "Value1,", "Value2");
+        var dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
+        dicomDataset.AddOrUpdate(element);
+
+        Assert.Equal(ValidationWarnings.IndexedDicomTagHasMultipleValues, await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
     }
 
     [Theory]
     [MemberData(nameof(GetNonExplicitVRTransferSyntax))]
-    public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ReturnsFalse(DicomTransferSyntax transferSyntax)
+    public async Task GivenAValidDicomDatasetWithImplicitVR_WhenValidated_ReturnsExpectedWarning(DicomTransferSyntax transferSyntax)
     {
         var dicomDataset = Samples
             .CreateRandomInstanceDataset(dicomTransferSyntax: transferSyntax)
@@ -77,7 +87,18 @@ public class StoreDatasetValidatorTests
 
         var actual = await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null);
 
-        Assert.False(actual);
+        Assert.Equal(ValidationWarnings.DatasetDoesNotMatchSOPClass, actual);
+    }
+
+    [Fact]
+    public async Task GivenDicomDatasetWithImplicitVRAndHavingDicomTagWithMultipleValues_WhenValidated_ThenItShouldReturnWarnings()
+    {
+        DicomElement element = new DicomLongString(DicomTag.StudyDescription, "Value1,", "Value2");
+        var dicomDataset = Samples.CreateRandomInstanceDataset(dicomTransferSyntax: DicomTransferSyntax.ImplicitVRBigEndian).NotValidated();
+        dicomDataset.AddOrUpdate(element);
+
+        Assert.Equal(ValidationWarnings.IndexedDicomTagHasMultipleValues | ValidationWarnings.DatasetDoesNotMatchSOPClass,
+            await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
     }
 
     [Fact]

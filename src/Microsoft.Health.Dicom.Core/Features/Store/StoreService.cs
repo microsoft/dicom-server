@@ -119,12 +119,21 @@ public class StoreService : IStoreService
             // Open and validate the DICOM instance.
             dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            var isValid = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
-            if (!isValid)
-            {
-                warningReasonCode = FailureReasonCodes.DatasetDoesNotMatchSOPClass;
+            ValidationWarnings warnings = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
-                LogValidationSucceededWithWarningDelegate(_logger, index, FailureReasonCodes.DatasetDoesNotMatchSOPClass, null);
+            // We have different ways to handle with warnings.
+            // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag 
+            if ((warnings & ValidationWarnings.DatasetDoesNotMatchSOPClass) == ValidationWarnings.DatasetDoesNotMatchSOPClass)
+            {
+                warningReasonCode = WarningReasonCodes.DatasetDoesNotMatchSOPClass;
+
+                LogValidationSucceededWithWarningDelegate(_logger, index, WarningReasonCodes.DatasetDoesNotMatchSOPClass, null);
+            }
+
+            // IndexedDicomTagHasMultipleValues is our warning, put into http Warning header.
+            if ((warnings & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
+            {
+                _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
         }
         catch (Exception ex)
