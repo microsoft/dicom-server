@@ -22,42 +22,94 @@ public class ConfigurationJsonConverterTests
         {
             Formatting = Formatting.Indented,
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
-            DateParseHandling = DateParseHandling.DateTimeOffset,
-            DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind,
+            DateParseHandling = DateParseHandling.None,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
         };
         _serializerSettings.Converters.Add(new ConfigurationJsonConverter(new CamelCaseNamingStrategy()));
     }
 
     [Fact]
-    public void GivenJson_WhenReadingWithDateTimeFormat_ThenDeserialize()
+    public void GivenJson_WhenReadingWithNoDateParsing_ThenDeserialize()
     {
-        _serializerSettings.DateParseHandling = DateParseHandling.DateTime;
+        _serializerSettings.DateParseHandling = DateParseHandling.None;
 
         const string json = @"{
   ""date"": ""2022-04-14T23:39:26.7818757Z"",
-  ""dateOffset"": ""2022-05-03T15:35:57.2628853-07:00"",
+  ""dateOffset"": ""2022-05-03T15:35:57.2628853-03:00"",
 }";
 
         IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
 
         Assert.Equal("2022-04-14T23:39:26.7818757Z", actual["date"]);
-        Assert.Equal("2022-05-03T15:35:57.2628853-07:00", actual["dateOffset"]);
+        Assert.Equal("2022-05-03T15:35:57.2628853-03:00", actual["dateOffset"]);
     }
 
     [Fact]
-    public void GivenJson_WhenReadingWithDateTimeOffsetFormat_ThenDeserialize()
+    public void GivenJson_WhenReadingWithDateTimeParsing_ThenDeserialize()
+    {
+        _serializerSettings.DateParseHandling = DateParseHandling.DateTime;
+
+        const string json = @"{
+  ""date"": ""2022-04-14T23:39:26.7818757Z"",
+  ""dateOffset"": ""2022-05-03T15:35:57.2628853-03:00"",
+}";
+
+        IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
+
+        Assert.Equal("2022-04-14T23:39:26.7818757Z", actual["date"]);
+        Assert.Equal("2022-05-03T18:35:57.2628853Z", actual["dateOffset"]);
+    }
+
+    [Fact]
+    public void GivenJson_WhenReadingWithDateTimeOffsetParsing_ThenDeserialize()
     {
         _serializerSettings.DateParseHandling = DateParseHandling.DateTimeOffset;
 
         const string json = @"{
   ""date"": ""2022-04-14T23:39:26.7818757Z"",
-  ""dateOffset"": ""2022-05-03T15:35:57.2628853-07:00"",
+  ""dateOffset"": ""2022-05-03T15:35:57.2628853-03:00"",
 }";
 
         IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
 
         Assert.Equal("2022-04-14T23:39:26.7818757+00:00", actual["date"]);
-        Assert.Equal("2022-05-03T15:35:57.2628853-07:00", actual["dateOffset"]);
+        Assert.Equal("2022-05-03T15:35:57.2628853-03:00", actual["dateOffset"]);
+    }
+
+    [Fact]
+    public void GivenJson_WhenReadingWithDoubleParsing_ThenDeserialize()
+    {
+        _serializerSettings.FloatParseHandling = FloatParseHandling.Double;
+
+        const string json = @"{
+  ""float"": ""12.345"",
+  ""double"": ""-6.78910"",
+  ""decimal"": ""1112.1314151617181920""
+}";
+
+        IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
+
+        Assert.Equal("12.345", actual["float"]);
+        Assert.Equal("-6.78910", actual["double"]);
+        Assert.Equal("1112.1314151617181920", actual["decimal"]);
+    }
+
+    [Fact]
+    public void GivenJson_WhenReadingWithDecimalParsing_ThenDeserialize()
+    {
+        _serializerSettings.FloatParseHandling = FloatParseHandling.Decimal;
+
+        const string json = @"{
+  ""float"": ""12.345"",
+  ""double"": ""-6.78910"",
+  ""decimal"": ""1112.1314151617181920""
+}";
+
+        IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
+
+        Assert.Equal("12.345", actual["float"]);
+        Assert.Equal("-6.78910", actual["double"]);
+        Assert.Equal("1112.1314151617181920", actual["decimal"]);
     }
 
     [Fact]
