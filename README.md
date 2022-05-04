@@ -1,5 +1,10 @@
  | :exclamation:  [BREAKING CHANGE: Upcoming change to blob storage](https://github.com/microsoft/dicom-server/discussions/1561])   |
  |-----------------------------------------|
+
+| :warning: WARNING          |
+|:---------------------------|
+| [BREAKING CHANGE: Upcoming change to blob storage](https://github.com/microsoft/dicom-server/discussions/1561])      |
+
 # Medical Imaging Server for DICOM
 
  [![Build Status](https://microsofthealthoss.visualstudio.com/DicomServer/_apis/build/status/CI-Build-OSS?branchName=main)](https://microsofthealthoss.visualstudio.com/DicomServer/_build/latest?definitionId=34&branchName=main)
