@@ -5,15 +5,15 @@
 
 using System;
 using EnsureThat;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Export;
 
-namespace Microsoft.Health.Dicom.Blob.Registration;
+namespace Microsoft.Extensions.DependencyInjection;
 
-public static class DicomBlobRegistrations
+internal static class DicomBlobRegistrations
 {
     public static IServiceCollection AddAzureBlobExportSink(this IServiceCollection services, Action<AzureBlobClientOptions> configure = null)
     {

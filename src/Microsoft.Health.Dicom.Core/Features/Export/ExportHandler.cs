@@ -27,9 +27,9 @@ internal class ExportHandler : BaseHandler, IRequestHandler<ExportRequest, Expor
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        if (await AuthorizationService.CheckAccess(DataActions.Export, cancellationToken) != DataActions.Export)
+        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
-            throw new UnauthorizedDicomActionException(DataActions.Export);
+            throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
         return new ExportResponse(await _service.StartExportAsync(request.Specification, request.Partition, cancellationToken));

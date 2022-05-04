@@ -24,7 +24,6 @@ public static class KeyVaultClientRegistrationExtensions
            Action<KeyVaultConfiguration> configureAction = null)
     {
         EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         var config = new KeyVaultConfiguration();
@@ -36,11 +35,11 @@ public static class KeyVaultClientRegistrationExtensions
         if (!string.IsNullOrWhiteSpace(config.Endpoint))
         {
             dicomServerBuilder.Services.AddAzureClients(
-                    builder =>
-                    {
-                        builder.AddSecretClient(new Uri(config.Endpoint))
-                        .WithCredential(new DefaultAzureCredential());
-                    });
+                builder =>
+                {
+                    builder.AddSecretClient(new Uri(config.Endpoint))
+                    .WithCredential(new DefaultAzureCredential());
+                });
 
             dicomServerBuilder.Services.AddScoped<ISecretStore, KeyVaultSecretStore>();
         }
