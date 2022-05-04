@@ -1,7 +1,4 @@
- | :exclamation:  [BREAKING CHANGE: Upcoming change to blob storage](https://github.com/microsoft/dicom-server/discussions/1561])   |
- |-----------------------------------------|
-
-| :warning: WARNING          |
+| :exclamation: IMPORTANT          |
 |:---------------------------|
 | [BREAKING CHANGE: Upcoming change to blob storage](https://github.com/microsoft/dicom-server/discussions/1561])      |
 
