@@ -34,28 +34,31 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
             builder.AddConfiguration(existingValue);
 
         return builder
-            .AddInMemoryCollection(EnumeratePairs(serializer.Deserialize<JObject>(reader)))
+            .AddInMemoryCollection(EnumeratePairs(serializer.Deserialize<JObject>(reader), serializer))
             .Build();
     }
 
     public override void WriteJson(JsonWriter writer, IConfiguration value, JsonSerializer serializer)
         => WriteConfiguration(writer, value);
 
-    private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(JObject config)
-        => EnumeratePairs(string.Empty, config);
+    private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(JObject config, JsonSerializer serializer)
+        => EnumeratePairs(string.Empty, config, serializer);
 
-    private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(string path, JToken token)
+    private static IEnumerable<KeyValuePair<string, string>> EnumeratePairs(string path, JToken token, JsonSerializer serializer)
     {
         if (token is JObject section)
         {
-            foreach (KeyValuePair<string, string> p in section.Properties().SelectMany(x => EnumeratePairs(GetPath(path, x.Name), x.Value)))
+            foreach (KeyValuePair<string, string> p in section.Properties().SelectMany(x => EnumeratePairs(GetPath(path, x.Name), x.Value, serializer)))
             {
                 yield return p;
             }
         }
         else if (token is JArray a)
         {
-            foreach (KeyValuePair<string, string> p in a.Children().SelectMany((x, i) => EnumeratePairs(GetPath(path, i.ToString(CultureInfo.InvariantCulture)), x)))
+            IEnumerable<KeyValuePair<string, string>> elements = a.Children()
+                .SelectMany((x, i) => EnumeratePairs(GetPath(path, i.ToString(CultureInfo.InvariantCulture)), x, serializer));
+
+            foreach (KeyValuePair<string, string> p in elements)
             {
                 yield return p;
             }
@@ -66,15 +69,25 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
             {
                 // Newtonsoft by default parses the values and does not provide a means of retrieving the raw string values.
                 // What this ultimately means is that the representation may look different if read as a string from the
-                // configuration or if re-written to JSON (E.g. DateTimes will use the "O" format).
+                // configuration or if re-written to JSON (E.g. DateTimes will use the round trip format).
                 // We could circumvent this by parsing this with JRaw types or manually enumerating the JSON.
                 yield return token.Type switch
                 {
                     JTokenType.Boolean => KeyValuePair.Create(path, ConvertToString<bool>(value)),
-                    JTokenType.Date => KeyValuePair.Create(path, value.Value<DateTime>().ToString("O", CultureInfo.InvariantCulture)),
-                    JTokenType.Float => KeyValuePair.Create(path, ConvertToString<float>(value)),
+                    JTokenType.Date =>
+                        KeyValuePair.Create(
+                            path,
+                            serializer.DateParseHandling == DateParseHandling.DateTime
+                                ? value.Value<DateTime>().ToString("O", CultureInfo.InvariantCulture)
+                                : value.Value<DateTimeOffset>().ToString("O", CultureInfo.InvariantCulture)),
+                    JTokenType.Float =>
+                        KeyValuePair.Create(
+                            path,
+                            serializer.FloatParseHandling == FloatParseHandling.Double
+                                ? ConvertToString<double>(value)
+                                : ConvertToString<decimal>(value)),
                     JTokenType.Guid => KeyValuePair.Create(path, ConvertToString<Guid>(value)),
-                    JTokenType.Integer => KeyValuePair.Create(path, ConvertToString<int>(value)),
+                    JTokenType.Integer => KeyValuePair.Create(path, ConvertToString<long>(value)),
                     JTokenType.String => KeyValuePair.Create(path, value.Value<string>()),
                     JTokenType.TimeSpan => KeyValuePair.Create(path, ConvertToString<TimeSpan>(value)),
                     JTokenType.Uri => KeyValuePair.Create(path, ConvertToString<Uri>(value)),
