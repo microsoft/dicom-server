@@ -258,16 +258,14 @@ public static class DicomMediatorExtensions
         Stream requestBody,
         string requestContentType,
         string workitemUid,
-        string currentState,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         EnsureArg.IsNotNull(requestBody, nameof(requestBody));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
-        EnsureArg.IsNotEmptyOrWhiteSpace(currentState, nameof(currentState));
 
         return mediator.Send(
-            new ChangeWorkitemStateRequest(requestBody, requestContentType, workitemUid, currentState),
+            new ChangeWorkitemStateRequest(requestBody, requestContentType, workitemUid),
             cancellationToken);
     }
 }

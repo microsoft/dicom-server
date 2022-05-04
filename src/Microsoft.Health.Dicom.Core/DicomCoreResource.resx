@@ -588,4 +588,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="IndexedDicomTagHasMultipleValues" xml:space="preserve">
     <value>One or more indexed Dicom tag(s) have multiple values, only first value is indexed.</value>
   </data>
+  <data name="WorkitemChangeStateRequestSuccess" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' procedure step state has been updated to '{1}'.</value>
+    <comment>{0} Workitem UID. Procedure Step State. {1}</comment>
+  </data>
 </root>

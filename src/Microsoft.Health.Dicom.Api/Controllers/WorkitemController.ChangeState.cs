@@ -6,7 +6,6 @@
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -30,22 +29,18 @@ public partial class WorkitemController
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionChangeStateWorkitemInstance)]
     [PartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedChangeStateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedChangeStateWorkitemInstance)]
     [Route(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]
-    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, string workitemState)
+    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid)
     {
-        _logger.LogInformation("Change workitem state to {WorkitemState}.", workitemState);
-
         var response = await _mediator
                     .ChangeWorkitemStateAsync(
                         Request.Body,
                         Request.ContentType,
                         workitemInstanceUid,
-                        workitemState,
                         cancellationToken: HttpContext.RequestAborted)
                     .ConfigureAwait(false);
 

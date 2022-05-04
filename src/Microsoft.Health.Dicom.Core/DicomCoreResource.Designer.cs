@@ -1192,6 +1192,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; procedure step state has been updated to &apos;{1}&apos;..
+        /// </summary>
+        internal static string WorkitemChangeStateRequestSuccess {
+            get {
+                return ResourceManager.GetString("WorkitemChangeStateRequestSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; already exists. Try creating using a different UID..
         /// </summary>
         internal static string WorkitemInstanceAlreadyExists {

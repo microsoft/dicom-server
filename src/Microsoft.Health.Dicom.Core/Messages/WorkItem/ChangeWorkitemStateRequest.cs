@@ -10,16 +10,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 public sealed class ChangeWorkitemStateRequest : IRequest<ChangeWorkitemStateResponse>
 {
-    public ChangeWorkitemStateRequest(Stream requestBody, string requestContentType, string workitemInstanceUid, string currentState)
+    public ChangeWorkitemStateRequest(Stream requestBody, string requestContentType, string workitemInstanceUid)
     {
         RequestBody = requestBody;
         RequestContentType = requestContentType;
         WorkitemInstanceUid = workitemInstanceUid;
-        CurrentState = currentState;
     }
 
     public Stream RequestBody { get; }
     public string RequestContentType { get; }
     public string WorkitemInstanceUid { get; }
-    public string CurrentState { get; }
 }

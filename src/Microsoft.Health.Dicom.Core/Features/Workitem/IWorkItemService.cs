@@ -58,12 +58,10 @@ public interface IWorkitemService
     /// </summary>
     /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
     /// <param name="workitemInstanceUid">The Work Item InstanceUID tag.</param>
-    /// <param name="workitemCurrentState">The Work Item Current Procedure Step State.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous process operation.</returns>
-    Task<QueryWorkitemResourceResponse> ProcessChangeStateAsync(
+    Task<ChangeWorkitemStateResponse> ProcessChangeStateAsync(
         DicomDataset dataset,
         string workitemInstanceUid,
-        string workitemCurrentState,
         CancellationToken cancellationToken = default);
 }

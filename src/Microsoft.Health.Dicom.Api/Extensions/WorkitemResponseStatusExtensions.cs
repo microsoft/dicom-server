@@ -44,7 +44,6 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
             { WorkitemResponseStatus.NoContent, HttpStatusCode.NotFound },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
-            { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
         };
 
     /// <summary>
