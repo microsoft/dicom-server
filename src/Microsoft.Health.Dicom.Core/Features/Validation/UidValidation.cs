@@ -10,15 +10,13 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class UidValidation : ElementValidation
+internal class UidValidation : IElementValidation
 {
     private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
-
-        string value = dicomElement.Get<string>();
+        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
     }

@@ -39,11 +39,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     }
 
     /// <inheritdoc/>
-    public async Task<bool> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
+    public async Task<ValidationWarnings> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
         ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+
+        ValidationWarnings warnings = ValidationWarnings.None;
 
         // validate input data elements
         if (_enableFullDicomItemValidation)
@@ -52,16 +54,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
         else
         {
-            await ValidateIndexedItems(dicomDataset, cancellationToken);
+            warnings |= await ValidateIndexedItemsAsync(dicomDataset, cancellationToken);
         }
 
         // Validate for Implicit VR at the end
         if (ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset))
         {
-            return false;
+            warnings |= ValidationWarnings.DatasetDoesNotMatchSOPClass;
         }
 
-        return true;
+        return warnings;
     }
 
     private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
@@ -114,13 +116,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private async Task ValidateIndexedItems(DicomDataset dicomDataset, CancellationToken cancellationToken)
+    private async Task<ValidationWarnings> ValidateIndexedItemsAsync(DicomDataset dicomDataset, CancellationToken cancellationToken)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
+
+        ValidationWarnings warning = ValidationWarnings.None;
         foreach (QueryTag queryTag in queryTags)
         {
-            dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+            warning |= dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
         }
+        return warning;
     }
 
     private static void ValidateAllItems(DicomDataset dicomDataset)

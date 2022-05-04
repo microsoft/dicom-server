@@ -123,7 +123,7 @@ internal static class ExtendedQueryTagDataRowsBuilder
 
     private static void AddPersonNameRow(DicomDataset instance, HashSet<InsertPersonNameExtendedQueryTagTableTypeV1Row> personNamRows, QueryTag queryTag, int tagKey)
     {
-        string personNameVal = instance.GetSingleValueOrDefault<string>(queryTag.Tag, expectedVR: queryTag.VR);
+        string personNameVal = instance.GetFirstValueOrDefault<string>(queryTag.Tag, expectedVR: queryTag.VR);
         if (personNameVal != null)
         {
             personNamRows.Add(new InsertPersonNameExtendedQueryTagTableTypeV1Row(tagKey, personNameVal, (byte)queryTag.Level));
@@ -185,7 +185,7 @@ internal static class ExtendedQueryTagDataRowsBuilder
 
     private static void AddDoubleRow(DicomDataset instance, HashSet<InsertDoubleExtendedQueryTagTableTypeV1Row> doubleRows, QueryTag queryTag, int tagKey)
     {
-        double? doubleVal = instance.GetSingleValueOrDefault<double>(queryTag.Tag, expectedVR: queryTag.VR);
+        double? doubleVal = instance.GetFirstValueOrDefault<double>(queryTag.Tag, expectedVR: queryTag.VR);
         if (doubleVal.HasValue)
         {
             doubleRows.Add(new InsertDoubleExtendedQueryTagTableTypeV1Row(tagKey, doubleVal.Value, (byte)queryTag.Level));
@@ -196,7 +196,7 @@ internal static class ExtendedQueryTagDataRowsBuilder
     {
         long? longVal = LongReaders.TryGetValue(queryTag.VR, out Func<DicomDataset, DicomTag, DicomVR, long?> reader)
             ? reader.Invoke(instance, queryTag.Tag, queryTag.VR)
-            : instance.GetSingleValueOrDefault<long>(queryTag.Tag, queryTag.VR);
+            : instance.GetFirstValueOrDefault<long>(queryTag.Tag, queryTag.VR);
 
         if (longVal.HasValue)
         {
@@ -206,7 +206,7 @@ internal static class ExtendedQueryTagDataRowsBuilder
 
     private static void AddStringRow(DicomDataset instance, HashSet<InsertStringExtendedQueryTagTableTypeV1Row> stringRows, QueryTag queryTag, int tagKey)
     {
-        string stringVal = instance.GetSingleValueOrDefault<string>(queryTag.Tag, expectedVR: queryTag.VR);
+        string stringVal = instance.GetFirstValueOrDefault<string>(queryTag.Tag, expectedVR: queryTag.VR);
         if (stringVal != null)
         {
             stringRows.Add(new InsertStringExtendedQueryTagTableTypeV1Row(tagKey, stringVal, (byte)queryTag.Level));

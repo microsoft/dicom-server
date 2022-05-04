@@ -20,6 +20,8 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
     private DicomDataset _dataset;
 
+    private string _message;
+
     public StoreResponseBuilder(IUrlResolver urlResolver)
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
@@ -56,7 +58,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             _dataset.Add(DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid).ToString());
         }
 
-        return new StoreResponse(status, _dataset);
+        return new StoreResponse(status, _dataset, _message);
     }
 
     /// <inheritdoc />
@@ -79,7 +81,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         {
             { DicomTag.ReferencedSOPInstanceUID, dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) },
             { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance).ToString() },
-            { DicomTag.ReferencedSOPClassUID, dicomDataset.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID) },
+            { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
         if (warningReasonCode.HasValue)
@@ -115,11 +117,11 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
         failedSop.AddValueIfNotNull(
             DicomTag.ReferencedSOPClassUID,
-            dicomDataset?.GetSingleValueOrDefault<string>(DicomTag.SOPClassUID));
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
 
         failedSop.AddValueIfNotNull(
             DicomTag.ReferencedSOPInstanceUID,
-            dicomDataset?.GetSingleValueOrDefault<string>(DicomTag.SOPInstanceUID));
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
 
         failedSopSequence.Items.Add(failedSop);
     }
@@ -130,5 +132,10 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         {
             _dataset = new DicomDataset();
         }
+    }
+
+    public void SetWarningMessage(string message)
+    {
+        _message = message;
     }
 }
