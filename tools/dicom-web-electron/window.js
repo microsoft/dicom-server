@@ -32,6 +32,16 @@ $(() => {
     let partitionContainer = $('#partition-container')
     let partitionInput = $('#partitions-input')
     let partitionNameInput = $('#partition-name-input')
+    let fileDownloadMenu = $('#file-download-menu')
+    let fileDownloadSection = $('#file-download-section')
+    let selectDirectoryButton = $('#select-directory')
+    let downloadFileButton = $('#download-file')
+    let selectedDirectorySection = $('#selected-directory-section')
+    let directory = $('#directory')
+    let directoryDisplay = $('#selected-directory')
+    let studyUidInput = $('#study-uid-input')
+    let seriesUidInput = $('#series-uid-input')
+    let instanceUidInput = $('#instance-uid-input')
     let offset = 0;
 
     let isPartitionEnabled = () => {
@@ -75,23 +85,27 @@ $(() => {
     fileUploadMenu.on("click",() => {
         fileUploadSection.toggle(true)
         selectedFilesSection.toggle(true)
+        fileDownloadSection.toggle(false)
         serverSettingsSection.toggle(false)
         changeFeedSection.toggle(false)
         fileUploadMenu.toggleClass('is-active', true)
         serverSettingsMenu.toggleClass('is-active', false)
         changeFeedMenu.toggleClass('is-active', false)
+        fileDownloadMenu.toggleClass('is-active', false)
 
         hideErrorSuccess()
     })
 
-    serverSettingsMenu.on("click",() => {
+    serverSettingsMenu.on("click",() => {  
         fileUploadSection.toggle(false)
         selectedFilesSection.toggle(false)
+        fileDownloadSection.toggle(false)
         serverSettingsSection.toggle(true)
         changeFeedSection.toggle(false)
         fileUploadMenu.toggleClass('is-active', false)
         serverSettingsMenu.toggleClass('is-active', true)
         changeFeedMenu.toggleClass('is-active', false)
+        fileDownloadMenu.toggleClass('is-active', false)
 
         hideErrorSuccess()
     })
@@ -99,11 +113,27 @@ $(() => {
     changeFeedMenu.on("click",() => {
         fileUploadSection.toggle(false)
         selectedFilesSection.toggle(false)
+        fileDownloadSection.toggle(false)
         serverSettingsSection.toggle(false)
         changeFeedSection.toggle(true)
         fileUploadMenu.toggleClass('is-active', false)
         serverSettingsMenu.toggleClass('is-active', false)
         changeFeedMenu.toggleClass('is-active', true)
+        fileDownloadMenu.toggleClass('is-active', false)
+
+        hideErrorSuccess()
+    })
+
+    fileDownloadMenu.on("click",() => {
+        fileUploadSection.toggle(false)
+        selectedFilesSection.toggle(false)
+        fileDownloadSection.toggle(true)
+        serverSettingsSection.toggle(false)
+        changeFeedSection.toggle(false)
+        fileUploadMenu.toggleClass('is-active', false)
+        serverSettingsMenu.toggleClass('is-active', false)
+        changeFeedMenu.toggleClass('is-active', false)
+        fileDownloadMenu.toggleClass('is-active', true)
 
         hideErrorSuccess()
     })
@@ -134,6 +164,11 @@ $(() => {
 
     selectFileButton.on("click", () => {
         window.api.send("selectFile");
+    })
+
+    selectDirectoryButton.on("click", () => {
+        console.log("select directory")
+        window.api.send("selectDirectory");
     })
 
     postFileButton.on("click",() => {
@@ -180,6 +215,22 @@ $(() => {
         hideErrorSuccess()
     })
 
+    window.api.receive("directorySelected", (data) => {
+        directory.html(data)
+
+        if (directory.data !== '' && studyUidInput.data !== '') {
+            directoryDisplay.toggle(true)
+            downloadFileButton.prop('disabled', false);
+            downloadFileButton.toggleClass("is-primary", true)
+        } else {
+            directoryDisplay.toggle(false)
+            downloadFileButton.prop('disabled', true);
+            downloadFileButton.toggleClass("is-primary", false)
+        }
+
+        hideErrorSuccess()
+    })
+
     changeFeedButton.on("click", () => {
         errorDisplay.toggle(false)
 
@@ -191,6 +242,22 @@ $(() => {
         hideErrorSuccess()
 
         window.api.send("getChangeFeed", { url, bearerToken });
+    })
+
+    downloadFileButton.on("click", () => {
+        errorDisplay.toggle(false)
+
+        studyUid = studyUidInput.val()
+        seriesUid = seriesUidInput.val()
+        instanceUid = instanceUidInput.val()
+        directoryPath = directory.html()
+
+        let url = baseUrl()
+        let bearerToken = bearerTokenInput.val()
+
+        hideErrorSuccess()
+
+        window.api.send("downloadFile", { url, bearerToken, directoryPath, studyUid, seriesUid, instanceUid});
     })
 
     window.api.receive("changeFeedRetrieved", (data) => {

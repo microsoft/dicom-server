@@ -121,7 +121,6 @@ async function createWindow() {
                     win.webContents.send("httpErrorEncountered", error.response.status);
                 }
             })
-
     });
 
     ipcMain.on("selectFile", (event, args) => {
@@ -133,6 +132,67 @@ async function createWindow() {
         }).then(result => {
             win.webContents.send("fileSelected", result.filePaths);
         });
+    })
+
+    ipcMain.on("selectDirectory", (event, args) => {
+        dialog.showOpenDialog({
+            properties: ['openDirectory']
+        }).then(result => {
+            win.webContents.send("directorySelected", result.filePaths);
+        });
+    })
+
+    ipcMain.on("downloadFile", (event, args) =>  {
+        let form = new FormData();
+
+        let authorizationHeader = ''
+        if (args.bearerToken !== '') {
+            authorizationHeader = 'Bearer ' + args.bearerToken
+        }
+
+        singleFile = false
+        acceptHeader = 'multipart/related; type="application/dicom";'
+        url = args.url + "/studies/" + args.studyUid
+        filePath = args.directoryPath + '/' + args.studyUid
+
+        if(args.seriesUid !== ""){
+            url = url + "/series/" + args.seriesUid
+            filePath = filePath + '/' + args.instanceUid
+        }
+
+        if (!fs.existsSync(filePath)){
+            fs.mkdirSync(filePath, { recursive: true });
+        }
+
+        if(args.instanceUid !== ""){
+            singleFile = true
+            url = url + "/instances/" + args.instanceUid 
+            acceptHeader = 'application/dicom; transfer-syntax=*'
+        }
+
+        axios.get(url, {
+            headers: {
+                'Accept': acceptHeader,
+                'Authorization': authorizationHeader
+            },
+            responseType: 'stream'
+        })
+        .then(function (response) {
+            if(singleFile){
+                response.data.pipe(fs.createWriteStream( filePath + '/' + args.instanceUid + '.dcm'))
+                win.webContents.send("success", "");
+            }else{
+
+            }
+        })
+        .catch(function(error) {
+            console.log(error)
+            if (error.response === undefined) {
+                win.webContents.send("httpErrorEncountered", error.code);
+            } else {
+                win.webContents.send("httpErrorEncountered", error.response.status);
+            }
+        })
     })
 }
 

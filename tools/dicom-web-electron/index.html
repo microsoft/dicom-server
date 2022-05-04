@@ -23,6 +23,7 @@
         <aside class="column is-3 aside menu has-background-grey-light">
             <ul class="menu-list">
                 <li><a class="is-active" id="file-upload-menu">File Upload</a></li>
+                <li><a id="file-download-menu">File Download</a></li>
                 <li><a id="change-feed-menu">Change Feed</a></li>
                 <li><a id="server-settings-menu">Server Settings</a></li>
             </ul>
@@ -34,7 +35,7 @@
                     <div class="field">
                         <label class="label">Address</label>
                         <div class="control">
-                            <input type="text" id="server-address-input" class="input" value="https://localhost:63838" placeholder="Enter a server address..." disabled="true"></input>
+                            <input type="text" id="server-address-input" class="input" value="https://imstest-dp4.dicom.test.workspace.mshapis.com" placeholder="Enter a server address..." disabled="true"></input>
                         </div>
                     </div>
                     <div class="field">
@@ -79,6 +80,32 @@
                     <input type="button" id="post-file" value="Post File(s)" disabled="true" class="button is-small" />
                 </div>
             </div>
+            <div id="file-download-section" style="display:none;" class="content">
+                <div class="container box content">
+                    <h3 class="title is-3">File Download</h3>
+                    <p>Downloading from: <span id="server-address-display"></span></p>
+
+                    <div class="field">
+                        <label class="label">Study Uid</label>
+                        <div class="control">
+                            <input type="text" id="study-uid-input" class="input" value="1.3.6.1.4.1.45096.1.4094296838.1.1650303436.913022" placeholder=""></input>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Series Uid</label>
+                        <div class="control">
+                            <input type="text" id="series-uid-input" class="input" value="1.3.6.1.4.1.45096.2.4094296838.1.1650303436.913023" placeholder=""></input>
+                        </div>
+                    </div><div class="field">
+                        <label class="label">Instance Uid</label>
+                        <div class="control">
+                            <input type="text" id="instance-uid-input" class="input" value="1.3.6.1.4.1.45096.3.19.4094296838.1.1650303593.913046" placeholder=""></input>
+                        </div>
+                    </div>
+                    <input type="button" id="select-directory" value="Select Directory" class="button is-small" />
+                    <input type="button" id="download-file" value="Download File(s)" disabled="true" class="button is-small" />
+                </div>
+            </div>
             <div id="change-feed-section" style="display:none;" class="content">
                 <div class="container box content">
                     <h3 class="title is-3">Change Feed</h3>
@@ -107,6 +134,12 @@
                 <div class="container box content" style="display: none;" id="selected-files">
                     <h4 class="title is-4">Selected Files</h4>
                     <table class="table" id="file-name-table"></table>
+                </div>
+            </div>
+            <div id="selected-directory-section" class="content">
+                <div class="container box content" style="display: none;" id="selected-directory">
+                    <h4 class="title is-4">Selected Directory</h4>
+                    <div id="directory"></div>
                 </div>
             </div>
         </div>
