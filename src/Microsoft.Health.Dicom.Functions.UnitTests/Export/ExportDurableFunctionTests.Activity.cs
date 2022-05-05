@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -38,6 +39,7 @@ public partial class ExportDurableFunctionTests
         var expectedInput = new ExportBatchArguments
         {
             Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
+            Partition = PartitionEntry.Default,
             Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
         };
 
@@ -50,14 +52,14 @@ public partial class ExportDurableFunctionTests
 
         IExportSource source = Substitute.For<IExportSource>();
         source.GetAsyncEnumerator(default).Returns(expectedData.ToAsyncEnumerable().GetAsyncEnumerator());
-        _sourceProvider.Create(_serviceProvider, expectedInput.Source.Configuration).Returns(source);
+        _sourceProvider.CreateSourceAsync(_serviceProvider, expectedInput.Source.Configuration, expectedInput.Partition).Returns(source);
 
         IExportSink sink = Substitute.For<IExportSink>();
         sink.CopyAsync(expectedData[0]).Returns(true);
         sink.CopyAsync(expectedData[1]).Returns(false);
         sink.CopyAsync(expectedData[2]).Returns(false);
         sink.CopyAsync(expectedData[3]).Returns(true);
-        _sinkProvider.Create(_serviceProvider, expectedInput.Destination.Configuration, operationId).Returns(sink);
+        _sinkProvider.CreateSinkAsync(_serviceProvider, expectedInput.Destination.Configuration, operationId).Returns(sink);
 
         // Call the activity
         ExportProgress actual = await _function.ExportBatchAsync(context, NullLogger.Instance);
@@ -66,8 +68,8 @@ public partial class ExportDurableFunctionTests
         Assert.Equal(new ExportProgress(2, 2), actual);
 
         context.Received(1).GetInput<ExportBatchArguments>();
-        _sourceProvider.Received(1).Create(_serviceProvider, expectedInput.Source.Configuration);
-        _sinkProvider.Received(1).Create(_serviceProvider, expectedInput.Destination.Configuration, operationId);
+        await _sourceProvider.Received(1).CreateSourceAsync(_serviceProvider, expectedInput.Source.Configuration, expectedInput.Partition);
+        await _sinkProvider.Received(1).CreateSinkAsync(_serviceProvider, expectedInput.Destination.Configuration, operationId);
         source.Received(1).GetAsyncEnumerator(default);
         await sink.Received(1).CopyAsync(expectedData[0]);
         await sink.Received(1).CopyAsync(expectedData[1]);
@@ -89,7 +91,7 @@ public partial class ExportDurableFunctionTests
 
         IExportSink sink = Substitute.For<IExportSink>();
         sink.ErrorHref.Returns(expectedUri);
-        _sinkProvider.Create(_serviceProvider, expectedInput.Configuration, operationId).Returns(sink);
+        _sinkProvider.CreateSinkAsync(_serviceProvider, expectedInput.Configuration, operationId).Returns(sink);
 
         // Call the activity
         Uri actual = await _function.GetErrorHrefAsync(context);
@@ -98,6 +100,6 @@ public partial class ExportDurableFunctionTests
         Assert.Equal(expectedUri, actual);
 
         context.Received(1).GetInput<TypedConfiguration<ExportDestinationType>>();
-        _sinkProvider.Received(1).Create(_serviceProvider, expectedInput.Configuration, operationId);
+        await _sinkProvider.Received(1).CreateSinkAsync(_serviceProvider, expectedInput.Configuration, operationId);
     }
 }

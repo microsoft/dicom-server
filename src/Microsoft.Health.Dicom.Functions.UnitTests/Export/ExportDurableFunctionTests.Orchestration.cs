@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -36,6 +37,7 @@ public partial class ExportDurableFunctionTests
                 MaxParallelCount = 2,
             },
             Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
+            Partition = PartitionEntry.Default,
             Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
         };
         var batches = new TypedConfiguration<ExportSourceType>[]
@@ -61,7 +63,7 @@ public partial class ExportDurableFunctionTests
                 x => { x[1] = batches[0]; return true; },
                 x => { x[1] = batches[1]; return true; });
         source.Configuration.Returns(nextSource);
-        _sourceProvider.Create(_serviceProvider, input.Source.Configuration).Returns(source);
+        _sourceProvider.CreateSourceAsync(_serviceProvider, input.Source.Configuration, input.Partition).Returns(source);
 
         context
             .GetInput<ExportCheckpoint>()
@@ -98,7 +100,7 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        _sourceProvider.Received(1).Create(_serviceProvider, input.Source.Configuration);
+        await _sourceProvider.Received(1).CreateSourceAsync(_serviceProvider, input.Source.Configuration, input.Partition);
         source
             .Received(2)
             .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>());
@@ -150,6 +152,7 @@ public partial class ExportDurableFunctionTests
             CreatedTime = DateTime.UtcNow,
             Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
+            Partition = PartitionEntry.Default,
             Progress = new ExportProgress(1234, 56),
             Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
         };
@@ -166,7 +169,7 @@ public partial class ExportDurableFunctionTests
                 x => { x[1] = batch; return true; },
                 x => { x[1] = null; return false; });
         source.Configuration.Returns((TypedConfiguration<ExportSourceType>)null);
-        _sourceProvider.Create(_serviceProvider, checkpoint.Source.Configuration).Returns(source);
+        _sourceProvider.CreateSourceAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition).Returns(source);
 
         context
             .GetInput<ExportCheckpoint>()
@@ -185,7 +188,7 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        _sourceProvider.Received(1).Create(_serviceProvider, checkpoint.Source.Configuration);
+        await _sourceProvider.Received(1).CreateSourceAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition);
         source
             .Received(2)
             .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>());
@@ -228,6 +231,7 @@ public partial class ExportDurableFunctionTests
             CreatedTime = DateTime.UtcNow,
             Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
+            Partition = PartitionEntry.Default,
             Progress = new ExportProgress(78910, 0),
             Source = null,
         };
@@ -246,7 +250,7 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        _sourceProvider.DidNotReceiveWithAnyArgs().Create(default, default);
+        await _sourceProvider.DidNotReceiveWithAnyArgs().CreateSourceAsync(default, default, default, default);
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<ExportProgress>(

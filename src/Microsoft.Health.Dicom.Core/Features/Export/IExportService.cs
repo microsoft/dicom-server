@@ -3,15 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Export;
+namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public class ExportInstancesResponse
+internal interface IExportService
 {
-    public OperationReference Operation { get; }
-
-    public ExportInstancesResponse(OperationReference operation)
-        => Operation = EnsureArg.IsNotNull(operation, nameof(operation));
+    Task<OperationReference> StartExportAsync(ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
 }

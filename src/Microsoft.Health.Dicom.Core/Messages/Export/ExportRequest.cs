@@ -5,14 +5,20 @@
 
 using EnsureThat;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
-public sealed class ExportInstancesRequest : IRequest<ExportInstancesResponse>
+public sealed class ExportRequest : IRequest<ExportResponse>
 {
     public ExportSpecification Specification { get; }
 
-    public ExportInstancesRequest(ExportSpecification spec)
-        => Specification = EnsureArg.IsNotNull(spec, nameof(spec));
+    public PartitionEntry Partition { get; }
+
+    public ExportRequest(ExportSpecification spec, PartitionEntry partition)
+    {
+        Specification = EnsureArg.IsNotNull(spec, nameof(spec));
+        Partition = EnsureArg.IsNotNull(partition, nameof(partition));
+    }
 }

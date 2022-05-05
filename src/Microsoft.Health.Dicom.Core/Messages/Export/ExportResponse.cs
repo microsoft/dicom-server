@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Models.Common;
+using EnsureThat;
+using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
-internal sealed class ExportIdentifiers
+public class ExportResponse
 {
-    public IReadOnlyList<DicomIdentifier> Values { get; set; }
+    public OperationReference Operation { get; }
+
+    public ExportResponse(OperationReference operation)
+        => Operation = EnsureArg.IsNotNull(operation, nameof(operation));
 }

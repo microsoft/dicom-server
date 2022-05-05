@@ -14,6 +14,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -31,21 +33,31 @@ public class ExportControllerTests
     {
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             null,
+            Substitute.For<IDicomRequestContext>(),
             Options.Create(new FeatureConfiguration()),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             new Mediator(t => null),
             null,
+            Options.Create(new FeatureConfiguration()),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             new Mediator(t => null),
+            Substitute.For<IDicomRequestContext>(),
+            null,
+            NullLogger<ExportController>.Instance));
+
+        Assert.Throws<ArgumentNullException>(() => new ExportController(
+            new Mediator(t => null),
+            Substitute.For<IDicomRequestContext>(),
             Options.Create<FeatureConfiguration>(null),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             new Mediator(t => null),
+            Substitute.For<IDicomRequestContext>(),
             Options.Create(new FeatureConfiguration()),
             null));
     }
@@ -56,6 +68,7 @@ public class ExportControllerTests
         IMediator _mediator = Substitute.For<IMediator>();
         var controller = new ExportController(
             _mediator,
+            Substitute.For<IDicomRequestContext>(),
             Options.Create(new FeatureConfiguration { EnableExport = false }),
             NullLogger<ExportController>.Instance);
         var spec = new ExportSpecification
@@ -64,7 +77,7 @@ public class ExportControllerTests
             Destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob }
         };
 
-        IActionResult result = await controller.ExportInstancesAsync(spec);
+        IActionResult result = await controller.ExportAsync(spec);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -72,12 +85,15 @@ public class ExportControllerTests
     public async Task GivenExportEnabled_WhenCallingApi_ThenShouldReturnResult()
     {
         IMediator mediator = Substitute.For<IMediator>();
+        IDicomRequestContext _context = Substitute.For<IDicomRequestContext>();
         var controller = new ExportController(
             mediator,
+            _context,
             Options.Create(new FeatureConfiguration { EnableExport = true }),
             NullLogger<ExportController>.Instance);
 
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
+        _context.DataPartitionEntry.Returns(PartitionEntry.Default);
 
         Guid operationId = Guid.NewGuid();
         var expected = new OperationReference(operationId, new Uri($"http://dicom.unit.test/operations/{operationId}"));
@@ -89,11 +105,11 @@ public class ExportControllerTests
 
         mediator
             .Send(
-                Arg.Is<ExportInstancesRequest>(x => ReferenceEquals(x.Specification, spec)),
+                Arg.Is<ExportRequest>(x => ReferenceEquals(x.Specification, spec) && x.Partition.PartitionName == DefaultPartition.Name),
                 controller.HttpContext.RequestAborted)
-            .Returns(new ExportInstancesResponse(expected));
+            .Returns(new ExportResponse(expected));
 
-        IActionResult result = await controller.ExportInstancesAsync(spec);
+        IActionResult result = await controller.ExportAsync(spec);
         Assert.IsType<ObjectResult>(result);
 
         var actual = result as ObjectResult;
@@ -106,7 +122,7 @@ public class ExportControllerTests
         await mediator
             .Received(1)
             .Send(
-                Arg.Is<ExportInstancesRequest>(x => ReferenceEquals(x.Specification, spec)),
+                Arg.Is<ExportRequest>(x => ReferenceEquals(x.Specification, spec) && x.Partition.PartitionName == DefaultPartition.Name),
                 controller.HttpContext.RequestAborted);
     }
 }

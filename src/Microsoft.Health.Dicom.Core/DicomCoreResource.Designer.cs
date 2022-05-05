@@ -796,6 +796,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Missing value for property &apos;{0}&apos;..
+        /// </summary>
+        internal static string MissingProperty {
+            get {
+                return ResourceManager.GetString("MissingProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request body is missing..
         /// </summary>
         internal static string MissingRequestBody {

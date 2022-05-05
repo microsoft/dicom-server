@@ -5,9 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -39,28 +43,62 @@ public sealed class ExportSourceFactory
     }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="IExportSource"/> interface whose implementation
+    /// Asynchronously creates a new instance of the <see cref="IExportSource"/> interface whose implementation
     /// is based on given <paramref name="source"/>.
     /// </summary>
     /// <param name="source">The configuration for a specific source type.</param>
-    /// <returns>The corresponding <see cref="IExportSource"/> instance.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
+    /// <param name="partition">The data partition.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="ValidateAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is the corresponding
+    /// <see cref="IExportSource"/> instance
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="source"/> or <paramref name="partition"/> is <see langword="null"/>.
+    /// </exception>
     /// <exception cref="KeyNotFoundException">
     /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
     /// </exception>
-    public IExportSource CreateSource(TypedConfiguration<ExportSourceType> source)
-        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type).Create(_serviceProvider, source.Configuration);
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    public Task<IExportSource> CreateSourceAsync(TypedConfiguration<ExportSourceType> source, PartitionEntry partition, CancellationToken cancellationToken = default)
+        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type)
+            .CreateSourceAsync(_serviceProvider, source.Configuration, partition, cancellationToken);
 
     /// <summary>
-    /// Ensures that the given configuration can be used to create a valid source.
+    /// Asynchronously ensures that the given configuration can be used to create a valid source.
     /// </summary>
+    /// <remarks>
+    /// Based on the implementation, this method may also modify the values of the configuration.
+    /// For example, it may help provide source-specific security measures for sensitive settings.
+    /// </remarks>
     /// <param name="source">The configuration for a specific source type.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="ValidateAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is the validated <paramref name="source"/>.
+    /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">
     /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
     /// </exception>
-    public void Validate(TypedConfiguration<ExportSourceType> source)
-        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type).Validate(source.Configuration);
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    /// <exception cref="ValidationException">There were one or more problems with the source-specific configuration.</exception>
+    public async Task<TypedConfiguration<ExportSourceType>> ValidateAsync(TypedConfiguration<ExportSourceType> source, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(source, nameof(source));
+
+        IExportSourceProvider provider = GetProvider(source.Type);
+        return new TypedConfiguration<ExportSourceType>
+        {
+            Configuration = await provider.ValidateAsync(source.Configuration, cancellationToken),
+            Type = source.Type,
+        };
+    }
 
     private IExportSourceProvider GetProvider(ExportSourceType type)
     {

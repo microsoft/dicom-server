@@ -38,7 +38,7 @@ public class QueryServiceTests
         _metadataStore = Substitute.For<IMetadataStore>();
         _queryTagService = Substitute.For<IQueryTagService>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+        _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
         _queryService = new QueryService(
             _queryParser,
