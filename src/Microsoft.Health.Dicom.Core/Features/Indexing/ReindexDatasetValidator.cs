@@ -36,6 +36,7 @@ public class ReindexDatasetValidator : IReindexDatasetValidator
         {
             try
             {
+                // Ignore validation warnings until we figure out proper way to handle with.
                 dataset.ValidateQueryTag(queryTag, _minimumValidator);
                 validTags.Add(queryTag);
             }

@@ -52,6 +52,7 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 
 > Only transfer syntaxes with explicit Value Representations are accepted.
 
+
 ### Store Response Status Codes
 
 | Code                         | Description |
@@ -408,7 +409,7 @@ If includefield=all, below attributes are included along with default attributes
 Along with those below attributes are returned:
 
 - All the match query parameters and UIDs in the resource url.
-- IncludeField attributes supported at that resource level. 
+- IncludeField attributes supported at that resource level.
 - If the target resource is All Series, then Study level attributes are also returned.
 - If the target resource is All Instances, then Study and Series level attributes are also returned.
 - If the target resource is Study's Instances, then Series level attributes are also returned.
@@ -433,6 +434,7 @@ The query API will return one of the following status codes in the response:
 - Paged results are optimized to return matched *newest* instance first, this may result in duplicate records in subsequent pages if newer data matching the query was added.
 - Matching is case in-sensitive and accent in-sensitive for PN VR types.
 - Matching is case in-sensitive and accent sensitive for other string VR types.
+- Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
 
 ## Delete
 

@@ -22,6 +22,13 @@ public class DicomUidValidationTests
         new UidValidation().Validate(element);
     }
 
+    [Fact]
+    public void GivenMultipleValues_WhenValidating_ThenShouldVaidateFirstOne()
+    {
+        DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, "13", "11|");
+        new UidValidation().Validate(element);
+    }
+
     [Theory]
     [InlineData("123.")] // end with .
     [InlineData("abc.123")] // a is invalid character

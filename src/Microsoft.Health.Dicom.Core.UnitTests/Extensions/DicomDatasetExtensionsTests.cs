@@ -24,31 +24,40 @@ public class DicomDatasetExtensionsTests
     private readonly DicomDataset _dicomDataset = new DicomDataset().NotValidated();
 
     [Fact]
-    public void GivenDicomTagWithDifferentVR_WhenGetSingleOrDefaultIsCalled_ThenShouldReturnNull()
+    public void GivenDicomTagWithMultipleValue_WhenGetFirstValueOrDefaultIsCalled_ThenShouldReturnFirstOne()
+    {
+        DicomTag tag = DicomTag.AbortReason;
+        DicomElement element = new DicomLongString(tag, "Value1", "Value2");
+        _dicomDataset.Add(element);
+        Assert.Equal("Value1", _dicomDataset.GetFirstValueOrDefault<string>(tag));
+    }
+
+    [Fact]
+    public void GivenDicomTagWithDifferentVR_WhenGetFirstValueOrDefaultIsCalled_ThenShouldReturnNull()
     {
         DicomTag tag = DicomTag.AbortReason;
         DicomVR expectedVR = DicomVR.CS;
         DicomElement element = new DicomLongString(tag, "Value");
         _dicomDataset.Add(element);
-        Assert.Null(_dicomDataset.GetSingleValueOrDefault<string>(tag, expectedVR));
+        Assert.Null(_dicomDataset.GetFirstValueOrDefault<string>(tag, expectedVR));
     }
 
     [Fact]
-    public void GivenDicomTagDoesNotExist_WhenGetSingleOrDefaultIsCalled_ThenDefaultValueShouldBeReturned()
+    public void GivenDicomTagDoesNotExist_WhenGetFirstValueOrDefaultIsCalled_ThenDefaultValueShouldBeReturned()
     {
-        Assert.Equal(default, _dicomDataset.GetSingleValueOrDefault<string>(DicomTag.StudyInstanceUID));
-        Assert.Equal(default, _dicomDataset.GetSingleValueOrDefault<DateTime>(DicomTag.AcquisitionDateTime));
-        Assert.Equal(default, _dicomDataset.GetSingleValueOrDefault<short>(DicomTag.WarningReason));
+        Assert.Equal(default, _dicomDataset.GetFirstValueOrDefault<string>(DicomTag.StudyInstanceUID));
+        Assert.Equal(default, _dicomDataset.GetFirstValueOrDefault<DateTime>(DicomTag.AcquisitionDateTime));
+        Assert.Equal(default, _dicomDataset.GetFirstValueOrDefault<short>(DicomTag.WarningReason));
     }
 
     [Fact]
-    public void GivenDicomTagExists_WhenGetSingleOrDefaultIsCalled_ThenCorrectValueShouldBeReturned()
+    public void GivenDicomTagExists_WhenGetFirstValueOrDefaultIsCalled_ThenCorrectValueShouldBeReturned()
     {
         const string expectedValue = "IA";
 
         _dicomDataset.Add(DicomTag.InstanceAvailability, expectedValue);
 
-        Assert.Equal(expectedValue, _dicomDataset.GetSingleValueOrDefault<string>(DicomTag.InstanceAvailability));
+        Assert.Equal(expectedValue, _dicomDataset.GetFirstValueOrDefault<string>(DicomTag.InstanceAvailability));
     }
 
     [Fact]

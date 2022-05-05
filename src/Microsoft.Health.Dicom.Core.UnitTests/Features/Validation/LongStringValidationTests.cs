@@ -19,6 +19,13 @@ public class LongStringValidationTests
         new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912"));
     }
 
+    [Fact]
+    public void GivenMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
+    {
+        var element = new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912", "0123456789012345678901234567890123456789012345678901234567890123456789");
+        new LongStringValidation().Validate(element);
+    }
+
     [Theory]
     [InlineData("0123456789012345678901234567890123456789012345678901234567890123456789", ValidationErrorCode.ExceedMaxLength)] // exceed max length
     [InlineData("012\n", ValidationErrorCode.InvalidCharacters)] // contains control character except Esc

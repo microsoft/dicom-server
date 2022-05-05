@@ -35,6 +35,9 @@ public partial class ReindexDurableFunction
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags
     /// that have been associated the operation.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [FunctionName(nameof(AssignReindexingOperationAsync))]
     public Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AssignReindexingOperationAsync(
         [ActivityTrigger] IDurableActivityContext context,
@@ -66,6 +69,9 @@ public partial class ReindexDurableFunction
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the subset of query tags
     /// that have been associated the operation.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [FunctionName(nameof(GetQueryTagsAsync))]
     public Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> GetQueryTagsAsync(
         [ActivityTrigger] IDurableActivityContext context,
@@ -92,6 +98,7 @@ public partial class ReindexDurableFunction
     /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
     /// property contains a list of batches as defined by their smallest and largest watermark.
     /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="logger"/> is <see langword="null"/>.</exception>
     [Obsolete("Please use GetInstanceBatchesV2Async instead.")]
     [FunctionName(nameof(GetInstanceBatchesAsync))]
     public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync([ActivityTrigger] long? maxWatermark, ILogger logger)
@@ -106,6 +113,9 @@ public partial class ReindexDurableFunction
     /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
     /// property contains a list of batches as defined by their smallest and largest watermark.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [FunctionName(nameof(GetInstanceBatchesV2Async))]
     public Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesV2Async(
         [ActivityTrigger] BatchCreationArguments arguments,
@@ -137,6 +147,9 @@ public partial class ReindexDurableFunction
     /// <param name="batch">The batch that should be re-indexed including the range of data and the new tags.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>A task representing the <see cref="ReindexBatchAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="batch"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [Obsolete("Please use ReindexBatchV2Async instead.")]
     [FunctionName(nameof(ReindexBatchAsync))]
     public Task ReindexBatchAsync([ActivityTrigger] ReindexBatch batch, ILogger logger)
@@ -148,6 +161,9 @@ public partial class ReindexDurableFunction
     /// <param name="arguments">The options that include the instances to re-index and the query tags.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>A task representing the <see cref="ReindexBatchAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [FunctionName(nameof(ReindexBatchV2Async))]
     public async Task ReindexBatchV2Async([ActivityTrigger] ReindexBatchArguments arguments, ILogger logger)
     {
@@ -190,6 +206,9 @@ public partial class ReindexDurableFunction
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of extended query tags
     /// whose re-indexing should be considered completed.
     /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
     [FunctionName(nameof(CompleteReindexingAsync))]
     public Task<IReadOnlyList<int>> CompleteReindexingAsync(
         [ActivityTrigger] IDurableActivityContext context,

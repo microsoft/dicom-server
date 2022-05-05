@@ -7,5 +7,7 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 
 internal static class FunctionNames
 {
+    public const string ExportDicomFiles = "ExportDicomFilesAsync";
+
     public const string ReindexInstances = "ReindexInstancesAsync";
 }

@@ -476,6 +476,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to One or more indexed Dicom tag(s) have multiple values, only first value is indexed..
+        /// </summary>
+        internal static string IndexedDicomTagHasMultipleValues {
+            get {
+                return ResourceManager.GetString("IndexedDicomTagHasMultipleValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DICOM instance already exists..
         /// </summary>
         internal static string InstanceAlreadyExists {
@@ -1089,6 +1098,24 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnsupportedContentType {
             get {
                 return ResourceManager.GetString("UnsupportedContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported export destination &apos;{0}&apos;..
+        /// </summary>
+        internal static string UnsupportedExportDestination {
+            get {
+                return ResourceManager.GetString("UnsupportedExportDestination", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported export source &apos;{0}&apos;..
+        /// </summary>
+        internal static string UnsupportedExportSource {
+            get {
+                return ResourceManager.GetString("UnsupportedExportSource", resourceCulture);
             }
         }
         

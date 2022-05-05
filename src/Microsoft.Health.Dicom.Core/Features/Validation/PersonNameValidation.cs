@@ -10,13 +10,11 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class PersonNameValidation : ElementValidation
+internal class PersonNameValidation : IElementValidation
 {
-    public override void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement)
     {
-        base.Validate(dicomElement);
-
-        string value = dicomElement.Get<string>();
+        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         DicomVR vr = dicomElement.ValueRepresentation;
         if (string.IsNullOrEmpty(value))
@@ -43,7 +41,7 @@ internal class PersonNameValidation : ElementValidation
                 throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameGroupExceedMaxLength);
             }
 
-            if (ContainsControlExceptEsc(group))
+            if (ValidationUtils.ContainsControlExceptEsc(group))
             {
                 throw new ElementValidationException(name, vr, value, ValidationErrorCode.InvalidCharacters);
             }
