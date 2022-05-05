@@ -53,8 +53,14 @@ public readonly struct WatermarkRange : IEquatable<WatermarkRange>
         end = End;
     }
     public WatermarkRange Combine(WatermarkRange range)
-        => Start > range.Start ? range.Combine(this)
-        : new WatermarkRange(Start, EnsureArg.Is(End, range.Start - 1, nameof(range.End)));
+    {
+        if (Start > range.Start)
+        {
+            return range.Combine(this);
+        }
+        EnsureArg.Is(range.Start, End + 1, nameof(range.Start));
+        return new WatermarkRange(Start, range.End);
+    }
 
     public static WatermarkRange Combine(IReadOnlyList<WatermarkRange> batches)
     {

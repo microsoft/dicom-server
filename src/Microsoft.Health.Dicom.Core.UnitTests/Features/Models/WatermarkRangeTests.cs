@@ -57,6 +57,6 @@ public class WatermarkRangeTests
         var range1 = new WatermarkRange(6, 8);
         var range2 = new WatermarkRange(4, 5);
         var range3 = new WatermarkRange(1, 3);
-        Assert.Equal(new WatermarkRange(1, 5), WatermarkRange.Combine(new[] { range1, range2, range3 }));
+        Assert.Equal(new WatermarkRange(1, 8), WatermarkRange.Combine(new[] { range1, range2, range3 }));
     }
 }

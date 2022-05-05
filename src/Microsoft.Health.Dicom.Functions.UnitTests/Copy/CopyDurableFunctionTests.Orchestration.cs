@@ -29,6 +29,7 @@ public partial class CopyDurableFunctionTests
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
         var expectedInput = new CopyCheckpoint();
+        expectedInput.Batching = _batchingOptions;
 
         // Arrange the input
         string operationId = OperationId.Generate();
@@ -106,6 +107,7 @@ public partial class CopyDurableFunctionTests
         {
             Completed = new WatermarkRange(36, 42),
             CreatedTime = DateTime.UtcNow,
+            Batching = _batchingOptions
         };
 
         // Arrange the input
@@ -176,6 +178,7 @@ public partial class CopyDurableFunctionTests
     {
         var expectedBatches = new List<WatermarkRange>();
         var expectedInput = new CopyCheckpoint();
+        expectedInput.Batching = _batchingOptions;
 
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
@@ -235,7 +238,8 @@ public partial class CopyDurableFunctionTests
         var expectedInput = new CopyCheckpoint
         {
             Completed = new WatermarkRange(start, end),
-            CreatedTime = DateTime.UtcNow
+            CreatedTime = DateTime.UtcNow,
+            Batching = _batchingOptions
         };
 
         // Arrange the input
