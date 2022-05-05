@@ -180,9 +180,9 @@ public partial class ReindexDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers,
-            arguments.ThreadCount,
-            id => _instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id));
+        await TaskBatch.RunAsync(instanceIdentifiers,
+            id => _instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id),
+            arguments.ThreadCount);
 
         logger.LogInformation("Completed re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
             arguments.WatermarkRange,

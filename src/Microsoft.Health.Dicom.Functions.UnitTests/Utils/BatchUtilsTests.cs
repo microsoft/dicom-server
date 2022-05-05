@@ -18,7 +18,7 @@ public class BatchUtilsTests
     {
         VersionedInstanceIdentifier[] ids = RandomIds(5);
         ITaskCreator taskCreator = Substitute.For<ITaskCreator>();
-        await BatchUtils.ExecuteBatchAsync(ids, 2, id => taskCreator.CreateAsync(id));
+        await TaskBatch.RunAsync(ids, id => taskCreator.CreateAsync(id), 2);
 
         // Assert
         foreach (var id in ids)
@@ -34,7 +34,7 @@ public class BatchUtilsTests
     {
         VersionedInstanceIdentifier[] ids = RandomIds(6);
         ITaskCreator taskCreator = Substitute.For<ITaskCreator>();
-        await BatchUtils.ExecuteBatchAsync(ids, 2, id => taskCreator.CreateAsync(id));
+        await TaskBatch.RunAsync(ids, id => taskCreator.CreateAsync(id), 2);
 
         // Assert
         foreach (var id in ids)
@@ -50,7 +50,7 @@ public class BatchUtilsTests
     {
         VersionedInstanceIdentifier[] ids = RandomIds(0);
         ITaskCreator taskCreator = Substitute.For<ITaskCreator>();
-        await BatchUtils.ExecuteBatchAsync(ids, 2, id => taskCreator.CreateAsync(id));
+        await TaskBatch.RunAsync(ids, id => taskCreator.CreateAsync(id), 2);
 
         // Assert
         await taskCreator

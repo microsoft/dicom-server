@@ -70,7 +70,7 @@ public partial class CopyDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created);
 
-        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers, _options.BatchThreadCount, id => _instanceCopier.CopyInstanceAsync(id));
+        await TaskBatch.RunAsync(instanceIdentifiers, id => _instanceCopier.CopyInstanceAsync(id), _options.BatchThreadCount);
         logger.LogInformation("Completed copying instances in the range {Range}.", range);
     }
 
