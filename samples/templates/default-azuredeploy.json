@@ -202,7 +202,6 @@
             "DicomFunctions__DurableTask__ConnectionName": "AzureWebJobsStorage",
             "DicomServer__Features__EnableOhifViewer": "[parameters('deployOhifViewer')]",
             "DicomServer__Features__EnableExtendedQueryTags": "true",
-            "DicomServer__Services__BlobMigration__FormatType": "New",
             "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
             "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]",
