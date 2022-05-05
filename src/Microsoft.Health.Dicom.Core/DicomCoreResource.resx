@@ -588,4 +588,12 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="IndexedDicomTagHasMultipleValues" xml:space="preserve">
     <value>One or more indexed Dicom tag(s) have multiple values, only first value is indexed.</value>
   </data>
+  <data name="InvalidArrayRank" xml:space="preserve">
+    <value>Array rank {0} is not supported.</value>
+    <comment>{0} Array rank</comment>
+  </data>
+  <data name="InvalidTypeBinding" xml:space="preserve">
+    <value>Type '{0}' is not supported.</value>
+    <comment>{0} Type name</comment>
+  </data>
 </root>
