@@ -163,14 +163,14 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public Task<Guid> StartBlobDuplicationAsync(CancellationToken cancellationToken = default)
+    public Task<Guid> StartBlobMigrationAsync(CancellationToken cancellationToken = default)
     {
         // TODO: Implementation is in different PR
         throw new NotImplementedException();
     }
 
     /// <inheritdoc/>
-    public Task<bool> IsBlobDuplicationCompletedAsync(CancellationToken cancellationToken = default)
+    public Task<bool> IsBlobMigrationCompletedAsync(CancellationToken cancellationToken = default)
     {
         // TODO: Implementation is in different PR
         throw new NotImplementedException();

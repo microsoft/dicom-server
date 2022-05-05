@@ -76,12 +76,12 @@ public interface IDicomOperationsClient
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
     /// that is performing the asynchronous addition.</returns>
-    Task<Guid> StartBlobDuplicationAsync(CancellationToken cancellationToken = default);
+    Task<Guid> StartBlobMigrationAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously gets the completed status of blob duplication
+    /// Asynchronously gets the completed status of blob migration
     /// </summary>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the completed status</returns>
-    Task<bool> IsBlobDuplicationCompletedAsync(CancellationToken cancellationToken = default);
+    Task<bool> IsBlobMigrationCompletedAsync(CancellationToken cancellationToken = default);
 }

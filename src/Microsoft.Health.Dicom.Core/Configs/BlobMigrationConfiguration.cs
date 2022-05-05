@@ -13,7 +13,7 @@ public class BlobMigrationConfiguration
     public BlobMigrationFormatType FormatType { get; set; }
 
     /// <summary>
-    /// Gets or sets flag to start blob duplication
+    /// Gets or sets flag to start blob migration
     /// </summary>
-    public bool StartDuplication { get; set; }
+    public bool StartMigration { get; set; }
 }

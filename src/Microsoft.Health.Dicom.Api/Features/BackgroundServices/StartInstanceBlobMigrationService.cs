@@ -16,17 +16,17 @@ using Microsoft.Health.Dicom.Core.Features.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
-public class StartInstanceBlobDuplicationService : BackgroundService
+public class StartInstanceBlobMigrationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly bool _startBlobDuplication;
-    private readonly ILogger<StartInstanceBlobDuplicationService> _logger;
+    private readonly bool _startBlobMigration;
+    private readonly ILogger<StartInstanceBlobMigrationService> _logger;
 
-    public StartInstanceBlobDuplicationService(
+    public StartInstanceBlobMigrationService(
         IServiceProvider serviceProvider,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
-        ILogger<StartInstanceBlobDuplicationService> logger)
+        ILogger<StartInstanceBlobMigrationService> logger)
     {
         EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
         EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
@@ -34,7 +34,7 @@ public class StartInstanceBlobDuplicationService : BackgroundService
 
         _serviceProvider = serviceProvider;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
-        _startBlobDuplication = blobMigrationFormatConfiguration.Value.StartDuplication;
+        _startBlobMigration = blobMigrationFormatConfiguration.Value.StartMigration;
         _logger = logger;
     }
 
@@ -45,21 +45,21 @@ public class StartInstanceBlobDuplicationService : BackgroundService
             using (var scope = _serviceProvider.CreateScope())
             {
                 // Start the background service only when the flag is turned on and the format type is not new service.
-                if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobDuplication)
+                if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobMigration)
                 {
                     var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
                     // We also need to ensure if the operation client already not completed
-                    if (operationsClient != null && await operationsClient.IsBlobDuplicationCompletedAsync(stoppingToken))
+                    if (operationsClient != null && await operationsClient.IsBlobMigrationCompletedAsync(stoppingToken))
                     {
-                        await operationsClient.StartBlobDuplicationAsync(stoppingToken);
+                        await operationsClient.StartBlobMigrationAsync(stoppingToken);
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "Unhandled exception while starting blob duplication.");
+            _logger.LogCritical(ex, "Unhandled exception while starting blob migration.");
         }
     }
 }
