@@ -7,12 +7,12 @@ using System;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Functions.Duplicate.Models;
+namespace Microsoft.Health.Dicom.Functions.Copy.Models;
 
 /// <summary>
-///  Represents input to <see cref="CopyDurableFunction.DuplicateBatchAsync"/>
+///  Represents input to <see cref="CopyDurableFunction.CopyBatchAsync"/>
 /// </summary>
-public sealed class DuplicateBatchArguments
+public sealed class CopyBatchArguments
 {
     /// <summary>
     /// Gets or sets the number of threads available for each batch.
@@ -25,14 +25,14 @@ public sealed class DuplicateBatchArguments
     public WatermarkRange WatermarkRange { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DuplicateBatchArguments"/> class with the specified values.
+    /// Initializes a new instance of the <see cref="CopyBatchArguments"/> class with the specified values.
     /// </summary>
     /// <param name="watermarkRange">The inclusive watermark range.</param>
     /// <param name="threadCount">The number of threads available for each batch.</param>    
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="threadCount"/> is less than <c>1</c>.
     /// </exception>
-    public DuplicateBatchArguments(
+    public CopyBatchArguments(
         WatermarkRange watermarkRange,
         int threadCount)
     {
@@ -41,11 +41,11 @@ public sealed class DuplicateBatchArguments
         WatermarkRange = watermarkRange;
     }
 
-    internal static DuplicateBatchArguments FromOptions(
+    internal static CopyBatchArguments FromOptions(
         WatermarkRange watermarkRange,
-        DuplicationOptions duplicationOptions)
+        CopyOptions duplicationOptions)
     {
         EnsureArg.IsNotNull(duplicationOptions, nameof(duplicationOptions));
-        return new DuplicateBatchArguments(watermarkRange, duplicationOptions.BatchThreadCount);
+        return new CopyBatchArguments(watermarkRange, duplicationOptions.BatchThreadCount);
     }
 }

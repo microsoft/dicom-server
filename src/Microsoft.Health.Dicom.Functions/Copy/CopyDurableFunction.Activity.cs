@@ -12,11 +12,11 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Functions.Duplicate.Models;
+using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Functions.Utils;
 
-namespace Microsoft.Health.Dicom.Functions.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.Copy;
 public partial class CopyDurableFunction
 {
 
@@ -29,8 +29,8 @@ public partial class CopyDurableFunction
     /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
     /// property contains a list of batches as defined by their smallest and largest watermark.
     /// </returns>
-    [FunctionName(nameof(GetDuplicateInstanceBatchesAsync))]
-    public Task<IReadOnlyList<WatermarkRange>> GetDuplicateInstanceBatchesAsync(
+    [FunctionName(nameof(GetCopyInstanceBatchesAsync))]
+    public Task<IReadOnlyList<WatermarkRange>> GetCopyInstanceBatchesAsync(
         [ActivityTrigger] BatchCreationArguments arguments,
         ILogger logger)
     {
@@ -59,9 +59,9 @@ public partial class CopyDurableFunction
     /// </summary>
     /// <param name="arguments">The options that include the instances to re-index and the query tags.</param>
     /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>A task representing the <see cref="DuplicateBatchAsync"/> operation.</returns>
-    [FunctionName(nameof(DuplicateBatchAsync))]
-    public async Task DuplicateBatchAsync([ActivityTrigger] DuplicateBatchArguments arguments, ILogger logger)
+    /// <returns>A task representing the <see cref="CopyBatchAsync"/> operation.</returns>
+    [FunctionName(nameof(CopyBatchAsync))]
+    public async Task CopyBatchAsync([ActivityTrigger] CopyBatchArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
@@ -72,7 +72,7 @@ public partial class CopyDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers, arguments.ThreadCount, id => _instanceDuplicater.DuplicateInstanceAsync(id));
+        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers, arguments.ThreadCount, id => _instanceCopier.DuplicateInstanceAsync(id));
         logger.LogInformation("Completed duplicating instances in the range {Range}.", arguments.WatermarkRange);
     }
 
@@ -82,12 +82,12 @@ public partial class CopyDurableFunction
     /// <param name="context">The context for the activity.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="CompleteDuplicateAsync"/> operation.
+    /// A task representing the <see cref="CompleteCopyAsync"/> operation.
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of extended query tags
     /// whose re-indexing should be considered completed.
     /// </returns>
-    [FunctionName(nameof(CompleteDuplicateAsync))]
-    public Task CompleteDuplicateAsync(
+    [FunctionName(nameof(CompleteCopyAsync))]
+    public Task CompleteCopyAsync(
         [ActivityTrigger] IDurableActivityContext context,
         ILogger logger)
     {

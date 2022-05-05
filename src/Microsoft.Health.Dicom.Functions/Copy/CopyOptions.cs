@@ -7,14 +7,14 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.Copy;
 
 /// <summary>
 /// Represents the options for a "re-index" function.
 /// </summary>
-public class DuplicationOptions
+public class CopyOptions
 {
-    internal const string SectionName = "Duplicate";
+    internal const string SectionName = "Copy";
 
     /// <summary>
     /// Gets or sets the number of DICOM instances processed by a single activity.

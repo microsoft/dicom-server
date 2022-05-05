@@ -5,10 +5,10 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Duplicate;
+using Microsoft.Health.Dicom.Core.Features.Copy;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-namespace Microsoft.Health.Dicom.Functions.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.Copy;
 
 /// <summary>
 /// Represents the Azure Durable Functions that perform the re-indexing of previously added DICOM instances
@@ -17,16 +17,16 @@ namespace Microsoft.Health.Dicom.Functions.Duplicate;
 public partial class CopyDurableFunction
 {
     private readonly IInstanceStore _instanceStore;
-    private readonly DuplicationOptions _options;
-    private readonly IInstanceDuplicater _instanceDuplicater;
+    private readonly CopyOptions _options;
+    private readonly IInstanceCopier _instanceCopier;
 
     public CopyDurableFunction(
         IInstanceStore instanceStore,
-        IInstanceDuplicater instanceDuplicater,
-        IOptions<DuplicationOptions> configOptions)
+        IInstanceCopier instanceCopier,
+        IOptions<CopyOptions> configOptions)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-        _instanceDuplicater = EnsureArg.IsNotNull(instanceDuplicater, nameof(instanceDuplicater));
+        _instanceCopier = EnsureArg.IsNotNull(instanceCopier, nameof(instanceCopier));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }

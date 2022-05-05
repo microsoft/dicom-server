@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Models.Duplicate;
-public class DuplicateCheckpoint : DuplicateInput, IOperationCheckpoint
+namespace Microsoft.Health.Dicom.Core.Models.Copy;
+public class CopyCheckpoint : CopyInput, IOperationCheckpoint
 {
     public WatermarkRange? Completed { get; set; }
 

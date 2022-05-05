@@ -11,14 +11,14 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.Duplicate;
+using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Duplicate.Models;
+using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.Copy;
 
 public partial class CopyDurableFunction
 {
@@ -31,9 +31,9 @@ public partial class CopyDurableFunction
     /// </remarks>
     /// <param name="context">The context for the orchestration instance.</param>
     /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>A task representing the <see cref="DuplicateInstancesAsync"/> operation.</returns>
-    [FunctionName(nameof(DuplicateInstancesAsync))]
-    public async Task DuplicateInstancesAsync(
+    /// <returns>A task representing the <see cref="CopyInstancesAsync"/> operation.</returns>
+    [FunctionName(nameof(CopyInstancesAsync))]
+    public async Task CopyInstancesAsync(
         [OrchestrationTrigger] IDurableOrchestrationContext context,
         ILogger logger)
     {
@@ -41,7 +41,7 @@ public partial class CopyDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
 
         logger = context.CreateReplaySafeLogger(logger);
-        DuplicateCheckpoint input = context.GetInput<DuplicateCheckpoint>();
+        CopyCheckpoint input = context.GetInput<CopyCheckpoint>();
 
         // Backfill batching options
         input.Batching ??= new BatchingOptions
@@ -51,7 +51,7 @@ public partial class CopyDurableFunction
         };
 
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-            nameof(GetDuplicateInstanceBatchesAsync),
+            nameof(GetCopyInstanceBatchesAsync),
             _options.RetryOptions,
             new BatchCreationArguments(input.Completed?.Start - 1, input.Batching.Size, input.Batching.MaxParallelCount));
 
@@ -64,9 +64,9 @@ public partial class CopyDurableFunction
             logger.LogInformation("Beginning to duplicate the range {Range}.", batchRange);
             await Task.WhenAll(batches
                 .Select(x => context.CallActivityWithRetryAsync(
-                    nameof(DuplicateBatchAsync),
+                    nameof(CopyBatchAsync),
                     _options.RetryOptions,
-                    DuplicateBatchArguments.FromOptions(x, _options))));
+                    CopyBatchArguments.FromOptions(x, _options))));
 
             // Create a new orchestration with the same instance ID to process the remaining data
             logger.LogInformation("Completed duplicating the range {Range}. Continuing with new execution...", batchRange);
@@ -76,7 +76,7 @@ public partial class CopyDurableFunction
                 : batchRange;
 
             context.ContinueAsNew(
-                new DuplicateCheckpoint
+                new CopyCheckpoint
                 {
                     Completed = completed,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
@@ -84,7 +84,7 @@ public partial class CopyDurableFunction
         }
         else
         {
-            await context.CallActivityWithRetryAsync(nameof(CompleteDuplicateAsync), _options.RetryOptions, null);
+            await context.CallActivityWithRetryAsync(nameof(CompleteCopyAsync), _options.RetryOptions, null);
 
             logger.LogInformation("Completed duplication.");
         }

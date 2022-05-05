@@ -10,21 +10,21 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.Duplicate;
-using Microsoft.Health.Dicom.Functions.Duplicate;
-using Microsoft.Health.Dicom.Functions.Duplicate.Models;
+using Microsoft.Health.Dicom.Core.Models.Copy;
+using Microsoft.Health.Dicom.Functions.Copy;
+using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.Management;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
 
-public partial class DuplicateDurableFunctionTests
+public partial class CopyDurableFunctionTests
 {
     [Fact]
-    public async Task GivenNewOrchestrationWithWork_WhenDuplicateingInstances_ThenDivideAndDuplicateBatches()
+    public async Task GivenNewOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndDuplicateBatches()
     {
         const int batchSize = 5;
         _options.BatchSize = batchSize;
@@ -33,25 +33,25 @@ public partial class DuplicateDurableFunctionTests
         DateTime createdTime = DateTime.UtcNow;
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
-        var expectedInput = new DuplicateCheckpoint();
+        var expectedInput = new CopyCheckpoint();
 
         // Arrange the input
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
         context
-            .GetInput<DuplicateCheckpoint>()
+            .GetInput<CopyCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.CopyBatchAsync),
                 _options.RetryOptions,
-                Arg.Any<DuplicateBatchArguments>())
+                Arg.Any<CopyBatchArguments>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
@@ -61,16 +61,16 @@ public partial class DuplicateDurableFunctionTests
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
         // Invoke the orchestration
-        await _function.DuplicateInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
             .Received(1)
-            .GetInput<DuplicateCheckpoint>();
+            .GetInput<CopyCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
 
@@ -79,7 +79,7 @@ public partial class DuplicateDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(CopyDurableFunction.DuplicateBatchAsync),
+                    nameof(CopyDurableFunction.CopyBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(GetPredicate(batch)));
         }
@@ -87,7 +87,7 @@ public partial class DuplicateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(CopyDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
@@ -99,19 +99,19 @@ public partial class DuplicateDurableFunctionTests
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<DuplicateCheckpoint>(x => GetPredicate(createdTime, expectedBatches, 50)(x)),
+                Arg.Is<CopyCheckpoint>(x => GetPredicate(createdTime, expectedBatches, 50)(x)),
                 false);
     }
 
     [Fact]
-    public async Task GivenExistingOrchestrationWithWork_WhenDuplicateingInstances_ThenDivideAndDuplicateBatches()
+    public async Task GivenExistingOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndCopyBatches()
     {
         const int batchSize = 3;
         _options.BatchSize = batchSize;
         _options.MaxParallelBatches = 2;
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
-        var expectedInput = new DuplicateCheckpoint
+        var expectedInput = new CopyCheckpoint
         {
             Completed = new WatermarkRange(36, 42),
             CreatedTime = DateTime.UtcNow,
@@ -120,34 +120,34 @@ public partial class DuplicateDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<DuplicateCheckpoint>()
+            .GetInput<CopyCheckpoint>()
             .Returns(expectedInput);
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.CopyBatchAsync),
                 _options.RetryOptions,
-                Arg.Any<DuplicateBatchArguments>())
+                Arg.Any<CopyBatchArguments>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _function.DuplicateInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
             .Received(1)
-            .GetInput<DuplicateCheckpoint>();
+            .GetInput<CopyCheckpoint>();
 
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)));
 
@@ -156,7 +156,7 @@ public partial class DuplicateDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(CopyDurableFunction.DuplicateBatchAsync),
+                    nameof(CopyDurableFunction.CopyBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(GetPredicate(batch)));
         }
@@ -164,7 +164,7 @@ public partial class DuplicateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(CopyDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
@@ -176,51 +176,51 @@ public partial class DuplicateDurableFunctionTests
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<DuplicateCheckpoint>(x => GetPredicate(expectedInput.CreatedTime.Value, expectedBatches, 42)(x)),
+                Arg.Is<CopyCheckpoint>(x => GetPredicate(expectedInput.CreatedTime.Value, expectedBatches, 42)(x)),
                 false);
     }
 
     [Fact]
-    public async Task GivenNoInstances_WhenDuplicateingInstances_ThenComplete()
+    public async Task GivenNoInstances_WhenCopyingInstances_ThenComplete()
     {
         var expectedBatches = new List<WatermarkRange>();
-        var expectedInput = new DuplicateCheckpoint();
+        var expectedInput = new CopyCheckpoint();
 
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<DuplicateCheckpoint>()
+            .GetInput<CopyCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.DuplicateInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
             .Received(1)
-            .GetInput<DuplicateCheckpoint>();
+            .GetInput<CopyCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.CopyBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
 
@@ -238,10 +238,10 @@ public partial class DuplicateDurableFunctionTests
     [Theory]
     [InlineData(1, 100)]
     [InlineData(5, 1000)]
-    public async Task GivenNoRemainingInstances_WhenDuplicateingInstances_ThenComplete(long start, long end)
+    public async Task GivenNoRemainingInstances_WhenCopyingInstances_ThenComplete(long start, long end)
     {
         var expectedBatches = new List<WatermarkRange>();
-        var expectedInput = new DuplicateCheckpoint
+        var expectedInput = new CopyCheckpoint
         {
             Completed = new WatermarkRange(start, end),
             CreatedTime = DateTime.UtcNow
@@ -250,38 +250,38 @@ public partial class DuplicateDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<DuplicateCheckpoint>()
+            .GetInput<CopyCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)))
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.DuplicateInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
             .Received(1)
-            .GetInput<DuplicateCheckpoint>();
+            .GetInput<CopyCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.CopyBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
@@ -326,7 +326,7 @@ public partial class DuplicateDurableFunctionTests
             && x.MaxParallelBatches == _options.MaxParallelBatches;
     }
 
-    private Expression<Predicate<DuplicateBatchArguments>> GetPredicate(WatermarkRange expected)
+    private Expression<Predicate<CopyBatchArguments>> GetPredicate(WatermarkRange expected)
     {
         return x => x.WatermarkRange == expected
             && x.ThreadCount == _options.BatchThreadCount;
@@ -342,7 +342,7 @@ public partial class DuplicateDurableFunctionTests
         IReadOnlyList<WatermarkRange> expectedBatches,
         long end)
     {
-        return x => x is DuplicateCheckpoint r
+        return x => x is CopyCheckpoint r
             && r.Completed == new WatermarkRange(expectedBatches[expectedBatches.Count - 1].Start, end)
             && r.CreatedTime == createdTime;
     }

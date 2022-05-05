@@ -4,33 +4,33 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Duplicate;
+using Microsoft.Health.Dicom.Core.Features.Copy;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Functions.Duplicate;
+using Microsoft.Health.Dicom.Functions.Copy;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
 
-public partial class DuplicateDurableFunctionTests
+public partial class CopyDurableFunctionTests
 {
 
     private readonly IInstanceStore _instanceStore;
-    private readonly IInstanceDuplicater _instanceDuplicater;
+    private readonly IInstanceCopier _instanceCopier;
     private readonly CopyDurableFunction _function;
-    private readonly DuplicationOptions _options;
+    private readonly CopyOptions _options;
 
-    public DuplicateDurableFunctionTests()
+    public CopyDurableFunctionTests()
     {
-        _options = new DuplicationOptions
+        _options = new CopyOptions
         {
             BatchThreadCount = 1,
             BatchSize = 1,
             RetryOptions = new ActivityRetryOptions { MaxNumberOfAttempts = 5 }
         };
         _instanceStore = Substitute.For<IInstanceStore>();
-        _instanceDuplicater = Substitute.For<IInstanceDuplicater>();
+        _instanceCopier = Substitute.For<IInstanceCopier>();
 
-        _function = new CopyDurableFunction(_instanceStore, _instanceDuplicater, Options.Create(_options));
+        _function = new CopyDurableFunction(_instanceStore, _instanceCopier, Options.Create(_options));
     }
 }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
@@ -36,8 +36,8 @@
     <None Include="Indexing\ReindexDurableFunctionTests.*.cs">
       <DependentUpon>ReindexDurableFunctionTests.cs</DependentUpon>
     </None>
-    <None Include="Duplicate\DuplicateDurableFunctionTests.*.cs">
-      <DependentUpon>DuplicateDurableFunctionTests.cs</DependentUpon>
+    <None Include="Copy\CopyDurableFunctionTests.*.cs">
+      <DependentUpon>CopyDurableFunctionTests.cs</DependentUpon>
     </None>
   </ItemGroup>
   

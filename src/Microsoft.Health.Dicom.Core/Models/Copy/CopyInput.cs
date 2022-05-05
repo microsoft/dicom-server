@@ -5,8 +5,8 @@
 
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Models.Duplicate;
-public class DuplicateInput
+namespace Microsoft.Health.Dicom.Core.Models.Copy;
+public class CopyInput
 {
     public BatchingOptions Batching { get; set; }
 }

@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Functions.Duplicate.Models;
+using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Duplicate;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
 
-public partial class DuplicateDurableFunctionTests
+public partial class CopyDurableFunctionTests
 {
     [Fact]
     public async Task GivenNoWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
@@ -30,7 +30,7 @@ public partial class DuplicateDurableFunctionTests
             .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, null, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _function.GetDuplicateInstanceBatchesAsync(
+        IReadOnlyList<WatermarkRange> actual = await _function.GetCopyInstanceBatchesAsync(
             new BatchCreationArguments(null, batchSize, maxParallelBatches),
             NullLogger.Instance);
 
@@ -54,7 +54,7 @@ public partial class DuplicateDurableFunctionTests
             .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, max, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _function.GetDuplicateInstanceBatchesAsync(
+        IReadOnlyList<WatermarkRange> actual = await _function.GetCopyInstanceBatchesAsync(
             new BatchCreationArguments(max, batchSize, maxParallelBatches),
             NullLogger.Instance);
 
@@ -70,7 +70,7 @@ public partial class DuplicateDurableFunctionTests
     public async Task GivenBatch_WhenDuplicateing_ThenShouldDuplicateEachInstance()
     {
         const int threadCount = 7;
-        var args = new DuplicateBatchArguments(
+        var args = new CopyBatchArguments(
             new WatermarkRange(3, 10),
             threadCount);
 
@@ -92,7 +92,7 @@ public partial class DuplicateDurableFunctionTests
 
 
         // Call the activity
-        await _function.DuplicateBatchAsync(args, NullLogger.Instance);
+        await _function.CopyBatchAsync(args, NullLogger.Instance);
 
         // Assert behavior
         await _instanceStore
@@ -101,7 +101,7 @@ public partial class DuplicateDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _instanceDuplicater.Received(1).DuplicateInstanceAsync(identifier);
+            await _instanceCopier.Received(1).DuplicateInstanceAsync(identifier);
         }
     }
 }

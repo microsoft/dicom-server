@@ -7,11 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Duplicate;
-public interface IInstanceDuplicater
+namespace Microsoft.Health.Dicom.Core.Features.Copy;
+
+
+/// <summary>
+/// Represents a copyier which copy DICOM instance.
+/// </summary>
+public interface IInstanceCopier
 {
     /// <summary>
-    /// Asynchronously duplicate the DICOM instance with the <paramref name="versionedInstanceId"/>    
+    /// Asynchronously copy the DICOM instance with the <paramref name="versionedInstanceId"/>    
     /// </summary>
     /// <param name="versionedInstanceId">The versioned instance id.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
