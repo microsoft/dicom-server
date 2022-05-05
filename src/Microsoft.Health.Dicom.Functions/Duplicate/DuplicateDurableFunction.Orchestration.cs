@@ -72,7 +72,7 @@ public partial class DuplicateDurableFunction
             logger.LogInformation("Completed duplicating the range {Range}. Continuing with new execution...", batchRange);
 
             WatermarkRange completed = input.Completed.HasValue
-                ? input.Completed.Value.Merge(batchRange)
+                ? input.Completed.Value.Combine(batchRange)
                 : batchRange;
 
             context.ContinueAsNew(

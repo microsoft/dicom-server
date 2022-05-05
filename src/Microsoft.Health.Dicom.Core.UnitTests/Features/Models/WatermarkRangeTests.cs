@@ -20,7 +20,7 @@ public class WatermarkRangeTests
         var expected = new WatermarkRange(expectedStart, expectedEnd);
         var range1 = new WatermarkRange(start1, end1);
         var range2 = new WatermarkRange(start2, end2);
-        Assert.Equal(expected, range1.Merge(range2));
+        Assert.Equal(expected, range1.Combine(range2));
     }
 
     [Theory]
@@ -30,6 +30,6 @@ public class WatermarkRangeTests
     {
         var range1 = new WatermarkRange(start1, end1);
         var range2 = new WatermarkRange(start2, end2);
-        Assert.Throws<ArgumentException>(() => range1.Merge(range2));
+        Assert.Throws<ArgumentException>(() => range1.Combine(range2));
     }
 }

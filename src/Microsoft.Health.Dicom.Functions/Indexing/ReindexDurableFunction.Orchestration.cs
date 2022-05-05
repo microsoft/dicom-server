@@ -84,7 +84,7 @@ public partial class ReindexDurableFunction
                 // Create a new orchestration with the same instance ID to process the remaining data
                 logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
-                WatermarkRange completed = input.Completed.HasValue ? input.Completed.Value.Merge(batchRange) : batchRange;
+                WatermarkRange completed = input.Completed.HasValue ? input.Completed.Value.Combine(batchRange) : batchRange;
 
                 context.ContinueAsNew(
                     new ReindexCheckpoint
