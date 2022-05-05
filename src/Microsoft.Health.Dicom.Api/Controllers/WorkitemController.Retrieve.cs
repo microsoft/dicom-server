@@ -30,7 +30,6 @@ public partial class WorkitemController
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [VersionedPartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance)]
     [PartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedRetrieveWorkitemInstance)]
     [VersionedRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedRetrieveWorkitemInstance)]

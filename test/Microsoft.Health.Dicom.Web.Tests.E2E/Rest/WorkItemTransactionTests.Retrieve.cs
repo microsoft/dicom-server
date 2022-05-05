@@ -37,27 +37,4 @@ public partial class WorkItemTransactionTests
         Assert.NotNull(dataset);
         Assert.Equal(workitemUid, dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID));
     }
-
-    [Fact]
-    [Trait("Category", "bvt-fe")]
-    public async Task GivenRetrieveWorkitem_WhenWorkitemIsNotFound_ReturnsNotFoundError()
-    {
-        var workitemUid = TestUidGenerator.Generate();
-        var patientName = $"TestUser-{workitemUid}";
-
-        // Create
-        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
-        dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
-
-        using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
-        Assert.True(addResponse.IsSuccessStatusCode);
-
-        // Retrieve
-        var newWorkitemUid = TestUidGenerator.Generate();
-        using var retrieveResponse = await _client.RetrieveWorkitemAsync(newWorkitemUid).ConfigureAwait(false);
-
-        // Verify
-        Assert.True(retrieveResponse.IsSuccessStatusCode);
-        Assert.True(retrieveResponse.StatusCode == System.Net.HttpStatusCode.NoContent);
-    }
 }
