@@ -6,6 +6,7 @@
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Copy;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Copy;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
@@ -19,15 +20,21 @@ public partial class CopyDurableFunctionTests
     private readonly IInstanceCopier _instanceCopier;
     private readonly CopyDurableFunction _function;
     private readonly CopyOptions _options;
+    private readonly BatchingOptions _batchingOptions;
 
     public CopyDurableFunctionTests()
     {
         _options = new CopyOptions
         {
             BatchThreadCount = 1,
-            BatchSize = 1,
             RetryOptions = new ActivityRetryOptions { MaxNumberOfAttempts = 5 }
         };
+        _batchingOptions = new BatchingOptions
+        {
+            MaxParallelCount = 3,
+            Size = 3
+        };
+
         _instanceStore = Substitute.For<IInstanceStore>();
         _instanceCopier = Substitute.For<IInstanceCopier>();
 

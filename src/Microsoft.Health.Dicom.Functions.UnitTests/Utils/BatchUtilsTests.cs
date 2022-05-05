@@ -59,22 +59,6 @@ public class BatchUtilsTests
 
     }
 
-    [Fact]
-    public void GivenAscendingBatches_WhenGetBatchRange_ThenShouldReturnExpected()
-    {
-        var range1 = new WatermarkRange(1, 3);
-        var range2 = new WatermarkRange(4, 5);
-        Assert.Equal(new WatermarkRange(1, 5), BatchUtils.GetBatchRange(new[] { range1, range2 }, ascending: true));
-    }
-
-    [Fact]
-    public void GivenDescendingBatches_WhenGetBatchRange_ThenShouldReturnExpected()
-    {
-        var range1 = new WatermarkRange(4, 5);
-        var range2 = new WatermarkRange(1, 3);
-        Assert.Equal(new WatermarkRange(1, 5), BatchUtils.GetBatchRange(new[] { range1, range2 }, ascending: false));
-    }
-
     private static VersionedInstanceIdentifier[] RandomIds(int count)
     {
         var ids = new VersionedInstanceIdentifier[count];

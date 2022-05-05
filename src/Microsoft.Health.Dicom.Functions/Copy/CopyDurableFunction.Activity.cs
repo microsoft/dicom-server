@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Functions.Utils;
 
 namespace Microsoft.Health.Dicom.Functions.Copy;
+
 public partial class CopyDurableFunction
 {
 

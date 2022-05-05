@@ -9,7 +9,6 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Copy;
 
-
 /// <summary>
 /// Represents a copyier which copy DICOM instance.
 /// </summary>
@@ -22,7 +21,7 @@ public interface IInstanceCopier
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation. The value of the
-    /// <see cref="Task{TResult}.Result"/> indicates whether the reindexing was successful.
+    /// <see cref="Task{TResult}.Result"/> indicates whether the the cpoy was successful.
     /// </returns>
     Task CopyInstanceAsync(VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
 }

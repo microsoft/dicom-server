@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing;
@@ -72,7 +71,7 @@ public partial class ReindexDurableFunction
             if (batches.Count > 0)
             {
                 // Note that batches are in reverse order because we start from the highest watermark
-                var batchRange = BatchUtils.GetBatchRange(batches);
+                var batchRange = WatermarkRange.Combine(batches);
 
                 logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                 await Task.WhenAll(batches

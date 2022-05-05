@@ -25,10 +25,6 @@ public partial class CopyDurableFunctionTests
     [Fact]
     public async Task GivenNewOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndDuplicateBatches()
     {
-        const int batchSize = 5;
-        _options.BatchSize = batchSize;
-        _options.MaxParallelBatches = 3;
-
         DateTime createdTime = DateTime.UtcNow;
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
@@ -105,10 +101,6 @@ public partial class CopyDurableFunctionTests
     [Fact]
     public async Task GivenExistingOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndCopyBatches()
     {
-        const int batchSize = 3;
-        _options.BatchSize = batchSize;
-        _options.MaxParallelBatches = 2;
-
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
         var expectedInput = new CopyCheckpoint
         {
@@ -309,10 +301,10 @@ public partial class CopyDurableFunctionTests
         var batches = new List<WatermarkRange>();
 
         long current = end;
-        for (int i = 0; i < _options.MaxParallelBatches && current > 0; i++)
+        for (int i = 0; i < _batchingOptions.MaxParallelCount && current > 0; i++)
         {
-            batches.Add(new WatermarkRange(Math.Max(1, current - _options.BatchSize + 1), current));
-            current -= _options.BatchSize;
+            batches.Add(new WatermarkRange(Math.Max(1, current - _batchingOptions.Size + 1), current));
+            current -= _batchingOptions.Size;
         }
 
         return batches;
@@ -321,8 +313,8 @@ public partial class CopyDurableFunctionTests
     private Expression<Predicate<BatchCreationArguments>> GetPredicate(long? maxWatermark)
     {
         return x => x.MaxWatermark == maxWatermark
-            && x.BatchSize == _options.BatchSize
-            && x.MaxParallelBatches == _options.MaxParallelBatches;
+            && x.BatchSize == _batchingOptions.Size
+            && x.MaxParallelBatches == _batchingOptions.MaxParallelCount;
     }
 
     private static Expression<Predicate<GetInstanceStatusOptions>> GetPredicate()
