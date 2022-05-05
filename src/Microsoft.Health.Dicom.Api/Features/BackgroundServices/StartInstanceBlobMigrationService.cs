@@ -50,7 +50,7 @@ public class StartInstanceBlobMigrationService : BackgroundService
                     var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
                     // We also need to ensure if the operation client already not completed
-                    if (operationsClient != null && await operationsClient.IsBlobMigrationCompletedAsync(stoppingToken))
+                    if (operationsClient != null && !await operationsClient.IsBlobMigrationCompletedAsync(stoppingToken))
                     {
                         await operationsClient.StartBlobMigrationAsync(stoppingToken);
                     }
