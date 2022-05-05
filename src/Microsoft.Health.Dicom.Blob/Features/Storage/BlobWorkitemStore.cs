@@ -146,7 +146,7 @@ public class BlobWorkitemStore : IWorkitemStore
     {
         var version = proposedWatermark.GetValueOrDefault(identifier.Watermark);
 
-        var blobName = $"{HashingHelper.Hash(version, MaxPrefixLength)}_{version}_workitem.json";
+        var blobName = $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}_workitem.json";
 
         return _container.GetBlockBlobClient(blobName);
     }

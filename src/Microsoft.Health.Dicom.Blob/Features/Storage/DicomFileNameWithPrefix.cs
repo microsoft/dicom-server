@@ -16,12 +16,12 @@ public class DicomFileNameWithPrefix : IDicomFileNameBuilder
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
-        return $"{HashingHelper.Hash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}.dcm";
+        return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}.dcm";
     }
 
     public string GetMetadataFileName(VersionedInstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{HashingHelper.Hash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_metadata.json";
+        return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_metadata.json";
     }
 }
