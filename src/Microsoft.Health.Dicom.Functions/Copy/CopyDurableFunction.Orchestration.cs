@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -23,12 +22,8 @@ namespace Microsoft.Health.Dicom.Functions.Copy;
 public partial class CopyDurableFunction
 {
     /// <summary>
-    /// Asynchronously creates an index for the provided query tags over the previously added data.
+    /// Asynchronously copy DICOM instances in the past.
     /// </summary>
-    /// <remarks>
-    /// Durable functions are reliable, and their implementations will be executed repeatedly over the lifetime of
-    /// a single instance.
-    /// </remarks>
     /// <param name="context">The context for the orchestration instance.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>A task representing the <see cref="CopyInstancesAsync"/> operation.</returns>
@@ -66,7 +61,7 @@ public partial class CopyDurableFunction
                 .Select(x => context.CallActivityWithRetryAsync(
                     nameof(CopyBatchAsync),
                     _options.RetryOptions,
-                    CopyBatchArguments.FromOptions(x, _options))));
+                    x)));
 
             // Create a new orchestration with the same instance ID to process the remaining data
             logger.LogInformation("Completed copying the range {Range}. Continuing with new execution...", batchRange);
@@ -90,6 +85,5 @@ public partial class CopyDurableFunction
         }
 
     }
-
 
 }

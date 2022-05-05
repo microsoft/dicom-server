@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -69,10 +68,7 @@ public partial class CopyDurableFunctionTests
     [Fact]
     public async Task GivenBatch_WhenDuplicateing_ThenShouldDuplicateEachInstance()
     {
-        const int threadCount = 7;
-        var args = new CopyBatchArguments(
-            new WatermarkRange(3, 10),
-            threadCount);
+        var range = new WatermarkRange(3, 10);
 
         var expected = new List<VersionedInstanceIdentifier>
         {
@@ -87,17 +83,17 @@ public partial class CopyDurableFunctionTests
 
         // Arrange input
         _instanceStore
-            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None)
+            .GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created, CancellationToken.None)
             .Returns(expected);
 
 
         // Call the activity
-        await _function.CopyBatchAsync(args, NullLogger.Instance);
+        await _function.CopyBatchAsync(range, NullLogger.Instance);
 
         // Assert behavior
         await _instanceStore
             .Received(1)
-            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None);
+            .GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created, CancellationToken.None);
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {

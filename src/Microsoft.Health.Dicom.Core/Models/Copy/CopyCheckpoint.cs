@@ -9,6 +9,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Models.Copy;
+
 public class CopyCheckpoint : CopyInput, IOperationCheckpoint
 {
     public WatermarkRange? Completed { get; set; }

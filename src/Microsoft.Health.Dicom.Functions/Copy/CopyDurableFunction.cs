@@ -11,8 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 namespace Microsoft.Health.Dicom.Functions.Copy;
 
 /// <summary>
-/// Represents the Azure Durable Functions that perform the re-indexing of previously added DICOM instances
-/// based on new tags configured by the user.
+/// Represents the Azure Durable Functions that copy existing DICOM instances to new format.
 /// </summary>
 public partial class CopyDurableFunction
 {

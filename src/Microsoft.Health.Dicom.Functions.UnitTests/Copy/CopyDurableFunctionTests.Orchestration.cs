@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Functions.Copy;
-using Microsoft.Health.Dicom.Functions.Copy.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.Management;
@@ -51,7 +50,7 @@ public partial class CopyDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(CopyDurableFunction.CopyBatchAsync),
                 _options.RetryOptions,
-                Arg.Any<CopyBatchArguments>())
+                Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
@@ -81,7 +80,7 @@ public partial class CopyDurableFunctionTests
                 .CallActivityWithRetryAsync(
                     nameof(CopyDurableFunction.CopyBatchAsync),
                     _options.RetryOptions,
-                    Arg.Is(GetPredicate(batch)));
+                    Arg.Is(batch));
         }
 
         await context
@@ -133,7 +132,7 @@ public partial class CopyDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(CopyDurableFunction.CopyBatchAsync),
                 _options.RetryOptions,
-                Arg.Any<CopyBatchArguments>())
+                Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
@@ -158,7 +157,7 @@ public partial class CopyDurableFunctionTests
                 .CallActivityWithRetryAsync(
                     nameof(CopyDurableFunction.CopyBatchAsync),
                     _options.RetryOptions,
-                    Arg.Is(GetPredicate(batch)));
+                    Arg.Is(batch));
         }
 
         await context
@@ -324,12 +323,6 @@ public partial class CopyDurableFunctionTests
         return x => x.MaxWatermark == maxWatermark
             && x.BatchSize == _options.BatchSize
             && x.MaxParallelBatches == _options.MaxParallelBatches;
-    }
-
-    private Expression<Predicate<CopyBatchArguments>> GetPredicate(WatermarkRange expected)
-    {
-        return x => x.WatermarkRange == expected
-            && x.ThreadCount == _options.BatchThreadCount;
     }
 
     private static Expression<Predicate<GetInstanceStatusOptions>> GetPredicate()

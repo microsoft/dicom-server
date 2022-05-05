@@ -10,7 +10,7 @@ using Microsoft.Health.Operations.Functions.DurableTask;
 namespace Microsoft.Health.Dicom.Functions.Copy;
 
 /// <summary>
-/// Represents the options for a "re-index" function.
+/// Represents the options for a copy function.
 /// </summary>
 public class CopyOptions
 {
@@ -35,7 +35,7 @@ public class CopyOptions
     public int MaxParallelBatches { get; set; } = 10;
 
     /// <summary>
-    /// Gets or sets the <see cref="ActivityRetryOptions"/> for re-indexing activities.
+    /// Gets or sets the <see cref="ActivityRetryOptions"/> for copy activities.
     /// </summary>
     public ActivityRetryOptions RetryOptions { get; set; }
 }
