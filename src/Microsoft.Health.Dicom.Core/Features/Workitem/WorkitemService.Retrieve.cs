@@ -7,7 +7,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -32,13 +31,9 @@ public partial class WorkitemService
                 .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
 
-            ValidateRetrieveRequest(workitemMetadata);
-
             var dicomDataset = await _workitemOrchestrator
                 .RetrieveWorkitemAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
-
-            PrepareRetrieveResponseDicomDataset(dicomDataset);
 
             _responseBuilder.AddSuccess(dicomDataset);
 
@@ -56,9 +51,6 @@ public partial class WorkitemService
                 case WorkitemNotFoundException:
                     failureCode = FailureReasonCodes.UpsInstanceNotFound;
                     break;
-                case WorkitemIsInFinalStateException:
-                    failureCode = (ex as WorkitemIsInFinalStateException).ErrorOrWarningCode;
-                    break;
             }
 
             _responseBuilder.AddFailure(failureCode, ex.Message);
@@ -73,27 +65,5 @@ public partial class WorkitemService
         {
             throw new WorkitemNotFoundException(workitemMetadata.WorkitemUid);
         }
-
-        var procedureStepState = workitemMetadata.ProcedureStepState;
-        if (procedureStepState == ProcedureStepState.Completed)
-        {
-            throw new WorkitemIsInFinalStateException(
-                workitemMetadata.WorkitemUid,
-                workitemMetadata.ProcedureStepStateStringValue,
-                FailureReasonCodes.UpsIsAlreadyCompleted);
-        }
-        if (procedureStepState == ProcedureStepState.Canceled)
-        {
-            throw new WorkitemIsInFinalStateException(
-                workitemMetadata.WorkitemUid,
-                workitemMetadata.ProcedureStepStateStringValue,
-                FailureReasonCodes.UpsIsAlreadyCanceled);
-        }
-    }
-
-    private static void PrepareRetrieveResponseDicomDataset(DicomDataset dataset)
-    {
-        // alaways remove Transaction UID from the result dicomDataset.
-        dataset.Remove(DicomTag.TransactionUID);
     }
 }

@@ -259,7 +259,7 @@ public static class DicomMediatorExtensions
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        EnsureArg.IsNotNullOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
         return mediator.Send(new RetrieveWorkitemRequest(workitemInstanceUid), cancellationToken);
     }

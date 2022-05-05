@@ -218,20 +218,6 @@ public partial class DicomWebClient : IDicomWebClient
         }
     }
 
-    private static async Task<T> Deserialize<T>(HttpContent content)
-    {
-        string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
-
-        if (string.IsNullOrEmpty(contentText))
-        {
-            return default(T);
-        }
-
-        var dataset = JsonSerializer.Deserialize<T>(contentText, JsonSerializerOptions);
-
-        return dataset;
-    }
-
     private static async IAsyncEnumerable<T> DeserializeAsAsyncEnumerable<T>(HttpContent content)
     {
         string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);

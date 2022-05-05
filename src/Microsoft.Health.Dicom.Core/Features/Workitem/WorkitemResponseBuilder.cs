@@ -45,7 +45,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
 
         if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
         {
-            // There are only success.
             status = WorkitemResponseStatus.Success;
             url = _urlResolver.ResolveRetrieveWorkitemUri(_dataset.GetString(DicomTag.SOPInstanceUID));
         }
@@ -88,7 +87,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
 
         if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
         {
-            // There are only success.
             status = WorkitemResponseStatus.Success;
         }
         else if (failureReason == FailureReasonCodes.ProcessingFailure ||
@@ -96,10 +94,11 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
         {
             status = WorkitemResponseStatus.NotFound;
         }
-        else if (failureReason == FailureReasonCodes.UpsIsAlreadyCompleted ||
-                 failureReason == FailureReasonCodes.UpsIsAlreadyCanceled)
+
+        // alaways remove Transaction UID from the result dicomDataset.
+        if (null != _dataset)
         {
-            status = WorkitemResponseStatus.Conflict;
+            _dataset.Remove(DicomTag.TransactionUID);
         }
 
         return new RetrieveWorkitemResponse(status, _dataset, _message);

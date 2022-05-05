@@ -7,7 +7,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -37,8 +36,6 @@ public partial class WorkitemController
     [AuditEventType(AuditEventSubType.RetrieveWorkitem)]
     public async Task<IActionResult> RetrieveAsync(string workitemInstanceUid)
     {
-        _logger.LogInformation("Search workitem.");
-
         var response = await _mediator
             .RetrieveWorkitemAsync(workitemInstanceUid, cancellationToken: HttpContext.RequestAborted)
             .ConfigureAwait(false);
