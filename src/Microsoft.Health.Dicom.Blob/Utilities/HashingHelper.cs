@@ -16,7 +16,7 @@ internal static class HashingHelper
     /// <param name="value"> Value to be hashed</param>
     /// <param name="hashLength">Length of the hash to be returned. -1 means the complete hash value without trimming.</param>
     /// <returns>Returns hashed value as string. If hashLength is provided, it will return the value to that length</returns>
-    public static string Hash(long value, int hashLength = -1)
+    public static string ComputeXXHash(long value, int hashLength = -1)
     {
         EnsureArg.IsNotDefault(value, nameof(value));
 

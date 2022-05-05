@@ -24,7 +24,7 @@ public class DicomFileNameWithPrefixTests
     public void GivenIdentifier_GetFileNames_ShouldReturnExpectedValues()
     {
         VersionedInstanceIdentifier instanceIdentifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
-        Assert.Equal($"{HashingHelper.Hash(instanceIdentifier.Version, 3)}_{instanceIdentifier.Version}.dcm", _nameWithPrefix.GetInstanceFileName(instanceIdentifier));
-        Assert.Equal($"{HashingHelper.Hash(instanceIdentifier.Version, 3)}_{instanceIdentifier.Version}_metadata.json", _nameWithPrefix.GetMetadataFileName(instanceIdentifier));
+        Assert.Equal($"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, 3)}_{instanceIdentifier.Version}.dcm", _nameWithPrefix.GetInstanceFileName(instanceIdentifier));
+        Assert.Equal($"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, 3)}_{instanceIdentifier.Version}_metadata.json", _nameWithPrefix.GetMetadataFileName(instanceIdentifier));
     }
 }

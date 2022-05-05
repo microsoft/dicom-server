@@ -82,7 +82,7 @@ public class BlobMetadataStore : IMetadataStore
         // Creates a copy of the dataset with bulk data removed.
         DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
 
         try
         {
@@ -94,7 +94,7 @@ public class BlobMetadataStore : IMetadataStore
                 await utf8Writer.FlushAsync(cancellationToken);
                 stream.Seek(0, SeekOrigin.Begin);
 
-                await Task.WhenAll(blobs.Select(blob => blob.UploadAsync(
+                await Task.WhenAll(blobClients.Select(blob => blob.UploadAsync(
                     stream,
                     new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
                     metadata: null,
@@ -156,7 +156,7 @@ public class BlobMetadataStore : IMetadataStore
     // TODO: This should removed once we migrate everything and the global flag is turned on
     private BlockBlobClient[] GetInstanceBlockBlobClients(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        var clients = new List<BlockBlobClient>();
+        var clients = new List<BlockBlobClient>(2);
 
         string blobName;
 

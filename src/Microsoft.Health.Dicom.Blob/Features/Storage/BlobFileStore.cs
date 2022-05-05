@@ -68,15 +68,15 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
         stream.Seek(0, SeekOrigin.Begin);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
 
         try
         {
-            await Task.WhenAll(blobs.Select(blob => blob.UploadAsync(stream, blobUploadOptions, cancellationToken)));
-            return blobs[0].Uri;
+            await Task.WhenAll(blobClients.Select(blob => blob.UploadAsync(stream, blobUploadOptions, cancellationToken)));
+            return blobClients[0].Uri;
         }
         catch (Exception ex)
         {
@@ -153,7 +153,7 @@ public class BlobFileStore : IFileStore
     // TODO: This should removed once we migrate everything and the global flag is turned on
     private BlockBlobClient[] GetInstanceBlockBlobClients(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        var clients = new List<BlockBlobClient>();
+        var clients = new List<BlockBlobClient>(2);
 
         string blobName;
 
