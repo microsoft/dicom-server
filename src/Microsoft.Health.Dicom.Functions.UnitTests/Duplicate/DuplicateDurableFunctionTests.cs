@@ -17,7 +17,7 @@ public partial class DuplicateDurableFunctionTests
 
     private readonly IInstanceStore _instanceStore;
     private readonly IInstanceDuplicater _instanceDuplicater;
-    private readonly DuplicateDurableFunction _function;
+    private readonly CopyDurableFunction _function;
     private readonly DuplicationOptions _options;
 
     public DuplicateDurableFunctionTests()
@@ -31,6 +31,6 @@ public partial class DuplicateDurableFunctionTests
         _instanceStore = Substitute.For<IInstanceStore>();
         _instanceDuplicater = Substitute.For<IInstanceDuplicater>();
 
-        _function = new DuplicateDurableFunction(_instanceStore, _instanceDuplicater, Options.Create(_options));
+        _function = new CopyDurableFunction(_instanceStore, _instanceDuplicater, Options.Create(_options));
     }
 }

@@ -43,13 +43,13 @@ public partial class DuplicateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.DuplicateBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<DuplicateBatchArguments>())
             .Returns(Task.CompletedTask);
@@ -70,7 +70,7 @@ public partial class DuplicateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
 
@@ -79,7 +79,7 @@ public partial class DuplicateDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(DuplicateDurableFunction.DuplicateBatchAsync),
+                    nameof(CopyDurableFunction.DuplicateBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(GetPredicate(batch)));
         }
@@ -87,7 +87,7 @@ public partial class DuplicateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteDuplicateAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
@@ -125,13 +125,13 @@ public partial class DuplicateDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.DuplicateBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<DuplicateBatchArguments>())
             .Returns(Task.CompletedTask);
@@ -147,7 +147,7 @@ public partial class DuplicateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)));
 
@@ -156,7 +156,7 @@ public partial class DuplicateDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(DuplicateDurableFunction.DuplicateBatchAsync),
+                    nameof(CopyDurableFunction.DuplicateBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(GetPredicate(batch)));
         }
@@ -164,7 +164,7 @@ public partial class DuplicateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteDuplicateAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
@@ -193,7 +193,7 @@ public partial class DuplicateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
@@ -208,19 +208,19 @@ public partial class DuplicateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.DuplicateBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteDuplicateAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
 
@@ -254,7 +254,7 @@ public partial class DuplicateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)))
             .Returns(expectedBatches);
@@ -269,19 +269,19 @@ public partial class DuplicateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DuplicateDurableFunction.GetDuplicateInstanceBatchesAsync),
+                nameof(CopyDurableFunction.GetDuplicateInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.DuplicateBatchAsync),
+                nameof(CopyDurableFunction.DuplicateBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(DuplicateDurableFunction.CompleteDuplicateAsync),
+                nameof(CopyDurableFunction.CompleteDuplicateAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context

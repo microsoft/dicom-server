@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Functions.Duplicate.Models;
 
 /// <summary>
-///  Represents input to <see cref="DuplicateDurableFunction.DuplicateBatchAsync"/>
+///  Represents input to <see cref="CopyDurableFunction.DuplicateBatchAsync"/>
 /// </summary>
 public sealed class DuplicateBatchArguments
 {
