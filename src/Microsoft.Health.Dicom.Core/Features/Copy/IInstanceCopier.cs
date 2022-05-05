@@ -24,5 +24,5 @@ public interface IInstanceCopier
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation. The value of the
     /// <see cref="Task{TResult}.Result"/> indicates whether the reindexing was successful.
     /// </returns>
-    Task DuplicateInstanceAsync(VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
+    Task CopyInstanceAsync(VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
 }

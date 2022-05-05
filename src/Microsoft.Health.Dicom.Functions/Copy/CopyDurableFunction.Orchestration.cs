@@ -61,7 +61,7 @@ public partial class CopyDurableFunction
             // Example: [8,11][4,7][1,3]
             var batchRange = BatchUtils.GetBatchRange(batches);
 
-            logger.LogInformation("Beginning to duplicate the range {Range}.", batchRange);
+            logger.LogInformation("Beginning to copy the range {Range}.", batchRange);
             await Task.WhenAll(batches
                 .Select(x => context.CallActivityWithRetryAsync(
                     nameof(CopyBatchAsync),
@@ -69,7 +69,7 @@ public partial class CopyDurableFunction
                     CopyBatchArguments.FromOptions(x, _options))));
 
             // Create a new orchestration with the same instance ID to process the remaining data
-            logger.LogInformation("Completed duplicating the range {Range}. Continuing with new execution...", batchRange);
+            logger.LogInformation("Completed copying the range {Range}. Continuing with new execution...", batchRange);
 
             WatermarkRange completed = input.Completed.HasValue
                 ? input.Completed.Value.Combine(batchRange)

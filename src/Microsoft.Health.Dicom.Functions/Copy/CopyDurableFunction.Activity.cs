@@ -66,14 +66,14 @@ public partial class CopyDurableFunction
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Beginning to duplicate instances in the range {Range}",
+        logger.LogInformation("Beginning to copy instances in the range {Range}",
             arguments.WatermarkRange);
 
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers, arguments.ThreadCount, id => _instanceCopier.DuplicateInstanceAsync(id));
-        logger.LogInformation("Completed duplicating instances in the range {Range}.", arguments.WatermarkRange);
+        await BatchUtils.ExecuteBatchAsync(instanceIdentifiers, arguments.ThreadCount, id => _instanceCopier.CopyInstanceAsync(id));
+        logger.LogInformation("Completed copying instances in the range {Range}.", arguments.WatermarkRange);
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public partial class CopyDurableFunction
         EnsureArg.IsNotNull(context, nameof(context));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Completing the duplicate operation {OperationId}", context.InstanceId);
+        logger.LogInformation("Completing the copy operation {OperationId}", context.InstanceId);
 
         // TODO: update table storage to mark as completed.
         return Task.CompletedTask;

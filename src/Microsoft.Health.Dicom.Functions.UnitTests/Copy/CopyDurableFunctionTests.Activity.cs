@@ -101,7 +101,7 @@ public partial class CopyDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _instanceCopier.Received(1).DuplicateInstanceAsync(identifier);
+            await _instanceCopier.Received(1).CopyInstanceAsync(identifier);
         }
     }
 }
