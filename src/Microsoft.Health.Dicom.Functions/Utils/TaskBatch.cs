@@ -24,9 +24,9 @@ internal static class TaskBatch
     public static async Task RunAsync<T>(IReadOnlyList<T> input, Func<T, Task> taskFactory, int threadCount = -1)
     {
         EnsureArg.IsNotNull(input, nameof(input));
-        EnsureArg.IsGt(threadCount, 0);
+        EnsureArg.IsNot(threadCount, 0, nameof(threadCount));
         EnsureArg.IsNotNull(taskFactory);
-        if (threadCount == -1)
+        if (threadCount < 0)
         {
             await Task.WhenAll(input.Select(x => taskFactory(x)));
         }

@@ -19,7 +19,6 @@ namespace Microsoft.Health.Dicom.Functions.Copy;
 
 public partial class CopyDurableFunction
 {
-
     /// <summary>
     /// Asynchronously retrieves the next set of instance batches based on the configured options.
     /// </summary>
@@ -72,27 +71,5 @@ public partial class CopyDurableFunction
 
         await TaskBatch.RunAsync(instanceIdentifiers, id => _instanceCopier.CopyInstanceAsync(id), _options.BatchThreadCount);
         logger.LogInformation("Completed copying instances in the range {Range}.", range);
-    }
-
-    /// <summary>
-    /// Asynchronously completes the copy operation.
-    /// </summary>
-    /// <param name="context">The context for the activity.</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CompleteCopyAsync"/> operation.
-    /// </returns>
-    [FunctionName(nameof(CompleteCopyAsync))]
-    public Task CompleteCopyAsync(
-        [ActivityTrigger] IDurableActivityContext context,
-        ILogger logger)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        logger.LogInformation("Completing the copy operation {OperationId}", context.InstanceId);
-
-        // TODO: update table storage to mark as completed.
-        return Task.CompletedTask;
     }
 }

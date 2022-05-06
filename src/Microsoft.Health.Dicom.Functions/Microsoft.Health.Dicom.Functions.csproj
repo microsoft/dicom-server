@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -32,14 +32,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Copy\CopyDurableFunction.*.cs">
+      <DependentUpon>CopyDurableFunction.cs</DependentUpon>
+    </None>
     <None Include="Export\ExportDurableFunction.*.cs">
       <DependentUpon>ExportDurableFunction.cs</DependentUpon>
     </None>
     <None Include="Indexing\ReindexDurableFunction.*.cs">
       <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
-    </None>
-    <None Include="Copy\CopyDurableFunction.*.cs">
-      <DependentUpon>CopyDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>
 

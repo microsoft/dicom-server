@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Utils;
@@ -11,10 +12,20 @@ using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Utils;
-public class BatchUtilsTests
+
+public class TaskBatchTests
 {
+
     [Fact]
-    public async Task GivenIdsNotDivisibleByThreadCount_WhenExecuteBatchAsync_ThenShouldSucceed()
+    public async Task GivenInvalidThreadCount_WhenRunAsync_ThenShouldThrowExceptoin()
+    {
+        VersionedInstanceIdentifier[] ids = RandomIds(5);
+        ITaskCreator taskCreator = Substitute.For<ITaskCreator>();
+        await Assert.ThrowsAsync<ArgumentException>(() => TaskBatch.RunAsync(ids, id => taskCreator.CreateAsync(id), 0));
+    }
+
+    [Fact]
+    public async Task GivenIdsNotDivisibleByThreadCount_WhenRunAsync_ThenShouldSucceed()
     {
         VersionedInstanceIdentifier[] ids = RandomIds(5);
         ITaskCreator taskCreator = Substitute.For<ITaskCreator>();
@@ -30,7 +41,7 @@ public class BatchUtilsTests
     }
 
     [Fact]
-    public async Task GivenIdsDivisibleByThreadCount_WhenExecuteBatchAsync_ThenShouldSucceed()
+    public async Task GivenIdsDivisibleByThreadCount_WhenRunAsync_ThenShouldSucceed()
     {
         VersionedInstanceIdentifier[] ids = RandomIds(6);
         ITaskCreator taskCreator = Substitute.For<ITaskCreator>();
@@ -46,7 +57,7 @@ public class BatchUtilsTests
     }
 
     [Fact]
-    public async Task GivenNoIds_WhenExecuteBatchAsync_ThenShouldNotCallTaskCreator()
+    public async Task GivenNoIds_WhenRunAsync_ThenShouldNotCallTaskCreator()
     {
         VersionedInstanceIdentifier[] ids = RandomIds(0);
         ITaskCreator taskCreator = Substitute.For<ITaskCreator>();

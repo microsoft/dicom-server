@@ -8,6 +8,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Models;
+
 public class WatermarkRangeTests
 {
 

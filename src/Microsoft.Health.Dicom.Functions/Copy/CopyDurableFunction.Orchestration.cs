@@ -20,7 +20,8 @@ namespace Microsoft.Health.Dicom.Functions.Copy;
 public partial class CopyDurableFunction
 {
     /// <summary>
-    /// Asynchronously copy DICOM instances in the past.
+    /// Asynchronously copy DICOM instances.
+    /// It goes through DICOM instances in the past, copy to files as new blob format.
     /// </summary>
     /// <param name="context">The context for the orchestration instance.</param>
     /// <param name="logger">A diagnostic logger.</param>
@@ -72,8 +73,6 @@ public partial class CopyDurableFunction
         }
         else
         {
-            await context.CallActivityWithRetryAsync(nameof(CompleteCopyAsync), _options.RetryOptions, null);
-
             logger.LogInformation("Completed duplication.");
         }
 

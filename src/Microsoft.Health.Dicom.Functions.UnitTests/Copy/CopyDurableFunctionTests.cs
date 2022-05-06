@@ -15,7 +15,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
 
 public partial class CopyDurableFunctionTests
 {
-
     private readonly IInstanceStore _instanceStore;
     private readonly IInstanceCopier _instanceCopier;
     private readonly CopyDurableFunction _function;

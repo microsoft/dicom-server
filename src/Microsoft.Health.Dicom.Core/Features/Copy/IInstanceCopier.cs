@@ -21,7 +21,7 @@ public interface IInstanceCopier
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation. The value of the
-    /// <see cref="Task{TResult}.Result"/> indicates whether the the cpoy was successful.
+    /// <see cref="Task{TResult}.Result"/> indicates whether the the copy was successful.
     /// </returns>
     Task CopyInstanceAsync(VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
 }

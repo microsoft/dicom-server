@@ -79,13 +79,6 @@ public partial class CopyDurableFunctionTests
                     _options.RetryOptions,
                     Arg.Is(batch));
         }
-
-        await context
-            .DidNotReceive()
-            .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(CopyDurableFunction.CompleteCopyAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
         await context
              .Received(1)
              .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
@@ -155,12 +148,6 @@ public partial class CopyDurableFunctionTests
         }
 
         await context
-            .DidNotReceive()
-            .CallActivityWithRetryAsync<IReadOnlyList<int>>(
-                nameof(CopyDurableFunction.CompleteCopyAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
-        await context
              .DidNotReceive()
              .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
                 nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
@@ -209,12 +196,6 @@ public partial class CopyDurableFunctionTests
             .DidNotReceive()
             .CallActivityWithRetryAsync(
                 nameof(CopyDurableFunction.CopyBatchAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
-        await context
-            .Received(1)
-            .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
 
@@ -271,12 +252,6 @@ public partial class CopyDurableFunctionTests
             .DidNotReceive()
             .CallActivityWithRetryAsync(
                 nameof(CopyDurableFunction.CopyBatchAsync),
-                _options.RetryOptions,
-                Arg.Any<object>());
-        await context
-            .Received(1)
-            .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context

@@ -27,5 +27,6 @@ public partial class CopyDurableFunction
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _instanceCopier = EnsureArg.IsNotNull(instanceCopier, nameof(instanceCopier));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
+        EnsureArg.IsNotNull(_options.RetryOptions, nameof(_options.RetryOptions));
     }
 }
