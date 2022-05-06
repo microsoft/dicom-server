@@ -56,7 +56,6 @@ public partial class WorkitemService
             {
                 case DataStoreException:
                 case ItemNotFoundException:
-                case WorkitemNotFoundException:
                     failureCode = FailureReasonCodes.UpsInstanceNotFound;
                     break;
             }
