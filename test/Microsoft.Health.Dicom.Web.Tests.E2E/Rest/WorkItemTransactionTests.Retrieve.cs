@@ -35,6 +35,8 @@ public partial class WorkItemTransactionTests
 
         // Verify
         Assert.NotNull(dataset);
+        Assert.False(dataset.TryGetString(DicomTag.TransactionUID, out var transactionUid));
+        Assert.Null(transactionUid);
         Assert.Equal(workitemUid, dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID));
     }
 }
