@@ -89,9 +89,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
         });
         var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, SqlRetryLogicBaseProvider);
 
-        SqlTransactionHandler = new SqlTransactionHandler();
-
-        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
+        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(new SqlTransactionHandler(), sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
 
         var schemaManagerDataStore = new SchemaManagerDataStore(SqlConnectionWrapperFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 
@@ -99,7 +97,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         // TODO: Leverage DI across our XUnit projects
         IServiceProvider _schemaServices = new ServiceCollection()
-            .AddSingleton<IReadOnlySchemaManagerDataStore>(p => schemaManagerDataStore)
+            .AddSingleton<IReadOnlySchemaManagerDataStore>(schemaManagerDataStore)
             .AddSingleton(SchemaUpgradeRunner)
             .BuildServiceProvider();
 
