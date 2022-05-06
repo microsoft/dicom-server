@@ -30,6 +30,14 @@ public partial class WorkitemService
             var workitemMetadata = await _workitemOrchestrator
                 .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
+            if (workitemMetadata == null)
+            {
+                _responseBuilder.AddFailure(
+                    FailureReasonCodes.UpsInstanceNotFound,
+                    string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemMetadata.WorkitemUid));
+
+                return _responseBuilder.BuildRetrieveWorkitemResponse();
+            }
 
             var dicomDataset = await _workitemOrchestrator
                 .RetrieveWorkitemAsync(workitemMetadata, cancellationToken)
@@ -57,13 +65,5 @@ public partial class WorkitemService
         }
 
         return _responseBuilder.BuildRetrieveWorkitemResponse();
-    }
-
-    private static void ValidateRetrieveRequest(WorkitemMetadataStoreEntry workitemMetadata)
-    {
-        if (workitemMetadata == null)
-        {
-            throw new WorkitemNotFoundException(workitemMetadata.WorkitemUid);
-        }
     }
 }
