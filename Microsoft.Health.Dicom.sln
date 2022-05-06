@@ -59,6 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azure.UnitTests", "src\Microsoft.Health.Dicom.Azure.UnitTests\Microsoft.Health.Dicom.Azure.UnitTests.csproj", "{5571FE42-1EDB-4E25-992A-A37467487DB3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob.UnitTests", "src\Microsoft.Health.Dicom.Blob.UnitTests\Microsoft.Health.Dicom.Blob.UnitTests.csproj", "{E2BD0627-CC6C-40D4-B875-00654FD059CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -149,6 +151,10 @@ Global
 		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Debug|x64.Build.0 = Debug|x64
 		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Release|x64.ActiveCfg = Release|x64
 		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Release|x64.Build.0 = Release|x64
+		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.ActiveCfg = Debug|x64
+		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.Build.0 = Debug|x64
+		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.ActiveCfg = Release|x64
+		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,6 +180,7 @@ Global
 		{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9} = {1DCC477B-C893-434B-B90E-EDED5E60FC7D}
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{5571FE42-1EDB-4E25-992A-A37467487DB3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{E2BD0627-CC6C-40D4-B875-00654FD059CF} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}

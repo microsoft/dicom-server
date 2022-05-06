@@ -16,6 +16,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
@@ -34,6 +35,8 @@ public class BlobWorkitemStore : IWorkitemStore
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+    public const int MaxPrefixLength = 3;
 
     public BlobWorkitemStore(
         BlobServiceClient client,
@@ -141,7 +144,9 @@ public class BlobWorkitemStore : IWorkitemStore
 
     private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default)
     {
-        var blobName = $"{identifier.WorkitemUid}_{identifier.WorkitemKey}_{proposedWatermark.GetValueOrDefault(identifier.Watermark)}_workitem.json";
+        var version = proposedWatermark.GetValueOrDefault(identifier.Watermark);
+
+        var blobName = $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}_workitem.json";
 
         return _container.GetBlockBlobClient(blobName);
     }

@@ -16,4 +16,6 @@ public class ServicesConfiguration
     public DataPartitionConfiguration DataPartition { get; } = new DataPartitionConfiguration();
 
     public RetrieveConfiguration RetrieveConfiguration { get; } = new RetrieveConfiguration();
+
+    public BlobMigrationConfiguration BlobMigration { get; } = new BlobMigrationConfiguration();
 }
