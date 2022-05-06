@@ -22,7 +22,7 @@ public class DicomSqlSchemaManagerTests
     private readonly ISchemaDataStore _schemaDataStore = Substitute.For<ISchemaDataStore>();
     private readonly ISchemaManagerDataStore _schemaManagerDataStore = Substitute.For<ISchemaManagerDataStore>();
     private readonly IScriptProvider _scriptProvider = Substitute.For<IScriptProvider>();
-    private readonly IBaseSchemaRunner _baseSchemaRunner = Substitute.For<BaseSchemaRunner>();
+    private readonly IBaseSchemaRunner _baseSchemaRunner = Substitute.For<IBaseSchemaRunner>();
 
     //other dependencies
     private readonly string _connectionString = "localhost";
@@ -34,7 +34,7 @@ public class DicomSqlSchemaManagerTests
         _dicomSqlSchemaManager = new(_scriptProvider, _schemaDataStore, _baseSchemaRunner, _schemaManagerDataStore);
     }
 
-    [Theory]
+    [Theory(Skip = "Currently not implemented")]
     [InlineData((int)SchemaVersion.V1, SchemaVersionConstants.Max)]
     [InlineData((int)SchemaVersion.V10, (int)SchemaVersion.V11)]
     public async void GivenSchemaWithOldVersion_WhenApplyingNewCompatibleVersion_ThenReturnSuccess(int lowVersionNumber, int highVersionNumber)
@@ -68,7 +68,7 @@ public class DicomSqlSchemaManagerTests
         Assert.Equal(ApplyCommandResult.Unnecessary, result);
     }
 
-    [Theory]
+    [Theory(Skip = "Currently not implemented")]
     [InlineData((int)SchemaVersion.V1, (int)SchemaVersion.V12, (int)SchemaVersion.V10)]
     public async void GivenSchemaWithAnyVersion_WhenApplyingIncompatibleVersion_ThenReturnIncompatible(int originalVersion, int versionToApply, int latestCompatibleVersion)
     {
