@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DicomSchemaManager.Core.Properties {
+namespace Microsoft.Health.Dicom.SchemaManager.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace DicomSchemaManager.Core.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DicomSchemaManager.Core.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SchemaManager.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -88,7 +88,7 @@ namespace DicomSchemaManager.Core.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to apply schema version &quot;{0}&quot;. .
+        ///   Looks up a localized string similar to Failed to apply schema version &quot;{0}&quot;..
         /// </summary>
         internal static string UnsuccessfulApplyFormatString {
             get {

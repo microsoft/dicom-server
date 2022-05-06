@@ -11,7 +11,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.Health.Dicom.SqlServer\Microsoft.Health.Dicom.SqlServer.csproj" />
-    <ProjectReference Include="..\..\tools\DicomSchemaManager.Core\DicomSchemaManager.Core.csproj" />
+    <ProjectReference Include="..\..\tools\Microsoft.Health.Dicom.SchemaManager\Microsoft.Health.Dicom.SchemaManager.csproj" />
   </ItemGroup>
 
 </Project>

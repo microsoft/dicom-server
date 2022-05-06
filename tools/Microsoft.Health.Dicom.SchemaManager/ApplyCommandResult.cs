@@ -3,9 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using DicomSchemaManager.Core.Properties;
+using Microsoft.Health.Dicom.SchemaManager.Properties;
 
-namespace DicomSchemaManager.Core;
+namespace Microsoft.Health.Dicom.SchemaManager;
 
 //smart enum pattern as described here: https://ardalis.com/enum-alternatives-in-c/
 
@@ -26,5 +26,4 @@ public sealed class ApplyCommandResult
         MessageFormatString = message;
         ExitCode = exitCode;
     }
-
 }

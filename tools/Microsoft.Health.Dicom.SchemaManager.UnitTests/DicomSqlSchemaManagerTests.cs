@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
@@ -11,7 +12,7 @@ using Microsoft.Health.SqlServer.Features.Schema.Model;
 using NSubstitute;
 using Xunit;
 
-namespace DicomSchemaManager.Core.UnitTests;
+namespace Microsoft.Health.Dicom.SchemaManager.UnitTests;
 
 public class DicomSqlSchemaManagerTests
 {
@@ -31,7 +32,7 @@ public class DicomSqlSchemaManagerTests
 
     public DicomSqlSchemaManagerTests()
     {
-        _dicomSqlSchemaManager = new(_scriptProvider, _schemaDataStore, _baseSchemaRunner, _schemaManagerDataStore);
+        _dicomSqlSchemaManager = new(_scriptProvider, _schemaDataStore, _baseSchemaRunner, _schemaManagerDataStore, NullLogger<DicomSqlSchemaManager>.Instance);
     }
 
     [Theory(Skip = "Currently not implemented")]
@@ -83,4 +84,35 @@ public class DicomSqlSchemaManagerTests
         //Assert
         Assert.Equal(ApplyCommandResult.Incompatible, result);
     }
+
+    [Fact(Skip = "Currently not implemented")]
+    public void BaseSchemaShouldExistAfterApplyingSchema()
+    {
+        //Arrange
+
+
+        //Act
+
+
+        //Assert
+
+    }
+
+    [Theory(Skip = "Currently not implemented")]
+    [InlineData((int)SchemaVersion.V1)]
+    [InlineData(SchemaVersionConstants.Min)]
+    [InlineData(SchemaVersionConstants.Max)]
+    public void VersionShouldBeCorrectAfterApplyingSchema(int version)
+    {
+        //Arrange
+
+
+        //Act
+        int finalVersion = 2;
+
+        //Assert
+        Assert.Equal(version, finalVersion);
+    }
+
+
 }

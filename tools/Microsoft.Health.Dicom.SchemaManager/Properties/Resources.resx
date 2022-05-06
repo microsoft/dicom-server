@@ -130,7 +130,7 @@
     <comment>{0} is a version.</comment>
   </data>
   <data name="UnsuccessfulApplyFormatString" xml:space="preserve">
-    <value>Failed to apply schema version "{0}". </value>
+    <value>Failed to apply schema version "{0}".</value>
     <comment>{0} is a version.</comment>
   </data>
 </root>
