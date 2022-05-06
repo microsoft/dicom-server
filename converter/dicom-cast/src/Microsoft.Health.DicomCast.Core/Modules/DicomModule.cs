@@ -41,6 +41,10 @@ public class DicomModule : IStartupModule
         services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
             {
                 sp.BaseAddress = dicomWebConfiguration.Endpoint;
+                if (dicomWebConfiguration.PrivateEndpoint != null)
+                {
+                    sp.BaseAddress = dicomWebConfiguration.PrivateEndpoint;
+                }
             })
             .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 

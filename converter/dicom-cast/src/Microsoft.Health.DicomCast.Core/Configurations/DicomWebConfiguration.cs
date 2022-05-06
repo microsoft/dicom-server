@@ -18,6 +18,11 @@ public class DicomWebConfiguration
     public Uri Endpoint { get; set; }
 
     /// <summary>
+    /// The private endpoint to use to talk to dicom (this url will not be used when generating links in fhir)
+    /// </summary>
+    public Uri PrivateEndpoint { get; set; }
+
+    /// <summary>
     /// Authentication settings for DICOMWeb.
     /// </summary>
     public AuthenticationConfiguration Authentication { get; set; }
