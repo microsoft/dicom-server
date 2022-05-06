@@ -195,7 +195,8 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     {
         EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
 
-        return await TryGetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken)
+        return await _workitemStore
+            .GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken)
             .ConfigureAwait(false);
     }
 

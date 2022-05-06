@@ -29,6 +29,7 @@ public partial class WorkitemService
             var workitemMetadata = await _workitemOrchestrator
                 .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
+
             if (workitemMetadata == null)
             {
                 _responseBuilder.AddFailure(

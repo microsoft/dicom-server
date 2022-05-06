@@ -198,7 +198,7 @@ If the Workitem exists on the origin server, the Workitem shall be returned in a
 
 | Method  | Path                    | Description   |
 | :------ | :---------------------- | :------------ |
-| POST    | ../workitems/{workitem}	| Request to retrieve a Workitem Workitem			|
+| POST    | ../workitems/{workitem}	| Request to retrieve a Workitem	|
 
 The `Accept` headers is required, and must have the value `application/dicom+json`.
 
