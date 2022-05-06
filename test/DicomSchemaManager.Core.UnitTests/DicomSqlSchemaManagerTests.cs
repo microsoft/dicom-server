@@ -68,7 +68,7 @@ public class DicomSqlSchemaManagerTests
         Assert.Equal(ApplyCommandResult.Unnecessary, result);
     }
 
-    [Theory(Skip = "Currently not implemented")]
+    [Theory]
     [InlineData((int)SchemaVersion.V1, (int)SchemaVersion.V12, (int)SchemaVersion.V10)]
     public async void GivenSchemaWithAnyVersion_WhenApplyingIncompatibleVersion_ThenReturnIncompatible(int originalVersion, int versionToApply, int latestCompatibleVersion)
     {

@@ -5,6 +5,7 @@
 
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
+using Microsoft.Health.SqlServer.Features.Schema.Model;
 
 namespace DicomSchemaManager.Core;
 
@@ -29,8 +30,6 @@ public class DicomSqlSchemaManager : IDicomSqlSchemaManager
 
     public async Task<ApplyCommandResult> ApplySchema(string connectionString, int version, CancellationToken token = default)
     {
-        ApplyCommandResult result = ApplyCommandResult.Unsuccessful;
-
         int currentSchemaVersion = await _schemaManagerDataStore.GetCurrentSchemaVersionAsync(token);
 
         if (currentSchemaVersion >= version)
@@ -38,6 +37,13 @@ public class DicomSqlSchemaManager : IDicomSqlSchemaManager
             return ApplyCommandResult.Unnecessary;
         }
 
-        return result;
+        CompatibleVersions compatibleVersions = await _schemaDataStore.GetLatestCompatibleVersionsAsync(token);
+
+        if (compatibleVersions.Max < version)
+        {
+            return ApplyCommandResult.Incompatible;
+        }
+
+        return ApplyCommandResult.Unsuccessful;
     }
 }
