@@ -57,6 +57,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azure", "src\Microsoft.Health.Dicom.Azure\Microsoft.Health.Dicom.Azure.csproj", "{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azure.UnitTests", "src\Microsoft.Health.Dicom.Azure.UnitTests\Microsoft.Health.Dicom.Azure.UnitTests.csproj", "{5571FE42-1EDB-4E25-992A-A37467487DB3}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob.UnitTests", "src\Microsoft.Health.Dicom.Blob.UnitTests\Microsoft.Health.Dicom.Blob.UnitTests.csproj", "{E2BD0627-CC6C-40D4-B875-00654FD059CF}"
 EndProject
 Global
@@ -145,6 +147,10 @@ Global
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Debug|x64.Build.0 = Debug|x64
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Release|x64.ActiveCfg = Release|x64
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782}.Release|x64.Build.0 = Release|x64
+		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Debug|x64.ActiveCfg = Debug|x64
+		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Debug|x64.Build.0 = Debug|x64
+		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Release|x64.ActiveCfg = Release|x64
+		{5571FE42-1EDB-4E25-992A-A37467487DB3}.Release|x64.Build.0 = Release|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.ActiveCfg = Debug|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.Build.0 = Debug|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.ActiveCfg = Release|x64
@@ -173,6 +179,7 @@ Global
 		{1D0ECFDA-2AF2-4796-995D-A7C6E18C9CD1} = {8C9A0050-5D22-4398-9F93-DDCD80B3BA51}
 		{9B0DEA36-8EBC-4D3B-9181-A75443C5B4F9} = {1DCC477B-C893-434B-B90E-EDED5E60FC7D}
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{5571FE42-1EDB-4E25-992A-A37467487DB3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
