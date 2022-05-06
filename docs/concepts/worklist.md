@@ -186,3 +186,38 @@ The request payload may include Action Information as [defined in the DICOM Stan
 A success response will have no payload, and a failure response payload will contain a message describing the failure.
 If the Workitem Instance is already in a cancelled state, the response will include the following HTTP Warning header:
 `299: The UPS is already in the requested state of CANCELED.`
+
+
+## Retrieve Workitem Transaction
+
+This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.5
+
+This transaction will only succeed against Workitems in the `SCHEDULED` state. Any user can claim ownership of a Workitem by
+setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
+the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
+forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
+return failure. An owned Workitem can be cancelled via the Change Workitem State transaction.
+
+| Method  | Path                    | Description   |
+| :------ | :---------------------- | :------------ |
+| POST    | ../workitems/{workitem}	| Request to retrieve a Workitem Workitem			|
+
+The `Accept` headers is required, and must have the value `application/dicom+json`.
+
+### Retrieve Workitem Response Status Codes
+
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| Workitem Instance was successfully retrieved. |
+| 400 (Bad Request)            	| There was a problem with the request.			|
+| 401 (Unauthorized)           	| The client is not authenticated. 				|
+| 404 (Not Found)              	| The Target Workitem was not found. 			|
+
+### Retrieve Workitem Response Payload
+
+* A success response has a single part payload containing the requested Workitem in the Selected Media Type.
+* The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute of the Workitem, since that should only be known to the Owner.
+* A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
+
