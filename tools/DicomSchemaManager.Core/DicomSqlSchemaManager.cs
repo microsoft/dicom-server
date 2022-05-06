@@ -27,8 +27,17 @@ public class DicomSqlSchemaManager : IDicomSqlSchemaManager
         _schemaManagerDataStore = schemaManagerDataStore;
     }
 
-    public Task<ApplyCommandResult> ApplySchema(string connectionString, int version, CancellationToken token = default)
+    public async Task<ApplyCommandResult> ApplySchema(string connectionString, int version, CancellationToken token = default)
     {
-        throw new NotImplementedException();
+        ApplyCommandResult result = ApplyCommandResult.Unsuccessful;
+
+        int currentSchemaVersion = await _schemaManagerDataStore.GetCurrentSchemaVersionAsync(token);
+
+        if (currentSchemaVersion >= version)
+        {
+            return ApplyCommandResult.Unnecessary;
+        }
+
+        return result;
     }
 }
