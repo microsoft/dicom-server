@@ -194,11 +194,7 @@ This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET ope
 
 Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.5
 
-This transaction will only succeed against Workitems in the `SCHEDULED` state. Any user can claim ownership of a Workitem by
-setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
-the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
-forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
-return failure. An owned Workitem can be cancelled via the Change Workitem State transaction.
+If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
 
 | Method  | Path                    | Description   |
 | :------ | :---------------------- | :------------ |
