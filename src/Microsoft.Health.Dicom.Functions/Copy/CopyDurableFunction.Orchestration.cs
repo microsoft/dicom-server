@@ -61,8 +61,8 @@ public partial class CopyDurableFunction
             logger.LogInformation("Completed copying the range {Range}. Continuing with new execution...", batchRange);
 
             WatermarkRange completed = input.Completed.HasValue
-                    ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
-                    : batchRange;
+                ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
+                : batchRange;
 
             context.ContinueAsNew(
                 new CopyCheckpoint
