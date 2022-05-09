@@ -90,6 +90,7 @@ public partial class ReindexDurableFunction
                 context.ContinueAsNew(
                     new ReindexCheckpoint
                     {
+                        Batching = input.Batching,
                         Completed = completed,
                         CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                         QueryTagKeys = queryTagKeys,
