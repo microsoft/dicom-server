@@ -71,17 +71,17 @@ public interface IDicomOperationsClient
     Task<Guid> StartExportingFilesAsync(ExportSpecification specification, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously begins the instance blob migration
+    /// Asynchronously begins the instance blob copy
     /// </summary>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
     /// that is performing the asynchronous addition.</returns>
-    Task<Guid> StartBlobMigrationAsync(CancellationToken cancellationToken = default);
+    Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously gets the completed status of blob migration
+    /// Asynchronously gets the completed status of blob copy
     /// </summary>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the completed status</returns>
-    Task<bool> IsBlobMigrationCompletedAsync(CancellationToken cancellationToken = default);
+    Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default);
 }

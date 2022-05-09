@@ -16,17 +16,17 @@ using Microsoft.Health.Dicom.Core.Features.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
-public class StartInstanceBlobMigrationService : BackgroundService
+public class StartBlobMigrationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly bool _startBlobCopy;
-    private readonly ILogger<StartInstanceBlobMigrationService> _logger;
+    private readonly ILogger<StartBlobMigrationService> _logger;
 
-    public StartInstanceBlobMigrationService(
+    public StartBlobMigrationService(
         IServiceProvider serviceProvider,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
-        ILogger<StartInstanceBlobMigrationService> logger)
+        ILogger<StartBlobMigrationService> logger)
     {
         EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
         EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
@@ -50,9 +50,9 @@ public class StartInstanceBlobMigrationService : BackgroundService
                     var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
                     // We also need to ensure if the operation client already not completed
-                    if (operationsClient != null && !await operationsClient.IsBlobMigrationCompletedAsync(stoppingToken))
+                    if (operationsClient != null && !await operationsClient.IsBlobCopyCompletedAsync(stoppingToken))
                     {
-                        await operationsClient.StartBlobMigrationAsync(stoppingToken);
+                        await operationsClient.StartBlobCopyAsync(stoppingToken);
                     }
                 }
             }
