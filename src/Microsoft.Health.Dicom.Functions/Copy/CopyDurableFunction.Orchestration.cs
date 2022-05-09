@@ -48,7 +48,7 @@ public partial class CopyDurableFunction
         {
             // Note that batches are in reverse order because we start from the highest watermark
             // Example: [8,11][4,7][1,3]
-            var batchRange = WatermarkRange.Combine(batches);
+            var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
 
             logger.LogInformation("Beginning to copy the range {Range}.", batchRange);
             await Task.WhenAll(batches
@@ -61,8 +61,8 @@ public partial class CopyDurableFunction
             logger.LogInformation("Completed copying the range {Range}. Continuing with new execution...", batchRange);
 
             WatermarkRange completed = input.Completed.HasValue
-                ? input.Completed.Value.Combine(batchRange)
-                : batchRange;
+                    ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
+                    : batchRange;
 
             context.ContinueAsNew(
                 new CopyCheckpoint

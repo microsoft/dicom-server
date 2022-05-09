@@ -71,7 +71,7 @@ public partial class ReindexDurableFunction
             if (batches.Count > 0)
             {
                 // Note that batches are in reverse order because we start from the highest watermark
-                var batchRange = WatermarkRange.Combine(batches);
+                var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
 
                 logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
                 await Task.WhenAll(batches
@@ -83,7 +83,9 @@ public partial class ReindexDurableFunction
                 // Create a new orchestration with the same instance ID to process the remaining data
                 logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
 
-                WatermarkRange completed = input.Completed.HasValue ? input.Completed.Value.Combine(batchRange) : batchRange;
+                WatermarkRange completed = input.Completed.HasValue
+                    ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
+                    : batchRange;
 
                 context.ContinueAsNew(
                     new ReindexCheckpoint
