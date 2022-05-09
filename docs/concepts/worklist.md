@@ -215,5 +215,3 @@ The `Accept` header is required, and must have the value `application/dicom+json
 
 * A success response has a single part payload containing the requested Workitem in the Selected Media Type.
 * The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute of the Workitem, since that should only be known to the Owner.
-* A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
-
