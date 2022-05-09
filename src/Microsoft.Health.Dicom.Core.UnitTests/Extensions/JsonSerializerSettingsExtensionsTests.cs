@@ -3,16 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Globalization;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Xunit;
+using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Indexing;
+using Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using Microsoft.Health.Dicom.Core.Models.Indexing;
-using Microsoft.Health.Dicom.Core.Features.Model;
-using System;
-using System.Globalization;
-using Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
+using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions;
 
