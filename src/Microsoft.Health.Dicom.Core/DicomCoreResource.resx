@@ -596,4 +596,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Type '{0}' is not supported.</value>
     <comment>{0} Type name</comment>
   </data>
+  <data name="ValueTypesNotSupported" xml:space="preserve">
+    <value>This operation does not support value types.</value>
+  </data>
 </root>

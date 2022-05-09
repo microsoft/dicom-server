@@ -82,9 +82,27 @@ public class ConfigurationJsonConverterTests
         _serializerSettings.FloatParseHandling = FloatParseHandling.Double;
 
         const string json = @"{
-  ""float"": ""12.345"",
-  ""double"": ""-6.78910"",
-  ""decimal"": ""1112.1314151617181920""
+  ""float"": 12.345,
+  ""double"": -6.78910,
+  ""decimal"": 1112.1314151617181920
+}";
+
+        IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
+
+        Assert.Equal("12.345", actual["float"]);
+        Assert.Equal("-6.7891", actual["double"]);
+        Assert.Equal("1112.1314151617182", actual["decimal"]); // lost precision
+    }
+
+    [Fact]
+    public void GivenJson_WhenReadingWithDecimalParsing_ThenDeserialize()
+    {
+        _serializerSettings.FloatParseHandling = FloatParseHandling.Decimal;
+
+        const string json = @"{
+  ""float"": 12.345,
+  ""double"": -6.78910,
+  ""decimal"": 1112.1314151617181920
 }";
 
         IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
@@ -95,21 +113,15 @@ public class ConfigurationJsonConverterTests
     }
 
     [Fact]
-    public void GivenJson_WhenReadingWithDecimalParsing_ThenDeserialize()
+    public void GivenOverflowValue_WhenReadingWithDecimalParsing_ThenThrow()
     {
         _serializerSettings.FloatParseHandling = FloatParseHandling.Decimal;
 
         const string json = @"{
-  ""float"": ""12.345"",
-  ""double"": ""-6.78910"",
-  ""decimal"": ""1112.1314151617181920""
+  ""decimal"": 1.7976931348623157E+308
 }";
 
-        IConfiguration actual = JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings);
-
-        Assert.Equal("12.345", actual["float"]);
-        Assert.Equal("-6.78910", actual["double"]);
-        Assert.Equal("1112.1314151617181920", actual["decimal"]);
+        Assert.Throws<JsonReaderException>(() => JsonConvert.DeserializeObject<IConfiguration>(json, _serializerSettings));
     }
 
     [Fact]

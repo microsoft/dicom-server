@@ -42,7 +42,7 @@ internal static class ConfigurationBinderExtensions
 
         // TODO: Support value types and primitives
         if (type.IsValueType)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(DicomCoreResource.ValueTypesNotSupported);
 
         CopyToConfiguration(configuration, type, value, options);
     }
@@ -75,7 +75,7 @@ internal static class ConfigurationBinderExtensions
             if (type.IsArray)
             {
                 elementType = type.GetElementType();
-                if (type.IsArray && type.GetArrayRank() > 1)
+                if (type.GetArrayRank() > 1)
                 {
                     throw new InvalidOperationException(
                         string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidArrayRank, type.GetArrayRank()));

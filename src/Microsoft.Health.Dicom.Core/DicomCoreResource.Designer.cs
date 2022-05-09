@@ -1192,6 +1192,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This operation does not support value types..
+        /// </summary>
+        internal static string ValueTypesNotSupported {
+            get {
+                return ResourceManager.GetString("ValueTypesNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The UPS may no longer be updated..
         /// </summary>
         internal static string WorkitemCancelRequestRejected {
