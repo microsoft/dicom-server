@@ -69,4 +69,19 @@ public interface IDicomOperationsClient
     /// <exception cref="ArgumentNullException"><paramref name="specification"/> is <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<Guid> StartExportingFilesAsync(ExportSpecification specification, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously begins the instance blob copy
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
+    /// that is performing the asynchronous addition.</returns>
+    Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously gets the completed status of blob copy
+    /// </summary>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the completed status</returns>
+    Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default);
 }

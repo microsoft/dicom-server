@@ -11,4 +11,9 @@ public class BlobMigrationConfiguration
     /// Gets or sets the blob format type to write or read blobs
     /// </summary>
     public BlobMigrationFormatType FormatType { get; set; }
+
+    /// <summary>
+    /// Gets or sets flag to start blob migration
+    /// </summary>
+    public bool StartCopy { get; set; }
 }
