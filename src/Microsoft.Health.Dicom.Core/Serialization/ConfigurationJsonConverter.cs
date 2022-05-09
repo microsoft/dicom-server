@@ -66,6 +66,8 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
                 break;
             case JsonValueKind.False:
             case JsonValueKind.True:
+                yield return KeyValuePair.Create(path, element.GetBoolean().ToString());
+                break;
             case JsonValueKind.Number:
                 yield return KeyValuePair.Create(path, element.GetRawText());
                 break;

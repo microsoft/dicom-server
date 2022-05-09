@@ -25,6 +25,7 @@ using Microsoft.Health.Operations.Functions.DurableTask;
 using Microsoft.Health.Operations.Functions.Management;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
+using Newtonsoft.Json;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -160,7 +161,8 @@ public static class ServiceCollectionExtensions
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, DurableTaskSerializerSettingsFactory>());
+        services.Configure<JsonSerializerSettings>(o => o.ConfigureDefaultDicomSettings());
+        return services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
     }
 
     private sealed class FellowOakExtensionConfiguration : IExtensionConfigProvider

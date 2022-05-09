@@ -29,6 +29,7 @@ public static class JsonSerializerOptionsExtensions
 
         options.Converters.Clear();
         options.Converters.Add(new ConfigurationJsonConverter());
+        options.Converters.Add(new DicomIdentifierJsonConverter());
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
         options.Converters.Add(new StrictStringEnumConverterFactory());
 
