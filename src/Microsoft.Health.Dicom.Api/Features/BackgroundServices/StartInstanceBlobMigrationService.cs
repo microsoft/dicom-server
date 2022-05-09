@@ -20,7 +20,7 @@ public class StartInstanceBlobMigrationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly bool _startBlobMigration;
+    private readonly bool _startBlobCopy;
     private readonly ILogger<StartInstanceBlobMigrationService> _logger;
 
     public StartInstanceBlobMigrationService(
@@ -34,7 +34,7 @@ public class StartInstanceBlobMigrationService : BackgroundService
 
         _serviceProvider = serviceProvider;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
-        _startBlobMigration = blobMigrationFormatConfiguration.Value.StartMigration;
+        _startBlobCopy = blobMigrationFormatConfiguration.Value.StartCopy;
         _logger = logger;
     }
 
@@ -45,7 +45,7 @@ public class StartInstanceBlobMigrationService : BackgroundService
             using (var scope = _serviceProvider.CreateScope())
             {
                 // Start the background service only when the flag is turned on and the format type is not new service.
-                if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobMigration)
+                if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobCopy)
                 {
                     var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 

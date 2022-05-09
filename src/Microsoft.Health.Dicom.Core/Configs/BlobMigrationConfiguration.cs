@@ -15,5 +15,5 @@ public class BlobMigrationConfiguration
     /// <summary>
     /// Gets or sets flag to start blob migration
     /// </summary>
-    public bool StartMigration { get; set; }
+    public bool StartCopy { get; set; }
 }
