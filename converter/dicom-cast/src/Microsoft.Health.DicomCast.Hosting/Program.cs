@@ -3,10 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using System;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -23,14 +24,15 @@ public static class Program
         IHost host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostContext, builder) =>
             {
-                var builtConfig = builder.Build();
+                IConfiguration builtConfig = builder.Build();
 
-                var keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
+                // TODO: Use Azure SDK directly for settings
+                string keyVaultEndpoint = builtConfig["KeyVault:Endpoint"];
                 if (!string.IsNullOrEmpty(keyVaultEndpoint))
                 {
-                    var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                    var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-                    builder.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+                    builder.AddAzureKeyVault(
+                        new SecretClient(new Uri(keyVaultEndpoint), new DefaultAzureCredential()),
+                        new AzureKeyVaultConfigurationOptions());
                 }
             })
             .ConfigureServices((hostContext, services) =>
