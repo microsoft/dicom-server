@@ -3,11 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Azure.Config;
+using Azure.Security.KeyVault.Secrets;
 
-public class KeyVaultConfiguration
+namespace Microsoft.Health.Dicom.Azure;
+
+internal sealed class KeyVaultSecretClientOptions : SecretClientOptions
 {
     public const string SectionName = "KeyVault";
 
-    public string Endpoint { get; set; }
+    public bool Enabled { get; set; }
 }

@@ -3,10 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Azure.UnitTests")]
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Core.Models.Copy;
+
+public class CopyInput
+{
+    public BatchingOptions Batching { get; set; }
+}
