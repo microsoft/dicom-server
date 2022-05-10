@@ -109,7 +109,7 @@ public static class DicomSqlServerRegistrationExtensions
     private static IServiceCollection AddForegroundSqlSchemaVersionResolver(this IServiceCollection services)
     {
         services.Add<SqlSchemaVersionResolver>()
-            .Singleton()
+            .Scoped()
             .AsImplementedInterfaces();
 
         return services;
