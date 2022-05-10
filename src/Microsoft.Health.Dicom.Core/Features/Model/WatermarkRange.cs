@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using EnsureThat;
 
@@ -52,28 +51,6 @@ public readonly struct WatermarkRange : IEquatable<WatermarkRange>
         start = Start;
         end = End;
     }
-    public WatermarkRange Combine(WatermarkRange range)
-    {
-        if (Start > range.Start)
-        {
-            return range.Combine(this);
-        }
-        EnsureArg.Is(range.Start, End + 1, nameof(range.Start));
-        return new WatermarkRange(Start, range.End);
-    }
-
-    public static WatermarkRange Combine(IReadOnlyList<WatermarkRange> batches)
-    {
-        EnsureArg.IsNotNull(batches, nameof(batches));
-        EnsureArg.IsGt(batches.Count, 0, nameof(batches));
-        WatermarkRange result = batches[0];
-        for (int i = 1; i < batches.Count; i++)
-        {
-            result = result.Combine(batches[i]);
-        }
-        return result;
-    }
-
 
     public override string ToString()
         => "[" + Start + ", " + End + "]";
