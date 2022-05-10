@@ -4,50 +4,96 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Azure.Config;
+using Microsoft.Health.Dicom.Azure;
 using Microsoft.Health.Dicom.Azure.KeyVault;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
-namespace Microsoft.Health.Dicom.Azure.Registration;
+namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// A collection of methods for registering Azure Key Vault clients.
+/// </summary>
 public static class KeyVaultClientRegistrationExtensions
 {
+    /// <summary>
+    /// Adds a secret client for Azure Key Vault.
+    /// </summary>
+    /// <param name="builder">The DICOM server builder instance.</param>
+    /// <param name="configuration">The configuration for the client.</param>
+    /// <param name="configureOptions">Optional action for configuring the options.</param>
+    /// <returns>The server builder.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
+    /// </exception>
     public static IDicomServerBuilder AddKeyVaultClient(
-           this IDicomServerBuilder dicomServerBuilder,
+           this IDicomServerBuilder builder,
            IConfiguration configuration,
-           Action<KeyVaultConfiguration> configureAction = null)
+           Action<SecretClientOptions> configureOptions = null)
     {
-        EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
+        EnsureArg.IsNotNull(builder, nameof(builder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        var config = new KeyVaultConfiguration();
+        builder.Services.AddKeyVaultClient(configuration, configureOptions);
+        return builder;
+    }
 
-        configuration.GetSection(KeyVaultConfiguration.SectionName).Bind(config);
-        configureAction?.Invoke(config);
+    /// <summary>
+    /// Adds a secret client for Azure Key Vault.
+    /// </summary>
+    /// <param name="builder">The DICOM functions builder instance.</param>
+    /// <param name="configuration">The configuration for the client.</param>
+    /// <param name="configureOptions">Optional action for configuring the options.</param>
+    /// <returns>The server builder.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
+    /// </exception>
+    public static IDicomFunctionsBuilder AddKeyVaultClient(
+           this IDicomFunctionsBuilder builder,
+           IConfiguration configuration,
+           Action<SecretClientOptions> configureOptions = null)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        // conditional KeyVault registration to support running on local docker
-        if (!string.IsNullOrWhiteSpace(config.Endpoint))
+        builder.Services.AddKeyVaultClient(configuration, configureOptions);
+        return builder;
+    }
+
+    private static IServiceCollection AddKeyVaultClient(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<SecretClientOptions> configureOptions)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+        IConfigurationSection section = configuration.GetSection(KeyVaultSecretClientOptions.SectionName);
+
+        var options = new KeyVaultSecretClientOptions();
+        section.Bind(options);
+        configureOptions?.Invoke(options);
+
+        // Note: We can disable key vault in local development scenarios, like F5 or Docker
+        if (options.Enabled)
         {
-            dicomServerBuilder.Services.AddAzureClients(
-                builder =>
-                {
-                    builder.AddSecretClient(new Uri(config.Endpoint))
-                    .WithCredential(new DefaultAzureCredential());
-                });
+            services.AddAzureClients(
+                builder => builder
+                    .AddSecretClient(section)
+                    .ConfigureOptions(configureOptions));
 
-            dicomServerBuilder.Services.AddScoped<ISecretStore, KeyVaultSecretStore>();
+            services.AddScoped<ISecretStore, KeyVaultSecretStore>();
         }
         else
         {
-            dicomServerBuilder.Services.AddScoped<ISecretStore, InMemorySecretStore>();
+            services.AddScoped<ISecretStore, InMemorySecretStore>();
         }
 
-        return dicomServerBuilder;
+        return services;
     }
 }

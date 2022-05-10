@@ -32,6 +32,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="Copy\CopyDurableFunction.*.cs">
+      <DependentUpon>CopyDurableFunction.cs</DependentUpon>
+    </None>
     <None Include="Export\ExportDurableFunction.*.cs">
       <DependentUpon>ExportDurableFunction.cs</DependentUpon>
     </None>

@@ -5,6 +5,7 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Operations;
 
@@ -40,5 +41,6 @@ public sealed class BatchingOptions
     /// The value of the <see cref="Size"/> property multiplied by the
     /// value of the <see cref="MaxParallelCount"/> property.
     /// </value>
+    [JsonIgnore]
     public int MaxParallelElements => Size * MaxParallelCount;
 }

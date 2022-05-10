@@ -35,6 +35,24 @@ public partial class DicomWebClient : IDicomWebClient
         return await PostRequest(uri, dicomDatasets, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<DicomWebResponse<DicomDataset>> RetrieveWorkitemAsync(string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
+    {
+        var requestUri = GenerateWorkitemRetrieveRequestUri(workitemUid, partitionName);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+        request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
+
+        var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+
+        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+        var contentValueFactory = new Func<HttpContent, Task<DicomDataset>>(
+            content => ValueFactory<DicomDataset>(content));
+
+        return new DicomWebResponse<DicomDataset>(response, contentValueFactory);
+    }
+
     public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default)
     {
         var requestUri = GenerateRequestUri(DicomWebConstants.WorkitemUriString + GetQueryParamUriString(queryString), partitionName);

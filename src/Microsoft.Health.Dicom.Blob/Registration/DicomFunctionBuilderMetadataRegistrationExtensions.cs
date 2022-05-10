@@ -37,6 +37,8 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
             .AddPersistence<IMetadataStore, BlobMetadataStore, LoggingMetadataStore>()
             .AddBlobServiceClient(blobConfig)
+            .AddScoped<DicomFileNameWithUid>()
+            .AddScoped<DicomFileNameWithPrefix>()
             .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
 
         functionsBuilder.Services
