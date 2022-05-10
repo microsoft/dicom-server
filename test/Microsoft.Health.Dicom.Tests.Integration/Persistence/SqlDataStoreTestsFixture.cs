@@ -103,7 +103,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             .AddSingleton(SchemaUpgradeRunner)
             .BuildServiceProvider();
 
-        _schemaInitializer = new SchemaInitializer(_schemaServices, configOptions, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
+        _schemaInitializer = new SchemaInitializer(_schemaServices, configOptions, SchemaInformation, mediator, NullLogger<SchemaInitializer>.Instance);
 
         var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 
