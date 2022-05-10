@@ -85,17 +85,17 @@ public class ExportControllerTests
     public async Task GivenExportEnabled_WhenCallingApi_ThenShouldReturnResult()
     {
         IMediator mediator = Substitute.For<IMediator>();
-        IDicomRequestContext _context = Substitute.For<IDicomRequestContext>();
+        IDicomRequestContext context = Substitute.For<IDicomRequestContext>();
         var controller = new ExportController(
             mediator,
-            _context,
+            context,
             Options.Create(new FeatureConfiguration { EnableExport = true }),
             NullLogger<ExportController>.Instance);
 
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
-        _context.DataPartitionEntry.Returns(PartitionEntry.Default);
+        context.DataPartitionEntry.Returns(PartitionEntry.Default);
 
-        Guid operationId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
         var expected = new OperationReference(operationId, new Uri($"http://dicom.unit.test/operations/{operationId}"));
         var spec = new ExportSpecification
         {
