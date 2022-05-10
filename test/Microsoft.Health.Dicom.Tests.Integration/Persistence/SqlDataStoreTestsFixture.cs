@@ -89,7 +89,9 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
         });
         var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, SqlRetryLogicBaseProvider);
 
-        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(new SqlTransactionHandler(), sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
+        SqlTransactionHandler = new SqlTransactionHandler();
+
+        SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
 
         var schemaManagerDataStore = new SchemaManagerDataStore(SqlConnectionWrapperFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 
