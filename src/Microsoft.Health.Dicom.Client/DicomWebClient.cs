@@ -141,6 +141,11 @@ public partial class DicomWebClient : IDicomWebClient
         return GenerateRequestUri(string.Format(DicomWebConstants.CancelWorkitemUriFormat, workitemUid), partitionName);
     }
 
+    private Uri GenerateWorkitemRetrieveRequestUri(string workitemUid, string partitionName = default)
+    {
+        return GenerateRequestUri(string.Format(DicomWebConstants.BaseWorkitemUriFormat, workitemUid), partitionName);
+    }
+
     private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(httpContent, nameof(httpContent));

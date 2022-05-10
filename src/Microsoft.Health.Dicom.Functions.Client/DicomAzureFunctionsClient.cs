@@ -162,6 +162,20 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return operationId;
     }
 
+    /// <inheritdoc/>
+    public Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default)
+    {
+        // TODO: Implementation is in different PR
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    public Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default)
+    {
+        // TODO: Implementation is in different PR
+        throw new NotImplementedException();
+    }
+
     // Note that the Durable Task Framework does not preserve the original CreatedTime
     // when an orchestration is restarted via ContinueAsNew, so we may store the original
     // in the checkpoint

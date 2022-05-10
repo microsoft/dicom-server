@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Operations;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Indexing;
 
@@ -18,6 +19,7 @@ internal class ReindexCheckpoint : ReindexInput, IOperationCheckpoint
 
     public DateTime? CreatedTime { get; set; }
 
+    [JsonIgnore]
     public int? PercentComplete
     {
         get
@@ -32,7 +34,9 @@ internal class ReindexCheckpoint : ReindexInput, IOperationCheckpoint
         }
     }
 
+    [JsonIgnore]
     public IReadOnlyCollection<string> ResourceIds => QueryTagKeys?.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToList();
 
+    [JsonIgnore]
     public IReadOnlyDictionary<string, string> AdditionalProperties => null;
 }
