@@ -3,11 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Azure.Config;
+using MediatR;
 
-public class KeyVaultConfiguration
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
+
+public sealed class RetrieveWorkitemRequest : IRequest<RetrieveWorkitemResponse>
 {
-    public const string SectionName = "KeyVault";
+    public RetrieveWorkitemRequest(string workitemInstanceUid)
+    {
+        WorkitemInstanceUid = workitemInstanceUid;
+    }
 
-    public string Endpoint { get; set; }
+    public string WorkitemInstanceUid { get; }
 }

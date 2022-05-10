@@ -41,6 +41,9 @@
       "HubName": "DicomTaskHub"
     }
   },
+  "KeyVault": {
+    "Enabled": false
+  },
   "Logging": {
     "IncludeScopes": false,
     "LogLevel": {

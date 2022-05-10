@@ -190,12 +190,22 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             .ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
+    public async Task<DicomDataset> RetrieveWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
+
+        return await _workitemStore
+            .GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     private async Task<DicomDataset> TryGetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
     {
         try
         {
             return await GetWorkitemBlobAsync(identifier, cancellationToken)
-            .ConfigureAwait(false);
+                .ConfigureAwait(false);
         }
         catch (ItemNotFoundException ex)
         {

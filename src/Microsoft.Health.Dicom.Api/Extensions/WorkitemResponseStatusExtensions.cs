@@ -37,6 +37,14 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.PartialContent, HttpStatusCode.PartialContent },
         };
 
+    private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> RetrieveResponseStatusToHttpStatusCodeMapping =
+        new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
+        {
+            { WorkitemResponseStatus.Success, HttpStatusCode.OK },
+            { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
+            { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
+        };
+
     /// <summary>
     /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
     /// </summary>
@@ -60,4 +68,12 @@ public static class WorkitemResponseStatusExtensions
     /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
     public static HttpStatusCode QueryResponseToHttpStatusCode(this WorkitemResponseStatus status)
         => QueryResponseStatusToHttpStatusCodeMapping[status];
+
+    /// <summary>
+    /// Converts from <see cref="WorkitemResponseStatus"/> to <see cref="HttpStatusCode"/>.
+    /// </summary>
+    /// <param name="status">The status to convert.</param>
+    /// <returns>The converted <see cref="HttpStatusCode"/>.</returns>
+    public static HttpStatusCode RetrieveResponseToHttpStatusCode(this WorkitemResponseStatus status)
+        => RetrieveResponseStatusToHttpStatusCodeMapping[status];
 }

@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing;
@@ -179,16 +180,9 @@ public partial class ReindexDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-        for (int i = 0; i < instanceIdentifiers.Count; i += arguments.ThreadCount)
-        {
-            var tasks = new List<Task>();
-            for (int j = i; j < Math.Min(instanceIdentifiers.Count, i + arguments.ThreadCount); j++)
-            {
-                tasks.Add(_instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, instanceIdentifiers[j]));
-            }
-
-            await Task.WhenAll(tasks);
-        }
+        await TaskBatch.RunAsync(instanceIdentifiers,
+            id => _instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id),
+            arguments.ThreadCount);
 
         logger.LogInformation("Completed re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
             arguments.WatermarkRange,
