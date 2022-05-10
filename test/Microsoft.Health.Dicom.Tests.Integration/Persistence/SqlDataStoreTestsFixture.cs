@@ -99,6 +99,8 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         // TODO: Leverage DI across our XUnit projects
         IServiceProvider _schemaServices = new ServiceCollection()
+            .AddSingleton<ISqlConnectionStringProvider>(sqlConnectionStringProvider)
+            .AddSingleton(SqlConnectionWrapperFactory)
             .AddSingleton<IReadOnlySchemaManagerDataStore>(schemaManagerDataStore)
             .AddSingleton(SchemaUpgradeRunner)
             .BuildServiceProvider();
