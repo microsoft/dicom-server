@@ -36,7 +36,7 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
                         SELECT *
                         FROM {VLatest.Study.TableName}
                         WHERE {VLatest.Study.StudyInstanceUid} = @studyInstanceUid
-                        AND { VLatest.Instance.PartitionKey} = @partitionKey";
+                        AND {VLatest.Instance.PartitionKey} = @partitionKey";
 
                 sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                 sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
@@ -68,7 +68,7 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
                         SELECT *
                         FROM {VLatest.Series.TableName}
                         WHERE {VLatest.Series.SeriesInstanceUid} = @seriesInstanceUid
-                        AND { VLatest.Instance.PartitionKey} = @partitionKey";
+                        AND {VLatest.Instance.PartitionKey} = @partitionKey";
 
                 sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
                 sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
