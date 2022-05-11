@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using NSubstitute;
 using Xunit;
@@ -64,5 +65,29 @@ public class DeletedInstanceCleanupWorkerTests
 
         await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
         await _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
+    }
+
+    [Fact]
+    public async Task GivenANotReadyDataStore_WhenCallingExecute_ThenNothingShouldHappen()
+    {
+        int iterations = 3;
+        int count = 0;
+        (bool, int) GenerateCleanupDeletedInstancesAsyncResponse()
+        {
+            if (count < iterations)
+            {
+                count++;
+                throw new DataStoreNotReadyException("Datastore not ready");
+            }
+
+            _cancellationTokenSource.Cancel();
+
+            return (true, 1);
+        }
+        _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
+            x => GenerateCleanupDeletedInstancesAsyncResponse());
+
+        await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
+        await _deleteService.ReceivedWithAnyArgs(4).CleanupDeletedInstancesAsync();
     }
 }
