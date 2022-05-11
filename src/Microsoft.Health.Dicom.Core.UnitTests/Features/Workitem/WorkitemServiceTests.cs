@@ -605,6 +605,24 @@ public sealed class WorkitemServiceTests
         Assert.False(dataset.Contains(DicomTag.SOPInstanceUID));
     }
 
+    [Fact]
+    public async Task GivenNoWorkitem_ProcessRetrieveAsync_ReturnsNotFoundResponseStatus()
+    {
+        var workitemInstanceUid = DicomUID.Generate().UID;
+
+        _orchestrator
+            .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(null as WorkitemMetadataStoreEntry));
+
+        var response = await _target.ProcessRetrieveAsync(workitemInstanceUid, CancellationToken.None);
+
+        _responseBuilder
+            .Received()
+            .AddFailure(
+                Arg.Is<ushort>(fc => fc == FailureReasonCodes.UpsInstanceNotFound),
+                Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid)));
+    }
+
     private QueryParameters CreateParameters(
         Dictionary<string, string> filters,
         QueryResource resourceType,
