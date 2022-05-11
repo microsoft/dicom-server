@@ -96,7 +96,7 @@ public class UrlResolverTests
         _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
         ValidateUrlRouteContext(
-            KnownRouteNames.VersionedPartitionRetrieveStudy,
+            KnownRouteNames.PartitionRetrieveStudy,
             routeValues =>
             {
                 Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
@@ -137,7 +137,7 @@ public class UrlResolverTests
         _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
 
         ValidateUrlRouteContext(
-            KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance,
+            KnownRouteNames.PartitionedRetrieveWorkitemInstance,
             routeValues =>
             {
                 Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);

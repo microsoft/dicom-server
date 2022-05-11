@@ -52,9 +52,7 @@ public class QueryController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.QueryAllStudiesRoute)]
-    [PartitionRoute(KnownRoutes.QueryAllStudiesRoute)]
     [VersionedRoute(KnownRoutes.QueryAllStudiesRoute)]
-    [Route(KnownRoutes.QueryAllStudiesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForStudyAsync([FromQuery] QueryOptions options)
     {
@@ -75,9 +73,7 @@ public class QueryController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.QueryAllSeriesRoute)]
-    [PartitionRoute(KnownRoutes.QueryAllSeriesRoute)]
     [VersionedRoute(KnownRoutes.QueryAllSeriesRoute)]
-    [Route(KnownRoutes.QueryAllSeriesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForSeriesAsync([FromQuery] QueryOptions options)
     {
@@ -98,9 +94,7 @@ public class QueryController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.QuerySeriesInStudyRoute)]
-    [PartitionRoute(KnownRoutes.QuerySeriesInStudyRoute)]
     [VersionedRoute(KnownRoutes.QuerySeriesInStudyRoute)]
-    [Route(KnownRoutes.QuerySeriesInStudyRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForSeriesInStudyAsync([FromRoute] string studyInstanceUid, [FromQuery] QueryOptions options)
     {
@@ -121,9 +115,7 @@ public class QueryController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.QueryAllInstancesRoute)]
-    [PartitionRoute(KnownRoutes.QueryAllInstancesRoute)]
     [VersionedRoute(KnownRoutes.QueryAllInstancesRoute)]
-    [Route(KnownRoutes.QueryAllInstancesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForInstancesAsync([FromQuery] QueryOptions options)
     {
@@ -144,9 +136,7 @@ public class QueryController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.QueryInstancesInStudyRoute)]
-    [PartitionRoute(KnownRoutes.QueryInstancesInStudyRoute)]
     [VersionedRoute(KnownRoutes.QueryInstancesInStudyRoute)]
-    [Route(KnownRoutes.QueryInstancesInStudyRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForInstancesInStudyAsync([FromRoute] string studyInstanceUid, [FromQuery] QueryOptions options)
     {
@@ -167,9 +157,7 @@ public class QueryController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
-    [PartitionRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
     [VersionedRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
-    [Route(KnownRoutes.QueryInstancesInSeriesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForInstancesInSeriesAsync([FromRoute] string studyInstanceUid, [FromRoute] string seriesInstanceUid, [FromQuery] QueryOptions options)
     {

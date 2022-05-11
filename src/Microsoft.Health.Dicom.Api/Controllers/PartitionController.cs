@@ -49,7 +49,6 @@ public class PartitionController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.GetAllPartitionsRoute)]
-    [Route(KnownRoutes.GetAllPartitionsRoute)]
     [AuditEventType(AuditEventSubType.Partition)]
     public async Task<IActionResult> GetAllPartitions()
     {
