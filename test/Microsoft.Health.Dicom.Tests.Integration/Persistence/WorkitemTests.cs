@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -132,13 +131,15 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
     }
 
     [Fact]
-    public async Task GivenGetWorkitemMetadataAsync_WhenWorkitemNotFound_ThenThrowsException()
+    public async Task GivenGetWorkitemMetadataAsync_WhenWorkitemNotFound_ThenReturnsNull()
     {
         var workitemUid = DicomUID.Generate().UID;
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.IndexWorkitemStore
-                .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None))
+        var workitemMetadata = await _fixture.IndexWorkitemStore
+            .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None)
             .ConfigureAwait(false);
+
+        Assert.Null(workitemMetadata);
     }
 
     [Fact]
