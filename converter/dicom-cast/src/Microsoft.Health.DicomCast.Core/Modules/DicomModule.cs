@@ -32,15 +32,13 @@ public class DicomModule : IStartupModule
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        var dicomWebConfiguration = new DicomWebConfiguration();
         IConfigurationSection dicomWebConfigurationSection = _configuration.GetSection(DicomWebConfigurationSectionName);
-        dicomWebConfigurationSection.Bind(dicomWebConfiguration);
+        services.AddOptions<DicomWebConfiguration>().Bind(dicomWebConfigurationSection);
 
-        services.AddSingleton(Options.Create(dicomWebConfiguration));
-
-        services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
+        services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
             {
-                sp.BaseAddress = dicomWebConfiguration.Endpoint;
+                DicomWebConfiguration config = sp.GetRequiredService<IOptions<DicomWebConfiguration>>().Value;
+                client.BaseAddress = config.PrivateEndpoint == null ? config.Endpoint : config.PrivateEndpoint;
             })
             .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 

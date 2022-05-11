@@ -186,3 +186,32 @@ The request payload may include Action Information as [defined in the DICOM Stan
 A success response will have no payload, and a failure response payload will contain a message describing the failure.
 If the Workitem Instance is already in a cancelled state, the response will include the following HTTP Warning header:
 `299: The UPS is already in the requested state of CANCELED.`
+
+
+## Retrieve Workitem Transaction
+
+This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.5
+
+If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
+
+| Method  | Path                    | Description   |
+| :------ | :---------------------- | :------------ |
+| GET     | ../workitems/{workitem}	| Request to retrieve a Workitem	|
+
+The `Accept` header is required, and must have the value `application/dicom+json`.
+
+### Retrieve Workitem Response Status Codes
+
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| Workitem Instance was successfully retrieved. |
+| 400 (Bad Request)            	| There was a problem with the request.			|
+| 401 (Unauthorized)           	| The client is not authenticated. 				|
+| 404 (Not Found)              	| The Target Workitem was not found. 			|
+
+### Retrieve Workitem Response Payload
+
+* A success response has a single part payload containing the requested Workitem in the Selected Media Type.
+* The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute of the Workitem, since that should only be known to the Owner.

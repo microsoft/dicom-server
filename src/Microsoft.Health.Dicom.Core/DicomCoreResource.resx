@@ -592,4 +592,15 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The workitem instance with UID: '{0}' procedure step state has been updated to '{1}'.</value>
     <comment>{0} Workitem UID. Procedure Step State. {1}</comment>
   </data>
+  <data name="InvalidArrayRank" xml:space="preserve">
+    <value>Array rank {0} is not supported.</value>
+    <comment>{0} Array rank</comment>
+  </data>
+  <data name="InvalidTypeBinding" xml:space="preserve">
+    <value>Type '{0}' is not supported.</value>
+    <comment>{0} Type name</comment>
+  </data>
+  <data name="ValueTypesNotSupported" xml:space="preserve">
+    <value>This operation does not support value types.</value>
+  </data>
 </root>

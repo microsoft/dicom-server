@@ -55,10 +55,18 @@ public interface IWorkitemOrchestrator
     Task<QueryWorkitemResourceResponse> QueryAsync(BaseQueryParameters parameters, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously orchestrate the retrieval of a UPS-RS workitem
+    /// </summary>
+    /// <param name="workitemInstanceIdentifier">The workitem instance identifier</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A task that represents the asynchronous orchestration of the retrieving a workitem DICOM dataset.</returns>
+    Task<DicomDataset> RetrieveWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets DicomDataset Blob from the Store for the given Workitem Instance identifier
     /// </summary>
     /// <param name="identifier">The workitem instance identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns></returns>
+    /// <returns>A task that retrieves a workitem DICOM dataset from the Blob storage.</returns>
     Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default);
 }

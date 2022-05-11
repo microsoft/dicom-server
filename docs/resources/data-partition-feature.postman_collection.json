@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "2096f878-0365-40e6-afd6-4799a6821cd3",
+		"_postman_id": "4d554ba2-8aab-4602-9c91-85ace2a22110",
 		"name": "Dicom Data Partition Feature",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -375,6 +375,32 @@
 					]
 				},
 				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-workitem",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/dicom+json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems/{{workitem1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems",
+						"{{workitem1}}"
+					]
+				}
 			},
 			"response": []
 		}

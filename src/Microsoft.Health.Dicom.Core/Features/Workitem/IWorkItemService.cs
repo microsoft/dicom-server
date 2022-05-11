@@ -44,6 +44,14 @@ public interface IWorkitemService
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Asynchronously processes the retrieval of a UPS-RS workitem
+    /// </summary>
+    /// <param name="workitemInstanceUid">The workitem instance UID</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>A task that represents the asynchronous process operation.</returns>
+    Task<RetrieveWorkitemResponse> ProcessRetrieveAsync(string workitemInstanceUid, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Asynchronously process the searching of a UPS-RS workitem
     /// </summary>
     /// <param name="parameters">Query parameters that contains filters</param>

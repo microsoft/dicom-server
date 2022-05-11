@@ -10,6 +10,7 @@ using EnsureThat;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -92,11 +93,19 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         SqlConnectionWrapperFactory = new SqlConnectionWrapperFactory(SqlTransactionHandler, sqlConnectionFactory, SqlRetryLogicBaseProvider, configOptions);
 
-        var schemaManagerDataStore = new SchemaManagerDataStore(sqlConnectionFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
+        var schemaManagerDataStore = new SchemaManagerDataStore(SqlConnectionWrapperFactory, configOptions, NullLogger<SchemaManagerDataStore>.Instance);
 
-        SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, sqlConnectionFactory, schemaManagerDataStore);
+        SchemaUpgradeRunner = new SchemaUpgradeRunner(scriptProvider, baseScriptProvider, NullLogger<SchemaUpgradeRunner>.Instance, SqlConnectionWrapperFactory, schemaManagerDataStore);
 
-        _schemaInitializer = new SchemaInitializer(configOptions, schemaManagerDataStore, SchemaUpgradeRunner, SchemaInformation, sqlConnectionFactory, sqlConnectionStringProvider, mediator, NullLogger<SchemaInitializer>.Instance);
+        // TODO: Leverage DI across our XUnit projects
+        IServiceProvider _schemaServices = new ServiceCollection()
+            .AddSingleton<ISqlConnectionStringProvider>(sqlConnectionStringProvider)
+            .AddSingleton(SqlConnectionWrapperFactory)
+            .AddSingleton<IReadOnlySchemaManagerDataStore>(schemaManagerDataStore)
+            .AddSingleton(SchemaUpgradeRunner)
+            .BuildServiceProvider();
+
+        _schemaInitializer = new SchemaInitializer(_schemaServices, configOptions, SchemaInformation, mediator, NullLogger<SchemaInitializer>.Instance);
 
         var schemaResolver = new PassthroughSchemaVersionResolver(SchemaInformation);
 
