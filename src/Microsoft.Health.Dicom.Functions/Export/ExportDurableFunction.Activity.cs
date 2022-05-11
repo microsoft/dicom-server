@@ -42,8 +42,8 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         ExportBatchArguments args = context.GetInput<ExportBatchArguments>();
-        await using IExportSource source = await _sourceFactory.CreateSourceAsync(args.Source, args.Partition);
-        await using IExportSink sink = await _sinkFactory.CreateSinkAsync(args.Destination, context.GetOperationId());
+        await using IExportSource source = await _sourceFactory.CreateAsync(args.Source, args.Partition);
+        await using IExportSink sink = await _sinkFactory.CreateAsync(args.Destination, context.GetOperationId());
 
         // Export
         source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
@@ -90,7 +90,7 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(context, nameof(context));
 
         TypedConfiguration<ExportDestinationType> destination = context.GetInput<TypedConfiguration<ExportDestinationType>>();
-        await using IExportSink sink = await _sinkFactory.CreateSinkAsync(destination, context.GetOperationId());
+        await using IExportSink sink = await _sinkFactory.CreateAsync(destination, context.GetOperationId());
         return sink.ErrorHref;
     }
 }

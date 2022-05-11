@@ -23,7 +23,7 @@ internal sealed class IdentifierExportSourceProvider : IExportSourceProvider
 {
     public ExportSourceType Type => ExportSourceType.Identifiers;
 
-    public Task<IExportSource> CreateSourceAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default)
+    public Task<IExportSource> CreateAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(provider, nameof(provider));
         EnsureArg.IsNotNull(config, nameof(config));

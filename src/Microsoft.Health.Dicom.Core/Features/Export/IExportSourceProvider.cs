@@ -44,7 +44,7 @@ public interface IExportSourceProvider
     /// <paramref name="provider"/>, <paramref name="config"/>, or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<IExportSource> CreateSourceAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default);
+    Task<IExportSource> CreateAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid souce.

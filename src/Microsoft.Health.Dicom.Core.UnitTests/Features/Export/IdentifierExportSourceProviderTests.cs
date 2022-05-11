@@ -46,7 +46,7 @@ public class IdentifierExportSourceProviderTests
         IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection().Build();
         config.Set(options);
 
-        IExportSource source = await _provider.CreateSourceAsync(_serviceProvider, config, PartitionEntry.Default);
+        IExportSource source = await _provider.CreateAsync(_serviceProvider, config, PartitionEntry.Default);
         Assert.IsType<IdentifierExportSource>(source);
     }
 

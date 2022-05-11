@@ -6,13 +6,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -61,25 +62,24 @@ internal sealed class IdentifierExportSource : IExportSource
                 _ => await _instanceStore.GetInstanceIdentifierAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
             };
 
-            if (instances.Count > 0)
-            {
-                foreach (VersionedInstanceIdentifier read in instances)
-                    yield return ReadResult.ForIdentifier(read);
-            }
-            else
+            if (instances.Count == 0)
             {
                 var args = new ReadFailureEventArgs(
                     identifier,
-                    new FileNotFoundException(
-                        identifier.Type switch
-                        {
-                            ResourceType.Study => DicomCoreResource.StudyNotFound,
-                            ResourceType.Series => DicomCoreResource.SeriesNotFound,
-                            _ => DicomCoreResource.InstanceNotFound,
-                        }));
+                    identifier.Type switch
+                    {
+                        ResourceType.Study => new StudyNotFoundException(),
+                        ResourceType.Series => new SeriesNotFoundException(),
+                        _ => new InstanceNotFoundException(),
+                    });
 
                 ReadFailure?.Invoke(this, args);
                 yield return ReadResult.ForFailure(args);
+            }
+            else
+            {
+                foreach (VersionedInstanceIdentifier read in instances)
+                    yield return ReadResult.ForIdentifier(read);
             }
         }
     }
@@ -104,14 +104,15 @@ internal sealed class IdentifierExportSource : IExportSource
         // Create a configuration that describes the source over this subset
         var source = new TypedConfiguration<ExportSourceType>
         {
-            Configuration = new ConfigurationBuilder().AddInMemoryCollection().Build(),
+            Configuration = new ConfigurationRoot(new IConfigurationProvider[] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) }),
             Type = ExportSourceType.Identifiers,
         };
 
+        IConfigurationSection valuesSection = source.Configuration.GetSection(nameof(IdentifierExportOptions.Values));
         for (int i = _startIndex; i < _startIndex + count; i++)
-            source.Configuration[nameof(IdentifierExportOptions.Values) + ':' + i.ToString(CultureInfo.InvariantCulture)] = _options.Values[i];
+            valuesSection[i.ToString(CultureInfo.InvariantCulture)] = _options.Values[i];
 
-        // Optional move the _startIndex to avoid future consumption
+        // Optionally move the _startIndex to avoid future consumption
         if (remove)
             _startIndex += count;
 

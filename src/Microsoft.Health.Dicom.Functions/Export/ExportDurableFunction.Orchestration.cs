@@ -52,7 +52,7 @@ public partial class ExportDurableFunction
             input.Destination.Type,
             input.Progress.Total + 1);
 
-        await using IExportSource source = await _sourceFactory.CreateSourceAsync(input.Source, input.Partition);
+        await using IExportSource source = await _sourceFactory.CreateAsync(input.Source, input.Partition);
 
         // Start export in parallel
         var exportTasks = new List<Task<ExportProgress>>();

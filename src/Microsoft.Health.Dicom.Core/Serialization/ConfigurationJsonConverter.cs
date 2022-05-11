@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 
 namespace Microsoft.Health.Dicom.Core.Serialization;
 
@@ -20,9 +21,15 @@ internal sealed class ConfigurationJsonConverter : JsonConverter<IConfiguration>
         if (reader.TokenType == JsonTokenType.Null)
             return null;
 
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(EnumeratePairs(JsonSerializer.Deserialize<JsonElement>(ref reader, options)))
-            .Build();
+        return new ConfigurationRoot(
+            new IConfigurationProvider[]
+            {
+                new MemoryConfigurationProvider(
+                    new MemoryConfigurationSource
+                    {
+                        InitialData = EnumeratePairs(JsonSerializer.Deserialize<JsonElement>(ref reader, options))
+                    }),
+            });
     }
 
     public override void Write(Utf8JsonWriter writer, IConfiguration value, JsonSerializerOptions options)

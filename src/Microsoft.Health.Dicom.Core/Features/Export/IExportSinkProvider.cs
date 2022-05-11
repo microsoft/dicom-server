@@ -43,7 +43,7 @@ public interface IExportSinkProvider
     /// <paramref name="provider"/> or <paramref name="config"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<IExportSink> CreateSinkAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default);
+    Task<IExportSink> CreateAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid sink.
