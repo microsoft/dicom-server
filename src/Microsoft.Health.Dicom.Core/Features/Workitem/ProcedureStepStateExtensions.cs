@@ -85,7 +85,7 @@ public static class ProcedureStepStateExtensions
     /// </summary>
     /// <param name="dataset">The DICOM dataset</param>
     /// <returns>Returns Procedure Step State</returns>
-    public static ProcedureStepState GetProcedureState(this DicomDataset dataset)
+    public static ProcedureStepState GetProcedureStepState(this DicomDataset dataset)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 

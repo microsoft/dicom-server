@@ -89,13 +89,11 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             // There are only success.
             status = WorkitemResponseStatus.Success;
         }
-        else if (failureReason == FailureReasonCodes.ProcessingFailure ||
-                 failureReason == FailureReasonCodes.UpsInstanceNotFound)
+        else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
         {
             status = WorkitemResponseStatus.NotFound;
         }
-        else if (failureReason == FailureReasonCodes.UpsIsAlreadyCompleted ||
-                 failureReason == FailureReasonCodes.UpsIsAlreadyCanceled)
+        else if (failureReason == FailureReasonCodes.UpsInstanceUpdateNotAllowed)
         {
             status = WorkitemResponseStatus.Conflict;
         }

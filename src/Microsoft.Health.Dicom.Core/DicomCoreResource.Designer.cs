@@ -1219,6 +1219,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; procedure step state can not be updated to &apos;{1}&apos;. {2}..
+        /// </summary>
+        internal static string WorkitemChangeStateRequestRejected {
+            get {
+                return ResourceManager.GetString("WorkitemChangeStateRequestRejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; procedure step state has been updated to &apos;{1}&apos;..
         /// </summary>
         internal static string WorkitemChangeStateRequestSuccess {

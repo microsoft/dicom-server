@@ -12,7 +12,6 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
-using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
@@ -43,11 +42,6 @@ public partial class WorkitemController
                         workitemInstanceUid,
                         cancellationToken: HttpContext.RequestAborted)
                     .ConfigureAwait(false);
-
-        if (response.Status == WorkitemResponseStatus.Success)
-        {
-            return Ok();
-        }
 
         return StatusCode((int)response.Status.ChangeStateResponseToHttpStatusCode(), response.Message);
     }

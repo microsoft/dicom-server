@@ -42,7 +42,6 @@ public static class WorkitemResponseStatusExtensions
         {
             { WorkitemResponseStatus.Success, HttpStatusCode.OK },
             { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
-            { WorkitemResponseStatus.NoContent, HttpStatusCode.NotFound },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
         };
 
@@ -52,6 +51,7 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.Success, HttpStatusCode.OK },
             { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
+            { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
         };
 
     /// <summary>

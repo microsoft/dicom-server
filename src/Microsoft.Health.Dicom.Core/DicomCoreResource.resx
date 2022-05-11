@@ -603,4 +603,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ValueTypesNotSupported" xml:space="preserve">
     <value>This operation does not support value types.</value>
   </data>
+  <data name="WorkitemChangeStateRequestRejected" xml:space="preserve">
+    <value>The workitem instance with UID: '{0}' procedure step state can not be updated to '{1}'. {2}.</value>
+    <comment>{0} Workitem UID. {1} Procedure Step State. {2} Error or Warning Code.</comment>
+  </data>
 </root>
