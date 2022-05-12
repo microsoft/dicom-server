@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
@@ -24,19 +23,13 @@ internal sealed class IdentifierExportOptions : IValidatableObject
         }
         else
         {
-            try
+            foreach (string value in Values)
             {
-                foreach (string value in Values)
+                if (value == null || !DicomIdentifier.TryParse(value, out _))
                 {
-                    if (value == null)
-                        throw new ValidationException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value));
-
-                    DicomIdentifier.Parse(value);
+                    results.Add(new ValidationResult(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value), new string[] { nameof(Values) }));
+                    break; // We could also accumulate all of the issues
                 }
-            }
-            catch (FormatException ex)
-            {
-                results.Add(new ValidationResult(ex.Message, new string[] { nameof(Values) }));
             }
         }
 

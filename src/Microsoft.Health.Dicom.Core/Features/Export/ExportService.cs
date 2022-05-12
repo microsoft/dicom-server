@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -21,23 +22,25 @@ internal sealed class ExportService : IExportService
     private readonly ExportSinkFactory _sinkFactory;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
+    private readonly PartitionEntry _partition;
 
     public ExportService(
         ExportSourceFactory sourceFactory,
         ExportSinkFactory sinkFactory,
         IGuidFactory guidFactory,
-        IDicomOperationsClient client)
+        IDicomOperationsClient client,
+        IDicomRequestContext requestContext)
     {
         _sourceFactory = EnsureArg.IsNotNull(sourceFactory, nameof(sourceFactory));
         _sinkFactory = EnsureArg.IsNotNull(sinkFactory, nameof(sinkFactory));
         _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         _client = EnsureArg.IsNotNull(client, nameof(client));
+        _partition = EnsureArg.IsNotNull(requestContext?.DataPartitionEntry, nameof(requestContext));
     }
 
-    public async Task<OperationReference> StartExportAsync(ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartExportAsync(ExportSpecification specification, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
-        EnsureArg.IsNotNull(partition, nameof(partition));
 
         Guid operationId = _guidFactory.Create();
 
@@ -49,6 +52,6 @@ internal sealed class ExportService : IExportService
         };
 
         // Start the operation
-        return await _client.StartExportAsync(operationId, specification, partition, cancellationToken);
+        return await _client.StartExportAsync(operationId, specification, _partition, cancellationToken);
     }
 }

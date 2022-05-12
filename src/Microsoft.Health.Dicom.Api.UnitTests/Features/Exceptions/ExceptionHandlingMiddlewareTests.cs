@@ -35,6 +35,7 @@ public class ExceptionHandlingMiddlewareTests
     public static IEnumerable<object[]> GetExceptionToStatusCodeMapping()
     {
         yield return new object[] { new CustomValidationException(), HttpStatusCode.BadRequest };
+        yield return new object[] { new System.ComponentModel.DataAnnotations.ValidationException(), HttpStatusCode.BadRequest };
         yield return new object[] { new NotSupportedException("Not supported."), HttpStatusCode.BadRequest };
         yield return new object[] { new AuditHeaderCountExceededException(AuditConstants.MaximumNumberOfCustomHeaders + 1), HttpStatusCode.BadRequest };
         yield return new object[] { new AuditHeaderTooLargeException("TestHeader", AuditConstants.MaximumLengthOfCustomHeader + 1), HttpStatusCode.BadRequest };

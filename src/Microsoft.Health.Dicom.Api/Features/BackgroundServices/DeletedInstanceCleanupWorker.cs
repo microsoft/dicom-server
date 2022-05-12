@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
@@ -48,6 +49,10 @@ public class DeletedInstanceCleanupWorker
                     (success, retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
                 }
                 while (success && retrievedInstanceCount == _batchSize);
+            }
+            catch (DataStoreNotReadyException)
+            {
+                _logger.LogInformation("The data store is not currently ready. Processing will continue after the next wait period.");
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {

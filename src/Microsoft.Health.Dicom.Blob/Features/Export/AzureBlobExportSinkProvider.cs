@@ -34,7 +34,7 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
     public AzureBlobExportSinkProvider(ISecretStore secretStore)
         => _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
 
-    public async Task<IExportSink> CreateSinkAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
+    public async Task<IExportSink> CreateAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(provider, nameof(provider));
         EnsureArg.IsNotNull(config, nameof(config));

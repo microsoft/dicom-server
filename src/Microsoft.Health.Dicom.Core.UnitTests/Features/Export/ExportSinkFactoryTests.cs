@@ -22,7 +22,7 @@ public class ExportSinkFactoryTests
     public async Task GivenNoProviders_WhenCreatingSink_ThenThrowException()
     {
         var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSinkProvider>());
-        await Assert.ThrowsAsync<KeyNotFoundException>(() => factory.CreateSinkAsync(
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => factory.CreateAsync(
             new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob },
             Guid.NewGuid()));
     }
@@ -40,12 +40,12 @@ public class ExportSinkFactoryTests
 
         IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
         provider.Type.Returns(ExportDestinationType.AzureBlob);
-        provider.CreateSinkAsync(serviceProvider, config, operationId, tokenSource.Token).Returns(expected);
+        provider.CreateAsync(serviceProvider, config, operationId, tokenSource.Token).Returns(expected);
 
         var factory = new ExportSinkFactory(serviceProvider, new IExportSinkProvider[] { provider });
-        Assert.Same(expected, await factory.CreateSinkAsync(destination, operationId, tokenSource.Token));
+        Assert.Same(expected, await factory.CreateAsync(destination, operationId, tokenSource.Token));
 
-        await provider.Received(1).CreateSinkAsync(serviceProvider, config, operationId, tokenSource.Token);
+        await provider.Received(1).CreateAsync(serviceProvider, config, operationId, tokenSource.Token);
     }
 
     [Fact]

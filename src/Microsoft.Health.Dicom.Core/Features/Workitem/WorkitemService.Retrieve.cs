@@ -34,7 +34,7 @@ public partial class WorkitemService
             {
                 _responseBuilder.AddFailure(
                     FailureReasonCodes.UpsInstanceNotFound,
-                    string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemMetadata.WorkitemUid));
+                    string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid));
 
                 return _responseBuilder.BuildRetrieveWorkitemResponse();
             }

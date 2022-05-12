@@ -11,9 +11,9 @@ const {
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const axios = require('axios').default;
 const FormData = require('form-data')
 const https = require('https')
+const fetch = require('node-fetch')
 
 // based on answer from https://stackoverflow.com/questions/57807459/how-to-use-preload-js-properly-in-electron
 // Keep a global reference of the window object, if you don't, the window will
@@ -74,7 +74,10 @@ async function createWindow() {
             authorizationHeader = 'Bearer ' + args.bearerToken
         }
 
-        axios.post(args.url, form, {
+        fetch(
+            args.url, 
+            {
+                method: `POST`,
                 headers: {
                     'Content-Type': 'multipart/related; ' + 'boundary=' + form._boundary,
                     'Accept': 'application/dicom+json',
@@ -82,10 +85,15 @@ async function createWindow() {
                 },
                 maxContentLength: maxSizeBytes,
                 maxBodyLength: maxSizeBytes,
-                httpsAgent: httpsAgent
+                body: form,
+                agent: httpsAgent
             })
             .then(function(response) {
-                win.webContents.send("success", response.data);
+                if (response.ok) {
+                    win.webContents.send("success", response.data);
+                } else {
+                    win.webContents.send("httpErrorEncountered", response.status);
+                }
             })
             .catch(function(error) {
                 if (error.response === undefined) {
@@ -104,15 +112,19 @@ async function createWindow() {
             authorizationHeader = 'Bearer ' + args.bearerToken
         }
 
-        axios.get(args.url, {
+        fetch(
+            args.url, 
+            {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': authorizationHeader
                 },
-                httpsAgent: httpsAgent
+                agent: httpsAgent
             })
-            .then(function(response) {
-                win.webContents.send("changeFeedRetrieved", response.data);
+            .then(function(res) {
+                return res.json();
+            }).then(function(json) {
+                win.webContents.send("changeFeedRetrieved", json);
             })
             .catch(function(error) {
                 if (error.response === undefined) {

@@ -3,18 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-using MediatR;
-using Microsoft.Health.Dicom.Core.Models.Export;
+using System;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Export;
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-public sealed class ExportRequest : IRequest<ExportResponse>
+public class DataStoreNotReadyException : DataStoreException
 {
-    public ExportSpecification Specification { get; }
-
-    public ExportRequest(ExportSpecification spec)
+    public DataStoreNotReadyException(string message)
+        : base(message)
     {
-        Specification = EnsureArg.IsNotNull(spec, nameof(spec));
+    }
+
+    public DataStoreNotReadyException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Blob" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="xunit" Version="2.4.1" />

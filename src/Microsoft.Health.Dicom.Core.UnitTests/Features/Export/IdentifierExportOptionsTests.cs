@@ -17,7 +17,6 @@ public class IdentifierExportOptionsTests
     [InlineData("")]
     [InlineData("1/2/3", "foo")]
     [InlineData("1/bar")]
-
     public void GivenInvalidOptions_WhenValidating_ThenReturnResults(params string[] values)
     {
         var options = new IdentifierExportOptions

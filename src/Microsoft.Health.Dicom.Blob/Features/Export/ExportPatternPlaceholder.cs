@@ -5,8 +5,6 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Export;
-
 [Flags]
 internal enum ExportPatternPlaceholders : sbyte
 {

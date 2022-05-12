@@ -205,10 +205,7 @@ public class DicomAzureFunctionsClientTests
                 .ResolveQueryTagKeysAsync(
                     Arg.Is<IReadOnlyCollection<int>>(x => x.SequenceEqual(tagKeys)),
                     source.Token);
-        }
 
-        if (populateInput)
-        {
             foreach (string path in tagPaths)
             {
                 _urlResolver.Received(1).ResolveQueryTagUri(path);

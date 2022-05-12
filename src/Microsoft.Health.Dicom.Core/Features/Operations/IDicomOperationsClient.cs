@@ -57,7 +57,7 @@ public interface IDicomOperationsClient
     /// </summary>
     /// <param name="operationId">The desired ID for the long-running export operation.</param>
     /// <param name="specification">The specification that details the source and destination for the export.</param>
-    /// <param name="partition">The data partition containing the files to export.</param>
+    /// <param name="partition">The partition containing the data to export.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
@@ -73,17 +73,26 @@ public interface IDicomOperationsClient
     Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously begins the instance blob copy
+    /// Asynchronously begins the instance blob copy.
     /// </summary>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
-    /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
-    /// that is performing the asynchronous addition.</returns>
+    /// <returns>
+    /// A task representing the <see cref="StartBlobCopyAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
+    /// that is performing the asynchronous addition.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously gets the completed status of blob copy
+    /// Asynchronously gets the completed status of blob copy.
     /// </summary>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
-    /// <returns>The value of its <see cref="Task{TResult}.Result"/> property contains the completed status</returns>
+    /// <returns>
+    /// A task representing the <see cref="IsBlobCopyCompletedAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property a value that indicate whether the copy
+    /// operation as completed.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default);
 }

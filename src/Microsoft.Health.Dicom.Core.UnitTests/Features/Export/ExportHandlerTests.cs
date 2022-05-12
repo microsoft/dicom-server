@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -53,13 +52,11 @@ public class ExportHandlerTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        _auth.CheckAccess(DataActions.Read, tokenSource.Token).Returns(DataActions.None);
+        _auth.CheckAccess(DataActions.Export, tokenSource.Token).Returns(DataActions.None);
         await Assert.ThrowsAsync<UnauthorizedDicomActionException>(
-            () => _handler.Handle(
-                new ExportRequest(new ExportSpecification(), PartitionEntry.Default),
-                tokenSource.Token));
+            () => _handler.Handle(new ExportRequest(new ExportSpecification()), tokenSource.Token));
 
-        await _auth.Received(1).CheckAccess(DataActions.Read, tokenSource.Token);
+        await _auth.Received(1).CheckAccess(DataActions.Export, tokenSource.Token);
         await _export.DidNotReceiveWithAnyArgs().StartExportAsync(default, default);
     }
 
@@ -67,18 +64,18 @@ public class ExportHandlerTests
     public async Task GivenRequest_WhenHandlingRequest_ThenReturnResponse()
     {
         using var tokenSource = new CancellationTokenSource();
-        var request = new ExportRequest(new ExportSpecification(), new PartitionEntry(123, "Test"));
+        var request = new ExportRequest(new ExportSpecification());
         var expected = new OperationReference(Guid.NewGuid(), new Uri("http://operation"));
 
-        _auth.CheckAccess(DataActions.Read, tokenSource.Token).Returns(DataActions.Read);
-        _export.StartExportAsync(request.Specification, request.Partition, tokenSource.Token).Returns(expected);
+        _auth.CheckAccess(DataActions.Export, tokenSource.Token).Returns(DataActions.Export);
+        _export.StartExportAsync(request.Specification, tokenSource.Token).Returns(expected);
 
         ExportResponse response = await _handler.Handle(request, tokenSource.Token);
         Assert.Same(expected, response.Operation);
 
-        await _auth.Received(1).CheckAccess(DataActions.Read, tokenSource.Token);
+        await _auth.Received(1).CheckAccess(DataActions.Export, tokenSource.Token);
         await _export
             .Received(1)
-            .StartExportAsync(request.Specification, request.Partition, tokenSource.Token);
+            .StartExportAsync(request.Specification, tokenSource.Token);
     }
 }

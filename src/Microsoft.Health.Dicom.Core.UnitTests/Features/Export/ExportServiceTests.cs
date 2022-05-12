@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -24,11 +25,13 @@ public class ExportServiceTests
     private const ExportSourceType SourceType = ExportSourceType.Identifiers;
     private const ExportDestinationType DestinationType = ExportDestinationType.AzureBlob;
 
+    private readonly PartitionEntry _partition = new PartitionEntry(123, "export-partition");
     private readonly IExportSourceProvider _sourceProvider;
     private readonly IExportSinkProvider _sinkProvider;
     private readonly IServiceProvider _serviceProvider;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
+    private readonly IDicomRequestContext _requestContext;
     private readonly ExportService _service;
 
     public ExportServiceTests()
@@ -40,11 +43,14 @@ public class ExportServiceTests
         _client = Substitute.For<IDicomOperationsClient>();
         _guidFactory = Substitute.For<IGuidFactory>();
         _serviceProvider = Substitute.For<IServiceProvider>();
+        _requestContext = Substitute.For<IDicomRequestContext>();
+        _requestContext.DataPartitionEntry.Returns(_partition);
         _service = new ExportService(
             new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider }),
             new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider }),
             _guidFactory,
-            _client);
+            _client,
+            _requestContext);
     }
 
     [Fact]
@@ -53,10 +59,11 @@ public class ExportServiceTests
         var source = new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider });
         var sink = new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider });
 
-        Assert.Throws<ArgumentNullException>(() => new ExportService(null, sink, _guidFactory, _client));
-        Assert.Throws<ArgumentNullException>(() => new ExportService(source, null, _guidFactory, _client));
-        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, null, _client));
-        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, _guidFactory, null));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(null, sink, _guidFactory, _client, _requestContext));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, null, _guidFactory, _client, _requestContext));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, null, _client, _requestContext));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, _guidFactory, null, _requestContext));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, _guidFactory, _client, null));
     }
 
     [Fact]
@@ -74,7 +81,6 @@ public class ExportServiceTests
             Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = originalDestination },
             Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = originalSource },
         };
-        var partition = new PartitionEntry(123, "test");
         var expected = new OperationReference(operationId, new Uri("http://test/export"));
 
         _guidFactory.Create().Returns(operationId);
@@ -85,11 +91,11 @@ public class ExportServiceTests
                 operationId,
                 Arg.Is<ExportSpecification>(x => ReferenceEquals(validatedSource, x.Source.Configuration)
                     && ReferenceEquals(validatedDestination, x.Destination.Configuration)),
-                partition,
+                _partition,
                 tokenSource.Token)
             .Returns(expected);
 
-        Assert.Same(expected, await _service.StartExportAsync(spec, partition, tokenSource.Token));
+        Assert.Same(expected, await _service.StartExportAsync(spec, tokenSource.Token));
 
         _guidFactory.Received(1).Create();
         await _sourceProvider.Received(1).ValidateAsync(originalSource, tokenSource.Token);
@@ -100,7 +106,7 @@ public class ExportServiceTests
                 operationId,
                 Arg.Is<ExportSpecification>(x => ReferenceEquals(validatedSource, x.Source.Configuration)
                     && ReferenceEquals(validatedDestination, x.Destination.Configuration)),
-                partition,
+                _partition,
                 tokenSource.Token);
     }
 }

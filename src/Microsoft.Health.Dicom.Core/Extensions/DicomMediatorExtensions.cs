@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.Delete;
@@ -189,11 +188,10 @@ public static class DicomMediatorExtensions
     public static Task<ExportResponse> ExportAsync(
        this IMediator mediator,
        ExportSpecification spec,
-       PartitionEntry partition,
        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ExportRequest(spec, partition), cancellationToken);
+        return mediator.Send(new ExportRequest(spec), cancellationToken);
     }
 
     public static Task<OperationStateResponse> GetOperationStateAsync(

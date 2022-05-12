@@ -63,9 +63,9 @@ public sealed class ExportSourceFactory
     /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    public Task<IExportSource> CreateSourceAsync(TypedConfiguration<ExportSourceType> source, PartitionEntry partition, CancellationToken cancellationToken = default)
+    public Task<IExportSource> CreateAsync(TypedConfiguration<ExportSourceType> source, PartitionEntry partition, CancellationToken cancellationToken = default)
         => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type)
-            .CreateSourceAsync(_serviceProvider, source.Configuration, partition, cancellationToken);
+            .CreateAsync(_serviceProvider, source.Configuration, partition, cancellationToken);
 
     /// <summary>
     /// Asynchronously ensures that the given configuration can be used to create a valid source.

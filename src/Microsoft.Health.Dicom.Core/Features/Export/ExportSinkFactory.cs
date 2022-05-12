@@ -60,9 +60,9 @@ public sealed class ExportSinkFactory
     /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    public Task<IExportSink> CreateSinkAsync(TypedConfiguration<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
+    public Task<IExportSink> CreateAsync(TypedConfiguration<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
         => GetProvider(EnsureArg.IsNotNull(destination, nameof(destination)).Type)
-            .CreateSinkAsync(_serviceProvider, destination.Configuration, operationId, cancellationToken);
+            .CreateAsync(_serviceProvider, destination.Configuration, operationId, cancellationToken);
 
     /// <summary>
     /// Asynchronously ensures that the given configuration can be used to create a valid sink.

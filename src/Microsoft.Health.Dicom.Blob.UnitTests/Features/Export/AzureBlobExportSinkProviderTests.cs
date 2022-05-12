@@ -71,7 +71,7 @@ public class AzureBlobExportSinkProviderTests
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token)
             .Returns(GetJson(containerUri));
 
-        IExportSink sink = await _sinkProvider.CreateSinkAsync(_serviceProvider, configuration, operationId, tokenSource.Token);
+        IExportSink sink = await _sinkProvider.CreateAsync(_serviceProvider, configuration, operationId, tokenSource.Token);
 
         Assert.IsType<AzureBlobExportSink>(sink);
         Assert.Equal(errorHref, sink.ErrorHref);

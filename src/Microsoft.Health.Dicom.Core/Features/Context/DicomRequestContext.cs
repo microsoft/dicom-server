@@ -46,7 +46,7 @@ public class DicomRequestContext : IDicomRequestContext
         CorrelationId = correlationId;
         RequestHeaders = requestHeaders;
         ResponseHeaders = responseHeaders;
-        DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+        DataPartitionEntry = PartitionEntry.Default;
     }
 
     public string Method { get; }
