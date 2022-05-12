@@ -34,7 +34,6 @@ public partial class WorkitemService
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
-        DicomDataset originalBlobDicomDataset = null;
 
         try
         {
@@ -45,13 +44,13 @@ public partial class WorkitemService
             {
                 _responseBuilder.AddFailure(
                     FailureReasonCodes.UpsInstanceNotFound,
-                    string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
                     dataset);
 
                 return _responseBuilder.BuildChangeWorkitemStateResponse();
             }
 
-            originalBlobDicomDataset = await _workitemOrchestrator
+            var originalBlobDicomDataset = await _workitemOrchestrator
                 .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
 
@@ -67,6 +66,7 @@ public partial class WorkitemService
                 .ConfigureAwait(false);
 
             _responseBuilder.AddSuccess(string.Format(
+                CultureInfo.InvariantCulture,
                 DicomCoreResource.WorkitemChangeStateRequestSuccess,
                 workitemMetadata.WorkitemUid,
                 workitemMetadata.ProcedureStepStateStringValue));
@@ -115,14 +115,16 @@ public partial class WorkitemService
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
         // Check for missing Transaction UID
-        if (!dataset.TryGetString(DicomTag.TransactionUID, out var transactionUid))
+        if (!dataset.TryGetString(DicomTag.TransactionUID, out var transactionUid)
+            || string.IsNullOrWhiteSpace(transactionUid))
         {
             throw new BadRequestException(
                 string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingRequiredTag, DicomTag.TransactionUID));
         }
 
         // Check for missing Procedure Step State
-        if (!dataset.TryGetString(DicomTag.ProcedureStepState, out var targetProcedureStepStateStringValue))
+        if (!dataset.TryGetString(DicomTag.ProcedureStepState, out var targetProcedureStepStateStringValue)
+            || string.IsNullOrWhiteSpace(targetProcedureStepStateStringValue))
         {
             throw new BadRequestException(
                 string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingRequiredTag, DicomTag.ProcedureStepState));
