@@ -7,7 +7,6 @@ using System;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
@@ -108,14 +107,13 @@ public static class DicomServerServiceCollectionExtensions
             {
                 options.EnableEndpointRouting = false;
                 options.RespectBrowserAcceptHeader = true;
+                options.Conventions.Add(new ApiVersionRoutePrefixConvention());
             })
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
 
         services.AddApiVersioning(c =>
         {
             c.ApiVersionReader = new UrlSegmentApiVersionReader();
-            c.AssumeDefaultVersionWhenUnspecified = true;
-            c.DefaultApiVersion = new ApiVersion(1, 0);
             c.ReportApiVersions = true;
             c.UseApiBehavior = false;
         });

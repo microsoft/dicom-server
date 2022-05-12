@@ -53,8 +53,8 @@ public class StoreController : ControllerBase
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
     [HttpPost]
-    [VersionedPartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.PartitionStoreInstance)]
-    [VersionedRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.StoreInstance)]
+    [PartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.PartitionStoreInstance)]
+    [Route(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.StoreInstance)]
     [AuditEventType(AuditEventSubType.Store)]
     public async Task<IActionResult> PostInstanceAsync()
     {
@@ -72,8 +72,8 @@ public class StoreController : ControllerBase
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
     [HttpPost]
-    [VersionedPartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.PartitionStoreInstancesInStudy)]
-    [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.StoreInstancesInStudy)]
+    [PartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.PartitionStoreInstancesInStudy)]
+    [Route(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.StoreInstancesInStudy)]
     [AuditEventType(AuditEventSubType.Store)]
     public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
     {

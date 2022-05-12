@@ -58,8 +58,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.PartitionRetrieveStudy)]
-    [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
+    [PartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.PartitionRetrieveStudy)]
+    [Route(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
     [AuditEventType(AuditEventSubType.Retrieve)]
     public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
     {
@@ -78,8 +78,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [ProducesResponseType((int)HttpStatusCode.NotModified)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.StudyMetadataRoute)]
-    [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
+    [PartitionRoute(KnownRoutes.StudyMetadataRoute)]
+    [Route(KnownRoutes.StudyMetadataRoute)]
     [AuditEventType(AuditEventSubType.RetrieveMetadata)]
     public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
     {
@@ -96,8 +96,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.PartitionRetrieveSeries)]
-    [VersionedRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.RetrieveSeries)]
+    [PartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.PartitionRetrieveSeries)]
+    [Route(KnownRoutes.SeriesRoute, Name = KnownRouteNames.RetrieveSeries)]
     [AuditEventType(AuditEventSubType.Retrieve)]
     public async Task<IActionResult> GetSeriesAsync(
         string studyInstanceUid,
@@ -119,8 +119,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [ProducesResponseType((int)HttpStatusCode.NotModified)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.SeriesMetadataRoute)]
-    [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
+    [PartitionRoute(KnownRoutes.SeriesMetadataRoute)]
+    [Route(KnownRoutes.SeriesMetadataRoute)]
     [AuditEventType(AuditEventSubType.RetrieveMetadata)]
     public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
     {
@@ -138,8 +138,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.PartitionRetrieveInstance)]
-    [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
+    [PartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.PartitionRetrieveInstance)]
+    [Route(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
     [AuditEventType(AuditEventSubType.Retrieve)]
     public async Task<IActionResult> GetInstanceAsync(
         string studyInstanceUid,
@@ -162,8 +162,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [ProducesResponseType((int)HttpStatusCode.NotModified)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.InstanceMetadataRoute)]
-    [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
+    [PartitionRoute(KnownRoutes.InstanceMetadataRoute)]
+    [Route(KnownRoutes.InstanceMetadataRoute)]
     [AuditEventType(AuditEventSubType.RetrieveMetadata)]
     public async Task<IActionResult> GetInstanceMetadataAsync(
         [FromHeader(Name = IfNoneMatch)] string ifNoneMatch,
@@ -185,8 +185,8 @@ public class RetrieveController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [HttpGet]
-    [VersionedPartitionRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.PartitionRetrieveFrame)]
-    [VersionedRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.RetrieveFrame)]
+    [PartitionRoute(KnownRoutes.FrameRoute, Name = KnownRouteNames.PartitionRetrieveFrame)]
+    [Route(KnownRoutes.FrameRoute, Name = KnownRouteNames.RetrieveFrame)]
     [AuditEventType(AuditEventSubType.Retrieve)]
     public async Task<IActionResult> GetFramesAsync(
         string studyInstanceUid,

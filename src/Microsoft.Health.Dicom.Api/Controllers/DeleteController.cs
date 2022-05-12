@@ -42,8 +42,8 @@ public class DeleteController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [VersionedPartitionRoute(KnownRoutes.StudyRoute)]
-    [VersionedRoute(KnownRoutes.StudyRoute)]
+    [PartitionRoute(KnownRoutes.StudyRoute)]
+    [Route(KnownRoutes.StudyRoute)]
     [AuditEventType(AuditEventSubType.Delete)]
     public async Task<IActionResult> DeleteStudyAsync(string studyInstanceUid)
     {
@@ -59,8 +59,8 @@ public class DeleteController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [VersionedPartitionRoute(KnownRoutes.SeriesRoute)]
-    [VersionedRoute(KnownRoutes.SeriesRoute)]
+    [PartitionRoute(KnownRoutes.SeriesRoute)]
+    [Route(KnownRoutes.SeriesRoute)]
     [AuditEventType(AuditEventSubType.Delete)]
     public async Task<IActionResult> DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid)
     {
@@ -76,8 +76,8 @@ public class DeleteController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [VersionedPartitionRoute(KnownRoutes.InstanceRoute)]
-    [VersionedRoute(KnownRoutes.InstanceRoute)]
+    [PartitionRoute(KnownRoutes.InstanceRoute)]
+    [Route(KnownRoutes.InstanceRoute)]
     [AuditEventType(AuditEventSubType.Delete)]
     public async Task<IActionResult> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
