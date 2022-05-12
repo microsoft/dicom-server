@@ -57,10 +57,8 @@ public class BackgroundServiceHealthCheck : IHealthCheck
             _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
             _telemetryClient.GetMetric("Count-Deletions-Max-Retry").TrackValue(await numReachedMaxedRetry);
         }
-        catch (DataStoreException e) // This is expected when service is starting up without schema initialization
+        catch (DataStoreNotReadyException)
         {
-            _logger.LogError(e, "The service is unhealthy.");
-
             return HealthCheckResult.Unhealthy("Unhealthy service.");
         }
 
