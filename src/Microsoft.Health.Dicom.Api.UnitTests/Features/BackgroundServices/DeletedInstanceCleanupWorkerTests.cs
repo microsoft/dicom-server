@@ -47,6 +47,12 @@ public class DeletedInstanceCleanupWorkerTests
     [InlineData(21, 3)]
     public async Task GivenANumberOfDeletedEntriesAndBatchSize_WhenCallingExecute_ThenDeleteShouldBeCalledCorrectNumberOfTimes(int numberOfDeletedInstances, int expectedDeleteCount)
     {
+        _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
+            x => GenerateCleanupDeletedInstancesAsyncResponse());
+
+        await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
+        await _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
+
         (bool, int) GenerateCleanupDeletedInstancesAsyncResponse()
         {
             var returnValue = Math.Min(numberOfDeletedInstances, BatchSize);
@@ -59,12 +65,6 @@ public class DeletedInstanceCleanupWorkerTests
 
             return (true, returnValue);
         }
-
-        _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
-            x => GenerateCleanupDeletedInstancesAsyncResponse());
-
-        await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-        await _deleteService.ReceivedWithAnyArgs(expectedDeleteCount).CleanupDeletedInstancesAsync();
     }
 
     [Fact]
@@ -72,6 +72,12 @@ public class DeletedInstanceCleanupWorkerTests
     {
         int iterations = 3;
         int count = 0;
+        _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
+            x => GenerateCleanupDeletedInstancesAsyncResponse());
+
+        await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
+        await _deleteService.ReceivedWithAnyArgs(4).CleanupDeletedInstancesAsync();
+
         (bool, int) GenerateCleanupDeletedInstancesAsyncResponse()
         {
             if (count < iterations)
@@ -84,10 +90,5 @@ public class DeletedInstanceCleanupWorkerTests
 
             return (true, 1);
         }
-        _deleteService.CleanupDeletedInstancesAsync().ReturnsForAnyArgs(
-            x => GenerateCleanupDeletedInstancesAsyncResponse());
-
-        await _deletedInstanceCleanupWorker.ExecuteAsync(_cancellationTokenSource.Token);
-        await _deleteService.ReceivedWithAnyArgs(4).CleanupDeletedInstancesAsync();
     }
 }
