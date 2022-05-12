@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -28,17 +29,25 @@ public partial class WorkItemTransactionTests
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
         dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
 
-        using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
+        using var addResponse = await _client
+            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Cancel
         var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
-        using var cancelResponse = await _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid);
+        using var cancelResponse = await _client
+            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
         Assert.True(cancelResponse.IsSuccessStatusCode);
 
         // Query
-        using var queryResponse = await _client.QueryWorkitemAsync($"PatientName={patientName}");
-        var responseDatasets = await queryResponse.ToArrayAsync();
+        using var queryResponse = await _client
+            .QueryWorkitemAsync($"PatientName={patientName}")
+            .ConfigureAwait(false);
+        var responseDatasets = await queryResponse
+            .ToArrayAsync()
+            .ConfigureAwait(false);
         var actualDataset = responseDatasets?.FirstOrDefault();
 
         // Verify
@@ -57,19 +66,25 @@ public partial class WorkItemTransactionTests
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
         dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
 
-        using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
+        using var addResponse = await _client
+            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Cancel
         var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
-        using var cancelResponse1 = await _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid);
+        using var cancelResponse1 = await _client
+            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
         Assert.True(cancelResponse1.IsSuccessStatusCode);
 
         // Cancel
-        var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid));
+        var exception = await Assert
+            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid))
+            .ConfigureAwait(false);
 
         // Verify
-        Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid) + "\"", exception.ResponseMessage);
+        Assert.Equal("\"" + string.Format(CultureInfo.InvariantCulture, DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid) + "\"", exception.ResponseMessage);
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
         // Verify Warning Header
@@ -92,16 +107,20 @@ public partial class WorkItemTransactionTests
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
         dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
 
-        using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
+        using var addResponse = await _client
+            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Cancel
         var newWorkitemUid = TestUidGenerator.Generate();
         var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
-        var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), newWorkitemUid));
+        var exception = await Assert
+            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), newWorkitemUid))
+            .ConfigureAwait(false);
 
         // Verify
-        Assert.Equal("\"" + string.Format(DicomCoreResource.WorkitemInstanceNotFound, newWorkitemUid) + "\"", exception.ResponseMessage);
+        Assert.Equal("\"" + string.Format(CultureInfo.InvariantCulture, DicomCoreResource.WorkitemInstanceNotFound, newWorkitemUid) + "\"", exception.ResponseMessage);
         Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
     }
 }
