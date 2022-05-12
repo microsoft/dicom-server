@@ -44,7 +44,7 @@ public partial class WorkItemTransactionTests
         // Verify
         Assert.NotNull(actualDataset);
         Assert.Equal(workitemUid, actualDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID));
-        Assert.Equal(ProcedureStepState.Canceled, ProcedureStepStateExtensions.GetProcedureState(actualDataset));
+        Assert.Equal(ProcedureStepState.Canceled, ProcedureStepStateExtensions.GetProcedureStepState(actualDataset));
     }
 
     [Fact]
