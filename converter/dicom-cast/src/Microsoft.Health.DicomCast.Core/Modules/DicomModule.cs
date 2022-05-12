@@ -7,7 +7,6 @@ using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Http.Polly;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.DicomCast.Core.Configurations;
