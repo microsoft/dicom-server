@@ -43,6 +43,7 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.Success, HttpStatusCode.OK },
             { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
+            { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
         };
 
     private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> RetrieveResponseStatusToHttpStatusCodeMapping =
@@ -51,7 +52,6 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.Success, HttpStatusCode.OK },
             { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
-            { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
         };
 
     /// <summary>

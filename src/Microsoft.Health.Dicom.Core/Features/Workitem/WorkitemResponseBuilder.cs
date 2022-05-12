@@ -89,6 +89,10 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             // There are only success.
             status = WorkitemResponseStatus.Success;
         }
+        else if (failureReason == FailureReasonCodes.ValidationFailure)
+        {
+            status = WorkitemResponseStatus.Failure;
+        }
         else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
         {
             status = WorkitemResponseStatus.NotFound;

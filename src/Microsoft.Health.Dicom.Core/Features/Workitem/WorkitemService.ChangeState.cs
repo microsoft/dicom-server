@@ -76,6 +76,13 @@ public partial class WorkitemService
             ushort? failureCode = FailureReasonCodes.ProcessingFailure;
             switch (ex)
             {
+                case BadRequestException:
+                case DicomValidationException:
+                case DatasetValidationException:
+                case ValidationException:
+                    failureCode = FailureReasonCodes.ValidationFailure;
+                    break;
+
                 case WorkitemUpdateNotAllowedException:
                     failureCode = FailureReasonCodes.UpsInstanceUpdateNotAllowed;
                     break;
