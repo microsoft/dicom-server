@@ -56,7 +56,7 @@ public class DeleteServiceTests
         _transactionScope = Substitute.For<ITransactionScope>();
         transactionHandler.BeginTransaction().Returns(_transactionScope);
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
         _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor);
     }

@@ -6,6 +6,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
@@ -37,6 +38,7 @@ public interface IExportSink : IAsyncDisposable
     /// </param>
     /// <returns>A task representing the <see cref="InitializeAsync"/> operation.</returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    /// <exception cref="SinkInitializationFailureException">The sink failed to initialize.</exception>
     Task InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>

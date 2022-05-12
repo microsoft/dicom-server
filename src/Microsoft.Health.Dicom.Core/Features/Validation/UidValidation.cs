@@ -21,16 +21,11 @@ internal class UidValidation : IElementValidation
         Validate(value, name, allowEmpty: true);
     }
 
-    public static void Validate(string value, string name, bool allowEmpty = false)
+    public static bool IsValid(string value, bool allowEmpty = false)
     {
         if (string.IsNullOrEmpty(value))
         {
-            if (allowEmpty)
-            {
-                return;
-            }
-
-            throw new InvalidIdentifierException(name, value);
+            return allowEmpty;
         }
 
         // trailling spaces are allowed
@@ -39,13 +34,21 @@ internal class UidValidation : IElementValidation
         if (value.Length > 64)
         {
             // UI value is validated in other cases like params for WADO, DELETE. So keeping the exception specific.
-            throw new InvalidIdentifierException(name, value);
+            return false;
+        }
+        else if (!ValidIdentifierCharactersFormat.IsMatch(value))
+        {
+            return false;
         }
 
-        if (!ValidIdentifierCharactersFormat.IsMatch(value))
+        return true;
+    }
+
+    public static void Validate(string value, string name, bool allowEmpty = false)
+    {
+        if (!IsValid(value, allowEmpty))
         {
             throw new InvalidIdentifierException(name, value);
         }
     }
-
 }
