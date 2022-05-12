@@ -40,8 +40,8 @@ public class DicomModule : IStartupModule
 
         // Allow retries to occur catch 30 second outages
         var retryPolicy = HttpPolicyExtensions
-                .HandleTransientHttpError() // HttpRequestException, 5XX and 408
-                .WaitAndRetryAsync(8, retryAttempt => retryAttempt <= 3 ? TimeSpan.FromSeconds(retryAttempt) : TimeSpan.FromSeconds(5));
+            .HandleTransientHttpError() // HttpRequestException, 5XX and 408
+            .WaitAndRetryAsync(8, retryAttempt => retryAttempt <= 3 ? TimeSpan.FromSeconds(retryAttempt) : TimeSpan.FromSeconds(5));
 
         services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
             {
