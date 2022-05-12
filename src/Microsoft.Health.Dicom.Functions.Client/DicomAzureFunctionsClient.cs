@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
@@ -139,7 +140,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<Guid> StartExportingFilesAsync(ExportSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<Guid> StartExportingFilesAsync(ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
 
@@ -154,6 +155,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             {
                 Batching = _options.Export.Batching,
                 Destination = specification.Destination,
+                Partition = partition,
                 Source = specification.Source,
             });
 

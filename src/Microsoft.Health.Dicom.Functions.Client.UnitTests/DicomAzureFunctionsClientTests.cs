@@ -16,7 +16,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.DurableTask;
@@ -47,6 +50,15 @@ public class DicomAzureFunctionsClientTests
         _guidFactory = Substitute.For<IGuidFactory>();
         _options = new DicomFunctionOptions
         {
+            Export = new FanOutFunctionOptions
+            {
+                Name = FunctionNames.ExportDicomFiles,
+                Batching = new BatchingOptions
+                {
+                    MaxParallelCount = 2,
+                    Size = 50,
+                },
+            },
             Indexing = new FanOutFunctionOptions
             {
                 Name = FunctionNames.ReindexInstances,
@@ -311,5 +323,42 @@ public class DicomAzureFunctionsClientTests
                 instanceId,
                 Arg.Is<ReindexInput>(x => x.QueryTagKeys.SequenceEqual(tagKeys)));
         await _extendedQueryTagStore.Received(1).AssignReindexingOperationAsync(tagKeys, operationId, true, source.Token);
+    }
+
+    [Fact]
+    public async Task GivenValidArgs_WhenStartingExport_ThenStartOrchestration()
+    {
+        var operationId = Guid.NewGuid();
+        var spec = new ExportSpecification
+        {
+            Destination = new TypedConfiguration<ExportDestinationType>(),
+            Source = new TypedConfiguration<ExportSourceType>(),
+        };
+        var partition = new PartitionEntry(17, "test");
+
+        _guidFactory.Create().Returns(operationId);
+        _durableClient
+            .StartNewAsync(
+                FunctionNames.ExportDicomFiles,
+                operationId.ToString(OperationId.FormatSpecifier),
+                Arg.Is<ExportInput>(x => ReferenceEquals(_options.Export.Batching, x.Batching)
+                    && ReferenceEquals(spec.Destination, x.Destination)
+                    && ReferenceEquals(partition, x.Partition)
+                    && ReferenceEquals(spec.Source, x.Source)))
+            .Returns(operationId.ToString(OperationId.FormatSpecifier));
+
+        using var tokenSource = new CancellationTokenSource();
+        Assert.Equal(operationId, await _client.StartExportingFilesAsync(spec, partition, tokenSource.Token));
+
+        _guidFactory.Received(1).Create();
+        await _durableClient
+            .Received(1)
+            .StartNewAsync(
+                FunctionNames.ExportDicomFiles,
+                operationId.ToString(OperationId.FormatSpecifier),
+                Arg.Is<ExportInput>(x => ReferenceEquals(_options.Export.Batching, x.Batching)
+                    && ReferenceEquals(spec.Destination, x.Destination)
+                    && ReferenceEquals(partition, x.Partition)
+                    && ReferenceEquals(spec.Source, x.Source)));
     }
 }
