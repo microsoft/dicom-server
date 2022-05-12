@@ -23,7 +23,8 @@ public partial class DicomWebClient : IDicomWebClient
 
         var uri = GenerateWorkitemAddRequestUri(workitemUid, partitionName);
 
-        return await PostRequest(uri, dicomDatasets, cancellationToken).ConfigureAwait(false);
+        return await Request(uri, dicomDatasets, HttpMethod.Post, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse> CancelWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
@@ -32,7 +33,8 @@ public partial class DicomWebClient : IDicomWebClient
 
         var uri = GenerateWorkitemCancelRequestUri(workitemUid, partitionName);
 
-        return await PostRequest(uri, dicomDatasets, cancellationToken).ConfigureAwait(false);
+        return await Request(uri, dicomDatasets, HttpMethod.Post, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse<DicomDataset>> RetrieveWorkitemAsync(string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
@@ -43,14 +45,30 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 
-        var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var response = await HttpClient.SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
 
-        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response)
+            .ConfigureAwait(false);
 
         var contentValueFactory = new Func<HttpContent, Task<DicomDataset>>(
             content => ValueFactory<DicomDataset>(content));
 
         return new DicomWebResponse<DicomDataset>(response, contentValueFactory);
+    }
+
+    public async Task<DicomWebResponse> ChangeWorkitemStateAsync(
+        DicomDataset dicomDataset,
+        string workitemUid,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        var uri = GenerateChangeWorkitemStateRequestUri(workitemUid, partitionName);
+
+        return await Request(uri, dicomDataset, HttpMethod.Put, cancellationToken)
+            .ConfigureAwait(false);
     }
 
     public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default)
@@ -61,27 +79,30 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 
-        var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var response = await HttpClient.SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
 
-        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response)
+            .ConfigureAwait(false);
 
         return new DicomWebAsyncEnumerableResponse<DicomDataset>(
             response,
             DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
     }
 
-    private async Task<DicomWebResponse> PostRequest<TContent>(
+    private async Task<DicomWebResponse> Request<TContent>(
         Uri uri,
         TContent requestContent,
+        HttpMethod httpMethod = null,
         CancellationToken cancellationToken = default) where TContent : class
     {
         EnsureArg.IsNotNull(requestContent, nameof(requestContent));
 
-        JsonSerializerOptions serializerOptions = new JsonSerializerOptions();
+        var serializerOptions = new JsonSerializerOptions();
         serializerOptions.Converters.Add(new DicomJsonConverter());
 
         string jsonString = JsonSerializer.Serialize(requestContent, serializerOptions);
-        using var request = new HttpRequestMessage(HttpMethod.Post, uri);
+        using var request = new HttpRequestMessage(httpMethod ?? HttpMethod.Post, uri);
         {
             request.Content = new StringContent(jsonString);
             request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicomJson;
