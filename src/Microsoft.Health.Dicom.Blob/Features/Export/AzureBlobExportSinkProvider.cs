@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -77,7 +78,7 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
         await options.ClassifyAsync(_secretStore, operationId.ToString(OperationId.FormatSpecifier), cancellationToken);
 
         // Create a new configuration
-        IConfiguration validated = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        IConfiguration validated = new ConfigurationRoot(new IConfigurationProvider[] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) });
         validated.Set(options, c => c.BindNonPublicProperties = true);
         return validated;
     }

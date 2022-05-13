@@ -62,14 +62,9 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
     {
         EnsureArg.IsNotNull(options, nameof(options));
 
-        if (ContainerUri != null)
-        {
-            return new BlobContainerClient(ContainerUri, options);
-        }
-        else
-        {
-            return new BlobContainerClient(ConnectionString, ContainerName, options);
-        }
+        return ContainerUri != null
+            ? new BlobContainerClient(ContainerUri, options)
+            : new BlobContainerClient(ConnectionString, ContainerName, options);
     }
 
     public async Task ClassifyAsync(ISecretStore secretStore, string secretName, CancellationToken cancellationToken = default)

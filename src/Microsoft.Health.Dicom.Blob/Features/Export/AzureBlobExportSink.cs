@@ -84,7 +84,7 @@ internal sealed class AzureBlobExportSink : IExportSink
             await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload }, cancellationToken);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) // TODO: Are there certain errors we want to throw instead?
         {
             CopyFailure?.Invoke(this, new CopyFailureEventArgs(value.Identifier, ex));
             await WriteErrorAsync(DicomIdentifier.ForInstance(value.Identifier), ex.Message, cancellationToken);
