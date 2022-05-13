@@ -35,7 +35,7 @@ public partial class WorkitemService
         {
             _responseBuilder.AddFailure(
                 FailureReasonCodes.UpsInstanceNotFound,
-                string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
+                DicomCoreResource.WorkitemInstanceNotFound,
                 dataset);
             return _responseBuilder.BuildCancelResponse();
         }
@@ -58,7 +58,6 @@ public partial class WorkitemService
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.WorkitemIsInFinalState,
-                        workitemInstanceUid,
                         workitemMetadata.ProcedureStepState,
                         transitionStateResult.Code));
             }
@@ -201,11 +200,7 @@ public partial class WorkitemService
 
             _logger.LogInformation("Successfully canceled the work-item entry.");
 
-            _responseBuilder.AddSuccess(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemCancelRequestSuccess,
-                    workitemMetadata.WorkitemUid));
+            _responseBuilder.AddSuccess(DicomCoreResource.WorkitemCancelRequestSuccess);
         }
         catch (Exception ex)
         {

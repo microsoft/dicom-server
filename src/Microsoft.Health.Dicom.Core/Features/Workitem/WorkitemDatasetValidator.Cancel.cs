@@ -40,7 +40,7 @@ public sealed class CancelWorkitemDatasetValidator : WorkitemDatasetValidator
 
         if (workitemMetadata == null)
         {
-            throw new WorkitemNotFoundException(workitemUid);
+            throw new WorkitemNotFoundException();
         }
 
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
@@ -50,7 +50,6 @@ public sealed class CancelWorkitemDatasetValidator : WorkitemDatasetValidator
                 string.Format(
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.InvalidProcedureStepStateTransition,
-                    workitemUid,
                     stateTransitionResult.State.GetStringValue(),
                     workitemMetadata.ProcedureStepState.GetStringValue()));
         }
@@ -62,7 +61,6 @@ public sealed class CancelWorkitemDatasetValidator : WorkitemDatasetValidator
                 string.Format(
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.InvalidProcedureStepStateTransition,
-                    workitemUid,
                     ProcedureStepState.Canceled,
                     stateTransitionResult.Code));
         }
@@ -71,20 +69,14 @@ public sealed class CancelWorkitemDatasetValidator : WorkitemDatasetValidator
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.UpsIsAlreadyCompleted,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemIsAlreadyCompleted,
-                    workitemUid));
+                DicomCoreResource.WorkitemIsAlreadyCompleted);
         }
 
         if (workitemMetadata.ProcedureStepState == ProcedureStepState.Canceled)
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.UpsIsAlreadyCanceled,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemIsAlreadyCanceled,
-                    workitemUid));
+                DicomCoreResource.WorkitemIsAlreadyCanceled);
         }
     }
 }

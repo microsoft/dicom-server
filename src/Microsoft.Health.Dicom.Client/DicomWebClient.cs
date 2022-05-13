@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
+using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Client;
 
@@ -113,7 +114,7 @@ public partial class DicomWebClient : IDicomWebClient
 
         if (!string.IsNullOrEmpty(partitionName))
         {
-            uriString += string.Format(DicomWebConstants.BasePartitionUriFormat, partitionName);
+            uriString += string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BasePartitionUriFormat, partitionName);
         }
 
         uriString += relativePath;
@@ -128,34 +129,35 @@ public partial class DicomWebClient : IDicomWebClient
             return GenerateRequestUri(DicomWebConstants.StudiesUriString, partitionName);
         }
 
-        return GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName);
+        return GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName);
     }
 
     private Uri GenerateWorkitemAddRequestUri(string workitemUid, string partitionName = default)
     {
-        return GenerateRequestUri(string.Format(DicomWebConstants.AddWorkitemUriFormat, workitemUid), partitionName);
+        return GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.AddWorkitemUriFormat, workitemUid), partitionName);
     }
 
     private Uri GenerateWorkitemCancelRequestUri(string workitemUid, string partitionName = default)
     {
-        return GenerateRequestUri(string.Format(DicomWebConstants.CancelWorkitemUriFormat, workitemUid), partitionName);
+        return GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.CancelWorkitemUriFormat, workitemUid), partitionName);
     }
 
     private Uri GenerateWorkitemRetrieveRequestUri(string workitemUid, string partitionName = default)
     {
-        return GenerateRequestUri(string.Format(DicomWebConstants.BaseWorkitemUriFormat, workitemUid), partitionName);
+        return GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseWorkitemUriFormat, workitemUid), partitionName);
     }
 
     private Uri GenerateChangeWorkitemStateRequestUri(string workitemUid, string partitionName = default)
     {
-        return GenerateRequestUri(string.Format(DicomWebConstants.ChangeWorkitemStateUriFormat, workitemUid), partitionName);
+        return GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.ChangeWorkitemStateUriFormat, workitemUid), partitionName);
     }
 
     private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(httpContent, nameof(httpContent));
 
-        await using Stream stream = await httpContent.ReadAsStreamAsync(cancellationToken)
+        using Stream stream = await httpContent
+            .ReadAsStreamAsync(cancellationToken)
             .ConfigureAwait(false);
         stream.Seek(0, SeekOrigin.Begin);
         MultipartSection part;

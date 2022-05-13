@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -84,7 +83,7 @@ public partial class WorkItemTransactionTests
             .ConfigureAwait(false);
 
         // Verify
-        Assert.Equal("\"" + string.Format(CultureInfo.InvariantCulture, DicomCoreResource.WorkitemIsAlreadyCanceled, workitemUid) + "\"", exception.ResponseMessage);
+        Assert.Equal("\"" + DicomCoreResource.WorkitemIsAlreadyCanceled + "\"", exception.ResponseMessage);
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
         // Verify Warning Header
@@ -120,7 +119,7 @@ public partial class WorkItemTransactionTests
             .ConfigureAwait(false);
 
         // Verify
-        Assert.Equal("\"" + string.Format(CultureInfo.InvariantCulture, DicomCoreResource.WorkitemInstanceNotFound, newWorkitemUid) + "\"", exception.ResponseMessage);
+        Assert.Equal("\"" + DicomCoreResource.WorkitemInstanceNotFound + "\"", exception.ResponseMessage);
         Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
     }
 }

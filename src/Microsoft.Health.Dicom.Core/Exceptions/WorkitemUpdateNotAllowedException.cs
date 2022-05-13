@@ -7,8 +7,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 
 public sealed class WorkitemUpdateNotAllowedException : DicomServerException
 {
-    public WorkitemUpdateNotAllowedException(string instanceUid, string procedureStepState)
-        : base(string.Format(DicomCoreResource.WorkitemUpdateIsNotAllowed, instanceUid, procedureStepState))
+    public WorkitemUpdateNotAllowedException(string procedureStepState)
+        : base(string.Format(DicomCoreResource.WorkitemUpdateIsNotAllowed, procedureStepState))
     {
     }
 }

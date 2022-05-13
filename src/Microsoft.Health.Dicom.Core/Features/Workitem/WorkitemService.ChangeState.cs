@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -24,10 +22,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 /// </summary>
 public partial class WorkitemService
 {
-    // The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELLED".
-    private static readonly IReadOnlySet<ProcedureStepState> AllowedTargetStatesForWorkitemChangeState =
-        new HashSet<ProcedureStepState> { ProcedureStepState.InProgress, ProcedureStepState.Canceled, ProcedureStepState.Completed };
-
     public async Task<ChangeWorkitemStateResponse> ProcessChangeStateAsync(
         DicomDataset dataset,
         string workitemInstanceUid,
@@ -44,17 +38,19 @@ public partial class WorkitemService
             {
                 _responseBuilder.AddFailure(
                     FailureReasonCodes.UpsInstanceNotFound,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
+                    DicomCoreResource.WorkitemInstanceNotFound,
                     dataset);
 
                 return _responseBuilder.BuildChangeWorkitemStateResponse();
             }
 
+            ValidateChangeWorkitemStateRequest(dataset, workitemMetadata);
+
+            // TODO: Update TransactionUID in SQL
+
             var originalBlobDicomDataset = await _workitemOrchestrator
                 .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
-
-            ValidateChangeWorkitemStateRequest(dataset, workitemMetadata);
 
             var updateDataset = PrepareChangeWorkitemStateDicomDataset(originalBlobDicomDataset, dataset);
 
@@ -65,11 +61,7 @@ public partial class WorkitemService
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            _responseBuilder.AddSuccess(string.Format(
-                CultureInfo.InvariantCulture,
-                DicomCoreResource.WorkitemChangeStateRequestSuccess,
-                workitemMetadata.WorkitemUid,
-                workitemMetadata.ProcedureStepStateStringValue));
+            _responseBuilder.AddSuccess(string.Empty);
         }
         catch (Exception ex)
         {
@@ -110,64 +102,12 @@ public partial class WorkitemService
         return resultDataset;
     }
 
-    private static void ValidateChangeWorkitemStateRequest(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata)
+    private void ValidateChangeWorkitemStateRequest(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata)
     {
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
-        // Check for missing Transaction UID
-        if (!dataset.TryGetString(DicomTag.TransactionUID, out var transactionUid)
-            || string.IsNullOrWhiteSpace(transactionUid))
-        {
-            throw new BadRequestException(
-                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingRequiredTag, DicomTag.TransactionUID));
-        }
+        GetValidator<ChangeWorkitemStateDatasetValidator>().Validate(dataset);
 
-        // Check for missing Procedure Step State
-        if (!dataset.TryGetString(DicomTag.ProcedureStepState, out var targetProcedureStepStateStringValue)
-            || string.IsNullOrWhiteSpace(targetProcedureStepStateStringValue))
-        {
-            throw new BadRequestException(
-                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.MissingRequiredTag, DicomTag.ProcedureStepState));
-        }
-
-        // Check for allowed procedure step state value
-        var targetProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(targetProcedureStepStateStringValue);
-        if (!AllowedTargetStatesForWorkitemChangeState.Contains(targetProcedureStepState))
-        {
-            throw new BadRequestException(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.UnexpectedValue,
-                    targetProcedureStepStateStringValue,
-                    string.Join(@",", AllowedTargetStatesForWorkitemChangeState)));
-        }
-
-        // Check for the workitem final state
-        if (workitemMetadata.ProcedureStepState == ProcedureStepState.Canceled ||
-            workitemMetadata.ProcedureStepState == ProcedureStepState.Completed)
-        {
-            throw new WorkitemUpdateNotAllowedException(
-                workitemMetadata.WorkitemUid,
-                workitemMetadata.ProcedureStepStateStringValue);
-        }
-
-        // Check for the transition state rule validity
-        var actionEvent = (targetProcedureStepState == ProcedureStepState.InProgress)
-            ? WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID
-            : (targetProcedureStepState == ProcedureStepState.Canceled)
-                ? WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID
-                : WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID;
-
-        var calculatedTransitionState = ProcedureStepStateExtensions.GetTransitionState(workitemMetadata.ProcedureStepState, actionEvent);
-        if (calculatedTransitionState.IsError)
-        {
-            throw new BadRequestException(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemChangeStateRequestRejected,
-                    workitemMetadata.WorkitemUid,
-                    targetProcedureStepStateStringValue,
-                    calculatedTransitionState.Code));
-        }
+        ChangeWorkitemStateDatasetValidator.ValidateWorkitemState(dataset, workitemMetadata);
     }
 }

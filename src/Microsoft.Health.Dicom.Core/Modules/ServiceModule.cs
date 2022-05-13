@@ -249,5 +249,10 @@ public class ServiceModule : IStartupModule
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        services.Add<ChangeWorkitemStateDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 }

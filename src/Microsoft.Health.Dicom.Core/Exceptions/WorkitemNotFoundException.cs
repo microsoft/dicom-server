@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// </summary>
 public class WorkitemNotFoundException : DicomServerException
 {
-    public WorkitemNotFoundException(string uid)
-        : base(string.Format(DicomCoreResource.WorkitemInstanceNotFound, uid))
+    public WorkitemNotFoundException()
+        : base(DicomCoreResource.WorkitemInstanceNotFound)
     {
     }
 }
