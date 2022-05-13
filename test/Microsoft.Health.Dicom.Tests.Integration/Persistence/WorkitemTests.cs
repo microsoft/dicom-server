@@ -131,6 +131,18 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
     }
 
     [Fact]
+    public async Task GivenGetWorkitemMetadataAsync_WhenWorkitemNotFound_ThenReturnsNull()
+    {
+        var workitemUid = DicomUID.Generate().UID;
+
+        var workitemMetadata = await _fixture.IndexWorkitemStore
+            .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        Assert.Null(workitemMetadata);
+    }
+
+    [Fact]
     public async Task WhenWorkitemIsQueried_ThenReturnsMatchingWorkitems()
     {
         string workitemUid = DicomUID.Generate().UID;

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Health.Operations;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -34,12 +35,15 @@ public class ExportCheckpoint : ExportInput, IOperationCheckpoint
     public Uri ErrorHref { get; set; }
 
     /// <inheritdoc cref="IOperationCheckpoint.PercentComplete"/>
+    [JsonIgnore]
     public int? PercentComplete => null;
 
     /// <inheritdoc cref="IOperationCheckpoint.ResourceIds"/>
+    [JsonIgnore]
     public IReadOnlyCollection<string> ResourceIds => null;
 
     /// <inheritdoc cref="IOperationCheckpoint.AdditionalProperties"/>
+    [JsonIgnore]
     public IReadOnlyDictionary<string, string> AdditionalProperties =>
         new Dictionary<string, string>
         {

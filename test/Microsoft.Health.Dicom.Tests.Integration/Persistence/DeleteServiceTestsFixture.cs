@@ -61,7 +61,7 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
         var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
         optionsConfiguration.Value.Returns(cleanupConfiguration);
         var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+        dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
         DeleteService = new DeleteService(
             _sqlDataStoreTestsFixture.IndexDataStore,
