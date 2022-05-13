@@ -7,18 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
-internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
+internal sealed class AzureBlobExportOptions : IValidatableObject
 {
     public Uri ContainerUri { get; set; }
 
@@ -26,9 +21,10 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
 
     public string ContainerName { get; set; }
 
-    public string DicomFilePattern { get; set; } = "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm";
+    // TODO: Make public upon request. Perhaps a boolean flag instead?
+    internal string DicomFilePattern { get; set; } = "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm";
 
-    public string ErrorLogPattern { get; set; } = "%Operation%/Errors.log";
+    internal string ErrorLogPattern { get; set; } = "%Operation%/Errors.log";
 
     internal SecretKey Secrets { get; set; }
 
@@ -65,48 +61,5 @@ internal sealed class AzureBlobExportOptions : ISensitive, IValidatableObject
         return ContainerUri != null
             ? new BlobContainerClient(ContainerUri, options)
             : new BlobContainerClient(ConnectionString, ContainerName, options);
-    }
-
-    public async Task ClassifyAsync(ISecretStore secretStore, string secretName, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(secretStore, nameof(secretStore));
-
-        // TODO: Should we detect if the ContainerUri actually has a SAS token before storing the secret?
-        var values = new BlobSecrets
-        {
-            ConnectionString = ConnectionString,
-            ContainerUri = ContainerUri,
-        };
-
-        string version = await secretStore.SetSecretAsync(
-            secretName,
-            JsonSerializer.Serialize(values, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
-            cancellationToken);
-
-        Secrets = new SecretKey { Name = secretName, Version = version };
-        ConnectionString = null;
-        ContainerUri = null;
-    }
-
-    public async Task DeclassifyAsync(ISecretStore secretStore, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(secretStore, nameof(secretStore));
-
-        if (Secrets != null)
-        {
-            string json = await secretStore.GetSecretAsync(Secrets.Name, Secrets.Version, cancellationToken);
-            BlobSecrets values = JsonSerializer.Deserialize<BlobSecrets>(json);
-
-            ConnectionString = values.ConnectionString;
-            ContainerUri = values.ContainerUri;
-            Secrets = null;
-        }
-    }
-
-    private sealed class BlobSecrets
-    {
-        public string ConnectionString { get; set; }
-
-        public Uri ContainerUri { get; set; }
     }
 }

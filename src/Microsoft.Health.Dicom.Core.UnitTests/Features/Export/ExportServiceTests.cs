@@ -74,8 +74,7 @@ public class ExportServiceTests
         var operationId = Guid.NewGuid();
         IConfiguration originalSource = Substitute.For<IConfiguration>();
         IConfiguration originalDestination = Substitute.For<IConfiguration>();
-        IConfiguration validatedSource = Substitute.For<IConfiguration>();
-        IConfiguration validatedDestination = Substitute.For<IConfiguration>();
+        IConfiguration newDestination = Substitute.For<IConfiguration>();
         var spec = new ExportSpecification
         {
             Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = originalDestination },
@@ -84,13 +83,12 @@ public class ExportServiceTests
         var expected = new OperationReference(operationId, new Uri("http://test/export"));
 
         _guidFactory.Create().Returns(operationId);
-        _sourceProvider.ValidateAsync(originalSource, tokenSource.Token).Returns(validatedSource);
-        _sinkProvider.ValidateAsync(originalDestination, operationId, tokenSource.Token).Returns(validatedDestination);
+        _sinkProvider.SecureSensitiveInfoAsync(originalDestination, operationId, tokenSource.Token).Returns(newDestination);
         _client
             .StartExportAsync(
                 operationId,
-                Arg.Is<ExportSpecification>(x => ReferenceEquals(validatedSource, x.Source.Configuration)
-                    && ReferenceEquals(validatedDestination, x.Destination.Configuration)),
+                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Configuration)
+                    && ReferenceEquals(newDestination, x.Destination.Configuration)),
                 _partition,
                 tokenSource.Token)
             .Returns(expected);
@@ -99,13 +97,13 @@ public class ExportServiceTests
 
         _guidFactory.Received(1).Create();
         await _sourceProvider.Received(1).ValidateAsync(originalSource, tokenSource.Token);
-        await _sinkProvider.Received(1).ValidateAsync(originalDestination, operationId, tokenSource.Token);
+        await _sinkProvider.Received(1).ValidateAsync(originalDestination, tokenSource.Token);
         await _client
             .Received(1)
             .StartExportAsync(
                 operationId,
-                Arg.Is<ExportSpecification>(x => ReferenceEquals(validatedSource, x.Source.Configuration)
-                    && ReferenceEquals(validatedDestination, x.Destination.Configuration)),
+                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Configuration)
+                    && ReferenceEquals(newDestination, x.Destination.Configuration)),
                 _partition,
                 tokenSource.Token);
     }

@@ -6,44 +6,39 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
-internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
+internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlobExportOptions>
 {
-    public ExportDestinationType Type => ExportDestinationType.AzureBlob;
+    public override ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
     private readonly ISecretStore _secretStore;
+    private readonly JsonSerializerOptions _serializerOptions;
 
-    public AzureBlobExportSinkProvider(ISecretStore secretStore)
-        => _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
-
-    public async Task<IExportSink> CreateAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
+    public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions)
     {
-        EnsureArg.IsNotNull(provider, nameof(provider));
-        EnsureArg.IsNotNull(config, nameof(config));
+        _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
+        _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
+    }
 
-        var options = new AzureBlobExportOptions();
-        config.Bind(options, c => c.BindNonPublicProperties = true);
-
-        await options.DeclassifyAsync(_secretStore, cancellationToken);
+    protected override async Task<IExportSink> CreateAsync(IServiceProvider provider, AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
+    {
+        options = await RetrieveSensitiveOptionsAsync(options, cancellationToken);
 
         return new AzureBlobExportSink(
             provider.GetRequiredService<IFileStore>(),
@@ -58,40 +53,56 @@ internal sealed class AzureBlobExportSinkProvider : IExportSinkProvider
             provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
     }
 
-    public async Task<IConfiguration> ValidateAsync(IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
+    protected override async Task<AzureBlobExportOptions> SecureSensitiveInfoAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(config, nameof(config));
+        // TODO: Should we detect if the ContainerUri actually has a SAS token before storing the secret?
+        var secrets = new BlobSecrets
+        {
+            ConnectionString = options.ConnectionString,
+            ContainerUri = options.ContainerUri,
+        };
 
-        // Validate
-        var options = new AzureBlobExportOptions();
-        config.Bind(options);
+        string name = operationId.ToString(OperationId.FormatSpecifier);
+        string version = await _secretStore.SetSecretAsync(
+            name,
+            JsonSerializer.Serialize(secrets, _serializerOptions),
+            cancellationToken);
 
+        options.ConnectionString = null;
+        options.ContainerUri = null;
+        options.Secrets = new SecretKey { Name = name, Version = version };
+
+        return options;
+    }
+
+    protected override Task ValidateAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
+    {
         List<ValidationResult> results = options.Validate(new ValidationContext(this)).ToList();
         if (results.Count > 0)
             throw new ValidationException(results.First().ErrorMessage);
 
-        // Post-process
-        ParsePattern(options.DicomFilePattern, nameof(AzureBlobExportOptions.DicomFilePattern));
-        ParsePattern(options.ErrorLogPattern, nameof(AzureBlobExportOptions.ErrorLogPattern), ExportPatternPlaceholders.Operation);
-
-        // Store any secrets
-        await options.ClassifyAsync(_secretStore, operationId.ToString(OperationId.FormatSpecifier), cancellationToken);
-
-        // Create a new configuration
-        IConfiguration validated = new ConfigurationRoot(new IConfigurationProvider[] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) });
-        validated.Set(options, c => c.BindNonPublicProperties = true);
-        return validated;
+        return Task.CompletedTask;
     }
 
-    private static string ParsePattern(string pattern, string name, ExportPatternPlaceholders placeholders = ExportPatternPlaceholders.All)
+    private async Task<AzureBlobExportOptions> RetrieveSensitiveOptionsAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
     {
-        try
+        if (options.Secrets != null)
         {
-            return ExportFilePattern.Parse(pattern, placeholders);
+            string json = await _secretStore.GetSecretAsync(options.Secrets.Name, options.Secrets.Version, cancellationToken);
+            BlobSecrets secrets = JsonSerializer.Deserialize<BlobSecrets>(json, _serializerOptions);
+
+            options.ConnectionString = secrets.ConnectionString;
+            options.ContainerUri = secrets.ContainerUri;
+            options.Secrets = null;
         }
-        catch (FormatException fe)
-        {
-            throw new ValidationException(string.Format(CultureInfo.CurrentCulture, DicomBlobResource.InvalidPattern, pattern, name), fe);
-        }
+
+        return options;
+    }
+
+    private sealed class BlobSecrets
+    {
+        public string ConnectionString { get; set; }
+
+        public Uri ContainerUri { get; set; }
     }
 }

@@ -57,7 +57,7 @@ public class ExportSourceFactoryTests
     }
 
     [Fact]
-    public async Task GivenValidProviders_WhenValidate_ThenInvokeCorrectMethod()
+    public async Task GivenValidProviders_WhenValidating_ThenInvokeCorrectMethod()
     {
         using var tokenSource = new CancellationTokenSource();
 
@@ -67,13 +67,10 @@ public class ExportSourceFactoryTests
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
-        provider.ValidateAsync(config, tokenSource.Token).Returns(expectedConfig);
 
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), new IExportSourceProvider[] { provider });
-        TypedConfiguration<ExportSourceType> actual = await factory.ValidateAsync(source, tokenSource.Token);
+        await factory.ValidateAsync(source, tokenSource.Token);
 
         await provider.Received(1).ValidateAsync(config, tokenSource.Token);
-        Assert.Equal(ExportSourceType.Identifiers, actual.Type);
-        Assert.Same(expectedConfig, actual.Configuration);
     }
 }

@@ -78,26 +78,17 @@ public sealed class ExportSourceFactory
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
-    /// <returns>
-    /// A task representing the <see cref="ValidateAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property is the validated <paramref name="source"/>.
-    /// </returns>
+    /// <returns>A task representing the <see cref="ValidateAsync"/> operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">
     /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     /// <exception cref="ValidationException">There were one or more problems with the source-specific configuration.</exception>
-    public async Task<TypedConfiguration<ExportSourceType>> ValidateAsync(TypedConfiguration<ExportSourceType> source, CancellationToken cancellationToken = default)
+    public async Task ValidateAsync(TypedConfiguration<ExportSourceType> source, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(source, nameof(source));
-
-        IExportSourceProvider provider = GetProvider(source.Type);
-        return new TypedConfiguration<ExportSourceType>
-        {
-            Configuration = await provider.ValidateAsync(source.Configuration, cancellationToken),
-            Type = source.Type,
-        };
+        await GetProvider(source.Type).ValidateAsync(source.Configuration, cancellationToken);
     }
 
     private IExportSourceProvider GetProvider(ExportSourceType type)

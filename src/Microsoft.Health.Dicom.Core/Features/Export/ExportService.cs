@@ -45,10 +45,13 @@ internal sealed class ExportService : IExportService
         Guid operationId = _guidFactory.Create();
 
         // Validate the input and update the specification
+        await _sourceFactory.ValidateAsync(specification.Source, cancellationToken);
+        await _sinkFactory.ValidateAsync(specification.Destination, cancellationToken);
+
         specification = new ExportSpecification
         {
-            Source = await _sourceFactory.ValidateAsync(specification.Source, cancellationToken),
-            Destination = await _sinkFactory.ValidateAsync(specification.Destination, operationId, cancellationToken),
+            Source = specification.Source,
+            Destination = await _sinkFactory.SecureSensitiveInfoAsync(specification.Destination, operationId, cancellationToken),
         };
 
         // Start the operation
