@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Azure.KeyVault;
 using NSubstitute;
 using Xunit;
@@ -21,11 +23,12 @@ public class KeyVaultSecretStoreTests
 {
     private readonly SecretClient _secretClient;
     private readonly KeyVaultSecretStore _secretStore;
+    private readonly JsonSerializerOptions _options = new JsonSerializerOptions();
 
     public KeyVaultSecretStoreTests()
     {
         _secretClient = Substitute.For<SecretClient>();
-        _secretStore = new KeyVaultSecretStore(_secretClient);
+        _secretStore = new KeyVaultSecretStore(_secretClient, Options.Create(_options));
     }
 
     [Fact]

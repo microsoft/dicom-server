@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Azure;
 using Microsoft.Health.Dicom.Azure.KeyVault;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -79,7 +80,6 @@ public static class KeyVaultClientRegistrationExtensions
         section.Bind(options);
         configureOptions?.Invoke(options);
 
-        // Note: We can disable key vault in local development scenarios, like F5 or Docker
         if (options.Enabled)
         {
             services.AddAzureClients(
@@ -87,11 +87,7 @@ public static class KeyVaultClientRegistrationExtensions
                     .AddSecretClient(section)
                     .ConfigureOptions(configureOptions));
 
-            services.AddScoped<ISecretStore, KeyVaultSecretStore>();
-        }
-        else
-        {
-            services.AddScoped<ISecretStore, InMemorySecretStore>();
+            services.TryAddScoped<ISecretStore, KeyVaultSecretStore>();
         }
 
         return services;

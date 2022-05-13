@@ -44,7 +44,7 @@ public interface ISecretStore
     /// otherwise, <see langword="null"/>.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<string> GetSecretAsync(string name, string version = null, CancellationToken cancellationToken = default);
+    Task<T> GetSecretAsync<T>(string name, string version = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously lists all of the secrts in the store.
@@ -69,5 +69,5 @@ public interface ISecretStore
     /// The value of its <see cref="Task{TResult}.Result"/> property is new version of the secret.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken = default);
+    Task<string> SetSecretAsync<T>(string name, T value, CancellationToken cancellationToken = default);
 }

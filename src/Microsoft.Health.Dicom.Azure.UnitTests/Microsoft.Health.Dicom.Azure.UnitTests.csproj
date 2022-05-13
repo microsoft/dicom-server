@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.24.0" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />

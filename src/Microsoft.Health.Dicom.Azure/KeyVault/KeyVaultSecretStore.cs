@@ -6,11 +6,13 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Azure.KeyVault;
@@ -18,11 +20,15 @@ namespace Microsoft.Health.Dicom.Azure.KeyVault;
 internal sealed class KeyVaultSecretStore : ISecretStore
 {
     private readonly SecretClient _secretClient;
+    private readonly JsonSerializerOptions _serializerOptions;
 
     private const string SecretNotFoundErrorCode = "SecretNotFound";
 
-    public KeyVaultSecretStore(SecretClient secretClient)
-        => _secretClient = EnsureArg.IsNotNull(secretClient, nameof(secretClient));
+    public KeyVaultSecretStore(SecretClient secretClient, IOptions<JsonSerializerOptions> serializerOptions)
+    {
+        _secretClient = EnsureArg.IsNotNull(secretClient, nameof(secretClient));
+        _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
+    }
 
     public async Task<bool> DeleteSecretAsync(string name, CancellationToken cancellationToken = default)
     {
@@ -40,12 +46,12 @@ internal sealed class KeyVaultSecretStore : ISecretStore
         return true;
     }
 
-    public async Task<string> GetSecretAsync(string name, string version = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetSecretAsync<T>(string name, string version = null, CancellationToken cancellationToken = default)
     {
         try
         {
             Response<KeyVaultSecret> response = await _secretClient.GetSecretAsync(name, version, cancellationToken);
-            return response.Value.Value;
+            return JsonSerializer.Deserialize<T>(response.Value.Value, _serializerOptions);
         }
         catch (RequestFailedException rfe) when (rfe.ErrorCode == SecretNotFoundErrorCode)
         {
@@ -58,9 +64,13 @@ internal sealed class KeyVaultSecretStore : ISecretStore
     public IAsyncEnumerable<string> ListSecretsAsync(CancellationToken cancellationToken = default)
         => _secretClient.GetPropertiesOfSecretsAsync(cancellationToken).Select(x => x.Name);
 
-    public async Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken = default)
+    public async Task<string> SetSecretAsync<T>(string name, T value, CancellationToken cancellationToken = default)
     {
-        Response<KeyVaultSecret> response = await _secretClient.SetSecretAsync(name, value, cancellationToken);
+        Response<KeyVaultSecret> response = await _secretClient.SetSecretAsync(
+            name,
+            JsonSerializer.Serialize(value, _serializerOptions),
+            cancellationToken);
+
         return response.Value.Properties.Version;
     }
 }
