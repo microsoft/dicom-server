@@ -24,5 +24,5 @@ public sealed class GuidFactory : IGuidFactory
 
     /// <inheritdoc />
     public Guid Create()
-        => Guid.NewGuid();
+        => Guid.NewGuid(); // The default behavior unless we're testing and need a known value
 }

@@ -28,19 +28,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal sealed class AzureBlobExportSink : IExportSink
 {
-    public Uri ErrorHref
-    {
-        get
-        {
-            // Add trailing '/' before concatenating to preserve the container
-            string container = _dest.Uri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.Unescaped);
-            if (container[^1] != '/')
-                container += '/';
-
-            return new Uri(new Uri(container, UriKind.Absolute), _output.ErrorFile);
-        }
-    }
-
     public event EventHandler<CopyFailureEventArgs> CopyFailure;
 
     private readonly IFileStore _source;
@@ -65,6 +52,19 @@ internal sealed class AzureBlobExportSink : IExportSink
         _blobOptions = EnsureArg.IsNotNull(blobOptions?.Value, nameof(blobOptions));
         _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
         _errorWriter = new StreamWriter(new MemoryStream(BlockSize), _output.ErrorEncoding, leaveOpen: false);
+    }
+
+    public Uri ErrorHref
+    {
+        get
+        {
+            // Add trailing '/' before concatenating to preserve the container
+            string container = _dest.Uri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.Unescaped);
+            if (container[^1] != '/')
+                container += '/';
+
+            return new Uri(new Uri(container, UriKind.Absolute), _output.ErrorFile);
+        }
     }
 
     public async Task<bool> CopyAsync(ReadResult value, CancellationToken cancellationToken = default)

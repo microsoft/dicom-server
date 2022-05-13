@@ -12,6 +12,10 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
+// This class is meant to help translate patterns like "/%Study%/%Series%/%SopInstance%.dcm"
+// into format strings like "/{1}/{2}/{3}.dcm" which we can use when exporting.
+// This feature is not currently exposed, but could be should the need arise.
+
 internal static class ExportFilePattern
 {
     public static string Parse(string pattern, ExportPatternPlaceholders placeholders = ExportPatternPlaceholders.All)
