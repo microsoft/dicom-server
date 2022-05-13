@@ -27,7 +27,7 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
 
     public override SchemaVersion Version => SchemaVersion.V6;
 
-    public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+    public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
         int partitionKey,
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -37,7 +37,7 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
         return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
     }
 
-    public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+    public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
         int partitionKey,
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -46,7 +46,7 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
         return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
-    public override Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+    public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
         int partitionKey,
         string studyInstanceUid,
         CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
         return indentifiers.Select(i => new InstanceMetadata(i, new InstanceProperties()));
     }
 
-    private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
+    private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
         int partitionKey,
         string studyInstanceUid,
         CancellationToken cancellationToken,

@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.SqlServer.Exceptions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using NSubstitute;
@@ -31,15 +32,23 @@ public class VersionedCacheTests
             });
     }
 
-    [Theory]
-    [InlineData(SchemaVersion.Unknown)]
-    [InlineData(SchemaVersion.V1)]
-    public async Task GivenInvalidVersion_WhenGettingValue_ThenThrowException(SchemaVersion version)
+    [Fact]
+    public async Task GivenInvalidVersion_WhenGettingValue_ThenThrowException()
     {
-        using CancellationTokenSource source = new CancellationTokenSource();
+        using var source = new CancellationTokenSource();
 
-        _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(version);
+        _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(SchemaVersion.V1);
         await Assert.ThrowsAsync<InvalidSchemaVersionException>(() => _versionedCache.GetAsync(source.Token));
+        await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
+    }
+
+    [Fact]
+    public async Task GivenAnUnknownVersion_WhenGettingValue_ThenThrowException()
+    {
+        using var source = new CancellationTokenSource();
+
+        _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(SchemaVersion.Unknown);
+        await Assert.ThrowsAsync<DataStoreNotReadyException>(() => _versionedCache.GetAsync(source.Token));
         await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
     }
 
@@ -54,12 +63,11 @@ public class VersionedCacheTests
     [InlineData(SchemaVersion.V9, SchemaVersion.V7)]
     public async Task GivenValidVersion_WhenGettingValue_ThenReturnsValue(SchemaVersion current, SchemaVersion expected)
     {
-        SqlStore actual;
-        using CancellationTokenSource source = new CancellationTokenSource();
+        using var source = new CancellationTokenSource();
 
         // Resolve version
         _schemaVersionResolver.GetCurrentVersionAsync(source.Token).Returns(current);
-        actual = await _versionedCache.GetAsync(source.Token);
+        SqlStore actual = await _versionedCache.GetAsync(source.Token);
         Assert.Equal(expected, actual.Version);
         await _schemaVersionResolver.Received(1).GetCurrentVersionAsync(source.Token);
 

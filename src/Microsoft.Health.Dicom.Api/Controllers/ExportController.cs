@@ -80,7 +80,7 @@ public class ExportController : ControllerBase
     [PartitionRoute(KnownRoutes.ExportInstancesRoute)]
     [VersionedPartitionRoute(KnownRoutes.ExportInstancesRoute)]
     [AuditEventType(AuditEventSubType.Export)]
-    public async Task<IActionResult> ExportInstancesAsync([Required][FromBody] ExportSpecification specification)
+    public async Task<IActionResult> ExportAsync([Required][FromBody] ExportSpecification specification)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
 
@@ -89,7 +89,7 @@ public class ExportController : ControllerBase
             {
                 _logger.LogInformation("DICOM Web Export request received to export instances from '{Source}' to '{Sink}'.", x.Source.Type, x.Destination.Type);
 
-                ExportInstancesResponse response = await _mediator.ExportInstancesAsync(x, token);
+                ExportResponse response = await _mediator.ExportAsync(x, token);
 
                 Response.AddLocationHeader(response.Operation.Href);
                 return StatusCode((int)HttpStatusCode.Accepted, response.Operation);

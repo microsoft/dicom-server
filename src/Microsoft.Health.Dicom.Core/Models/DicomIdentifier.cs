@@ -6,7 +6,6 @@
 using System;
 using System.Globalization;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -18,6 +17,15 @@ namespace Microsoft.Health.Dicom.Core.Models.Common;
 /// </summary>
 public readonly struct DicomIdentifier : IEquatable<DicomIdentifier>
 {
+    /// <summary>
+    /// Gets a value indicating whether the identifier is the default empty identifier.
+    /// </summary>
+    /// <remarks>
+    /// This value is considered to represent a blank study.
+    /// </remarks>
+    /// <value><see langword="true"/> if the value is blank; otherwise, <see langword="false"/>.</value>
+    public bool IsEmpty => StudyInstanceUid == null;
+
     /// <summary>
     /// Gets the corresponding <see cref="ResourceType"/> for this identifier.
     /// </summary>
@@ -193,37 +201,66 @@ public readonly struct DicomIdentifier : IEquatable<DicomIdentifier>
     /// <paramref name="value"/> does not contain a valid string representation of a <see cref="DicomIdentifier"/>.
     /// </exception>
     public static DicomIdentifier Parse(string value)
+        => TryParse(EnsureArg.IsNotNull(value, nameof(value)), out DicomIdentifier result)
+            ? result
+            : throw new FormatException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value));
+
+    /// <summary>
+    /// Converts the string representation of a <see cref="DicomIdentifier"/> to its equivalent structure representation
+    /// and returns a value that indicates whether the conversion succeeded.
+    /// </summary>
+    /// <param name="value">A string that contains a <see cref="DicomIdentifier"/> to convert.</param>
+    /// <param name="result">
+    /// When this method returns, contains the <see cref="DicomIdentifier"/> value equivalent identifier
+    /// contained in <paramref name="value"/>, if the conversion succeeded, or the default value if the conversion
+    /// failed. The conversion fails if the <paramref name="value"/> parameter is <see langword="null"/>,
+    /// is an empty string (""), or does not contain a valid string representation of an identifier.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the <paramref name="value"/> parameter was converted successfully;
+    /// otherwise, <see langword="false"/>.
+    /// </returns>
+    public static bool TryParse(string value, out DicomIdentifier result)
     {
         string[] parts = EnsureArg.IsNotNull(value, nameof(value)).Split('/', StringSplitOptions.TrimEntries);
         if (parts.Length == 0 || parts.Length > 3)
-            throw new FormatException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value));
+        {
+            result = default;
+            return false;
+        }
 
         string studyInstanceUid, seriesInstanceUid = null, sopInstanceUid = null;
 
         // Parse and Validate
-        try
+        studyInstanceUid = parts[0];
+        if (!UidValidation.IsValid(studyInstanceUid))
         {
-            studyInstanceUid = parts[0];
-            UidValidation.Validate(studyInstanceUid, nameof(StudyInstanceUid));
+            result = default;
+            return false;
+        }
 
-            if (parts.Length > 1)
+        if (parts.Length > 1)
+        {
+            seriesInstanceUid = parts[1];
+            if (!UidValidation.IsValid(seriesInstanceUid))
             {
-                seriesInstanceUid = parts[1];
-                UidValidation.Validate(seriesInstanceUid, nameof(SeriesInstanceUid));
+                result = default;
+                return false;
+            }
 
-                if (parts.Length == 3)
+            if (parts.Length == 3)
+            {
+                sopInstanceUid = parts[2];
+                if (!UidValidation.IsValid(sopInstanceUid))
                 {
-                    sopInstanceUid = parts[2];
-                    UidValidation.Validate(sopInstanceUid, nameof(SopInstanceUid));
+                    result = default;
+                    return false;
                 }
             }
         }
-        catch (InvalidIdentifierException iie)
-        {
-            throw new FormatException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value), iie);
-        }
 
-        return new DicomIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        result = new DicomIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        return true;
     }
 
     /// <summary>

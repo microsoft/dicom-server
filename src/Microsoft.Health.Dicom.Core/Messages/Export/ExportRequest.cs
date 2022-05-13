@@ -4,14 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Health.Operations;
+using MediatR;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Export;
 
-public class ExportInstancesResponse
+public sealed class ExportRequest : IRequest<ExportResponse>
 {
-    public OperationReference Operation { get; }
+    public ExportSpecification Specification { get; }
 
-    public ExportInstancesResponse(OperationReference operation)
-        => Operation = EnsureArg.IsNotNull(operation, nameof(operation));
+    public ExportRequest(ExportSpecification spec)
+    {
+        Specification = EnsureArg.IsNotNull(spec, nameof(spec));
+    }
 }

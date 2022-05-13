@@ -3,14 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Exceptions;
+using System;
 
-namespace Microsoft.Health.Dicom.SqlServer.Exceptions;
+namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-internal class InvalidSchemaVersionException : DataStoreException
+public class DataStoreNotReadyException : DataStoreException
 {
-    public InvalidSchemaVersionException(string message)
+    public DataStoreNotReadyException(string message)
         : base(message)
+    {
+    }
+
+    public DataStoreNotReadyException(string message, Exception innerException)
+        : base(message, innerException)
     {
     }
 }

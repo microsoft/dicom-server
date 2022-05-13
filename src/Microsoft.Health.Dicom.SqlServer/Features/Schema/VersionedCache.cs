@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Features.Common;
 using Microsoft.Health.Dicom.SqlServer.Exceptions;
 
@@ -40,14 +41,17 @@ internal sealed class VersionedCache<T> : IDisposable where T : IVersioned
     {
         SchemaVersion current = await _schemaVersionResolver.GetCurrentVersionAsync(cancellationToken);
 
+        if (current == SchemaVersion.Unknown)
+        {
+            throw new DataStoreNotReadyException(DicomSqlServerResource.UnknownSchemaVersion);
+        }
+
         // Return the latest version of the entity. If the entity is not found, throw an exception.
         T value = _entities.FirstOrDefault(x => x.Version <= current);
 
         if (value == null)
         {
-            throw new InvalidSchemaVersionException(current == SchemaVersion.Unknown
-                ? DicomSqlServerResource.UnknownSchemaVersion
-                : string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, current));
+            throw new InvalidSchemaVersionException(string.Format(CultureInfo.InvariantCulture, DicomSqlServerResource.SchemaVersionOutOfRange, current));
         }
 
         return value;

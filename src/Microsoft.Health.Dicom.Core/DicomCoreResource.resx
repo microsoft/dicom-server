@@ -593,4 +593,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ValueTypesNotSupported" xml:space="preserve">
     <value>This operation does not support value types.</value>
   </data>
+  <data name="MissingProperty" xml:space="preserve">
+    <value>Missing value for property '{0}'.</value>
+    <comment>{0} Property Name</comment>
+  </data>
 </root>

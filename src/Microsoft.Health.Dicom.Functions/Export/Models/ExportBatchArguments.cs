@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -24,4 +25,10 @@ public class ExportBatchArguments
     /// </summary>
     /// <value>The configuration describing the destination.</value>
     public TypedConfiguration<ExportDestinationType> Destination { get; set; }
+
+    /// <summary>
+    /// Gets or sets the DICOM data partition from which the data is read.
+    /// </summary>
+    /// <value>A DICOM partition entry.</value>
+    public PartitionEntry Partition { get; set; }
 }
