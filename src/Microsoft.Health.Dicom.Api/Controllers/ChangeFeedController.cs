@@ -45,7 +45,6 @@ public class ChangeFeedController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ChangeFeed)]
-    [Route(KnownRoutes.ChangeFeed)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeed([FromQuery] long offset = 0, [FromQuery] int limit = 10, [FromQuery] bool includeMetadata = true)
     {
@@ -66,7 +65,6 @@ public class ChangeFeedController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ChangeFeedLatest)]
-    [Route(KnownRoutes.ChangeFeedLatest)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedLatest([FromQuery] bool includeMetadata = true)
     {
