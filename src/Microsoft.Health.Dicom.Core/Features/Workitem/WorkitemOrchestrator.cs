@@ -128,12 +128,15 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
 
+            dataset.TryGetString(DicomTag.TransactionUID, out var transactionUid);
+
             // Update the workitem procedure step state in the store
             await _indexWorkitemStore
                 .UpdateWorkitemProcedureStepStateAsync(
                     workitemMetadata,
                     watermarkEntry.Value.NextWatermark,
                     targetProcedureStepState.GetStringValue(),
+                    transactionUid ?? workitemMetadata.TransactionUid,
                     cancellationToken)
                 .ConfigureAwait(false);
 

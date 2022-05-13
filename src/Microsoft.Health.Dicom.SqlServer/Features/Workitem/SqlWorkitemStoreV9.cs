@@ -185,7 +185,7 @@ internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
         return new WorkitemQueryResult(results);
     }
 
-    public virtual Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, CancellationToken cancellationToken = default)
+    public virtual Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, string transactionUid, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
