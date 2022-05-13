@@ -43,8 +43,8 @@ public partial class WorkitemController
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
     [HttpPost]
-    [PartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
-    [Route(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
+    [VersionedPartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
+    [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
     [AuditEventType(AuditEventSubType.AddWorkitem)]
     public async Task<IActionResult> AddAsync()
     {

@@ -107,7 +107,6 @@ public static class DicomServerServiceCollectionExtensions
             {
                 options.EnableEndpointRouting = false;
                 options.RespectBrowserAcceptHeader = true;
-                options.Conventions.Add(new ApiVersionRoutePrefixConvention());
             })
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
 

@@ -75,7 +75,7 @@ public class OperationsController : ControllerBase
     /// <exception cref="ArgumentNullException"><paramref name="operationId"/> is <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">The connection was aborted.</exception>
     [HttpGet]
-    [Route(KnownRoutes.OperationInstanceRoute, Name = KnownRouteNames.OperationStatus)]
+    [VersionedRoute(KnownRoutes.OperationInstanceRoute, Name = KnownRouteNames.OperationStatus)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(OperationState<DicomOperation>), (int)HttpStatusCode.Accepted)]

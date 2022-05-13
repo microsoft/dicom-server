@@ -75,8 +75,8 @@ public class ExportController : ControllerBase
     [Consumes(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    [Route(KnownRoutes.ExportInstancesRoute)]
-    [PartitionRoute(KnownRoutes.ExportInstancesRoute)]
+    [VersionedRoute(KnownRoutes.ExportInstancesRoute)]
+    [VersionedPartitionRoute(KnownRoutes.ExportInstancesRoute)]
     [AuditEventType(AuditEventSubType.Export)]
     public async Task<IActionResult> ExportAsync([Required][FromBody] ExportSpecification specification)
     {

@@ -51,8 +51,8 @@ public class QueryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [PartitionRoute(KnownRoutes.QueryAllStudiesRoute)]
-    [Route(KnownRoutes.QueryAllStudiesRoute)]
+    [VersionedPartitionRoute(KnownRoutes.QueryAllStudiesRoute)]
+    [VersionedRoute(KnownRoutes.QueryAllStudiesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForStudyAsync([FromQuery] QueryOptions options)
     {
@@ -72,8 +72,8 @@ public class QueryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [PartitionRoute(KnownRoutes.QueryAllSeriesRoute)]
-    [Route(KnownRoutes.QueryAllSeriesRoute)]
+    [VersionedPartitionRoute(KnownRoutes.QueryAllSeriesRoute)]
+    [VersionedRoute(KnownRoutes.QueryAllSeriesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForSeriesAsync([FromQuery] QueryOptions options)
     {
@@ -93,8 +93,8 @@ public class QueryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [PartitionRoute(KnownRoutes.QuerySeriesInStudyRoute)]
-    [Route(KnownRoutes.QuerySeriesInStudyRoute)]
+    [VersionedPartitionRoute(KnownRoutes.QuerySeriesInStudyRoute)]
+    [VersionedRoute(KnownRoutes.QuerySeriesInStudyRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForSeriesInStudyAsync([FromRoute] string studyInstanceUid, [FromQuery] QueryOptions options)
     {
@@ -114,8 +114,8 @@ public class QueryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [PartitionRoute(KnownRoutes.QueryAllInstancesRoute)]
-    [Route(KnownRoutes.QueryAllInstancesRoute)]
+    [VersionedPartitionRoute(KnownRoutes.QueryAllInstancesRoute)]
+    [VersionedRoute(KnownRoutes.QueryAllInstancesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForInstancesAsync([FromQuery] QueryOptions options)
     {
@@ -135,8 +135,8 @@ public class QueryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [PartitionRoute(KnownRoutes.QueryInstancesInStudyRoute)]
-    [Route(KnownRoutes.QueryInstancesInStudyRoute)]
+    [VersionedPartitionRoute(KnownRoutes.QueryInstancesInStudyRoute)]
+    [VersionedRoute(KnownRoutes.QueryInstancesInStudyRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForInstancesInStudyAsync([FromRoute] string studyInstanceUid, [FromQuery] QueryOptions options)
     {
@@ -156,8 +156,8 @@ public class QueryController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [PartitionRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
-    [Route(KnownRoutes.QueryInstancesInSeriesRoute)]
+    [VersionedPartitionRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
+    [VersionedRoute(KnownRoutes.QueryInstancesInSeriesRoute)]
     [AuditEventType(AuditEventSubType.Query)]
     public async Task<IActionResult> QueryForInstancesInSeriesAsync([FromRoute] string studyInstanceUid, [FromRoute] string seriesInstanceUid, [FromQuery] QueryOptions options)
     {
