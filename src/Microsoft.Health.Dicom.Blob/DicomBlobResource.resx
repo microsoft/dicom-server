@@ -154,6 +154,9 @@
     <value>Missing value for property '{0}'.</value>
     <comment>{0} Property Name</comment>
   </data>
+  <data name="MissingSecretStore" xml:space="preserve">
+    <value>Cannot fetch secret values because no secret store has been configured.</value>
+  </data>
   <data name="UnknownPlaceholder" xml:space="preserve">
     <value>Placeholder '{0}' is not recognized.</value>
     <comment>{0} Placeholder</comment>
