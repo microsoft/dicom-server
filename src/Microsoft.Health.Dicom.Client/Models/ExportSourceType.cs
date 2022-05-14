@@ -6,22 +6,17 @@
 namespace Microsoft.Health.Dicom.Client.Models;
 
 /// <summary>
-/// Specifies the category of a DICOM operation.
+/// Specifies the kind of format used to describe the data set to be exported.
 /// </summary>
-public enum DicomOperation
+public enum ExportSourceType
 {
     /// <summary>
-    /// Specifies an operation whose type is missing or unrecognized.
+    /// Specifies an unknown source format.
     /// </summary>
     Unknown,
 
     /// <summary>
-    /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
+    /// Specifies a list of DICOM identifiers.
     /// </summary>
-    Reindex,
-
-    /// <summary>
-    /// Specifies an export operation that copies data out of the DICOM server and into an external data store.
-    /// </summary>
-    Export,
+    Identifiers,
 }
