@@ -5,6 +5,7 @@
 
 using System;
 using EnsureThat;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Client.Models;
 
@@ -43,6 +44,9 @@ public sealed class DicomIdentifier : IEquatable<DicomIdentifier>
     /// <param name="studyInstanceUid">The unique identifier for the study.</param>
     /// <param name="seriesInstanceUid">The optional unique identifier for the series.</param>
     /// <param name="sopInstanceUid">The optional unique identifier for the SOP instance.</param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="studyInstanceUid"/> is empty or consists entirely of white space characters.
+    /// </exception>
     /// <exception cref="ArgumentNullException">
     /// <para><paramref name="studyInstanceUid"/> is <see langword="null"/> or white space</para>
     /// <para>-or-</para>
@@ -113,6 +117,9 @@ public sealed class DicomIdentifier : IEquatable<DicomIdentifier>
     /// </summary>
     /// <param name="uid">The unique identifier for the study.</param>
     /// <returns>A <see cref="DicomIdentifier"/> structure for the given study.</returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="uid"/> is empty or consists entirely of white space characters.
+    /// </exception>
     /// <exception cref="ArgumentNullException"><paramref name="uid"/> is <see langword="null"/>.</exception>
     public static DicomIdentifier ForStudy(string uid)
         => new DicomIdentifier(uid, null, null);
@@ -123,6 +130,10 @@ public sealed class DicomIdentifier : IEquatable<DicomIdentifier>
     /// <param name="studyInstanceUid">The unique identifier for the study.</param>
     /// <param name="seriesInstanceUid">The unique identifier for the series.</param>
     /// <returns>A <see cref="DicomIdentifier"/> structure for the given series.</returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="studyInstanceUid"/> or <paramref name="seriesInstanceUid"/>
+    /// is empty or consists entirely of white space characters.
+    /// </exception>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="studyInstanceUid"/> or <paramref name="seriesInstanceUid"/> is <see langword="null"/>.
     /// </exception>
@@ -136,6 +147,10 @@ public sealed class DicomIdentifier : IEquatable<DicomIdentifier>
     /// <param name="seriesInstanceUid">The unique identifier for the series.</param>
     /// <param name="sopInstanceUid">The unique identifier for the SOP instance.</param>
     /// <returns>A <see cref="DicomIdentifier"/> structure for the given SOP instance.</returns>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, or
+    /// <paramref name="sopInstanceUid"/> is empty or consists entirely of white space characters.
+    /// </exception>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, <paramref name="sopInstanceUid"/>
     /// is <see langword="null"/>.
@@ -145,4 +160,19 @@ public sealed class DicomIdentifier : IEquatable<DicomIdentifier>
             studyInstanceUid,
             EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid)),
             EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid)));
+
+    /// <summary>
+    /// Creates a new <see cref="DicomIdentifier"/> structure for the given <see cref="DicomDataset"/> instance.
+    /// </summary>
+    /// <param name="dataset">A DICOM dataset.</param>
+    /// <returns>A <see cref="DicomIdentifier"/> structure for the given dataset.</returns>
+    /// <exception cref="ArgumentException">
+    /// Either the study, series, or SOP instance UIDs are empty or consists entirely of white space characters.
+    /// </exception>
+    /// <exception cref="ArgumentNullException"><paramref name="dataset"/> is <see langword="null"/>.</exception>
+    public static DicomIdentifier ForInstance(DicomDataset dataset)
+        => new DicomIdentifier(
+            EnsureArg.IsNotNull(dataset, nameof(dataset)).GetString(DicomTag.StudyInstanceUID),
+            EnsureArg.IsNotNullOrWhiteSpace(dataset.GetString(DicomTag.SeriesInstanceUID), nameof(dataset)),
+            EnsureArg.IsNotNullOrWhiteSpace(dataset.GetString(DicomTag.SOPInstanceUID), nameof(dataset)));
 }
