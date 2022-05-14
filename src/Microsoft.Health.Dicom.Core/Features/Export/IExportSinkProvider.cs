@@ -46,11 +46,11 @@ public interface IExportSinkProvider
     Task<IExportSink> CreateAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid sink.
+    /// Asynchronously stores sensitive information in a secure format and returns the updated configuration.
     /// </summary>
     /// <remarks>
-    /// Based on the implementation, this method may also modify the values of the <paramref name="config"/>.
-    /// For example, it may help provide sink-specific security measures for sensitive settings.
+    /// It is the responsibility of the <see cref="CreateAsync"/> method to retrieve any sensitive information
+    /// that was secured by this method.
     /// </remarks>
     /// <param name="config">The sink-specific configuration.</param>
     /// <param name="operationId">The ID for the export operation.</param>
@@ -58,11 +58,24 @@ public interface IExportSinkProvider
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
-    /// A task representing the <see cref="ValidateAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property is the validated <paramref name="config"/>.
+    /// A task representing the <see cref="SecureSensitiveInfoAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is a new configuration with any sensitive
+    /// information secured.
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="config"/> is <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<IConfiguration> SecureSensitiveInfoAsync(IConfiguration config, Guid operationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid sink.
+    /// </summary>
+    /// <param name="config">The sink-specific configuration.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>A task representing the <see cref="ValidateAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="config"/> is <see langword="null"/>.</exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     /// <exception cref="ValidationException">There were one or more problems with the <paramref name="config"/>.</exception>
-    Task<IConfiguration> ValidateAsync(IConfiguration config, Guid operationId, CancellationToken cancellationToken = default);
+    Task ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default);
 }

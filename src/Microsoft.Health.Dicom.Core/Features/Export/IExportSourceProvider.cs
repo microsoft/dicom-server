@@ -47,22 +47,15 @@ public interface IExportSourceProvider
     Task<IExportSource> CreateAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid souce.
+    /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid source.
     /// </summary>
-    /// <remarks>
-    /// Based on the implementation, this method may also modify the values of the <paramref name="config"/>.
-    /// For example, it may help provide source-specific security measures for sensitive settings.
-    /// </remarks>
     /// <param name="config">The source-specific configuration.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
-    /// <returns>
-    /// A task representing the <see cref="ValidateAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property is the validated <paramref name="config"/>.
-    /// </returns>
+    /// <returns>A task representing the <see cref="ValidateAsync"/> operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="config"/> is <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     /// <exception cref="ValidationException">There were one or more problems with the <paramref name="config"/>.</exception>
-    Task<IConfiguration> ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default);
+    Task ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default);
 }

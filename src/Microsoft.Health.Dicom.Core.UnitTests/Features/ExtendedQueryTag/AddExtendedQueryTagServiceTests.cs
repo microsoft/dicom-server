@@ -12,11 +12,11 @@ using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
+using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
 
@@ -25,23 +25,23 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ExtendedQueryTag;
 public class AddExtendedQueryTagServiceTests
 {
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
+    private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
     private readonly AddExtendedQueryTagService _extendedQueryTagService;
-    private readonly IUrlResolver _urlResolver;
     private readonly CancellationTokenSource _tokenSource;
 
     public AddExtendedQueryTagServiceTests()
     {
         _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
+        _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
         _extendedQueryTagEntryValidator = Substitute.For<IExtendedQueryTagEntryValidator>();
-        _urlResolver = Substitute.For<IUrlResolver>();
         _extendedQueryTagService = new AddExtendedQueryTagService(
             _extendedQueryTagStore,
+            _guidFactory,
             _client,
             _extendedQueryTagEntryValidator,
-            _urlResolver,
             Options.Create(new ExtendedQueryTagConfiguration { MaxAllowedCount = 128 }));
 
         _tokenSource = new CancellationTokenSource();
@@ -72,41 +72,57 @@ public class AddExtendedQueryTagServiceTests
         ExtendedQueryTagStoreEntry storeEntry = tag.BuildExtendedQueryTagStoreEntry();
 
         var input = new AddExtendedQueryTagEntry[] { entry };
-        Guid expectedOperationId = Guid.NewGuid();
-        var expectedHref = new Uri("https://dicom.contoso.io/unit/test/Operations/" + expectedOperationId, UriKind.Absolute);
+        var operationId = Guid.NewGuid();
+        var expected = new OperationReference(
+            operationId,
+            new Uri("https://dicom.contoso.io/unit/test/Operations/" + operationId, UriKind.Absolute));
+
         _extendedQueryTagStore
             .AddExtendedQueryTagsAsync(
                 Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
-                Arg.Is(128),
-                Arg.Is(false),
-                Arg.Is(_tokenSource.Token))
+                128,
+                false,
+                _tokenSource.Token)
             .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
+        _guidFactory.Create().Returns(operationId);
         _client
             .StartReindexingInstancesAsync(
+                operationId,
                 Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
-                Arg.Is(_tokenSource.Token))
-            .Returns(expectedOperationId);
-        _urlResolver
-            .ResolveOperationStatusUri(expectedOperationId)
-            .Returns(expectedHref);
+                _tokenSource.Token)
+            .Returns(expected);
+        _extendedQueryTagStore
+            .AssignReindexingOperationAsync(
+                Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == storeEntry.Key),
+                operationId,
+                true,
+                _tokenSource.Token)
+            .Returns(new List<ExtendedQueryTagStoreEntry> { storeEntry });
 
-        AddExtendedQueryTagResponse actual = await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token);
-        Assert.Equal(expectedOperationId, actual.Operation.Id);
-        Assert.Equal(expectedHref, actual.Operation.Href);
+        OperationReference actual = await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token);
+        Assert.Same(expected, actual);
 
         _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
         await _extendedQueryTagStore
             .Received(1)
             .AddExtendedQueryTagsAsync(
                 Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
-                Arg.Is(128),
-                Arg.Is(false),
-                Arg.Is(_tokenSource.Token));
+                128,
+                false,
+                _tokenSource.Token);
+        _guidFactory.Received(1).Create();
         await _client
             .Received(1)
             .StartReindexingInstancesAsync(
+                operationId,
                 Arg.Is<IReadOnlyList<int>>(x => x.Single() == storeEntry.Key),
-                Arg.Is(_tokenSource.Token));
-        _urlResolver.Received(1).ResolveOperationStatusUri(expectedOperationId);
+                _tokenSource.Token);
+        await _extendedQueryTagStore
+            .Received(1)
+            .AssignReindexingOperationAsync(
+                Arg.Is<IReadOnlyCollection<int>>(x => x.Single() == storeEntry.Key),
+                operationId,
+                true,
+                _tokenSource.Token);
     }
 }
