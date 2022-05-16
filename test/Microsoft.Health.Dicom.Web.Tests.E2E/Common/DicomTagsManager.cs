@@ -37,7 +37,7 @@ internal class DicomTagsManager : IAsyncDisposable
     {
         foreach (var tag in _tags)
         {
-            await _dicomWebClient.DeleteExtendedQueryTagAsync(tag);
+            await DeleteExtendedQueryTagAsync(tag);
         }
     }
 

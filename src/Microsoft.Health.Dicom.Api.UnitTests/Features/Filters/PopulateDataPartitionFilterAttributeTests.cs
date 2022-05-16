@@ -75,7 +75,7 @@ public class PopulateDataPartitionFilterAttributeTests
 
         _mediator = Substitute.For<IMediator>();
         _mediator.Send(Arg.Any<GetPartitionRequest>())
-            .Returns(new GetPartitionResponse(new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name)));
+            .Returns(new GetPartitionResponse(PartitionEntry.Default));
 
         _featureConfiguration = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
 

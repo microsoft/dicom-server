@@ -15,17 +15,15 @@
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
     <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(SdkPackageVersion)" />
-    <PackageReference Include="Microsoft.Azure.DurableTask.AzureStorage" Version="1.11.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Azure.DurableTask.Core" Version="2.9.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Health.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Client" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Functions.Extensions" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

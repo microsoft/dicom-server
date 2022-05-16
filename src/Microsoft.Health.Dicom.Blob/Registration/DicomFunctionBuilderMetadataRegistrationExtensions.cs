@@ -32,7 +32,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
         EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
 
-        var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+        IConfigurationSection blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
         functionsBuilder.Services
             .AddSingleton<MetadataStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
@@ -41,6 +41,9 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
             .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
+
+        functionsBuilder.Services
+            .AddAzureBlobExportSink(o => blobConfig.Bind(o)); // Re-use the blob store's configuration
 
         return functionsBuilder;
     }

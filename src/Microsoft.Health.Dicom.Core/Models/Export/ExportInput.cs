@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
@@ -29,4 +30,10 @@ public class ExportInput
     /// </summary>
     /// <value>A set of settings related to batching DICOM files for export.</value>
     public BatchingOptions Batching { get; set; }
+
+    /// <summary>
+    /// Gets or sets the DICOM data partition from which the data is read.
+    /// </summary>
+    /// <value>A DICOM partition entry.</value>
+    public PartitionEntry Partition { get; set; }
 }

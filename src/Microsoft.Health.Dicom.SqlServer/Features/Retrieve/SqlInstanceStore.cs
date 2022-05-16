@@ -21,7 +21,7 @@ internal sealed class SqlInstanceStore : IInstanceStore
     public SqlInstanceStore(VersionedCache<ISqlInstanceStore> cache)
         => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-    public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
     {
         ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetInstanceIdentifierAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
@@ -33,13 +33,13 @@ internal sealed class SqlInstanceStore : IInstanceStore
         return await store.GetInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, indexStatus, cancellationToken);
     }
 
-    public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken = default)
     {
         ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetInstanceIdentifiersInSeriesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, cancellationToken);
     }
 
-    public async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
     {
         ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetInstanceIdentifiersInStudyAsync(partitionKey, studyInstanceUid, cancellationToken);

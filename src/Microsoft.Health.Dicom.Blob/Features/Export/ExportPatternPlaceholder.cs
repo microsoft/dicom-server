@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Models.Common;
+using System;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
-
-internal sealed class ExportIdentifiers
+[Flags]
+internal enum ExportPatternPlaceholders : sbyte
 {
-    public IReadOnlyList<DicomIdentifier> Values { get; set; }
+    None = 0x0,
+    Operation = 0x1,
+    Study = 0x2,
+    Series = 0x4,
+    SopInstance = 0x8,
+    All = ~None,
 }

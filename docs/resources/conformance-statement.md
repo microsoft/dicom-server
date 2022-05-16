@@ -12,7 +12,11 @@ Additionally, the following non-standard API(s) are supported:
 
 - [Delete](#delete)
 
-Our service also makes use of REST Api versioning. For information on how to specify the version when making requests visit the [Api Versioning Documentation](../api-versioning.md).
+Our service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified in the request URL as in the following example: 
+
+`https://<service_url>/v<version>/studies`
+
+For more information on how to specify the version when making requests, visit the [Api Versioning Documentation](../api-versioning.md).
 
 ## Store (STOW-RS)
 

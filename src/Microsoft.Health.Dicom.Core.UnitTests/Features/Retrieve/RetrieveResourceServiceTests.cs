@@ -63,7 +63,7 @@ public class RetrieveResourceServiceTests
         _logger = NullLogger<RetrieveResourceService>.Instance;
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
         _retrieveResourceService = new RetrieveResourceService(

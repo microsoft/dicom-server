@@ -64,7 +64,7 @@ public class ExportControllerTests
             Destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob }
         };
 
-        IActionResult result = await controller.ExportInstancesAsync(spec);
+        IActionResult result = await controller.ExportAsync(spec);
         Assert.IsType<NotFoundResult>(result);
     }
 
@@ -79,7 +79,7 @@ public class ExportControllerTests
 
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-        Guid operationId = Guid.NewGuid();
+        var operationId = Guid.NewGuid();
         var expected = new OperationReference(operationId, new Uri($"http://dicom.unit.test/operations/{operationId}"));
         var spec = new ExportSpecification
         {
@@ -89,11 +89,11 @@ public class ExportControllerTests
 
         mediator
             .Send(
-                Arg.Is<ExportInstancesRequest>(x => ReferenceEquals(x.Specification, spec)),
+                Arg.Is<ExportRequest>(x => ReferenceEquals(spec, x.Specification)),
                 controller.HttpContext.RequestAborted)
-            .Returns(new ExportInstancesResponse(expected));
+            .Returns(new ExportResponse(expected));
 
-        IActionResult result = await controller.ExportInstancesAsync(spec);
+        IActionResult result = await controller.ExportAsync(spec);
         Assert.IsType<ObjectResult>(result);
 
         var actual = result as ObjectResult;
@@ -106,7 +106,7 @@ public class ExportControllerTests
         await mediator
             .Received(1)
             .Send(
-                Arg.Is<ExportInstancesRequest>(x => ReferenceEquals(x.Specification, spec)),
+                Arg.Is<ExportRequest>(x => ReferenceEquals(spec, x.Specification)),
                 controller.HttpContext.RequestAborted);
     }
 }
