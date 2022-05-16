@@ -168,4 +168,25 @@ public class LoggingFileStore : IFileStore
             throw;
         }
     }
+
+    /// <inheritdoc />
+    public async Task CopyFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        _logger.LogDebug("Copying DICOM instance with `{Version}`", versionedInstanceIdentifier.Version);
+
+        try
+        {
+            await _fileStore.CopyFileAsync(versionedInstanceIdentifier, cancellationToken);
+
+            LogOperationSucceededDelegate(_logger, null);
+        }
+        catch (Exception ex)
+        {
+            LogOperationFailedDelegate(_logger, ex);
+
+            throw;
+        }
+    }
 }

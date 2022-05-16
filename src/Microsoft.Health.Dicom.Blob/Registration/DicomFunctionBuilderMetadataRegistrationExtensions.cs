@@ -30,6 +30,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
     {
         EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
+        EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
 
         var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
         functionsBuilder.Services
@@ -40,6 +41,36 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
             .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
+
+        return functionsBuilder;
+    }
+
+    /// <summary>
+    /// Adds the DICOM instance store for the DICOM functions.
+    /// </summary>
+    /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
+    /// <param name="containerName">The name of the metadata container.</param>
+    /// <param name="configuration">The configuration for the function.</param>
+    /// <returns>The functions builder.</returns>
+    public static IDicomFunctionsBuilder AddFileStorageDataStore(
+        this IDicomFunctionsBuilder functionsBuilder,
+        IConfiguration configuration,
+        string containerName)
+    {
+        EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+        EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
+
+        var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+        functionsBuilder.Services
+            .AddSingleton<BlobStoreConfigurationSection>()
+            .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
+            .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
+            .AddBlobServiceClient(blobConfig)
+            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, (c) =>
+            {
+                c.ContainerName = containerName;
+            });
 
         return functionsBuilder;
     }

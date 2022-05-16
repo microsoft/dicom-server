@@ -3,7 +3,8 @@
   "BlobStore": {
     "ConnectionString": null,
     "Containers": {
-      "Metadata": "metadatacontainer"
+      "Metadata": "metadatacontainer",
+      "File": "dicomwebcontainer"
     },
     "Initialization": {
       "RetryDelay": "00:00:15",
@@ -34,6 +35,16 @@
         "FirstRetryInterval": "00:01:00",
         "MaxNumberOfAttempts": 4
       }
+    },
+    "Copy": {
+      "BatchSize": 100,
+      "BatchThreadCount": 5,
+      "MaxParallelBatches": 10,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
     }
   },
   "Extensions": {
@@ -55,7 +66,8 @@
   "PurgeHistory": {
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
-    "Statuses": [ "Completed" ]
+    "Statuses": [ "Completed" ],
+    "ExcludeFunctions": [ "CopyInstancesAsync" ]
   },
   "SqlServer": {
     "Retry": {

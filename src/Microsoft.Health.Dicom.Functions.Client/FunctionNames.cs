@@ -10,4 +10,6 @@ internal static class FunctionNames
     public const string ExportDicomFiles = "ExportDicomFilesAsync";
 
     public const string ReindexInstances = "ReindexInstancesAsync";
+
+    public const string CopyInstances = "CopyInstancesAsync";
 }
