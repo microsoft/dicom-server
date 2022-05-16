@@ -13,11 +13,11 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.Extensions;
 public class DurableOrchestrationStatusExtensionsTests
 {
     [Theory]
-    [InlineData(null, DicomOperation.Unknown)]
     [InlineData("foo", DicomOperation.Unknown)]
     [InlineData("Unknown", DicomOperation.Unknown)]
     [InlineData(FunctionNames.ReindexInstances, DicomOperation.Reindex)]
     [InlineData(FunctionNames.ExportDicomFiles, DicomOperation.Export)]
+    [InlineData(FunctionNames.CopyInstances, DicomOperation.Copy)]
     [InlineData("reindexINSTANCESasync", DicomOperation.Reindex)]
     public void GivenOrchestrationStatus_WhenGettingDicomOperation_ThenConvertNameToType(string name, DicomOperation expected)
     {
