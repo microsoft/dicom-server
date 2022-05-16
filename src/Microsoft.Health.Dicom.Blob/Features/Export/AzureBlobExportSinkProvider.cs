@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -29,11 +30,18 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     private readonly ISecretStore _secretStore;
     private readonly JsonSerializerOptions _serializerOptions;
+    private readonly ILogger _logger;
 
-    public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions)
+    public AzureBlobExportSinkProvider(IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
+    {
+        _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+    }
+
+    public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
+        : this(serializerOptions, logger)
     {
         _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
-        _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
     }
 
     protected override async Task<IExportSink> CreateAsync(IServiceProvider provider, AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
@@ -55,6 +63,12 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     protected override async Task<AzureBlobExportOptions> SecureSensitiveInfoAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
+        if (_secretStore == null)
+        {
+            _logger.LogWarning("No secret store has been registered. Sensitive export settings will be preserved in plaintext.");
+            return options;
+        }
+
         // TODO: Should we detect if the ContainerUri actually has a SAS token before storing the secret?
         var secrets = new BlobSecrets
         {
@@ -88,6 +102,9 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     {
         if (options.Secrets != null)
         {
+            if (_secretStore == null)
+                throw new InvalidOperationException(DicomBlobResource.MissingSecretStore);
+
             string json = await _secretStore.GetSecretAsync(options.Secrets.Name, options.Secrets.Version, cancellationToken);
             BlobSecrets secrets = JsonSerializer.Deserialize<BlobSecrets>(json, _serializerOptions);
 
