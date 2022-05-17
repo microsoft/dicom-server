@@ -59,7 +59,6 @@ public class ExtendedQueryTagController : ControllerBase
     [ProducesResponseType(typeof(AddExtendedQueryTagResponse), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
-    [Route(KnownRoutes.ExtendedQueryTagRoute)]
     [AuditEventType(AuditEventSubType.AddExtendedQueryTag)]
     public async Task<IActionResult> PostAsync([Required][FromBody] IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTags)
     {
@@ -76,7 +75,6 @@ public class ExtendedQueryTagController : ControllerBase
     [ProducesResponseType(typeof(DeleteExtendedQueryTagResponse), (int)HttpStatusCode.NoContent)]
     [HttpDelete]
     [VersionedRoute(KnownRoutes.DeleteExtendedQueryTagRoute)]
-    [Route(KnownRoutes.DeleteExtendedQueryTagRoute)]
     [AuditEventType(AuditEventSubType.RemoveExtendedQueryTag)]
     public async Task<IActionResult> DeleteAsync(string tagPath)
     {
@@ -102,7 +100,6 @@ public class ExtendedQueryTagController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [VersionedRoute(KnownRoutes.ExtendedQueryTagRoute)]
-    [Route(KnownRoutes.ExtendedQueryTagRoute)]
     [AuditEventType(AuditEventSubType.GetAllExtendedQueryTags)]
     [QueryModelStateValidator]
     public async Task<IActionResult> GetTagsAsync([FromQuery] PaginationOptions options)
@@ -135,8 +132,7 @@ public class ExtendedQueryTagController : ControllerBase
     [ProducesResponseType(typeof(GetExtendedQueryTagEntry), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-    [VersionedRoute(KnownRoutes.GetExtendedQueryTagRoute, Name = KnownRouteNames.VersionedGetExtendedQueryTag)]
-    [Route(KnownRoutes.GetExtendedQueryTagRoute, Name = KnownRouteNames.GetExtendedQueryTag)]
+    [VersionedRoute(KnownRoutes.GetExtendedQueryTagRoute, Name = KnownRouteNames.GetExtendedQueryTag)]
     [AuditEventType(AuditEventSubType.GetExtendedQueryTag)]
     public async Task<IActionResult> GetTagAsync(string tagPath)
     {
@@ -163,8 +159,7 @@ public class ExtendedQueryTagController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ExtendedQueryTagError>), (int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
-    [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.VersionedGetExtendedQueryTagErrors)]
-    [Route(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.GetExtendedQueryTagErrors)]
+    [VersionedRoute(KnownRoutes.GetExtendedQueryTagErrorsRoute, Name = KnownRouteNames.GetExtendedQueryTagErrors)]
     [AuditEventType(AuditEventSubType.GetExtendedQueryTagErrors)]
     [QueryModelStateValidator]
     public async Task<IActionResult> GetTagErrorsAsync(
@@ -191,7 +186,6 @@ public class ExtendedQueryTagController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [VersionedRoute(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
-    [Route(KnownRoutes.UpdateExtendedQueryTagQueryStatusRoute)]
     [AuditEventType(AuditEventSubType.UpdateExtendedQueryTag)]
     public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
     {

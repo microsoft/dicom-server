@@ -6,7 +6,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
@@ -18,5 +19,8 @@ public interface IAddExtendedQueryTagService
     /// <param name="extendedQueryTags">The extended query tags.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
-    public Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default);
+    /// <exception cref="ExtendedQueryTagsAlreadyExistsException">
+    /// One or more values in <paramref name="extendedQueryTags"/> has already been indexed.
+    /// </exception>
+    public Task<OperationReference> AddExtendedQueryTagsAsync(IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags, CancellationToken cancellationToken = default);
 }

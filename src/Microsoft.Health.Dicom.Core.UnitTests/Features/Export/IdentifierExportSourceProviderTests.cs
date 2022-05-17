@@ -70,7 +70,7 @@ public class IdentifierExportSourceProviderTests
     }
 
     [Fact]
-    public async Task GivenValidConfig_WhenValidating_ThenReturn()
+    public async Task GivenValidConfig_WhenValidating_ThenPass()
     {
         var options = new IdentifierExportOptions
         {
@@ -85,6 +85,6 @@ public class IdentifierExportSourceProviderTests
         IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection().Build();
         config.Set(options);
 
-        Assert.Same(config, await _provider.ValidateAsync(config));
+        await _provider.ValidateAsync(config);
     }
 }

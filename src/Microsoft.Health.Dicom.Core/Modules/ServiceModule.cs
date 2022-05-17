@@ -5,10 +5,11 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.HealthCheck;
 using Microsoft.Health.Dicom.Core.Features.Indexing;
@@ -27,14 +28,6 @@ namespace Microsoft.Health.Dicom.Core.Modules;
 
 public class ServiceModule : IStartupModule
 {
-    private readonly FeatureConfiguration _featureConfiguration;
-
-    public ServiceModule(FeatureConfiguration featureConfiguration)
-    {
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-        _featureConfiguration = featureConfiguration;
-    }
-
     public void Load(IServiceCollection services)
     {
         EnsureArg.IsNotNull(services, nameof(services));
@@ -151,10 +144,9 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Add<OperationStateHandler>()
-            .Scoped()
-            .AsSelf()
-            .AsImplementedInterfaces();
+        services.AddSingleton<IGuidFactory>(GuidFactory.Default);
+
+        services.AddScoped<IDicomOperationsResourceStore, DicomOperationsResourceStore>();
 
         services.AddSingleton<BackgroundServiceHealthCheckCache>();
 
@@ -167,59 +159,63 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        AddExtendedQueryTagServices(services);
+
+        AddWorkItemServices(services);
+
+        AddExportServices(services);
+    }
+
+    private static void AddExtendedQueryTagServices(IServiceCollection services)
+    {
+        services.Add<ExtendedQueryTagEntryValidator>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<GetExtendedQueryTagsService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<AddExtendedQueryTagService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<DeleteExtendedQueryTagService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<UpdateExtendedQueryTagService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<ExtendedQueryTagErrorsService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<ReindexDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<InstanceReindexer>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+    }
+
+    private static void AddWorkItemServices(IServiceCollection services)
+    {
         services.Add<WorkitemQueryTagService>()
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
 
-        if (_featureConfiguration.EnableExtendedQueryTags)
-        {
-            services.Add<ExtendedQueryTagEntryValidator>()
-                .Singleton()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<GetExtendedQueryTagsService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<AddExtendedQueryTagService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<DeleteExtendedQueryTagService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<UpdateExtendedQueryTagService>()
-             .Scoped()
-             .AsSelf()
-             .AsImplementedInterfaces();
-
-            services.Add<ExtendedQueryTagErrorsService>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<ReindexDatasetValidator>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-
-            services.Add<InstanceReindexer>()
-                .Scoped()
-                .AsSelf()
-                .AsImplementedInterfaces();
-        }
-
-        SetupWorkitemTypes(services);
-    }
-
-    private static void SetupWorkitemTypes(IServiceCollection services)
-    {
         services.Add<WorkitemService>()
             .Scoped()
             .AsSelf()
@@ -254,5 +250,13 @@ public class ServiceModule : IStartupModule
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
+    }
+
+    private static void AddExportServices(IServiceCollection services)
+    {
+        services.AddScoped<IExportService, ExportService>();
+        services.AddScoped<ExportSourceFactory>();
+        services.AddScoped<ExportSinkFactory>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSourceProvider, IdentifierExportSourceProvider>());
     }
 }

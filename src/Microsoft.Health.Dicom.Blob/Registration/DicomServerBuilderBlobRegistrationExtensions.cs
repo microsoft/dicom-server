@@ -30,18 +30,24 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+        IConfigurationSection blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
         serverBuilder.Services
             .AddOptions<BlobOperationOptions>()
             .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
         serverBuilder
             .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore, LoggingFileStore>(
-                configuration, "DcmHealthCheck")
+                configuration,
+                "DcmHealthCheck")
             .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore, LoggingMetadataStore>(
-                configuration, "MetadataHealthCheck")
+                configuration,
+                "MetadataHealthCheck")
             .AddStorageDataStore<WorkitemStoreConfigurationSection, IWorkitemStore, BlobWorkitemStore, LoggingWorkitemStore>(
-                configuration, "WorkitemHealthCheck");
+                configuration,
+                "WorkitemHealthCheck");
+
+        serverBuilder.Services
+            .AddAzureBlobExportSink(o => blobConfig.Bind(o)); // Re-use the blob store's configuration
 
         return serverBuilder;
     }

@@ -30,11 +30,8 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
     private readonly HashSet<string> _partitionCreationSupportedRouteNames = new HashSet<string>
     {
         KnownRouteNames.PartitionStoreInstance,
-        KnownRouteNames.VersionedPartitionStoreInstance,
         KnownRouteNames.PartitionStoreInstancesInStudy,
-        KnownRouteNames.VersionedPartitionStoreInstancesInStudy,
         KnownRouteNames.PartitionedAddWorkitemInstance,
-        KnownRouteNames.VersionedPartitionAddWorkitemInstance,
     };
 
     public PopulateDataPartitionFilterAttribute(
