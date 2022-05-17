@@ -178,7 +178,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
                 input = new CopyCheckpoint
                 {
-                    Batching = _options.Copy.Batching,
+                    Batching = checkpoint.Batching,
                     Completed = checkpoint.Completed,
                 };
             }
