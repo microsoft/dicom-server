@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -64,7 +65,16 @@ public class DicomAzureFunctionsClientTests
                     MaxParallelCount = 1,
                     Size = 100,
                 },
-            }
+            },
+            Copy = new FanOutFunctionOptions
+            {
+                Name = FunctionNames.CopyInstances,
+                Batching = new BatchingOptions
+                {
+                    MaxParallelCount = 2,
+                    Size = 50,
+                },
+            },
         };
         _client = new DicomAzureFunctionsClient(
             durableClientFactory,
@@ -314,5 +324,28 @@ public class DicomAzureFunctionsClientTests
 
         Assert.Equal(operationId, actual.Id);
         Assert.Equal(url, actual.Href);
+    }
+
+    [Fact]
+    public async Task GivenValidArgs_WhenStartingCopy_ThenStartOrchestration()
+    {
+        var operationId = "1d4689daca3b4659b0c77bf6c9ff25e1";
+        var url = new Uri("http://foo.com/bar/operations/" + operationId);
+
+        await _durableClient
+            .StartNewAsync(
+                FunctionNames.CopyInstances,
+                operationId,
+                Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
+
+        using var tokenSource = new CancellationTokenSource();
+        await _client.StartBlobCopyAsync(tokenSource.Token);
+
+        await _durableClient
+            .Received(1)
+            .StartNewAsync(
+                FunctionNames.CopyInstances,
+                operationId,
+                Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
     }
 }
