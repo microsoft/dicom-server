@@ -45,7 +45,7 @@ public partial class WorkitemController
                         cancellationToken: HttpContext.RequestAborted)
                     .ConfigureAwait(false);
 
-        if (response.Status != WorkitemResponseStatus.Success && response.Status != WorkitemResponseStatus.NotFound)
+        if (response.Status != WorkitemResponseStatus.Success && !string.IsNullOrWhiteSpace(response.Message))
         {
             Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), response.Message);
         }
