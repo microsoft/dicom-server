@@ -84,7 +84,7 @@ public partial class ExportDurableFunction
                 Destination = input.Destination,
                 ErrorHref = input.ErrorHref ?? await context.CallActivityWithRetryAsync<Uri>(nameof(GetErrorHrefAsync), _options.RetryOptions, input.Destination),
                 Progress = input.Progress + iterationProgress,
-                Source = source.Configuration,
+                Source = source.Description,
             });
     }
 }

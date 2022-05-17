@@ -7,48 +7,31 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Memory;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-internal abstract class ExportSinkProvider<TOptions> : IExportSinkProvider where TOptions : class, new()
+internal abstract class ExportSinkProvider<TOptions> : IExportSinkProvider
 {
     public abstract ExportDestinationType Type { get; }
 
-    public Task<IExportSink> CreateAsync(IServiceProvider provider, IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
+    public Task<IExportSink> CreateAsync(IServiceProvider provider, object options, Guid operationId, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(provider, nameof(provider));
-        EnsureArg.IsNotNull(config, nameof(config));
-
-        var options = new TOptions();
-        config.Bind(options, o => o.BindNonPublicProperties = true);
-        return CreateAsync(provider, options, operationId, cancellationToken);
+        EnsureArg.IsNotNull(options, nameof(options));
+        return CreateAsync(provider, (TOptions)options, operationId, cancellationToken);
     }
 
-    public async Task<IConfiguration> SecureSensitiveInfoAsync(IConfiguration config, Guid operationId, CancellationToken cancellationToken = default)
+    public async Task<object> SecureSensitiveInfoAsync(object options, Guid operationId, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(config, nameof(config));
-
-        var options = new TOptions();
-        config.Bind(options);
-
-        TOptions result = await SecureSensitiveInfoAsync(options, operationId, cancellationToken);
-
-        IConfiguration validated = new ConfigurationRoot(new IConfigurationProvider[] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) });
-        validated.Set(result, c => c.BindNonPublicProperties = true);
-        return validated;
+        EnsureArg.IsNotNull(options, nameof(options));
+        return await SecureSensitiveInfoAsync((TOptions)options, operationId, cancellationToken);
     }
 
-    public Task ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default)
+    public Task ValidateAsync(object options, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(config, nameof(config));
-
-        var options = new TOptions();
-        config.Bind(options);
-        return ValidateAsync(options, cancellationToken);
+        EnsureArg.IsNotNull(options, nameof(options));
+        return ValidateAsync((TOptions)options, cancellationToken);
     }
 
     protected abstract Task<IExportSink> CreateAsync(IServiceProvider provider, TOptions options, Guid operationId, CancellationToken cancellationToken = default);

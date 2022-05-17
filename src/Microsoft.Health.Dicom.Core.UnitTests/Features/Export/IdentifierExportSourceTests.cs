@@ -137,9 +137,9 @@ public class IdentifierExportSourceTests
 
         // Assert baseline
         if (_options.Values.Count > 0)
-            AssertConfiguration(values, _source.Configuration);
+            AssertConfiguration(values, _source.Description);
         else
-            Assert.Null(_source.Configuration);
+            Assert.Null(_source.Description);
 
         // Dequeue a batch
         TypedConfiguration<ExportSourceType> batch;
@@ -147,7 +147,7 @@ public class IdentifierExportSourceTests
         {
             Assert.False(_source.TryDequeueBatch(size, out batch));
             Assert.Null(batch);
-            Assert.Null(_source.Configuration);
+            Assert.Null(_source.Description);
         }
         else
         {
@@ -155,9 +155,9 @@ public class IdentifierExportSourceTests
             AssertConfiguration(values.Take(expected), batch);
 
             if (values.Length > expected)
-                AssertConfiguration(values.Skip(expected), _source.Configuration);
+                AssertConfiguration(values.Skip(expected), _source.Description);
             else
-                Assert.Null(_source.Configuration);
+                Assert.Null(_source.Description);
         }
     }
 

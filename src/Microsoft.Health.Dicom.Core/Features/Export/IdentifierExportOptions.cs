@@ -12,26 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 
 internal sealed class IdentifierExportOptions : IValidatableObject
 {
-    public IReadOnlyList<string> Values { get; set; }
+    public IReadOnlyCollection<DicomIdentifier> Values { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var results = new List<ValidationResult>();
         if (Values == null || Values.Count == 0)
-        {
             results.Add(new ValidationResult(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.MissingProperty, nameof(Values)), new string[] { nameof(Values) }));
-        }
-        else
-        {
-            foreach (string value in Values)
-            {
-                if (value == null || !DicomIdentifier.TryParse(value, out _))
-                {
-                    results.Add(new ValidationResult(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomIdentifier, value), new string[] { nameof(Values) }));
-                    break; // We could also accumulate all of the issues
-                }
-            }
-        }
 
         return results;
     }

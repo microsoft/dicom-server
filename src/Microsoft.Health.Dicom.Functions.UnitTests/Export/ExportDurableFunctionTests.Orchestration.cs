@@ -62,7 +62,7 @@ public partial class ExportDurableFunctionTests
             .Returns(
                 x => { x[1] = batches[0]; return true; },
                 x => { x[1] = batches[1]; return true; });
-        source.Configuration.Returns(nextSource);
+        source.Description.Returns(nextSource);
         _sourceProvider.CreateAsync(_serviceProvider, input.Source.Configuration, input.Partition).Returns(source);
 
         context
@@ -168,7 +168,7 @@ public partial class ExportDurableFunctionTests
             .Returns(
                 x => { x[1] = batch; return true; },
                 x => { x[1] = null; return false; });
-        source.Configuration.Returns((TypedConfiguration<ExportSourceType>)null);
+        source.Description.Returns((TypedConfiguration<ExportSourceType>)null);
         _sourceProvider.CreateAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition).Returns(source);
 
         context

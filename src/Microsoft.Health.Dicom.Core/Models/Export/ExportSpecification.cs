@@ -16,14 +16,14 @@ public class ExportSpecification
     /// <summary>
     /// Gets or sets the source of the export operation.
     /// </summary>
-    /// <value>The configuration describing the source.</value>
+    /// <value>The options describing the source.</value>
     [Required]
-    public TypedConfiguration<ExportSourceType> Source { get; set; }
+    public ExportDataOptions<ExportSourceType> Source { get; set; }
 
     /// <summary>
     /// Gets or sets the destination of the export operation.
     /// </summary>
-    /// <value>The configuration describing the destination.</value>
+    /// <value>The options describing the destination.</value>
     [Required]
-    public TypedConfiguration<ExportDestinationType> Destination { get; set; }
+    public ExportDataOptions<ExportDestinationType> Destination { get; set; }
 }
