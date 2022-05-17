@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Azure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Export;
@@ -37,7 +38,7 @@ public class AzureBlobExportSinkProviderTests
         _secretStore = Substitute.For<ISecretStore>();
         _serializerOptions = new JsonSerializerOptions();
         _serializerOptions.ConfigureDefaultDicomSettings();
-        _sinkProvider = new AzureBlobExportSinkProvider(_secretStore, Options.Create(_serializerOptions));
+        _sinkProvider = new AzureBlobExportSinkProvider(_secretStore, Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
 
         var services = new ServiceCollection();
         services.AddScoped(p => Substitute.For<IFileStore>());
@@ -46,6 +47,25 @@ public class AzureBlobExportSinkProviderTests
         services.Configure<JsonSerializerOptions>(o => o.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
         _serviceProvider = services.BuildServiceProvider();
+    }
+
+    [Fact]
+    public async Task GivenNoSecretStore_WhenCreatingSinkWithSecret_ThenThrow()
+    {
+        var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{Guid.NewGuid()}/Errors.log", UriKind.Absolute);
+
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        configuration.Set(
+            new AzureBlobExportOptions
+            {
+                Secrets = new SecretKey { Name = "foo", Version = "bar" },
+            },
+            c => c.BindNonPublicProperties = true);
+
+        var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.CreateAsync(_serviceProvider, configuration, Guid.NewGuid()));
+        await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default);
     }
 
     [Fact]
@@ -82,6 +102,28 @@ public class AzureBlobExportSinkProviderTests
         await _secretStore
             .Received(1)
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token);
+    }
+
+    [Fact]
+    public async Task GivenNoSecretStore_WhenSecuringInfo_ThenSkip()
+    {
+        const string connectionString = "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar";
+        var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
+
+        // Note: Typically these values don't both exist together
+        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        configuration[nameof(AzureBlobExportOptions.ContainerUri)] = containerUri.AbsoluteUri;
+        configuration[nameof(AzureBlobExportOptions.ConnectionString)] = connectionString;
+
+        var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
+        IConfiguration actualConfig = await provider.SecureSensitiveInfoAsync(configuration, Guid.NewGuid());
+
+        await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default);
+
+        AzureBlobExportOptions actual = actualConfig.Get<AzureBlobExportOptions>(c => c.BindNonPublicProperties = true);
+        Assert.Null(actual.Secrets);
+        Assert.Equal(connectionString, actual.ConnectionString);
+        Assert.Equal(containerUri, actual.ContainerUri);
     }
 
     [Fact]

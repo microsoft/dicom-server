@@ -151,6 +151,15 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot fetch secret values because no secret store has been configured..
+        /// </summary>
+        internal static string MissingSecretStore {
+            get {
+                return ResourceManager.GetString("MissingSecretStore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Placeholder &apos;{0}&apos; is not recognized..
         /// </summary>
         internal static string UnknownPlaceholder {

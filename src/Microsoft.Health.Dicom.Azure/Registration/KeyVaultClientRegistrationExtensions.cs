@@ -89,10 +89,6 @@ public static class KeyVaultClientRegistrationExtensions
 
             services.AddScoped<ISecretStore, KeyVaultSecretStore>();
         }
-        else
-        {
-            services.AddScoped<ISecretStore, InMemorySecretStore>();
-        }
 
         return services;
     }
