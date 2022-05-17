@@ -32,6 +32,12 @@ public interface IWorkitemResponseBuilder
     RetrieveWorkitemResponse BuildRetrieveWorkitemResponse();
 
     /// <summary>
+    /// Builds the response for update workitem.
+    /// </summary>
+    /// <returns>An instance of <see cref="UpdateWorkitemResponse"/> represeting the response.</returns>
+    UpdateWorkitemResponse BuildUpdateWorkitemResponse();
+
+    /// <summary>
     /// Adds a successful entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>

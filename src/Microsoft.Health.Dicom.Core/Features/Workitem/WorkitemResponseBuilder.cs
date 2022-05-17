@@ -106,6 +106,26 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     }
 
     /// <inheritdoc />
+    public UpdateWorkitemResponse BuildUpdateWorkitemResponse()
+    {
+        Uri url = null;
+        WorkitemResponseStatus status = WorkitemResponseStatus.Failure;
+
+        if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
+        {
+            status = WorkitemResponseStatus.Success;
+            url = _urlResolver.ResolveRetrieveWorkitemUri(_dataset.GetString(DicomTag.SOPInstanceUID));
+        }
+        // TODO Ali: Take care of all the failure reasons here.
+        ////else if (failureReason == FailureReasonCodes.SopInstanceAlreadyExists)
+        ////{
+        ////    status = WorkitemResponseStatus.Conflict;
+        ////}
+
+        return new UpdateWorkitemResponse(status, url, _message);
+    }
+
+    /// <inheritdoc />
     public void AddSuccess(DicomDataset dicomDataset)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

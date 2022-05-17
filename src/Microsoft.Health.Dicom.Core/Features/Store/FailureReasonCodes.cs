@@ -95,4 +95,32 @@ internal static class FailureReasonCodes
     /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.2-2"/>
     /// </remarks>
     public const ushort UpsPerformerChoosesNotToCancel = 0xC313;
+
+    /// <summary>
+    /// FAILURE - Refused: The UPS is not in the "IN PROGRESS" state
+    /// </summary>
+    /// <remarks>
+    /// Hex code are the defined ones in spec.
+    /// <see href="https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.6-1"/>
+    /// </remarks>
+    public const ushort UpsNotInProgressState = 0xC310;
+
+    /// <summary>
+    /// FAILURE - Refused: The correct Transaction UID was not provided
+    /// </summary>
+    /// <remarks>
+    /// Hex code are the defined ones in spec.
+    /// <see href="https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.6-1"/>
+    /// </remarks>
+    public const ushort UpsTransactionUidIncorrect = 0xC301;
+
+    /// <summary>
+    /// FAILURE - Refused: The Transaction UID was not provided
+    /// </summary>
+    public const ushort UpsTransactionUidAbsent = 0xC302;
+
+    /// <summary>
+    /// FAILURE - Procedure step state is present in the dataset provided to be updated which is not allowed.
+    /// </summary>
+    public const ushort UpsProcedureStepStateNotAllowed = 0xC303;
 }

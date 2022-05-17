@@ -63,6 +63,15 @@ public interface IWorkitemOrchestrator
     Task<DicomDataset> RetrieveWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously orchestrate updating the UPS-RS workitem.
+    /// </summary>
+    /// <param name="dataset">The workitem dataset with the cancel request.</param>
+    /// <param name="workitemMetadata">The workitem metadata.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Gets DicomDataset Blob from the Store for the given Workitem Instance identifier
     /// </summary>
     /// <param name="identifier">The workitem instance identifier</param>

@@ -60,4 +60,21 @@ public interface IWorkitemService
     Task<QueryWorkitemResourceResponse> ProcessQueryAsync(
         BaseQueryParameters parameters,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously update the workitem dataset.
+    /// </summary>
+    /// <remarks>
+    /// If <paramref name="transactionUid"/> is not present or does not match the one associated with <paramref name="workitemInstanceUid"/>, update will not go through.
+    /// </remarks>
+    /// <param name="dataset">The <see cref="DicomDataset"/> to update.</param>
+    /// <param name="workitemInstanceUid">The workitem instance UID.</param>
+    /// <param name="transactionUid">The transaction UID associated with <paramref name="workitemInstanceUid"/>.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous update operation.</returns>
+    Task<UpdateWorkitemResponse> ProcessUpdateAsync(
+        DicomDataset dataset,
+        string workitemInstanceUid,
+        string transactionUid,
+        CancellationToken cancellationToken);
 }

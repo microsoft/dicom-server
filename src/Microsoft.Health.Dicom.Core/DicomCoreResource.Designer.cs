@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The attribute with tag &apos;{0}&apos; must not be empty..
+        /// </summary>
+        internal static string AttributeMustNotBeEmpty {
+            get {
+                return ResourceManager.GetString("AttributeMustNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The attribute with tag &apos;{0}&apos; cannot be present..
         /// </summary>
         internal static string AttributeNotAllowed {
@@ -1057,6 +1066,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transaction UID is missing..
+        /// </summary>
+        internal static string TransactionUIDAbsent {
+            get {
+                return ResourceManager.GetString("TransactionUIDAbsent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected token type &apos;{0}&apos; but read &apos;{1}&apos; instead..
         /// </summary>
         internal static string UnexpectedJsonToken {
@@ -1192,6 +1210,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The workitem instance is currently being updated. Please try again later..
+        /// </summary>
+        internal static string WorkitemCurrentlyBeingUpdated {
+            get {
+                return ResourceManager.GetString("WorkitemCurrentlyBeingUpdated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; already exists. Try creating using a different UID..
         /// </summary>
         internal static string WorkitemInstanceAlreadyExists {
@@ -1237,11 +1264,29 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Procedure step state is present in the dataset provided to be updated which is not allowed..
+        /// </summary>
+        internal static string WorkitemProcedureStepStateNotAllowed {
+            get {
+                return ResourceManager.GetString("WorkitemProcedureStepStateNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is in the state of &apos;{1}&apos;..
         /// </summary>
         internal static string WorkitemUpdateIsNotAllowed {
             get {
                 return ResourceManager.GetString("WorkitemUpdateIsNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance has been updated successfully..
+        /// </summary>
+        internal static string WorkitemUpdateRequestSuccess {
+            get {
+                return ResourceManager.GetString("WorkitemUpdateRequestSuccess", resourceCulture);
             }
         }
     }

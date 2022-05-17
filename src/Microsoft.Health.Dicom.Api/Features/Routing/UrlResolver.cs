@@ -115,6 +115,24 @@ public sealed class UrlResolver : IUrlResolver
     }
 
     /// <inheritdoc />
+    public Uri ResolveUpdateWorkitemUri(string workitemInstanceUid)
+    {
+        EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
+        var routeValues = new RouteValueDictionary
+        {
+            { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
+        };
+
+        AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+
+        var routeName = hasPartition
+            ? (hasVersion ? KnownRouteNames.VersionedPartitionUpdateWorkitemInstance : KnownRouteNames.PartitionedUpdateWorkitemInstance)
+            : hasVersion ? KnownRouteNames.VersionedUpdateWorkitemInstance : KnownRouteNames.UpdateWorkitemInstance;
+
+        return RouteUri(routeName, routeValues);
+    }
+
+    /// <inheritdoc />
     public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));

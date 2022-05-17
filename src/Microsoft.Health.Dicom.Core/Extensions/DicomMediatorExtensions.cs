@@ -263,4 +263,15 @@ public static class DicomMediatorExtensions
 
         return mediator.Send(new RetrieveWorkitemRequest(workitemInstanceUid), cancellationToken);
     }
+
+    public static Task<UpdateWorkitemResponse> UpdateWorkitemAsync(
+        this IMediator mediator, Stream requestBody, string requestContentType, string workitemInstanceUid, string transactionUid, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        EnsureArg.IsNotNull(requestBody, nameof(requestBody));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
+
+        // Not validating transaction Uid as it can be null if the procedure step state is in SCHEDULED state.
+        return mediator.Send(new UpdateWorkitemRequest(requestBody, requestContentType, workitemInstanceUid, transactionUid), cancellationToken);
+    }
 }

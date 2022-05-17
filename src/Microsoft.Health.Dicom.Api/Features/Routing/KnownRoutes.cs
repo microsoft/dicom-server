@@ -33,6 +33,7 @@ public static class KnownRoutes
 
     public const string AddWorkitemInstancesRoute = WorkitemsRouteSegment;
     public const string RetrieveWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}";
+    public const string UpdateWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/";
     public const string SearchWorkitemInstancesRoute = WorkitemsRouteSegment;
     public const string CancelWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/" + WorkitemCancelRequest;
 

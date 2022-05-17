@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
@@ -101,6 +103,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
+        // Make sure workitem is in a state where it can be updated.
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
             throw new DataStoreException(
@@ -125,11 +128,19 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
                 throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
             }
 
+            // TODO Ali: Compare existing and incoming workitem dataset.
+            //              Merge these two workitems.
+            //              And then store the updated workitem to the blob which is the following step.
+
             // store the blob with the new watermark
             await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
 
-            // Update the workitem procedure step state in the store
+            // Update the workitem watermark in the store.
+            // Reusing the existing stored procedure.
+            // TODO Ali: Need to update extended query tag tables as well.
+            //              Might have to come up with a new stored procedure which makes update to watermark in the workitem table along with changes
+            //                  to extended query tag tables in single transaction.
             await _indexWorkitemStore
                 .UpdateWorkitemProcedureStepStateAsync(
                     workitemMetadata,
@@ -152,6 +163,129 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             }
 
             throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
+
+        if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
+        {
+            throw new DataStoreException(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.WorkitemUpdateIsNotAllowed,
+                    workitemMetadata.WorkitemUid));
+        }
+
+        (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
+
+        try
+        {
+            // Get the current and next watermarks for the workitem instance
+            watermarkEntry = await _indexWorkitemStore
+                .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!watermarkEntry.HasValue)
+            {
+                throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
+            }
+
+            // Retrieve existing dataset.
+            var existingDataset = await RetrieveWorkitemAsync(workitemMetadata, cancellationToken).ConfigureAwait(false);
+
+            if (existingDataset == null)
+            {
+                throw new WorkitemNotFoundException(workitemMetadata.WorkitemUid);
+            }
+
+            var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
+
+            // Update existingDatabase.
+            MergeDatasets(existingDataset, dataset, queryTags);
+
+            // store the blob with the new watermark
+            await StoreWorkitemBlobAsync(workitemMetadata, existingDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
+                .ConfigureAwait(false);
+
+            // TODO Ali: Update details in Sql Server.
+            // Update the workitem watermark in the store
+
+            // Delete the blob with the old watermark
+            await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch
+        {
+            // attempt to delete the blob with proposed watermark
+            if (watermarkEntry.HasValue)
+            {
+                await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.NextWatermark, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            throw;
+        }
+    }
+
+    private static void MergeDatasets(DicomDataset existingDataset, DicomDataset newDataset, IReadOnlyCollection<QueryTag> queryTags)
+    {
+        // TODO Ali: See if sequence attributes are to be treated differently.
+        foreach (QueryTag queryTag in queryTags)
+        {
+            // Update value only if the value already existed in the existing dataset.
+            // Addition of attributes is not allowed in Update.
+            if (existingDataset.Contains(queryTag.Tag))
+            {
+                ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
+
+                switch (dataType)
+                {
+                    case ExtendedQueryTagDataType.PersonNameData:
+                    case ExtendedQueryTagDataType.StringData:
+                        string newString = newDataset.GetString(queryTag.Tag);
+                        existingDataset.AddOrUpdate<string>(queryTag.Tag, newString);
+                        break;
+                    case ExtendedQueryTagDataType.LongData:
+                        long? newLong = newDataset.GetStringTimeAsLong(queryTag.Tag, queryTag.VR);
+                        if (newLong.HasValue)
+                        {
+                            existingDataset.AddOrUpdate<long>(queryTag.Tag, newLong.Value);
+                        }
+                        break;
+                    case ExtendedQueryTagDataType.DoubleData:
+                        double newDouble = newDataset.GetFirstValueOrDefault<double>(queryTag.Tag, queryTag.VR);
+                        existingDataset.AddOrUpdate<double>(queryTag.Tag, newDouble);
+                        break;
+                    case ExtendedQueryTagDataType.DateTimeData:
+                        switch (queryTag.VR.Code)
+                        {
+                            case "DT":
+                                Tuple<DateTime?, DateTime?> newDateTimeLocalAndUtc = newDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(queryTag.Tag, queryTag.VR);
+                                if (newDateTimeLocalAndUtc.Item1.HasValue)
+                                {
+                                    existingDataset.AddOrUpdate<DateTime>(queryTag.Tag, newDateTimeLocalAndUtc.Item1.Value);
+                                }
+                                break;
+                            case "DA":
+                                DateTime? newDate = newDataset.GetStringDateAsDate(queryTag.Tag, queryTag.VR);
+                                if (newDate.HasValue)
+                                {
+                                    existingDataset.AddOrUpdate<DateTime>(queryTag.Tag, newDate.Value);
+                                }
+                                break;
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                // TODO Ali: Prepare a list of tags that were passed in the new dataset but were not present in the existing dataset.
+            }
         }
     }
 

@@ -38,6 +38,8 @@ public static class AuditEventSubType
 
     public const string RetrieveWorkitem = "retrieve-workitem";
 
+    public const string UpdateWorkitem = "update-workitem";
+
     public const string AddExtendedQueryTag = "add-extended-query-tag";
 
     public const string RemoveExtendedQueryTag = "remove-extended-query-tag";

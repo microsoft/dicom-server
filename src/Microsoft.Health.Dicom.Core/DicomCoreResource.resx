@@ -588,4 +588,20 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="IndexedDicomTagHasMultipleValues" xml:space="preserve">
     <value>One or more indexed Dicom tag(s) have multiple values, only first value is indexed.</value>
   </data>
+  <data name="WorkitemCurrentlyBeingUpdated" xml:space="preserve">
+    <value>The workitem instance is currently being updated. Please try again later.</value>
+  </data>
+  <data name="TransactionUIDAbsent" xml:space="preserve">
+    <value>The transaction UID is missing.</value>
+  </data>
+  <data name="WorkitemProcedureStepStateNotAllowed" xml:space="preserve">
+    <value>Procedure step state is present in the dataset provided to be updated which is not allowed.</value>
+  </data>
+  <data name="WorkitemUpdateRequestSuccess" xml:space="preserve">
+    <value>The workitem instance has been updated successfully.</value>
+  </data>
+  <data name="AttributeMustNotBeEmpty" xml:space="preserve">
+    <value>The attribute with tag '{0}' must not be empty.</value>
+    <comment>{0} Dicom Tag.</comment>
+  </data>
 </root>
