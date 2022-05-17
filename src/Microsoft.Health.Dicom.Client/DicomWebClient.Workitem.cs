@@ -98,7 +98,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(requestContent, nameof(requestContent));
 
-        var serializerOptions = new JsonSerializerOptions();
+        JsonSerializerOptions serializerOptions = new JsonSerializerOptions();
         serializerOptions.Converters.Add(new DicomJsonConverter());
 
         string jsonString = JsonSerializer.Serialize(requestContent, serializerOptions);
