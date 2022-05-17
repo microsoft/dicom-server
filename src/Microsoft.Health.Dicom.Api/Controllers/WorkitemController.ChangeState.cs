@@ -12,6 +12,8 @@ using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Messages.Workitem;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
@@ -28,6 +30,7 @@ public partial class WorkitemController
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionChangeStateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedChangeStateWorkitemInstance)]
     [Route(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
@@ -41,6 +44,11 @@ public partial class WorkitemController
                         workitemInstanceUid,
                         cancellationToken: HttpContext.RequestAborted)
                     .ConfigureAwait(false);
+
+        if (response.Status != WorkitemResponseStatus.Success && response.Status != WorkitemResponseStatus.NotFound)
+        {
+            Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), response.Message);
+        }
 
         return StatusCode((int)response.Status.ChangeStateResponseToHttpStatusCode(), response.Message);
     }
