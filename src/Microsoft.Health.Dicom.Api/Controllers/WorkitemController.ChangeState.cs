@@ -29,7 +29,6 @@ public partial class WorkitemController
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionChangeStateWorkitemInstance)]
-    [PartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedChangeStateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedChangeStateWorkitemInstance)]
     [Route(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]

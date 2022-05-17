@@ -38,12 +38,10 @@ internal class KnownRouteNames
     internal const string RetrieveWorkitemInstance = nameof(RetrieveWorkitemInstance);
 
     internal const string VersionedPartitionChangeStateWorkitemInstance = nameof(VersionedPartitionChangeStateWorkitemInstance);
-    internal const string PartitionedChangeStateWorkitemInstance = nameof(PartitionedChangeStateWorkitemInstance);
     internal const string VersionedChangeStateWorkitemInstance = nameof(VersionedChangeStateWorkitemInstance);
     internal const string ChangeStateWorkitemInstance = nameof(ChangeStateWorkitemInstance);
 
     internal const string VersionedPartitionCancelWorkitemInstance = nameof(VersionedPartitionCancelWorkitemInstance);
-    internal const string PartitionedCancelWorkitemInstance = nameof(PartitionedCancelWorkitemInstance);
     internal const string VersionedCancelWorkitemInstance = nameof(VersionedCancelWorkitemInstance);
     internal const string CancelWorkitemInstance = nameof(CancelWorkitemInstance);
 }
