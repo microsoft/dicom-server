@@ -69,11 +69,12 @@ public partial class CopyDurableFunction
                 {
                     Completed = completed,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                    Batching = input.Batching
                 });
         }
         else
         {
-            logger.LogInformation("Completed duplication.");
+            logger.LogInformation("Completed copying files.");
         }
 
     }
