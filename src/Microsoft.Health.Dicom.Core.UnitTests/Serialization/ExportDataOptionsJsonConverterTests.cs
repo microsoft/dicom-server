@@ -128,8 +128,7 @@ public class ExportDataOptionsJsonConverterTests
         Assert.Equal("BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", options.ConnectionString);
         Assert.Equal("mycontainer", options.ContainerName);
         Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.ContainerUri);
-        Assert.Equal("foo", options.Secret.Name);
-        Assert.Equal("1", options.Secret.Version);
+        Assert.Null(options.Secret);
     }
 
     [Theory]
@@ -204,11 +203,7 @@ public class ExportDataOptionsJsonConverterTests
   ""settings"": {
     ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerName"": ""mycontainer"",
-    ""secret"": {
-      ""name"": ""foo"",
-      ""version"": ""1""
-    }
+    ""containerName"": ""mycontainer""
   }
 }",
             actual);

@@ -20,6 +20,12 @@ public class DicomIdentifierJsonConverterTests
         _serializerOptions.Converters.Add(new DicomIdentifierJsonConverter());
     }
 
+    [Fact]
+    public void GivenInvalidToken_WhenReading_ThenThrow()
+    {
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomIdentifier>("123", _serializerOptions));
+    }
+
     [Theory]
     [InlineData("\"1.2.345\"", "1.2.345", null, null)]
     [InlineData("\"1.2.345/67.89\"", "1.2.345", "67.89", null)]

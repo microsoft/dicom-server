@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -17,7 +18,8 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
 
     public string ContainerName { get; set; }
 
-    public SecretKey Secret { get; set; }
+    [JsonProperty] // Newtonsoft is only used internally while this property would be ignored by System.Text.Json
+    internal SecretKey Secret { get; set; }
 
     // TODO: Make public upon request. Perhaps a boolean flag instead?
     internal const string DicomFilePattern = "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm";

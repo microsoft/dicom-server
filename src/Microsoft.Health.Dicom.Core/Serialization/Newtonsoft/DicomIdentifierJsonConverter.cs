@@ -15,7 +15,7 @@ internal sealed class DicomIdentifierJsonConverter : JsonConverter<DicomIdentifi
     public override DicomIdentifier ReadJson(JsonReader reader, Type objectType, DicomIdentifier existingValue, bool hasExistingValue, JsonSerializer serializer)
         => reader.TokenType == JsonToken.String
             ? DicomIdentifier.Parse(reader.Value as string)
-            : throw new JsonSerializationException(
+            : throw new JsonException(
                 string.Format(
                     CultureInfo.CurrentCulture,
                     DicomCoreResource.UnexpectedJsonToken,

@@ -64,8 +64,9 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     protected override async Task<AzureBlobExportOptions> SecureSensitiveInfoAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
+        // Clear secrets if it's already set
         if (options.Secret != null)
-            options.Secret = null; // Clear Secrets if User set it themselves
+            options.Secret = null;
 
         if (_secretStore == null)
         {
