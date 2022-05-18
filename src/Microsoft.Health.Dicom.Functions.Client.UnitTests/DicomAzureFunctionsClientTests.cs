@@ -68,7 +68,7 @@ public class DicomAzureFunctionsClientTests
             },
             Copy = new FanOutFunctionOptions
             {
-                Name = FunctionNames.CopyInstances,
+                Name = FunctionNames.CopyFiles,
                 Batching = new BatchingOptions
                 {
                     MaxParallelCount = 2,
@@ -334,7 +334,7 @@ public class DicomAzureFunctionsClientTests
 
         await _durableClient
             .StartNewAsync(
-                FunctionNames.CopyInstances,
+                FunctionNames.CopyFiles,
                 operationId,
                 Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
 
@@ -344,7 +344,7 @@ public class DicomAzureFunctionsClientTests
         await _durableClient
             .Received(1)
             .StartNewAsync(
-                FunctionNames.CopyInstances,
+                FunctionNames.CopyFiles,
                 operationId,
                 Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
     }

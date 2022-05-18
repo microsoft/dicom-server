@@ -19,19 +19,17 @@ public class InstanceCopier : IInstanceCopier
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
 
-    public InstanceCopier(
-        IMetadataStore metadataStore,
-        IFileStore fileStore)
+    public InstanceCopier(IMetadataStore metadataStore, IFileStore fileStore)
     {
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
     }
 
-    public async Task CopyInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public Task CopyInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        await Task.WhenAll(
+        return Task.WhenAll(
               _fileStore.CopyFileAsync(versionedInstanceIdentifier, cancellationToken),
               _metadataStore.CopyInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken));
     }

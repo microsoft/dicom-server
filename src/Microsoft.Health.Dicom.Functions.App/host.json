@@ -67,7 +67,7 @@
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
     "Statuses": [ "Completed" ],
-    "ExcludeFunctions": [ "CopyInstancesAsync" ]
+    "ExcludeFunctions": [ "CopyFiles" ]
   },
   "SqlServer": {
     "Retry": {

@@ -52,6 +52,6 @@ public interface IMetadataStore
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous add operation.</returns>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
     Task CopyInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
 }

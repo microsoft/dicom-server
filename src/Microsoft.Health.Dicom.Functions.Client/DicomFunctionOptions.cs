@@ -13,6 +13,9 @@ internal class DicomFunctionOptions
     public const string SectionName = "DicomFunctions";
 
     [Required]
+    public FanOutFunctionOptions Copy { get; set; }
+
+    [Required]
     public DurableClientOptions DurableTask { get; set; }
 
     [Required]
@@ -20,7 +23,4 @@ internal class DicomFunctionOptions
 
     [Required]
     public FanOutFunctionOptions Indexing { get; set; }
-
-    [Required]
-    public FanOutFunctionOptions Copy { get; set; }
 }

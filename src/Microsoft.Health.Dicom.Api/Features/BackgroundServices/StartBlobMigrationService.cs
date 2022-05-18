@@ -22,6 +22,7 @@ public class StartBlobMigrationService : BackgroundService
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly bool _startBlobCopy;
     private readonly ILogger<StartBlobMigrationService> _logger;
+    private readonly Guid _copyOperationId = Guid.Parse("1d4689da-ca3b-4659-b0c7-7bf6c9ff25e1");
 
     public StartBlobMigrationService(
         IServiceProvider serviceProvider,
@@ -50,9 +51,9 @@ public class StartBlobMigrationService : BackgroundService
                     var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
                     // We also need to ensure if the operation client already not completed
-                    if (operationsClient != null && !await operationsClient.IsBlobCopyCompletedAsync(stoppingToken))
+                    if (operationsClient != null && !await operationsClient.IsBlobCopyCompletedAsync(_copyOperationId, stoppingToken))
                     {
-                        await operationsClient.StartBlobCopyAsync(stoppingToken);
+                        await operationsClient.StartBlobCopyAsync(_copyOperationId, stoppingToken);
                     }
                 }
             }

@@ -142,17 +142,8 @@ public class LoggingMetadataStore : IMetadataStore
 
         _logger.LogDebug("Copying DICOM instance metadata with `{Version}`", versionedInstanceIdentifier.Version);
 
-        try
-        {
-            await _metadataStore.CopyInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken);
+        await _metadataStore.CopyInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken);
 
-            LogOperationSucceededDelegate(_logger, null);
-        }
-        catch (Exception ex)
-        {
-            LogOperationFailedDelegate(_logger, ex);
-
-            throw;
-        }
+        LogOperationSucceededDelegate(_logger, null);
     }
 }

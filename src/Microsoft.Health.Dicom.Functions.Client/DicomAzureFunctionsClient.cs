@@ -37,7 +37,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private readonly IDicomOperationsResourceStore _resourceStore;
     private readonly DicomFunctionOptions _options;
     private readonly ILogger _logger;
-    private const string CopyOperationId = "1d4689daca3b4659b0c77bf6c9ff25e1";
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DicomAzureFunctionsClient"/> class.
@@ -148,9 +147,9 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task StartBlobCopyAsync(CancellationToken cancellationToken = default)
+    public async Task StartBlobCopyAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
-        var existingInstance = await _durableClient.GetStatusAsync(CopyOperationId, showInput: true);
+        var existingInstance = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
 
         if (existingInstance == null)
         {
@@ -161,18 +160,12 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             _logger.LogDebug("Existing copy operation is in status: '{Status}'", existingInstance.RuntimeStatus);
         }
 
-        if (existingInstance == null || IsOperationInterrupted(existingInstance))
+        if (IsOperationInterruptedOrNull(existingInstance))
         {
             CopyCheckpoint input = null;
             if (existingInstance != null)
             {
                 DicomOperation type = existingInstance.GetDicomOperation();
-
-                if (type == DicomOperation.Unknown)
-                {
-                    _logger.LogCritical("Orchestration instance with '{Name}' did not resolve to a public operation type.", existingInstance.Name);
-                    return;
-                }
 
                 CopyCheckpoint checkpoint = ParseCheckpoint(type, existingInstance) as CopyCheckpoint;
 
@@ -188,36 +181,33 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 // if not started or stop in the middle, restart it.
                 string instanceId = await _durableClient.StartNewAsync(
                     _options.Copy.Name,
-                    CopyOperationId,
+                    operationId.ToString(OperationId.FormatSpecifier),
                     input ?? new CopyInput
                     {
                         Batching = _options.Copy.Batching
                     });
-                _logger.LogInformation("Successfully started duplicate operation with ID '{InstanceId}'.", instanceId);
+                _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
 
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Failed to started duplicate operation with ID '{InstanceId}'.", CopyOperationId);
+                _logger.LogWarning(ex, "Failed to start copy operation with ID '{InstanceId}'.", operationId);
             }
+        }
+        else if (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
+        {
+            _logger.LogInformation("Copy operation with ID '{InstanceId}' has already completed successfully.", operationId);
         }
         else
         {
-            if (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
-            {
-                _logger.LogInformation("Copy operation with ID '{InstanceId}' has been completed successfully.", CopyOperationId);
-            }
-            else
-            {
-                _logger.LogInformation("Copy operation with ID '{InstanceId}' has already been started by other clients.", CopyOperationId);
-            }
+            _logger.LogInformation("Copy operation with ID '{InstanceId}' has already been started by another client.", operationId);
         }
     }
 
     /// <inheritdoc/>
-    public async Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> IsBlobCopyCompletedAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
-        var instance = await _durableClient.GetStatusAsync(CopyOperationId);
+        var instance = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier));
         return instance?.RuntimeStatus == OrchestrationRuntimeStatus.Completed;
     }
 
@@ -227,9 +217,9 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
+            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
-            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
             _ => NullOperationCheckpoint.Value,
         };
 
@@ -259,9 +249,10 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         }
     }
 
-    private static bool IsOperationInterrupted(DurableOrchestrationStatus status)
+    private static bool IsOperationInterruptedOrNull(DurableOrchestrationStatus status)
     {
-        return status.RuntimeStatus == OrchestrationRuntimeStatus.Canceled
+        return status == null
+            || status.RuntimeStatus == OrchestrationRuntimeStatus.Canceled
             || status.RuntimeStatus == OrchestrationRuntimeStatus.Failed
             || status.RuntimeStatus == OrchestrationRuntimeStatus.Terminated;
     }

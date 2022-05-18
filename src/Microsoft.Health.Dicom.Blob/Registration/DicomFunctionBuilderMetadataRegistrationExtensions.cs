@@ -70,10 +70,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
             .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
             .AddBlobServiceClient(blobConfig)
-            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, (c) =>
-            {
-                c.ContainerName = containerName;
-            });
+            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, c => c.ContainerName = containerName);
 
         return functionsBuilder;
     }

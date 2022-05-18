@@ -176,17 +176,8 @@ public class LoggingFileStore : IFileStore
 
         _logger.LogDebug("Copying DICOM instance with `{Version}`", versionedInstanceIdentifier.Version);
 
-        try
-        {
-            await _fileStore.CopyFileAsync(versionedInstanceIdentifier, cancellationToken);
+        await _fileStore.CopyFileAsync(versionedInstanceIdentifier, cancellationToken);
 
-            LogOperationSucceededDelegate(_logger, null);
-        }
-        catch (Exception ex)
-        {
-            LogOperationFailedDelegate(_logger, ex);
-
-            throw;
-        }
+        LogOperationSucceededDelegate(_logger, null);
     }
 }

@@ -142,7 +142,7 @@ public class BlobFileStore : IFileStore
         var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
         var copyBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
 
-        if (!(await copyBlobClient.ExistsAsync(cancellationToken)))
+        if (!await copyBlobClient.ExistsAsync(cancellationToken))
         {
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);

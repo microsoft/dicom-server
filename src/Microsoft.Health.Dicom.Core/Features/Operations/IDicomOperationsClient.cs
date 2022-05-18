@@ -75,17 +75,19 @@ public interface IDicomOperationsClient
     /// <summary>
     /// Asynchronously begins the instance blob copy.
     /// </summary>
+    /// <param name="operationId">The desired ID for the copy operation.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartBlobCopyAsync"/> operation.
     /// The value of its <see cref="Task{TResult}.Result"/> that is performing the asynchronous addition.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task StartBlobCopyAsync(CancellationToken cancellationToken = default);
+    Task StartBlobCopyAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets the completed status of blob copy.
     /// </summary>
+    /// <param name="operationId">The desired ID for the copy operation.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="IsBlobCopyCompletedAsync"/> operation.
@@ -93,5 +95,5 @@ public interface IDicomOperationsClient
     /// operation as completed.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default);
+    Task<bool> IsBlobCopyCompletedAsync(Guid operationId, CancellationToken cancellationToken = default);
 }
