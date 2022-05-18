@@ -76,7 +76,6 @@ public partial class CopyDurableFunction
         {
             logger.LogInformation("Completed copying files.");
         }
-
     }
 
 }

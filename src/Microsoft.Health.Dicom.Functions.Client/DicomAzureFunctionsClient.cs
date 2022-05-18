@@ -191,7 +191,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning(ex, "Failed to start copy operation with ID '{InstanceId}'.", operationId);
+                _logger.LogCritical(ex, "Failed to start copy operation with ID '{InstanceId}'.", operationId);
             }
         }
         else if (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
