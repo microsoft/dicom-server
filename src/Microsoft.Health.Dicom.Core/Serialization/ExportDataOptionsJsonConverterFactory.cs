@@ -25,7 +25,7 @@ internal sealed class ExportDataOptionsJsonConverterFactory : JsonConverterFacto
         else if (arg == typeof(ExportDestinationType))
             return new ExportDataOptionsJsonConverter<ExportDestinationType>(MapDestinationType);
         else
-            throw new InvalidOperationException(
+            throw new JsonException(
                 string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidType, typeToConvert));
     }
 

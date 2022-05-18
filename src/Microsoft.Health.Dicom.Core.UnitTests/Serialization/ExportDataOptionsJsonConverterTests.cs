@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -30,6 +31,50 @@ public class ExportDataOptionsJsonConverterTests
         _serializerOptions.Converters.Add(new DicomIdentifierJsonConverter());
         _serializerOptions.Converters.Add(new ExportDataOptionsJsonConverterFactory());
         _serializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+    }
+
+    [Fact]
+    public void GivenInvalidTypeArgument_WhenCreatingConverter_ThenThrow()
+    {
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ExportDataOptions<SeekOrigin>>("", _serializerOptions));
+    }
+
+    [Theory]
+    [InlineData("foo")]
+    [InlineData("unknown")]
+    public void GivenInvalidSouceType_WhenReading_ThenThrow(string type)
+    {
+        string json = @$"{{
+  ""type"": ""{type}"",
+  ""settings"": {{
+    ""values"": [
+      ""1.2"",
+      ""3.4.5/67"",
+      ""8.9.10/1.112.13/1.4""
+    ]
+  }}
+}}";
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ExportDataOptions<ExportSourceType>>(json, _serializerOptions));
+    }
+
+    [Theory]
+    [InlineData("bar")]
+    [InlineData("unknown")]
+    public void GivenInvalidDestinationType_WhenReading_ThenThrow(string type)
+    {
+        string json = @$"{{
+  ""type"": ""{type}"",
+  ""settings"": {{
+    ""values"": [
+      ""1.2"",
+      ""3.4.5/67"",
+      ""8.9.10/1.112.13/1.4""
+    ]
+  }}
+}}";
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ExportDataOptions<ExportDestinationType>>(json, _serializerOptions));
     }
 
     [Fact]
@@ -85,6 +130,28 @@ public class ExportDataOptionsJsonConverterTests
         Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.ContainerUri);
         Assert.Equal("foo", options.Secret.Name);
         Assert.Equal("1", options.Secret.Version);
+    }
+
+    [Theory]
+    [InlineData((ExportSourceType)12)]
+    [InlineData(ExportSourceType.Unknown)]
+    public void GivenInvalidSouceType_WhenWriting_ThenThrow(ExportSourceType type)
+    {
+        Assert.Throws<JsonException>(
+            () => JsonSerializer.Serialize(
+                new ExportDataOptions<ExportSourceType>(type, new object()),
+                _serializerOptions));
+    }
+
+    [Theory]
+    [InlineData((ExportDestinationType)12)]
+    [InlineData(ExportDestinationType.Unknown)]
+    public void GivenInvalidDestinationType_WhenWriting_ThenThrow(ExportDestinationType type)
+    {
+        Assert.Throws<JsonException>(
+            () => JsonSerializer.Serialize(
+                new ExportDataOptions<ExportDestinationType>(type, new object()),
+                _serializerOptions));
     }
 
     [Fact]

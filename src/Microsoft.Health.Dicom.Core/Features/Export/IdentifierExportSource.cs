@@ -24,11 +24,7 @@ internal sealed class IdentifierExportSource : IExportSource
 {
     public event EventHandler<ReadFailureEventArgs> ReadFailure;
 
-    public ExportDataOptions<ExportSourceType> Description => _identifiers.Count > 0
-        ? new ExportDataOptions<ExportSourceType>(
-            ExportSourceType.Identifiers,
-            new IdentifierExportOptions { Values = _identifiers })
-        : null;
+    public ExportDataOptions<ExportSourceType> Description => _identifiers.Count > 0 ? CreateOptions(_identifiers) : null;
 
     private readonly IInstanceStore _instanceStore;
     private readonly PartitionEntry _partition;
@@ -95,7 +91,10 @@ internal sealed class IdentifierExportSource : IExportSource
             elements.Add(identifier);
         }
 
-        batch = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, elements);
+        batch = CreateOptions(elements);
         return true;
     }
+
+    private static ExportDataOptions<ExportSourceType> CreateOptions(IReadOnlyCollection<DicomIdentifier> values)
+        => new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, new IdentifierExportOptions { Values = values });
 }
