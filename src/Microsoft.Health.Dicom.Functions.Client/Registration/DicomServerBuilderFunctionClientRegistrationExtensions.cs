@@ -9,10 +9,11 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Functions.Client.DurableTask;
 using Microsoft.Health.Operations.Functions.DurableTask;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Client;
 
@@ -46,7 +47,6 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         IServiceCollection services = dicomServerBuilder.Services;
-        services.TryAddSingleton(GuidFactory.Default);
         services.AddOptions<DicomFunctionOptions>()
             .Bind(configuration.GetSection(DicomFunctionOptions.SectionName))
             .ValidateDataAnnotations();
@@ -54,7 +54,9 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
             .GetSection(DicomFunctionOptions.SectionName)
             .GetSection(nameof(DicomFunctionOptions.DurableTask))
             .Bind(x));
-        services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, DurableTaskSerializerSettingsFactory>());
+
+        services.Configure<JsonSerializerSettings>(o => o.ConfigureDefaultDicomSettings());
+        services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
         services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
         return dicomServerBuilder;

@@ -42,10 +42,8 @@ public sealed class UrlResolver : IUrlResolver
     /// <inheritdoc />
     public Uri ResolveOperationStatusUri(Guid operationId)
     {
-        var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
-
         return RouteUri(
-            hasVersion ? KnownRouteNames.VersionedOperationStatus : KnownRouteNames.OperationStatus,
+            KnownRouteNames.OperationStatus,
             new RouteValueDictionary
             {
                 { KnownActionParameterNames.OperationId, operationId.ToString(OperationId.FormatSpecifier) },
@@ -55,10 +53,8 @@ public sealed class UrlResolver : IUrlResolver
     /// <inheritdoc />
     public Uri ResolveQueryTagUri(string tagPath)
     {
-        var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
-
         return RouteUri(
-            hasVersion ? KnownRouteNames.VersionedGetExtendedQueryTag : KnownRouteNames.GetExtendedQueryTag,
+            KnownRouteNames.GetExtendedQueryTag,
             new RouteValueDictionary
             {
                 { KnownActionParameterNames.TagPath, tagPath },
@@ -68,10 +64,8 @@ public sealed class UrlResolver : IUrlResolver
     /// <inheritdoc />
     public Uri ResolveQueryTagErrorsUri(string tagPath)
     {
-        var hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey("version");
-
         return RouteUri(
-            hasVersion ? KnownRouteNames.VersionedGetExtendedQueryTagErrors : KnownRouteNames.GetExtendedQueryTagErrors,
+            KnownRouteNames.GetExtendedQueryTagErrors,
             new RouteValueDictionary
             {
                 { KnownActionParameterNames.TagPath, tagPath },
@@ -87,11 +81,11 @@ public sealed class UrlResolver : IUrlResolver
             { KnownActionParameterNames.StudyInstanceUid, studyInstanceUid },
         };
 
-        AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+        AddRouteValues(routeValues, out bool hasPartition);
 
         var routeName = hasPartition
-            ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveStudy : KnownRouteNames.PartitionRetrieveStudy)
-            : hasVersion ? KnownRouteNames.VersionedRetrieveStudy : KnownRouteNames.RetrieveStudy;
+            ? KnownRouteNames.PartitionRetrieveStudy
+            : KnownRouteNames.RetrieveStudy;
 
         return RouteUri(routeName, routeValues);
     }
@@ -105,11 +99,11 @@ public sealed class UrlResolver : IUrlResolver
             { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
         };
 
-        AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+        AddRouteValues(routeValues, out bool hasPartition);
 
         var routeName = hasPartition
-            ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance : KnownRouteNames.PartitionedRetrieveWorkitemInstance)
-            : hasVersion ? KnownRouteNames.VersionedRetrieveWorkitemInstance : KnownRouteNames.RetrieveWorkitemInstance;
+            ? KnownRouteNames.PartitionedRetrieveWorkitemInstance
+            : KnownRouteNames.RetrieveWorkitemInstance;
 
         return RouteUri(routeName, routeValues);
     }
@@ -144,18 +138,17 @@ public sealed class UrlResolver : IUrlResolver
             { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
         };
 
-        AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+        AddRouteValues(routeValues, out bool hasPartition);
 
         var routeName = hasPartition
-            ? (hasVersion ? KnownRouteNames.VersionedPartitionRetrieveInstance : KnownRouteNames.PartitionRetrieveInstance)
-            : hasVersion ? KnownRouteNames.VersionedRetrieveInstance : KnownRouteNames.RetrieveInstance;
+            ? KnownRouteNames.PartitionRetrieveInstance
+            : KnownRouteNames.RetrieveInstance;
 
         return RouteUri(routeName, routeValues);
     }
 
-    private void AddRouteValues(RouteValueDictionary routeValues, out bool hasVersion, out bool hasPartition)
+    private void AddRouteValues(RouteValueDictionary routeValues, out bool hasPartition)
     {
-        hasVersion = _httpContextAccessor.HttpContext.Request.RouteValues.ContainsKey(KnownActionParameterNames.Version);
         hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);
 
         if (hasPartition)

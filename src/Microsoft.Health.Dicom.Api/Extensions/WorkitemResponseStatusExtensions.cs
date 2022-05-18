@@ -37,17 +37,13 @@ public static class WorkitemResponseStatusExtensions
             { WorkitemResponseStatus.PartialContent, HttpStatusCode.PartialContent },
         };
 
-
     private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> RetrieveResponseStatusToHttpStatusCodeMapping =
         new Dictionary<WorkitemResponseStatus, HttpStatusCode>()
         {
             { WorkitemResponseStatus.Success, HttpStatusCode.OK },
             { WorkitemResponseStatus.Failure, HttpStatusCode.BadRequest },
-            { WorkitemResponseStatus.NoContent, HttpStatusCode.NotFound },
             { WorkitemResponseStatus.NotFound, HttpStatusCode.NotFound },
-            { WorkitemResponseStatus.Conflict, HttpStatusCode.Conflict },
         };
-
 
     private static readonly IReadOnlyDictionary<WorkitemResponseStatus, HttpStatusCode> UpdateResponseStatusToHttpStatusCodeMapping =
         new Dictionary<WorkitemResponseStatus, HttpStatusCode>()

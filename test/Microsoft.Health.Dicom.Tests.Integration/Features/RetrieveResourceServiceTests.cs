@@ -59,7 +59,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         _frameHandler = Substitute.For<IFrameHandler>();
 
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
         _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
         _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;

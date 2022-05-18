@@ -48,7 +48,7 @@ public partial class DicomWebClient : IDicomWebClient
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
 
         var contentValueFactory = new Func<HttpContent, Task<DicomDataset>>(
-            content => Deserialize<DicomDataset>(content));
+            content => ValueFactory<DicomDataset>(content));
 
         return new DicomWebResponse<DicomDataset>(response, contentValueFactory);
     }

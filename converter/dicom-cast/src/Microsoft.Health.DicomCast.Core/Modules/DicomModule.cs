@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,8 @@ using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace Microsoft.Health.DicomCast.Core.Modules;
 
@@ -32,16 +35,20 @@ public class DicomModule : IStartupModule
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        var dicomWebConfiguration = new DicomWebConfiguration();
         IConfigurationSection dicomWebConfigurationSection = _configuration.GetSection(DicomWebConfigurationSectionName);
-        dicomWebConfigurationSection.Bind(dicomWebConfiguration);
+        services.AddOptions<DicomWebConfiguration>().Bind(dicomWebConfigurationSection);
 
-        services.AddSingleton(Options.Create(dicomWebConfiguration));
+        // Allow retries to occur catch 30 second outages
+        var retryPolicy = HttpPolicyExtensions
+            .HandleTransientHttpError() // HttpRequestException, 5XX and 408
+            .WaitAndRetryAsync(8, retryAttempt => retryAttempt <= 3 ? TimeSpan.FromSeconds(retryAttempt) : TimeSpan.FromSeconds(5));
 
-        services.AddHttpClient<IDicomWebClient, DicomWebClient>(sp =>
+        services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
             {
-                sp.BaseAddress = dicomWebConfiguration.Endpoint;
+                DicomWebConfiguration config = sp.GetRequiredService<IOptions<DicomWebConfiguration>>().Value;
+                client.BaseAddress = config.PrivateEndpoint == null ? config.Endpoint : config.PrivateEndpoint;
             })
+            .AddPolicyHandler(retryPolicy)
             .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
 
         services.Add<ChangeFeedRetrieveService>()

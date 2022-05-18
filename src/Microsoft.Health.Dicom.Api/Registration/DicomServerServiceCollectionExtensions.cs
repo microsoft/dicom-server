@@ -7,7 +7,6 @@ using System;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
@@ -115,7 +114,6 @@ public static class DicomServerServiceCollectionExtensions
         {
             c.ApiVersionReader = new UrlSegmentApiVersionReader();
             c.AssumeDefaultVersionWhenUnspecified = true;
-            c.DefaultApiVersion = new ApiVersion(1, 0);
             c.ReportApiVersions = true;
             c.UseApiBehavior = false;
         });

@@ -72,7 +72,7 @@ public class AddExtendedQueryTagHandlerTests
         using var tokenSource = new CancellationTokenSource();
 
         var input = new List<AddExtendedQueryTagEntry> { new AddExtendedQueryTagEntry() };
-        var expected = new AddExtendedQueryTagResponse(new OperationReference(Guid.NewGuid(), new Uri("https://dicom/operation/status")));
+        var expected = new OperationReference(Guid.NewGuid(), new Uri("https://dicom/operation/status"));
         authService.CheckAccess(DataActions.ManageExtendedQueryTags, tokenSource.Token).Returns(DataActions.ManageExtendedQueryTags);
         tagService
             .AddExtendedQueryTagsAsync(
@@ -83,7 +83,7 @@ public class AddExtendedQueryTagHandlerTests
         AddExtendedQueryTagResponse actual = await handler.Handle(
             new AddExtendedQueryTagRequest(input),
             tokenSource.Token);
-        Assert.Same(expected, actual);
+        Assert.Same(expected, actual.Operation);
 
         await authService.Received(1).CheckAccess(DataActions.ManageExtendedQueryTags, tokenSource.Token);
         await tagService.Received(1).AddExtendedQueryTagsAsync(

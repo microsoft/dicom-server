@@ -103,7 +103,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
-        // Make sure workitem is in a state where it can be updated.
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
             throw new DataStoreException(
@@ -128,19 +127,11 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
                 throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
             }
 
-            // TODO Ali: Compare existing and incoming workitem dataset.
-            //              Merge these two workitems.
-            //              And then store the updated workitem to the blob which is the following step.
-
             // store the blob with the new watermark
             await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
 
-            // Update the workitem watermark in the store.
-            // Reusing the existing stored procedure.
-            // TODO Ali: Need to update extended query tag tables as well.
-            //              Might have to come up with a new stored procedure which makes update to watermark in the workitem table along with changes
-            //                  to extended query tag tables in single transaction.
+            // Update the workitem procedure step state in the store
             await _indexWorkitemStore
                 .UpdateWorkitemProcedureStepStateAsync(
                     workitemMetadata,
@@ -329,7 +320,8 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     {
         EnsureArg.IsNotNull(workitemInstanceIdentifier, nameof(workitemInstanceIdentifier));
 
-        return await TryGetWorkitemBlobAsync(workitemInstanceIdentifier, cancellationToken)
+        return await _workitemStore
+            .GetWorkitemAsync(workitemInstanceIdentifier, cancellationToken)
             .ConfigureAwait(false);
     }
 

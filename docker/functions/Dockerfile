@@ -4,8 +4,8 @@
 # https://docs.microsoft.com/en-us/visualstudio/debugger/attach-to-running-processes-with-the-visual-studio-debugger?view=vs-2019#BKMK_Linux_Docker_Attach
 
 # To enable ssh & remote debugging on app service change the base image to the one below
-# FROM mcr.microsoft.com/azure-functions/dotnet:3.0-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:4.4.1-slim@sha256:7c11c680183e908689388172dedd8be8ab1bf9420d0b81761b271780b080b57c AS az-func-runtime
+# FROM mcr.microsoft.com/azure-functions/dotnet:4.0-appservice
+FROM mcr.microsoft.com/azure-functions/dotnet:4.5.0-slim@sha256:2de08d3412dc9770e833cbc20738b6186876ce24ad01546a8ecb26d9cf41e205 AS az-func-runtime
 ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     AzureWebJobsScriptRoot=/home/site/wwwroot
 RUN groupadd nonroot && useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot
@@ -13,12 +13,13 @@ RUN chown -R nonroot:nonroot /azure-functions-host
 USER nonroot
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:6.0.202-alpine3.14@sha256:3322ccf973ecdff1b23792186d7360c698d06cb909aa773c0929b2c6b1881125 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.300-alpine3.14@sha256:8e46a0062102cd8ecfd8bc3a44b211f7e70dc6266bfc2a0f8df5328ac2e5680b AS build
 ARG BUILD_CONFIGURATION=Release
+ARG CONTINUOUS_INTEGRATION_BUILD=false
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions.App
-RUN dotnet build "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGURATION
+RUN dotnet build "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGURATION -p:ContinuousIntegrationBuild=$CONTINUOUS_INTEGRATION_BUILD -warnaserror
 
 # Publish the Azure Functions from the build
 FROM build as publish

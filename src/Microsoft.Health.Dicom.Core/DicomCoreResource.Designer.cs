@@ -512,6 +512,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Array rank {0} is not supported..
+        /// </summary>
+        internal static string InvalidArrayRank {
+            get {
+                return ResourceManager.GetString("InvalidArrayRank", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: specified date range &apos;{0}&apos; is invalid.
         ///The first part date {1} should be lesser than or equal to the second part date {2}..
         /// </summary>
@@ -742,6 +751,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string InvalidTypeBinding {
+            get {
+                return ResourceManager.GetString("InvalidTypeBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The VR code &apos;{0}&apos; for tag &apos;{1}&apos; is invalid..
         /// </summary>
         internal static string InvalidVRCode {
@@ -801,6 +819,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingPrivateCreator {
             get {
                 return ResourceManager.GetString("MissingPrivateCreator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing value for property &apos;{0}&apos;..
+        /// </summary>
+        internal static string MissingProperty {
+            get {
+                return ResourceManager.GetString("MissingProperty", resourceCulture);
             }
         }
         
@@ -1188,6 +1215,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UpsRsFeatureDisabled {
             get {
                 return ResourceManager.GetString("UpsRsFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This operation does not support value types..
+        /// </summary>
+        internal static string ValueTypesNotSupported {
+            get {
+                return ResourceManager.GetString("ValueTypesNotSupported", resourceCulture);
             }
         }
         

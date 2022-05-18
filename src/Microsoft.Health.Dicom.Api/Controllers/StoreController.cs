@@ -53,10 +53,8 @@ public class StoreController : ControllerBase
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
     [HttpPost]
-    [VersionedPartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.VersionedPartitionStoreInstance)]
-    [PartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.PartitionStoreInstance)]
-    [VersionedRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.VersionedStoreInstance)]
-    [Route(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.StoreInstance)]
+    [VersionedPartitionRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.PartitionStoreInstance)]
+    [VersionedRoute(KnownRoutes.StoreInstancesRoute, Name = KnownRouteNames.StoreInstance)]
     [AuditEventType(AuditEventSubType.Store)]
     public async Task<IActionResult> PostInstanceAsync()
     {
@@ -74,10 +72,8 @@ public class StoreController : ControllerBase
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.Conflict)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
     [HttpPost]
-    [VersionedPartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedPartitionStoreInstancesInStudy)]
-    [PartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.PartitionStoreInstancesInStudy)]
-    [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.VersionedStoreInstancesInStudy)]
-    [Route(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.StoreInstancesInStudy)]
+    [VersionedPartitionRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.PartitionStoreInstancesInStudy)]
+    [VersionedRoute(KnownRoutes.StoreInstancesInStudyRoute, Name = KnownRouteNames.StoreInstancesInStudy)]
     [AuditEventType(AuditEventSubType.Store)]
     public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
     {

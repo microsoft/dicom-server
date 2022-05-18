@@ -59,7 +59,7 @@ public interface IWorkitemOrchestrator
     /// </summary>
     /// <param name="workitemInstanceIdentifier">The workitem instance identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns></returns>
+    /// <returns>A task that represents the asynchronous orchestration of the retrieving a workitem DICOM dataset.</returns>
     Task<DicomDataset> RetrieveWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -68,7 +68,7 @@ public interface IWorkitemOrchestrator
     /// <param name="dataset">The workitem dataset with the cancel request.</param>
     /// <param name="workitemMetadata">The workitem metadata.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
+    /// <returns>A task that updates a workitem DICOM dataset.</returns>
     Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken);
 
     /// <summary>
@@ -76,6 +76,6 @@ public interface IWorkitemOrchestrator
     /// </summary>
     /// <param name="identifier">The workitem instance identifier</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns></returns>
+    /// <returns>A task that retrieves a workitem DICOM dataset from the Blob storage.</returns>
     Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default);
 }

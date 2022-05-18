@@ -7,7 +7,6 @@ using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
@@ -30,16 +29,11 @@ public partial class WorkitemController
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    [VersionedPartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance)]
-    [PartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedRetrieveWorkitemInstance)]
-    [VersionedRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.VersionedRetrieveWorkitemInstance)]
-    [Route(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.RetrieveWorkitemInstance)]
+    [VersionedPartitionRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedRetrieveWorkitemInstance)]
+    [VersionedRoute(KnownRoutes.RetrieveWorkitemInstancesRoute, Name = KnownRouteNames.RetrieveWorkitemInstance)]
     [AuditEventType(AuditEventSubType.RetrieveWorkitem)]
     public async Task<IActionResult> RetrieveAsync(string workitemInstanceUid)
     {
-        _logger.LogInformation("Search workitem.");
-
         var response = await _mediator
             .RetrieveWorkitemAsync(workitemInstanceUid, cancellationToken: HttpContext.RequestAborted)
             .ConfigureAwait(false);

@@ -4,7 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
@@ -22,21 +26,36 @@ public interface IExportSourceProvider
     ExportSourceType Type { get; }
 
     /// <summary>
-    /// Creates a new instance of the <see cref="IExportSource"/> interface whose implementation
+    /// Asynchronously creates a new instance of the <see cref="IExportSource"/> interface whose implementation
     /// is based on the value of the <see cref="Type"/> property.
     /// </summary>
     /// <param name="provider">An <see cref="IServiceProvider"/> to retrieve additional dependencies.</param>
     /// <param name="config">The source-specific configuration.</param>
-    /// <returns>The corresponding instance of the <see cref="IExportSource"/> interface.</returns>
+    /// <param name="partition">The data partition.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="ValidateAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is the corresponding
+    /// instance of the <see cref="IExportSource"/> interface.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="provider"/> or <paramref name="config"/> is <see langword="null"/>.
+    /// <paramref name="provider"/>, <paramref name="config"/>, or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
-    IExportSource Create(IServiceProvider provider, IConfiguration config);
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<IExportSource> CreateAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ensures that the given <paramref name="config"/> can be used to create a valid source.
+    /// Asynchronously ensures that the given <paramref name="config"/> can be used to create a valid source.
     /// </summary>
     /// <param name="config">The source-specific configuration.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>A task representing the <see cref="ValidateAsync"/> operation.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="config"/> is <see langword="null"/>.</exception>
-    void Validate(IConfiguration config);
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    /// <exception cref="ValidationException">There were one or more problems with the <paramref name="config"/>.</exception>
+    Task ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default);
 }
