@@ -4,14 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Models.Common;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
 using Xunit;
 
@@ -35,38 +34,16 @@ public class IdentifierExportSourceProviderTests
     {
         var options = new IdentifierExportOptions
         {
-            Values = new string[]
+            Values = new DicomIdentifier[]
             {
-                "1/2/3",
-                "45.6/789",
-                "10.1112/13.14.15/16171819.20"
+                DicomIdentifier.ForInstance("1.2", "3.4.5", "6.7.8.10"),
+                DicomIdentifier.ForSeries("11.12.13", "14"),
+                DicomIdentifier.ForStudy("1516.17"),
             },
         };
 
-        IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        config.Set(options);
-
-        IExportSource source = await _provider.CreateAsync(_serviceProvider, config, PartitionEntry.Default);
+        IExportSource source = await _provider.CreateAsync(_serviceProvider, options, PartitionEntry.Default);
         Assert.IsType<IdentifierExportSource>(source);
-    }
-
-    [Fact]
-    public async Task GivenInvalidConfig_WhenValidating_ThenThrow()
-    {
-        var options = new IdentifierExportOptions
-        {
-            Values = new string[]
-            {
-                "1/2/3",
-                "45.6/789",
-                "hello world",
-            },
-        };
-
-        IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        config.Set(options);
-
-        await Assert.ThrowsAsync<ValidationException>(() => _provider.ValidateAsync(config));
     }
 
     [Fact]
@@ -74,17 +51,14 @@ public class IdentifierExportSourceProviderTests
     {
         var options = new IdentifierExportOptions
         {
-            Values = new string[]
+            Values = new DicomIdentifier[]
             {
-                "1/2/3",
-                "45.6/789",
-                "10.1112/13.14.15/16171819.20"
+                DicomIdentifier.ForInstance("1.2", "3.4.5", "6.7.8.10"),
+                DicomIdentifier.ForSeries("11.12.13", "14"),
+                DicomIdentifier.ForStudy("1516.17"),
             },
         };
 
-        IConfiguration config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        config.Set(options);
-
-        await _provider.ValidateAsync(config);
+        await _provider.ValidateAsync(options);
     }
 }

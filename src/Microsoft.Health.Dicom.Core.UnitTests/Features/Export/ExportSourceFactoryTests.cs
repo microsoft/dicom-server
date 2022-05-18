@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
 using Xunit;
@@ -24,7 +23,7 @@ public class ExportSourceFactoryTests
     {
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => factory.CreateAsync(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }, PartitionEntry.Default));
+            () => factory.CreateAsync(new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers), PartitionEntry.Default));
     }
 
     [Fact]
@@ -33,19 +32,19 @@ public class ExportSourceFactoryTests
         using var tokenSource = new CancellationTokenSource();
 
         IServiceProvider serviceProvider = Substitute.For<IServiceProvider>();
-        IConfiguration config = Substitute.For<IConfiguration>();
+        var options = new IdentifierExportOptions();
         var partition = PartitionEntry.Default;
-        var source = new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers, Configuration = config };
+        var source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, options);
         IExportSource expected = Substitute.For<IExportSource>();
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
-        provider.CreateAsync(serviceProvider, config, partition, tokenSource.Token).Returns(expected);
+        provider.CreateAsync(serviceProvider, options, partition, tokenSource.Token).Returns(expected);
 
         var factory = new ExportSourceFactory(serviceProvider, new IExportSourceProvider[] { provider });
         Assert.Same(expected, await factory.CreateAsync(source, partition, tokenSource.Token));
 
-        await provider.Received(1).CreateAsync(serviceProvider, config, partition, tokenSource.Token);
+        await provider.Received(1).CreateAsync(serviceProvider, options, partition, tokenSource.Token);
     }
 
     [Fact]
@@ -53,7 +52,7 @@ public class ExportSourceFactoryTests
     {
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => factory.ValidateAsync(new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers }));
+            () => factory.ValidateAsync(new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers)));
     }
 
     [Fact]
@@ -61,8 +60,8 @@ public class ExportSourceFactoryTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        IConfiguration config = Substitute.For<IConfiguration>();
-        var source = new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers, Configuration = config };
+        var options = new IdentifierExportOptions();
+        var source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, options);
         IConfiguration expectedConfig = Substitute.For<IConfiguration>();
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
@@ -71,6 +70,6 @@ public class ExportSourceFactoryTests
         var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), new IExportSourceProvider[] { provider });
         await factory.ValidateAsync(source, tokenSource.Token);
 
-        await provider.Received(1).ValidateAsync(config, tokenSource.Token);
+        await provider.Received(1).ValidateAsync(options, tokenSource.Token);
     }
 }

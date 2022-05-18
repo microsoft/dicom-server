@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Text.Json.Serialization;
 using EnsureThat;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -15,10 +13,20 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 /// </summary>
 public sealed class ExportDataOptions<T>
 {
-    internal ExportDataOptions(T type, object options)
+    /// <summary>
+    /// Creates a new instance of the <see cref="ExportDataOptions{T}"/> class
+    /// with the given type.
+    /// </summary>
+    /// <param name="type">The type of options this new instance represents.</param>
+    public ExportDataOptions(T type)
     {
         Type = type;
-        Options = EnsureArg.IsNotNull(options, nameof(options));
+    }
+
+    internal ExportDataOptions(T type, object settings)
+    {
+        Type = type;
+        Settings = EnsureArg.IsNotNull(settings, nameof(settings));
     }
 
     /// <summary>
@@ -27,7 +35,5 @@ public sealed class ExportDataOptions<T>
     /// <value>A type denoting the kind of options.</value>
     public T Type { get; }
 
-    [JsonProperty]
-    [JsonInclude]
-    internal object Options { get; }
+    internal object Settings { get; }
 }

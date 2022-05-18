@@ -88,15 +88,6 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
-        /// </summary>
-        internal static string ConflictingExportBlobConnections {
-            get {
-                return ResourceManager.GetString("ConflictingExportBlobConnections", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Azure Blob Storage container &apos;{0}&apos; does not exist in account &apos;{1}&apos;..
         /// </summary>
         internal static string ContainerDoesNotExist {
@@ -129,24 +120,6 @@ namespace Microsoft.Health.Dicom.Blob {
         internal static string MalformedPlaceholder {
             get {
                 return ResourceManager.GetString("MalformedPlaceholder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please specify both ConnectionString and ContainerName..
-        /// </summary>
-        internal static string MissingExportBlobConnection {
-            get {
-                return ResourceManager.GetString("MissingExportBlobConnection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing value for property &apos;{0}&apos;..
-        /// </summary>
-        internal static string MissingProperty {
-            get {
-                return ResourceManager.GetString("MissingProperty", resourceCulture);
             }
         }
         

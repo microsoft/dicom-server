@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using Microsoft.Health.Dicom.Core.Models.Common;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Core.Models.Export;
 
 internal sealed class IdentifierExportOptions : IValidatableObject
 {

@@ -8,13 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
@@ -43,7 +41,7 @@ public class IdentifierExportSourceTests
         using var tokenSource = new CancellationTokenSource();
 
         // Configure input
-        var identifiers = new DicomIdentifier[]
+        _options.Values = new DicomIdentifier[]
         {
             DicomIdentifier.ForStudy("10"),
             DicomIdentifier.ForStudy("11"),
@@ -64,7 +62,6 @@ public class IdentifierExportSourceTests
             new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition.PartitionKey),
         };
 
-        _options.Values = identifiers.Select(x => x.ToString()).ToArray();
         _store
             .GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, "10", tokenSource.Token)
             .Returns(expected[0..3]);
@@ -133,16 +130,17 @@ public class IdentifierExportSourceTests
     [InlineData(2, 2, "4", "5", "6", "7")]
     public void GivenSource_WhenFetchingBatch_ThenRemoveFromSource(int size, int expected, params string[] values)
     {
-        _options.Values = values ?? Array.Empty<string>();
+        DicomIdentifier[] expectedValues = values?.Select(DicomIdentifier.ForStudy).ToArray() ?? Array.Empty<DicomIdentifier>();
+        _options.Values = expectedValues;
 
         // Assert baseline
         if (_options.Values.Count > 0)
-            AssertConfiguration(values, _source.Description);
+            AssertConfiguration(expectedValues, _source.Description);
         else
             Assert.Null(_source.Description);
 
         // Dequeue a batch
-        TypedConfiguration<ExportSourceType> batch;
+        ExportDataOptions<ExportSourceType> batch;
         if (expected == 0)
         {
             Assert.False(_source.TryDequeueBatch(size, out batch));
@@ -152,20 +150,20 @@ public class IdentifierExportSourceTests
         else
         {
             Assert.True(_source.TryDequeueBatch(size, out batch));
-            AssertConfiguration(values.Take(expected), batch);
+            AssertConfiguration(expectedValues.Take(expected), batch);
 
             if (values.Length > expected)
-                AssertConfiguration(values.Skip(expected), _source.Description);
+                AssertConfiguration(expectedValues.Skip(expected), _source.Description);
             else
                 Assert.Null(_source.Description);
         }
     }
 
-    private static void AssertConfiguration(IEnumerable<string> expected, TypedConfiguration<ExportSourceType> actual)
+    private static void AssertConfiguration(IEnumerable<DicomIdentifier> expected, ExportDataOptions<ExportSourceType> actual)
     {
         Assert.Equal(ExportSourceType.Identifiers, actual.Type);
 
-        IdentifierExportOptions options = actual.Configuration.Get<IdentifierExportOptions>();
+        var options = actual.Settings as IdentifierExportOptions;
         Assert.True(options.Values.SequenceEqual(expected));
     }
 }

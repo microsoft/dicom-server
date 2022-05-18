@@ -17,9 +17,19 @@ namespace Microsoft.Health.Dicom.Core.Serialization;
 internal sealed class StrictStringEnumConverter<T> : JsonConverter<T>
     where T : struct, Enum
 {
+    private readonly JsonNamingPolicy _namingPolicy;
+
     private static readonly ImmutableDictionary<string, T> Values = ImmutableDictionary.CreateRange(
         StringComparer.OrdinalIgnoreCase,
         Enum.GetValues<T>().Select(x => KeyValuePair.Create(Enum.GetName(x), x)));
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="StrictStringEnumConverter{T}"/>
+    /// with the given naming policy.
+    /// </summary>
+    /// <param name="namingPolicy">An optional JSON naming policy.</param>
+    public StrictStringEnumConverter(JsonNamingPolicy namingPolicy = null)
+        => _namingPolicy = namingPolicy;
 
     public override bool CanConvert(Type typeToConvert)
         => typeToConvert == typeof(T);
@@ -50,8 +60,11 @@ internal sealed class StrictStringEnumConverter<T> : JsonConverter<T>
                 string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnexpectedValue, value, GetOrderedNames()));
         }
 
-        writer.WriteStringValue(Enum.GetName(value));
+        writer.WriteStringValue(ConvertName(Enum.GetName(value)));
     }
+
+    private string ConvertName(string name)
+        => _namingPolicy != null ? _namingPolicy.ConvertName(name) : name;
 
     private static string GetOrderedNames()
         => string.Join(", ", Values.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Select(x => $"'{x}'"));

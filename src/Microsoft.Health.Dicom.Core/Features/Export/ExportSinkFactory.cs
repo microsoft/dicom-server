@@ -61,7 +61,7 @@ public sealed class ExportSinkFactory
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     public Task<IExportSink> CreateAsync(ExportDataOptions<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
         => GetProvider(EnsureArg.IsNotNull(destination, nameof(destination)).Type)
-            .CreateAsync(_serviceProvider, destination.Options, operationId, cancellationToken);
+            .CreateAsync(_serviceProvider, destination.Settings, operationId, cancellationToken);
 
     /// <summary>
     /// Asynchronously stores sensitive information in a secure format and returns the updated options.
@@ -92,7 +92,7 @@ public sealed class ExportSinkFactory
         IExportSinkProvider provider = GetProvider(destination.Type);
         return new ExportDataOptions<ExportDestinationType>(
             destination.Type,
-            await provider.SecureSensitiveInfoAsync(destination.Options, operationId, cancellationToken));
+            await provider.SecureSensitiveInfoAsync(destination.Settings, operationId, cancellationToken));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public sealed class ExportSinkFactory
     public async Task ValidateAsync(ExportDataOptions<ExportDestinationType> destination, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(destination, nameof(destination));
-        await GetProvider(destination.Type).ValidateAsync(destination.Options, cancellationToken);
+        await GetProvider(destination.Type).ValidateAsync(destination.Settings, cancellationToken);
     }
 
     private IExportSinkProvider GetProvider(ExportDestinationType type)

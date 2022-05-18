@@ -6,11 +6,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Export;
@@ -36,21 +34,21 @@ public partial class ExportDurableFunctionTests
                 Size = 3,
                 MaxParallelCount = 2,
             },
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             Partition = PartitionEntry.Default,
-            Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
+            Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
-        var batches = new TypedConfiguration<ExportSourceType>[]
+        var batches = new ExportDataOptions<ExportSourceType>[]
         {
-            new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
-            new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
+            new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
+            new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
         var results = new ExportProgress[]
         {
             new ExportProgress(2, 1),
             new ExportProgress(3, 0),
         };
-        var nextSource = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() };
+        var nextSource = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions());
         var errorHref = new Uri($"http://storage/errors/{operationId}.json");
 
         // Arrange the input
@@ -58,12 +56,12 @@ public partial class ExportDurableFunctionTests
 
         IExportSource source = Substitute.For<IExportSource>();
         source
-            .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>())
+            .TryDequeueBatch(3, out Arg.Any<ExportDataOptions<ExportSourceType>>())
             .Returns(
                 x => { x[1] = batches[0]; return true; },
                 x => { x[1] = batches[1]; return true; });
         source.Description.Returns(nextSource);
-        _sourceProvider.CreateAsync(_serviceProvider, input.Source.Configuration, input.Partition).Returns(source);
+        _sourceProvider.CreateAsync(_serviceProvider, input.Source.Settings, input.Partition).Returns(source);
 
         context
             .GetInput<ExportCheckpoint>()
@@ -100,10 +98,10 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        await _sourceProvider.Received(1).CreateAsync(_serviceProvider, input.Source.Configuration, input.Partition);
+        await _sourceProvider.Received(1).CreateAsync(_serviceProvider, input.Source.Settings, input.Partition);
         source
             .Received(2)
-            .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>());
+            .TryDequeueBatch(3, out Arg.Any<ExportDataOptions<ExportSourceType>>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<ExportProgress>(
@@ -150,13 +148,13 @@ public partial class ExportDurableFunctionTests
                 MaxParallelCount = 2,
             },
             CreatedTime = DateTime.UtcNow,
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
             Partition = PartitionEntry.Default,
             Progress = new ExportProgress(1234, 56),
-            Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
+            Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
-        var batch = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() };
+        var batch = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions());
         var newProgress = new ExportProgress(2, 0);
 
         // Arrange the input
@@ -164,12 +162,12 @@ public partial class ExportDurableFunctionTests
 
         IExportSource source = Substitute.For<IExportSource>();
         source
-            .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>())
+            .TryDequeueBatch(3, out Arg.Any<ExportDataOptions<ExportSourceType>>())
             .Returns(
                 x => { x[1] = batch; return true; },
                 x => { x[1] = null; return false; });
-        source.Description.Returns((TypedConfiguration<ExportSourceType>)null);
-        _sourceProvider.CreateAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition).Returns(source);
+        source.Description.Returns((ExportDataOptions<ExportSourceType>)null);
+        _sourceProvider.CreateAsync(_serviceProvider, checkpoint.Source.Settings, checkpoint.Partition).Returns(source);
 
         context
             .GetInput<ExportCheckpoint>()
@@ -188,10 +186,10 @@ public partial class ExportDurableFunctionTests
         context
             .Received(1)
             .GetInput<ExportCheckpoint>();
-        await _sourceProvider.Received(1).CreateAsync(_serviceProvider, checkpoint.Source.Configuration, checkpoint.Partition);
+        await _sourceProvider.Received(1).CreateAsync(_serviceProvider, checkpoint.Source.Settings, checkpoint.Partition);
         source
             .Received(2)
-            .TryDequeueBatch(3, out Arg.Any<TypedConfiguration<ExportSourceType>>());
+            .TryDequeueBatch(3, out Arg.Any<ExportDataOptions<ExportSourceType>>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<ExportProgress>(
@@ -229,7 +227,7 @@ public partial class ExportDurableFunctionTests
                 MaxParallelCount = 2,
             },
             CreatedTime = DateTime.UtcNow,
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
             Partition = PartitionEntry.Default,
             Progress = new ExportProgress(78910, 0),

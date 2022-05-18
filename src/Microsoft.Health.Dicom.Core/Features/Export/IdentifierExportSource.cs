@@ -24,9 +24,11 @@ internal sealed class IdentifierExportSource : IExportSource
 {
     public event EventHandler<ReadFailureEventArgs> ReadFailure;
 
-    public ExportDataOptions<ExportSourceType> Description => new ExportDataOptions<ExportSourceType>(
-        ExportSourceType.Identifiers,
-        new IdentifierExportOptions { Values = _identifiers });
+    public ExportDataOptions<ExportSourceType> Description => _identifiers.Count > 0
+        ? new ExportDataOptions<ExportSourceType>(
+            ExportSourceType.Identifiers,
+            new IdentifierExportOptions { Values = _identifiers })
+        : null;
 
     private readonly IInstanceStore _instanceStore;
     private readonly PartitionEntry _partition;

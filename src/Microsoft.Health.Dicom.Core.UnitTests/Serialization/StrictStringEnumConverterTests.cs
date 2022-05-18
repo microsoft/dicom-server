@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -71,6 +72,24 @@ public class StrictStringEnumConverterTests
         var jsonWriter = new Utf8JsonWriter(buffer);
 
         new StrictStringEnumConverter<QueryTagLevel>().Write(jsonWriter, value, DefaultOptions);
+
+        jsonWriter.Flush();
+        buffer.Seek(0, SeekOrigin.Begin);
+
+        using var reader = new StreamReader(buffer, Encoding.UTF8);
+        Assert.Equal(expected, reader.ReadToEnd());
+    }
+
+    [Theory]
+    [InlineData(BindingFlags.CreateInstance, "\"createInstance\"")]
+    [InlineData(BindingFlags.DoNotWrapExceptions, "\"doNotWrapExceptions\"")]
+    [InlineData(BindingFlags.Instance, "\"instance\"")]
+    public void GivenNamingPolicy_WhenWritingJson_ThenWriteCamelCase(BindingFlags value, string expected)
+    {
+        using var buffer = new MemoryStream();
+        var jsonWriter = new Utf8JsonWriter(buffer);
+
+        new StrictStringEnumConverter<BindingFlags>(JsonNamingPolicy.CamelCase).Write(jsonWriter, value, DefaultOptions);
 
         jsonWriter.Flush();
         buffer.Seek(0, SeekOrigin.Begin);

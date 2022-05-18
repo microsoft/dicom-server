@@ -118,6 +118,18 @@ public class StrictStringEnumConverterFactoryTests
     }
 
     [Theory]
+    [InlineData(BindingFlags.CreateInstance, "\"createInstance\"")]
+    [InlineData(BindingFlags.DoNotWrapExceptions, "\"doNotWrapExceptions\"")]
+    [InlineData(BindingFlags.Instance, "\"instance\"")]
+    public void GivenNamingPolicy_WhenWritingJson_ThenWriteCamelCase(BindingFlags flags, string expected)
+    {
+        var camelCaseOptions = new JsonSerializerOptions();
+        camelCaseOptions.Converters.Add(new StrictStringEnumConverterFactory(JsonNamingPolicy.CamelCase));
+
+        Assert.Equal(expected, JsonSerializer.Serialize(flags, camelCaseOptions));
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void GivenUndefinedEnumValue_WhenWritingJson_ThenThrowJsonException(bool nullable)

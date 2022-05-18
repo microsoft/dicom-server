@@ -16,6 +16,16 @@ namespace Microsoft.Health.Dicom.Core.Serialization;
 /// </summary>
 public sealed class StrictStringEnumConverterFactory : JsonConverterFactory
 {
+    private readonly JsonNamingPolicy _namingPolicy;
+
+    /// <summary>
+    /// Creates a new instance of the <see cref="StrictStringEnumConverterFactory"/>
+    /// with the given naming policy.
+    /// </summary>
+    /// <param name="namingPolicy">An optional JSON naming policy.</param>
+    public StrictStringEnumConverterFactory(JsonNamingPolicy namingPolicy = null)
+        => _namingPolicy = namingPolicy;
+
     /// <summary>
     /// Determines whether the JSON converter can operate on the given type.
     /// </summary>
@@ -30,5 +40,6 @@ public sealed class StrictStringEnumConverterFactory : JsonConverterFactory
     /// <inheritdoc />
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         => Activator.CreateInstance(
-            typeof(StrictStringEnumConverter<>).MakeGenericType(EnsureArg.IsNotNull(typeToConvert))) as JsonConverter;
+            typeof(StrictStringEnumConverter<>).MakeGenericType(EnsureArg.IsNotNull(typeToConvert)),
+            new object[] { _namingPolicy }) as JsonConverter;
 }

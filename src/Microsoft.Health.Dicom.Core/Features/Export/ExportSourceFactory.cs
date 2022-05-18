@@ -64,7 +64,7 @@ public sealed class ExportSourceFactory
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     public Task<IExportSource> CreateAsync(ExportDataOptions<ExportSourceType> source, PartitionEntry partition, CancellationToken cancellationToken = default)
         => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type)
-            .CreateAsync(_serviceProvider, source.Options, partition, cancellationToken);
+            .CreateAsync(_serviceProvider, source.Settings, partition, cancellationToken);
 
     /// <summary>
     /// Asynchronously ensures that the given options can be used to create a valid source.
@@ -83,7 +83,7 @@ public sealed class ExportSourceFactory
     public async Task ValidateAsync(ExportDataOptions<ExportSourceType> source, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(source, nameof(source));
-        await GetProvider(source.Type).ValidateAsync(source.Options, cancellationToken);
+        await GetProvider(source.Type).ValidateAsync(source.Settings, cancellationToken);
     }
 
     private IExportSourceProvider GetProvider(ExportSourceType type)
