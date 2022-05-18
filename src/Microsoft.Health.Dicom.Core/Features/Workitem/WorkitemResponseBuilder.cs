@@ -94,7 +94,7 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             status = WorkitemResponseStatus.NotFound;
         }
 
-        // alaways remove Transaction UID from the result dicomDataset.
+        // always remove Transaction UID from the result dicomDataset.
         if (null != _dataset)
         {
             _dataset.Remove(DicomTag.TransactionUID);

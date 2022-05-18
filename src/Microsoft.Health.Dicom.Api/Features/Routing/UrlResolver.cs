@@ -109,24 +109,6 @@ public sealed class UrlResolver : IUrlResolver
     }
 
     /// <inheritdoc />
-    public Uri ResolveUpdateWorkitemUri(string workitemInstanceUid)
-    {
-        EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
-        var routeValues = new RouteValueDictionary
-        {
-            { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
-        };
-
-        AddRouteValues(routeValues, out bool hasPartition);
-
-        var routeName = hasPartition
-            ? KnownRouteNames.PartitionedUpdateWorkitemInstance
-            : KnownRouteNames.UpdateWorkitemInstance;
-
-        return RouteUri(routeName, routeValues);
-    }
-
-    /// <inheritdoc />
     public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
@@ -143,6 +125,24 @@ public sealed class UrlResolver : IUrlResolver
         var routeName = hasPartition
             ? KnownRouteNames.PartitionRetrieveInstance
             : KnownRouteNames.RetrieveInstance;
+
+        return RouteUri(routeName, routeValues);
+    }
+
+    /// <inheritdoc />
+    public Uri ResolveUpdateWorkitemUri(string workitemInstanceUid)
+    {
+        EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
+        var routeValues = new RouteValueDictionary
+        {
+            { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
+        };
+
+        AddRouteValues(routeValues, out bool hasPartition);
+
+        var routeName = hasPartition
+            ? KnownRouteNames.PartitionedUpdateWorkitemInstance
+            : KnownRouteNames.UpdateWorkitemInstance;
 
         return RouteUri(routeName, routeValues);
     }

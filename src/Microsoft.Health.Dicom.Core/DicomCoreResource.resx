@@ -603,7 +603,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ValueTypesNotSupported" xml:space="preserve">
     <value>This operation does not support value types.</value>
   </data>
-	<data name="WorkitemCurrentlyBeingUpdated" xml:space="preserve">
+  <data name="WorkitemCurrentlyBeingUpdated" xml:space="preserve">
     <value>The workitem instance is currently being updated. Please try again later.</value>
   </data>
 	<data name="TransactionUIDAbsent" xml:space="preserve">
