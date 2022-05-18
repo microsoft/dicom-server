@@ -31,7 +31,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
 
     public virtual SchemaVersion Version => SchemaVersion.V1;
 
-    public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
+    public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
         int partitionKey,
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -49,7 +49,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
+    public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
         int partitionKey,
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -58,7 +58,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
         return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
-    public virtual Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
+    public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
         int partitionKey,
         string studyInstanceUid,
         CancellationToken cancellationToken)
@@ -76,7 +76,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    private async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
+    private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
         string studyInstanceUid,
         CancellationToken cancellationToken,
         string seriesInstanceUid = null,

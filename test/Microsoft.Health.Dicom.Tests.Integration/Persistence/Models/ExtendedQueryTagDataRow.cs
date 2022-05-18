@@ -6,7 +6,7 @@
 using System;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
-using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 

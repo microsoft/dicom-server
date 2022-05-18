@@ -24,12 +24,14 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
 {
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
+    private readonly string _apiVersion;
 
     public DicomRetrieveMetadataTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
         _instancesManager = new DicomInstancesManager(_client);
+        _apiVersion = DicomApiVersions.V1;
     }
 
     [Theory]
@@ -38,21 +40,26 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
     {
         // Study
         await _client.ValidateResponseStatusCodeAsync(
-            new Uri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString()), UriKind.Relative),
+            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString())),
             acceptHeader,
             HttpStatusCode.NotAcceptable);
 
         // Series
         await _client.ValidateResponseStatusCodeAsync(
-            new Uri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), UriKind.Relative),
+            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())),
             acceptHeader,
             HttpStatusCode.NotAcceptable);
 
         // Instance
         await _client.ValidateResponseStatusCodeAsync(
-            new Uri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), UriKind.Relative),
+            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString())),
             acceptHeader,
             HttpStatusCode.NotAcceptable);
+    }
+
+    private Uri GenerateRequestUri(string relativePath)
+    {
+        return new Uri($"/{_apiVersion}{relativePath}", UriKind.Relative);
     }
 
     [Fact]

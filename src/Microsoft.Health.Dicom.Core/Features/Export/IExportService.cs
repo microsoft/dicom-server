@@ -3,16 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-using MediatR;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Export;
+namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-public sealed class ExportInstancesRequest : IRequest<ExportInstancesResponse>
+internal interface IExportService
 {
-    public ExportSpecification Specification { get; }
-
-    public ExportInstancesRequest(ExportSpecification spec)
-        => Specification = EnsureArg.IsNotNull(spec, nameof(spec));
+    Task<OperationReference> StartExportAsync(ExportSpecification specification, CancellationToken cancellationToken = default);
 }

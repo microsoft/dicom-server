@@ -35,6 +35,7 @@ public class AddExtendedQueryTagHandler : BaseHandler, IRequestHandler<AddExtend
             throw new UnauthorizedDicomActionException(DataActions.ManageExtendedQueryTags);
         }
 
-        return await _addExtendedQueryTagService.AddExtendedQueryTagsAsync(request.ExtendedQueryTags, cancellationToken);
+        return new AddExtendedQueryTagResponse(
+            await _addExtendedQueryTagService.AddExtendedQueryTagsAsync(request.ExtendedQueryTags, cancellationToken));
     }
 }

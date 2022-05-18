@@ -7,7 +7,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.SqlServer.Exceptions;
 
-internal class InvalidSchemaVersionException : DicomServerException
+internal class InvalidSchemaVersionException : DataStoreException
 {
     public InvalidSchemaVersionException(string message)
         : base(message)

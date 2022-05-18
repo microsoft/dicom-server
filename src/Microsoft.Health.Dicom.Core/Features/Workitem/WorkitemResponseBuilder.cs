@@ -45,7 +45,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
 
         if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
         {
-            // There are only success.
             status = WorkitemResponseStatus.Success;
             url = _urlResolver.ResolveRetrieveWorkitemUri(_dataset.GetString(DicomTag.SOPInstanceUID));
         }
@@ -82,30 +81,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     }
 
     /// <inheritdoc />
-    public RetrieveWorkitemResponse BuildRetrieveWorkitemResponse()
-    {
-        var status = WorkitemResponseStatus.Failure;
-
-        if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
-        {
-            // There are only success.
-            status = WorkitemResponseStatus.Success;
-        }
-        else if (failureReason == FailureReasonCodes.ProcessingFailure ||
-                 failureReason == FailureReasonCodes.UpsInstanceNotFound)
-        {
-            status = WorkitemResponseStatus.NotFound;
-        }
-        else if (failureReason == FailureReasonCodes.UpsIsAlreadyCompleted ||
-                 failureReason == FailureReasonCodes.UpsIsAlreadyCanceled)
-        {
-            status = WorkitemResponseStatus.Conflict;
-        }
-
-        return new RetrieveWorkitemResponse(status, _dataset, _message);
-    }
-
-    /// <inheritdoc />
     public UpdateWorkitemResponse BuildUpdateWorkitemResponse()
     {
         Uri url = null;
@@ -123,6 +98,29 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
         ////}
 
         return new UpdateWorkitemResponse(status, url, _message);
+    }
+
+    /// <inheritdoc />
+    public RetrieveWorkitemResponse BuildRetrieveWorkitemResponse()
+    {
+        var status = WorkitemResponseStatus.Failure;
+
+        if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
+        {
+            status = WorkitemResponseStatus.Success;
+        }
+        else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
+        {
+            status = WorkitemResponseStatus.NotFound;
+        }
+
+        // alaways remove Transaction UID from the result dicomDataset.
+        if (null != _dataset)
+        {
+            _dataset.Remove(DicomTag.TransactionUID);
+        }
+
+        return new RetrieveWorkitemResponse(status, _dataset, _message);
     }
 
     /// <inheritdoc />
