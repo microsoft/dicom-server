@@ -55,7 +55,7 @@ public static class ServiceCollectionExtensions
         services.RegisterModule<ServiceModule>();
 
         return new DicomFunctionsBuilder(services
-            .AddInstanceDuplicater()
+            .AddInstanceCopier()
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
@@ -129,7 +129,7 @@ public static class ServiceCollectionExtensions
         return builder.AddMetadataStorageDataStore(configuration, containerName);
     }
 
-    private static IServiceCollection AddInstanceDuplicater(this IServiceCollection services)
+    private static IServiceCollection AddInstanceCopier(this IServiceCollection services)
     {
         EnsureArg.IsNotNull(services, nameof(services));
         services.AddScoped<IInstanceCopier, InstanceCopier>();
