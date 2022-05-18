@@ -117,11 +117,11 @@ public sealed class UrlResolver : IUrlResolver
             { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
         };
 
-        AddRouteValues(routeValues, out bool hasVersion, out bool hasPartition);
+        AddRouteValues(routeValues, out bool hasPartition);
 
         var routeName = hasPartition
-            ? (hasVersion ? KnownRouteNames.VersionedPartitionUpdateWorkitemInstance : KnownRouteNames.PartitionedUpdateWorkitemInstance)
-            : hasVersion ? KnownRouteNames.VersionedUpdateWorkitemInstance : KnownRouteNames.UpdateWorkitemInstance;
+            ? KnownRouteNames.PartitionedUpdateWorkitemInstance
+            : KnownRouteNames.UpdateWorkitemInstance;
 
         return RouteUri(routeName, routeValues);
     }

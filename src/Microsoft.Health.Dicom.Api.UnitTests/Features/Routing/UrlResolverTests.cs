@@ -170,7 +170,7 @@ public class UrlResolverTests
         _urlResolver.ResolveUpdateWorkitemUri(workitemInstanceUid);
 
         ValidateUrlRouteContext(
-            KnownRouteNames.VersionedPartitionUpdateWorkitemInstance,
+            KnownRouteNames.PartitionedUpdateWorkitemInstance,
             routeValues =>
             {
                 Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);

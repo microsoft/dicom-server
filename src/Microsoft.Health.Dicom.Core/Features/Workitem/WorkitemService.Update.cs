@@ -128,11 +128,6 @@ public partial class WorkitemService
                 case WorkitemNotFoundException:
                     failureCode = FailureReasonCodes.UpsInstanceNotFound;
                     break;
-
-                case WorkitemIsInFinalStateException wiFex:
-                    // TODO Ali: This change is part of the Change State PR. Uncomment this once that PR is checked in.
-                    // failureCode = wiFex.FailureCode;
-                    break;
             }
 
             _logger.LogWarning(ex, "Failed to update the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);

@@ -37,10 +37,8 @@ public partial class WorkitemController
     [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
-    [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionUpdateWorkitemInstance)]
-    [PartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedUpdateWorkitemInstance)]
-    [VersionedRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.VersionedUpdateWorkitemInstance)]
-    [Route(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.UpdateWorkitemInstance)]
+    [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedUpdateWorkitemInstance)]
+    [VersionedRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.UpdateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.UpdateWorkitem)]
     public async Task<IActionResult> UpdateAsync(string workitemInstanceUid)
     {
