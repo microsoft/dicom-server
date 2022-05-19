@@ -113,6 +113,7 @@ public static class DicomServerServiceCollectionExtensions
         services.AddApiVersioning(c =>
         {
             c.ApiVersionReader = new UrlSegmentApiVersionReader();
+            c.AssumeDefaultVersionWhenUnspecified = true;
             c.ReportApiVersions = true;
             c.UseApiBehavior = false;
         });
