@@ -196,15 +196,24 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
             var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
-            // Update existingDatabase.
+            // Update `existingDatabase` object.
             MergeDatasets(existingDataset, dataset, queryTags);
 
-            // store the blob with the new watermark
+            // store the blob with the new watermark.
             await StoreWorkitemBlobAsync(workitemMetadata, existingDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
 
             // TODO Ali: Update details in Sql Server.
-            // Update the workitem watermark in the store
+            // Update the workitem watermark in the store.
+            // Update extended query tag tables.
+            await _indexWorkitemStore
+                .UpdateWorkitemTransactionAsync(
+                    workitemMetadata,
+                    watermarkEntry.Value.NextWatermark,
+                    existingDataset,
+                    queryTags,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
             // Delete the blob with the old watermark
             await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)

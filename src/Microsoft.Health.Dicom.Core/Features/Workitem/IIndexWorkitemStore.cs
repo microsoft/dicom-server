@@ -58,6 +58,19 @@ public interface IIndexWorkitemStore
     Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously updates the workitem.
+    /// Update workitem with the new watermak.
+    /// Update details in extended query tag tables.
+    /// </summary>
+    /// <param name="workitemMetadata"></param>
+    /// <param name="proposedWatermark"></param>
+    /// <param name="dataset"></param>
+    /// <param name="queryTags"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task UpdateWorkitemTransactionAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously deletes a workitem instance.
     /// </summary>
     /// <param name="identifier">The Workitem Identifier.</param>
