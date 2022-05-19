@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -211,6 +212,104 @@ public class DicomAzureFunctionsClientTests
                 _urlResolver.Received(1).ResolveQueryTagUri(path);
             }
         }
+    }
+
+    [Fact]
+    public async Task GivenCriteria_WhenSearchingForOperations_ThenReturnPaginatedResults()
+    {
+        using var source = new CancellationTokenSource();
+
+        DateTime end = DateTime.UtcNow;
+        DateTime start = end.AddHours(-2);
+
+        var expectedInstances = new List<DurableOrchestrationStatus>
+        {
+            new DurableOrchestrationStatus { InstanceId = Guid.NewGuid().ToString("N"), Name = "ReindexInstancesAsync" },
+            new DurableOrchestrationStatus { InstanceId = "foo", Name = "ReindexInstancesAsync" },
+            new DurableOrchestrationStatus { InstanceId = Guid.NewGuid().ToString("N"), Name = "bar" },
+            new DurableOrchestrationStatus { InstanceId = Guid.NewGuid().ToString("N"), Name = "ExportDicomFilesAsync" },
+            new DurableOrchestrationStatus { InstanceId = Guid.NewGuid().ToString("N"), Name = "ReindexInstancesAsync" },
+            new DurableOrchestrationStatus { InstanceId = Guid.NewGuid().ToString("N"), Name = "ReindexInstancesAsync" },
+            new DurableOrchestrationStatus { InstanceId = Guid.NewGuid().ToString("N"), Name = "ExportDicomFilesAsync" },
+        };
+
+        var expected = new List<OperationReference>
+        {
+            new OperationReference(Guid.Parse(expectedInstances[0].InstanceId), new Uri("https://dicom.unit.test/operations/" + expectedInstances[0].InstanceId)),
+            new OperationReference(Guid.Parse(expectedInstances[4].InstanceId), new Uri("https://dicom.unit.test/operations/" + expectedInstances[4].InstanceId)),
+            new OperationReference(Guid.Parse(expectedInstances[5].InstanceId), new Uri("https://dicom.unit.test/operations/" + expectedInstances[5].InstanceId)),
+        };
+
+        _durableClient
+            .ListInstancesAsync(Arg.Is(GetPredicate(null)), source.Token)
+            .Returns(new OrchestrationStatusQueryResult
+            {
+                ContinuationToken = "AAAA",
+                DurableOrchestrationState = expectedInstances.Take(3).ToList(),
+            });
+
+        _durableClient
+            .ListInstancesAsync(Arg.Is(GetPredicate("AAAA")), source.Token)
+            .Returns(new OrchestrationStatusQueryResult
+            {
+                ContinuationToken = "BBBB",
+                DurableOrchestrationState = expectedInstances.Skip(3).Take(2).ToList(),
+            });
+
+        _durableClient
+            .ListInstancesAsync(Arg.Is(GetPredicate("BBBB")), source.Token)
+            .Returns(new OrchestrationStatusQueryResult
+            {
+                ContinuationToken = null,
+                DurableOrchestrationState = expectedInstances.Skip(5).ToList(),
+            });
+
+        foreach (OperationReference operation in expected)
+        {
+            _urlResolver.ResolveOperationStatusUri(operation.Id).Returns(operation.Href);
+        }
+
+        List<OperationReference> actual = await _client
+            .FindOperationsAsync(
+                new OperationQueryCondition<DicomOperation>
+                {
+                    CreatedTimeFrom = start,
+                    CreatedTimeTo = end,
+                    Operations = new DicomOperation[] { DicomOperation.Reindex },
+                    Statuses = new OperationStatus[] { OperationStatus.NotStarted, OperationStatus.Running },
+                },
+                source.Token)
+            .ToListAsync();
+
+        await _durableClient
+            .Received(1)
+            .ListInstancesAsync(Arg.Is(GetPredicate(null)), source.Token);
+
+        await _durableClient
+            .Received(1)
+            .ListInstancesAsync(Arg.Is(GetPredicate("AAAA")), source.Token);
+
+        await _durableClient
+            .Received(1)
+            .ListInstancesAsync(Arg.Is(GetPredicate("BBBB")), source.Token);
+
+        foreach (OperationReference operation in expected)
+        {
+            _urlResolver.Received(1).ResolveOperationStatusUri(operation.Id);
+        }
+
+        Assert.True(actual.Select(x => x.Id).SequenceEqual(expected.Select(x => x.Id)));
+        Assert.True(actual.Select(x => x.Href).SequenceEqual(expected.Select(x => x.Href)));
+
+        Expression<Predicate<OrchestrationStatusQueryCondition>> GetPredicate(string continuationToken)
+            => (OrchestrationStatusQueryCondition x) =>
+                x.ContinuationToken == continuationToken &&
+                x.CreatedTimeFrom == start &&
+                x.CreatedTimeTo == end &&
+                x.InstanceIdPrefix == null &&
+                x.ShowInput &&
+                x.RuntimeStatus.SequenceEqual(new OrchestrationRuntimeStatus[] { OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running }) &&
+                x.TaskHubNames == null;
     }
 
     [Fact]

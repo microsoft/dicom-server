@@ -31,13 +31,13 @@ public sealed class OperationQueryCondition<T>
     /// to include in the search results.
     /// </summary>
     /// <value>The minimum operation created time if specified; otherwise <see cref="DateTime.MinValue"/>.</value>
-    public DateTime CreatedTimeFrom { get; init; }
+    public DateTime CreatedTimeFrom { get; init; } = DateTime.MinValue;
 
     /// <summary>
     /// Gets the optional maximum value for the <see cref="OperationState{T}.CreatedTime"/> property
     /// to include in the search results.
     /// </summary>
-    /// <value>The maximum operation created time if specified; otherwise <see cref="DateTime.MinValue"/>.</value>
-    public DateTime CreatedTimeTo { get; init; }
+    /// <value>The maximum operation created time if specified; otherwise <see cref="DateTime.MaxValue"/>.</value>
+    public DateTime CreatedTimeTo { get; init; } = DateTime.MaxValue;
 
 }

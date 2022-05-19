@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -70,6 +71,40 @@ public class ExtendedQueryTagControllerTests
         await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.PostAsync(Array.Empty<AddExtendedQueryTagEntry>()));
         await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.DeleteAsync(DicomTag.PageNumberVector.GetPath()));
         await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.UpdateTagAsync(DicomTag.PageNumberVector.GetPath(), new UpdateExtendedQueryTagOptions()));
+    }
+
+    [Fact]
+    public async Task GivenExistingReindex_WhenCallingApi_ThenShouldReturnConflict()
+    {
+        IMediator mediator = Substitute.For<IMediator>();
+        const string path = "11330001";
+
+        var controller = new ExtendedQueryTagController(
+            mediator,
+            Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = true }),
+            NullLogger<ExtendedQueryTagController>.Instance);
+        controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+        Guid id = Guid.NewGuid();
+        var expected = new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute));
+
+        mediator
+            .Send(
+                Arg.Is<AddExtendedQueryTagRequest>(x => x.ExtendedQueryTags.Single().Path == path),
+                controller.HttpContext.RequestAborted)
+            .Returns(Task.FromException<AddExtendedQueryTagResponse>(new ExistingReindexException(expected)));
+
+        var actual = await controller.PostAsync(new AddExtendedQueryTagEntry[] { new AddExtendedQueryTagEntry { Path = path } }) as StatusCodeResult;
+        await mediator.Received(1).Send(
+            Arg.Is<AddExtendedQueryTagRequest>(x => x.ExtendedQueryTags.Single().Path == path),
+            controller.HttpContext.RequestAborted);
+
+        Assert.NotNull(actual);
+        Assert.True(controller.Response.Headers.TryGetValue(HeaderNames.Location, out StringValues header));
+        Assert.Single(header);
+
+        Assert.Equal((int)HttpStatusCode.Conflict, actual.StatusCode);
+        Assert.Equal(expected.Href.AbsoluteUri, header[0]);
     }
 
     [Fact]
