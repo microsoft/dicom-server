@@ -7,7 +7,7 @@ namespace Microsoft.Health.Dicom.Client.Models;
 
 internal class ExportSpecification
 {
-    public ExportSource Source { get; init; }
+    public ExportDataOptions<ExportSourceType> Source { get; init; }
 
-    public ExportDestination Destination { get; init; }
+    public ExportDataOptions<ExportDestinationType> Destination { get; init; }
 }

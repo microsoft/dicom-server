@@ -15,8 +15,8 @@ namespace Microsoft.Health.Dicom.Client;
 public partial class DicomWebClient : IDicomWebClient
 {
     public async Task<DicomWebResponse<DicomOperationReference>> StartExportAsync(
-        ExportSource source,
-        ExportDestination destination,
+        ExportDataOptions<ExportSourceType> source,
+        ExportDataOptions<ExportDestinationType> destination,
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {

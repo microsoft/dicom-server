@@ -255,8 +255,7 @@ public partial class DicomWebClient : IDicomWebClient
 
         options.Converters.Add(new DicomIdentifierJsonConverter());
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
-        options.Converters.Add(new ExportDestinationJsonConverter());
-        options.Converters.Add(new ExportSourceJsonConverter());
+        options.Converters.Add(new ExportDataOptionsJsonConverter());
         options.Converters.Add(new JsonStringEnumConverter());
 
         return options;

@@ -11,47 +11,38 @@ using Microsoft.Health.Dicom.Client.Models.Export;
 namespace Microsoft.Health.Dicom.Client.Models;
 
 /// <summary>
-/// Represents the set of data to be copied by an export operation.
+/// A collection of <see langword="static"/> utilities for creating export source options
+/// that specify what data should be copied.
 /// </summary>
-public sealed class ExportSource
+public static class ExportSource
 {
     /// <summary>
-    /// Gets the type of source this instance represents.
+    /// Creates export source options for a list of DICOM identifiers.
     /// </summary>
-    /// <value>A type denoting the kind of source.</value>
-    public ExportSourceType Type { get; }
-
-    internal object Configuration { get; }
-
-    private ExportSource(ExportSourceType type, object configuration)
+    /// <param name="identifiers">One or more identifiers.</param>
+    /// <returns>The corresponding export source options.</returns>
+    /// <exception cref="ArgumentException"><paramref name="identifiers"/> is empty.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="identifiers"/> is <see langword="null"/>.</exception>
+    public static ExportDataOptions<ExportSourceType> ForIdentifiers(params DicomIdentifier[] identifiers)
     {
-        Type = type;
-        Configuration = EnsureArg.IsNotNull(configuration, nameof(configuration));
+        EnsureArg.HasItems(identifiers, nameof(identifiers));
+        return new ExportDataOptions<ExportSourceType>(
+            ExportSourceType.Identifiers,
+            new IdentifierExportOptions { Values = identifiers });
     }
 
     /// <summary>
-    /// Creates an export source for a list of DICOM identifiers.
+    /// Creates export source options for a list of DICOM identifiers.
     /// </summary>
     /// <param name="identifiers">One or more identifiers.</param>
-    /// <returns>The corresponding export source value.</returns>
+    /// <returns>The corresponding export source options.</returns>
     /// <exception cref="ArgumentException"><paramref name="identifiers"/> is empty.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="identifiers"/> is <see langword="null"/>.</exception>
-    public static ExportSource ForIdentifiers(params DicomIdentifier[] identifiers)
+    public static ExportDataOptions<ExportSourceType> ForIdentifiers(IReadOnlyCollection<DicomIdentifier> identifiers)
     {
         EnsureArg.HasItems(identifiers, nameof(identifiers));
-        return new ExportSource(ExportSourceType.Identifiers, new IdentifierExportOptions { Values = identifiers });
-    }
-
-    /// <summary>
-    /// Creates an export source for a list of DICOM identifiers.
-    /// </summary>
-    /// <param name="identifiers">One or more identifiers.</param>
-    /// <returns>The corresponding export source value.</returns>
-    /// <exception cref="ArgumentException"><paramref name="identifiers"/> is empty.</exception>
-    /// <exception cref="ArgumentNullException"><paramref name="identifiers"/> is <see langword="null"/>.</exception>
-    public static ExportSource ForIdentifiers(IReadOnlyCollection<DicomIdentifier> identifiers)
-    {
-        EnsureArg.HasItems(identifiers, nameof(identifiers));
-        return new ExportSource(ExportSourceType.Identifiers, new IdentifierExportOptions { Values = identifiers });
+        return new ExportDataOptions<ExportSourceType>(
+            ExportSourceType.Identifiers,
+            new IdentifierExportOptions { Values = identifiers });
     }
 }
