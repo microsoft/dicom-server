@@ -29,7 +29,7 @@ public class ExportDataOptionsJsonConverterTests
             WriteIndented = true,
         };
         _serializerOptions.Converters.Add(new DicomIdentifierJsonConverter());
-        _serializerOptions.Converters.Add(new ExportDataOptionsJsonConverterFactory());
+        _serializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
         _serializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
     }
 

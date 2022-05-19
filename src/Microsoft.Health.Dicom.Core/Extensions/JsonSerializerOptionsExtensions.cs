@@ -30,8 +30,8 @@ public static class JsonSerializerOptionsExtensions
         options.Converters.Clear();
         options.Converters.Add(new DicomIdentifierJsonConverter());
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
-        options.Converters.Add(new ExportDataOptionsJsonConverterFactory());
-        options.Converters.Add(new StrictStringEnumConverterFactory(JsonNamingPolicy.CamelCase));
+        options.Converters.Add(new ExportDataOptionsJsonConverter());
+        options.Converters.Add(new StrictStringEnumConverter(JsonNamingPolicy.CamelCase));
 
         options.AllowTrailingCommas = true;
         options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;

@@ -30,8 +30,8 @@ public class JsonSerializerOptionsExtensionsTests
         Assert.Equal(4, _options.Converters.Count);
         Assert.Equal(typeof(DicomIdentifierJsonConverter), _options.Converters[0].GetType());
         Assert.Equal(typeof(DicomJsonConverter), _options.Converters[1].GetType());
-        Assert.Equal(typeof(ExportDataOptionsJsonConverterFactory), _options.Converters[2].GetType());
-        Assert.Equal(typeof(StrictStringEnumConverterFactory), _options.Converters[3].GetType());
+        Assert.Equal(typeof(ExportDataOptionsJsonConverter), _options.Converters[2].GetType());
+        Assert.Equal(typeof(StrictStringEnumConverter), _options.Converters[3].GetType());
 
         Assert.True(_options.AllowTrailingCommas);
         Assert.Equal(JsonIgnoreCondition.WhenWritingNull, _options.DefaultIgnoreCondition);

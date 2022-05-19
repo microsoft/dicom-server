@@ -17,27 +17,53 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization;
 
 public class StrictStringEnumConverterTests
 {
-    private static readonly JsonSerializerOptions DefaultOptions = new JsonSerializerOptions();
+    private readonly JsonSerializerOptions _defaultOptions;
+
+    public StrictStringEnumConverterTests()
+    {
+        _defaultOptions = new JsonSerializerOptions();
+        _defaultOptions.Converters.Add(new StrictStringEnumConverter());
+    }
 
     [Fact]
-    public void GivenStrictStringEnumConverter_WhenCheckingNullHandling_ThenReturnFalse()
+    public void GivenInvalidTypes_WhenCheckingCanConvert_ThenReturnFalse()
     {
-        Assert.False(new StrictStringEnumConverter<SeekOrigin>().HandleNull);
+        var factory = new StrictStringEnumConverter();
+        Assert.False(factory.CanConvert(typeof(int)));
+        Assert.False(factory.CanConvert(typeof(string)));
+        Assert.False(factory.CanConvert(typeof(object)));
+    }
+
+    [Fact]
+    public void GivenValidTypes_WhenCheckingCanConvert_ThenReturnTrue()
+    {
+        var factory = new StrictStringEnumConverter();
+        Assert.True(factory.CanConvert(typeof(SeekOrigin)));
+        Assert.False(factory.CanConvert(typeof(BindingFlags?)));
     }
 
     [Theory]
-    [InlineData("1")]
-    [InlineData("\"studys\"")]
-    [InlineData("\"innstance\"")]
-    [InlineData("42")]
-    public void GivenInvalidEnumName_WhenReadingJson_ThenThrowJsonReaderException(string json)
+    [InlineData("\"1\"", false)]
+    [InlineData("2", false)]
+    [InlineData("[ 1, 2, 3 ]", false)]
+    [InlineData("\"1\"", true)]
+    [InlineData("2", true)]
+    [InlineData("[ 1, 2, 3 ]", true)]
+    public void GivenInvalidJson_WhenReadingJson_ThenThrowJsonException(string jsonValue, bool nullable)
     {
-        var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json));
+        var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes($"{{ \"Level\": {jsonValue} }}"));
 
-        Assert.True(jsonReader.Read());
         try
         {
-            new StrictStringEnumConverter<QueryTagLevel>().Read(ref jsonReader, typeof(QueryTagLevel), DefaultOptions);
+            if (nullable)
+            {
+                JsonSerializer.Deserialize<Example>(ref jsonReader, _defaultOptions);
+            }
+            else
+            {
+                JsonSerializer.Deserialize<NullableExample>(ref jsonReader, _defaultOptions);
+            }
+
             throw new ThrowsException(typeof(JsonException));
         }
         catch (Exception e)
@@ -50,61 +76,78 @@ public class StrictStringEnumConverterTests
     }
 
     [Theory]
-    [InlineData("INSTANCE", QueryTagLevel.Instance)]
-    [InlineData("series", QueryTagLevel.Series)]
-    [InlineData("StUdY", QueryTagLevel.Study)]
-    public void GivenStringToken_WhenReadingJson_ThenReturnEnum(string name, QueryTagLevel expected)
+    [InlineData("INSTANCE", QueryTagLevel.Instance, false)]
+    [InlineData("series", QueryTagLevel.Series, false)]
+    [InlineData("StUdY", QueryTagLevel.Study, false)]
+    [InlineData("INSTANCE", QueryTagLevel.Instance, true)]
+    [InlineData("series", QueryTagLevel.Series, true)]
+    [InlineData("StUdY", QueryTagLevel.Study, true)]
+    public void GivenValidJson_WhenReadingJson_ThenReturnParsedValue(string name, QueryTagLevel expected, bool nullable)
     {
-        var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes("\"" + name + "\""));
+        var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes($"{{ \"Level\": \"{name}\" }}"));
 
-        Assert.True(jsonReader.Read());
-        QueryTagLevel actual = new StrictStringEnumConverter<QueryTagLevel>().Read(ref jsonReader, typeof(QueryTagLevel), DefaultOptions);
+        QueryTagLevel actual = nullable
+            ? JsonSerializer.Deserialize<NullableExample>(ref jsonReader, _defaultOptions).Level.GetValueOrDefault()
+            : JsonSerializer.Deserialize<Example>(ref jsonReader, _defaultOptions).Level;
         Assert.Equal(expected, actual);
     }
 
-    [Theory]
-    [InlineData(QueryTagLevel.Instance, "\"Instance\"")]
-    [InlineData(QueryTagLevel.Series, "\"Series\"")]
-    [InlineData(QueryTagLevel.Study, "\"Study\"")]
-    public void GivenEnumValue_WhenWritingJson_ThenWriteName(QueryTagLevel value, string expected)
+    [Fact]
+    public void GivenNullValue_WhenReadingNullableJson_ThenReturnNull()
     {
-        using var buffer = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(buffer);
+        var jsonReader = new Utf8JsonReader(Encoding.UTF8.GetBytes($"{{ \"Level\": null }}"));
 
-        new StrictStringEnumConverter<QueryTagLevel>().Write(jsonWriter, value, DefaultOptions);
+        NullableExample actual = JsonSerializer.Deserialize<NullableExample>(ref jsonReader, _defaultOptions);
+        Assert.Null(actual.Level);
+    }
 
-        jsonWriter.Flush();
-        buffer.Seek(0, SeekOrigin.Begin);
+    [Theory]
+    [InlineData(QueryTagLevel.Instance, "\"Instance\"", false)]
+    [InlineData(QueryTagLevel.Series, "\"Series\"", false)]
+    [InlineData(QueryTagLevel.Study, "\"Study\"", false)]
+    [InlineData(QueryTagLevel.Instance, "\"Instance\"", true)]
+    [InlineData(QueryTagLevel.Series, "\"Series\"", true)]
+    [InlineData(QueryTagLevel.Study, "\"Study\"", true)]
+    public void GivenEnumValue_WhenWritingJson_ThenWriteName(QueryTagLevel value, string expected, bool nullable)
+    {
+        string actual = nullable
+            ? JsonSerializer.Serialize(new NullableExample { Level = value }, _defaultOptions)
+            : JsonSerializer.Serialize(new Example { Level = value }, _defaultOptions);
 
-        using var reader = new StreamReader(buffer, Encoding.UTF8);
-        Assert.Equal(expected, reader.ReadToEnd());
+        Assert.Equal($"{{\"Level\":{expected}}}", actual);
     }
 
     [Theory]
     [InlineData(BindingFlags.CreateInstance, "\"createInstance\"")]
     [InlineData(BindingFlags.DoNotWrapExceptions, "\"doNotWrapExceptions\"")]
     [InlineData(BindingFlags.Instance, "\"instance\"")]
-    public void GivenNamingPolicy_WhenWritingJson_ThenWriteCamelCase(BindingFlags value, string expected)
+    public void GivenNamingPolicy_WhenWritingJson_ThenWriteCamelCase(BindingFlags flags, string expected)
     {
-        using var buffer = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(buffer);
+        var camelCaseOptions = new JsonSerializerOptions();
+        camelCaseOptions.Converters.Add(new StrictStringEnumConverter(JsonNamingPolicy.CamelCase));
 
-        new StrictStringEnumConverter<BindingFlags>(JsonNamingPolicy.CamelCase).Write(jsonWriter, value, DefaultOptions);
-
-        jsonWriter.Flush();
-        buffer.Seek(0, SeekOrigin.Begin);
-
-        using var reader = new StreamReader(buffer, Encoding.UTF8);
-        Assert.Equal(expected, reader.ReadToEnd());
+        Assert.Equal(expected, JsonSerializer.Serialize(flags, camelCaseOptions));
     }
 
-    [Fact]
-    public void GivenUndefinedEnumValue_WhenWritingJson_ThenThrowJsonException()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GivenUndefinedEnumValue_WhenWritingJson_ThenThrowJsonException(bool nullable)
     {
-        using var buffer = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(buffer);
+        object obj = nullable
+            ? new NullableExample { Level = (QueryTagLevel)12 }
+            : new Example { Level = (QueryTagLevel)12 };
 
-        Assert.Throws<JsonException>(
-            () => new StrictStringEnumConverter<QueryTagLevel>().Write(jsonWriter, (QueryTagLevel)12, DefaultOptions));
+        Assert.Throws<JsonException>(() => JsonSerializer.Serialize(obj, _defaultOptions));
+    }
+
+    private sealed class Example
+    {
+        public QueryTagLevel Level { get; set; }
+    }
+
+    private sealed class NullableExample
+    {
+        public QueryTagLevel? Level { get; set; }
     }
 }

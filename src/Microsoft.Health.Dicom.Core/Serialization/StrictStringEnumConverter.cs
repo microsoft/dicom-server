@@ -4,68 +4,42 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Globalization;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Serialization;
 
-// Note: This class ignore the JsonNamingPolicy as it is not currently in-use for DICOM.
-internal sealed class StrictStringEnumConverter<T> : JsonConverter<T>
-    where T : struct, Enum
+/// <summary>
+/// Represents a <see cref="JsonConverterFactory"/> for enumeration types where values are
+/// strictly represented by their names as JSON string tokens.
+/// </summary>
+public sealed class StrictStringEnumConverter : JsonConverterFactory
 {
     private readonly JsonNamingPolicy _namingPolicy;
 
-    private static readonly ImmutableDictionary<string, T> Values = ImmutableDictionary.CreateRange(
-        StringComparer.OrdinalIgnoreCase,
-        Enum.GetValues<T>().Select(x => KeyValuePair.Create(Enum.GetName(x), x)));
-
     /// <summary>
-    /// Creates a new instance of the <see cref="StrictStringEnumConverter{T}"/>
+    /// Creates a new instance of the <see cref="StrictStringEnumConverter"/>
     /// with the given naming policy.
     /// </summary>
     /// <param name="namingPolicy">An optional JSON naming policy.</param>
     public StrictStringEnumConverter(JsonNamingPolicy namingPolicy = null)
         => _namingPolicy = namingPolicy;
 
+    /// <summary>
+    /// Determines whether the JSON converter can operate on the given type.
+    /// </summary>
+    /// <param name="typeToConvert">The type to serialize and/or deserialize.</param>
+    /// <returns>
+    /// <see langword="true"/> if the type is compatible with the converter; otherwise <see langword="false"/>.
+    /// </returns>
+    /// <exception cref="ArgumentNullException"><paramref name="typeToConvert"/> is <see langword="null"/>.</exception>
     public override bool CanConvert(Type typeToConvert)
-        => typeToConvert == typeof(T);
+        => EnsureArg.IsNotNull(typeToConvert).IsEnum;
 
-    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        if (reader.TokenType != JsonTokenType.String)
-        {
-            throw new JsonException(
-                string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnexpectedJsonToken, JsonTokenType.String, reader.TokenType));
-        }
-
-        string name = reader.GetString();
-        if (!Values.TryGetValue(name, out T value))
-        {
-            throw new JsonException(
-                string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnexpectedValue, name, GetOrderedNames()));
-        }
-
-        return value;
-    }
-
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-    {
-        if (!Enum.IsDefined(value))
-        {
-            throw new JsonException(
-                string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnexpectedValue, value, GetOrderedNames()));
-        }
-
-        writer.WriteStringValue(ConvertName(Enum.GetName(value)));
-    }
-
-    private string ConvertName(string name)
-        => _namingPolicy != null ? _namingPolicy.ConvertName(name) : name;
-
-    private static string GetOrderedNames()
-        => string.Join(", ", Values.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase).Select(x => $"'{x}'"));
+    /// <inheritdoc />
+    public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+        => Activator.CreateInstance(
+            typeof(StrictStringEnumConverter<>).MakeGenericType(EnsureArg.IsNotNull(typeToConvert)),
+            new object[] { _namingPolicy }) as JsonConverter;
 }
