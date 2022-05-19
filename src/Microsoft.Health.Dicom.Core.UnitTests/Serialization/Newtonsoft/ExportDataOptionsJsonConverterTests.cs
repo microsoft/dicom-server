@@ -36,6 +36,50 @@ public class ExportDataOptionsJsonConverterTests
     }
 
     [Fact]
+    public void GivenInvalidSourceOptionsJson_WhenReading_ThenDeserialize()
+    {
+        const string json = @"{
+  ""type"": ""identifiers"",
+  ""settings"": {
+    ""flag"": true,
+    ""hello"": [
+      ""w"",
+      ""o"",
+      ""r"",
+      ""l"",
+      ""d""
+    ]
+  }
+}";
+
+        ExportDataOptions<ExportSourceType> actual = JsonConvert.DeserializeObject<ExportDataOptions<ExportSourceType>>(json, _serializeSettings);
+        Assert.Equal(ExportSourceType.Identifiers, actual.Type);
+
+        var options = actual.Settings as IdentifierExportOptions;
+        Assert.Null(options.Values);
+    }
+
+    [Fact]
+    public void GivenInvalidDestinationOptionsJson_WhenReading_ThenDeserialize()
+    {
+        const string json = @"{
+  ""type"": ""azureblob"",
+  ""settings"": {
+    ""connnectionStrong"":""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
+    ""containerNamee"": ""mycontainer""
+  }
+}";
+
+        ExportDataOptions<ExportDestinationType> actual = JsonConvert.DeserializeObject<ExportDataOptions<ExportDestinationType>>(json, _serializeSettings);
+        Assert.Equal(ExportDestinationType.AzureBlob, actual.Type);
+
+        var options = actual.Settings as AzureBlobExportOptions;
+        Assert.Null(options.ConnectionString);
+        Assert.Null(options.ContainerName);
+        Assert.Null(options.ContainerUri);
+    }
+
+    [Fact]
     public void GivenSourceOptionsJson_WhenReading_ThenDeserialize()
     {
         const string json = @"{
