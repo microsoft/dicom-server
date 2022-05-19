@@ -50,9 +50,10 @@ public class StartBlobMigrationService : BackgroundService
                 if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobCopy)
                 {
                     var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
+                    var state = await operationsClient.GetStateAsync(_operationId, stoppingToken);
 
                     // We also need to ensure if the operation client already not completed
-                    if (operationsClient != null && !await operationsClient.IsBlobCopyCompletedAsync(_operationId, stoppingToken))
+                    if (state.Status != Operations.OperationStatus.Completed)
                     {
                         await operationsClient.StartBlobCopyAsync(_operationId, stoppingToken);
                     }

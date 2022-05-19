@@ -58,10 +58,10 @@ public static class ServiceCollectionExtensions
             .AddInstanceCopier()
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
+            .AddFunctionsOptions<CopyOptions>(configuration, CopyOptions.SectionName)
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
-            .AddFunctionsOptions<CopyOptions>(configuration, CopyOptions.SectionName, bindNonPublicProperties: true)
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
     }

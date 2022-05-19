@@ -204,13 +204,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         }
     }
 
-    /// <inheritdoc/>
-    public async Task<bool> IsBlobCopyCompletedAsync(Guid operationId, CancellationToken cancellationToken = default)
-    {
-        var instance = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier));
-        return instance?.RuntimeStatus == OrchestrationRuntimeStatus.Completed;
-    }
-
     // Note that the Durable Task Framework does not preserve the original CreatedTime
     // when an orchestration is restarted via ContinueAsNew, so we may store the original
     // in the checkpoint
