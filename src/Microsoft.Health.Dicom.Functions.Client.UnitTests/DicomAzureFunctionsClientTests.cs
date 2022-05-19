@@ -330,14 +330,6 @@ public class DicomAzureFunctionsClientTests
     public async Task GivenValidArgs_WhenStartingCopy_ThenStartOrchestration()
     {
         var operationId = Guid.Parse("1d4689daca3b4659b0c77bf6c9ff25e1");
-        var url = new Uri("http://foo.com/bar/operations/" + operationId);
-
-        await _durableClient
-            .StartNewAsync(
-                FunctionNames.CopyFiles,
-                operationId.ToString(OperationId.FormatSpecifier),
-                Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
-
         using var tokenSource = new CancellationTokenSource();
         await _client.StartBlobCopyAsync(operationId, null, tokenSource.Token);
 
