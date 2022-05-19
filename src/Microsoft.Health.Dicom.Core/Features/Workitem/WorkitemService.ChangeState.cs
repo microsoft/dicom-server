@@ -52,7 +52,7 @@ public partial class WorkitemService
                 .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
 
-            var updateDataset = PrepareChangeWorkitemStateDicomDataset(originalBlobDicomDataset, dataset);
+            var updateDataset = PrepareChangeWorkitemStateDicomDataset(dataset, originalBlobDicomDataset);
 
             await _workitemOrchestrator.UpdateWorkitemStateAsync(
                     updateDataset,

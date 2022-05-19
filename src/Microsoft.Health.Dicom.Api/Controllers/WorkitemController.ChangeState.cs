@@ -8,13 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
-using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
@@ -26,7 +24,6 @@ public partial class WorkitemController
     /// State changes are used to claim ownership, complete, or cancel a Workitem.
     /// </summary>
     [HttpPut]
-    [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -45,7 +42,7 @@ public partial class WorkitemController
                         cancellationToken: HttpContext.RequestAborted)
                     .ConfigureAwait(false);
 
-        if (response.Status != WorkitemResponseStatus.Success && !string.IsNullOrWhiteSpace(response.Message))
+        if (!string.IsNullOrWhiteSpace(response.Message))
         {
             Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), response.Message);
         }

@@ -244,37 +244,13 @@ The legal values correspond to the requested state transition. They are: "IN PRO
 | Code                         	| Description |
 | :---------------------------- | :---------- |
 | 200 (OK)               		| Workitem Instance was successfully retrieved.                                 |
-| 400 (Bad Request)            	| The request cannot be performed for one of the following reasons:             |
-|                               |    * the request is invalid given the current state of the Target Workitem    |
-|                               |    * the Transaction UID is missing                                           |
-|                               |    * the Transaction UID is incorrect			                                |
+| 400 (Bad Request)            	| The request cannot be performed for one of the following reasons: (1) the request is invalid given the current state of the Target Workitem. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect
 | 401 (Unauthorized)           	| The client is not authenticated. 				                                |
 | 404 (Not Found)              	| The Target Workitem was not found. 			                                |
 | 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
 
-
-### Change Workitem State Response Header
-
-| Name                         	| Value Type    | Description   |
-| :---------------------------- | :------------ | :----------   |
-| Content-Type                  | media-type    | The media-type of the payload.    |
-| Warning                       | text          | refer below                       |
-
-If the user agent specifies a Procedure Step State (0074,1000) Attribute with a value of "CANCELED" and the Workitem is already in that state, the response message shall include the following HTTP Warning header field:
-
-_Warning: 299 <service>: The UPS is already in the requested state of CANCELED._
-
-If the user agent specifies a Procedure Step State (0074,1000) Attribute with a value of "COMPLETED" and the UPS Instance is already in that state, the response message shall include the following HTTP Warning header field:
-
-_Warning: 299 <service>: The UPS is already in the requested state of COMPLETED._
-If the request was rejected with a failure status code, the response message shall include one of following messages in the HTTP Warning header field describing the nature of the conflict:
-
-_Warning: 299 <service>: The Transaction UID is missing._
-_Warning: 299 <service>: The Transaction UID is incorrect._
-_Warning: 299 <service>: The submitted request is inconsistent with the state of the UPS Instance._
-
-
 ### Change Workitem State Response Payload
 
+* Responses will include the header fields specified in [section 11.7.3.2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7.3.2)
 * A success response shall have no payload.
 * A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.

@@ -33,9 +33,16 @@ public partial class WorkItemTransactionTests
             {DicomTag.ProcedureStepState, ProcedureStepStateConstants.InProgress },
         };
 
-        using var retrieveResponse = await _client.ChangeWorkitemStateAsync(changeStateDicomDataset, workitemUid)
+        using var changeStateResponse = await _client.ChangeWorkitemStateAsync(changeStateDicomDataset, workitemUid)
             .ConfigureAwait(false);
+        Assert.True(changeStateResponse.IsSuccessStatusCode);
 
+        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid)
+            .ConfigureAwait(false);
         Assert.True(retrieveResponse.IsSuccessStatusCode);
+        var dataset = await retrieveResponse.GetValueAsync().ConfigureAwait(false);
+
+        Assert.NotNull(dataset);
+        Assert.Equal(ProcedureStepState.InProgress, dataset.GetProcedureStepState());
     }
 }
