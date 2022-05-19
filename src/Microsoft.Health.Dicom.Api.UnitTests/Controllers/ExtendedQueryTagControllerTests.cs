@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using MediatR;
@@ -94,7 +95,7 @@ public class ExtendedQueryTagControllerTests
                 controller.HttpContext.RequestAborted)
             .Returns(Task.FromException<AddExtendedQueryTagResponse>(new ExistingReindexException(expected)));
 
-        var actual = await controller.PostAsync(new AddExtendedQueryTagEntry[] { new AddExtendedQueryTagEntry { Path = path } }) as StatusCodeResult;
+        var actual = await controller.PostAsync(new AddExtendedQueryTagEntry[] { new AddExtendedQueryTagEntry { Path = path } }) as ContentResult;
         await mediator.Received(1).Send(
             Arg.Is<AddExtendedQueryTagRequest>(x => x.ExtendedQueryTags.Single().Path == path),
             controller.HttpContext.RequestAborted);
@@ -104,6 +105,8 @@ public class ExtendedQueryTagControllerTests
         Assert.Single(header);
 
         Assert.Equal((int)HttpStatusCode.Conflict, actual.StatusCode);
+        Assert.Equal(MediaTypeNames.Text.Plain, actual.ContentType);
+        Assert.Contains(expected.Id.ToString(OperationId.FormatSpecifier), actual.Content);
         Assert.Equal(expected.Href.AbsoluteUri, header[0]);
     }
 

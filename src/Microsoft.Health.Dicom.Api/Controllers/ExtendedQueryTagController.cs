@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
@@ -76,7 +77,12 @@ public class ExtendedQueryTagController : ControllerBase
         catch (ExistingReindexException ere)
         {
             Response.AddLocationHeader(ere.ExistingOperation.Href);
-            return StatusCode((int)HttpStatusCode.Conflict);
+            return new ContentResult
+            {
+                Content = ere.Message,
+                ContentType = MediaTypeNames.Text.Plain,
+                StatusCode = (int)HttpStatusCode.Conflict,
+            };
         }
     }
 
