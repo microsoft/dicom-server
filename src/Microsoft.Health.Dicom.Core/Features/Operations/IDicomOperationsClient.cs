@@ -35,6 +35,17 @@ public interface IDicomOperationsClient
     Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously searches for long-running operations based on the given <paramref name="query"/>.
+    /// </summary>
+    /// <param name="query">A set of operation search criteria.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>An asynchronous enumeration of results based on the <paramref name="query"/>.</returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    IAsyncEnumerable<OperationReference> FindOperationsAsync(OperationQueryCondition<DicomOperation> query, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
     /// </summary>
     /// <param name="operationId">The desired ID for the long-running re-index operation.</param>
