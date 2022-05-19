@@ -64,6 +64,47 @@ public static class DicomDatasetExtensions
         "\\-hhmm"
     };
 
+    private static readonly HashSet<string> DecimalVRs = new HashSet<string> { "DS" };
+
+    private static readonly HashSet<string> DoubleVRs = new HashSet<string> { "FD" };
+
+    private static readonly HashSet<string> FloatVRs = new HashSet<string> { "FL" };
+
+    private static readonly HashSet<string> IntVRs = new HashSet<string>
+    {
+        "IS",
+        "SL"
+    };
+
+    private static readonly HashSet<string> LongVRs = new HashSet<string> { "SV" };
+
+    private static readonly HashSet<string> ShortVRs = new HashSet<string> { "SS" };
+
+    private static readonly HashSet<string> StringVRs = new HashSet<string>
+    {
+        "AE",
+        "AS",
+        "CS",
+        "DA",
+        "DT",
+        "LO",
+        "LT",
+        "PN",
+        "SH",
+        "ST",
+        "TM",
+        "UC",
+        "UI",
+        "UR",
+        "UT"
+    };
+
+    private static readonly HashSet<string> UIntVRs = new HashSet<string> { "UL" };
+
+    private static readonly HashSet<string> ULongVRs = new HashSet<string> { "UV" };
+
+    private static readonly HashSet<string> UShortVRs = new HashSet<string> { "US" };
+
     /// <summary>
     /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
     /// </summary>
@@ -471,6 +512,92 @@ public static class DicomDatasetExtensions
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.MissingRequiredValue,
                     tag));
+        }
+    }
+
+    /// <summary>
+    /// Update existing dataset with tag value present in newDataset.
+    /// </summary>
+    /// <remarks>
+    /// Update for a tag happens only if this tag already had value in the existing dataset.
+    /// </remarks>
+    /// <param name="existingDataset">Existing Dataset that will be updated.</param>
+    /// <param name="newDataset">New Dataset.</param>
+    /// <param name="tag">Tag to be updated.</param>
+    public static void UpdateTagFromNewDataset(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag)
+    {
+        EnsureArg.IsNotNull(existingDataset, nameof(existingDataset));
+        EnsureArg.IsNotNull(newDataset, nameof(newDataset));
+        EnsureArg.IsNotNull(tag, nameof(tag));
+
+        // TODO Ali: Throw exception when string value was empty or null.
+        // TODO Ali: Handle sequences.
+        // TODO Ali: Handle non-primitive types.
+        switch (tag.GetDefaultVR().Code)
+        {
+            case var code when DecimalVRs.Contains(code):
+                if (existingDataset.TryGetValue<decimal>(tag, 0, out decimal decimalValue))
+                {
+                    existingDataset.AddOrUpdate<decimal>(tag, newDataset.GetValue<decimal>(tag, 0));
+                }
+                break;
+            case var code when DoubleVRs.Contains(code):
+                if (existingDataset.TryGetValue<double>(tag, 0, out double doubleValue))
+                {
+                    existingDataset.AddOrUpdate<double>(tag, newDataset.GetValue<double>(tag, 0));
+                }
+                break;
+            case var code when FloatVRs.Contains(code):
+                if (existingDataset.TryGetValue<float>(tag, 0, out float floatValue))
+                {
+                    existingDataset.AddOrUpdate<float>(tag, newDataset.GetValue<float>(tag, 0));
+                }
+                break;
+            case var code when IntVRs.Contains(code):
+                if (existingDataset.TryGetValue<int>(tag, 0, out int intValue))
+                {
+                    existingDataset.AddOrUpdate<int>(tag, newDataset.GetValue<int>(tag, 0));
+                }
+                break;
+            case var code when LongVRs.Contains(code):
+                if (existingDataset.TryGetValue<long>(tag, 0, out long longValue))
+                {
+                    existingDataset.AddOrUpdate<long>(tag, newDataset.GetValue<long>(tag, 0));
+                }
+                break;
+            case var code when ShortVRs.Contains(code):
+                if (existingDataset.TryGetValue<short>(tag, 0, out short shortValue))
+                {
+                    existingDataset.AddOrUpdate<short>(tag, newDataset.GetValue<short>(tag, 0));
+                }
+                break;
+            case var code when StringVRs.Contains(code):
+                if (existingDataset.TryGetString(tag, out string stringValue))
+                {
+                    if (!string.IsNullOrWhiteSpace(stringValue))
+                    {
+                        existingDataset.AddOrUpdate<string>(tag, newDataset.GetString(tag));
+                    }
+                }
+                break;
+            case var code when UIntVRs.Contains(code):
+                if (existingDataset.TryGetValue<uint>(tag, 0, out uint uintValue))
+                {
+                    existingDataset.AddOrUpdate<uint>(tag, newDataset.GetValue<uint>(tag, 0));
+                }
+                break;
+            case var code when ULongVRs.Contains(code):
+                if (existingDataset.TryGetValue<ulong>(tag, 0, out ulong ulongValue))
+                {
+                    existingDataset.AddOrUpdate<ulong>(tag, newDataset.GetValue<ulong>(tag, 0));
+                }
+                break;
+            case var code when UShortVRs.Contains(code):
+                if (existingDataset.TryGetValue<ushort>(tag, 0, out ushort ushortValue))
+                {
+                    existingDataset.AddOrUpdate<ushort>(tag, newDataset.GetValue<ushort>(tag, 0));
+                }
+                break;
         }
     }
 }
