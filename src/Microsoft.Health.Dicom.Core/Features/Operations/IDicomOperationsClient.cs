@@ -36,7 +36,7 @@ public interface IDicomOperationsClient
     Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously retrieves the state of a long-running operation for the given <paramref name="operationId"/> with checkout point information.
+    /// Asynchronously retrieves the state of a long-running operation for the given <paramref name="operationId"/> with checkpoint information.
     /// </summary>
     /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
     /// <param name="cancellationToken">
