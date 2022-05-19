@@ -162,7 +162,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task StartBlobCopyAsync(Guid operationId, WatermarkRange? watermarkRange, CancellationToken cancellationToken = default)
+    public async Task StartBlobCopyAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -172,7 +172,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             new CopyCheckpoint
             {
                 Batching = _options.Copy.Batching,
-                Completed = watermarkRange
+                Completed = previousCheckpoint
             });
 
         _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
