@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
 
@@ -53,7 +54,7 @@ public class StartBlobMigrationService : BackgroundService
                 {
                     IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
-                    OperationState<DicomOperation> existingInstance = await operationsClient.GetStateAsync(_operationId, stoppingToken);
+                    OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_operationId, stoppingToken);
 
                     if (existingInstance == null)
                     {
@@ -66,7 +67,9 @@ public class StartBlobMigrationService : BackgroundService
 
                     if (IsOperationInterruptedOrNull(existingInstance))
                     {
-                        await operationsClient.StartBlobCopyAsync(_operationId, existingInstance != null, stoppingToken);
+                        var checkpoint = existingInstance?.Checkpoint as CopyCheckpoint;
+
+                        await operationsClient.StartBlobCopyAsync(_operationId, checkpoint?.Completed, stoppingToken);
                     }
                     else if (existingInstance.Status == OperationStatus.Completed)
                     {
@@ -85,7 +88,7 @@ public class StartBlobMigrationService : BackgroundService
         }
     }
 
-    private static bool IsOperationInterruptedOrNull(OperationState<DicomOperation> operation)
+    private static bool IsOperationInterruptedOrNull(OperationCheckpointState<DicomOperation> operation)
     {
         return operation == null
             || operation.Status == OperationStatus.Canceled
