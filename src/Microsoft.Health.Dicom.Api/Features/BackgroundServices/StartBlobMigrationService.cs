@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
@@ -49,13 +51,30 @@ public class StartBlobMigrationService : BackgroundService
                 // Start the background service only when the flag is turned on and the format type is not new service.
                 if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobCopy)
                 {
-                    var operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
-                    var state = await operationsClient.GetStateAsync(_operationId, stoppingToken);
+                    IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
-                    // We also need to ensure if the operation client already not completed
-                    if (state.Status != Operations.OperationStatus.Completed)
+                    OperationState<DicomOperation> existingInstance = await operationsClient.GetStateAsync(_operationId, stoppingToken);
+
+                    if (existingInstance == null)
                     {
-                        await operationsClient.StartBlobCopyAsync(_operationId, stoppingToken);
+                        _logger.LogDebug("No existing copy operation.");
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Existing copy operation is in status: '{Status}'", existingInstance.Status);
+                    }
+
+                    if (IsOperationInterruptedOrNull(existingInstance))
+                    {
+                        await operationsClient.StartBlobCopyAsync(_operationId, existingInstance != null, stoppingToken);
+                    }
+                    else if (existingInstance.Status == OperationStatus.Completed)
+                    {
+                        _logger.LogInformation("Copy operation with ID '{InstanceId}' has already completed successfully.", _operationId);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Copy operation with ID '{InstanceId}' has already been started by another client.", _operationId);
                     }
                 }
             }
@@ -64,5 +83,12 @@ public class StartBlobMigrationService : BackgroundService
         {
             _logger.LogCritical(ex, "Unhandled exception while starting blob migration.");
         }
+    }
+
+    private static bool IsOperationInterruptedOrNull(OperationState<DicomOperation> operation)
+    {
+        return operation == null
+            || operation.Status == OperationStatus.Canceled
+            || operation.Status == OperationStatus.Failed;
     }
 }

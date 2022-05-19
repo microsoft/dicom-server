@@ -339,7 +339,7 @@ public class DicomAzureFunctionsClientTests
                 Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
 
         using var tokenSource = new CancellationTokenSource();
-        await _client.StartBlobCopyAsync(operationId, tokenSource.Token);
+        await _client.StartBlobCopyAsync(operationId, false, tokenSource.Token);
 
         await _durableClient
             .Received(1)

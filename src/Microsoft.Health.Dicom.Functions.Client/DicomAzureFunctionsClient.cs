@@ -98,7 +98,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
             Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
             Status = status,
-            Type = type,
+            Type = type
         };
     }
 
@@ -147,23 +147,16 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task StartBlobCopyAsync(Guid operationId, CancellationToken cancellationToken = default)
+    public async Task StartBlobCopyAsync(Guid operationId, bool useExistingWatermarkRange = false, CancellationToken cancellationToken = default)
     {
-        var existingInstance = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (existingInstance == null)
+        CopyCheckpoint input = null;
+        if (useExistingWatermarkRange)
         {
-            _logger.LogDebug("No existing copy operation.");
-        }
-        else
-        {
-            _logger.LogDebug("Existing copy operation is in status: '{Status}'", existingInstance.RuntimeStatus);
-        }
+            var existingInstance = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
 
-        if (IsOperationInterruptedOrNull(existingInstance))
-        {
-            CopyCheckpoint input = null;
-            if (existingInstance != null)
+            if (existingInstance == null)
             {
                 DicomOperation type = existingInstance.GetDicomOperation();
 
@@ -175,33 +168,18 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                     Completed = checkpoint.Completed,
                 };
             }
+        }
 
-            try
+        // if not started or stop in the middle, restart it.
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Copy.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            input ?? new CopyInput
             {
-                // if not started or stop in the middle, restart it.
-                string instanceId = await _durableClient.StartNewAsync(
-                    _options.Copy.Name,
-                    operationId.ToString(OperationId.FormatSpecifier),
-                    input ?? new CopyInput
-                    {
-                        Batching = _options.Copy.Batching
-                    });
-                _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
+                Batching = _options.Copy.Batching
+            });
 
-            }
-            catch (InvalidOperationException ex)
-            {
-                _logger.LogCritical(ex, "Failed to start copy operation with ID '{InstanceId}'.", operationId);
-            }
-        }
-        else if (existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed)
-        {
-            _logger.LogInformation("Copy operation with ID '{InstanceId}' has already completed successfully.", operationId);
-        }
-        else
-        {
-            _logger.LogInformation("Copy operation with ID '{InstanceId}' has already been started by another client.", operationId);
-        }
+        _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
@@ -240,13 +218,5 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             default:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
-    }
-
-    private static bool IsOperationInterruptedOrNull(DurableOrchestrationStatus status)
-    {
-        return status == null
-            || status.RuntimeStatus == OrchestrationRuntimeStatus.Canceled
-            || status.RuntimeStatus == OrchestrationRuntimeStatus.Failed
-            || status.RuntimeStatus == OrchestrationRuntimeStatus.Terminated;
     }
 }

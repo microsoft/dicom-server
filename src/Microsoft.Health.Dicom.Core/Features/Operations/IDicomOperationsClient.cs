@@ -76,11 +76,12 @@ public interface IDicomOperationsClient
     /// Asynchronously begins the instance blob copy.
     /// </summary>
     /// <param name="operationId">The desired ID for the copy operation.</param>
+    /// <param name="useExistingWatermarkRange">Optional bool to use existing watermark range.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartBlobCopyAsync"/> operation.
     /// The value of its <see cref="Task{TResult}.Result"/> that is performing the asynchronous addition.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task StartBlobCopyAsync(Guid operationId, CancellationToken cancellationToken = default);
+    Task StartBlobCopyAsync(Guid operationId, bool useExistingWatermarkRange = false, CancellationToken cancellationToken = default);
 }
