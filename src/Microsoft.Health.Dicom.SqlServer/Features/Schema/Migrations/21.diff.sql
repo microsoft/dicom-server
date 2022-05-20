@@ -116,11 +116,9 @@ GO
 --         * DateTime extended query tag data
 --     @personNameExtendedQueryTags
 --         * PersonName extended query tag data
--- RETURN VALUE
---     True if update was successful, else returns False.
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemTransaction
-    @workitemKey                    BIGNIT,
+    @workitemKey                    BIGINT,
     @watermark                      BIGINT,
     @proposedWatermark              BIGINT,
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
@@ -156,11 +154,7 @@ BEGIN
         THROW;
     END CATCH
     COMMIT TRANSACTION;
-    
-    SELECT @workitemKey,
-           @watermark;
 END
-
 GO
 
 COMMIT TRANSACTION

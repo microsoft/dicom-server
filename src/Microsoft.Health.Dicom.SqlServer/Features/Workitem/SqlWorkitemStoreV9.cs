@@ -202,4 +202,9 @@ internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
+
+    public virtual Task UpdateWorkitemTransactionAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
 }
