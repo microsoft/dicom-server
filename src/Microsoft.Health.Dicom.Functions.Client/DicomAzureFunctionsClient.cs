@@ -15,9 +15,11 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -65,24 +67,24 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // TODO: Pass token when supported
-        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
-        if (state == null)
-        {
-            return null;
-        }
-
-        _logger.LogInformation(
-            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
-            state.InstanceId,
-            state.Name);
-
-        return await GetOperationStateAsync(state, cancellationToken);
-    }
+    public Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
+        => GetStateAsync(
+            operationId,
+            async (operation, state, checkpoint, token) =>
+            {
+                OperationStatus status = state.RuntimeStatus.ToOperationStatus();
+                return new OperationState<DicomOperation>
+                {
+                    CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
+                    LastUpdatedTime = state.LastUpdatedTime,
+                    OperationId = operationId,
+                    PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
+                    Resources = await GetResourceUrlsAsync(operation, checkpoint.ResourceIds, cancellationToken),
+                    Status = status,
+                    Type = operation,
+                };
+            },
+            cancellationToken);
 
     /// <inheritdoc/>
     public async IAsyncEnumerable<OperationReference> FindOperationsAsync(OperationQueryCondition<DicomOperation> query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -109,10 +111,26 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
+    public Task<OperationCheckpointState<DicomOperation>> GetLastCheckpointAsync(Guid operationId, CancellationToken cancellationToken = default)
+        => GetStateAsync(
+            operationId,
+            (operation, state, checkpoint, token) =>
+                Task.FromResult(new OperationCheckpointState<DicomOperation>
+                {
+                    OperationId = operationId,
+                    Status = state.RuntimeStatus.ToOperationStatus(),
+                    Type = operation,
+                    Checkpoint = checkpoint
+                }),
+            cancellationToken);
+
+    /// <inheritdoc/>
     public async Task<OperationReference> StartReindexingInstancesAsync(Guid operationId, IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
         EnsureArg.HasItems(tagKeys, nameof(tagKeys));
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
@@ -135,6 +153,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         EnsureArg.IsNotNull(specification, nameof(specification));
         EnsureArg.IsNotNull(partition, nameof(partition));
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
             _options.Export.Name,
@@ -153,21 +173,42 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default)
+    public async Task StartBlobCopyAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
     {
-        // TODO: Implementation is in different PR
-        throw new NotImplementedException();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Copy.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new CopyCheckpoint
+            {
+                Batching = _options.Copy.Batching,
+                Completed = previousCheckpoint
+            });
+
+        _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
     }
 
-    /// <inheritdoc/>
-    public Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default)
+    private async Task<T> GetStateAsync<T>(
+        Guid operationId,
+        Func<DicomOperation, DurableOrchestrationStatus, IOperationCheckpoint, CancellationToken, Task<T>> factory,
+        CancellationToken cancellationToken)
+        where T : class
     {
-        // TODO: Implementation is in different PR
-        throw new NotImplementedException();
-    }
+        cancellationToken.ThrowIfCancellationRequested();
 
-    private async Task<OperationState<DicomOperation>> GetOperationStateAsync(DurableOrchestrationStatus state, CancellationToken cancellationToken = default)
-    {
+        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
+
+        if (state == null)
+        {
+            return null;
+        }
+
+        _logger.LogInformation(
+            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
+            state.InstanceId,
+            state.Name);
+
         DicomOperation type = state.GetDicomOperation();
         if (type == DicomOperation.Unknown)
         {
@@ -175,18 +216,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             return null;
         }
 
-        OperationStatus status = state.RuntimeStatus.ToOperationStatus();
-        IOperationCheckpoint checkpoint = ParseCheckpoint(type, state);
-        return new OperationState<DicomOperation>
-        {
-            CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
-            LastUpdatedTime = state.LastUpdatedTime,
-            OperationId = Guid.Parse(state.InstanceId),
-            PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
-            Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
-            Status = status,
-            Type = type,
-        };
+        return await factory(type, state, ParseCheckpoint(type, state), cancellationToken);
     }
 
     private async Task<IReadOnlyCollection<Uri>> GetResourceUrlsAsync(
@@ -221,6 +251,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
+            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,
