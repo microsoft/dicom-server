@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.FellowOakDicom.Serialization;
 
 namespace Microsoft.Health.Dicom.Client;
 
@@ -98,11 +97,8 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(requestContent, nameof(requestContent));
 
-        JsonSerializerOptions serializerOptions = new JsonSerializerOptions();
-        serializerOptions.Converters.Add(new DicomJsonConverter());
-
-        string jsonString = JsonSerializer.Serialize(requestContent, serializerOptions);
-        using var request = new HttpRequestMessage(httpMethod ?? HttpMethod.Post, uri);
+        string jsonString = JsonSerializer.Serialize(requestContent, JsonSerializerOptions);
+        using var request = new HttpRequestMessage(httpMethod, uri);
         {
             request.Content = new StringContent(jsonString);
             request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicomJson;

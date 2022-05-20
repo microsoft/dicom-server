@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
+using Microsoft.Health.Dicom.Client.Serialization;
 using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Client;
@@ -259,8 +260,10 @@ public partial class DicomWebClient : IDicomWebClient
             WriteIndented = false,
         };
 
-        options.Converters.Add(new JsonStringEnumConverter());
+        options.Converters.Add(new DicomIdentifierJsonConverter());
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
+        options.Converters.Add(new ExportDataOptionsJsonConverter());
+        options.Converters.Add(new JsonStringEnumConverter());
 
         return options;
     }
