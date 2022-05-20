@@ -6,13 +6,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 using NSubstitute;
@@ -72,13 +70,13 @@ public class ExportServiceTests
         using var tokenSource = new CancellationTokenSource();
 
         var operationId = Guid.NewGuid();
-        IConfiguration originalSource = Substitute.For<IConfiguration>();
-        IConfiguration originalDestination = Substitute.For<IConfiguration>();
-        IConfiguration newDestination = Substitute.For<IConfiguration>();
+        var originalSource = new object();
+        var originalDestination = new object();
+        var newDestination = new object();
         var spec = new ExportSpecification
         {
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = originalDestination },
-            Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = originalSource },
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, originalDestination),
+            Source = new ExportDataOptions<ExportSourceType>(SourceType, originalSource),
         };
         var expected = new OperationReference(operationId, new Uri("http://test/export"));
 
@@ -87,8 +85,8 @@ public class ExportServiceTests
         _client
             .StartExportAsync(
                 operationId,
-                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Configuration)
-                    && ReferenceEquals(newDestination, x.Destination.Configuration)),
+                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Settings)
+                    && ReferenceEquals(newDestination, x.Destination.Settings)),
                 _partition,
                 tokenSource.Token)
             .Returns(expected);
@@ -102,8 +100,8 @@ public class ExportServiceTests
             .Received(1)
             .StartExportAsync(
                 operationId,
-                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Configuration)
-                    && ReferenceEquals(newDestination, x.Destination.Configuration)),
+                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Settings)
+                    && ReferenceEquals(newDestination, x.Destination.Settings)),
                 _partition,
                 tokenSource.Token);
     }

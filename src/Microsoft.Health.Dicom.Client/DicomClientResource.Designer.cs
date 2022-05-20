@@ -79,11 +79,29 @@ namespace Microsoft.Health.Dicom.Client {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; is not supported..
+        /// </summary>
+        internal static string InvalidType {
+            get {
+                return ResourceManager.GetString("InvalidType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Read is not supported for the type &apos;{0}&apos;..
         /// </summary>
         internal static string JsonReadNotSupported {
             get {
                 return ResourceManager.GetString("JsonReadNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected value &apos;{0}&apos; to be one of the following values: [{1}].
+        /// </summary>
+        internal static string UnexpectedValue {
+            get {
+                return ResourceManager.GetString("UnexpectedValue", resourceCulture);
             }
         }
     }

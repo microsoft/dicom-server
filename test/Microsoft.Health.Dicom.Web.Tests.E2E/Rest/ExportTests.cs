@@ -30,7 +30,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instanceManager;
     private readonly BlobContainerClient _containerClient;
-    private readonly ExportDestination _destination;
+    private readonly ExportDataOptions<ExportDestinationType> _destination;
 
     private const string ExpectedPathPattern = "{0}/Results/{1}/{2}/{3}.dcm";
     private const string ExportContainer = "ExportE2E";

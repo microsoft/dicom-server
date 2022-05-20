@@ -44,6 +44,9 @@ public sealed class DicomIdentifier : IEquatable<DicomIdentifier>
     /// <param name="studyInstanceUid">The unique identifier for the study.</param>
     /// <param name="seriesInstanceUid">The optional unique identifier for the series.</param>
     /// <param name="sopInstanceUid">The optional unique identifier for the SOP instance.</param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="studyInstanceUid"/> is empty or consists entirely of white space characters.
+    /// </exception>
     /// <exception cref="ArgumentNullException">
     /// <para><paramref name="studyInstanceUid"/> is <see langword="null"/> or white space</para>
     /// <para>-or-</para>

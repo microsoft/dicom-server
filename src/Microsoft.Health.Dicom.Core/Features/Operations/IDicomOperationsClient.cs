@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -33,6 +34,21 @@ public interface IDicomOperationsClient
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously retrieves the state of a long-running operation for the given <paramref name="operationId"/> with checkpoint information.
+    /// </summary>
+    /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="GetLastCheckpointAsync"/> operation. The value of its
+    /// <see cref="Task{TResult}.Result"/> property contains the state of the operation
+    /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<OperationCheckpointState<DicomOperation>> GetLastCheckpointAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
@@ -75,24 +91,13 @@ public interface IDicomOperationsClient
     /// <summary>
     /// Asynchronously begins the instance blob copy.
     /// </summary>
+    /// <param name="operationId">The desired ID for the copy operation.</param>
+    /// <param name="previousCheckpoint">Optional checkpoint from a previous execution.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartBlobCopyAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
-    /// that is performing the asynchronous addition.
+    /// The value of its <see cref="Task{TResult}.Result"/> that is performing the asynchronous copy.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously gets the completed status of blob copy.
-    /// </summary>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
-    /// <returns>
-    /// A task representing the <see cref="IsBlobCopyCompletedAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property a value that indicate whether the copy
-    /// operation as completed.
-    /// </returns>
-    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default);
+    Task StartBlobCopyAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default);
 }
