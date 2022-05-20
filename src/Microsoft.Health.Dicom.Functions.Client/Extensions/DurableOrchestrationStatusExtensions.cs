@@ -18,11 +18,14 @@ internal static class DurableOrchestrationStatusExtensions
 
         if (status?.Name != null)
         {
-            if (status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase))
-                return DicomOperation.Reindex;
+            if (status.Name.StartsWith(FunctionNames.CopyFiles, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.Copy;
 
             if (status.Name.StartsWith(FunctionNames.ExportDicomFiles, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Export;
+
+            if (status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.Reindex;
         }
 
         return DicomOperation.Unknown;

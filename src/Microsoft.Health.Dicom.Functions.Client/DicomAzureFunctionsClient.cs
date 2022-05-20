@@ -14,9 +14,11 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Models.Copy;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -69,25 +71,15 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         cancellationToken.ThrowIfCancellationRequested();
 
         // TODO: Pass token when supported
-        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
+        DurableOrchestrationStatus state = await GetStatusInternalAsync(operationId);
+
         if (state == null)
         {
             return null;
         }
 
-        _logger.LogInformation(
-            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
-            state.InstanceId,
-            state.Name);
-
-        DicomOperation type = state.GetDicomOperation();
-        if (type == DicomOperation.Unknown)
-        {
-            _logger.LogWarning("Orchestration instance with '{Name}' did not resolve to a public operation type.", state.Name);
-            return null;
-        }
-
         OperationStatus status = state.RuntimeStatus.ToOperationStatus();
+        DicomOperation type = state.GetDicomOperation();
         IOperationCheckpoint checkpoint = ParseCheckpoint(type, state);
         return new OperationState<DicomOperation>
         {
@@ -97,7 +89,31 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
             Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
             Status = status,
+            Type = type
+        };
+    }
+
+    /// <inheritdoc/>
+    public async Task<OperationCheckpointState<DicomOperation>> GetLastCheckpointAsync(Guid operationId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        DurableOrchestrationStatus state = await GetStatusInternalAsync(operationId);
+
+        if (state == null)
+        {
+            return null;
+        }
+
+        DicomOperation type = state.GetDicomOperation();
+        IOperationCheckpoint checkpoint = ParseCheckpoint(state.GetDicomOperation(), state);
+
+        return new OperationCheckpointState<DicomOperation>
+        {
+            OperationId = operationId,
+            Status = state.RuntimeStatus.ToOperationStatus(),
             Type = type,
+            Checkpoint = checkpoint
         };
     }
 
@@ -146,17 +162,20 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default)
+    public async Task StartBlobCopyAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
     {
-        // TODO: Implementation is in different PR
-        throw new NotImplementedException();
-    }
+        cancellationToken.ThrowIfCancellationRequested();
 
-    /// <inheritdoc/>
-    public Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default)
-    {
-        // TODO: Implementation is in different PR
-        throw new NotImplementedException();
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Copy.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new CopyCheckpoint
+            {
+                Batching = _options.Copy.Batching,
+                Completed = previousCheckpoint
+            });
+
+        _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
     }
 
     // Note that the Durable Task Framework does not preserve the original CreatedTime
@@ -165,6 +184,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
+            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,
@@ -194,5 +214,28 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             default:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
+    }
+
+    private async Task<DurableOrchestrationStatus> GetStatusInternalAsync(Guid operationId)
+    {
+        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
+        if (state == null)
+        {
+            return null;
+        }
+
+        _logger.LogInformation(
+            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
+            state.InstanceId,
+            state.Name);
+
+        DicomOperation type = state.GetDicomOperation();
+        if (type == DicomOperation.Unknown)
+        {
+            _logger.LogWarning("Orchestration instance with '{Name}' did not resolve to a public operation type.", state.Name);
+            return null;
+        }
+
+        return state;
     }
 }

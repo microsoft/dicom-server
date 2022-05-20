@@ -57,7 +57,7 @@ public partial class CopyDurableFunctionTests
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
         // Invoke the orchestration
-        await _function.CopyInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -123,7 +123,7 @@ public partial class CopyDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _function.CopyInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -180,7 +180,7 @@ public partial class CopyDurableFunctionTests
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.CopyInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -236,7 +236,7 @@ public partial class CopyDurableFunctionTests
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.CopyInstancesAsync(context, NullLogger.Instance);
+        await _function.CopyFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context

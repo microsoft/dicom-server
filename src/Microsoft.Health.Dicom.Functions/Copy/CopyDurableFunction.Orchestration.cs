@@ -25,9 +25,9 @@ public partial class CopyDurableFunction
     /// </summary>
     /// <param name="context">The context for the orchestration instance.</param>
     /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>A task representing the <see cref="CopyInstancesAsync"/> operation.</returns>
-    [FunctionName(nameof(CopyInstancesAsync))]
-    public async Task CopyInstancesAsync(
+    /// <returns>A task representing the <see cref="CopyFilesAsync"/> operation.</returns>
+    [FunctionName(nameof(CopyFilesAsync))]
+    public async Task CopyFilesAsync(
         [OrchestrationTrigger] IDurableOrchestrationContext context,
         ILogger logger)
     {
@@ -69,13 +69,13 @@ public partial class CopyDurableFunction
                 {
                     Completed = completed,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                    Batching = input.Batching
                 });
         }
         else
         {
-            logger.LogInformation("Completed duplication.");
+            logger.LogInformation("Completed copying files.");
         }
-
     }
 
 }

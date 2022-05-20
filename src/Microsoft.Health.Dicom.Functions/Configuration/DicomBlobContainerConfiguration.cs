@@ -13,4 +13,7 @@ internal class DicomBlobContainerConfiguration
 
     [Required]
     public string Metadata { get; set; }
+
+    [Required]
+    public string File { get; set; }
 }
