@@ -8,12 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
@@ -38,9 +36,9 @@ public partial class ExportDurableFunctionTests
         };
         var expectedInput = new ExportBatchArguments
         {
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() },
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             Partition = PartitionEntry.Default,
-            Source = new TypedConfiguration<ExportSourceType> { Type = SourceType, Configuration = Substitute.For<IConfiguration>() },
+            Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
 
         // Arrange input, source, and sink
@@ -52,14 +50,14 @@ public partial class ExportDurableFunctionTests
 
         IExportSource source = Substitute.For<IExportSource>();
         source.GetAsyncEnumerator(default).Returns(expectedData.ToAsyncEnumerable().GetAsyncEnumerator());
-        _sourceProvider.CreateAsync(_serviceProvider, expectedInput.Source.Configuration, expectedInput.Partition).Returns(source);
+        _sourceProvider.CreateAsync(_serviceProvider, expectedInput.Source.Settings, expectedInput.Partition).Returns(source);
 
         IExportSink sink = Substitute.For<IExportSink>();
         sink.CopyAsync(expectedData[0]).Returns(true);
         sink.CopyAsync(expectedData[1]).Returns(false);
         sink.CopyAsync(expectedData[2]).Returns(false);
         sink.CopyAsync(expectedData[3]).Returns(true);
-        _sinkProvider.CreateAsync(_serviceProvider, expectedInput.Destination.Configuration, operationId).Returns(sink);
+        _sinkProvider.CreateAsync(_serviceProvider, expectedInput.Destination.Settings, operationId).Returns(sink);
 
         // Call the activity
         ExportProgress actual = await _function.ExportBatchAsync(context, NullLogger.Instance);
@@ -68,8 +66,8 @@ public partial class ExportDurableFunctionTests
         Assert.Equal(new ExportProgress(2, 2), actual);
 
         context.Received(1).GetInput<ExportBatchArguments>();
-        await _sourceProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Source.Configuration, expectedInput.Partition);
-        await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Destination.Configuration, operationId);
+        await _sourceProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Source.Settings, expectedInput.Partition);
+        await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Destination.Settings, operationId);
         source.Received(1).GetAsyncEnumerator(default);
         await sink.Received(1).CopyAsync(expectedData[0]);
         await sink.Received(1).CopyAsync(expectedData[1]);
@@ -82,16 +80,16 @@ public partial class ExportDurableFunctionTests
     {
         var operationId = Guid.NewGuid();
         var expectedUri = new Uri($"http://storage/errors/{operationId}.json");
-        var expectedInput = new TypedConfiguration<ExportDestinationType> { Type = DestinationType, Configuration = Substitute.For<IConfiguration>() };
+        var expectedInput = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions());
 
         // Arrange input, source, and sink
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
         context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
-        context.GetInput<TypedConfiguration<ExportDestinationType>>().Returns(expectedInput);
+        context.GetInput<ExportDataOptions<ExportDestinationType>>().Returns(expectedInput);
 
         IExportSink sink = Substitute.For<IExportSink>();
         sink.ErrorHref.Returns(expectedUri);
-        _sinkProvider.CreateAsync(_serviceProvider, expectedInput.Configuration, operationId).Returns(sink);
+        _sinkProvider.CreateAsync(_serviceProvider, expectedInput.Settings, operationId).Returns(sink);
 
         // Call the activity
         Uri actual = await _function.GetErrorHrefAsync(context);
@@ -99,7 +97,7 @@ public partial class ExportDurableFunctionTests
         // Assert behavior
         Assert.Equal(expectedUri, actual);
 
-        context.Received(1).GetInput<TypedConfiguration<ExportDestinationType>>();
-        await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Configuration, operationId);
+        context.Received(1).GetInput<ExportDataOptions<ExportDestinationType>>();
+        await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Settings, operationId);
     }
 }

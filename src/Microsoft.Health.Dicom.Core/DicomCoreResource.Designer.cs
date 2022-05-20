@@ -115,6 +115,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
+        /// </summary>
+        internal static string ConflictingExportBlobConnections {
+            get {
+                return ResourceManager.GetString("ConflictingExportBlobConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The prefix used to identify custom audit headers cannot be empty..
         /// </summary>
         internal static string CustomHeaderPrefixCannotBeEmpty {
@@ -744,9 +753,9 @@ namespace Microsoft.Health.Dicom.Core {
         /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; is not supported..
         /// </summary>
-        internal static string InvalidTypeBinding {
+        internal static string InvalidType {
             get {
-                return ResourceManager.GetString("InvalidTypeBinding", resourceCulture);
+                return ResourceManager.GetString("InvalidType", resourceCulture);
             }
         }
         
@@ -783,6 +792,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MismatchStudyInstanceUid {
             get {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please specify both ConnectionString and ContainerName..
+        /// </summary>
+        internal static string MissingExportBlobConnection {
+            get {
+                return ResourceManager.GetString("MissingExportBlobConnection", resourceCulture);
             }
         }
         

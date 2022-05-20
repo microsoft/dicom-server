@@ -7,34 +7,27 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
 
-internal abstract class ExportSourceProvider<TOptions> : IExportSourceProvider where TOptions : class, new()
+internal abstract class ExportSourceProvider<TOptions> : IExportSourceProvider
 {
     public abstract ExportSourceType Type { get; }
 
-    public Task<IExportSource> CreateAsync(IServiceProvider provider, IConfiguration config, PartitionEntry partition, CancellationToken cancellationToken = default)
+    public Task<IExportSource> CreateAsync(IServiceProvider provider, object options, PartitionEntry partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(provider, nameof(provider));
-        EnsureArg.IsNotNull(config, nameof(config));
+        EnsureArg.IsNotNull(options, nameof(options));
         EnsureArg.IsNotNull(partition, nameof(partition));
-
-        var options = new TOptions();
-        config.Bind(options);
-        return CreateAsync(provider, options, partition, cancellationToken);
+        return CreateAsync(provider, (TOptions)options, partition, cancellationToken);
     }
 
-    public Task ValidateAsync(IConfiguration config, CancellationToken cancellationToken = default)
+    public Task ValidateAsync(object options, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(config, nameof(config));
-
-        var options = new TOptions();
-        config.Bind(options);
-        return ValidateAsync(options, cancellationToken);
+        EnsureArg.IsNotNull(options, nameof(options));
+        return ValidateAsync((TOptions)options, cancellationToken);
     }
 
     protected abstract Task<IExportSource> CreateAsync(IServiceProvider provider, TOptions options, PartitionEntry partition, CancellationToken cancellationToken = default);
