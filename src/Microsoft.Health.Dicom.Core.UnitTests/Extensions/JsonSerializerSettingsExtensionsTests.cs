@@ -29,9 +29,11 @@ public class JsonSerializerSettingsExtensionsTests
     [Fact]
     public void GivenSettings_WhenConfiguringDefaults_ThenUpdateProperties()
     {
-        Assert.Equal(2, _settings.Converters.Count);
-        Assert.Equal(typeof(ConfigurationJsonConverter), _settings.Converters[0].GetType());
-        Assert.Equal(typeof(StringEnumConverter), _settings.Converters[1].GetType());
+        Assert.Equal(4, _settings.Converters.Count);
+        Assert.Equal(typeof(DicomIdentifierJsonConverter), _settings.Converters[0].GetType());
+        Assert.Equal(typeof(ExportDestinationOptionsJsonConverter), _settings.Converters[1].GetType());
+        Assert.Equal(typeof(ExportSourceOptionsJsonConverter), _settings.Converters[2].GetType());
+        Assert.Equal(typeof(StringEnumConverter), _settings.Converters[3].GetType());
 
         Assert.Equal(DateParseHandling.None, _settings.DateParseHandling);
         Assert.Equal(TypeNameHandling.None, _settings.TypeNameHandling);

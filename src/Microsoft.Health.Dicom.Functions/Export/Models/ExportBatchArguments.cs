@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Functions.Export.Models;
@@ -18,13 +17,13 @@ public class ExportBatchArguments
     /// Gets or sets the source batch for the export operation.
     /// </summary>
     /// <value>The configuration describing the batch of data from the source.</value>
-    public TypedConfiguration<ExportSourceType> Source { get; set; }
+    public ExportDataOptions<ExportSourceType> Source { get; set; }
 
     /// <summary>
     /// Gets or sets the destination of the export operation.
     /// </summary>
     /// <value>The configuration describing the destination.</value>
-    public TypedConfiguration<ExportDestinationType> Destination { get; set; }
+    public ExportDataOptions<ExportDestinationType> Destination { get; set; }
 
     /// <summary>
     /// Gets or sets the DICOM data partition from which the data is read.
