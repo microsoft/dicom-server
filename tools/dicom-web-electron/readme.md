@@ -39,6 +39,6 @@ Navigate to Change Feed to update the Offset value, which is the number of recor
 
 The application is packed with [`electron-builder`](https://www.electron.build/)
 
-To package the application you can run the following command
+To package the application for windows you can run the following command
 
-```electron-builder build --win```
+```.\node_modules\.bin\electron-builder -w```
