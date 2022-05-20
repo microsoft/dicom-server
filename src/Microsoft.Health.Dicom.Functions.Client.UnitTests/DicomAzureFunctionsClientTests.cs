@@ -18,7 +18,6 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -277,8 +276,8 @@ public class DicomAzureFunctionsClientTests
         var operationId = Guid.NewGuid();
         var spec = new ExportSpecification
         {
-            Destination = new TypedConfiguration<ExportDestinationType>(),
-            Source = new TypedConfiguration<ExportSourceType>(),
+            Destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
+            Source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers),
         };
         var partition = new PartitionEntry(17, "test");
         var url = new Uri("http://foo.com/bar/operations/" + operationId.ToString(OperationId.FormatSpecifier));

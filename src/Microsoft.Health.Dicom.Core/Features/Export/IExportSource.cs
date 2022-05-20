@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
@@ -21,14 +20,14 @@ public interface IExportSource : IAsyncEnumerable<ReadResult>, IAsyncDisposable
     event EventHandler<ReadFailureEventArgs> ReadFailure;
 
     /// <summary>
-    /// Gets the configuration that represents the current state of the source.
+    /// Gets the options that describe the current state of the source.
     /// </summary>
-    /// <value>A configuration that represents the source.</value>
-    TypedConfiguration<ExportSourceType> Configuration { get; }
+    /// <value>Options that represents the source.</value>
+    ExportDataOptions<ExportSourceType> Description { get; }
 
     /// <summary>
     /// Attempts to dequeue a subset of the source's elements such that a new source may
-    /// be created from the resulting configuration that contains the dequeued batch.
+    /// be created from the resulting options that contains the dequeued batch.
     /// </summary>
     /// <remarks>
     /// Batches may contain more and less elements depending on how many files remain
@@ -44,5 +43,5 @@ public interface IExportSource : IAsyncEnumerable<ReadResult>, IAsyncDisposable
     /// <see langword="true"/> if the source contains any elements; otherwise <see langword="false"/>.
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is less than <c>1</c>.</exception>
-    bool TryDequeueBatch(int size, out TypedConfiguration<ExportSourceType> batch);
+    bool TryDequeueBatch(int size, out ExportDataOptions<ExportSourceType> batch);
 }
