@@ -3,8 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
+using System.Collections.Generic;
 
-[assembly: CLSCompliant(false)]
-[assembly: NeutralResourcesLanguage("en-us")]
+namespace Microsoft.Health.Dicom.Client.Models.Export;
+
+internal sealed class IdentifierExportOptions
+{
+    public IReadOnlyCollection<DicomIdentifier> Values { get; init; }
+}

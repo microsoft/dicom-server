@@ -4,7 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Resources;
 
-[assembly: CLSCompliant(false)]
-[assembly: NeutralResourcesLanguage("en-us")]
+namespace Microsoft.Health.Dicom.Client.Models.Export;
+
+internal sealed class AzureBlobExportOptions
+{
+    public Uri ContainerUri { get; init; }
+
+    public string ConnectionString { get; init; }
+
+    public string ContainerName { get; init; }
+}

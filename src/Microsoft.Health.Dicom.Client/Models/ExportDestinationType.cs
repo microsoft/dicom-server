@@ -6,22 +6,17 @@
 namespace Microsoft.Health.Dicom.Client.Models;
 
 /// <summary>
-/// Specifies the category of a DICOM operation.
+/// Specifies the kind of destination where data may be exported.
 /// </summary>
-public enum DicomOperation
+public enum ExportDestinationType
 {
     /// <summary>
-    /// Specifies an operation whose type is missing or unrecognized.
+    /// Specifies an unknown destination.
     /// </summary>
     Unknown,
 
     /// <summary>
-    /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
+    /// Specifies Azure Blob Storage.
     /// </summary>
-    Reindex,
-
-    /// <summary>
-    /// Specifies an export operation that copies data out of the DICOM server and into an external data store.
-    /// </summary>
-    Export,
+    AzureBlob,
 }
