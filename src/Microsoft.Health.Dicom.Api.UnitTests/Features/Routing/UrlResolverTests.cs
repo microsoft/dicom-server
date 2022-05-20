@@ -56,10 +56,14 @@ public class UrlResolverTests
                _actionContextAccessor);
     }
 
-    [Fact]
-    public void GivenOperationId_WhenRetrieveOperationStatusUriIsResolved_ThenCorrectUrlShouldBeReturned()
+    [Theory]
+    [InlineData("v1.0-prerelease")]
+    [InlineData("v1")]
+    public void GivenOperationId_WhenRetrieveOperationStatusUriIsResolved_ThenCorrectUrlShouldBeReturned(string version)
     {
         Guid operationId = Guid.NewGuid();
+
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
         _urlResolver.ResolveOperationStatusUri(operationId);
 
@@ -68,10 +72,14 @@ public class UrlResolverTests
             routeValues => Assert.Equal(operationId.ToString(OperationId.FormatSpecifier), routeValues[KnownActionParameterNames.OperationId]));
     }
 
-    [Fact]
-    public void GivenAStudy_WhenRetrieveStudyUriIsResolved_ThenCorrectUrlShouldBeReturned()
+    [Theory]
+    [InlineData("v1.0-prerelease")]
+    [InlineData("v1")]
+    public void GivenAStudy_WhenRetrieveStudyUriIsResolved_ThenCorrectUrlShouldBeReturned(string version)
     {
         const string studyInstanceUid = "123.123";
+
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
         _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
@@ -86,7 +94,7 @@ public class UrlResolverTests
     [Theory]
     [InlineData("v1.0-prerelease")]
     [InlineData("v1")]
-    public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdAndVersionIsResolved_ThenCorrectUrlShouldBeReturned(string version)
+    public void GivenAStudy_WhenRetrieveStudyUriWithPartitionIdIsResolved_ThenCorrectUrlShouldBeReturned(string version)
     {
         const string studyInstanceUid = "123.123";
         const string partitionName = "partition1";
@@ -96,7 +104,7 @@ public class UrlResolverTests
         _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid);
 
         ValidateUrlRouteContext(
-            KnownRouteNames.VersionedPartitionRetrieveStudy,
+            KnownRouteNames.PartitionRetrieveStudy,
             routeValues =>
             {
                 Assert.Equal(studyInstanceUid, routeValues[KnownActionParameterNames.StudyInstanceUid]);
@@ -104,12 +112,16 @@ public class UrlResolverTests
             });
     }
 
-    [Fact]
-    public void GivenAnInstance_WhenRetrieveInstanceUriIsResolved_ThenCorrectUrlShouldBeReturned()
+    [Theory]
+    [InlineData("v1.0-prerelease")]
+    [InlineData("v1")]
+    public void GivenAnInstance_WhenRetrieveInstanceUriIsResolved_ThenCorrectUrlShouldBeReturned(string version)
     {
         const string studyInstanceUid = "123.123";
         const string seriesInstanceUid = "456.456";
         const string sopInstanceUid = "789.789";
+
+        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
         var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -125,19 +137,20 @@ public class UrlResolverTests
             });
     }
 
-    [Fact]
-    public void GivenAnInstance_WhenResolveRetrieveWorkitemUriResolved_ThenCorrectUrlShouldBeReturned()
+    [Theory]
+    [InlineData("v1.0-prerelease")]
+    [InlineData("v1")]
+    public void GivenAnInstance_WhenResolveRetrieveWorkitemUriResolved_ThenCorrectUrlShouldBeReturned(string version)
     {
         const string workitemInstanceUid = "123.123";
         const string partitionName = "partition1";
-        const string version = "v1.0-prerelease";
         _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
         _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
         _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
 
         ValidateUrlRouteContext(
-            KnownRouteNames.VersionedPartitionRetrieveWorkitemInstance,
+            KnownRouteNames.PartitionedRetrieveWorkitemInstance,
             routeValues =>
             {
                 Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);

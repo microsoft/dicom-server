@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -36,65 +36,68 @@ public interface IDicomOperationsClient
     Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously retrieves the state of a long-running operation for the given <paramref name="operationId"/> with checkpoint information.
+    /// </summary>
+    /// <param name="operationId">The unique ID for a particular DICOM operation.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="GetLastCheckpointAsync"/> operation. The value of its
+    /// <see cref="Task{TResult}.Result"/> property contains the state of the operation
+    /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<OperationCheckpointState<DicomOperation>> GetLastCheckpointAsync(Guid operationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously begins the re-indexing of existing DICOM instances on the tags with the specified <paramref name="tagKeys"/>.
     /// </summary>
+    /// <param name="operationId">The desired ID for the long-running re-index operation.</param>
     /// <param name="tagKeys">A collection of 1 or more existing query tag keys.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
     /// A task representing the <see cref="StartReindexingInstancesAsync"/>
-    /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
-    /// that is performing the asynchronous addition.
+    /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains a reference
+    /// to the newly started operation.
     /// </returns>
     /// <exception cref="ArgumentException"><paramref name="tagKeys"/> is empty.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="tagKeys"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ExtendedQueryTagsAlreadyExistsException">
-    /// One or more values in <paramref name="tagKeys"/> has already been indexed.
-    /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<Guid> StartReindexingInstancesAsync(IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartReindexingInstancesAsync(Guid operationId, IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously begins the export of files as detailed in the given <paramref name="specification"/>.
     /// </summary>
+    /// <param name="operationId">The desired ID for the long-running export operation.</param>
     /// <param name="specification">The specification that details the source and destination for the export.</param>
     /// <param name="partition">The partition containing the data to export.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
-    /// A task representing the <see cref="StartExportingFilesAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
-    /// that is performing the asynchronous addition.
+    /// A task representing the <see cref="StartReindexingInstancesAsync"/>
+    /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains a reference
+    /// to the newly started operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="specification"/> or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<Guid> StartExportingFilesAsync(ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously begins the instance blob copy.
     /// </summary>
+    /// <param name="operationId">The desired ID for the copy operation.</param>
+    /// <param name="previousCheckpoint">Optional checkpoint from a previous execution.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartBlobCopyAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property contains the ID of the operation
-    /// that is performing the asynchronous addition.
+    /// The value of its <see cref="Task{TResult}.Result"/> that is performing the asynchronous copy.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<Guid> StartBlobCopyAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously gets the completed status of blob copy.
-    /// </summary>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
-    /// <returns>
-    /// A task representing the <see cref="IsBlobCopyCompletedAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property a value that indicate whether the copy
-    /// operation as completed.
-    /// </returns>
-    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<bool> IsBlobCopyCompletedAsync(CancellationToken cancellationToken = default);
+    Task StartBlobCopyAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default);
 }

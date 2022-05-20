@@ -5,13 +5,16 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Export;
+namespace Microsoft.Health.Dicom.Core.Features.Common;
 
-internal sealed class AzureBlobExportOptions
+/// <summary>
+/// Represents a factory for generating unique <see cref="Guid"/> values.
+/// </summary>
+public interface IGuidFactory
 {
-    public Uri ContainerUri { get; set; }
-
-    public string Path { get; set; }
-
-    public string SasToken { get; set; }
+    /// <summary>
+    /// Creates a unique <see cref="Guid"/> value.
+    /// </summary>
+    /// <returns>A unique <see cref="Guid"/> value.</returns>
+    Guid Create();
 }

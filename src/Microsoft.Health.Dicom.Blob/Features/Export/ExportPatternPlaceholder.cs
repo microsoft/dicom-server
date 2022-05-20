@@ -5,16 +5,13 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Functions.Client.DurableTask;
-
-/// <summary>
-/// Represents a factory for generating unique <see cref="Guid"/> values.
-/// </summary>
-public interface IGuidFactory
+[Flags]
+internal enum ExportPatternPlaceholders : sbyte
 {
-    /// <summary>
-    /// Creates a unique <see cref="Guid"/> value.
-    /// </summary>
-    /// <returns>A unique <see cref="Guid"/> value.</returns>
-    Guid Create();
+    None = 0x0,
+    Operation = 0x1,
+    Study = 0x2,
+    Series = 0x4,
+    SopInstance = 0x8,
+    All = ~None,
 }

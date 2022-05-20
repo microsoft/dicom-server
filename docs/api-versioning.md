@@ -6,11 +6,11 @@ All versions of the DICOM APIs will always conform to the DICOMweb™ Standard s
 
 ## Specifying version of REST API in Requests
 
-The version of the REST API should be explicitly specified in the request URL as in the following example: 
+The version of the REST API must be explicitly specified in the request URL as in the following example: 
 
 `https://<service_url>/v<version>/studies`
 
-Currently routes without a version are still supported (ex. `https://<service_url>/studies`) and has the same behavior as specifying the version as v1. However, we strongly recommended to specify the version in all requests via the URL as routes without a version will not be supported after General Availability.
+**Note:** Routes without a version are no longer supported.
 
 
 ### Supported Versions

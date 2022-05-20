@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.AspNetCore.Mvc;
-namespace Microsoft.Health.Dicom.Api.Features.Routing;
+using Azure.Storage.Blobs;
 
-public sealed class PartitionRouteAttribute : RouteAttribute
+namespace Microsoft.Health.Dicom.Blob;
+
+/// <inheritdoc cref="BlobClientOptions" />
+public sealed class AzureBlobClientOptions : BlobClientOptions
 {
-    public PartitionRouteAttribute(string template)
-        : base(KnownRoutes.PartitionRoute + "/" + template)
-    {
-    }
+    // This class is a workaround for using IOptions as the BlobClientOptions ctor cannot be used as-is
 }

@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
@@ -45,7 +44,7 @@ public sealed class ExportSinkFactory
     /// Asynchronously creates a new instance of the <see cref="IExportSink"/> interface whose implementation
     /// is based on given <paramref name="destination"/>.
     /// </summary>
-    /// <param name="destination">The configuration for a specific sink type.</param>
+    /// <param name="destination">The options for a specific sink type.</param>
     /// <param name="operationId">The ID for the export operation.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
@@ -57,45 +56,63 @@ public sealed class ExportSinkFactory
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">
-    /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
+    /// There is no provider configured for the value of the <see cref="ExportDataOptions{T}.Type"/> property.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    public Task<IExportSink> CreateAsync(TypedConfiguration<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
+    public Task<IExportSink> CreateAsync(ExportDataOptions<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
         => GetProvider(EnsureArg.IsNotNull(destination, nameof(destination)).Type)
-            .CreateAsync(_serviceProvider, destination.Configuration, operationId, cancellationToken);
+            .CreateAsync(_serviceProvider, destination.Settings, operationId, cancellationToken);
 
     /// <summary>
-    /// Asynchronously ensures that the given configuration can be used to create a valid sink.
+    /// Asynchronously stores sensitive information in a secure format and returns the updated options.
     /// </summary>
     /// <remarks>
-    /// Based on the implementation, this method may also modify the values of the configuration.
-    /// For example, it may help provide sink-specific security measures for sensitive settings.
+    /// It is the responsibility of the <see cref="CreateAsync"/> method to retrieve any sensitive information
+    /// that was secured by this method.
     /// </remarks>
-    /// <param name="destination">The configuration for a specific sink type.</param>
+    /// <param name="destination">The options for a specific sink type.</param>
     /// <param name="operationId">The ID for the export operation.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
-    /// A task representing the <see cref="ValidateAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property is the validated <paramref name="destination"/>.
+    /// A task representing the <see cref="SecureSensitiveInfoAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is a new options object with any sensitive
+    /// information secured.
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
     /// <exception cref="KeyNotFoundException">
-    /// There is no provider configured for the value of the <see cref="TypedConfiguration{T}.Type"/> property.
+    /// There is no provider configured for the value of the <see cref="ExportDataOptions{T}.Type"/> property.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    /// <exception cref="ValidationException">There were one or more problems with the sink-specific configuration.</exception>
-    public async Task<TypedConfiguration<ExportDestinationType>> ValidateAsync(TypedConfiguration<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
+    public async Task<ExportDataOptions<ExportDestinationType>> SecureSensitiveInfoAsync(ExportDataOptions<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(destination, nameof(destination));
 
         IExportSinkProvider provider = GetProvider(destination.Type);
-        return new TypedConfiguration<ExportDestinationType>
-        {
-            Configuration = await provider.ValidateAsync(destination.Configuration, operationId, cancellationToken),
-            Type = destination.Type,
-        };
+        return new ExportDataOptions<ExportDestinationType>(
+            destination.Type,
+            await provider.SecureSensitiveInfoAsync(destination.Settings, operationId, cancellationToken));
+    }
+
+    /// <summary>
+    /// Asynchronously ensures that the given options can be used to create a valid sink.
+    /// </summary>
+    /// <param name="destination">The options for a specific sink type.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>A task representing the <see cref="ValidateAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
+    /// <exception cref="KeyNotFoundException">
+    /// There is no provider configured for the value of the <see cref="ExportDataOptions{T}.Type"/> property.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    /// <exception cref="ValidationException">There were one or more problems with the sink-specific options.</exception>
+    public async Task ValidateAsync(ExportDataOptions<ExportDestinationType> destination, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(destination, nameof(destination));
+        await GetProvider(destination.Type).ValidateAsync(destination.Settings, cancellationToken);
     }
 
     private IExportSinkProvider GetProvider(ExportDestinationType type)

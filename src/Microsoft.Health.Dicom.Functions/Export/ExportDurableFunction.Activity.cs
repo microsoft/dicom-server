@@ -12,7 +12,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
 using Microsoft.Health.Dicom.Functions.Extensions;
@@ -89,7 +88,7 @@ public partial class ExportDurableFunction
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
-        TypedConfiguration<ExportDestinationType> destination = context.GetInput<TypedConfiguration<ExportDestinationType>>();
+        ExportDataOptions<ExportDestinationType> destination = context.GetInput<ExportDataOptions<ExportDestinationType>>();
         await using IExportSink sink = await _sinkFactory.CreateAsync(destination, context.GetOperationId());
         return sink.ErrorHref;
     }

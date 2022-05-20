@@ -8,9 +8,7 @@
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="$(SdkPackageVersion)" />
@@ -26,7 +24,7 @@
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

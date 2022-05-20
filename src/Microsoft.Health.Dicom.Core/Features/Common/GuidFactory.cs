@@ -5,7 +5,7 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Functions.Client.DurableTask;
+namespace Microsoft.Health.Dicom.Core.Features.Common;
 
 /// <summary>
 /// Represents a factory that leverages <see cref="Guid.NewGuid"/> for generating <see cref="Guid"/> values.
@@ -24,5 +24,5 @@ public sealed class GuidFactory : IGuidFactory
 
     /// <inheritdoc />
     public Guid Create()
-        => Guid.NewGuid();
+        => Guid.NewGuid(); // The default behavior unless we're testing and need a known value
 }

@@ -13,11 +13,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Copy;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
+using Microsoft.Health.Dicom.Functions.Copy;
+using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -50,11 +52,14 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(services, nameof(services));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        services.RegisterModule<ServiceModule>(new FeatureConfiguration { EnableExtendedQueryTags = true });
+        services.RegisterModule<ServiceModule>();
 
         return new DicomFunctionsBuilder(services
+            .AddInstanceCopier()
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
+            .AddFunctionsOptions<CopyOptions>(configuration, CopyOptions.SectionName)
+            .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .ConfigureDurableFunctionSerialization()
@@ -79,6 +84,29 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Adds Azure Storage implementations for storing DICOM instances.
+    /// </summary>
+    /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
+    /// <param name="configuration">The <see cref="IConfiguration"/> root.</param>
+    /// <returns>The <paramref name="builder"/> for additional methods calls.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
+    /// </exception>
+    public static IDicomFunctionsBuilder AddFileStorageDataStore(this IDicomFunctionsBuilder builder, IConfiguration configuration)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+        string containerName = configuration
+            .GetSection(BlobDataStoreConfiguration.SectionName)
+            .GetSection(DicomBlobContainerConfiguration.SectionName)
+            .Get<DicomBlobContainerConfiguration>()
+            .File;
+
+        return builder.AddFileStorageDataStore(configuration, containerName);
+    }
+
+    /// <summary>
     /// Adds Azure Storage implementations for storing DICOM metadata.
     /// </summary>
     /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
@@ -99,6 +127,13 @@ public static class ServiceCollectionExtensions
             .Metadata;
 
         return builder.AddMetadataStorageDataStore(configuration, containerName);
+    }
+
+    private static IServiceCollection AddInstanceCopier(this IServiceCollection services)
+    {
+        EnsureArg.IsNotNull(services, nameof(services));
+        services.AddScoped<IInstanceCopier, InstanceCopier>();
+        return services;
     }
 
     private static IServiceCollection AddRecyclableMemoryStreamManager(this IServiceCollection services, Func<RecyclableMemoryStreamManager> factory = null)
