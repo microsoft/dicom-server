@@ -54,7 +54,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     }
 
     [Fact]
-    public async Task GivenFiles_WhenExport_ThenSuccessfullyCopy()
+    public async Task GivenFiles_WhenExporting_ThenSuccessfullyCopy()
     {
         // Define DICOM files
         string studyUid1 = TestUidGenerator.Generate();
