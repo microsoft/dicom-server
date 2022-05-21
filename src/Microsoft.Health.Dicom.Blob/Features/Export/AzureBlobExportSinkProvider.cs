@@ -42,7 +42,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
         : this(serializerOptions, logger)
     {
-        // The real Azure Functions runtime/container will use DryIoC for dependency injection
+        // The real Azure Functions runtime/container will use DryIoc for dependency injection
         // and will still select this ctor for use, even if no ISecretStore service is configured.
         // So instead, we simply allow null in either ctor.
         _secretStore = secretStore;
