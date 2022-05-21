@@ -50,7 +50,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         exportSection.Bind(options);
 
         _containerClient = new BlobContainerClient(options.ConnectionString, ExportContainer);
-        _destination = ExportDestination.ForAzureBlobStorage(options.ConnectionString, ExportContainer);
+        _destination = ExportDestination.ForAzureBlobStorage(options.SinkConnectionString, ExportContainer);
     }
 
     [Fact]
@@ -156,5 +156,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private sealed class ExportTestOptions
     {
         public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
+
+        public string SinkConnectionString { get; set; } = "UseDevelopmentStorage=true";
     }
 }
