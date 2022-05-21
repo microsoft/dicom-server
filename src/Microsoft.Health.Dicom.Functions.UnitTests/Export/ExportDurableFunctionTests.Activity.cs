@@ -82,7 +82,7 @@ public partial class ExportDurableFunctionTests
         var expectedUri = new Uri($"http://storage/errors/{operationId}.json");
         var expectedInput = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions());
 
-        // Arrange input, source, and sink
+        // Arrange input
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
         context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
         context.GetInput<ExportDataOptions<ExportDestinationType>>().Returns(expectedInput);
@@ -99,5 +99,14 @@ public partial class ExportDurableFunctionTests
 
         context.Received(1).GetInput<ExportDataOptions<ExportDestinationType>>();
         await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Settings, operationId);
+    }
+
+    [Fact]
+    public async Task GivenDestination_WhenComplete_ThenInvokeCorrectMethod()
+    {
+        var expected = new AzureBlobExportOptions();
+        await _function.CompleteCopyAsync(new ExportDataOptions<ExportDestinationType>(DestinationType, expected));
+
+        await _sinkProvider.Received(1).CompleteCopyAsync(expected, default);
     }
 }

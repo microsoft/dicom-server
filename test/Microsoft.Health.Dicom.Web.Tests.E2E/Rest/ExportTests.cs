@@ -13,6 +13,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -33,21 +34,26 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private readonly ExportDataOptions<ExportDestinationType> _destination;
 
     private const string ExpectedPathPattern = "{0}/Results/{1}/{2}/{3}.dcm";
-    private const string ExportContainer = "ExportE2E";
+    private const string ExportContainer = "export-e2e-test";
 
     public ExportTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _instanceManager = new DicomInstancesManager(_client);
 
-        if (!fixture.IsInProcess)
-            throw new NotSupportedException();
+        IConfigurationSection exportSection = new ConfigurationBuilder()
+            .AddEnvironmentVariables()
+            .Build()
+            .GetSection("Tests:Export");
 
-        _containerClient = new BlobContainerClient("UseDevelopmentStorage=true", ExportContainer);
-        _destination = ExportDestination.ForAzureBlobStorage("UseDevelopmentStorage=true", ExportContainer);
+        var options = new ExportTestOptions();
+        exportSection.Bind(options);
+
+        _containerClient = new BlobContainerClient(options.ConnectionString, ExportContainer);
+        _destination = ExportDestination.ForAzureBlobStorage(options.ConnectionString, ExportContainer);
     }
 
-    [Fact] // TODO: Enable as BVT
+    [Fact]
     public async Task GivenFiles_WhenExport_ThenSuccessfullyCopy()
     {
         // Define DICOM files
@@ -84,6 +90,9 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         // Upload files
         await Task.WhenAll(instances.Select(x => _instanceManager.StoreAsync(new DicomFile(x.Value))));
 
+        // Create new container if necessary
+        await _containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+
         // Begin Export
         DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
             ExportSource.ForIdentifiers(
@@ -100,9 +109,9 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(OperationStatus.Completed, result.Status);
 
         // Validate the results
-        Assert.True(await _containerClient.ExistsAsync());
         List<BlobItem> actual = await _containerClient
             .GetBlobsAsync()
+            .Where(x => x.Name.StartsWith(operation.Id.ToString(OperationId.FormatSpecifier)) && x.Name.EndsWith(".dcm"))
             .ToListAsync();
 
         Assert.Equal(instances.Count, actual.Count);
@@ -112,8 +121,9 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             using Stream data = await blobClient.OpenReadAsync();
             DicomFile file = await GetDicomFileAsync(data);
 
+            // TODO: Compare DICOM file
             DicomIdentifier identifier = DicomIdentifier.ForInstance(file.Dataset);
-            Assert.True(instances.Remove(identifier)); // TODO: Compare DICOM file
+            Assert.True(instances.Remove(identifier));
             Assert.Equal(GetExpectedPath(operation.Id, identifier), blob.Name);
         }
     }
@@ -142,4 +152,9 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             identifer.StudyInstanceUid,
             identifer.SeriesInstanceUid,
             identifer.SopInstanceUid);
+
+    private sealed class ExportTestOptions
+    {
+        public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
+    }
 }

@@ -126,6 +126,12 @@ public partial class ExportDurableFunctionTests
                 nameof(ExportDurableFunction.GetErrorHrefAsync),
                 _options.RetryOptions,
                 input.Destination);
+        await context
+            .DidNotReceive()
+            .CallActivityWithRetryAsync(
+                nameof(ExportDurableFunction.CompleteCopyAsync),
+                _options.RetryOptions,
+                Arg.Any<ExportDataOptions<ExportDestinationType>>());
         context
             .Received(1)
             .ContinueAsNew(
@@ -208,6 +214,12 @@ public partial class ExportDurableFunctionTests
                 nameof(ExportDurableFunction.GetErrorHrefAsync),
                 Arg.Any<RetryOptions>(),
                 Arg.Any<object>());
+        await context
+            .DidNotReceive()
+            .CallActivityWithRetryAsync(
+                nameof(ExportDurableFunction.CompleteCopyAsync),
+                _options.RetryOptions,
+                Arg.Any<ExportDataOptions<ExportDestinationType>>());
         context
             .Received(1)
             .ContinueAsNew(
@@ -267,6 +279,12 @@ public partial class ExportDurableFunctionTests
                 nameof(ExportDurableFunction.GetErrorHrefAsync),
                 Arg.Any<RetryOptions>(),
                 Arg.Any<object>());
+        await context
+            .Received(1)
+            .CallActivityWithRetryAsync(
+                nameof(ExportDurableFunction.CompleteCopyAsync),
+                _options.RetryOptions,
+                checkpoint.Destination);
         context
             .DidNotReceiveWithAnyArgs()
             .ContinueAsNew(default, default);

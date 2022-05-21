@@ -41,6 +41,23 @@ public sealed class ExportSinkFactory
     }
 
     /// <summary>
+    /// Asynchronously completes a copy operation to the sink.
+    /// </summary>
+    /// <param name="destination">The options for a specific sink type.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>A task representing the <see cref="CompleteCopyAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
+    /// <exception cref="KeyNotFoundException">
+    /// There is no provider configured for the value of the <see cref="ExportDataOptions{T}.Type"/> property.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    public Task CompleteCopyAsync(ExportDataOptions<ExportDestinationType> destination, CancellationToken cancellationToken = default)
+        => GetProvider(EnsureArg.IsNotNull(destination, nameof(destination)).Type)
+            .CompleteCopyAsync(destination.Settings, cancellationToken);
+
+    /// <summary>
     /// Asynchronously creates a new instance of the <see cref="IExportSink"/> interface whose implementation
     /// is based on given <paramref name="destination"/>.
     /// </summary>

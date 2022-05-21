@@ -45,6 +45,22 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
     }
 
+    protected override async Task CompleteCopyAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
+    {
+        if (_secretStore == null)
+        {
+            if (options.Secret != null)
+                _logger.LogWarning("No secret store has been registered, but a secret was previously configured. Unable to clean up sensitive information.");
+        }
+        else if (options.Secret != null)
+        {
+            if (await _secretStore.DeleteSecretAsync(options.Secret.Name, cancellationToken))
+                _logger.LogInformation("Successfully cleaned up sensitive information from secret store.");
+            else
+                _logger.LogWarning("Sensitive information has already been deleted for this operation.");
+        }
+    }
+
     protected override async Task<IExportSink> CreateAsync(IServiceProvider provider, AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
         options = await RetrieveSensitiveOptionsAsync(options, cancellationToken);

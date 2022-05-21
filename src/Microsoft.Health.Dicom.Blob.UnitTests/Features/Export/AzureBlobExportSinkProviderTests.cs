@@ -49,6 +49,32 @@ public class AzureBlobExportSinkProviderTests
         _serviceProvider = services.BuildServiceProvider();
     }
 
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(true, false, false)]
+    [InlineData(true, true, true)]
+    public async Task GivenCompletedOperation_WhenCleaningUp_SkipIfNoWork(bool configureStore, bool addSecret, bool expectDelete)
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        var provider = configureStore
+            ? new AzureBlobExportSinkProvider(_secretStore, Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance)
+            : new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
+
+        var options = new AzureBlobExportOptions
+        {
+            Secret = addSecret ? new SecretKey { Name = "secret" } : null
+        };
+
+        await provider.CompleteCopyAsync(options, tokenSource.Token);
+
+        if (expectDelete)
+            await _secretStore.Received(1).DeleteSecretAsync("secret", tokenSource.Token);
+        else
+            await _secretStore.DidNotReceiveWithAnyArgs().DeleteSecretAsync(default, default);
+    }
+
     [Fact]
     public async Task GivenNoSecretStore_WhenCreatingSinkWithSecret_ThenThrow()
     {
