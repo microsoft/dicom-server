@@ -80,8 +80,14 @@ public static class KeyVaultClientRegistrationExtensions
         configureOptions?.Invoke(options);
 
         // Note: We can disable key vault in local development scenarios, like F5 or Docker
-        if (options.Enabled)
+        if (options.VaultUri != null)
         {
+            // Backfill from obsolete setting
+#pragma warning disable CS0612
+            if (options.Endpoint != null)
+                section[nameof(KeyVaultSecretClientOptions.VaultUri)] = section[nameof(KeyVaultSecretClientOptions.Endpoint)];
+#pragma warning restore CS0612
+
             services.AddAzureClients(
                 builder => builder
                     .AddSecretClient(section)

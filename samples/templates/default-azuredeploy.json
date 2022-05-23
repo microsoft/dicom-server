@@ -205,7 +205,8 @@
             "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
             "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]",
-            "KeyVault__Endpoint": "[variables('keyVaultEndpoint')]"
+            "KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
+            "KeyVault__Credential": "managedidentity"
         },
         // See the following for Azure Function App settings: https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings
         "staticDicomFunctionAppConfigProperties": {
@@ -213,7 +214,9 @@
             "CONTAINER_NAME": "azure-webjobs-secrets",
             "FUNCTIONS_EXTENSION_VERSION": "~4",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-            "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1"
+            "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1",
+            "KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
+            "KeyVault__Credential": "managedidentity"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "combinedDicomFunctionAppConfigProperties": "[union(variables('staticDicomFunctionAppConfigProperties'), parameters('additionalDicomFunctionAppConfigProperties'))]",
@@ -487,14 +490,24 @@
                         "tenantId": "[reference(variables('appServiceResourceId'), '2015-08-01', 'Full').Identity.tenantId]",
                         "objectId": "[reference(variables('appServiceResourceId'), '2015-08-01', 'Full').Identity.principalId]",
                         "permissions": {
-                            "secrets": [ "get" ]
+                            "secrets": [
+                                "delete",
+                                "get",
+                                "list",
+                                "set"
+                            ]
                         }
                     },
                     {
                         "tenantId": "[reference(variables('functionAppServiceResourceId'), '2015-08-01', 'Full').Identity.tenantId]",
                         "objectId": "[reference(variables('functionAppServiceResourceId'), '2015-08-01', 'Full').Identity.principalId]",
                         "permissions": {
-                            "secrets": [ "get" ]
+                            "secrets": [
+                                "delete",
+                                "get",
+                                "list",
+                                "set"
+                            ]
                         }
                     }
                 ],

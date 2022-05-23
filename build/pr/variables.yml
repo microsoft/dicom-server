@@ -3,8 +3,8 @@ variables:
   deploymentName: 'msh-dicom-pr-$(prNumber)'
   testEnvironmentUrl: 'http://localhost:8080/'
   testFeaturesEnabledEnvironmentUrl: 'http://localhost:8080/'
-  azureStorageConnectionString: 'UseDevelopmentStorage=true'
-  testExportSinkConnectionString: 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;'
+  azureStorageContainerUrl: 'http://127.0.0.1:10000/devstoreaccount1'
+  exportSinkTestContainerUrl: 'http://127.0.0.1:10000/devstoreaccount1'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'

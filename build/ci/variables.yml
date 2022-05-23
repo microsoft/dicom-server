@@ -10,6 +10,7 @@ variables:
   appServicePlanName: $(appServicePlanResourceGroup)-$(resourceGroupRegion)
   azureServiceConnectionOid: '44b9da1a-ae16-4c0e-90e1-a96745ea86c9'
   azureSubscriptionName: 'Dicom OSS'
+  azureStorageAccount: 'dcmcipermanpmlxszw4sayty'
   buildConfiguration: 'Release'
   imageTag: '$(build.BuildNumber)'
   azureContainerRegistry: 'dicomoss.azurecr.io'

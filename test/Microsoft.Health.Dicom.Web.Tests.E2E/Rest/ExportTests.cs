@@ -34,7 +34,6 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private readonly ExportDataOptions<ExportDestinationType> _destination;
 
     private const string ExpectedPathPattern = "{0}/Results/{1}/{2}/{3}.dcm";
-    private const string ExportContainer = "export-e2e-test";
 
     public ExportTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
@@ -49,8 +48,8 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         var options = new ExportTestOptions();
         exportSection.Bind(options);
 
-        _containerClient = new BlobContainerClient(options.ConnectionString, ExportContainer);
-        _destination = ExportDestination.ForAzureBlobStorage(options.SinkConnectionString, ExportContainer);
+        _containerClient = new BlobContainerClient(options.ClientBlobUrl);
+        _destination = ExportDestination.ForAzureBlobStorage(options.SinkBlobUrl);
     }
 
     [Fact]
@@ -155,8 +154,8 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private sealed class ExportTestOptions
     {
-        public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
+        public Uri ClientBlobUrl { get; set; } = new Uri("http://127.0.0.1:10000/devstoreaccount1/export-e2e-test");
 
-        public string SinkConnectionString { get; set; } = "UseDevelopmentStorage=true";
+        public Uri SinkBlobUrl { get; set; } = new Uri("http://127.0.0.1:10000/devstoreaccount1/export-e2e-test");
     }
 }

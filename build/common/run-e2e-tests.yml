@@ -11,8 +11,8 @@ steps:
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
   env:
     TestEnvironmentUrl: '$(testEnvironmentUrl)'
-    Tests__Export__ConnectionString: '$(azureStorageConnectionString)'
-    Tests__Export__SinkConnectionString: '$(testExportSinkConnectionString)'
+    Tests__Export__ClientBlobUrl: '$(azureStorageContainerUrl)'
+    Tests__Export__SinkBlobUrl: '$(exportTestSinkContainerUrl)'
 
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'

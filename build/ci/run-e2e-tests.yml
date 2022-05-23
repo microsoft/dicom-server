@@ -32,4 +32,20 @@ jobs:
 
         dotnet dev-certs https
 
+  - task: AzurePowerShell@4
+    displayName: 'Export Test Setup'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: inlineScript
+      Inline: |
+        $cxt = New-AzStorageContext -StorageAccountName "$(azureStorageAccount)" -UseConnectedAccount
+        $start = Get-Date
+        $expiration = $start.AddHours(1)
+        $token = New-AzStorageContainerSASToken -Context $cxt -Name 'export-e2e-test' -Permission rwdl -StartTime $start -ExpiryTime $expiration
+
+        $containerUrl = "https://$(azureStorageAccount).blob.core.windows.net/export-e2e-test" + $token
+        Write-Host "##vso[task.setvariable variable=azureStorageContainerUrl]$containerUrl"
+        Write-Host "##vso[task.setvariable variable=exportTestSinkContainerUrl]$containerUrl"
+
   - template: ../common/run-e2e-tests.yml
