@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 /// <summary>
 /// Provides Audit specific tests.
 /// </summary>
-public class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetime
+public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetime
 {
     private readonly AuditTestFixture _fixture;
     private readonly IDicomWebClient _client;
@@ -216,8 +216,10 @@ public class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetime
 
         var expectedUri = new Uri($"http://localhost/{DicomApiVersions.Latest}/{expectedPathSegment}");
 
+        var auditEntry = _auditLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri);
+
         Assert.Collection(
-            _auditLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri),
+            auditEntry,
             ae => ValidateExecutingAuditEntry(ae, expectedAction, expectedUri),
             ae => ValidateExecutedAuditEntry(ae, expectedAction, expectedUri, expectedStatusCode));
     }
