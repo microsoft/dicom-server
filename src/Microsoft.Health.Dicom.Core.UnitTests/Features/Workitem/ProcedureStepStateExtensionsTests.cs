@@ -13,7 +13,7 @@ public sealed class ProcedureStepStateExtensionsTests
     [Fact]
     public void GivenGetTransitionState_WhenCurrentStateIsNone_ReturnsScheduledAsFutureState()
     {
-        var result = ProcedureStepState.None.GetTransitionState(WorkitemStateEvents.NCreate);
+        var result = ProcedureStepState.None.GetTransitionState(WorkitemActionEvent.NCreate);
         Assert.False(result.IsError);
         Assert.Equal(ProcedureStepState.Scheduled, result.State);
     }
@@ -25,7 +25,7 @@ public sealed class ProcedureStepStateExtensionsTests
     [InlineData(ProcedureStepState.Completed)]
     public void GivenGetTransitionState_WhenCurrentStateAndFutureStateAreSame_ReturnsErrorTrue(ProcedureStepState state)
     {
-        var result = state.GetTransitionState(WorkitemStateEvents.NCreate);
+        var result = state.GetTransitionState(WorkitemActionEvent.NCreate);
         Assert.True(result.IsError);
         Assert.Equal("0111", result.Code);
     }

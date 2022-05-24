@@ -46,7 +46,7 @@ public partial class WorkitemService
         // Get the state transition result
         var transitionStateResult = workitemMetadata
             .ProcedureStepState
-            .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
+            .GetTransitionState(WorkitemActionEvent.NActionToRequestCancel);
         var cancelRequestDataset = await GetPreparedRequestCancelWorkitemBlobDatasetAsync(
                 dataset, workitemMetadata, transitionStateResult.State, cancellationToken)
             .ConfigureAwait(false);

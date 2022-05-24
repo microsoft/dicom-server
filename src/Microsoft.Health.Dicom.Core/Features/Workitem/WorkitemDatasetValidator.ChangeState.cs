@@ -16,9 +16,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
 public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidator
 {
-    // The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELLED".
-    private static readonly IReadOnlySet<ProcedureStepState> AllowedTargetStatesForWorkitemChangeState =
-        new HashSet<ProcedureStepState> { ProcedureStepState.InProgress, ProcedureStepState.Canceled, ProcedureStepState.Completed };
+    // The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELED".
+    private static readonly IReadOnlySet<string> AllowedTargetStatesForWorkitemChangeState =
+        new HashSet<string> { ProcedureStepStateConstants.InProgress, ProcedureStepStateConstants.Canceled, ProcedureStepStateConstants.Completed };
 
     protected override void OnValidate(DicomDataset dataset)
     {
@@ -30,8 +30,7 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
 
         // Check for allowed procedure step state value
         var targetProcedureStepStateStringValue = dataset.GetString(DicomTag.ProcedureStepState);
-        var targetProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(targetProcedureStepStateStringValue);
-        if (!AllowedTargetStatesForWorkitemChangeState.Contains(targetProcedureStepState))
+        if (!AllowedTargetStatesForWorkitemChangeState.Contains(targetProcedureStepStateStringValue))
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,
@@ -50,35 +49,39 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
     /// Throws <see cref="DatasetValidationException"/> when the workitem-metadata transition state has error.
     /// 
     /// </summary>
-    /// <param name="dataset">The Change Workitem State request DICOM dataset</param>
+    /// <param name="requestDataset">The Change Workitem State request DICOM dataset</param>
     /// <param name="workitemMetadata">The Workitem Metadata</param>
-    internal static void ValidateWorkitemState(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata)
+    internal static WorkitemStateTransitionResult ValidateWorkitemState(DicomDataset requestDataset, WorkitemMetadataStoreEntry workitemMetadata)
     {
-        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(requestDataset, nameof(requestDataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
         // the request Transaction UID must match the current Transaction UID.
-        var transactionUid = dataset.GetString(DicomTag.TransactionUID);
-        if (!string.IsNullOrWhiteSpace(workitemMetadata.TransactionUid) &&
-            !string.Equals(workitemMetadata.TransactionUid, transactionUid, System.StringComparison.Ordinal))
-        {
-            throw new DatasetValidationException(
-                FailureReasonCodes.ValidationFailure,
-                DicomCoreResource.InvalidTransactionUID);
-        }
+        var transactionUid = requestDataset.GetString(DicomTag.TransactionUID);
+        var hasMatchingTransactionUid = string.IsNullOrWhiteSpace(workitemMetadata.TransactionUid) ||
+            string.Equals(workitemMetadata.TransactionUid, transactionUid, System.StringComparison.Ordinal);
 
         // Check for the transition state rule validity
-        var targetProcedureStepStateStringValue = dataset.GetString(DicomTag.ProcedureStepState);
+        var targetProcedureStepStateStringValue = requestDataset.GetString(DicomTag.ProcedureStepState);
         var targetProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(targetProcedureStepStateStringValue);
 
-        var actionEvent = (targetProcedureStepState == ProcedureStepState.InProgress)
-            ? WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID
-            : (targetProcedureStepState == ProcedureStepState.Canceled)
-                ? WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID
-                : WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID;
+        WorkitemActionEvent actionEvent = WorkitemActionEvent.NActionToInProgress;
+        switch (targetProcedureStepState)
+        {
+            case ProcedureStepState.Canceled:
+                actionEvent = WorkitemActionEvent.NActionToCanceled;
+                break;
+            case ProcedureStepState.Completed:
+                actionEvent = WorkitemActionEvent.NActionToCompleted;
+                break;
+        }
 
         // Check the state transition validity
-        var calculatedTransitionState = ProcedureStepStateExtensions.GetTransitionState(workitemMetadata.ProcedureStepState, actionEvent);
+        var calculatedTransitionState = ProcedureStepStateExtensions.GetTransitionState(
+            workitemMetadata.ProcedureStepState,
+            actionEvent,
+            hasMatchingTransactionUid);
+
         if (calculatedTransitionState.IsError)
         {
             throw new DatasetValidationException(
@@ -89,5 +92,7 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
                     targetProcedureStepStateStringValue,
                     calculatedTransitionState.Code));
         }
+
+        return calculatedTransitionState;
     }
 }

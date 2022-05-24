@@ -47,57 +47,36 @@ public partial class WorkitemService
                 return _responseBuilder.BuildChangeWorkitemStateResponse();
             }
 
-            ValidateChangeWorkitemStateRequest(dataset, workitemMetadata);
-
+            var transitionStateResult = ValidateChangeWorkitemStateRequest(dataset, workitemMetadata);
             var originalBlobDicomDataset = await _workitemOrchestrator
                 .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
-            var updateDataset = GetPreparedChangeWorkitemStateDicomDataset(dataset, originalBlobDicomDataset);
 
+            var updateDataset = GetPreparedChangeWorkitemStateDicomDataset(dataset, originalBlobDicomDataset);
             var targetProcedureStepState = updateDataset.GetProcedureStepState();
 
-            // Change state to Canceled
-            if (ProcedureStepState.Canceled == targetProcedureStepState)
+            updateDataset.ValidateFinalStateRequirement();
+
+            if (transitionStateResult.HasWarningWithCode)
             {
-                var transitionStateResult = workitemMetadata
-                    .ProcedureStepState
-                    .GetTransitionState(WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID);
-
-                await ValidateAndCancelWorkitemAsync(updateDataset, workitemInstanceUid, workitemMetadata, transitionStateResult, cancellationToken);
-
-                return _responseBuilder.BuildChangeWorkitemStateResponse();
+                _responseBuilder.AddSuccess(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.WorkitemIsInFinalState,
+                        workitemMetadata.ProcedureStepStateStringValue,
+                        transitionStateResult.Code));
             }
-
-            // Change state to Completed
-            if (ProcedureStepState.Completed == targetProcedureStepState)
+            else
             {
-                updateDataset.ValidateFinalStateRequirement();
+                await _workitemOrchestrator.UpdateWorkitemStateAsync(
+                        updateDataset,
+                        workitemMetadata,
+                        dataset.GetProcedureStepState(),
+                        cancellationToken)
+                    .ConfigureAwait(false);
 
-                var transitionStateResult = workitemMetadata
-                    .ProcedureStepState
-                    .GetTransitionState(WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID);
-
-                if (transitionStateResult.HasWarningWithCode)
-                {
-                    _responseBuilder.AddSuccess(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCoreResource.WorkitemIsInFinalState,
-                            workitemMetadata.ProcedureStepStateStringValue,
-                            transitionStateResult.Code));
-
-                    return _responseBuilder.BuildChangeWorkitemStateResponse();
-                }
+                _responseBuilder.AddSuccess(string.Empty);
             }
-
-            await _workitemOrchestrator.UpdateWorkitemStateAsync(
-                    updateDataset,
-                    workitemMetadata,
-                    dataset.GetProcedureStepState(),
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            _responseBuilder.AddSuccess(string.Empty);
         }
         catch (Exception ex)
         {
@@ -138,12 +117,10 @@ public partial class WorkitemService
         return resultDataset;
     }
 
-    private void ValidateChangeWorkitemStateRequest(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata)
+    private static WorkitemStateTransitionResult ValidateChangeWorkitemStateRequest(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata)
     {
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
-        GetValidator<ChangeWorkitemStateDatasetValidator>().Validate(dataset);
-
-        ChangeWorkitemStateDatasetValidator.ValidateWorkitemState(dataset, workitemMetadata);
+        return ChangeWorkitemStateDatasetValidator.ValidateWorkitemState(dataset, workitemMetadata);
     }
 }
