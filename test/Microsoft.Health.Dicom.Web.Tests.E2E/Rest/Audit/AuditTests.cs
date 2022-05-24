@@ -216,10 +216,8 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
 
         var expectedUri = new Uri($"http://localhost/{DicomApiVersions.Latest}/{expectedPathSegment}");
 
-        var auditEntry = _auditLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri);
-
         Assert.Collection(
-            auditEntry,
+            _auditLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri),
             ae => ValidateExecutingAuditEntry(ae, expectedAction, expectedUri),
             ae => ValidateExecutedAuditEntry(ae, expectedAction, expectedUri, expectedStatusCode));
     }
