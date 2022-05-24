@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
@@ -23,6 +24,7 @@ public partial class WorkitemController
     /// State changes are used to claim ownership, complete, or cancel a Workitem.
     /// </summary>
     [HttpPut]
+    [Consumes(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]

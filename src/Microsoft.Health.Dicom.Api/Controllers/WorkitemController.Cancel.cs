@@ -36,6 +36,7 @@ public partial class WorkitemController
     /// </remarks>
     /// <param name="workitemInstanceUid">The workitem Uid</param>
     /// <returns>Returns a string status report.</returns>
+    [HttpPost]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [Consumes(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.Accepted)]
@@ -43,7 +44,6 @@ public partial class WorkitemController
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
-    [HttpPost]
     [VersionedPartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionCancelWorkitemInstance)]
     [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
     [AuditEventType(AuditEventSubType.CancelWorkitem)]
