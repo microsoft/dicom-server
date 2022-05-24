@@ -64,11 +64,7 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
         string workitemUid = DicomUID.Generate().UID;
         DicomTag tag2 = DicomTag.PatientName;
 
-        var dataset = new DicomDataset
-        {
-            { DicomTag.SOPInstanceUID, workitemUid },
-            { DicomTag.PatientName, "Foo" }
-        };
+        var dataset = CreateSampleDataset(workitemUid, DicomTag.PatientName);
 
         var queryTags = new List<QueryTag>()
         {
