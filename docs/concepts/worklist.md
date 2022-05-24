@@ -160,7 +160,7 @@ This transaction will only succeed against Workitems in the `SCHEDULED` state. A
 setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
 the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
 forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
-return failure. An owned Workitem can be cancelled via the Change Workitem State transaction.
+return failure. An owned Workitem can be canceled via the Change Workitem State transaction.
 
 | Method  | Path                                            | Description                                      |
 | :------ | :---------------------------------------------- | :----------------------------------------------- |
@@ -184,7 +184,7 @@ The request payload may include Action Information as [defined in the DICOM Stan
 ### Request Cancellation Response Payload
 
 A success response will have no payload, and a failure response payload will contain a message describing the failure.
-If the Workitem Instance is already in a cancelled state, the response will include the following HTTP Warning header:
+If the Workitem Instance is already in a canceled state, the response will include the following HTTP Warning header:
 `299: The UPS is already in the requested state of CANCELED.`
 
 
@@ -236,7 +236,7 @@ The request payload shall contain the Change UPS State Data Elements. These data
 The request payload shall include a Transaction UID. The user agent creates the Transaction UID when requesting a transition to the IN PROGRESS state for a given Workitem. The user agent provides that Transaction UID in subsequent transactions with that Workitem.
 
 * **Procedure Step State (0074,1000)**
-The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELLED".
+The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELED".
 
 
 ### Change Workitem State Response Status Codes
