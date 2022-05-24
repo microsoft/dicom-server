@@ -71,6 +71,8 @@ public partial class WorkitemService
             // Change state to Completed
             if (ProcedureStepState.Completed == targetProcedureStepState)
             {
+                updateDataset.ValidateFinalStateRequirement();
+
                 var transitionStateResult = workitemMetadata
                     .ProcedureStepState
                     .GetTransitionState(WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID);
