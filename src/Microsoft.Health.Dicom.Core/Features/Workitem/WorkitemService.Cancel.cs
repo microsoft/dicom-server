@@ -29,6 +29,7 @@ public partial class WorkitemService
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
         var workitemMetadata = await _workitemOrchestrator
             .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
