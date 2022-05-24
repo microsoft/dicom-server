@@ -23,7 +23,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 /// </summary>
 public partial class WorkitemService
 {
-    public async Task<CancelWorkitemResponse> ProcessCancelAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
+    public async Task<CancelWorkitemResponse> ProcessCancelAsync(
+        DicomDataset dataset,
+        string workitemInstanceUid,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 
@@ -44,11 +47,28 @@ public partial class WorkitemService
         var transitionStateResult = workitemMetadata
             .ProcedureStepState
             .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
-
         var cancelRequestDataset = await PrepareRequestCancelWorkitemBlobDatasetAsync(
                 dataset, workitemMetadata, transitionStateResult.State, cancellationToken)
             .ConfigureAwait(false);
 
+        await ValidateAndCancelWorkitemAsync(
+                cancelRequestDataset,
+                workitemInstanceUid,
+                workitemMetadata,
+                transitionStateResult,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        return _responseBuilder.BuildCancelResponse();
+    }
+
+    private async Task ValidateAndCancelWorkitemAsync(
+        DicomDataset cancelRequestDataset,
+        string workitemInstanceUid,
+        WorkitemMetadataStoreEntry workitemMetadata,
+        WorkitemStateTransitionResult transitionStateResult,
+        CancellationToken cancellationToken)
+    {
         if (ValidateCancelRequest(workitemInstanceUid, workitemMetadata, cancelRequestDataset, transitionStateResult))
         {
             // If there is a warning code, the workitem is already in the canceled state.
@@ -71,8 +91,6 @@ public partial class WorkitemService
                     .ConfigureAwait(false);
             }
         }
-
-        return _responseBuilder.BuildCancelResponse();
     }
 
     private async Task<DicomDataset> PrepareRequestCancelWorkitemBlobDatasetAsync(

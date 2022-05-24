@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -31,6 +32,8 @@ public partial class WorkitemService
 
         try
         {
+            GetValidator<ChangeWorkitemStateDatasetValidator>().Validate(dataset);
+
             var workitemMetadata = await _workitemOrchestrator
                 .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
                 .ConfigureAwait(false);
@@ -46,13 +49,44 @@ public partial class WorkitemService
 
             ValidateChangeWorkitemStateRequest(dataset, workitemMetadata);
 
-            // TODO: Update TransactionUID in SQL
-
             var originalBlobDicomDataset = await _workitemOrchestrator
                 .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
-
             var updateDataset = PrepareChangeWorkitemStateDicomDataset(dataset, originalBlobDicomDataset);
+
+            var targetProcedureStepState = updateDataset.GetProcedureStepState();
+
+            // Change state to Canceled
+            if (ProcedureStepState.Canceled == targetProcedureStepState)
+            {
+                var transitionStateResult = workitemMetadata
+                    .ProcedureStepState
+                    .GetTransitionState(WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID);
+
+                await ValidateAndCancelWorkitemAsync(updateDataset, workitemInstanceUid, workitemMetadata, transitionStateResult, cancellationToken);
+
+                return _responseBuilder.BuildChangeWorkitemStateResponse();
+            }
+
+            // Change state to Completed
+            if (ProcedureStepState.Completed == targetProcedureStepState)
+            {
+                var transitionStateResult = workitemMetadata
+                    .ProcedureStepState
+                    .GetTransitionState(WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID);
+
+                if (transitionStateResult.HasWarningWithCode)
+                {
+                    _responseBuilder.AddSuccess(
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.WorkitemIsInFinalState,
+                            workitemMetadata.ProcedureStepState,
+                            transitionStateResult.Code));
+
+                    return _responseBuilder.BuildChangeWorkitemStateResponse();
+                }
+            }
 
             await _workitemOrchestrator.UpdateWorkitemStateAsync(
                     updateDataset,

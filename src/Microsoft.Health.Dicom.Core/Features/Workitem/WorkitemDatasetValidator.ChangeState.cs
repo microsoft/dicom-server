@@ -79,7 +79,7 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
 
         // Check the state transition validity
         var calculatedTransitionState = ProcedureStepStateExtensions.GetTransitionState(workitemMetadata.ProcedureStepState, actionEvent);
-        if (calculatedTransitionState.IsError || calculatedTransitionState.HasWarningWithCode)
+        if (calculatedTransitionState.IsError)
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,
