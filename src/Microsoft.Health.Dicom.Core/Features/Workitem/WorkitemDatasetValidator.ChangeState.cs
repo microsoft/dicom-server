@@ -89,16 +89,5 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
                     targetProcedureStepStateStringValue,
                     calculatedTransitionState.Code));
         }
-
-        // Check if the workitem is locked for read-write
-        if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
-        {
-            throw new DatasetValidationException(
-                FailureReasonCodes.UpsInstanceUpdateNotAllowed,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemUpdateIsNotAllowed,
-                    workitemMetadata.ProcedureStepStateStringValue));
-        }
     }
 }

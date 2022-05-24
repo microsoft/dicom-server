@@ -63,17 +63,14 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
 
         if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
         {
-            // There are only success. - 200
             status = WorkitemResponseStatus.Success;
         }
         else if (WorkitemConflictFailureReasonCodes.Contains(failureReason))
         {
-            // 409
             status = WorkitemResponseStatus.Conflict;
         }
         else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
         {
-            // 404
             status = WorkitemResponseStatus.NotFound;
         }
 
@@ -86,7 +83,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
 
         if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
         {
-            // There are only success.
             status = WorkitemResponseStatus.Success;
         }
         else if (failureReason == FailureReasonCodes.ValidationFailure)

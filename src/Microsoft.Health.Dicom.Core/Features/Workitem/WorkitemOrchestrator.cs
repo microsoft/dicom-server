@@ -101,6 +101,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
+        // Check if the workitem is locked for read-write
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
             throw new DataStoreException(
