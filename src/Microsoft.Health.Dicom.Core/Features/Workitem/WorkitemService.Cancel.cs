@@ -47,7 +47,7 @@ public partial class WorkitemService
         var transitionStateResult = workitemMetadata
             .ProcedureStepState
             .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
-        var cancelRequestDataset = await PrepareRequestCancelWorkitemBlobDatasetAsync(
+        var cancelRequestDataset = await GetPreparedRequestCancelWorkitemBlobDatasetAsync(
                 dataset, workitemMetadata, transitionStateResult.State, cancellationToken)
             .ConfigureAwait(false);
 
@@ -93,7 +93,7 @@ public partial class WorkitemService
         }
     }
 
-    private async Task<DicomDataset> PrepareRequestCancelWorkitemBlobDatasetAsync(
+    private async Task<DicomDataset> GetPreparedRequestCancelWorkitemBlobDatasetAsync(
         DicomDataset dataset,
         WorkitemMetadataStoreEntry workitemMetadata,
         ProcedureStepState targetProcedureStepState,

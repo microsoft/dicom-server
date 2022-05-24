@@ -52,7 +52,7 @@ public partial class WorkitemService
             var originalBlobDicomDataset = await _workitemOrchestrator
                 .GetWorkitemBlobAsync(workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
-            var updateDataset = PrepareChangeWorkitemStateDicomDataset(dataset, originalBlobDicomDataset);
+            var updateDataset = GetPreparedChangeWorkitemStateDicomDataset(dataset, originalBlobDicomDataset);
 
             var targetProcedureStepState = updateDataset.GetProcedureStepState();
 
@@ -127,7 +127,7 @@ public partial class WorkitemService
         return _responseBuilder.BuildChangeWorkitemStateResponse();
     }
 
-    private static DicomDataset PrepareChangeWorkitemStateDicomDataset(DicomDataset dataset, DicomDataset originalBlobDicomDataset)
+    private static DicomDataset GetPreparedChangeWorkitemStateDicomDataset(DicomDataset dataset, DicomDataset originalBlobDicomDataset)
     {
         var resultDataset = originalBlobDicomDataset
             .AddOrUpdate(DicomTag.TransactionUID, dataset.GetString(DicomTag.TransactionUID))
