@@ -19,6 +19,7 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         var uri = GenerateWorkitemAddRequestUri(workitemUid, partitionName);
 
@@ -29,6 +30,7 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse> CancelWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         var uri = GenerateWorkitemCancelRequestUri(workitemUid, partitionName);
 
@@ -38,6 +40,8 @@ public partial class DicomWebClient : IDicomWebClient
 
     public async Task<DicomWebResponse<DicomDataset>> RetrieveWorkitemAsync(string workitemUid, string partitionName = default, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
         var requestUri = GenerateWorkitemRetrieveRequestUri(workitemUid, partitionName);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -63,6 +67,7 @@ public partial class DicomWebClient : IDicomWebClient
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         var uri = GenerateChangeWorkitemStateRequestUri(workitemUid, partitionName);
 
@@ -72,6 +77,8 @@ public partial class DicomWebClient : IDicomWebClient
 
     public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsNotEmptyOrWhiteSpace(queryString, nameof(queryString));
+
         var requestUri = GenerateRequestUri(DicomWebConstants.WorkitemUriString + GetQueryParamUriString(queryString), partitionName);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -95,6 +102,7 @@ public partial class DicomWebClient : IDicomWebClient
         HttpMethod httpMethod = null,
         CancellationToken cancellationToken = default) where TContent : class
     {
+        EnsureArg.IsNotNull(uri, nameof(uri));
         EnsureArg.IsNotNull(requestContent, nameof(requestContent));
 
         string jsonString = JsonSerializer.Serialize(requestContent, JsonSerializerOptions);
