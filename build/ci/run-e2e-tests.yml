@@ -16,10 +16,10 @@ jobs:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: |
-        for name in $(az keyvault secret list --vault-name "$(deploymentName)-ts" | jq '.[] | .name')
+        for name in $(az keyvault secret list --vault-name "$(deploymentName)-ts" | jq -r '.[] | .name')
         do
             envVar=$(sed "s/--/__/g" <<< $name)
-            value=$(az keyvault secret show --name $name --vault-name "$(deploymentName)-ts" | jq '.value')
+            value=$(az keyvault secret show --name $name --vault-name "$(deploymentName)-ts" | jq -r '.value')
             echo "##vso[task.setvariable variable=$envVar]$value"
         done
       failOnStandardError: true
