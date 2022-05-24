@@ -78,7 +78,7 @@ public partial class WorkitemService
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.WorkitemIsInFinalState,
-                        workitemMetadata.ProcedureStepState,
+                        workitemMetadata.ProcedureStepStateStringValue,
                         transitionStateResult.Code));
             }
             else
