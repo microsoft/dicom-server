@@ -33,11 +33,7 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
         string workitemUid = DicomUID.Generate().UID;
         DicomTag tag2 = DicomTag.PatientName;
 
-        var dataset = new DicomDataset
-        {
-            { DicomTag.SOPInstanceUID, workitemUid },
-            { DicomTag.PatientName, "Foo" }
-        };
+        var dataset = CreateSampleDataset(workitemUid, tag2);
 
         var queryTags = new List<QueryTag>()
         {
@@ -64,7 +60,7 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
         string workitemUid = DicomUID.Generate().UID;
         DicomTag tag2 = DicomTag.PatientName;
 
-        var dataset = CreateSampleDataset(workitemUid, DicomTag.PatientName);
+        var dataset = CreateSampleDataset(workitemUid, tag2);
 
         var queryTags = new List<QueryTag>()
         {
