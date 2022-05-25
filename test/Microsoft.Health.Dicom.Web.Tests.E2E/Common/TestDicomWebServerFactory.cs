@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Dicom.Tests.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
@@ -11,23 +13,32 @@ public class TestDicomWebServerFactory
 {
     public static TestDicomWebServer GetTestDicomWebServer(Type startupType, bool enableDataPartitions = false)
     {
-        string environmentUrl = GetEnvironmentUrl(enableDataPartitions);
+        var options = new TestEnvironmentOptions();
+        TestEnvironment.Variables.Bind(options);
 
-        if (string.IsNullOrEmpty(environmentUrl))
+        Uri environmentUrl = enableDataPartitions ? options.TestFeaturesEnabledEnvironmentUrl : options.TestEnvironmentUrl;
+
+        if (environmentUrl == null)
         {
             return new InProcTestDicomWebServer(startupType, enableDataPartitions);
         }
-
-        if (environmentUrl[^1] != '/')
+        else if (!environmentUrl.IsAbsoluteUri)
         {
-            environmentUrl += "/";
+            throw new InvalidOperationException("Environment URL must be absolute");
         }
 
-        return new RemoteTestDicomWebServer(new Uri(environmentUrl));
+        if (environmentUrl.AbsoluteUri[^1] != '/')
+        {
+            environmentUrl = new Uri(environmentUrl.AbsoluteUri + "/", UriKind.Absolute);
+        }
+
+        return new RemoteTestDicomWebServer(environmentUrl);
     }
 
-    private static string GetEnvironmentUrl(bool enableDataPartitions = false)
+    private sealed class TestEnvironmentOptions
     {
-        return enableDataPartitions ? Environment.GetEnvironmentVariable("TestFeaturesEnabledEnvironmentUrl") : Environment.GetEnvironmentVariable("TestEnvironmentUrl");
+        public Uri TestEnvironmentUrl { get; set; }
+
+        public Uri TestFeaturesEnabledEnvironmentUrl { get; set; }
     }
 }

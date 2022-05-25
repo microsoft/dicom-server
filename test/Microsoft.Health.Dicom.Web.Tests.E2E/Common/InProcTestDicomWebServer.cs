@@ -18,6 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Development.IdentityProvider.Registration;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E;
@@ -71,7 +72,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");
                 if (string.Equals(existingConfig["DicomServer:Security:Enabled"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
                 {
-                    Environment.SetEnvironmentVariable("security_enabled", "true");
+                    TestEnvironment.Variables["security_enabled"] = "true";
                 }
             })
             .ConfigureServices(serviceCollection =>
