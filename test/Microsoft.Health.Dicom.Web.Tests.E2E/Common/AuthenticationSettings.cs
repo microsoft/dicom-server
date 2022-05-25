@@ -21,5 +21,6 @@ public static class AuthenticationSettings
 
     public static Uri TokenUri { get; } = new Uri(TestEnvironment.Variables["security_tokenUrl"] ?? "https://inprochost/connect/token");
 
-    public static bool SecurityEnabled { get; } = string.Equals(TestEnvironment.Variables["security_enabled"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+    // This is resolved lazily in case the value is modified
+    public static bool SecurityEnabled => string.Equals(TestEnvironment.Variables["security_enabled"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
 }
