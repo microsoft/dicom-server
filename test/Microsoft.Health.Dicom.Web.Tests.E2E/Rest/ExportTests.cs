@@ -13,7 +13,10 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -21,6 +24,7 @@ using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Microsoft.Health.Operations;
 using Xunit;
+using Xunit.Abstractions;
 using FunctionsStartup = Microsoft.Health.Dicom.Functions.App.Startup;
 using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
@@ -35,21 +39,38 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private const string ExpectedPathPattern = "{0}/Results/{1}/{2}/{3}.dcm";
 
-    public ExportTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
+    public ExportTests(ITestOutputHelper outputHelper, WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _instanceManager = new DicomInstancesManager(_client);
 
         IConfigurationSection exportSection = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string>
+                {
+                    { "Tests:Export:Client:ConnectionString", "UseDevelopmentStorage=true" },
+                })
             .AddEnvironmentVariables()
             .Build()
             .GetSection("Tests:Export");
 
+        IServiceCollection services = new ServiceCollection()
+            .AddLogging(b => b.AddXUnit(outputHelper));
+
+        services.AddAzureClients(
+            b => b.AddBlobServiceClient(exportSection.GetSection("Client")));
+
         var options = new ExportTestOptions();
         exportSection.Bind(options);
 
-        _containerClient = new BlobContainerClient(options.ClientBlobUrl);
-        _destination = ExportDestination.ForAzureBlobStorage(options.SinkBlobUrl);
+        _containerClient = services
+            .BuildServiceProvider()
+            .GetRequiredService<BlobServiceClient>()
+            .GetBlobContainerClient(options.Client.BlobContainerName);
+
+        _destination = options.Sink.ContainerUri != null
+            ? ExportDestination.ForAzureBlobStorage(options.Sink.ContainerUri)
+            : ExportDestination.ForAzureBlobStorage(options.Sink.ConnectionString, options.Sink.BlobContainerName);
     }
 
     [Fact]
@@ -107,7 +128,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         OperationState<DicomOperation> result = await _client.WaitForCompletionAsync(operation.Id);
         Assert.Equal(OperationStatus.Completed, result.Status);
 
-        // Validate the results
+        // Validate the export by querying the blob container
         List<BlobItem> actual = await _containerClient
             .GetBlobsAsync()
             .Where(x => x.Name.StartsWith(operation.Id.ToString(OperationId.FormatSpecifier)) && x.Name.EndsWith(".dcm"))
@@ -120,10 +141,12 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             using Stream data = await blobClient.OpenReadAsync();
             DicomFile file = await GetDicomFileAsync(data);
 
-            // TODO: Compare DICOM file
             DicomIdentifier identifier = DicomIdentifier.ForInstance(file.Dataset);
-            Assert.True(instances.Remove(identifier));
+            Assert.True(instances.TryGetValue(identifier, out DicomDataset expected));
             Assert.Equal(GetExpectedPath(operation.Id, identifier), blob.Name);
+
+            await AssertEqualBinaryAsync(expected, data);
+            instances.Remove(identifier);
         }
     }
 
@@ -132,6 +155,16 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     public Task DisposeAsync()
         => _instanceManager.DisposeAsync().AsTask();
+
+    private async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
+    {
+        using var buffer = new MemoryStream();
+        await new DicomFile(expected).SaveAsync(buffer);
+        buffer.Seek(0, SeekOrigin.Begin);
+        actual.Seek(0, SeekOrigin.Begin);
+
+        Assert.Equal(buffer, actual, BinaryComparer.Instance);
+    }
 
     private static async Task<DicomFile> GetDicomFileAsync(Stream stream)
     {
@@ -154,8 +187,17 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private sealed class ExportTestOptions
     {
-        public Uri ClientBlobUrl { get; set; } = new Uri("http://127.0.0.1:10000/devstoreaccount1/export-e2e-test");
+        public ExportBlobClientOptions Client { get; set; } = new ExportBlobClientOptions();
 
-        public Uri SinkBlobUrl { get; set; } = new Uri("http://127.0.0.1:10000/devstoreaccount1/export-e2e-test");
+        public Core.Models.Export.AzureBlobExportOptions Sink { get; set; } = new Core.Models.Export.AzureBlobExportOptions
+        {
+            ConnectionString = "UseDevelopmentStorage=true",
+            BlobContainerName = "export-e2e-test",
+        };
+    }
+
+    private sealed class ExportBlobClientOptions
+    {
+        public string BlobContainerName { get; set; } = "export-e2e-test";
     }
 }

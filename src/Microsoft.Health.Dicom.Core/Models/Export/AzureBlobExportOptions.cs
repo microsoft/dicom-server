@@ -16,7 +16,7 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
 
     public string ConnectionString { get; set; }
 
-    public string ContainerName { get; set; }
+    public string BlobContainerName { get; set; }
 
     [JsonProperty] // Newtonsoft is only used internally while this property would be ignored by System.Text.Json
     internal SecretKey Secret { get; set; }
@@ -31,10 +31,10 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
         var results = new List<ValidationResult>();
         if (ContainerUri == null)
         {
-            if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(ContainerName))
+            if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(BlobContainerName))
                 results.Add(new ValidationResult(DicomCoreResource.MissingExportBlobConnection));
         }
-        else if (!string.IsNullOrWhiteSpace(ConnectionString) || !string.IsNullOrWhiteSpace(ContainerName))
+        else if (!string.IsNullOrWhiteSpace(ConnectionString) || !string.IsNullOrWhiteSpace(BlobContainerName))
         {
             results.Add(new ValidationResult(DicomCoreResource.ConflictingExportBlobConnections));
         }

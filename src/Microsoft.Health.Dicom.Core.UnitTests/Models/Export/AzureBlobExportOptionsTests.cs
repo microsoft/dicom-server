@@ -19,12 +19,12 @@ public class AzureBlobExportOptionsTests
     [InlineData("https://unit-test.blob.core.windows.net/mycontainer", "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", null)]
     [InlineData("https://unit-test.blob.core.windows.net/mycontainer", null, "mycontainer")]
     [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "URIs cannot be used inline.")]
-    public void GivenInvalidOptions_WhenValidating_ThenReturnFailures(string containerUri, string connectionString, string containerName)
+    public void GivenInvalidOptions_WhenValidating_ThenReturnFailures(string containerUri, string connectionString, string blobContainerName)
     {
         var options = new AzureBlobExportOptions
         {
             ConnectionString = connectionString,
-            ContainerName = containerName,
+            BlobContainerName = blobContainerName,
             ContainerUri = containerUri != null ? new Uri(containerUri, UriKind.Absolute) : null,
         };
 

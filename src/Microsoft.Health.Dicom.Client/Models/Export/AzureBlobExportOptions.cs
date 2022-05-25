@@ -13,5 +13,5 @@ internal sealed class AzureBlobExportOptions
 
     public string ConnectionString { get; init; }
 
-    public string ContainerName { get; init; }
+    public string BlobContainerName { get; init; }
 }

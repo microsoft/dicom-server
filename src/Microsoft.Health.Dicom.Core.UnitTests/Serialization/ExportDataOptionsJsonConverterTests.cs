@@ -108,7 +108,7 @@ public class ExportDataOptionsJsonConverterTests
   ""type"": ""azureblob"",
   ""settings"": {
     ""connnectionStrong"":""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerNamee"": ""mycontainer""
+    ""blobContainerNamee"": ""mycontainer""
   }
 }";
 
@@ -117,7 +117,7 @@ public class ExportDataOptionsJsonConverterTests
 
         var options = actual.Settings as AzureBlobExportOptions;
         Assert.Null(options.ConnectionString);
-        Assert.Null(options.ContainerName);
+        Assert.Null(options.BlobContainerName);
         Assert.Null(options.ContainerUri);
     }
 
@@ -156,7 +156,7 @@ public class ExportDataOptionsJsonConverterTests
   ""type"": ""azureblob"",
   ""settings"": {
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerName"": ""mycontainer"",
+    ""blobContainerName"": ""mycontainer"",
     ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""secret"": {
       ""name"": ""foo"",
@@ -170,7 +170,7 @@ public class ExportDataOptionsJsonConverterTests
 
         var options = actual.Settings as AzureBlobExportOptions;
         Assert.Equal("BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", options.ConnectionString);
-        Assert.Equal("mycontainer", options.ContainerName);
+        Assert.Equal("mycontainer", options.BlobContainerName);
         Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.ContainerUri);
         Assert.Null(options.Secret);
     }
@@ -235,7 +235,7 @@ public class ExportDataOptionsJsonConverterTests
             new AzureBlobExportOptions
             {
                 ConnectionString = "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar",
-                ContainerName = "mycontainer",
+                BlobContainerName = "mycontainer",
                 ContainerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer"),
                 Secret = new SecretKey { Name = "foo", Version = "1" },
             });
@@ -247,7 +247,7 @@ public class ExportDataOptionsJsonConverterTests
   ""settings"": {
     ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerName"": ""mycontainer""
+    ""blobContainerName"": ""mycontainer""
   }
 }",
             actual);

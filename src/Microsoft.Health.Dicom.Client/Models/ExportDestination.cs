@@ -39,25 +39,25 @@ public static class ExportDestination
     /// The <paramref name="connectionString"/> may contain a SAS token for authentication.
     /// </remarks>
     /// <param name="connectionString">A connection string for the Azure Blob Storage account.</param>
-    /// <param name="containerName">The name of the blob container.</param>
+    /// <param name="blobContainerName">The name of the blob container.</param>
     /// <returns>The corresponding export destination options.</returns>
     /// <exception cref="ArgumentException">
-    /// <paramref name="connectionString"/> or <paramref name="containerName"/> is empty or
+    /// <paramref name="connectionString"/> or <paramref name="blobContainerName"/> is empty or
     /// consists of white space characters.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="connectionString"/> or <paramref name="containerName"/> is <see langword="null"/>.
+    /// <paramref name="connectionString"/> or <paramref name="blobContainerName"/> is <see langword="null"/>.
     /// </exception>
-    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(string connectionString, string containerName)
+    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(string connectionString, string blobContainerName)
     {
         EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
-        EnsureArg.IsNotNullOrWhiteSpace(containerName, nameof(containerName));
+        EnsureArg.IsNotNullOrWhiteSpace(blobContainerName, nameof(blobContainerName));
         return new ExportDataOptions<ExportDestinationType>(
             ExportDestinationType.AzureBlob,
             new AzureBlobExportOptions
             {
                 ConnectionString = connectionString,
-                ContainerName = containerName,
+                BlobContainerName = blobContainerName,
             });
     }
 }
