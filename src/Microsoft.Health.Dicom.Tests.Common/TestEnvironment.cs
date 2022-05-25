@@ -3,16 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Health.Dicom.Tests.Common;
 
-public static class EnvironmentVariables
+public static class TestEnvironment
 {
-    public static string GetEnvironmentVariableWithDefault(string environmentVariableName, string defaultValue)
-    {
-        var environmentVariable = Environment.GetEnvironmentVariable(environmentVariableName);
-
-        return string.IsNullOrWhiteSpace(environmentVariable) ? defaultValue : environmentVariable;
-    }
+    public static IConfiguration Variables { get; } = new ConfigurationBuilder()
+        .AddEnvironmentVariables()
+        .Build();
 }

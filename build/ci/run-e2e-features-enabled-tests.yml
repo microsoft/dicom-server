@@ -9,20 +9,21 @@ jobs:
     inputs:
       useGlobalJson: true
 
-  - task: AzureCLI@2
+  - task: AzurePowerShell@4
     displayName: 'Set Secret Variables'
     inputs:
-      azureSubscription: '$(azureSubscriptionName)'
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      inlineScript: |
-        for name in $(az keyvault secret list --vault-name "$(deploymentName)-ts" | jq -r '.[] | .name')
-        do
-            envVar=$(sed "s/--/__/g" <<< $name)
-            value=$(az keyvault secret show --name $name --vault-name "$(deploymentName)-ts" | jq -r '.value')
-            echo "##vso[task.setvariable variable=$envVar]$value"
-        done
-      failOnStandardError: true
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: inlineScript
+      Inline: |
+        $secrets = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts
+
+        foreach($secret in $secrets)
+        {
+            $environmentVariableName = $secret.Name.Replace("--","_")
+            $secretValue = Get-AzKeyVaultSecret -VaultName $(deploymentName)-ts -Name $secret.Name -AsPlainText
+            Write-Host "##vso[task.setvariable variable=$($environmentVariableName)]$($secretValue)"
+        }
 
   - bash: |
       echo "##vso[task.setvariable variable=Resource]$(testFeaturesEnabledEnvironmentUrl)"
