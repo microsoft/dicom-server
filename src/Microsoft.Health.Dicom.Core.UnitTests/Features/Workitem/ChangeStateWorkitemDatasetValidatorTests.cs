@@ -28,7 +28,7 @@ public class ChangeStateWorkitemDatasetValidatorTests
         _requestDataset = new DicomDataset
         {
             { DicomTag.TransactionUID, _transactionUid },
-            { DicomTag.ProcedureStepState, ProcedureStepState.InProgress.GetStringValue() },
+            { DicomTag.ProcedureStepState, ProcedureStepStateConstants.InProgress },
         };
 
         // unclaimed workitem
@@ -46,7 +46,7 @@ public class ChangeStateWorkitemDatasetValidatorTests
     [Fact]
     public void GivenClaimedWorkitem_WhenCorrectTransactionUid_Succeeds()
     {
-        _requestDataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepState.Completed.GetStringValue());
+        _requestDataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepStateConstants.Completed);
         _currentWorkitem.TransactionUid = _transactionUid;
         _currentWorkitem.ProcedureStepState = ProcedureStepState.InProgress;
 
@@ -58,7 +58,7 @@ public class ChangeStateWorkitemDatasetValidatorTests
     [Fact]
     public void GivenClaimedWorkitem_WhenIncorrectTransactionUid_Throws()
     {
-        _requestDataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepState.Completed.GetStringValue());
+        _requestDataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepStateConstants.Completed);
         _currentWorkitem.TransactionUid = TestUidGenerator.Generate();
         _currentWorkitem.ProcedureStepState = ProcedureStepState.InProgress;
 
