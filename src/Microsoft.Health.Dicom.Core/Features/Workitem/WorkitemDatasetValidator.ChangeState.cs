@@ -43,7 +43,7 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
     }
 
     /// <summary>
-    /// Validates Workitem state in the store and procedure step state transition validity.
+    /// Validates that the passed Transaction UID matches (or has not yet 
     ///
     /// Throws <see cref="DatasetValidationException"/> when the workitem-metadata status is not read-write.
     /// Throws <see cref="DatasetValidationException"/> when the workitem-metadata transition state has error.
@@ -56,14 +56,16 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
         EnsureArg.IsNotNull(requestDataset, nameof(requestDataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
-        // the request Transaction UID must match the current Transaction UID.
-        var transactionUid = requestDataset.GetString(DicomTag.TransactionUID);
-        var hasMatchingTransactionUid = string.IsNullOrWhiteSpace(workitemMetadata.TransactionUid) ||
-            string.Equals(workitemMetadata.TransactionUid, transactionUid, System.StringComparison.Ordinal);
-
         // Check for the transition state rule validity
         var targetProcedureStepStateStringValue = requestDataset.GetString(DicomTag.ProcedureStepState);
         var targetProcedureStepState = ProcedureStepStateExtensions.GetProcedureStepState(targetProcedureStepStateStringValue);
+
+        // the request Transaction UID must match the current Transaction UID.
+        var transactionUid = requestDataset.GetString(DicomTag.TransactionUID);
+        var hasMatchingTransactionUid = string.Equals(workitemMetadata.TransactionUid, transactionUid, System.StringComparison.Ordinal);
+        var hasNewTransactionUid =
+            string.IsNullOrWhiteSpace(workitemMetadata.TransactionUid) &&
+            targetProcedureStepState == ProcedureStepState.InProgress;
 
         WorkitemActionEvent actionEvent = WorkitemActionEvent.NActionToInProgress;
         switch (targetProcedureStepState)
@@ -80,7 +82,7 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
         var calculatedTransitionState = ProcedureStepStateExtensions.GetTransitionState(
             workitemMetadata.ProcedureStepState,
             actionEvent,
-            hasMatchingTransactionUid);
+            hasNewTransactionUid || hasMatchingTransactionUid);
 
         if (calculatedTransitionState.IsError)
         {
