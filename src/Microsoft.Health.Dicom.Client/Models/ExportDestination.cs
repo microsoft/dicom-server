@@ -19,17 +19,17 @@ public static class ExportDestination
     /// Creates export destination options for Azure Blob storage based on a URI.
     /// </summary>
     /// <remarks>
-    /// The <paramref name="containerUri"/> may contain a SAS token for authentication.
+    /// The <paramref name="blobContainerUri"/> may contain a SAS token for authentication.
     /// </remarks>
-    /// <param name="containerUri">A URI specifying the Azure Blob container.</param>
+    /// <param name="blobContainerUri">A URI specifying the Azure Blob container.</param>
     /// <returns>The corresponding export destination options.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="containerUri"/> is <see langword="null"/>.</exception>
-    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(Uri containerUri)
+    /// <exception cref="ArgumentNullException"><paramref name="blobContainerUri"/> is <see langword="null"/>.</exception>
+    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(Uri blobContainerUri)
     {
-        EnsureArg.IsNotNull(containerUri, nameof(containerUri));
+        EnsureArg.IsNotNull(blobContainerUri, nameof(blobContainerUri));
         return new ExportDataOptions<ExportDestinationType>(
             ExportDestinationType.AzureBlob,
-            new AzureBlobExportOptions { ContainerUri = containerUri });
+            new AzureBlobExportOptions { BlobContainerUri = blobContainerUri });
     }
 
     /// <summary>

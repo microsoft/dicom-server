@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 
 internal sealed class AzureBlobExportOptions : IValidatableObject
 {
-    public Uri ContainerUri { get; set; }
+    public Uri BlobContainerUri { get; set; }
 
     public string ConnectionString { get; set; }
 
@@ -29,7 +29,7 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var results = new List<ValidationResult>();
-        if (ContainerUri == null)
+        if (BlobContainerUri == null)
         {
             if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(BlobContainerName))
                 results.Add(new ValidationResult(DicomCoreResource.MissingExportBlobConnection));

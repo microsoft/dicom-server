@@ -16,8 +16,8 @@ internal static class AzureBlobExportOptionsExtensions
         EnsureArg.IsNotNull(exportOptions, nameof(exportOptions));
         EnsureArg.IsNotNull(options, nameof(options));
 
-        return exportOptions.ContainerUri != null
-            ? new BlobContainerClient(exportOptions.ContainerUri, options)
+        return exportOptions.BlobContainerUri != null
+            ? new BlobContainerClient(exportOptions.BlobContainerUri, options)
             : new BlobContainerClient(exportOptions.ConnectionString, exportOptions.BlobContainerName, options);
     }
 }

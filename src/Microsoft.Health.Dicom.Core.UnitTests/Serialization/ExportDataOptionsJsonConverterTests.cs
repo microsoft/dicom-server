@@ -118,7 +118,7 @@ public class ExportDataOptionsJsonConverterTests
         var options = actual.Settings as AzureBlobExportOptions;
         Assert.Null(options.ConnectionString);
         Assert.Null(options.BlobContainerName);
-        Assert.Null(options.ContainerUri);
+        Assert.Null(options.BlobContainerUri);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class ExportDataOptionsJsonConverterTests
   ""settings"": {
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
     ""blobContainerName"": ""mycontainer"",
-    ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
+    ""blobContainerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""secret"": {
       ""name"": ""foo"",
       ""version"": ""1""
@@ -171,7 +171,7 @@ public class ExportDataOptionsJsonConverterTests
         var options = actual.Settings as AzureBlobExportOptions;
         Assert.Equal("BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", options.ConnectionString);
         Assert.Equal("mycontainer", options.BlobContainerName);
-        Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.ContainerUri);
+        Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.BlobContainerUri);
         Assert.Null(options.Secret);
     }
 
@@ -236,7 +236,7 @@ public class ExportDataOptionsJsonConverterTests
             {
                 ConnectionString = "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar",
                 BlobContainerName = "mycontainer",
-                ContainerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer"),
+                BlobContainerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer"),
                 Secret = new SecretKey { Name = "foo", Version = "1" },
             });
 
@@ -245,7 +245,7 @@ public class ExportDataOptionsJsonConverterTests
 @"{
   ""type"": ""azureBlob"",
   ""settings"": {
-    ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
+    ""blobContainerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
     ""blobContainerName"": ""mycontainer""
   }

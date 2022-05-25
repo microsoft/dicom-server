@@ -13,10 +13,8 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -24,7 +22,6 @@ using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Microsoft.Health.Operations;
 using Xunit;
-using Xunit.Abstractions;
 using FunctionsStartup = Microsoft.Health.Dicom.Functions.App.Startup;
 using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
@@ -39,37 +36,22 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private const string ExpectedPathPattern = "{0}/Results/{1}/{2}/{3}.dcm";
 
-    public ExportTests(ITestOutputHelper outputHelper, WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
+    public ExportTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _instanceManager = new DicomInstancesManager(_client);
 
-        IConfigurationSection exportSection = new ConfigurationBuilder()
-            .AddInMemoryCollection(
-                new Dictionary<string, string>
-                {
-                    { "Tests:Export:Client:ConnectionString", "UseDevelopmentStorage=true" },
-                })
-            .AddEnvironmentVariables()
-            .Build()
-            .GetSection("Tests:Export");
-
-        IServiceCollection services = new ServiceCollection()
-            .AddLogging(b => b.AddXUnit(outputHelper));
-
-        services.AddAzureClients(
-            b => b.AddBlobServiceClient(exportSection.GetSection("Client")));
+        IConfigurationSection exportSection = TestEnvironment.Variables.GetSection("Tests:Export");
 
         var options = new ExportTestOptions();
         exportSection.Bind(options);
 
-        _containerClient = services
-            .BuildServiceProvider()
-            .GetRequiredService<BlobServiceClient>()
-            .GetBlobContainerClient(options.Client.BlobContainerName);
+        _containerClient = options.Client.BlobContainerUri != null
+            ? new BlobContainerClient(options.Sink.BlobContainerUri)
+            : new BlobContainerClient(options.Sink.ConnectionString, options.Sink.BlobContainerName);
 
-        _destination = options.Sink.ContainerUri != null
-            ? ExportDestination.ForAzureBlobStorage(options.Sink.ContainerUri)
+        _destination = options.Sink.BlobContainerUri != null
+            ? ExportDestination.ForAzureBlobStorage(options.Sink.BlobContainerUri)
             : ExportDestination.ForAzureBlobStorage(options.Sink.ConnectionString, options.Sink.BlobContainerName);
     }
 
@@ -187,17 +169,16 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private sealed class ExportTestOptions
     {
-        public ExportBlobClientOptions Client { get; set; } = new ExportBlobClientOptions();
+        public Core.Models.Export.AzureBlobExportOptions Client { get; set; } = new Core.Models.Export.AzureBlobExportOptions
+        {
+            ConnectionString = "UseDevelopmentStorage=true",
+            BlobContainerName = "export-e2e-test",
+        };
 
         public Core.Models.Export.AzureBlobExportOptions Sink { get; set; } = new Core.Models.Export.AzureBlobExportOptions
         {
             ConnectionString = "UseDevelopmentStorage=true",
             BlobContainerName = "export-e2e-test",
         };
-    }
-
-    private sealed class ExportBlobClientOptions
-    {
-        public string BlobContainerName { get; set; } = "export-e2e-test";
     }
 }

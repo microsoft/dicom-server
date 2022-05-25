@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with ContainerUri..
+        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri..
         /// </summary>
         internal static string ConflictingExportBlobConnections {
             get {

@@ -132,7 +132,7 @@ public class AzureBlobExportSinkProviderTests
         var options = new AzureBlobExportOptions
         {
             ConnectionString = connectionString,
-            ContainerUri = containerUri,
+            BlobContainerUri = containerUri,
         };
 
         var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
@@ -142,7 +142,7 @@ public class AzureBlobExportSinkProviderTests
 
         Assert.Null(actual.Secret);
         Assert.Equal(connectionString, actual.ConnectionString);
-        Assert.Equal(containerUri, actual.ContainerUri);
+        Assert.Equal(containerUri, actual.BlobContainerUri);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class AzureBlobExportSinkProviderTests
         var options = new AzureBlobExportOptions
         {
             ConnectionString = connectionString,
-            ContainerUri = containerUri,
+            BlobContainerUri = containerUri,
         };
 
         using var tokenSource = new CancellationTokenSource();
@@ -176,9 +176,9 @@ public class AzureBlobExportSinkProviderTests
         Assert.Equal(version, actual.Secret.Version);
     }
 
-    private static string GetJson(Uri containerUri)
-        => $"{{\"containerUri\":\"{JavaScriptEncoder.Default.Encode(containerUri.AbsoluteUri)}\"}}";
+    private static string GetJson(Uri blobContainerUri)
+        => $"{{\"blobContainerUri\":\"{JavaScriptEncoder.Default.Encode(blobContainerUri.AbsoluteUri)}\"}}";
 
-    private static string GetJson(string connectionString, Uri containerUri)
-        => $"{{\"connectionString\":\"{JavaScriptEncoder.Default.Encode(connectionString)}\",\"containerUri\":\"{JavaScriptEncoder.Default.Encode(containerUri.AbsoluteUri)}\"}}";
+    private static string GetJson(string connectionString, Uri blobContainerUri)
+        => $"{{\"connectionString\":\"{JavaScriptEncoder.Default.Encode(connectionString)}\",\"blobContainerUri\":\"{JavaScriptEncoder.Default.Encode(blobContainerUri.AbsoluteUri)}\"}}";
 }

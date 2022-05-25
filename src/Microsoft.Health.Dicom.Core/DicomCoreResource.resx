@@ -604,7 +604,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>This operation does not support value types.</value>
   </data>
   <data name="ConflictingExportBlobConnections" xml:space="preserve">
-    <value>ConnectionString and BlobContainerName cannot be specified along with ContainerUri.</value>
+    <value>ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri.</value>
   </data>
   <data name="MissingExportBlobConnection" xml:space="preserve">
     <value>Please specify both ConnectionString and BlobContainerName.</value>

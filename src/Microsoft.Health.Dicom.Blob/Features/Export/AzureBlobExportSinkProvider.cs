@@ -93,11 +93,11 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             return options;
         }
 
-        // TODO: Should we detect if the ContainerUri actually has a SAS token before storing the secret?
+        // TODO: Should we detect if the BlobContainerUri actually has a SAS token before storing the secret?
         var secrets = new BlobSecrets
         {
+            BlobContainerUri = options.BlobContainerUri,
             ConnectionString = options.ConnectionString,
-            ContainerUri = options.ContainerUri,
         };
 
         string name = operationId.ToString(OperationId.FormatSpecifier);
@@ -107,7 +107,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             cancellationToken);
 
         options.ConnectionString = null;
-        options.ContainerUri = null;
+        options.BlobContainerUri = null;
         options.Secret = new SecretKey { Name = name, Version = version };
 
         return options;
@@ -133,7 +133,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             BlobSecrets secrets = JsonSerializer.Deserialize<BlobSecrets>(json, _serializerOptions);
 
             options.ConnectionString = secrets.ConnectionString;
-            options.ContainerUri = secrets.ContainerUri;
+            options.BlobContainerUri = secrets.BlobContainerUri;
             options.Secret = null;
         }
 
@@ -144,6 +144,6 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     {
         public string ConnectionString { get; set; }
 
-        public Uri ContainerUri { get; set; }
+        public Uri BlobContainerUri { get; set; }
     }
 }

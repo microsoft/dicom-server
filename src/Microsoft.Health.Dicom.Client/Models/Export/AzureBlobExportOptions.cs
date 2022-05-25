@@ -9,9 +9,9 @@ namespace Microsoft.Health.Dicom.Client.Models.Export;
 
 internal sealed class AzureBlobExportOptions
 {
-    public Uri ContainerUri { get; init; }
+    public string BlobContainerName { get; init; }
+
+    public Uri BlobContainerUri { get; init; }
 
     public string ConnectionString { get; init; }
-
-    public string BlobContainerName { get; init; }
 }
