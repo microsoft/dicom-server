@@ -99,7 +99,7 @@ public partial class DicomWebClient : IDicomWebClient
     private async Task<DicomWebResponse> Request<TContent>(
         Uri uri,
         TContent requestContent,
-        HttpMethod httpMethod = null,
+        HttpMethod httpMethod,
         CancellationToken cancellationToken = default) where TContent : class
     {
         EnsureArg.IsNotNull(uri, nameof(uri));
