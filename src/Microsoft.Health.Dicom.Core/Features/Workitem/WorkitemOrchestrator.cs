@@ -193,14 +193,14 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
                 throw new WorkitemNotFoundException(workitemMetadata.WorkitemUid);
             }
 
-            var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
-
             // Update `existingDatabase` object.
-            MergeDatasets(existingDataset, dataset);
+            DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset);
 
             // store the blob with the new watermark.
-            await StoreWorkitemBlobAsync(workitemMetadata, existingDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
+            await StoreWorkitemBlobAsync(workitemMetadata, updatedDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
+
+            var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
             // TODO Ali: Update details in Sql Server.
             // Update the workitem watermark in the store.
@@ -209,7 +209,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
                 .UpdateWorkitemTransactionAsync(
                     workitemMetadata,
                     watermarkEntry.Value.NextWatermark,
-                    existingDataset,
+                    updatedDataset,
                     queryTags,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -231,9 +231,27 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         }
     }
 
-    private static void MergeDatasets(DicomDataset existingDataset, DicomDataset newDataset)
+    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset)
     {
-        newDataset.Each(di => existingDataset.UpdateTagFromNewDataset(newDataset, di.Tag));
+        // TODO Ali: Collect list of elements that were not updated and send them back in Warning.
+        ////if (newDataset == null)
+        ////{
+        ////    return existingDataset;
+        ////}
+
+        DicomDataset updatedDataset = null;
+
+        ////using (IEnumerator<DicomItem> iterator = newDataset.GetEnumerator())
+        ////{
+        ////    while (iterator.MoveNext())
+        ////    {
+        ////        updatedDataset = existingDataset.AddOrUpdate(newDataset, iterator.Current.Tag);
+        ////    }
+        ////}
+
+        newDataset.Each(di => updatedDataset = existingDataset.AddOrUpdate(newDataset, di.Tag));
+
+        return updatedDataset;
 
         // TODO Ali: Remove this comment later.
         ////// TODO Ali: See if sequence attributes are to be treated differently.

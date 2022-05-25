@@ -733,7 +733,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid TransactionUID for the specified WorkitemInstanceUID &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Invalid TransactionUID for the specified WorkitemInstanceUID &apos;{0}&apos;..
         /// </summary>
         internal static string InvalidTransactionUID {
             get {

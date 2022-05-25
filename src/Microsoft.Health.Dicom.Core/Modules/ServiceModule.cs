@@ -245,6 +245,11 @@ public class ServiceModule : IStartupModule
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        services.Add<UpdateWorkitemDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 
     private static void AddExportServices(IServiceCollection services)

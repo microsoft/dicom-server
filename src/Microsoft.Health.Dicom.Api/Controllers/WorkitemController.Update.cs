@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
@@ -64,6 +65,11 @@ public partial class WorkitemController
         {
             Response.Headers.Add(HeaderNames.ContentLocation, response.Uri.ToString());
             Response.Headers.Add(HeaderNames.Location, response.Uri.ToString());
+        }
+
+        if (!string.IsNullOrWhiteSpace(response.Message))
+        {
+            Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), response.Message);
         }
 
         return StatusCode((int)response.Status.UpdateResponseToHttpStatusCode(), response.Message);

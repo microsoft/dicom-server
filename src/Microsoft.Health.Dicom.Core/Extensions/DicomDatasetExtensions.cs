@@ -522,7 +522,7 @@ public static class DicomDatasetExtensions
     }
 
     /// <summary>
-    /// Update existing dataset with tag value present in newDataset.
+    /// Get updated dicom dataset after updating existing dataset with tag value present in newDataset.
     /// </summary>
     /// <remarks>
     /// Update for a tag happens only if this tag already had value in the existing dataset.
@@ -530,74 +530,81 @@ public static class DicomDatasetExtensions
     /// <param name="existingDataset">Existing Dataset that will be updated.</param>
     /// <param name="newDataset">New Dataset.</param>
     /// <param name="tag">Tag to be updated.</param>
-    public static void UpdateTagFromNewDataset(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag)
+    /// <returns>Updated dataset.</returns>
+    public static DicomDataset AddOrUpdate(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag)
     {
         EnsureArg.IsNotNull(existingDataset, nameof(existingDataset));
         EnsureArg.IsNotNull(newDataset, nameof(newDataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
-        if (existingDataset.Contains(tag))
+        if (!existingDataset.Contains(tag))
         {
-            switch (tag.GetDefaultVR().Code)
-            {
-                case var code when DecimalVRs.Contains(code):
-                    existingDataset.AddOrUpdate<decimal>(tag, newDataset.GetValue<decimal>(tag, 0));
-                    break;
-                case var code when DoubleVRs.Contains(code):
-                    existingDataset.AddOrUpdate<double>(tag, newDataset.GetValue<double>(tag, 0));
-                    break;
-                case var code when FloatVRs.Contains(code):
-                    existingDataset.AddOrUpdate<float>(tag, newDataset.GetValue<float>(tag, 0));
-                    break;
-                case var code when IntVRs.Contains(code):
-                    existingDataset.AddOrUpdate<int>(tag, newDataset.GetValue<int>(tag, 0));
-                    break;
-                case var code when LongVRs.Contains(code):
-                    existingDataset.AddOrUpdate<long>(tag, newDataset.GetValue<long>(tag, 0));
-                    break;
-                case var code when ShortVRs.Contains(code):
-                    existingDataset.AddOrUpdate<short>(tag, newDataset.GetValue<short>(tag, 0));
-                    break;
-                case var code when StringVRs.Contains(code):
-                    if (newDataset.TryGetString(tag, out string newStringValue)
-                        && !string.IsNullOrWhiteSpace(newStringValue))
-                    {
-                        // TODO Ali: Throw exception when string value was empty or null.
-                        existingDataset.AddOrUpdate<string>(tag, newStringValue);
-                    }
-                    break;
-                case var code when UIntVRs.Contains(code):
-                    existingDataset.AddOrUpdate<uint>(tag, newDataset.GetValue<uint>(tag, 0));
-                    break;
-                case var code when ULongVRs.Contains(code):
-                    existingDataset.AddOrUpdate<ulong>(tag, newDataset.GetValue<ulong>(tag, 0));
-                    break;
-                case var code when UShortVRs.Contains(code):
-                    existingDataset.AddOrUpdate<ushort>(tag, newDataset.GetValue<ushort>(tag, 0));
-                    break;
-                case var code when ByteArrayVRs.Contains(code):
-                    existingDataset.AddOrUpdate(tag, newDataset.GetValues<byte>(tag));
-                    break;
-                case "SQ":
-                    existingDataset.AddOrUpdate(tag, newDataset.GetSequence(tag));
-                    break;
-                // Other VR Types
-                case "OD":
-                    existingDataset.AddOrUpdate(tag, newDataset.GetValues<double>(tag));
-                    break;
-                case "OF":
-                    existingDataset.AddOrUpdate(tag, newDataset.GetValues<float>(tag));
-                    break;
-                case "OL":
-                    existingDataset.AddOrUpdate(tag, newDataset.GetValues<uint>(tag));
-                    break;
-                case "OW":
-                    existingDataset.AddOrUpdate(tag, newDataset.GetValues<ushort>(tag));
-                    break;
-                case "OV":
-                    existingDataset.AddOrUpdate(tag, newDataset.GetValues<ulong>(tag));
-                    break;
-            }
+            return existingDataset;
         }
+
+        DicomDataset updatedDataset = null;
+
+        switch (tag.GetDefaultVR().Code)
+        {
+            case var code when DecimalVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<decimal>(tag, newDataset.GetFirstValueOrDefault<decimal>(tag));
+                break;
+            case var code when DoubleVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<double>(tag, newDataset.GetFirstValueOrDefault<double>(tag));
+                break;
+            case var code when FloatVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<float>(tag, newDataset.GetFirstValueOrDefault<float>(tag));
+                break;
+            case var code when IntVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<int>(tag, newDataset.GetFirstValueOrDefault<int>(tag));
+                break;
+            case var code when LongVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<long>(tag, newDataset.GetFirstValueOrDefault<long>(tag));
+                break;
+            case var code when ShortVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<short>(tag, newDataset.GetFirstValueOrDefault<short>(tag));
+                break;
+            case var code when StringVRs.Contains(code):
+                if (newDataset.TryGetString(tag, out string newStringValue)
+                    && !string.IsNullOrWhiteSpace(newStringValue))
+                {
+                    // TODO Ali: Throw exception when string value was empty or null.
+                    updatedDataset = existingDataset.AddOrUpdate<string>(tag, newStringValue);
+                }
+                break;
+            case var code when UIntVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<uint>(tag, newDataset.GetFirstValueOrDefault<uint>(tag));
+                break;
+            case var code when ULongVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<ulong>(tag, newDataset.GetFirstValueOrDefault<ulong>(tag));
+                break;
+            case var code when UShortVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<ushort>(tag, newDataset.GetFirstValueOrDefault<ushort>(tag));
+                break;
+            case var code when ByteArrayVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<byte>(tag));
+                break;
+            case "SQ":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetSequence(tag));
+                break;
+            // Other VR Types
+            case "OD":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<double>(tag));
+                break;
+            case "OF":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<float>(tag));
+                break;
+            case "OL":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<uint>(tag));
+                break;
+            case "OW":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<ushort>(tag));
+                break;
+            case "OV":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<ulong>(tag));
+                break;
+        }
+
+        return updatedDataset;
     }
 }
