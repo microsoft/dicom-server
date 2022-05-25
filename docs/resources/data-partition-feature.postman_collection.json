@@ -379,6 +379,63 @@
 			"response": []
 		},
 		{
+			"name": "Change-Workitem-State",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"00741000\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"IN PROGRESS\"\r\n            ]\r\n        },\r\n        \"00081195\": {\r\n            \"vr\": \"UI\",\r\n            \"Value\": [\r\n                \"2.25.1.1.1.1\"\r\n            ]\r\n        }\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems/{{workitem1}}/state",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems",
+						"{{workitem1}}",
+						"state"
+					]
+				},
+				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+			},
+			"response": []
+		},
+		{
 			"name": "Retrieve-workitem",
 			"request": {
 				"method": "GET",
