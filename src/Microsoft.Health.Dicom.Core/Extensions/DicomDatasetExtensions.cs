@@ -585,7 +585,7 @@ public static class DicomDatasetExtensions
                 updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<byte>(tag));
                 break;
             case "SQ":
-                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetSequence(tag));
+                updatedDataset = newDataset.CopyTo(existingDataset, tag);
                 break;
             // Other VR Types
             case "OD":

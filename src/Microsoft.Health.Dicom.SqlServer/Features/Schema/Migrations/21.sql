@@ -145,7 +145,7 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
-    ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -167,7 +167,7 @@ CREATE TABLE dbo.ExtendedQueryTagDouble (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
-    ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -206,7 +206,7 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
-    ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -242,7 +242,7 @@ CREATE TABLE dbo.ExtendedQueryTagPersonName (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
-    ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -267,7 +267,7 @@ CREATE TABLE dbo.ExtendedQueryTagString (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
-    ON dbo.ExtendedQueryTagString(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagString(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagString(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)

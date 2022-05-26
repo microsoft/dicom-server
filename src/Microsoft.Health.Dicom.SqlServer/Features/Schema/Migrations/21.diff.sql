@@ -157,4 +157,79 @@ BEGIN
 END
 GO
 
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
+(
+    ResourceType,
+    TagKey,
+    PartitionKey,
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
+)
+WITH
+(
+    DROP_EXISTING = ON,
+    ONLINE = ON
+);
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
+(
+    ResourceType,
+    TagKey,
+    PartitionKey,
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
+)
+WITH
+(
+    DROP_EXISTING = ON,
+    ONLINE = ON
+);
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
+(
+    ResourceType,
+    TagKey,
+    PartitionKey,
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
+)
+WITH
+(
+    DROP_EXISTING = ON,
+    ONLINE = ON
+);
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
+(
+    ResourceType,
+    TagKey,
+    PartitionKey,
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
+)
+WITH
+(
+    DROP_EXISTING = ON,
+    ONLINE = ON
+);
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
+(
+    ResourceType,
+    TagKey,
+    PartitionKey,
+    SopInstanceKey1,
+    SopInstanceKey2,
+    SopInstanceKey3
+)
+WITH
+(
+    DROP_EXISTING = ON,
+    ONLINE = ON
+);
+
 COMMIT TRANSACTION

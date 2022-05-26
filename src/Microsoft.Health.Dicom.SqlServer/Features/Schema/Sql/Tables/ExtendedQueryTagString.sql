@@ -27,7 +27,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTag
 (
     ResourceType,
     TagKey,
-    TagValue,
     PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,
