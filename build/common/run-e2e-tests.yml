@@ -17,6 +17,7 @@ steps:
       scriptType: 'bash'
       scriptLocation: 'inlineScript'
       inlineScript: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+      workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 - ${{ else }}:
   - script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
     displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
