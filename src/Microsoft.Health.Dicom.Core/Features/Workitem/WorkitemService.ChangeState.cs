@@ -29,6 +29,7 @@ public partial class WorkitemService
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
         try
         {
