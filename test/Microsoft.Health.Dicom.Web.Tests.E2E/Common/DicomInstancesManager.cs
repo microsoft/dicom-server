@@ -130,4 +130,18 @@ internal class DicomInstancesManager : IAsyncDisposable
             .RetrieveWorkitemAsync(workitemUid, partitionName, cancellationToken)
             .ConfigureAwait(false);
     }
+
+    public async Task<DicomWebResponse> ChangeWorkitemStateAsync(
+        DicomDataset requestDataset,
+        string workitemUid,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(requestDataset, nameof(requestDataset));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
+        return await _dicomWebClient
+            .ChangeWorkitemStateAsync(requestDataset, workitemUid, partitionName, cancellationToken)
+            .ConfigureAwait(false);
+    }
 }

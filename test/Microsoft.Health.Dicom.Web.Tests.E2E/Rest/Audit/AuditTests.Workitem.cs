@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -81,6 +82,28 @@ public partial class AuditTests
             () => _instancesManager.RetrieveWorkitemAsync(workitemUid, default, CancellationToken.None),
             AuditEventSubType.RetrieveWorkitem,
             $"workitems/{workitemUid}",
+            HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task GivenChangeWorkitemStateRequest_WhenWorkitemStateIsChanged_ThenAuditLogEntriesShouldBeCreated()
+    {
+        var workitemUid = TestUidGenerator.Generate();
+        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
+
+        using var response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
+        Assert.True(response.IsSuccessStatusCode);
+
+        var changeStateRequestDicomDataset = new DicomDataset
+        {
+            { DicomTag.TransactionUID, TestUidGenerator.Generate() },
+            { DicomTag.ProcedureStepState, ProcedureStepStateConstants.InProgress }
+        };
+
+        await ExecuteAndValidate(
+            () => _instancesManager.ChangeWorkitemStateAsync(changeStateRequestDicomDataset, workitemUid, default, CancellationToken.None),
+            AuditEventSubType.ChangeStateWorkitem,
+            $"workitems/{workitemUid}/state",
             HttpStatusCode.OK);
     }
 }

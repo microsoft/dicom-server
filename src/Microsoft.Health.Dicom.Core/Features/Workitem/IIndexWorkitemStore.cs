@@ -53,9 +53,10 @@ public interface IIndexWorkitemStore
     /// <param name="workitemMetadata">The Workitem Metadata</param>
     /// <param name="proposedWatermark">The Proposed Watermark</param>
     /// <param name="procedureStepState">The Procedure Step State</param>
+    /// <param name="transactionUid">The Workitem Transaction UID</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A Task representing the method status.</returns>
-    Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, CancellationToken cancellationToken = default);
+    Task UpdateWorkitemProcedureStepStateAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, string procedureStepState, string transactionUid, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes a workitem instance.
