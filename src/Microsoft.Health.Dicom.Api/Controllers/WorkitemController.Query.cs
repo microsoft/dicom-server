@@ -35,8 +35,8 @@ public partial class WorkitemController
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-    [VersionedPartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
-    [VersionedRoute(KnownRoutes.SearchWorkitemInstancesRoute)]
+    [VersionedPartitionRoute(KnownRoutes.SearchWorkitemInstancesRoute, Name = KnownRouteNames.PartitionSearchWorkitemInstance)]
+    [VersionedRoute(KnownRoutes.SearchWorkitemInstancesRoute, Name = KnownRouteNames.SearchWorkitemInstance)]
     [AuditEventType(AuditEventSubType.QueryWorkitem)]
     [QueryModelStateValidator]
     public async Task<IActionResult> QueryWorkitemsAsync([FromQuery] QueryOptions options)
