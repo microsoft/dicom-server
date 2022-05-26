@@ -250,7 +250,7 @@
 						}
 					]
 				},
-				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Accept: application/dicom+json`\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the workitem dataset in dicom+json format."
 			},
 			"response": []
 		},
@@ -317,7 +317,7 @@
 						}
 					]
 				},
-				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+				"description": "The following is required.\n\n* Method: GET\n* Headers:\n   *  `Accept: application/dicom+json`\n   *  `Content-Type: application/dicom+json`\n* Query String:\n   * `FuzzyMatching=true` OR `FuzzyMatching=false`\n   * Use `name=value` format for filter fields\n   * Use `IncludeField` with comma separated values\n   * Use `Limit` to retrieve a specific number of work-items (i.e., to indicate page-size)\n   * Use `Offset` to indicate page-index"
 			},
 			"response": []
 		},
@@ -374,7 +374,7 @@
 						"cancelrequest"
 					]
 				},
-				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the workitem cancel request dataset in dicom+json format."
 			},
 			"response": []
 		},
@@ -431,7 +431,7 @@
 						"state"
 					]
 				},
-				"description": "For the body of the request, select the red-triangle.dcm file located in the GitHub repo at ../docs/dcms.  Ensure you attach the file as `binary`.\r\n\r\n> NOTE: This is a non-standard API that allows the upload of a single DICOM file without the need to configure the POST for multipart/related. It allows the use of Postman to upload files to the DICOMweb service.\r\n\r\nThe following is required to upload a single DICOM file.\r\n\r\n* Path: ../studies\r\n* Method: POST\r\n* Headers:\r\n   *  `Accept: application/dicom+json`\r\n   *  `Content-Type: application/dicom`\r\n* Body:\r\n    * Contains the DICOM file as a bytes.\r\n\r\n> This API is currently not implemented\r\n"
+				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the change workitem state request dataset in dicom+json format."
 			},
 			"response": []
 		},
@@ -457,7 +457,8 @@
 						"workitems",
 						"{{workitem1}}"
 					]
-				}
+				},
+				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Accept: application/dicom+json`"
 			},
 			"response": []
 		}
