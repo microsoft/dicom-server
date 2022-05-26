@@ -43,7 +43,8 @@ public sealed class ChangeWorkitemStateDatasetValidator : WorkitemDatasetValidat
     }
 
     /// <summary>
-    /// Validates that the passed Transaction UID matches (or has not yet 
+    /// Validates that the passed Transaction UID matches against the workitem if it already has a Transaction UID
+    /// Otherwise, treats it as a new Transaction UID.
     ///
     /// Throws <see cref="DatasetValidationException"/> when the workitem-metadata status is not read-write.
     /// Throws <see cref="DatasetValidationException"/> when the workitem-metadata transition state has error.

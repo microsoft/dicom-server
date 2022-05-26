@@ -41,6 +41,8 @@ public class ChangeWorkitemStateRequestHandler : BaseHandler, IRequestHandler<Ch
             throw new UnauthorizedDicomActionException(DataActions.Write);
         }
 
+        request.Validate();
+
         var changeStateDataset = await _workitemSerializer
             .DeserializeAsync<DicomDataset>(request.RequestBody, request.RequestContentType)
             .ConfigureAwait(false);
