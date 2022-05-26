@@ -3,11 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 /// <summary>
 /// Date type of extended query tag.
 /// </summary>
-public enum ExtendedQueryTagDataType
+internal enum ExtendedQueryTagDataType
 {
     /// <summary>
     /// The extended query tag is treated as String.

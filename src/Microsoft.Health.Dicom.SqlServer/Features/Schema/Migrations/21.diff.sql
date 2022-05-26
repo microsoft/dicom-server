@@ -63,51 +63,7 @@ GO
 	          ,@proposedWatermark
               ,@transactionUid
 
-    -- String Key tags
-    IF EXISTS (SELECT 1 FROM @stringExtendedQueryTags)
-    BEGIN
-        UPDATE ets
-        SET
-            TagValue = input.TagValue,
-            Watermark = @newWatermark
-        FROM dbo.ExtendedQueryTagString AS ets
-        INNER JOIN @stringExtendedQueryTags AS input
-            ON ets.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
         END
-
-    -- DateTime Key tags
-    IF EXISTS (SELECT 1 FROM @dateTimeExtendedQueryTags)
-    BEGIN
-        UPDATE etdt
-        SET
-            TagValue = input.TagValue,
-            Watermark = @newWatermark
-        FROM dbo.ExtendedQueryTagDateTime AS etdt
-        INNER JOIN @dateTimeExtendedQueryTags AS input
-            ON etdt.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-    END
-
-    -- PersonName Key tags
-    IF EXISTS (SELECT 1 FROM @personNameExtendedQueryTags)
-    BEGIN
-        UPDATE etpn
-        SET
-            TagValue = input.TagValue,
-            Watermark = @newWatermark
-        FROM dbo.ExtendedQueryTagPersonName AS etpn
-        INNER JOIN @personNameExtendedQueryTags AS input
-            ON etpn.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-    END
-END
         GO
 
 */

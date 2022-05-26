@@ -2188,59 +2188,6 @@ BEGIN
 END
 
 GO
-BEGIN TRANSACTION;
-
-
-GO
-CREATE OR ALTER PROCEDURE dbo.UpdateIndexWorkitemInstanceCore
-@workitemKey BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
-AS
-BEGIN
-    DECLARE @workitemResourceType AS TINYINT = 1;
-    DECLARE @newWatermark AS BIGINT;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-    IF EXISTS (SELECT 1
-               FROM   @stringExtendedQueryTags)
-        BEGIN
-            UPDATE ets
-            SET    TagValue  = input.TagValue,
-                   Watermark = @newWatermark
-            FROM   dbo.ExtendedQueryTagString AS ets
-                   INNER JOIN
-                   @stringExtendedQueryTags AS input
-                   ON ets.TagKey = input.TagKey
-            WHERE  SopInstanceKey1 = @workitemKey
-                   AND ResourceType = @workitemResourceType;
-        END
-    IF EXISTS (SELECT 1
-               FROM   @dateTimeExtendedQueryTags)
-        BEGIN
-            UPDATE etdt
-            SET    TagValue  = input.TagValue,
-                   Watermark = @newWatermark
-            FROM   dbo.ExtendedQueryTagDateTime AS etdt
-                   INNER JOIN
-                   @dateTimeExtendedQueryTags AS input
-                   ON etdt.TagKey = input.TagKey
-            WHERE  SopInstanceKey1 = @workitemKey
-                   AND ResourceType = @workitemResourceType;
-        END
-    IF EXISTS (SELECT 1
-               FROM   @personNameExtendedQueryTags)
-        BEGIN
-            UPDATE etpn
-            SET    TagValue  = input.TagValue,
-                   Watermark = @newWatermark
-            FROM   dbo.ExtendedQueryTagPersonName AS etpn
-                   INNER JOIN
-                   @personNameExtendedQueryTags AS input
-                   ON etpn.TagKey = input.TagKey
-            WHERE  SopInstanceKey1 = @workitemKey
-                   AND ResourceType = @workitemResourceType;
-        END
-END
-
-GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
 @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
 AS
@@ -2371,32 +2318,6 @@ BEGIN
            AND WorkitemKey = @workitemKey;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Workitem instance does not exist', 1;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemTransaction
-@workitemKey BIGINT, @watermark BIGINT, @proposedWatermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @newWatermark AS BIGINT;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    UPDATE dbo.Workitem
-    SET    Watermark = @proposedWatermark
-    WHERE  WorkitemKey = @workitemKey
-           AND Watermark = @watermark;
-    IF @@ROWCOUNT = 0
-        THROW 50499, 'Workitem update failed', 1;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-    BEGIN TRY
-        EXECUTE dbo.UpdateIndexWorkitemInstanceCore @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
-    END TRY
-    BEGIN CATCH
-        THROW;
-    END CATCH
     COMMIT TRANSACTION;
 END
 

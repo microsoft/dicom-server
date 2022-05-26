@@ -46,7 +46,7 @@ public partial class WorkitemService
         //  2. If state is IN PROGRESS, provided transaction UID matches the existing transaction UID.
         //  3. State is not COMPLETED or CANCELED.
         //  4. Dataset is valid.
-        if (ValidateUpdateRequest(dataset, workitemMetadata, workitemInstanceUid, transactionUid))
+        if (ValidateUpdateRequest(dataset, workitemMetadata, transactionUid))
         {
             await UpdateWorkitemAsync(dataset, workitemMetadata, cancellationToken);
         }
@@ -54,11 +54,22 @@ public partial class WorkitemService
         return _responseBuilder.BuildUpdateWorkitemResponse();
     }
 
-    private bool ValidateUpdateRequest(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string workitemInstanceUid, string transactionUid)
+    /// <summary>
+    /// Validate the following:
+    ///  1. If state is SCHEDULED, transaction UID is not provided.
+    ///  2. If state is IN PROGRESS, provided transaction UID matches the existing transaction UID.
+    ///  3. State is not COMPLETED or CANCELED.
+    ///  4. Dataset is valid.
+    /// </summary>
+    /// <param name="dataset">Incoming dataset to be validated.</param>
+    /// <param name="workitemMetadata">Workitem metadata.</param>
+    /// <param name="transactionUid">Transaction UID.</param>
+    /// <returns>True if validated, else return false.</returns>
+    private bool ValidateUpdateRequest(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, string transactionUid)
     {
         try
         {
-            UpdateWorkitemDatasetValidator.ValidateWorkitemStateAndTransactionUid(workitemInstanceUid, transactionUid, workitemMetadata);
+            UpdateWorkitemDatasetValidator.ValidateWorkitemStateAndTransactionUid(transactionUid, workitemMetadata);
 
             GetValidator<UpdateWorkitemDatasetValidator>().Validate(dataset);
 
@@ -120,8 +131,7 @@ public partial class WorkitemService
 
                 case DicomValidationException:
                 case ValidationException:
-                    // TODO Ali: this is part of Change State PR. Uncomment this once that PR is checked in.
-                    // case WorkitemUpdateNotAllowedException:
+                case WorkitemUpdateNotAllowedException:
                     failureCode = FailureReasonCodes.UpsInstanceUpdateNotAllowed;
                     break;
 
@@ -132,7 +142,6 @@ public partial class WorkitemService
 
             _logger.LogWarning(ex, "Failed to update the DICOM instance work-item entry. Failure code: {FailureCode}.", failureCode);
 
-            // TODO: This can return the Database Error as is. We need to abstract that detail.
             _responseBuilder.AddFailure(failureCode, ex.Message, dataset);
         }
     }

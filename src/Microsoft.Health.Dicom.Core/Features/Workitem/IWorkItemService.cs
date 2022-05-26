@@ -77,7 +77,7 @@ public interface IWorkitemService
     /// Asynchronously update the workitem dataset.
     /// </summary>
     /// <remarks>
-    /// If <paramref name="transactionUid"/> is not present or does not match the one associated with <paramref name="workitemInstanceUid"/>, update will not go through.
+    /// If <see cref="ProcedureStepState" /> is not SCHEDULED and the <paramref name="transactionUid"/> is not present or does not match the one associated with <paramref name="workitemInstanceUid"/>, update will not go through.
     /// </remarks>
     /// <param name="dataset">The <see cref="DicomDataset"/> to update.</param>
     /// <param name="workitemInstanceUid">The workitem instance UID.</param>

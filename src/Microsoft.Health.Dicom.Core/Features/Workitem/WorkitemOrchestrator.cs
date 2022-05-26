@@ -205,9 +205,9 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
             var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
-            // TODO Ali: Update details in Sql Server.
-            // Update the workitem watermark in the store.
-            // Update extended query tag tables.
+            // Update details in Sql Server.
+            //  Update the workitem watermark in the store.
+            //  Update extended query tag tables.
             await _indexWorkitemStore
                 .UpdateWorkitemTransactionAsync(
                     workitemMetadata,
@@ -237,79 +237,11 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset)
     {
         // TODO Ali: Collect list of elements that were not updated and send them back in Warning.
-        ////if (newDataset == null)
-        ////{
-        ////    return existingDataset;
-        ////}
+        DicomDataset updatedDataset = existingDataset;
 
-        DicomDataset updatedDataset = null;
-
-        ////using (IEnumerator<DicomItem> iterator = newDataset.GetEnumerator())
-        ////{
-        ////    while (iterator.MoveNext())
-        ////    {
-        ////        updatedDataset = existingDataset.AddOrUpdate(newDataset, iterator.Current.Tag);
-        ////    }
-        ////}
-
-        newDataset.Each(di => updatedDataset = existingDataset.AddOrUpdate(newDataset, di.Tag));
+        newDataset.Each(di => updatedDataset = updatedDataset.AddOrUpdate(newDataset, di.Tag));
 
         return updatedDataset;
-
-        // TODO Ali: Remove this comment later.
-        ////// TODO Ali: See if sequence attributes are to be treated differently.
-        ////foreach (QueryTag queryTag in queryTags)
-        ////{
-        ////    // Update value only if the value already existed in the existing dataset.
-        ////    // Addition of attributes is not allowed in Update.
-        ////    if (existingDataset.Contains(queryTag.Tag))
-        ////    {
-        ////        ExtendedQueryTagDataType dataType = ExtendedQueryTagLimit.ExtendedQueryTagVRAndDataTypeMapping[queryTag.VR.Code];
-
-        ////        switch (dataType)
-        ////        {
-        ////            case ExtendedQueryTagDataType.PersonNameData:
-        ////            case ExtendedQueryTagDataType.StringData:
-        ////                string newString = newDataset.GetString(queryTag.Tag);
-        ////                existingDataset.AddOrUpdate<string>(queryTag.Tag, newString);
-        ////                break;
-        ////            case ExtendedQueryTagDataType.LongData:
-        ////                long? newLong = newDataset.GetStringTimeAsLong(queryTag.Tag, queryTag.VR);
-        ////                if (newLong.HasValue)
-        ////                {
-        ////                    existingDataset.AddOrUpdate<long>(queryTag.Tag, newLong.Value);
-        ////                }
-        ////                break;
-        ////            case ExtendedQueryTagDataType.DoubleData:
-        ////                double newDouble = newDataset.GetFirstValueOrDefault<double>(queryTag.Tag, queryTag.VR);
-        ////                existingDataset.AddOrUpdate<double>(queryTag.Tag, newDouble);
-        ////                break;
-        ////            case ExtendedQueryTagDataType.DateTimeData:
-        ////                switch (queryTag.VR.Code)
-        ////                {
-        ////                    case "DT":
-        ////                        Tuple<DateTime?, DateTime?> newDateTimeLocalAndUtc = newDataset.GetStringDateTimeAsLiteralAndUtcDateTimes(queryTag.Tag, queryTag.VR);
-        ////                        if (newDateTimeLocalAndUtc.Item1.HasValue)
-        ////                        {
-        ////                            existingDataset.AddOrUpdate<DateTime>(queryTag.Tag, newDateTimeLocalAndUtc.Item1.Value);
-        ////                        }
-        ////                        break;
-        ////                    case "DA":
-        ////                        DateTime? newDate = newDataset.GetStringDateAsDate(queryTag.Tag, queryTag.VR);
-        ////                        if (newDate.HasValue)
-        ////                        {
-        ////                            existingDataset.AddOrUpdate<DateTime>(queryTag.Tag, newDate.Value);
-        ////                        }
-        ////                        break;
-        ////                }
-        ////                break;
-        ////        }
-        ////    }
-        ////    else
-        ////    {
-        ////        // TODO Ali: Prepare a list of tags that were passed in the new dataset but were not present in the existing dataset.
-        ////    }
-        ////}
     }
 
     /// <inheritdoc />

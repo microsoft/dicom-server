@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -85,11 +84,9 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
     /// Throws <see cref="DatasetValidationException"/> when the transaction uid does not match the existing transaction uid.
     /// 
     /// </summary>
-    /// <param name="workitemUid">The Workitem Uid.</param>
     /// <param name="transactionUid">The Transaction Uid.</param>
     /// <param name="workitemMetadata">The Workitem Metadata.</param>
     public static void ValidateWorkitemStateAndTransactionUid(
-        string workitemUid,
         string transactionUid,
         WorkitemMetadataStoreEntry workitemMetadata)
     {
@@ -113,10 +110,7 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
                 {
                     throw new DatasetValidationException(
                         FailureReasonCodes.UpsTransactionUidIncorrect,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCoreResource.InvalidTransactionUID,
-                            workitemUid));
+                        DicomCoreResource.InvalidTransactionUID);
                 }
                 break;
             case ProcedureStepState.InProgress:
@@ -133,27 +127,18 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
                 {
                     throw new DatasetValidationException(
                         FailureReasonCodes.UpsTransactionUidIncorrect,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCoreResource.InvalidTransactionUID,
-                            workitemUid));
+                        DicomCoreResource.InvalidTransactionUID);
                 }
 
                 break;
             case ProcedureStepState.Completed:
                 throw new DatasetValidationException(
                     FailureReasonCodes.UpsIsAlreadyCompleted,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.WorkitemIsAlreadyCompleted,
-                        workitemMetadata.WorkitemUid));
+                    DicomCoreResource.WorkitemIsAlreadyCompleted);
             case ProcedureStepState.Canceled:
                 throw new DatasetValidationException(
                     FailureReasonCodes.UpsIsAlreadyCanceled,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        DicomCoreResource.WorkitemIsAlreadyCanceled,
-                        workitemUid));
+                    DicomCoreResource.WorkitemIsAlreadyCanceled);
         }
     }
 }

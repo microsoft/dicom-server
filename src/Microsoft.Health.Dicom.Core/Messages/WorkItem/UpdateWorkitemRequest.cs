@@ -10,7 +10,6 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 public sealed class UpdateWorkitemRequest : IRequest<UpdateWorkitemResponse>
 {
-    // TODO Ali: figure out correct way specify transaction uid as a query parameter.
     public UpdateWorkitemRequest(Stream requestBody, string requestContentType, string workitemInstanceUid, string transactionUid)
     {
         RequestBody = requestBody;

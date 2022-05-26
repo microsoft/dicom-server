@@ -43,7 +43,7 @@ public partial class WorkitemController
     [AuditEventType(AuditEventSubType.UpdateWorkitem)]
     public async Task<IActionResult> UpdateAsync(string workitemInstanceUid)
     {
-        // The Transaction UID is passed as the name of the first query parameter 
+        // The Transaction UID is passed as the first query parameter 
         string transactionUid = HttpContext.Request.Query.Keys.FirstOrDefault();
 
         return await PostUpdateAsync(workitemInstanceUid, transactionUid);

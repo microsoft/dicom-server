@@ -100,7 +100,6 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
-        EnsureArg.IsNotEmptyOrWhiteSpace(transactionUid, nameof(transactionUid));
 
         var uri = GenerateWorkitemUpdateRequestUri(workitemUid, transactionUid, partitionName);
 

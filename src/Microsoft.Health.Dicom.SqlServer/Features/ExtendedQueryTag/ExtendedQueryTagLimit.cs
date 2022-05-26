@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 
 /// <summary>
 /// Limits on ExtendedQueryTag feature.
