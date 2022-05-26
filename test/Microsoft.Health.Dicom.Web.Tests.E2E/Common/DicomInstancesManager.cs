@@ -75,11 +75,59 @@ internal class DicomInstancesManager : IAsyncDisposable
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = default, string partitionName = default, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
+
         // Null instanceId indiates Store will fail
         if (instanceId != null)
         {
             _instanceIds.Add(instanceId);
         }
         return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
+    }
+
+    public async Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets,
+        string workitemInstanceUid,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
+
+        return await _dicomWebClient
+            .AddWorkitemAsync(dicomDatasets, workitemInstanceUid, partitionName, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<DicomWebResponse> QueryWorkitemAsync(string queryString, string partitionName = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotEmptyOrWhiteSpace(queryString, nameof(queryString));
+
+        return await _dicomWebClient
+            .QueryWorkitemAsync(queryString, partitionName, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<DicomWebResponse> CancelWorkitemAsync(
+        IEnumerable<DicomDataset> datasets,
+        string workitemUid,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(datasets, nameof(datasets));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
+        return await _dicomWebClient
+            .CancelWorkitemAsync(datasets, workitemUid, partitionName, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<DicomWebResponse> RetrieveWorkitemAsync(
+        string workitemUid,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
+        return await _dicomWebClient
+            .RetrieveWorkitemAsync(workitemUid, partitionName, cancellationToken)
+            .ConfigureAwait(false);
     }
 }
