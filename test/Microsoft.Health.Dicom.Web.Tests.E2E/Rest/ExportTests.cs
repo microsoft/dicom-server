@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
@@ -46,12 +47,9 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         var options = new ExportTestOptions();
         exportSection.Bind(options);
 
-        _containerClient = options.Client.BlobContainerUri != null
-            ? new BlobContainerClient(options.Sink.BlobContainerUri)
-            : new BlobContainerClient(options.Sink.ConnectionString, options.Sink.BlobContainerName);
-
+        _containerClient = CreateContainerClient(options.Client ?? options.Sink);
         _destination = options.Sink.BlobContainerUri != null
-            ? ExportDestination.ForAzureBlobStorage(options.Sink.BlobContainerUri)
+            ? ExportDestination.ForAzureBlobStorage(options.Sink.BlobContainerUri, options.Sink.UseManagedIdentity)
             : ExportDestination.ForAzureBlobStorage(options.Sink.ConnectionString, options.Sink.BlobContainerName);
     }
 
@@ -148,6 +146,16 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(buffer, actual, BinaryComparer.Instance);
     }
 
+    private static BlobContainerClient CreateContainerClient(Core.Models.Export.AzureBlobExportOptions options)
+    {
+        if (options.BlobContainerUri != null)
+            return options.UseManagedIdentity
+                ? new BlobContainerClient(options.BlobContainerUri, new DefaultAzureCredential())
+                : new BlobContainerClient(options.BlobContainerUri);
+
+        return new BlobContainerClient(options.ConnectionString, options.BlobContainerName);
+    }
+
     private static async Task<DicomFile> GetDicomFileAsync(Stream stream)
     {
         // DicomFile requires that the stream be seekable
@@ -169,11 +177,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private sealed class ExportTestOptions
     {
-        public Core.Models.Export.AzureBlobExportOptions Client { get; set; } = new Core.Models.Export.AzureBlobExportOptions
-        {
-            ConnectionString = "UseDevelopmentStorage=true",
-            BlobContainerName = "export-e2e-test",
-        };
+        public Core.Models.Export.AzureBlobExportOptions Client { get; set; }
 
         public Core.Models.Export.AzureBlobExportOptions Sink { get; set; } = new Core.Models.Export.AzureBlobExportOptions
         {

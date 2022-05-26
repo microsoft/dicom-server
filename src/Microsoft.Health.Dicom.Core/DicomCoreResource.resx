@@ -609,4 +609,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="MissingExportBlobConnection" xml:space="preserve">
     <value>Please specify both ConnectionString and BlobContainerName.</value>
   </data>
+  <data name="InvalidExportBlobAuthentication" xml:space="preserve">
+    <value>Managed identity cannot be used with a ConnectionString.</value>
+  </data>
 </root>

@@ -14,4 +14,6 @@ internal sealed class AzureBlobExportOptions
     public Uri BlobContainerUri { get; init; }
 
     public string ConnectionString { get; init; }
+
+    public bool UseManagedIdentity { get; init; }
 }

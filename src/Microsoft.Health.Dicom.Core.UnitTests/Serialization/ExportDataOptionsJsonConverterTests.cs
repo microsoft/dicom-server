@@ -161,7 +161,8 @@ public class ExportDataOptionsJsonConverterTests
     ""secret"": {
       ""name"": ""foo"",
       ""version"": ""1""
-    }
+    },
+    ""useManagedIdentity"": true
   }
 }";
 
@@ -173,6 +174,7 @@ public class ExportDataOptionsJsonConverterTests
         Assert.Equal("mycontainer", options.BlobContainerName);
         Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.BlobContainerUri);
         Assert.Null(options.Secret);
+        Assert.True(options.UseManagedIdentity);
     }
 
     [Theory]
@@ -238,6 +240,7 @@ public class ExportDataOptionsJsonConverterTests
                 BlobContainerName = "mycontainer",
                 BlobContainerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer"),
                 Secret = new SecretKey { Name = "foo", Version = "1" },
+                UseManagedIdentity = true,
             });
 
         string actual = JsonSerializer.Serialize(expected, _serializerOptions);
@@ -247,7 +250,8 @@ public class ExportDataOptionsJsonConverterTests
   ""settings"": {
     ""blobContainerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""blobContainerName"": ""mycontainer""
+    ""blobContainerName"": ""mycontainer"",
+    ""useManagedIdentity"": true
   }
 }",
             actual);

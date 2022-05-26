@@ -22,14 +22,19 @@ public static class ExportDestination
     /// The <paramref name="blobContainerUri"/> may contain a SAS token for authentication.
     /// </remarks>
     /// <param name="blobContainerUri">A URI specifying the Azure Blob container.</param>
+    /// <param name="useManagedIdentity">Optionally connect to the storage account using the configured managed identity.</param>
     /// <returns>The corresponding export destination options.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="blobContainerUri"/> is <see langword="null"/>.</exception>
-    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(Uri blobContainerUri)
+    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(Uri blobContainerUri, bool useManagedIdentity = false)
     {
         EnsureArg.IsNotNull(blobContainerUri, nameof(blobContainerUri));
         return new ExportDataOptions<ExportDestinationType>(
             ExportDestinationType.AzureBlob,
-            new AzureBlobExportOptions { BlobContainerUri = blobContainerUri });
+            new AzureBlobExportOptions
+            {
+                BlobContainerUri = blobContainerUri,
+                UseManagedIdentity = useManagedIdentity,
+            });
     }
 
     /// <summary>

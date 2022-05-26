@@ -70,7 +70,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
         return new AzureBlobExportSink(
             provider.GetRequiredService<IFileStore>(),
-            options.GetBlobContainerClient(provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export")),
+            await options.GetBlobContainerClientAsync(
+                provider.GetRequiredService<IExportIdentityProvider>(),
+                provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export"),
+                cancellationToken),
             Options.Create(
                 new AzureBlobExportFormatOptions(
                     operationId,
@@ -87,28 +90,35 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         if (options.Secret != null)
             options.Secret = null;
 
-        if (_secretStore == null)
+        // Determine whether we need to store any settings in the secret store
+        BlobSecrets secrets = null;
+        if (options.BlobContainerUri != null)
         {
-            _logger.LogWarning("No secret store has been registered. Sensitive export settings will be preserved in plaintext.");
-            return options;
+            var builder = new UriBuilder(options.BlobContainerUri);
+            if (builder.Query != null && builder.Query.Length > 1) // More than "?"
+                secrets = new BlobSecrets { BlobContainerUri = options.BlobContainerUri };
+        }
+        else if (options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.InvariantCultureIgnoreCase))
+        {
+            secrets = new BlobSecrets { ConnectionString = options.ConnectionString };
         }
 
-        // TODO: Should we detect if the BlobContainerUri actually has a SAS token before storing the secret?
-        var secrets = new BlobSecrets
+        // If there is sensitive info, store the secret(s)
+        if (secrets != null)
         {
-            BlobContainerUri = options.BlobContainerUri,
-            ConnectionString = options.ConnectionString,
-        };
+            if (_secretStore == null)
+                throw new InvalidOperationException(DicomBlobResource.MissingSecretStore);
 
-        string name = operationId.ToString(OperationId.FormatSpecifier);
-        string version = await _secretStore.SetSecretAsync(
-            name,
-            JsonSerializer.Serialize(secrets, _serializerOptions),
-            cancellationToken);
+            string name = operationId.ToString(OperationId.FormatSpecifier);
+            string version = await _secretStore.SetSecretAsync(
+                name,
+                JsonSerializer.Serialize(secrets, _serializerOptions),
+                cancellationToken);
 
-        options.ConnectionString = null;
-        options.BlobContainerUri = null;
-        options.Secret = new SecretKey { Name = name, Version = version };
+            options.BlobContainerUri = null;
+            options.ConnectionString = null;
+            options.Secret = new SecretKey { Name = name, Version = version };
+        }
 
         return options;
     }
