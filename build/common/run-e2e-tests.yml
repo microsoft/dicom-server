@@ -1,3 +1,6 @@
+parameters:
+  azLogin: false
+
 steps:
 - task: DownloadBuildArtifacts@0
   inputs:
@@ -6,9 +9,18 @@ steps:
     downloadPath: '$(System.ArtifactsDirectory)'
     artifactName: 'IntegrationTests'
 
-- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
-  displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
-  workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
+- ${{ if eq(parameters.azLogin, 'true') }}:
+  - task: AzureCLI@2
+    displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
+    inputs:
+      azureSubscription: '$(azureSubscriptionName)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+- ${{ else }}:
+  - script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "FullyQualifiedName!~Microsoft.Health.Dicom.Web.Tests.E2E.Rest.DataPartitionEnabledTests" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+    displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
+    workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'

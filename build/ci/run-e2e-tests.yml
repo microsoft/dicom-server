@@ -35,3 +35,5 @@ jobs:
     displayName: 'Setup Authentication'
 
   - template: ../common/run-e2e-tests.yml
+    parameters:
+      azLogin: true
