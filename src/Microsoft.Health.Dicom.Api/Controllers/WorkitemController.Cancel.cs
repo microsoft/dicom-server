@@ -44,7 +44,7 @@ public partial class WorkitemController
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.UnsupportedMediaType)]
-    [VersionedPartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.VersionedPartitionCancelWorkitemInstance)]
+    [VersionedPartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.PartitionCancelWorkitemInstance)]
     [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
     [AuditEventType(AuditEventSubType.CancelWorkitem)]
     public async Task<IActionResult> CancelAsync(string workitemInstanceUid)
