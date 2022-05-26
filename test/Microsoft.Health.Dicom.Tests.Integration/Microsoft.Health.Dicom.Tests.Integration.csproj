@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.Health.SqlServer" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-    <PackageReference Include="Microsoft.SqlServer.DACFx" Version="160.5400.1" />
+    <PackageReference Include="Microsoft.SqlServer.DACFx" Version="160.6161.0" />
     <PackageReference Include="NSubstitute" Version="4.3.0" />
     <PackageReference Include="Polly" Version="7.2.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
