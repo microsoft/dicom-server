@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -69,11 +68,7 @@ public partial class WorkitemService
             {
                 throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid,
-                    sopInstanceUid,
-                    workitemQueryParameter));
+                DicomCoreResource.MismatchSopInstanceWorkitemInstanceUid);
             }
 
             dataset.AddOrUpdate(DicomTag.SOPInstanceUID, workitemQueryParameter);

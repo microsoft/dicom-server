@@ -12,7 +12,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -58,7 +57,7 @@ public partial class ExportDurableFunction
         var exportTasks = new List<Task<ExportProgress>>();
         for (int i = 0; i < input.Batching.MaxParallelCount; i++)
         {
-            if (!source.TryDequeueBatch(input.Batching.Size, out TypedConfiguration<ExportSourceType> batch))
+            if (!source.TryDequeueBatch(input.Batching.Size, out ExportDataOptions<ExportSourceType> batch))
                 break; // All done
 
             exportTasks.Add(context.CallActivityWithRetryAsync<ExportProgress>(
@@ -84,7 +83,7 @@ public partial class ExportDurableFunction
                 Destination = input.Destination,
                 ErrorHref = input.ErrorHref ?? await context.CallActivityWithRetryAsync<Uri>(nameof(GetErrorHrefAsync), _options.RetryOptions, input.Destination),
                 Progress = input.Progress + iterationProgress,
-                Source = source.Configuration,
+                Source = source.Description,
             });
     }
 }

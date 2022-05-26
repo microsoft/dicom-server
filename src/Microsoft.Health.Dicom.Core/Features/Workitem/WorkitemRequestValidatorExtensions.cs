@@ -60,4 +60,23 @@ internal static class WorkitemRequestValidatorExtensions
 
         UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: false);
     }
+
+    internal static void Validate(this ChangeWorkitemStateRequest request)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        if (request.RequestBody == null)
+        {
+            throw new BadRequestException(DicomCoreResource.MissingRequestBody);
+        }
+
+        UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: false);
+    }
+
+    internal static void Validate(this RetrieveWorkitemRequest request)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+
+        UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: false);
+    }
 }

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using static Microsoft.Health.Dicom.Tests.Common.EnvironmentVariables;
+using Microsoft.Health.Dicom.Tests.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
@@ -13,32 +13,31 @@ public class TestUser : IEquatable<TestUser>
     public TestUser(string id)
     {
         Id = id;
+        UserId = TestEnvironment.Variables[$"user_{Id}_id"] ?? Id;
+        Password = TestEnvironment.Variables[$"user_{Id}_secret"] ?? Id;
     }
 
     private string Id { get; }
 
-    public string UserId => GetEnvironmentVariableWithDefault($"user_{Id}_id", Id);
+    public string UserId { get; }
 
-    public string Password => GetEnvironmentVariableWithDefault($"user_{Id}_secret", Id);
+    public string Password { get; }
 
     public string GrantType => "password";
 
     public bool Equals(TestUser other)
     {
-        if (ReferenceEquals(null, other))
+        if (other is null)
         {
             return false;
         }
 
-        if (ReferenceEquals(this, other))
-        {
-            return true;
-        }
-
-        return Id == other.Id;
+        return ReferenceEquals(this, other) || Id == other.Id;
     }
 
-    public override bool Equals(object obj) => Equals((TestUser)obj);
+    public override bool Equals(object obj)
+        => obj is TestUser other && Equals(other);
 
-    public override int GetHashCode() => (Id?.GetHashCode()).GetValueOrDefault();
+    public override int GetHashCode()
+        => (Id?.GetHashCode()).GetValueOrDefault();
 }

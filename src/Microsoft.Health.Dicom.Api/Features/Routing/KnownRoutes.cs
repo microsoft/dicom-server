@@ -36,6 +36,7 @@ public static class KnownRoutes
     public const string UpdateWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/";
     public const string SearchWorkitemInstancesRoute = WorkitemsRouteSegment;
     public const string CancelWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/" + WorkitemCancelRequest;
+    public const string ChangeStateWorkitemInstancesRoute = WorkitemsRouteSegment + "/{" + KnownActionParameterNames.WorkItemInstanceUid + "}/state";
 
     public const string PartitionRoute = PartitionsRouteSegment + "/" + PartitionNameRouteSegment;
     public const string StudyRoute = StudiesRouteSegment + "/" + StudiesInstanceUidRouteSegment;

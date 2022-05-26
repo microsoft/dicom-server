@@ -16,14 +16,14 @@ public class ExportInput
     /// <summary>
     /// Gets or sets the source of the export operation.
     /// </summary>
-    /// <value>The configuration describing the source.</value>
-    public TypedConfiguration<ExportSourceType> Source { get; set; }
+    /// <value>The options describing the source.</value>
+    public ExportDataOptions<ExportSourceType> Source { get; set; }
 
     /// <summary>
     /// Gets or sets the destination of the export operation.
     /// </summary>
-    /// <value>The configuration describing the destination.</value>
-    public TypedConfiguration<ExportDestinationType> Destination { get; set; }
+    /// <value>The options describing the destination.</value>
+    public ExportDataOptions<ExportDestinationType> Destination { get; set; }
 
     /// <summary>
     /// Gets or sets the settings that dictate how the operation should be parallelized.

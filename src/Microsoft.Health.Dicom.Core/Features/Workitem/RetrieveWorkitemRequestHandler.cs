@@ -34,6 +34,8 @@ public sealed class RetrieveWorkitemRequestHandler : BaseHandler, IRequestHandle
             throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
+        request.Validate();
+
         return await _workItemService
             .ProcessRetrieveAsync(request.WorkitemInstanceUid, cancellationToken)
             .ConfigureAwait(false);

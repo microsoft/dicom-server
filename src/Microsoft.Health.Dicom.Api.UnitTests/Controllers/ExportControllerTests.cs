@@ -15,7 +15,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Messages.Export;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 using Microsoft.Net.Http.Headers;
@@ -60,8 +59,8 @@ public class ExportControllerTests
             NullLogger<ExportController>.Instance);
         var spec = new ExportSpecification
         {
-            Source = new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers },
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob }
+            Source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers),
+            Destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
         };
 
         IActionResult result = await controller.ExportAsync(spec);
@@ -83,8 +82,8 @@ public class ExportControllerTests
         var expected = new OperationReference(operationId, new Uri($"http://dicom.unit.test/operations/{operationId}"));
         var spec = new ExportSpecification
         {
-            Source = new TypedConfiguration<ExportSourceType> { Type = ExportSourceType.Identifiers },
-            Destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob }
+            Source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers),
+            Destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
         };
 
         mediator

@@ -145,7 +145,7 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
-    ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -167,7 +167,7 @@ CREATE TABLE dbo.ExtendedQueryTagDouble (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
-    ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -206,7 +206,7 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
-    ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -242,7 +242,7 @@ CREATE TABLE dbo.ExtendedQueryTagPersonName (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
-    ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -267,7 +267,7 @@ CREATE TABLE dbo.ExtendedQueryTagString (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
-    ON dbo.ExtendedQueryTagString(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagString(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
     ON dbo.ExtendedQueryTagString(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
@@ -2356,27 +2356,63 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
-@partitionKey INT, @workitemKey BIGINT, @status TINYINT
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemProcedureStepStateV21
+@workitemKey BIGINT, @procedureStepStateTagPath VARCHAR (64), @procedureStepState VARCHAR (64), @watermark BIGINT, @proposedWatermark BIGINT, @transactionUid VARCHAR (64)
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
+    DECLARE @newWatermark AS BIGINT;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @currentProcedureStepStateTagValue AS VARCHAR (64);
     UPDATE dbo.Workitem
-    SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate
-    WHERE  PartitionKey = @partitionKey
-           AND WorkitemKey = @workitemKey;
+    SET    Watermark      = @proposedWatermark,
+           TransactionUid = @transactionUid
+    WHERE  WorkitemKey = @workitemKey
+           AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
-        THROW 50404, 'Workitem instance does not exist', 1;
+        THROW 50409, 'Workitem update failed.', 1;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    WITH TagKeyCTE
+    AS   (SELECT wqt.TagKey,
+                 wqt.TagPath,
+                 eqts.TagValue AS OldTagValue,
+                 eqts.ResourceType,
+                 wi.PartitionKey,
+                 wi.WorkitemKey,
+                 eqts.Watermark AS ExtendedQueryTagWatermark
+          FROM   dbo.WorkitemQueryTag AS wqt
+                 INNER JOIN
+                 dbo.ExtendedQueryTagString AS eqts
+                 ON eqts.TagKey = wqt.TagKey
+                    AND eqts.ResourceType = 1
+                 INNER JOIN
+                 dbo.Workitem AS wi
+                 ON wi.PartitionKey = eqts.PartitionKey
+                    AND wi.WorkitemKey = eqts.SopInstanceKey1
+          WHERE  wi.WorkitemKey = @workitemKey)
+    UPDATE targetTbl
+    SET    targetTbl.TagValue  = @procedureStepState,
+           targetTbl.Watermark = @newWatermark
+    FROM   dbo.ExtendedQueryTagString AS targetTbl
+           INNER JOIN
+           TagKeyCTE AS cte
+           ON targetTbl.ResourceType = cte.ResourceType
+              AND cte.PartitionKey = targetTbl.PartitionKey
+              AND cte.WorkitemKey = targetTbl.SopInstanceKey1
+              AND cte.TagKey = targetTbl.TagKey
+              AND cte.OldTagValue = targetTbl.TagValue
+              AND cte.ExtendedQueryTagWatermark = targetTbl.Watermark
+    WHERE  cte.TagPath = @procedureStepStateTagPath;
+    IF @@ROWCOUNT = 0
+        THROW 50409, 'Workitem procedure step state update failed.', 1;
     COMMIT TRANSACTION;
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemTransaction
-@workitemKey BIGINT, @watermark BIGINT, @proposedWatermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemStatus
+@partitionKey INT, @workitemKey BIGINT, @status TINYINT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2385,18 +2421,12 @@ BEGIN
     DECLARE @newWatermark AS BIGINT;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Workitem
-    SET    Watermark = @proposedWatermark
-    WHERE  WorkitemKey = @workitemKey
-           AND Watermark = @watermark;
+    SET    Status                = @status,
+           LastStatusUpdatedDate = @currentDate
+    WHERE  PartitionKey = @partitionKey
+           AND WorkitemKey = @workitemKey;
     IF @@ROWCOUNT = 0
-        THROW 50499, 'Workitem update failed', 1;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-    BEGIN TRY
-        EXECUTE dbo.UpdateIndexWorkitemInstanceCore @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
-    END TRY
-    BEGIN CATCH
-        THROW;
-    END CATCH
+        THROW 50404, 'Workitem instance does not exist', 1;
     COMMIT TRANSACTION;
 END
 

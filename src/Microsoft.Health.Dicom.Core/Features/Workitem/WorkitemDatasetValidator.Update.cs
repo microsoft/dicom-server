@@ -95,7 +95,7 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
     {
         if (workitemMetadata == null)
         {
-            throw new WorkitemNotFoundException(workitemUid);
+            throw new WorkitemNotFoundException();
         }
 
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)

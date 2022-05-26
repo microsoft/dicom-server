@@ -124,6 +124,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
+        /// </summary>
+        internal static string ConflictingExportBlobConnections {
+            get {
+                return ResourceManager.GetString("ConflictingExportBlobConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The prefix used to identify custom audit headers cannot be empty..
         /// </summary>
         internal static string CustomHeaderPrefixCannotBeEmpty {
@@ -676,7 +685,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; can not transition to &apos;{1}&apos; state: {2}..
+        ///   Looks up a localized string similar to The workitem instance can not transition to &apos;{0}&apos; state: {1}..
         /// </summary>
         internal static string InvalidProcedureStepStateTransition {
             get {
@@ -733,7 +742,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid TransactionUID for the specified WorkitemInstanceUID &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Invalid TransactionUID for the specified Workitem Instance UID..
         /// </summary>
         internal static string InvalidTransactionUID {
             get {
@@ -753,9 +762,9 @@ namespace Microsoft.Health.Dicom.Core {
         /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; is not supported..
         /// </summary>
-        internal static string InvalidTypeBinding {
+        internal static string InvalidType {
             get {
-                return ResourceManager.GetString("InvalidTypeBinding", resourceCulture);
+                return ResourceManager.GetString("InvalidType", resourceCulture);
             }
         }
         
@@ -778,7 +787,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SOPInstanceUID &apos;{0}&apos; in the payload does not match the workitem query parameter &apos;{1}&apos;..
+        ///   Looks up a localized string similar to SOPInstanceUID in the payload does not match the workitem query parameter..
         /// </summary>
         internal static string MismatchSopInstanceWorkitemInstanceUid {
             get {
@@ -792,6 +801,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MismatchStudyInstanceUid {
             get {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please specify both ConnectionString and ContainerName..
+        /// </summary>
+        internal static string MissingExportBlobConnection {
+            get {
+                return ResourceManager.GetString("MissingExportBlobConnection", resourceCulture);
             }
         }
         
@@ -1237,7 +1255,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; has been cancelled..
+        ///   Looks up a localized string similar to The workitem instance has been cancelled..
         /// </summary>
         internal static string WorkitemCancelRequestSuccess {
             get {
@@ -1255,7 +1273,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; already exists. Try creating using a different UID..
+        ///   Looks up a localized string similar to The workitem instance already exists. Try creating using a different UID..
         /// </summary>
         internal static string WorkitemInstanceAlreadyExists {
             get {
@@ -1264,7 +1282,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is not found..
+        ///   Looks up a localized string similar to The workitem instance is not found..
         /// </summary>
         internal static string WorkitemInstanceNotFound {
             get {
@@ -1282,7 +1300,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The UPS &apos;{0}&apos; is already COMPLETED..
+        ///   Looks up a localized string similar to The UPS is already COMPLETED..
         /// </summary>
         internal static string WorkitemIsAlreadyCompleted {
             get {
@@ -1291,7 +1309,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is already in the final state &apos;{1}&apos;. {2}..
+        ///   Looks up a localized string similar to The workitem instance is already in the final state &apos;{0}&apos;. {1}..
         /// </summary>
         internal static string WorkitemIsInFinalState {
             get {
@@ -1307,9 +1325,9 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("WorkitemProcedureStepStateNotAllowed", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   Looks up a localized string similar to The workitem instance with UID: &apos;{0}&apos; is in the state of &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The workitem instance state is &apos;{0}&apos;..
         /// </summary>
         internal static string WorkitemUpdateIsNotAllowed {
             get {

@@ -102,13 +102,13 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
+        // Check if the workitem is locked for read-write
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
             throw new DataStoreException(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.WorkitemUpdateIsNotAllowed,
-                    workitemMetadata.WorkitemUid,
                     workitemMetadata.ProcedureStepState.GetStringValue()));
         }
 
@@ -130,12 +130,15 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
 
+            dataset.TryGetString(DicomTag.TransactionUID, out var transactionUid);
+
             // Update the workitem procedure step state in the store
             await _indexWorkitemStore
                 .UpdateWorkitemProcedureStepStateAsync(
                     workitemMetadata,
                     watermarkEntry.Value.NextWatermark,
                     targetProcedureStepState.GetStringValue(),
+                    transactionUid ?? workitemMetadata.TransactionUid,
                     cancellationToken)
                 .ConfigureAwait(false);
 
@@ -190,7 +193,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
             if (existingDataset == null)
             {
-                throw new WorkitemNotFoundException(workitemMetadata.WorkitemUid);
+                throw new WorkitemNotFoundException();
             }
 
             // Update `existingDatabase` object.
@@ -314,19 +317,24 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     {
         EnsureArg.IsNotNull(parameters);
 
-        var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
+        var queryTags = await _workitemQueryTagService
+            .GetQueryTagsAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
         BaseQueryExpression queryExpression = _queryParser.Parse(parameters, queryTags);
 
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
         WorkitemQueryResult queryResult = await _indexWorkitemStore
-            .QueryAsync(partitionKey, queryExpression, cancellationToken);
+            .QueryAsync(partitionKey, queryExpression, cancellationToken)
+            .ConfigureAwait(false);
 
         var workitemTasks = queryResult.WorkitemInstances
                 .Select(x => TryGetWorkitemBlobAsync(x, cancellationToken));
 
-        IEnumerable<DicomDataset> workitems = await Task.WhenAll(workitemTasks);
+        IEnumerable<DicomDataset> workitems = await Task
+            .WhenAll(workitemTasks)
+            .ConfigureAwait(false);
 
         return WorkitemQueryResponseBuilder.BuildWorkitemQueryResponse(workitems.ToList(), queryExpression);
     }

@@ -25,10 +25,11 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO, PartitionKey is moved down to support cross partition query in future
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
+CREATE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
 (
     ResourceType,
     TagKey,
+    TagValue,
     PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,

@@ -77,7 +77,7 @@ internal class SqlWorkitemStoreV11 : SqlWorkitemStoreV9
             {
                 if (ex.Number == SqlErrorCodes.Conflict)
                 {
-                    throw new WorkitemAlreadyExistsException(workitemUid);
+                    throw new WorkitemAlreadyExistsException();
                 }
 
                 throw new DataStoreException(ex);

@@ -63,21 +63,42 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
 
         if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
         {
-            // There are only success. - 200
             status = WorkitemResponseStatus.Success;
         }
         else if (WorkitemConflictFailureReasonCodes.Contains(failureReason))
         {
-            // 409
             status = WorkitemResponseStatus.Conflict;
         }
         else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
         {
-            // 404
             status = WorkitemResponseStatus.NotFound;
         }
 
         return new CancelWorkitemResponse(status, _message);
+    }
+
+    public ChangeWorkitemStateResponse BuildChangeWorkitemStateResponse()
+    {
+        var status = WorkitemResponseStatus.Failure;
+
+        if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason))
+        {
+            status = WorkitemResponseStatus.Success;
+        }
+        else if (failureReason == FailureReasonCodes.ValidationFailure)
+        {
+            status = WorkitemResponseStatus.Failure;
+        }
+        else if (failureReason == FailureReasonCodes.UpsInstanceNotFound)
+        {
+            status = WorkitemResponseStatus.NotFound;
+        }
+        else if (failureReason == FailureReasonCodes.UpsInstanceUpdateNotAllowed)
+        {
+            status = WorkitemResponseStatus.Conflict;
+        }
+
+        return new ChangeWorkitemStateResponse(status, _message);
     }
 
     /// <inheritdoc />

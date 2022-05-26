@@ -36,6 +36,8 @@ public static class DicomWebConstants
     public const string BaseErrorsUriFormat = BaseExtendedQueryTagUri + "/{0}/errors";
     public const string WorkitemUriString = "/workitems";
     public const string CancelWorkitemUriFormat = $"{BaseWorkitemUriFormat}/cancelrequest";
+    public const string ExportUriString = "/export";
+    public const string ChangeWorkitemStateUriFormat = $"{BaseWorkitemUriFormat}/state";
     public const string UpdateWorkitemUriFormat = "/workitems/{0}?{1}";
 
     public const string LimitParameter = "limit";

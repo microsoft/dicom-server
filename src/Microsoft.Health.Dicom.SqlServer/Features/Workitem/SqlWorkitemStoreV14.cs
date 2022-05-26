@@ -33,7 +33,7 @@ internal class SqlWorkitemStoreV14 : SqlWorkitemStoreV11
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V13;
+    public override SchemaVersion Version => SchemaVersion.V14;
 
     public override async Task<WorkitemMetadataStoreEntry> GetWorkitemMetadataAsync(
         int partitionKey,
@@ -111,6 +111,7 @@ internal class SqlWorkitemStoreV14 : SqlWorkitemStoreV11
         WorkitemMetadataStoreEntry workitemMetadata,
         long proposedWatermark,
         string procedureStepState,
+        string transactionUid,
         CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))

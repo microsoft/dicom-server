@@ -22,6 +22,7 @@ public class Startup : FunctionsStartup
         builder.Services
             .ConfigureFunctions(config)
             .AddMetadataStorageDataStore(config)
+            .AddFileStorageDataStore(config)
             .AddSqlServer(config)
             .AddKeyVaultClient(config);
     }

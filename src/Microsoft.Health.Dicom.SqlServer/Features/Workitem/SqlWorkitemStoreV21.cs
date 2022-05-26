@@ -3,21 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
-using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem;
+
 internal class SqlWorkitemStoreV21 : SqlWorkitemStoreV14
 {
     public SqlWorkitemStoreV21(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
@@ -27,31 +26,24 @@ internal class SqlWorkitemStoreV21 : SqlWorkitemStoreV14
 
     public override SchemaVersion Version => SchemaVersion.V21;
 
-    public override async Task UpdateWorkitemTransactionAsync(
+    public override async Task UpdateWorkitemProcedureStepStateAsync(
         WorkitemMetadataStoreEntry workitemMetadata,
         long proposedWatermark,
-        DicomDataset dataset,
-        IEnumerable<QueryTag> queryTags,
+        string procedureStepState,
+        string transactionUid,
         CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            var rows = ExtendedQueryTagDataRowsBuilder.Build(dataset, queryTags, Version);
-            var parameters = new VLatest.UpdateWorkitemTransactionTableValuedParameters(
-                rows.StringRows,
-                rows.DateTimeWithUtcRows,
-                rows.PersonNameRows
-            );
-
-            string workitemUid = workitemMetadata.WorkitemUid;
-
-            VLatest.UpdateWorkitemTransaction.PopulateCommand(
+            VLatest.UpdateWorkitemProcedureStepStateV21.PopulateCommand(
                 sqlCommandWrapper,
                 workitemMetadata.WorkitemKey,
+                DicomTag.ProcedureStepState.GetPath(),
+                procedureStepState,
                 workitemMetadata.Watermark,
                 proposedWatermark,
-                parameters);
+                transactionUid);
 
             try
             {

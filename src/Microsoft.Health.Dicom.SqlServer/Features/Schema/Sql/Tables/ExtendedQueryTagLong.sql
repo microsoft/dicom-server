@@ -23,10 +23,11 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO, PartitionKey is moved down to support cross partition query in future
-CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
+CREATE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
 (
     ResourceType,
     TagKey,
+    TagValue,
     PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,
