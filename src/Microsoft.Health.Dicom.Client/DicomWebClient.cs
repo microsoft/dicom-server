@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -17,13 +18,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Health.Dicom.Client.Serialization;
+using Microsoft.Health.FellowOakDicom.Serialization;
 using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
-using Microsoft.Health.Dicom.Client.Serialization;
-using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Client;
 
