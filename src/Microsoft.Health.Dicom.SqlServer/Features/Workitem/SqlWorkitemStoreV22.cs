@@ -25,7 +25,7 @@ internal class SqlWorkitemStoreV22 : SqlWorkitemStoreV21
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V21;
+    public override SchemaVersion Version => SchemaVersion.V22;
 
     public override async Task UpdateWorkitemTransactionAsync(
         WorkitemMetadataStoreEntry workitemMetadata,

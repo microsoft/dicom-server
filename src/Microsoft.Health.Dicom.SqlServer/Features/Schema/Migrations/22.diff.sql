@@ -148,14 +148,26 @@ BEGIN
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence;
 
     BEGIN TRY
-        EXECUTE dbo.UpdateIndexWorkitemInstanceCore @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+
+        EXEC dbo.UpdateIndexWorkitemInstanceCore
+            @workitemKey,
+            @stringExtendedQueryTags,
+            @dateTimeExtendedQueryTags,
+            @personNameExtendedQueryTags
+
     END TRY
+
     BEGIN CATCH
+
         THROW;
+
     END CATCH
+
     COMMIT TRANSACTION;
 END
 GO
+
+COMMIT TRANSACTION
 
 CREATE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
 (
@@ -172,6 +184,7 @@ WITH
     DROP_EXISTING = ON,
     ONLINE = ON
 );
+GO
 
 CREATE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
 (
@@ -188,6 +201,7 @@ WITH
     DROP_EXISTING = ON,
     ONLINE = ON
 );
+GO
 
 CREATE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
 (
@@ -204,6 +218,7 @@ WITH
     DROP_EXISTING = ON,
     ONLINE = ON
 );
+GO
 
 CREATE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
 (
@@ -220,6 +235,7 @@ WITH
     DROP_EXISTING = ON,
     ONLINE = ON
 );
+GO
 
 CREATE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
 (
@@ -236,5 +252,4 @@ WITH
     DROP_EXISTING = ON,
     ONLINE = ON
 );
-
-COMMIT TRANSACTION
+GO

@@ -53,11 +53,21 @@ BEGIN
     SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence;
 
     BEGIN TRY
-        EXECUTE dbo.UpdateIndexWorkitemInstanceCore @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+
+        EXEC dbo.UpdateIndexWorkitemInstanceCore
+            @workitemKey,
+            @stringExtendedQueryTags,
+            @dateTimeExtendedQueryTags,
+            @personNameExtendedQueryTags
+
     END TRY
+
     BEGIN CATCH
+
         THROW;
+
     END CATCH
+
     COMMIT TRANSACTION;
 END
 GO

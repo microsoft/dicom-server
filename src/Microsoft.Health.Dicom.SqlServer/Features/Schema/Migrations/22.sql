@@ -2188,10 +2188,6 @@ BEGIN
 END
 
 GO
-BEGIN TRANSACTION;
-
-
-GO
 CREATE OR ALTER PROCEDURE dbo.UpdateIndexWorkitemInstanceCore
 @workitemKey BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
 AS
