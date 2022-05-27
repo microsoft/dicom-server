@@ -26,7 +26,7 @@ jobs:
         }
 
   - task: AzurePowerShell@4
-    displayName: 'Set Export Test Variables'
+    displayName: 'Create Azure Storage SAS Token'
     inputs:
       azureSubscription: $(azureSubscriptionName)
       azurePowerShellVersion: latestVersion
@@ -35,7 +35,13 @@ jobs:
         $keys = Get-AzStorageAccountKey -Name '$(azureStorageAccountName)' -ResourceGroupName '$(deploymentName)'
         $primaryKey = $keys[0].Value
 
-        Write-Host "##vso[task.setvariable variable=Tests__Export__ConnectionString;issecret=true]DefaultEndpointsProtocol=https;AccountName=$(azureStorageAccountName);AccountKey=$primaryKey"
+        $start = Get-Date
+        $end = $start.AddHours(1)
+        $cxt = New-AzStorageContext -StorageAccountName '$(azureStorageAccountName)' -StorageAccountKey $primaryKey
+        $token = New-AzStorageAccountSASToken -Service Blob -ResourceType Container,Object -Permission 'rwdl' -Start $start -ExpiryTime $end -Context $cxt
+
+        $blobContainerUri = "https://$(azureStorageAccountName).blob.core.windows.net/export-e2e-test$token"
+        Write-Host "##vso[task.setvariable variable=Tests__Export__BlobContainerUri]$blobContainerUri"
 
   - bash: |
       echo "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
