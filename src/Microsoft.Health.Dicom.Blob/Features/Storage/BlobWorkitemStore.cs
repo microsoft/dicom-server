@@ -16,7 +16,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Web;
@@ -33,6 +32,7 @@ public class BlobWorkitemStore : IWorkitemStore
     private const string GetWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(GetWorkitemAsync);
 
     private readonly BlobContainerClient _container;
+    private readonly IDicomFileNameBuilder _fileNameBuilder;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -40,11 +40,13 @@ public class BlobWorkitemStore : IWorkitemStore
 
     public BlobWorkitemStore(
         BlobServiceClient client,
+        IDicomFileNameBuilder fileNameBuilder,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
         EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(fileNameBuilder, nameof(fileNameBuilder));
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
@@ -53,6 +55,7 @@ public class BlobWorkitemStore : IWorkitemStore
             .Get(Constants.WorkitemContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
+        _fileNameBuilder = fileNameBuilder;
         _jsonSerializerOptions = jsonSerializerOptions.Value;
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
     }
@@ -145,10 +148,7 @@ public class BlobWorkitemStore : IWorkitemStore
     private BlockBlobClient GetBlockBlobClient(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default)
     {
         var version = proposedWatermark.GetValueOrDefault(identifier.Watermark);
-
-        var blobName = $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}_workitem.json";
-
-        return _container.GetBlockBlobClient(blobName);
+        return _container.GetBlockBlobClient(_fileNameBuilder.GetWorkItemFileName(version));
     }
 
     private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)

@@ -67,8 +67,9 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<TStoreConfigurationSection>())
             .AddPersistence<TIStore, TStore, TLogStore>()
             .AddBlobServiceClient(blobConfig)
-            .AddScoped<DicomFileNameWithUid>()
-            .AddScoped<DicomFileNameWithPrefix>()
+            .AddScoped<DicomLegacyFileNameBuilder>()
+            .AddScoped<DicomPrefixedFileNameBuilder>()
+            .AddScoped<IDicomFileNameBuilder>(sp => sp.GetRequiredService<DicomPrefixedFileNameBuilder>())
             .AddBlobContainerInitialization(x => blobConfig
                 .GetSection(BlobInitializerOptions.DefaultSectionName)
                 .Bind(x))

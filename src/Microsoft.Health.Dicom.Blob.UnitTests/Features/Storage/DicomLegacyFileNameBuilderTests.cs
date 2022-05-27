@@ -8,21 +8,16 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Common;
+namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Storage;
 
-public class DicomFileNameWithUidTests
+public class DicomLegacyFileNameBuilderTests
 {
-    private readonly DicomFileNameWithUid _nameWithUid;
-
-    public DicomFileNameWithUidTests()
-    {
-        _nameWithUid = new DicomFileNameWithUid();
-    }
+    private readonly DicomLegacyFileNameBuilder _nameWithUid = new DicomLegacyFileNameBuilder();
 
     [Fact]
     public void GivenIdentifier_GetFileNames_ShouldReturnExpectedValues()
     {
-        VersionedInstanceIdentifier instanceIdentifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        var instanceIdentifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
         Assert.Equal($"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}.dcm", _nameWithUid.GetInstanceFileName(instanceIdentifier));
         Assert.Equal($"{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}_{instanceIdentifier.Version}_metadata.json", _nameWithUid.GetMetadataFileName(instanceIdentifier));
     }

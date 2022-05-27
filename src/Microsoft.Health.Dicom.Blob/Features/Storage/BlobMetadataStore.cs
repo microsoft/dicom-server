@@ -40,14 +40,14 @@ public class BlobMetadataStore : IMetadataStore
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly DicomFileNameWithUid _nameWithUid;
-    private readonly DicomFileNameWithPrefix _nameWithPrefix;
+    private readonly DicomLegacyFileNameBuilder _nameWithUid;
+    private readonly DicomPrefixedFileNameBuilder _nameWithPrefix;
 
     public BlobMetadataStore(
         BlobServiceClient client,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-        DicomFileNameWithUid fileNameWithUid,
-        DicomFileNameWithPrefix nameWithPrefix,
+        DicomLegacyFileNameBuilder fileNameWithUid,
+        DicomPrefixedFileNameBuilder nameWithPrefix,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)

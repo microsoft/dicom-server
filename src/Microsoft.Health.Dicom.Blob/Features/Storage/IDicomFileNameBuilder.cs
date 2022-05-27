@@ -6,9 +6,12 @@
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
+
 public interface IDicomFileNameBuilder
 {
     string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier);
 
     string GetMetadataFileName(VersionedInstanceIdentifier instanceIdentifier);
+
+    string GetWorkItemFileName(long version);
 }

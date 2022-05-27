@@ -5,27 +5,23 @@
 
 using System;
 using System.IO.Hashing;
-using System.Text;
-using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Blob.Utilities;
+
 internal static class HashingHelper
 {
     /// <summary>
-    /// Gets a deterministic hash for a given value
+    /// Gets a non-cryptographic hash for a given value.
     /// </summary>
     /// <param name="value"> Value to be hashed</param>
-    /// <param name="hashLength">Length of the hash to be returned. -1 means the complete hash value without trimming.</param>
     /// <returns>Returns hashed value as string. If hashLength is provided, it will return the value to that length</returns>
-    public static string ComputeXXHash(long value, int hashLength = -1)
+    public static int GetXxHashCode(long value)
     {
-        EnsureArg.IsNotDefault(value, nameof(value));
-
-        byte[] buffer = Encoding.UTF8.GetBytes(value.ToString());
-        string hash = BitConverter.ToUInt32(XxHash32.Hash(buffer)).ToString();
-
-        // If the hashLength is greater than the hash, assigning the length of the hash and not throw error
-        hashLength = hashLength > hash.Length ? hash.Length : hashLength;
-        return hash.Substring(0, hashLength == -1 ? hash.Length : hashLength);
+        unsafe
+        {
+            int hash;
+            XxHash32.Hash(new Span<byte>(&value, 8), new Span<byte>(&hash, 4));
+            return hash;
+        }
     }
 }

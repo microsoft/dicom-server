@@ -31,13 +31,13 @@ public class BlobFileStore : IFileStore
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly DicomFileNameWithUid _nameWithUid;
-    private readonly DicomFileNameWithPrefix _nameWithPrefix;
+    private readonly DicomLegacyFileNameBuilder _nameWithUid;
+    private readonly DicomPrefixedFileNameBuilder _nameWithPrefix;
 
     public BlobFileStore(
         BlobServiceClient client,
-        DicomFileNameWithUid nameWithUid,
-        DicomFileNameWithPrefix nameWithPrefix,
+        DicomLegacyFileNameBuilder nameWithUid,
+        DicomPrefixedFileNameBuilder nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration)

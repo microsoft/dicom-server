@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>Azure blob storage utilities for Microsoft's DICOMweb APIs.</Description>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
