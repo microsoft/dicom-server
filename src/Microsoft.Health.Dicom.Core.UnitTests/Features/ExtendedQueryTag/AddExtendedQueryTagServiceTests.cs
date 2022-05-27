@@ -167,6 +167,8 @@ public class AddExtendedQueryTagServiceTests
 
     private static Expression<Predicate<OperationQueryCondition<DicomOperation>>> GetOperationPredicate()
         => (OperationQueryCondition<DicomOperation> x) =>
+            x.CreatedTimeFrom == DateTime.MinValue &&
+            x.CreatedTimeTo == DateTime.MaxValue &&
             x.Operations.Single() == DicomOperation.Reindex &&
             x.Statuses.SequenceEqual(new OperationStatus[] { OperationStatus.NotStarted, OperationStatus.Running });
 }

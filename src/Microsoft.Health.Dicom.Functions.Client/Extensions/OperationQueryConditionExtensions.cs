@@ -23,7 +23,7 @@ internal static class OperationQueryConditionExtensions
             ContinuationToken = continuationToken,
             CreatedTimeFrom = query.CreatedTimeFrom,
             CreatedTimeTo = query.CreatedTimeTo,
-            RuntimeStatus = query.Statuses.Select(ToOrchestrationRuntimeStatus),
+            RuntimeStatus = query.Statuses.Select(ToOrchestrationRuntimeStatus).ToList(), // Aggressively resolve
             ShowInput = true,
         };
     }

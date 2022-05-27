@@ -15,6 +15,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// </summary>
 public sealed class ExistingReindexException : Exception
 {
+    /// <summary>
+    /// Gets the reference to the existing re-index operation.
+    /// </summary>
+    /// <value>The <see cref="OperationReference"/> for the existing operation, if specified.</value>
     public OperationReference ExistingOperation { get; }
 
     /// <summary>
