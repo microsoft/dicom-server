@@ -19,7 +19,7 @@ internal static class WorkitemFinalStateValidatorExtension
 
     public static void ValidateFinalStateRequirement(this DicomDataset dataset)
     {
-        var procedureStepState = dataset.GetProcedureState();
+        var procedureStepState = dataset.GetProcedureStepState();
 
         foreach (var requirement in Requirements)
         {

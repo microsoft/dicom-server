@@ -22,7 +22,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 /// <summary>
 /// Provides Audit specific tests.
 /// </summary>
-public class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetime
+public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetime
 {
     private readonly AuditTestFixture _fixture;
     private readonly IDicomWebClient _client;

@@ -5,13 +5,10 @@
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-/// <summary>
-/// Exception thrown when the Workitem instance is not found.
-/// </summary>
-public class WorkitemNotFoundException : DicomServerException
+public sealed class WorkitemUpdateNotAllowedException : DicomServerException
 {
-    public WorkitemNotFoundException()
-        : base(DicomCoreResource.WorkitemInstanceNotFound)
+    public WorkitemUpdateNotAllowedException(string procedureStepState)
+        : base(string.Format(DicomCoreResource.WorkitemUpdateIsNotAllowed, procedureStepState))
     {
     }
 }

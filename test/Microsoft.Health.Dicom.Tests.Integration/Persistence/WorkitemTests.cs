@@ -33,36 +33,7 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
         string workitemUid = DicomUID.Generate().UID;
         DicomTag tag2 = DicomTag.PatientName;
 
-        var dataset = new DicomDataset();
-        dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
-        dataset.Add(DicomTag.PatientName, "Foo");
-
-        var queryTags = new List<QueryTag>()
-        {
-            new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
-        };
-
-        var identifier = await _fixture
-            .IndexWorkitemStore
-            .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None);
-
-        Assert.NotNull(identifier);
-        Assert.True(identifier.WorkitemKey > 0);
-
-        await _fixture
-            .IndexWorkitemStore
-            .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
-    }
-
-    [Fact]
-    public async Task WhenValidWorkitemIsDeleted_DeletionSucceeds()
-    {
-        string workitemUid = DicomUID.Generate().UID;
-        DicomTag tag2 = DicomTag.PatientName;
-
-        var dataset = new DicomDataset();
-        dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
-        dataset.Add(DicomTag.PatientName, "Foo");
+        var dataset = CreateSampleDataset(workitemUid, tag2);
 
         var queryTags = new List<QueryTag>()
         {
@@ -74,7 +45,36 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
             .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
             .ConfigureAwait(false);
 
-        await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
+        Assert.NotNull(identifier);
+        Assert.True(identifier.WorkitemKey > 0);
+
+        await _fixture
+            .IndexWorkitemStore
+            .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None)
+            .ConfigureAwait(false);
+    }
+
+    [Fact]
+    public async Task WhenValidWorkitemIsDeleted_DeletionSucceeds()
+    {
+        string workitemUid = DicomUID.Generate().UID;
+        DicomTag tag2 = DicomTag.PatientName;
+
+        var dataset = CreateSampleDataset(workitemUid, tag2);
+
+        var queryTags = new List<QueryTag>()
+        {
+            new QueryTag(new WorkitemQueryTagStoreEntry(2, tag2.GetPath(), tag2.GetDefaultVR().Code)),
+        };
+
+        var identifier = await _fixture
+            .IndexWorkitemStore
+            .BeginAddWorkitemAsync(DefaultPartition.Key, dataset, queryTags, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        await _fixture.IndexWorkitemStore
+            .DeleteWorkitemAsync(identifier, CancellationToken.None)
+            .ConfigureAwait(false);
 
         // Try adding it back again, if this succeeds, then assume that Delete operation has succeeded.
         identifier = await _fixture
@@ -85,7 +85,9 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
         Assert.NotNull(identifier);
         Assert.True(identifier.WorkitemKey > 0);
 
-        await _fixture.IndexWorkitemStore.DeleteWorkitemAsync(identifier, CancellationToken.None);
+        await _fixture.IndexWorkitemStore
+            .DeleteWorkitemAsync(identifier, CancellationToken.None)
+            .ConfigureAwait(false);
     }
 
     [Fact]
@@ -110,22 +112,29 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
             .ConfigureAwait(false);
 
         await _fixture.IndexWorkitemStore
-            .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
+            .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None)
+            .ConfigureAwait(false);
 
         var workitemMetadata = await _fixture.IndexWorkitemStore
-            .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None);
+            .GetWorkitemMetadataAsync(DefaultPartition.Key, workitemUid, CancellationToken.None)
+            .ConfigureAwait(false);
 
         (long CurrentWatermark, long NextWatermark)? result = await _fixture.IndexWorkitemStore
-            .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, CancellationToken.None);
+            .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, CancellationToken.None)
+            .ConfigureAwait(false);
 
+        var transactionUid = DicomUID.Generate().UID;
         await _fixture.IndexWorkitemStore
-            .UpdateWorkitemProcedureStepStateAsync(workitemMetadata, result.Value.NextWatermark, ProcedureStepState.Canceled.GetStringValue(), CancellationToken.None);
+            .UpdateWorkitemProcedureStepStateAsync(workitemMetadata, result.Value.NextWatermark, ProcedureStepState.Canceled.GetStringValue(), transactionUid, CancellationToken.None)
+            .ConfigureAwait(false);
     }
 
     [Fact]
     public async Task WhenGetWorkitemQueryTagsIsExecuted_ReturnTagsSuccessfully()
     {
-        var workitemQueryTags = await _fixture.IndexWorkitemStore.GetWorkitemQueryTagsAsync(CancellationToken.None);
+        var workitemQueryTags = await _fixture.IndexWorkitemStore
+            .GetWorkitemQueryTagsAsync(CancellationToken.None)
+            .ConfigureAwait(false);
 
         Assert.NotEmpty(workitemQueryTags);
     }
@@ -161,7 +170,8 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
             .ConfigureAwait(false);
 
         await _fixture.IndexWorkitemStore
-            .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None);
+            .EndAddWorkitemAsync(DefaultPartition.Key, identifier.WorkitemKey, CancellationToken.None)
+            .ConfigureAwait(false);
 
         var includeField = new QueryIncludeField(new List<DicomTag> { tag });
         var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -172,7 +182,9 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
 
         var query = new BaseQueryExpression(includeField, false, 0, 0, filters);
 
-        var result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
+        var result = await _fixture.IndexWorkitemStore
+            .QueryAsync(DefaultPartition.Key, query, CancellationToken.None)
+            .ConfigureAwait(false);
 
         Assert.True(result.WorkitemInstances.Any());
 
@@ -194,12 +206,21 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
             new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code)),
         };
 
-        var identifier1 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None);
+        var identifier1 = await _fixture.IndexWorkitemStore
+            .BeginAddWorkitemAsync(DefaultPartition.Key, dataset1, queryTags, CancellationToken.None)
+            .ConfigureAwait(false);
+
         await _fixture.IndexWorkitemStore
-            .EndAddWorkitemAsync(DefaultPartition.Key, identifier1.WorkitemKey, CancellationToken.None);
-        var identifier2 = await _fixture.IndexWorkitemStore.BeginAddWorkitemAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None);
+            .EndAddWorkitemAsync(DefaultPartition.Key, identifier1.WorkitemKey, CancellationToken.None)
+            .ConfigureAwait(false);
+
+        var identifier2 = await _fixture.IndexWorkitemStore
+            .BeginAddWorkitemAsync(DefaultPartition.Key, dataset2, queryTags, CancellationToken.None)
+            .ConfigureAwait(false);
+
         await _fixture.IndexWorkitemStore
-            .EndAddWorkitemAsync(DefaultPartition.Key, identifier2.WorkitemKey, CancellationToken.None);
+            .EndAddWorkitemAsync(DefaultPartition.Key, identifier2.WorkitemKey, CancellationToken.None)
+            .ConfigureAwait(false);
 
         var includeField = new QueryIncludeField(new List<DicomTag> { tag });
         var queryTag = new QueryTag(new WorkitemQueryTagStoreEntry(2, tag.GetPath(), tag.GetDefaultVR().Code));
@@ -210,7 +231,9 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
 
         var query = new BaseQueryExpression(includeField, false, 1, 0, filters);
 
-        var result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
+        var result = await _fixture.IndexWorkitemStore
+            .QueryAsync(DefaultPartition.Key, query, CancellationToken.None)
+            .ConfigureAwait(false);
 
         Assert.Single(result.WorkitemInstances);
 
@@ -218,18 +241,22 @@ public class WorkitemTests : IClassFixture<SqlDataStoreTestsFixture>
 
         query = new BaseQueryExpression(includeField, false, 1, 1, filters);
 
-        result = await _fixture.IndexWorkitemStore.QueryAsync(DefaultPartition.Key, query, CancellationToken.None);
+        result = await _fixture.IndexWorkitemStore
+            .QueryAsync(DefaultPartition.Key, query, CancellationToken.None)
+            .ConfigureAwait(false);
 
         Assert.Single(result.WorkitemInstances);
 
         Assert.Equal(identifier1.WorkitemKey, result.WorkitemInstances.FirstOrDefault().WorkitemKey);
     }
 
-    private DicomDataset CreateSampleDataset(string workitemUid, DicomTag tag)
+    private static DicomDataset CreateSampleDataset(string workitemUid, DicomTag tag)
     {
-        var dataset = new DicomDataset();
-        dataset.Add(DicomTag.SOPInstanceUID, workitemUid);
-        dataset.Add(tag, "FOO");
+        var dataset = new DicomDataset
+        {
+            { DicomTag.SOPInstanceUID, workitemUid },
+            { tag, "FOO" }
+        };
         return dataset;
     }
 }

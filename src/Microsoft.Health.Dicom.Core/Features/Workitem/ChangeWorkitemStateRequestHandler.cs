@@ -6,6 +6,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using MediatR;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -15,29 +16,39 @@ using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
-public sealed class RetrieveWorkitemRequestHandler : BaseHandler, IRequestHandler<RetrieveWorkitemRequest, RetrieveWorkitemResponse>
+public class ChangeWorkitemStateRequestHandler : BaseHandler, IRequestHandler<ChangeWorkitemStateRequest, ChangeWorkitemStateResponse>
 {
     private readonly IWorkitemService _workItemService;
+    private readonly IWorkitemSerializer _workitemSerializer;
 
-    public RetrieveWorkitemRequestHandler(IAuthorizationService<DataActions> authorizationService, IWorkitemService workItemService)
+    public ChangeWorkitemStateRequestHandler(
+        IAuthorizationService<DataActions> authorizationService,
+        IWorkitemSerializer workitemSerializer,
+        IWorkitemService workItemService)
         : base(authorizationService)
     {
         _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
+        _workitemSerializer = workitemSerializer;
     }
 
-    public async Task<RetrieveWorkitemResponse> Handle(RetrieveWorkitemRequest request, CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<ChangeWorkitemStateResponse> Handle(ChangeWorkitemStateRequest request, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
+        if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken).ConfigureAwait(false) != DataActions.Write)
         {
-            throw new UnauthorizedDicomActionException(DataActions.Read);
+            throw new UnauthorizedDicomActionException(DataActions.Write);
         }
 
         request.Validate();
 
+        var changeStateDataset = await _workitemSerializer
+            .DeserializeAsync<DicomDataset>(request.RequestBody, request.RequestContentType)
+            .ConfigureAwait(false);
+
         return await _workItemService
-            .ProcessRetrieveAsync(request.WorkitemInstanceUid, cancellationToken)
+            .ProcessChangeStateAsync(changeStateDataset, request.WorkitemInstanceUid, cancellationToken)
             .ConfigureAwait(false);
     }
 }

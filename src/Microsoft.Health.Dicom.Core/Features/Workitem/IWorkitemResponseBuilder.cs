@@ -26,6 +26,12 @@ public interface IWorkitemResponseBuilder
     CancelWorkitemResponse BuildCancelResponse();
 
     /// <summary>
+    /// Builds the response for change workitem state.
+    /// </summary>
+    /// <returns>An instance of <see cref="ChangeWorkitemStateResponse"/> representing the response.</returns>
+    ChangeWorkitemStateResponse BuildChangeWorkitemStateResponse();
+
+    /// <summary>
     /// Builds the response for retrieve workitem
     /// </summary>
     /// <returns>An instance of <see cref="RetrieveWorkitemResponse"/> representing the response.</returns>

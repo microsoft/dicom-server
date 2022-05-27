@@ -253,6 +253,22 @@ public static class DicomMediatorExtensions
         return mediator.Send(new QueryWorkitemResourceRequest(parameters), cancellationToken);
     }
 
+    public static Task<ChangeWorkitemStateResponse> ChangeWorkitemStateAsync(
+        this IMediator mediator,
+        Stream requestBody,
+        string requestContentType,
+        string workitemUid,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        EnsureArg.IsNotNull(requestBody, nameof(requestBody));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
+        return mediator.Send(
+            new ChangeWorkitemStateRequest(requestBody, requestContentType, workitemUid),
+            cancellationToken);
+    }
+
     public static Task<RetrieveWorkitemResponse> RetrieveWorkitemAsync(
         this IMediator mediator,
         string workitemInstanceUid,
