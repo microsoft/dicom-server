@@ -24,10 +24,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WadoMetadataFunctionApp", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{400F6200-8F9E-43A5-85AE-669B4E89D2FA}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Forks", "Forks", "{7B6DF4B2-A4B2-498F-BB5B-D77A0CD5EE21}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom.Serialization", "..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj", "{D9453ECD-BE8F-41CF-A5F0-6098C03C8CBD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -78,16 +74,9 @@ Global
 		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Debug|x64.Build.0 = Debug|x64
 		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Release|x64.ActiveCfg = Release|x64
 		{400F6200-8F9E-43A5-85AE-669B4E89D2FA}.Release|x64.Build.0 = Release|x64
-		{D9453ECD-BE8F-41CF-A5F0-6098C03C8CBD}.Debug|x64.ActiveCfg = Debug|x64
-		{D9453ECD-BE8F-41CF-A5F0-6098C03C8CBD}.Debug|x64.Build.0 = Debug|x64
-		{D9453ECD-BE8F-41CF-A5F0-6098C03C8CBD}.Release|x64.ActiveCfg = Release|x64
-		{D9453ECD-BE8F-41CF-A5F0-6098C03C8CBD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{D9453ECD-BE8F-41CF-A5F0-6098C03C8CBD} = {7B6DF4B2-A4B2-498F-BB5B-D77A0CD5EE21}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6455060E-D6DF-4528-8817-C7311959127D}
