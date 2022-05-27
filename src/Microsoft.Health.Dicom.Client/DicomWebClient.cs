@@ -17,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.FellowOakDicom.Serialization;
+using FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
@@ -254,7 +254,7 @@ public partial class DicomWebClient : IDicomWebClient
         };
 
         options.Converters.Add(new DicomIdentifierJsonConverter());
-        options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false));
+        options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         options.Converters.Add(new ExportDataOptionsJsonConverter());
         options.Converters.Add(new JsonStringEnumConverter());
 

@@ -48,10 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

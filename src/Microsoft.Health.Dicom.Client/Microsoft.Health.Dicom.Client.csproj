@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
@@ -22,10 +22,6 @@
     <None Include="IDicomWebClient.*.cs">
       <DependentUpon>IDicomWebClient.cs</DependentUpon>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>
