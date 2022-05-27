@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Azure.Core.Extensions;
 using Azure.Security.KeyVault.Secrets;
 using EnsureThat;
 using Microsoft.Extensions.Azure;
@@ -88,10 +89,13 @@ public static class KeyVaultClientRegistrationExtensions
                 section[nameof(KeyVaultSecretClientOptions.VaultUri)] = section[nameof(KeyVaultSecretClientOptions.Endpoint)];
 #pragma warning restore CS0612
 
-            services.AddAzureClients(
-                builder => builder
-                    .AddSecretClient(section)
-                    .ConfigureOptions(configureOptions));
+            services.AddAzureClients(builder =>
+            {
+                IAzureClientBuilder<SecretClient, SecretClientOptions> clientBuilder = builder.AddSecretClient(section);
+
+                if (configureOptions != null)
+                    clientBuilder.ConfigureOptions(configureOptions);
+            });
 
             services.AddScoped<ISecretStore, KeyVaultSecretStore>();
         }

@@ -216,8 +216,8 @@
             "FUNCTIONS_EXTENSION_VERSION": "~4",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1",
-            "KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
-            "KeyVault__Credential": "managedidentity"
+            "AzureFunctionsJobHost__KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
+            "AzureFunctionsJobHost__KeyVault__Credential": "managedidentity"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "combinedDicomFunctionAppConfigProperties": "[union(variables('staticDicomFunctionAppConfigProperties'), parameters('additionalDicomFunctionAppConfigProperties'))]",

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -72,6 +73,16 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         DicomDataset instance8 = Samples.CreateRandomInstanceDataset(studyUid3);
         DicomDataset instance9 = Samples.CreateRandomInstanceDataset(studyUid3, seriesUid3);
 
+        // Unknown DICOM instances
+        string unknownStudyUid1 = TestUidGenerator.Generate();
+        string unknownStudyUid2 = TestUidGenerator.Generate();
+        string unknownStudyUid3 = TestUidGenerator.Generate();
+
+        string unknownSeriesUid1 = TestUidGenerator.Generate();
+        string unknownSeriesUid2 = TestUidGenerator.Generate();
+
+        string unknownSopInstanceUid1 = TestUidGenerator.Generate();
+
         var instances = new Dictionary<DicomIdentifier, DicomDataset>
         {
             { DicomIdentifier.ForInstance(instance1), instance1 },
@@ -97,8 +108,11 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
                 DicomIdentifier.ForStudy(studyUid1),
                 DicomIdentifier.ForSeries(studyUid2, seriesUid2),
                 DicomIdentifier.ForInstance(instance7),
+                DicomIdentifier.ForInstance(unknownStudyUid1, unknownSeriesUid1, unknownSopInstanceUid1),
+                DicomIdentifier.ForSeries(unknownStudyUid2, unknownSeriesUid2),
                 DicomIdentifier.ForInstance(instance8),
-                DicomIdentifier.ForInstance(instance9)),
+                DicomIdentifier.ForInstance(instance9),
+                DicomIdentifier.ForStudy(unknownStudyUid3)),
             _destination);
 
         // Wait for the operation to complete
@@ -126,6 +140,21 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             await AssertEqualBinaryAsync(expected, data);
             instances.Remove(identifier);
         }
+
+        // Check for errors
+        BlobClient errorBlobClient = _containerClient.GetBlobClient($"{operation.Id.ToString(OperationId.FormatSpecifier)}/Errors.log");
+        using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
+
+        var errors = new List<JsonElement>();
+
+        string line;
+        while ((line = reader.ReadLine()) != null)
+            errors.Add(JsonSerializer.Deserialize<JsonElement>(line));
+
+        Assert.Equal(3, errors.Count);
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}");
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid2}/{unknownSeriesUid2}");
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid3}");
     }
 
     public Task InitializeAsync()

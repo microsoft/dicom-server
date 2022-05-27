@@ -6,7 +6,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,7 +84,7 @@ internal sealed class AzureBlobExportSink : IExportSink
             await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload }, cancellationToken);
             return true;
         }
-        catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status != (int)HttpStatusCode.BadRequest)
+        catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500) // Do not include client errors
         {
             CopyFailure?.Invoke(this, new CopyFailureEventArgs(value.Identifier, ex));
             await WriteErrorAsync(DicomIdentifier.ForInstance(value.Identifier), ex.Message, cancellationToken);
