@@ -48,11 +48,12 @@ internal sealed class SqlWorkitemStore : IIndexWorkitemStore
         WorkitemMetadataStoreEntry workitemMetadata,
         long proposedWatermark,
         string procedureStepState,
+        string transactionUid,
         CancellationToken cancellationToken = default)
     {
         var store = await _cache.GetAsync(cancellationToken: cancellationToken);
 
-        await store.UpdateWorkitemProcedureStepStateAsync(workitemMetadata, proposedWatermark, procedureStepState, cancellationToken);
+        await store.UpdateWorkitemProcedureStepStateAsync(workitemMetadata, proposedWatermark, procedureStepState, transactionUid, cancellationToken);
     }
 
     public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)

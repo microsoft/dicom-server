@@ -58,6 +58,12 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Rest\Audit\AuditTests.*.cs">
+      <DependentUpon>Rest\Audit\AuditTests.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
   <Target Name="VerifyExactSdkVersion" BeforeTargets="Build">
     <!--
       Verify that the we are compiling with the exact version of the SDK that is specified in the global.json file.

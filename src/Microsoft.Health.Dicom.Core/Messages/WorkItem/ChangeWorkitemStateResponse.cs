@@ -3,15 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Exceptions;
+namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 
-/// <summary>
-/// Exception thrown when the Workitem instance is not found.
-/// </summary>
-public class WorkitemNotFoundException : DicomServerException
+public sealed class ChangeWorkitemStateResponse
 {
-    public WorkitemNotFoundException()
-        : base(DicomCoreResource.WorkitemInstanceNotFound)
+    public ChangeWorkitemStateResponse(WorkitemResponseStatus status, string message = null)
     {
+        Status = status;
+        Message = message;
     }
+
+    public WorkitemResponseStatus Status { get; }
+
+    public string Message { get; }
 }
