@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Models.Operations;
 public sealed class OperationQueryCondition<T>
 {
     /// <summary>
-    /// Gets the optional collection of operation types to include in the search result.s
+    /// Gets the optional collection of operation types to include in the search results.
     /// </summary>
     /// <value>Zero or more operation types.</value>
     public IEnumerable<T> Operations { get; init; }
@@ -23,7 +23,7 @@ public sealed class OperationQueryCondition<T>
     /// <summary>
     /// Gets the optional collection of operation statues to include in the search results.
     /// </summary>
-    /// <value>Zero or more status.</value>
+    /// <value>Zero or more statuses.</value>
     public IEnumerable<OperationStatus> Statuses { get; init; }
 
     /// <summary>
@@ -39,5 +39,4 @@ public sealed class OperationQueryCondition<T>
     /// </summary>
     /// <value>The maximum operation created time if specified; otherwise <see cref="DateTime.MaxValue"/>.</value>
     public DateTime CreatedTimeTo { get; init; } = DateTime.MaxValue;
-
 }

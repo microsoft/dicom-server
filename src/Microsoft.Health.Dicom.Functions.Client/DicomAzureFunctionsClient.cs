@@ -91,7 +91,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     {
         EnsureArg.IsNotNull(query, nameof(query));
 
-        var operations = new HashSet<DicomOperation>(query.Operations ?? Array.Empty<DicomOperation>());
+        var operations = query.Operations == null ? null : new HashSet<DicomOperation>(query.Operations);
         var result = new OrchestrationStatusQueryResult();
         do
         {
