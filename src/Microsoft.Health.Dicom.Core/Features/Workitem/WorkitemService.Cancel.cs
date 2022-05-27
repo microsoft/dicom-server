@@ -23,9 +23,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 /// </summary>
 public partial class WorkitemService
 {
-    public async Task<CancelWorkitemResponse> ProcessCancelAsync(DicomDataset dataset, string workitemInstanceUid, CancellationToken cancellationToken)
+    public async Task<CancelWorkitemResponse> ProcessCancelAsync(
+        DicomDataset dataset,
+        string workitemInstanceUid,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
         var workitemMetadata = await _workitemOrchestrator
             .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
@@ -35,7 +39,7 @@ public partial class WorkitemService
         {
             _responseBuilder.AddFailure(
                 FailureReasonCodes.UpsInstanceNotFound,
-                string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
+                DicomCoreResource.WorkitemInstanceNotFound,
                 dataset);
             return _responseBuilder.BuildCancelResponse();
         }
@@ -43,12 +47,29 @@ public partial class WorkitemService
         // Get the state transition result
         var transitionStateResult = workitemMetadata
             .ProcedureStepState
-            .GetTransitionState(WorkitemStateEvents.NActionToRequestCancel);
-
-        var cancelRequestDataset = await PrepareRequestCancelWorkitemBlobDatasetAsync(
+            .GetTransitionState(WorkitemActionEvent.NActionToRequestCancel);
+        var cancelRequestDataset = await GetPreparedRequestCancelWorkitemBlobDatasetAsync(
                 dataset, workitemMetadata, transitionStateResult.State, cancellationToken)
             .ConfigureAwait(false);
 
+        await ValidateAndCancelWorkitemAsync(
+                cancelRequestDataset,
+                workitemInstanceUid,
+                workitemMetadata,
+                transitionStateResult,
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        return _responseBuilder.BuildCancelResponse();
+    }
+
+    private async Task ValidateAndCancelWorkitemAsync(
+        DicomDataset cancelRequestDataset,
+        string workitemInstanceUid,
+        WorkitemMetadataStoreEntry workitemMetadata,
+        WorkitemStateTransitionResult transitionStateResult,
+        CancellationToken cancellationToken)
+    {
         if (ValidateCancelRequest(workitemInstanceUid, workitemMetadata, cancelRequestDataset, transitionStateResult))
         {
             // If there is a warning code, the workitem is already in the canceled state.
@@ -58,8 +79,7 @@ public partial class WorkitemService
                     string.Format(
                         CultureInfo.InvariantCulture,
                         DicomCoreResource.WorkitemIsInFinalState,
-                        workitemInstanceUid,
-                        workitemMetadata.ProcedureStepState,
+                        workitemMetadata.ProcedureStepStateStringValue,
                         transitionStateResult.Code));
             }
             else
@@ -72,11 +92,9 @@ public partial class WorkitemService
                     .ConfigureAwait(false);
             }
         }
-
-        return _responseBuilder.BuildCancelResponse();
     }
 
-    private async Task<DicomDataset> PrepareRequestCancelWorkitemBlobDatasetAsync(
+    private async Task<DicomDataset> GetPreparedRequestCancelWorkitemBlobDatasetAsync(
         DicomDataset dataset,
         WorkitemMetadataStoreEntry workitemMetadata,
         ProcedureStepState targetProcedureStepState,
@@ -201,11 +219,7 @@ public partial class WorkitemService
 
             _logger.LogInformation("Successfully canceled the work-item entry.");
 
-            _responseBuilder.AddSuccess(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemCancelRequestSuccess,
-                    workitemMetadata.WorkitemUid));
+            _responseBuilder.AddSuccess(DicomCoreResource.WorkitemCancelRequestSuccess);
         }
         catch (Exception ex)
         {

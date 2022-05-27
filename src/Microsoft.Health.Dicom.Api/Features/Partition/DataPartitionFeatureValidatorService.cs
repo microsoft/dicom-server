@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -27,13 +28,17 @@ public class DataPartitionFeatureValidatorService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly bool _isPartitionEnabled;
+    private readonly ILogger<DataPartitionFeatureValidatorService> _logger;
 
     public DataPartitionFeatureValidatorService(
         IServiceProvider serviceProvider,
-        IOptions<FeatureConfiguration> featureConfiguration)
+        IOptions<FeatureConfiguration> featureConfiguration,
+        ILogger<DataPartitionFeatureValidatorService> logger)
     {
         _serviceProvider = serviceProvider;
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
         _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
     }
@@ -42,16 +47,24 @@ public class DataPartitionFeatureValidatorService : IHostedService
     {
         if (!_isPartitionEnabled)
         {
-            using (var scope = _serviceProvider.CreateScope())
+            try
             {
-                var partitionService = scope.ServiceProvider.GetRequiredService<IPartitionService>();
-
-                var partitionEntries = await partitionService.GetPartitionsAsync(cancellationToken);
-
-                if (partitionEntries.Entries.Count > 1)
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    throw new DataPartitionsFeatureCannotBeDisabledException();
+                    var partitionService = scope.ServiceProvider.GetRequiredService<IPartitionService>();
+
+                    var partitionEntries = await partitionService.GetPartitionsAsync(cancellationToken);
+
+                    if (partitionEntries.Entries.Count > 1)
+                    {
+                        throw new DataPartitionsFeatureCannotBeDisabledException();
+                    }
                 }
+            }
+            catch (BadRequestException ex)
+            {
+                // If a consumer doesn't upgrade the schema, then the service won't be started. So silently failing.
+                _logger.LogWarning("Silently failing, schema version not upgraded. {Message}", ex.Message);
             }
         }
     }

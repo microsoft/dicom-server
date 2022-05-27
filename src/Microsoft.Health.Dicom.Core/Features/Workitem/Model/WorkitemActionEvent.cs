@@ -6,17 +6,14 @@
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
 /// <summary>
-/// Workitem state events
+/// Workitem action event
 /// </summary>
-public enum WorkitemStateEvents
+public enum WorkitemActionEvent
 {
     NCreate,
-    NActionToInProgressWithCorrectTransactionUID,
-    NActionToInProgressWithoutCorrectTransactionUID,
+    NActionToInProgress,
     NActionToScheduled,
-    NActionToCompletedWithCorrectTransactionUID,
-    NActionToCompletedWithoutCorrectTransactionUID,
+    NActionToCompleted,
     NActionToRequestCancel,
-    NActionToCanceledWithCorrectTransactionUID,
-    NActionToCanceledWithoutCorrectTransactionUID
+    NActionToCanceled
 }

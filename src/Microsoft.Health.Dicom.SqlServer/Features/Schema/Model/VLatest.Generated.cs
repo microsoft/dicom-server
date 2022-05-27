@@ -77,6 +77,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpdateInstanceStatusV6Procedure UpdateInstanceStatusV6 = new UpdateInstanceStatusV6Procedure();
         internal readonly static UpdateWorkitemProcedureStepStateProcedure UpdateWorkitemProcedureStepState = new UpdateWorkitemProcedureStepStateProcedure();
+        internal readonly static UpdateWorkitemProcedureStepStateV21Procedure UpdateWorkitemProcedureStepStateV21 = new UpdateWorkitemProcedureStepStateV21Procedure();
         internal readonly static UpdateWorkitemStatusProcedure UpdateWorkitemStatus = new UpdateWorkitemStatusProcedure();
 
         internal class ChangeFeedTable : Table
@@ -1754,6 +1755,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _procedureStepState.AddParameter(command.Parameters, procedureStepState);
                 _watermark.AddParameter(command.Parameters, watermark);
                 _proposedWatermark.AddParameter(command.Parameters, proposedWatermark);
+            }
+        }
+
+        internal class UpdateWorkitemProcedureStepStateV21Procedure : StoredProcedure
+        {
+            internal UpdateWorkitemProcedureStepStateV21Procedure() : base("dbo.UpdateWorkitemProcedureStepStateV21")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int64> _workitemKey = new ParameterDefinition<System.Int64>("@workitemKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.String> _procedureStepStateTagPath = new ParameterDefinition<System.String>("@procedureStepStateTagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _procedureStepState = new ParameterDefinition<System.String>("@procedureStepState", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.Int64> _proposedWatermark = new ParameterDefinition<System.Int64>("@proposedWatermark", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.String> _transactionUid = new ParameterDefinition<System.String>("@transactionUid", global::System.Data.SqlDbType.VarChar, false, 64);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int64 workitemKey, System.String procedureStepStateTagPath, System.String procedureStepState, System.Int64 watermark, System.Int64 proposedWatermark, System.String transactionUid)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.UpdateWorkitemProcedureStepStateV21";
+                _workitemKey.AddParameter(command.Parameters, workitemKey);
+                _procedureStepStateTagPath.AddParameter(command.Parameters, procedureStepStateTagPath);
+                _procedureStepState.AddParameter(command.Parameters, procedureStepState);
+                _watermark.AddParameter(command.Parameters, watermark);
+                _proposedWatermark.AddParameter(command.Parameters, proposedWatermark);
+                _transactionUid.AddParameter(command.Parameters, transactionUid);
             }
         }
 

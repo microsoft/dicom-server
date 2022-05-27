@@ -13,9 +13,10 @@
   <ItemGroup>
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
-    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.2.1" />
+    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Api" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Client" Version="$(HealthcareSharedPackageVersion)" />
     <PackageReference Include="Microsoft.Health.Functions.Extensions" Version="$(HealthcareSharedPackageVersion)" />
@@ -53,6 +54,12 @@
   <ItemGroup>
     <None Include="Rest\WorkItemTransactionTests.*.cs">
       <DependentUpon>Rest\WorkItemTransactionTests.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Rest\Audit\AuditTests.*.cs">
+      <DependentUpon>Rest\Audit\AuditTests.cs</DependentUpon>
     </None>
   </ItemGroup>
 
