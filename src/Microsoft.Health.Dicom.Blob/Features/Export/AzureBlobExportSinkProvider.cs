@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -112,6 +113,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             string version = await _secretStore.SetSecretAsync(
                 name,
                 JsonSerializer.Serialize(secrets, _serializerOptions),
+                MediaTypeNames.Application.Json,
                 cancellationToken);
 
             options.BlobContainerUri = null;

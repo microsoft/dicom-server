@@ -5,6 +5,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net.Mime;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -186,7 +187,7 @@ public class AzureBlobExportSinkProviderTests
 
         var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
         await Assert.ThrowsAsync<InvalidOperationException>(() => provider.SecureSensitiveInfoAsync(options, operationId));
-        await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default);
+        await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default, default);
     }
 
     [Theory]
@@ -205,7 +206,7 @@ public class AzureBlobExportSinkProviderTests
         var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
         var actual = (AzureBlobExportOptions)await provider.SecureSensitiveInfoAsync(options, Guid.NewGuid());
 
-        await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default);
+        await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default, default);
 
         Assert.Null(actual.Secret);
         Assert.Equal(blobContainerName, actual.BlobContainerName);
@@ -233,14 +234,14 @@ public class AzureBlobExportSinkProviderTests
         using var tokenSource = new CancellationTokenSource();
 
         _secretStore
-            .SetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), secretJson, tokenSource.Token)
+            .SetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), secretJson, MediaTypeNames.Application.Json, tokenSource.Token)
             .Returns(version);
 
         var actual = (AzureBlobExportOptions)await _sinkProvider.SecureSensitiveInfoAsync(options, operationId, tokenSource.Token);
 
         await _secretStore
             .Received(1)
-            .SetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), secretJson, tokenSource.Token);
+            .SetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), secretJson, MediaTypeNames.Application.Json, tokenSource.Token);
 
         Assert.Equal(operationId.ToString(OperationId.FormatSpecifier), actual.Secret.Name);
         Assert.Equal(version, actual.Secret.Version);
