@@ -20,5 +20,6 @@ public class HashingHelperTests
         int hash = HashingHelper.GetXxHashCode(value);
         Assert.NotEqual((int)value, hash);
         Assert.NotEqual(HashingHelper.GetXxHashCode(99), hash);
+        Assert.Equal(hash, HashingHelper.GetXxHashCode(value));
     }
 }
