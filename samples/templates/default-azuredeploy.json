@@ -267,7 +267,7 @@
             "properties": {
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
-                "siteConfig":{
+                "siteConfig": {
                     "location": "[parameters('location')]",
                     "use32BitWorkerProcess": false
                 }
@@ -311,9 +311,9 @@
                         "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
                         "[resourceId('Microsoft.Web/sites/siteextensions', variables('serviceName'), 'AspNetCoreRuntime.6.0.x64')]"
                     ],
-                  "properties": {
-                    "packageUri": "[parameters('deployWebPackageUrl')]"
-                  }
+                    "properties": {
+                        "packageUri": "[parameters('deployWebPackageUrl')]"
+                    }
                 }
             ]
         },
@@ -332,7 +332,7 @@
             "properties": {
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
-                "siteConfig":{
+                "siteConfig": {
                     // We need to initially configure the Azure Function App for v3 so that it does not regenerate the function access keys later
                     "appSettings": [
                         {
@@ -384,9 +384,9 @@
                         "[variables('functionAppServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('functionAppName'), 'appsettings')]"
                     ],
-                  "properties": {
-                    "packageUri": "[parameters('deployFunctionAppPackageUrl')]"
-                  }
+                    "properties": {
+                        "packageUri": "[parameters('deployFunctionAppPackageUrl')]"
+                    }
                 }
             ]
         },

@@ -94,11 +94,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         BlobSecrets secrets = null;
         if (options.BlobContainerUri != null)
         {
-            var builder = new UriBuilder(options.BlobContainerUri);
-            if (builder.Query != null && builder.Query.Length > 1) // More than "?"
+            if (IsSensitiveBlobContainerUri(options.BlobContainerUri))
                 secrets = new BlobSecrets { BlobContainerUri = options.BlobContainerUri };
         }
-        else if (options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.InvariantCultureIgnoreCase))
+        else if (IsSensitiveConnectionString(options.ConnectionString))
         {
             secrets = new BlobSecrets { ConnectionString = options.ConnectionString };
         }
@@ -148,6 +147,28 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         }
 
         return options;
+    }
+
+    private static bool IsSensitiveBlobContainerUri(Uri blobContainerUri)
+    {
+        // Assume any parameter is for authentication
+        // Note: Shared Key would be present in header
+        var builder = new UriBuilder(blobContainerUri);
+        return builder.Query != null && builder.Query.Length > 1; // More than "?"
+    }
+
+    private static bool IsSensitiveConnectionString(string connectionString)
+    {
+        // Emulator is a well-known account and account key
+        if (connectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) ||
+            (connectionString.Contains("AccountName=devstoreaccount1;", StringComparison.OrdinalIgnoreCase) &&
+            connectionString.Contains("AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;", StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        return connectionString.Contains("AccountKey=", StringComparison.OrdinalIgnoreCase) ||
+            connectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class BlobSecrets

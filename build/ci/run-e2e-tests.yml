@@ -25,6 +25,18 @@ jobs:
             Write-Host "##vso[task.setvariable variable=$environmentVariableName]$secretValue"
         }
 
+  - task: AzurePowerShell@4
+    displayName: 'Set Export Test Variables'
+    inputs:
+      azureSubscription: $(azureSubscriptionName)
+      azurePowerShellVersion: latestVersion
+      ScriptType: inlineScript
+      Inline: |
+        $keys = Get-AzStorageAccountKey -Name '$(azureStorageAccountName)' -ResourceGroupName '$(deploymentName)'
+        $primaryKey = $keys[0].Value
+
+        Write-Host "##vso[task.setvariable variable=Tests__Export__ConnectionString;issecret=true]DefaultEndpointsProtocol=https;AccountName=$(azureStorageAccountName);AccountKey=$primaryKey"
+
   - bash: |
       echo "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
       echo "##vso[task.setvariable variable=security_scope]$(testApplicationScope)"
@@ -35,5 +47,3 @@ jobs:
     displayName: 'Setup Authentication'
 
   - template: ../common/run-e2e-tests.yml
-    parameters:
-      azLogin: true

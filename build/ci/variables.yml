@@ -4,6 +4,7 @@ variables:
   testFeaturesEnabledEnvironmentUrl: 'https://$(deploymentName)-featuresenabled.azurewebsites.net/'
   testApplicationScope: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com/.default'
   testApplicationResource: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com'
+  azureStorageAccountName: 'dcmcipermanpmlxszw4sayty'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'
@@ -15,5 +16,3 @@ variables:
   azureContainerRegistry: 'dicomoss.azurecr.io'
   deleteDataOnStartup: 'false'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
-  Tests__Export__BlobContainerUri: 'https://dcmcipermanpmlxszw4sayty.blob.core.windows.net/export-e2e-test'
-  Tests__Export__UseManagedIdentity: 'true'

@@ -171,6 +171,7 @@ public class AzureBlobExportSinkProviderTests
 
     [Theory]
     [InlineData("BlobEndpoint=https://unit-test.blob.core.windows.net/;SharedAccessSignature=sastoken", "export-e2e-test", null)]
+    [InlineData("BlobEndpoint=https://unit-test.blob.core.windows.net/;AccountKey=secret", "export-e2e-test", null)]
     [InlineData(null, null, "https://dcmcipermanpmlxszw4sayty.blob.core.windows.net/export-e2e-test?sig=sastoken")]
     [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "Cannot use inline Uri")]
     public async Task GivenSasTokenWithNoStore_WhenSecuringInfo_ThenThrow(string connectionString, string blobContainerName, string blobContainerUri)
@@ -214,6 +215,7 @@ public class AzureBlobExportSinkProviderTests
 
     [Theory]
     [InlineData("BlobEndpoint=https://unit-test.blob.core.windows.net/;SharedAccessSignature=sastoken", "export-e2e-test", null)]
+    [InlineData("BlobEndpoint=https://unit-test.blob.core.windows.net/;AccountKey=secret", "export-e2e-test", null)]
     [InlineData(null, null, "https://dcmcipermanpmlxszw4sayty.blob.core.windows.net/export-e2e-test?sig=sastoken")]
     [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "Cannot use inline Uri")]
     public async Task GivenSasToken_WhenSecuringInfo_ThenStoreSecrets(string connectionString, string blobContainerName, string blobContainerUri)
