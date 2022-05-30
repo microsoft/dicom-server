@@ -480,8 +480,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} Actual value. {1} Comma-separated list of expected values.</comment>
   </data>
   <data name="WorkitemInstanceAlreadyExists" xml:space="preserve">
-    <value>The workitem instance with UID: '{0}' already exists. Try creating using a different UID.</value>
-    <comment>{0} Workitem UID.</comment>
+    <value>The workitem instance already exists. Try creating using a different UID.</value>
   </data>
   <data name="NestedSequencesNotSupported" xml:space="preserve">
     <value>Nested Dicom sequence tags are currently not supported.</value>
@@ -490,12 +489,11 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>UPS-RS feature is disabled.</value>
   </data>
   <data name="InvalidProcedureStepStateTransition" xml:space="preserve">
-    <value>The workitem instance with UID: '{0}' can not transition to '{1}' state: {2}.</value>
-    <comment>{0} WorkitemInstanceUID. {1} ProcedureStepState. {2} Error code</comment>
+    <value>The workitem instance can not transition to '{0}' state: {1}.</value>
+    <comment>{0} ProcedureStepState. {1} Error code</comment>
   </data>
   <data name="MismatchSopInstanceWorkitemInstanceUid" xml:space="preserve">
-    <value>SOPInstanceUID '{0}' in the payload does not match the workitem query parameter '{1}'.</value>
-    <comment>{0} SOPInstanceUID. {1} WorkitemInstanceUID.</comment>
+    <value>SOPInstanceUID in the payload does not match the workitem query parameter.</value>
   </data>
   <data name="DuplicateTagValueNotSupported" xml:space="preserve">
     <value>Duplicate value '{0}' for tag '{1}' not supported in a sequence.</value>
@@ -506,24 +504,21 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} Dicom Tag. {1} Action/Operation. {2} WorkitemInstanceUID.</comment>
   </data>
   <data name="InvalidTransactionUID" xml:space="preserve">
-    <value>Invalid TransactionUID for the specified WorkitemInstanceUID '{1}'.</value>
-    <comment>{0} WorkitemInstanceUID.</comment>
+    <value>Invalid TransactionUID for the specified Workitem Instance UID.</value>
   </data>
   <data name="WorkitemInstanceNotFound" xml:space="preserve">
-    <value>The workitem instance with UID: '{0}' is not found.</value>
-    <comment>{0} Workitem UID.</comment>
+    <value>The workitem instance is not found.</value>
   </data>
   <data name="WorkitemIsInFinalState" xml:space="preserve">
-    <value>The workitem instance with UID: '{0}' is already in the final state '{1}'. {2}.</value>
-    <comment>{0} Workitem UID. {1} Procedure Step State. {2} Error or Warning Code.</comment>
+    <value>The workitem instance is already in the final state '{0}'. {1}.</value>
+    <comment>{0} Procedure Step State. {1} Error or Warning Code.</comment>
   </data>
   <data name="WorkitemUpdateIsNotAllowed" xml:space="preserve">
-    <value>The workitem instance with UID: '{0}' is in the state of '{1}'.</value>
-    <comment>{0} Workitem UID. {1} Current Procedure Step State</comment>
+    <value>The workitem instance state is '{0}'.</value>
+    <comment>{0} Current Procedure Step State</comment>
   </data>
   <data name="WorkitemCancelRequestSuccess" xml:space="preserve">
-    <value>The workitem instance with UID: '{0}' has been cancelled.</value>
-    <comment>{0} Workitem UID.</comment>
+    <value>The workitem instance has been cancelled.</value>
   </data>
   <data name="UnsupportedWorkitemSearchParameter" xml:space="preserve">
     <value>Invalid workitem query. AttributeId {0} is not queryable.  If the parameter is an attribute keyword, check the casing as they are case-sensitive. The conformance statement has a list of supported query parameters and attributes.</value>
@@ -563,8 +558,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The UPS is already in the requested state of CANCELED.</value>
   </data>
   <data name="WorkitemIsAlreadyCompleted" xml:space="preserve">
-    <value>The UPS '{0}' is already COMPLETED.</value>
-    <comment>{0} WorkitemInstanceUid</comment>
+    <value>The UPS is already COMPLETED.</value>
   </data>
   <data name="ErrorMessageIntegerStringIsInvalid" xml:space="preserve">
     <value>Value cannot be parsed as a valid integer string.</value>
@@ -596,11 +590,21 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Array rank {0} is not supported.</value>
     <comment>{0} Array rank</comment>
   </data>
-  <data name="InvalidTypeBinding" xml:space="preserve">
+  <data name="InvalidType" xml:space="preserve">
     <value>Type '{0}' is not supported.</value>
     <comment>{0} Type name</comment>
   </data>
   <data name="ValueTypesNotSupported" xml:space="preserve">
     <value>This operation does not support value types.</value>
+  </data>
+  <data name="ConflictingExportBlobConnections" xml:space="preserve">
+    <value>ConnectionString and ContainerName cannot be specified along with ContainerUri.</value>
+  </data>
+  <data name="MissingExportBlobConnection" xml:space="preserve">
+    <value>Please specify both ConnectionString and ContainerName.</value>
+  </data>
+  <data name="ExistingReindexOperation" xml:space="preserve">
+    <value>There is already an active re-index operation with ID '{0}'.</value>
+    <comment>{0} Operation ID</comment>
   </data>
 </root>

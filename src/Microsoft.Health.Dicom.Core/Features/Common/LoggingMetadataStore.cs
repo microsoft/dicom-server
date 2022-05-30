@@ -136,6 +136,18 @@ public class LoggingMetadataStore : IMetadataStore
         }
     }
 
+    /// <inheritdoc />
+    public async Task CopyInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        _logger.LogDebug("Copying DICOM instance metadata with `{Version}`", versionedInstanceIdentifier.Version);
+
+        await _metadataStore.CopyInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken);
+
+        LogOperationSucceededDelegate(_logger, null);
+    }
+
     public Task StoreInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Dictionary<int, FrameRange> framesRange, CancellationToken cancellationToken = default)
     {
         return _metadataStore.StoreInstanceFramesRangeAsync(versionedInstanceIdentifier, framesRange, cancellationToken);

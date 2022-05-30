@@ -49,6 +49,14 @@ public interface IMetadataStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously copies a DICOM metadata file in the same container
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
+    Task CopyInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Async store Frames range metadata
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>

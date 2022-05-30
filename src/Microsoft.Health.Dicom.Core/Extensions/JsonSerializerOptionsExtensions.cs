@@ -7,7 +7,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EnsureThat;
-using Microsoft.Health.FellowOakDicom.Serialization;
+using FellowOakDicom.Serialization;
 using Microsoft.Health.Dicom.Core.Serialization;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
@@ -28,10 +28,10 @@ public static class JsonSerializerOptionsExtensions
         EnsureArg.IsNotNull(options, nameof(options));
 
         options.Converters.Clear();
-        options.Converters.Add(new ConfigurationJsonConverter());
         options.Converters.Add(new DicomIdentifierJsonConverter());
-        options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
-        options.Converters.Add(new StrictStringEnumConverterFactory());
+        options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
+        options.Converters.Add(new ExportDataOptionsJsonConverter());
+        options.Converters.Add(new StrictStringEnumConverter(JsonNamingPolicy.CamelCase));
 
         options.AllowTrailingCommas = true;
         options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;

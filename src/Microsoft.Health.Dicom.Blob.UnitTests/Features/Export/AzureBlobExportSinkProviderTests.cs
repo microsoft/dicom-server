@@ -10,7 +10,6 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -20,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
@@ -54,39 +54,31 @@ public class AzureBlobExportSinkProviderTests
     {
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
         var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{Guid.NewGuid()}/Errors.log", UriKind.Absolute);
-
-        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        configuration.Set(
-            new AzureBlobExportOptions
-            {
-                Secrets = new SecretKey { Name = "foo", Version = "bar" },
-            },
-            c => c.BindNonPublicProperties = true);
+        var options = new AzureBlobExportOptions
+        {
+            Secret = new SecretKey { Name = "foo", Version = "bar" },
+        };
 
         var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.CreateAsync(_serviceProvider, configuration, Guid.NewGuid()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.CreateAsync(_serviceProvider, options, Guid.NewGuid()));
         await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default);
     }
 
     [Fact]
     public async Task GivenProvider_WhenCreatingSink_ThenCreateFromServiceContainer()
     {
+        const string version = "1";
         var operationId = Guid.NewGuid();
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
         var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/Errors.log", UriKind.Absolute);
-        const string version = "1";
-
-        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        configuration.Set(
-            new AzureBlobExportOptions
+        var options = new AzureBlobExportOptions
+        {
+            Secret = new SecretKey
             {
-                Secrets = new SecretKey
-                {
-                    Name = operationId.ToString(OperationId.FormatSpecifier),
-                    Version = version,
-                },
+                Name = operationId.ToString(OperationId.FormatSpecifier),
+                Version = version,
             },
-            c => c.BindNonPublicProperties = true);
+        };
 
         using var tokenSource = new CancellationTokenSource();
 
@@ -95,7 +87,7 @@ public class AzureBlobExportSinkProviderTests
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token)
             .Returns(GetJson(containerUri));
 
-        IExportSink sink = await _sinkProvider.CreateAsync(_serviceProvider, configuration, operationId, tokenSource.Token);
+        IExportSink sink = await _sinkProvider.CreateAsync(_serviceProvider, options, operationId, tokenSource.Token);
 
         Assert.IsType<AzureBlobExportSink>(sink);
         Assert.Equal(errorHref, sink.ErrorHref);
@@ -111,17 +103,18 @@ public class AzureBlobExportSinkProviderTests
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
 
         // Note: Typically these values don't both exist together
-        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        configuration[nameof(AzureBlobExportOptions.ContainerUri)] = containerUri.AbsoluteUri;
-        configuration[nameof(AzureBlobExportOptions.ConnectionString)] = connectionString;
+        var options = new AzureBlobExportOptions
+        {
+            ConnectionString = connectionString,
+            ContainerUri = containerUri,
+        };
 
         var provider = new AzureBlobExportSinkProvider(Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
-        IConfiguration actualConfig = await provider.SecureSensitiveInfoAsync(configuration, Guid.NewGuid());
+        var actual = (AzureBlobExportOptions)await provider.SecureSensitiveInfoAsync(options, Guid.NewGuid());
 
         await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default);
 
-        AzureBlobExportOptions actual = actualConfig.Get<AzureBlobExportOptions>(c => c.BindNonPublicProperties = true);
-        Assert.Null(actual.Secrets);
+        Assert.Null(actual.Secret);
         Assert.Equal(connectionString, actual.ConnectionString);
         Assert.Equal(containerUri, actual.ContainerUri);
     }
@@ -135,9 +128,11 @@ public class AzureBlobExportSinkProviderTests
         var operationId = Guid.NewGuid();
 
         // Note: Typically these values don't both exist together
-        IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
-        configuration[nameof(AzureBlobExportOptions.ContainerUri)] = containerUri.AbsoluteUri;
-        configuration[nameof(AzureBlobExportOptions.ConnectionString)] = connectionString;
+        var options = new AzureBlobExportOptions
+        {
+            ConnectionString = connectionString,
+            ContainerUri = containerUri,
+        };
 
         using var tokenSource = new CancellationTokenSource();
 
@@ -145,15 +140,14 @@ public class AzureBlobExportSinkProviderTests
             .SetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), GetJson(connectionString, containerUri), tokenSource.Token)
             .Returns(version);
 
-        IConfiguration actualConfig = await _sinkProvider.SecureSensitiveInfoAsync(configuration, operationId, tokenSource.Token);
+        var actual = (AzureBlobExportOptions)await _sinkProvider.SecureSensitiveInfoAsync(options, operationId, tokenSource.Token);
 
         await _secretStore
             .Received(1)
             .SetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), GetJson(connectionString, containerUri), tokenSource.Token);
 
-        AzureBlobExportOptions actual = actualConfig.Get<AzureBlobExportOptions>(c => c.BindNonPublicProperties = true);
-        Assert.Equal(operationId.ToString(OperationId.FormatSpecifier), actual.Secrets.Name);
-        Assert.Equal(version, actual.Secrets.Version);
+        Assert.Equal(operationId.ToString(OperationId.FormatSpecifier), actual.Secret.Name);
+        Assert.Equal(version, actual.Secret.Version);
     }
 
     private static string GetJson(Uri containerUri)

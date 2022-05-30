@@ -16,6 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models;
@@ -54,8 +55,8 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             Options.Create(
                 new AzureBlobExportFormatOptions(
                     operationId,
-                    options.DicomFilePattern.Trim(),
-                    options.ErrorLogPattern.Trim(),
+                    AzureBlobExportOptions.DicomFilePattern,
+                    AzureBlobExportOptions.ErrorLogPattern,
                     Encoding.UTF8)),
             provider.GetRequiredService<IOptions<BlobOperationOptions>>(),
             provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
@@ -63,6 +64,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     protected override async Task<AzureBlobExportOptions> SecureSensitiveInfoAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
+        // Clear secrets if it's already set
+        if (options.Secret != null)
+            options.Secret = null;
+
         if (_secretStore == null)
         {
             _logger.LogWarning("No secret store has been registered. Sensitive export settings will be preserved in plaintext.");
@@ -84,7 +89,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
         options.ConnectionString = null;
         options.ContainerUri = null;
-        options.Secrets = new SecretKey { Name = name, Version = version };
+        options.Secret = new SecretKey { Name = name, Version = version };
 
         return options;
     }
@@ -100,17 +105,17 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     private async Task<AzureBlobExportOptions> RetrieveSensitiveOptionsAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
     {
-        if (options.Secrets != null)
+        if (options.Secret != null)
         {
             if (_secretStore == null)
                 throw new InvalidOperationException(DicomBlobResource.MissingSecretStore);
 
-            string json = await _secretStore.GetSecretAsync(options.Secrets.Name, options.Secrets.Version, cancellationToken);
+            string json = await _secretStore.GetSecretAsync(options.Secret.Name, options.Secret.Version, cancellationToken);
             BlobSecrets secrets = JsonSerializer.Deserialize<BlobSecrets>(json, _serializerOptions);
 
             options.ConnectionString = secrets.ConnectionString;
             options.ContainerUri = secrets.ContainerUri;
-            options.Secrets = null;
+            options.Secret = null;
         }
 
         return options;

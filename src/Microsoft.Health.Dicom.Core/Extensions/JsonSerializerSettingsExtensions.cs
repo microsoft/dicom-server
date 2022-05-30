@@ -30,7 +30,9 @@ public static class JsonSerializerSettingsExtensions
         NamingStrategy camelCase = new CamelCaseNamingStrategy();
 
         settings.Converters.Clear();
-        settings.Converters.Add(new ConfigurationJsonConverter(camelCase));
+        settings.Converters.Add(new DicomIdentifierJsonConverter());
+        settings.Converters.Add(new ExportDestinationOptionsJsonConverter(camelCase));
+        settings.Converters.Add(new ExportSourceOptionsJsonConverter(camelCase));
         settings.Converters.Add(new StringEnumConverter(camelCase));
 
         settings.ContractResolver = new DefaultContractResolver { NamingStrategy = camelCase };

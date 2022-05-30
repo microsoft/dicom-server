@@ -32,10 +32,11 @@ public static class ProcedureStepStateExtensions
     /// </summary>
     /// <param name="state">The Procedure Step State</param>
     /// <param name="action">The Action being performed on a Workitem</param>
+    /// <param name="hasMatchingTransactionUid"></param>
     /// <returns></returns>
-    public static WorkitemStateTransitionResult GetTransitionState(this ProcedureStepState state, WorkitemStateEvents action)
+    public static WorkitemStateTransitionResult GetTransitionState(this ProcedureStepState state, WorkitemActionEvent action, bool hasMatchingTransactionUid = true)
     {
-        return state.CheckProcedureStepStateTransitionTable(action);
+        return state.CheckProcedureStepStateTransitionTable(action, hasMatchingTransactionUid);
     }
 
     /// <summary>
@@ -85,7 +86,7 @@ public static class ProcedureStepStateExtensions
     /// </summary>
     /// <param name="dataset">The DICOM dataset</param>
     /// <returns>Returns Procedure Step State</returns>
-    public static ProcedureStepState GetProcedureState(this DicomDataset dataset)
+    public static ProcedureStepState GetProcedureStepState(this DicomDataset dataset)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 
@@ -103,65 +104,72 @@ public static class ProcedureStepStateExtensions
     /// </summary>
     /// <param name="state">The Workitem's Current Procedure Step State</param>
     /// <param name="action">The target event/action type</param>
+    /// <param name="hasMatchingTransactionUid"></param>
     /// <returns></returns>
     /// <exception cref="Exceptions.NotSupportedException"></exception>
-    private static WorkitemStateTransitionResult CheckProcedureStepStateTransitionTable(this ProcedureStepState state, WorkitemStateEvents action) => (action, state) switch
+    private static WorkitemStateTransitionResult CheckProcedureStepStateTransitionTable(this ProcedureStepState state, WorkitemActionEvent action, bool hasMatchingTransactionUid = true) => (action, state) switch
     {
-        (WorkitemStateEvents.NCreate, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.Scheduled, null, false),
-        (WorkitemStateEvents.NCreate, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
-        (WorkitemStateEvents.NCreate, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
-        (WorkitemStateEvents.NCreate, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
-        (WorkitemStateEvents.NCreate, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
+        (WorkitemActionEvent.NCreate, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.Scheduled, null, false),
+        (WorkitemActionEvent.NCreate, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
+        (WorkitemActionEvent.NCreate, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
+        (WorkitemActionEvent.NCreate, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
+        (WorkitemActionEvent.NCreate, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, Error0111, true),
 
-        (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.InProgress, null, false),
-        (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC302, true),
-        (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true),
-        (WorkitemStateEvents.NActionToInProgressWithCorrectTransactionUID, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true),
+        (WorkitemActionEvent.NActionToInProgress, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
+        (WorkitemActionEvent.NActionToInProgress, ProcedureStepState.Scheduled) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.InProgress, null, false)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToInProgress, ProcedureStepState.InProgress) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC302, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToInProgress, ProcedureStepState.Completed) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToInProgress, ProcedureStepState.Canceled) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
 
-        (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToInProgressWithoutCorrectTransactionUID, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToScheduled, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
+        (WorkitemActionEvent.NActionToScheduled, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
+        (WorkitemActionEvent.NActionToScheduled, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
+        (WorkitemActionEvent.NActionToScheduled, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
+        (WorkitemActionEvent.NActionToScheduled, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
 
-        (WorkitemStateEvents.NActionToScheduled, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToScheduled, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
-        (WorkitemStateEvents.NActionToScheduled, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
-        (WorkitemStateEvents.NActionToScheduled, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
-        (WorkitemStateEvents.NActionToScheduled, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC303, true),
+        (WorkitemActionEvent.NActionToCompleted, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
+        (WorkitemActionEvent.NActionToCompleted, ProcedureStepState.Scheduled) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC310, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCompleted, ProcedureStepState.InProgress) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.Completed, null, false)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCompleted, ProcedureStepState.Completed) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, WarningB306, false)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCompleted, ProcedureStepState.Canceled) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
 
-        (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC310, true),
-        (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.Completed, null, false),
-        (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, WarningB306, false),
-        (WorkitemStateEvents.NActionToCompletedWithCorrectTransactionUID, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true),
-
-        (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToCompletedWithoutCorrectTransactionUID, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-
-        (WorkitemStateEvents.NActionToRequestCancel, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToRequestCancel, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.Canceled, null, false),
+        (WorkitemActionEvent.NActionToRequestCancel, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
+        (WorkitemActionEvent.NActionToRequestCancel, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.Canceled, null, false),
 
         // This case returns Error, with a message, because we do not support notifying the owner of the workitem instance about the cancellation request.
-        (WorkitemStateEvents.NActionToRequestCancel, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC312, true),
-        (WorkitemStateEvents.NActionToRequestCancel, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC311, true),
-        (WorkitemStateEvents.NActionToRequestCancel, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, WarningB304, false),
+        (WorkitemActionEvent.NActionToRequestCancel, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC312, true),
+        (WorkitemActionEvent.NActionToRequestCancel, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC311, true),
+        (WorkitemActionEvent.NActionToRequestCancel, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, WarningB304, false),
 
-        (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC310, true),
-        (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, string.Empty, false),
-        (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true),
-        (WorkitemStateEvents.NActionToCanceledWithCorrectTransactionUID, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, WarningB304, false),
-
-        (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
-        (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, ProcedureStepState.Scheduled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, ProcedureStepState.InProgress) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, ProcedureStepState.Completed) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
-        (WorkitemStateEvents.NActionToCanceledWithoutCorrectTransactionUID, ProcedureStepState.Canceled) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCanceled, ProcedureStepState.None) => new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC307, true),
+        (WorkitemActionEvent.NActionToCanceled, ProcedureStepState.Scheduled) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC310, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCanceled, ProcedureStepState.InProgress) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, string.Empty, false)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCanceled, ProcedureStepState.Completed) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC300, true)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
+        (WorkitemActionEvent.NActionToCanceled, ProcedureStepState.Canceled) => hasMatchingTransactionUid
+            ? new WorkitemStateTransitionResult(ProcedureStepState.None, WarningB304, false)
+            : new WorkitemStateTransitionResult(ProcedureStepState.None, ErrorC301, true),
 
         _ => throw new Exceptions.NotSupportedException(string.Format(
                         CultureInfo.InvariantCulture,

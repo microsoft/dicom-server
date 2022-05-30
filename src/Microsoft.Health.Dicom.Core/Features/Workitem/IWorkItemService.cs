@@ -60,4 +60,16 @@ public interface IWorkitemService
     Task<QueryWorkitemResourceResponse> ProcessQueryAsync(
         BaseQueryParameters parameters,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously process the change state of a UPS-RS workitem
+    /// </summary>
+    /// <param name="dataset">The <see cref="DicomDataset"/> to process.</param>
+    /// <param name="workitemInstanceUid">The Work Item InstanceUID tag.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous process operation.</returns>
+    Task<ChangeWorkitemStateResponse> ProcessChangeStateAsync(
+        DicomDataset dataset,
+        string workitemInstanceUid,
+        CancellationToken cancellationToken = default);
 }

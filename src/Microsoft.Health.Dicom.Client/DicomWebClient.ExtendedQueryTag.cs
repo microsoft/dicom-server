@@ -20,7 +20,7 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse<DicomOperationReference>> AddExtendedQueryTagAsync(IEnumerable<AddExtendedQueryTagEntry> tagEntries, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
-        string jsonString = JsonSerializer.Serialize(tagEntries);
+        string jsonString = JsonSerializer.Serialize(tagEntries, JsonSerializerOptions);
         var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Post, uri);
         {

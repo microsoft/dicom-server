@@ -8,7 +8,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.FellowOakDicom.Serialization;
+using FellowOakDicom.Serialization;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
 
@@ -31,7 +31,7 @@ public sealed class WorkitemSerializer : IWorkitemSerializer
         }
 
         var serializerOptions = new JsonSerializerOptions();
-        serializerOptions.Converters.Add(new DicomJsonConverter(autoValidate: false));
+        serializerOptions.Converters.Add(new DicomJsonConverter(autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
 
         using (var streamReader = new StreamReader(stream))
         {

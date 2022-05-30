@@ -165,7 +165,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
-            .Throw(new WorkitemAlreadyExistsException(workitemInstanceUid));
+            .Throw(new WorkitemAlreadyExistsException());
 
         await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
 
@@ -173,7 +173,7 @@ public sealed class WorkitemServiceTests
             .Received()
             .AddFailure(
                 Arg.Is<ushort>(fc => fc == failureCode),
-                Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceAlreadyExists, workitemInstanceUid)),
+                Arg.Is<string>(msg => msg == DicomCoreResource.WorkitemInstanceAlreadyExists),
                 Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
     }
 
@@ -243,7 +243,7 @@ public sealed class WorkitemServiceTests
         _responseBuilder.Received()
             .AddFailure(
                 Arg.Is<ushort>(fc => fc == FailureReasonCodes.UpsInstanceNotFound),
-                Arg.Is<string>(v => string.Equals(v, string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid))),
+                Arg.Is<string>(v => string.Equals(v, DicomCoreResource.WorkitemInstanceNotFound)),
                 Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
     }
 
@@ -451,7 +451,7 @@ public sealed class WorkitemServiceTests
             .GetWorkitemBlobAsync(Arg.Any<WorkitemMetadataStoreEntry>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(_dataset));
 
-        var exception = new WorkitemNotFoundException(workitemInstanceUid);
+        var exception = new WorkitemNotFoundException();
         _cancelDatasetValidator
             .When(v => v.Validate(Arg.Any<DicomDataset>()))
             .Throw(exception);
@@ -620,7 +620,7 @@ public sealed class WorkitemServiceTests
             .Received()
             .AddFailure(
                 Arg.Is<ushort>(fc => fc == FailureReasonCodes.UpsInstanceNotFound),
-                Arg.Is<string>(msg => msg == string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid)));
+                Arg.Is<string>(msg => msg == DicomCoreResource.WorkitemInstanceNotFound));
     }
 
     private QueryParameters CreateParameters(

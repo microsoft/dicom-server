@@ -5,20 +5,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
@@ -28,19 +24,17 @@ internal sealed class IdentifierExportSource : IExportSource
 {
     public event EventHandler<ReadFailureEventArgs> ReadFailure;
 
-    public TypedConfiguration<ExportSourceType> Configuration => GetConfiguration();
+    public ExportDataOptions<ExportSourceType> Description => _identifiers.Count > 0 ? CreateOptions(_identifiers) : null;
 
     private readonly IInstanceStore _instanceStore;
     private readonly PartitionEntry _partition;
-    private readonly IdentifierExportOptions _options;
-
-    private int _startIndex;
+    private readonly Queue<DicomIdentifier> _identifiers;
 
     public IdentifierExportSource(IInstanceStore instanceStore, PartitionEntry partition, IOptions<IdentifierExportOptions> options)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _partition = EnsureArg.IsNotNull(partition, nameof(partition));
-        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _identifiers = new Queue<DicomIdentifier>(EnsureArg.IsNotNull(options?.Value.Values, nameof(options)));
     }
 
     public ValueTask DisposeAsync()
@@ -49,11 +43,8 @@ internal sealed class IdentifierExportSource : IExportSource
     public async IAsyncEnumerator<ReadResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         IEnumerable<ReadResult> results = Enumerable.Empty<ReadResult>();
-        for (int i = _startIndex; i < _options.Values.Count; i++)
+        foreach (DicomIdentifier identifier in _identifiers)
         {
-            // Identifier has already been validated
-            var identifier = DicomIdentifier.Parse(_options.Values[i]);
-
             // Attempt to read the data
             IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
             {
@@ -84,38 +75,26 @@ internal sealed class IdentifierExportSource : IExportSource
         }
     }
 
-    public bool TryDequeueBatch(int size, out TypedConfiguration<ExportSourceType> batch)
+    public bool TryDequeueBatch(int size, out ExportDataOptions<ExportSourceType> batch)
     {
         EnsureArg.IsGt(size, 0, nameof(size));
 
-        batch = GetConfiguration(size, remove: true);
-        return batch != null;
-    }
-
-    private TypedConfiguration<ExportSourceType> GetConfiguration(int? maxSize = null, bool remove = false)
-    {
-        int count = maxSize.HasValue
-            ? Math.Min(maxSize.GetValueOrDefault(), _options.Values.Count - _startIndex)
-            : _options.Values.Count - _startIndex;
-
-        if (count == 0)
-            return null;
-
-        // Create a configuration that describes the source over this subset
-        var source = new TypedConfiguration<ExportSourceType>
+        if (_identifiers.Count == 0)
         {
-            Configuration = new ConfigurationRoot(new IConfigurationProvider[] { new MemoryConfigurationProvider(new MemoryConfigurationSource()) }),
-            Type = ExportSourceType.Identifiers,
-        };
+            batch = default;
+            return false;
+        }
 
-        IConfigurationSection valuesSection = source.Configuration.GetSection(nameof(IdentifierExportOptions.Values));
-        for (int i = _startIndex; i < _startIndex + count; i++)
-            valuesSection[i.ToString(CultureInfo.InvariantCulture)] = _options.Values[i];
+        var elements = new List<DicomIdentifier>();
+        while (elements.Count < size && _identifiers.TryDequeue(out DicomIdentifier identifier))
+        {
+            elements.Add(identifier);
+        }
 
-        // Optionally move the _startIndex to avoid future consumption
-        if (remove)
-            _startIndex += count;
-
-        return source;
+        batch = CreateOptions(elements);
+        return true;
     }
+
+    private static ExportDataOptions<ExportSourceType> CreateOptions(IReadOnlyCollection<DicomIdentifier> values)
+        => new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, new IdentifierExportOptions { Values = values });
 }

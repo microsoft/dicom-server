@@ -91,9 +91,9 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient[] blobs = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobs.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
+        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
     }
 
     /// <inheritdoc />
@@ -103,14 +103,14 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
 
         await ExecuteAsync(async () =>
         {
-            stream = await blob.OpenReadAsync(blobOpenReadOptions, cancellationToken);
+            stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
         });
 
         return stream;
@@ -122,18 +122,25 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
         FileProperties fileProperties = null;
 
         await ExecuteAsync(async () =>
         {
-            var response = await blob.GetPropertiesAsync(conditions: null, cancellationToken);
+            var response = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
             fileProperties = response.Value.ToFileProperties();
         });
 
         return fileProperties;
     }
 
+    /// <inheritdoc/>
+    public async Task CopyFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
+        var copyBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
     /// <inheritdoc />
     public async Task<Stream> GetFileFrameAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
@@ -158,10 +165,17 @@ public class BlobFileStore : IFileStore
     }
 
 
-    private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
+        if (!await copyBlobClient.ExistsAsync(cancellationToken))
+        {
+            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
+
+    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)
     {
         string blobName;
-        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
+        if (formatType == BlobMigrationFormatType.New)
         {
             blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
         }

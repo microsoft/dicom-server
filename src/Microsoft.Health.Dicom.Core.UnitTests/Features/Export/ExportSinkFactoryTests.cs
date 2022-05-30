@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
 using Xunit;
@@ -23,7 +22,7 @@ public class ExportSinkFactoryTests
     {
         var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSinkProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(() => factory.CreateAsync(
-            new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob },
+            new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
             Guid.NewGuid()));
     }
 
@@ -33,19 +32,28 @@ public class ExportSinkFactoryTests
         using var tokenSource = new CancellationTokenSource();
 
         IServiceProvider serviceProvider = Substitute.For<IServiceProvider>();
-        IConfiguration config = Substitute.For<IConfiguration>();
-        var destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob, Configuration = config };
+        var options = new AzureBlobExportOptions();
+        var destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob, options);
         var operationId = Guid.NewGuid();
         IExportSink expected = Substitute.For<IExportSink>();
 
         IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
         provider.Type.Returns(ExportDestinationType.AzureBlob);
-        provider.CreateAsync(serviceProvider, config, operationId, tokenSource.Token).Returns(expected);
+        provider.CreateAsync(serviceProvider, options, operationId, tokenSource.Token).Returns(expected);
 
         var factory = new ExportSinkFactory(serviceProvider, new IExportSinkProvider[] { provider });
         Assert.Same(expected, await factory.CreateAsync(destination, operationId, tokenSource.Token));
 
-        await provider.Received(1).CreateAsync(serviceProvider, config, operationId, tokenSource.Token);
+        await provider.Received(1).CreateAsync(serviceProvider, options, operationId, tokenSource.Token);
+    }
+
+    [Fact]
+    public async Task GivenNoProviders_WhenSecuring_ThenThrowException()
+    {
+        var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSinkProvider>());
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => factory.SecureSensitiveInfoAsync(
+            new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
+            Guid.NewGuid()));
     }
 
     [Fact]
@@ -54,20 +62,20 @@ public class ExportSinkFactoryTests
         using var tokenSource = new CancellationTokenSource();
 
         var operationId = Guid.NewGuid();
-        IConfiguration config = Substitute.For<IConfiguration>();
-        var destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob, Configuration = config };
+        var options = new AzureBlobExportOptions();
+        var destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob, options);
         IConfiguration expectedConfig = Substitute.For<IConfiguration>();
 
         IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
         provider.Type.Returns(ExportDestinationType.AzureBlob);
-        provider.SecureSensitiveInfoAsync(config, operationId, tokenSource.Token).Returns(expectedConfig);
+        provider.SecureSensitiveInfoAsync(options, operationId, tokenSource.Token).Returns(expectedConfig);
 
         var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), new IExportSinkProvider[] { provider });
-        TypedConfiguration<ExportDestinationType> actual = await factory.SecureSensitiveInfoAsync(destination, operationId, tokenSource.Token);
+        ExportDataOptions<ExportDestinationType> actual = await factory.SecureSensitiveInfoAsync(destination, operationId, tokenSource.Token);
 
-        await provider.Received(1).SecureSensitiveInfoAsync(config, operationId, tokenSource.Token);
+        await provider.Received(1).SecureSensitiveInfoAsync(options, operationId, tokenSource.Token);
         Assert.Equal(ExportDestinationType.AzureBlob, actual.Type);
-        Assert.Same(expectedConfig, actual.Configuration);
+        Assert.Same(expectedConfig, actual.Settings);
     }
 
     [Fact]
@@ -75,8 +83,7 @@ public class ExportSinkFactoryTests
     {
         var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSinkProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => factory.ValidateAsync(
-                new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob }));
+            () => factory.ValidateAsync(new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob)));
     }
 
     [Fact]
@@ -84,8 +91,8 @@ public class ExportSinkFactoryTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        IConfiguration config = Substitute.For<IConfiguration>();
-        var destination = new TypedConfiguration<ExportDestinationType> { Type = ExportDestinationType.AzureBlob, Configuration = config };
+        var options = new AzureBlobExportOptions();
+        var destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob, options);
         IConfiguration expectedConfig = Substitute.For<IConfiguration>();
 
         IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
@@ -94,6 +101,6 @@ public class ExportSinkFactoryTests
         var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), new IExportSinkProvider[] { provider });
         await factory.ValidateAsync(destination, tokenSource.Token);
 
-        await provider.Received(1).ValidateAsync(config, tokenSource.Token);
+        await provider.Received(1).ValidateAsync(options, tokenSource.Token);
     }
 }

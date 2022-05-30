@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -15,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Operations;
 using NSubstitute;
@@ -48,11 +50,39 @@ public class AddExtendedQueryTagServiceTests
     }
 
     [Fact]
+    public async Task GivenExistingOperation_WhenAddingExtendedQueryTag_ThenThrow()
+    {
+        DicomTag tag = DicomTag.DeviceSerialNumber;
+        AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
+
+        Guid id = Guid.NewGuid();
+        var expected = new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute));
+
+        var input = new AddExtendedQueryTagEntry[] { entry };
+        _client
+            .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token)
+            .Returns(new OperationReference[] { expected }.ToAsyncEnumerable());
+
+        await Assert.ThrowsAsync<ExistingReindexException>(
+            () => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
+
+        _client
+            .Received(1)
+            .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token);
+        _extendedQueryTagEntryValidator.DidNotReceiveWithAnyArgs().ValidateExtendedQueryTags(default);
+        await _client.DidNotReceiveWithAnyArgs().StartReindexingInstancesAsync(default, default);
+    }
+
+    [Fact]
     public async Task GivenInvalidInput_WhenAddingExtendedQueryTag_ThenStopAfterValidation()
     {
         DicomTag tag = DicomTag.DeviceSerialNumber;
         AddExtendedQueryTagEntry entry = tag.BuildAddExtendedQueryTagEntry();
         var exception = new ExtendedQueryTagEntryValidationException(string.Empty);
+
+        _client
+            .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token)
+            .Returns(AsyncEnumerable.Empty<OperationReference>());
 
         var input = new AddExtendedQueryTagEntry[] { entry };
         _extendedQueryTagEntryValidator.WhenForAnyArgs(v => v.ValidateExtendedQueryTags(input)).Throw(exception);
@@ -60,6 +90,9 @@ public class AddExtendedQueryTagServiceTests
         await Assert.ThrowsAsync<ExtendedQueryTagEntryValidationException>(
             () => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
 
+        _client
+            .Received(1)
+            .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token);
         _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
         await _client.DidNotReceiveWithAnyArgs().StartReindexingInstancesAsync(default, default);
     }
@@ -77,6 +110,9 @@ public class AddExtendedQueryTagServiceTests
             operationId,
             new Uri("https://dicom.contoso.io/unit/test/Operations/" + operationId, UriKind.Absolute));
 
+        _client
+            .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token)
+            .Returns(AsyncEnumerable.Empty<OperationReference>());
         _extendedQueryTagStore
             .AddExtendedQueryTagsAsync(
                 Arg.Is<IReadOnlyList<AddExtendedQueryTagEntry>>(x => x.Single().Path == entry.Path),
@@ -102,6 +138,9 @@ public class AddExtendedQueryTagServiceTests
         OperationReference actual = await _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token);
         Assert.Same(expected, actual);
 
+        _client
+            .Received(1)
+            .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token);
         _extendedQueryTagEntryValidator.Received(1).ValidateExtendedQueryTags(input);
         await _extendedQueryTagStore
             .Received(1)
@@ -125,4 +164,11 @@ public class AddExtendedQueryTagServiceTests
                 true,
                 _tokenSource.Token);
     }
+
+    private static Expression<Predicate<OperationQueryCondition<DicomOperation>>> GetOperationPredicate()
+        => (OperationQueryCondition<DicomOperation> x) =>
+            x.CreatedTimeFrom == DateTime.MinValue &&
+            x.CreatedTimeTo == DateTime.MaxValue &&
+            x.Operations.Single() == DicomOperation.Reindex &&
+            x.Statuses.SequenceEqual(new OperationStatus[] { OperationStatus.NotStarted, OperationStatus.Running });
 }
