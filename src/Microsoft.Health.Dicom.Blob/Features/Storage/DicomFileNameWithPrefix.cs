@@ -24,4 +24,10 @@ public class DicomFileNameWithPrefix : IDicomFileNameBuilder
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
         return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_metadata.json";
     }
+
+    public string GetInstanceFramesRangeFileName(VersionedInstanceIdentifier instanceIdentifier)
+    {
+        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+        return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_frames_range.json";
+    }
 }

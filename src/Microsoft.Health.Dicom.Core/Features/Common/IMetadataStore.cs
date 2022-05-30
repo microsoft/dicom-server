@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -44,6 +45,28 @@ public interface IMetadataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteInstanceMetadataIfExistsAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Async store Frames range metadata
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="framesRange">Dictionary of frame id and byte range</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    Task StoreInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            IReadOnlyDictionary<int, FrameRange> framesRange,
+            CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Async get Frames range metadata
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Dictionary of frame id and byte range</returns>
+    Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 }

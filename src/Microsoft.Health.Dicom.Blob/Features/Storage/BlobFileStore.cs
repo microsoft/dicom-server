@@ -134,6 +134,29 @@ public class BlobFileStore : IFileStore
         return fileProperties;
     }
 
+    /// <inheritdoc />
+    public async Task<Stream> GetFileFrameAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        FrameRange range,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        EnsureArg.IsNotNull(range, nameof(range));
+
+        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+
+        Stream stream = null;
+        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+
+        await ExecuteAsync(async () =>
+        {
+            var httpRange = new HttpRange(range.Offset, range.Length);
+            Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
+            stream = result.Value.Content;
+        });
+        return stream;
+    }
+
 
     private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {

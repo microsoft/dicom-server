@@ -168,4 +168,9 @@ public class LoggingFileStore : IFileStore
             throw;
         }
     }
+
+    public async Task<Stream> GetFileFrameAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, FrameRange range, CancellationToken cancellationToken = default)
+    {
+        return await _fileStore.GetFileFrameAsync(versionedInstanceIdentifier, range, cancellationToken);
+    }
 }

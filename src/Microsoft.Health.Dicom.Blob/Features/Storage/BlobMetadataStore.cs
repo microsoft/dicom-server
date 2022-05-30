@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +36,8 @@ public class BlobMetadataStore : IMetadataStore
 {
     private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
+    private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
+    private const string GetInstanceFramesRangeStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceFramesRangeAsync);
 
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
@@ -116,7 +119,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         BlockBlobClient[] blobs = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobs.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
+        await Task.WhenAll(blobs.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), throwOnNotFound: true, cancellationToken)));
     }
 
     /// <inheritdoc />
@@ -135,7 +138,70 @@ public class BlobMetadataStore : IMetadataStore
 
                 return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
             }
-        }, cancellationToken);
+        }, throwOnNotFound: true, cancellationToken);
+    }
+
+    public async Task StoreInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier identifier,
+            IReadOnlyDictionary<int, FrameRange> framesRange,
+            CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(identifier, nameof(identifier));
+        EnsureArg.IsNotNull(framesRange, nameof(framesRange));
+
+        BlockBlobClient blob = GetInstanceFramesRange(identifier);
+
+        try
+        {
+            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceFramesRangeTagName))
+            await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
+            {
+                JsonSerializer.Serialize(utf8Writer, framesRange, _jsonSerializerOptions);
+                await utf8Writer.FlushAsync(cancellationToken);
+                stream.Seek(0, SeekOrigin.Begin);
+
+                await blob.UploadAsync(
+                    stream,
+                    new BlobHttpHeaders()
+                    {
+                        ContentType = KnownContentTypes.ApplicationJson,
+                    },
+                    metadata: null,
+                    conditions: null,
+                    accessTier: null,
+                    progressHandler: null,
+                    cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
+
+    }
+
+    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient cloudBlockBlob = GetInstanceFramesRange(versionedInstanceIdentifier);
+
+        return ExecuteAsync(async t =>
+        {
+            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceFramesRangeStreamTagName))
+            {
+                await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
+
+                stream.Seek(0, SeekOrigin.Begin);
+
+                return await JsonSerializer.DeserializeAsync<IReadOnlyDictionary<int, FrameRange>>(stream, _jsonSerializerOptions, t);
+            }
+        }, throwOnNotFound: false, cancellationToken);
+    }
+
+    private BlockBlobClient GetInstanceFramesRange(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        var blobName = _nameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
+        return _container.GetBlockBlobClient(blobName);
     }
 
     private BlockBlobClient GetInstanceBlockBlob(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -182,15 +248,19 @@ public class BlobMetadataStore : IMetadataStore
         return clients.ToArray();
     }
 
-    private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
+    private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, bool throwOnNotFound, CancellationToken cancellationToken)
     {
         try
         {
             return await action(cancellationToken);
         }
-        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && throwOnNotFound)
         {
             throw new ItemNotFoundException(ex);
+        }
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !throwOnNotFound)
+        {
+            return default(T);
         }
         catch (Exception ex)
         {

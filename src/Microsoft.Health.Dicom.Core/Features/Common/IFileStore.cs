@@ -50,4 +50,16 @@ public interface IFileStore
     Task<FileProperties> GetFilePropertiesAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously get a specific range of bytes from the blob
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
+    /// <param name="range">Byte range in Httprange format with offset and length</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>Stream representing the bytes requested</returns>
+    Task<Stream> GetFileFrameAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        FrameRange range,
+        CancellationToken cancellationToken = default);
 }

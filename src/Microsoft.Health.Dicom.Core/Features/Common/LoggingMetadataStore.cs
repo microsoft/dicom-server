@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -133,5 +134,15 @@ public class LoggingMetadataStore : IMetadataStore
 
             throw;
         }
+    }
+
+    public Task StoreInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Dictionary<int, FrameRange> framesRange, CancellationToken cancellationToken = default)
+    {
+        return _metadataStore.StoreInstanceFramesRangeAsync(versionedInstanceIdentifier, framesRange, cancellationToken);
+    }
+
+    public Task<Dictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        return _metadataStore.GetInstanceFramesRangeAsync(versionedInstanceIdentifier, cancellationToken);
     }
 }
