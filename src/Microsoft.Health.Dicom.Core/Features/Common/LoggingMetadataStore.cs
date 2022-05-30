@@ -148,13 +148,19 @@ public class LoggingMetadataStore : IMetadataStore
         LogOperationSucceededDelegate(_logger, null);
     }
 
-    public Task StoreInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, Dictionary<int, FrameRange> framesRange, CancellationToken cancellationToken = default)
+    public Task StoreInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange> framesRange, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        _logger.LogDebug("Storing dicom instance framesRange with `{Version}`", versionedInstanceIdentifier.Version);
+
         return _metadataStore.StoreInstanceFramesRangeAsync(versionedInstanceIdentifier, framesRange, cancellationToken);
     }
 
-    public Task<Dictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        _logger.LogDebug("Getting dicom instance framesRange with `{Version}`", versionedInstanceIdentifier.Version);
+
         return _metadataStore.GetInstanceFramesRangeAsync(versionedInstanceIdentifier, cancellationToken);
     }
 }

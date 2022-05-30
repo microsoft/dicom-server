@@ -197,7 +197,7 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
             // handle back-compat
             if (framesRange != null)
             {
-                var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata);
+                var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
                 IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
                                                                         instance.VersionedInstanceIdentifier,

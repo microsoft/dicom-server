@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,7 +118,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
+        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), throwOnNotFound: true, cancellationToken)));
     }
 
     /// <inheritdoc />
@@ -142,14 +141,14 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     public async Task StoreInstanceFramesRangeAsync(
-            VersionedInstanceIdentifier identifier,
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
             IReadOnlyDictionary<int, FrameRange> framesRange,
             CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(identifier, nameof(identifier));
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(framesRange, nameof(framesRange));
 
-        BlockBlobClient blob = GetInstanceFramesRange(identifier);
+        BlockBlobClient blob = GetInstanceFramesRange(versionedInstanceIdentifier);
 
         try
         {
@@ -200,7 +199,7 @@ public class BlobMetadataStore : IMetadataStore
 
     private BlockBlobClient GetInstanceFramesRange(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        var blobName = _nameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
+        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
         return _container.GetBlockBlobClient(blobName);
     }
 

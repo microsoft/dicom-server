@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -75,14 +76,16 @@ public class StoreOrchestratorTests
             .Returns(_queryTags);
 
         _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
-
+        var logger = NullLogger<StoreOrchestrator>.Instance;
         _storeOrchestrator = new StoreOrchestrator(
             _contextAccessor,
             _fileStore,
             _metadataStore,
             _indexDataStore,
             _deleteService,
-            _queryTagService);
+            _queryTagService,
+            logger
+        );
     }
 
     [Fact]

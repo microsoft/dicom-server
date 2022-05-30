@@ -25,7 +25,7 @@ public class DicomFileNameWithPrefix : IDicomFileNameBuilder
         return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_metadata.json";
     }
 
-    public string GetInstanceFramesRangeFileName(VersionedInstanceIdentifier instanceIdentifier)
+    public static string GetInstanceFramesRangeFileName(VersionedInstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
         return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_frames_range.json";

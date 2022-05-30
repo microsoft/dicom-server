@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
-using FellowOakDicom.Log;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -144,7 +144,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
         if (numberOfFrames <= 0 && pixelData is not DicomFragmentSequence)
         {
-            _logger.Info("This file has no frames");
+            _logger.LogInformation("This file has no frames");
             return null;
         }
 
@@ -172,7 +172,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
         else
         {
-            _logger.Info("This file fragment count {0} does not match frame count {1}", pixelDataFragment.Fragments.Count, numberOfFrames);
+            _logger.LogInformation("This file fragment count {FragmentsCount} does not match frame count {NumberOfFrames}", pixelDataFragment.Fragments.Count, numberOfFrames);
         }
 
         return null;

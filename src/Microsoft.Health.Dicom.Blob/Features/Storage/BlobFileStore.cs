@@ -141,6 +141,14 @@ public class BlobFileStore : IFileStore
 
         var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
         var copyBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
+
+        if (!await copyBlobClient.ExistsAsync(cancellationToken))
+        {
+            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
+
     /// <inheritdoc />
     public async Task<Stream> GetFileFrameAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
@@ -150,7 +158,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(range, nameof(range));
 
-        BlockBlobClient blob = GetInstanceBlockBlob(versionedInstanceIdentifier);
+        BlockBlobClient blob = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -164,13 +172,6 @@ public class BlobFileStore : IFileStore
         return stream;
     }
 
-
-        if (!await copyBlobClient.ExistsAsync(cancellationToken))
-        {
-            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
-            await operation.WaitForCompletionAsync(cancellationToken);
-        }
-    }
 
     private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)
     {
