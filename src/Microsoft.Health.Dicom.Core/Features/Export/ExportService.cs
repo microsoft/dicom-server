@@ -22,20 +22,20 @@ internal sealed class ExportService : IExportService
     private readonly ExportSinkFactory _sinkFactory;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
-    private readonly PartitionEntry _partition;
+    private readonly IDicomRequestContextAccessor _accessor;
 
     public ExportService(
         ExportSourceFactory sourceFactory,
         ExportSinkFactory sinkFactory,
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
-        IDicomRequestContext requestContext)
+        IDicomRequestContextAccessor requestContextAccessor)
     {
         _sourceFactory = EnsureArg.IsNotNull(sourceFactory, nameof(sourceFactory));
         _sinkFactory = EnsureArg.IsNotNull(sinkFactory, nameof(sinkFactory));
         _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         _client = EnsureArg.IsNotNull(client, nameof(client));
-        _partition = EnsureArg.IsNotNull(requestContext?.DataPartitionEntry, nameof(requestContext));
+        _accessor = EnsureArg.IsNotNull(requestContextAccessor, nameof(requestContextAccessor));
     }
 
     public async Task<OperationReference> StartExportAsync(ExportSpecification specification, CancellationToken cancellationToken = default)
@@ -48,6 +48,10 @@ internal sealed class ExportService : IExportService
         await _sourceFactory.ValidateAsync(specification.Source, cancellationToken);
         await _sinkFactory.ValidateAsync(specification.Destination, cancellationToken);
 
+        // Initialize the sink before running the operation to ensure we can connect
+        await using IExportSink sink = await _sinkFactory.CreateAsync(specification.Destination, operationId, cancellationToken);
+        await sink.InitializeAsync(cancellationToken);
+
         specification = new ExportSpecification
         {
             Source = specification.Source,
@@ -55,6 +59,7 @@ internal sealed class ExportService : IExportService
         };
 
         // Start the operation
-        return await _client.StartExportAsync(operationId, specification, _partition, cancellationToken);
+        PartitionEntry partition = _accessor.RequestContext.DataPartitionEntry;
+        return await _client.StartExportAsync(operationId, specification, partition, cancellationToken);
     }
 }

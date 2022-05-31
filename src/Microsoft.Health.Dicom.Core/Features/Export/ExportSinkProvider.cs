@@ -15,6 +15,12 @@ internal abstract class ExportSinkProvider<TOptions> : IExportSinkProvider
 {
     public abstract ExportDestinationType Type { get; }
 
+    public Task CompleteCopyAsync(object options, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(options, nameof(options));
+        return CompleteCopyAsync((TOptions)options, cancellationToken);
+    }
+
     public Task<IExportSink> CreateAsync(IServiceProvider provider, object options, Guid operationId, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(provider, nameof(provider));
@@ -33,6 +39,8 @@ internal abstract class ExportSinkProvider<TOptions> : IExportSinkProvider
         EnsureArg.IsNotNull(options, nameof(options));
         return ValidateAsync((TOptions)options, cancellationToken);
     }
+
+    protected abstract Task CompleteCopyAsync(TOptions options, CancellationToken cancellationToken = default);
 
     protected abstract Task<IExportSink> CreateAsync(IServiceProvider provider, TOptions options, Guid operationId, CancellationToken cancellationToken = default);
 

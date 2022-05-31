@@ -58,9 +58,17 @@ internal sealed class KeyVaultSecretStore : ISecretStore
     public IAsyncEnumerable<string> ListSecretsAsync(CancellationToken cancellationToken = default)
         => _secretClient.GetPropertiesOfSecretsAsync(cancellationToken).Select(x => x.Name);
 
-    public async Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken = default)
+    public Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken = default)
+        => SetSecretAsync(name, value, null, cancellationToken);
+
+    public async Task<string> SetSecretAsync(string name, string value, string contentType, CancellationToken cancellationToken = default)
     {
-        Response<KeyVaultSecret> response = await _secretClient.SetSecretAsync(name, value, cancellationToken);
+        var secret = new KeyVaultSecret(name, value);
+
+        if (contentType != null)
+            secret.Properties.ContentType = contentType;
+
+        Response<KeyVaultSecret> response = await _secretClient.SetSecretAsync(secret, cancellationToken);
         return response.Value.Properties.Version;
     }
 }

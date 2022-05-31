@@ -145,7 +145,7 @@
     <value>Could not find closing % for placeholder.</value>
   </data>
   <data name="MissingSecretStore" xml:space="preserve">
-    <value>Cannot fetch secret values because no secret store has been configured.</value>
+    <value>Export settings contain sensitive data but no secret store has been configured.</value>
   </data>
   <data name="UnknownPlaceholder" xml:space="preserve">
     <value>Placeholder '{0}' is not recognized.</value>

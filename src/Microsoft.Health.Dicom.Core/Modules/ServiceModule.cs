@@ -254,6 +254,7 @@ public class ServiceModule : IStartupModule
 
     private static void AddExportServices(IServiceCollection services)
     {
+        services.AddScoped<IExportIdentityProvider, DefaultExportIdentityProvider>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ExportSourceFactory>();
         services.AddScoped<ExportSinkFactory>();

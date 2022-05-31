@@ -19,17 +19,22 @@ public static class ExportDestination
     /// Creates export destination options for Azure Blob storage based on a URI.
     /// </summary>
     /// <remarks>
-    /// The <paramref name="containerUri"/> may contain a SAS token for authentication.
+    /// The <paramref name="blobContainerUri"/> may contain a SAS token for authentication.
     /// </remarks>
-    /// <param name="containerUri">A URI specifying the Azure Blob container.</param>
+    /// <param name="blobContainerUri">A URI specifying the Azure Blob container.</param>
+    /// <param name="useManagedIdentity">Optionally connect to the storage account using the configured managed identity.</param>
     /// <returns>The corresponding export destination options.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="containerUri"/> is <see langword="null"/>.</exception>
-    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(Uri containerUri)
+    /// <exception cref="ArgumentNullException"><paramref name="blobContainerUri"/> is <see langword="null"/>.</exception>
+    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(Uri blobContainerUri, bool useManagedIdentity = false)
     {
-        EnsureArg.IsNotNull(containerUri, nameof(containerUri));
+        EnsureArg.IsNotNull(blobContainerUri, nameof(blobContainerUri));
         return new ExportDataOptions<ExportDestinationType>(
             ExportDestinationType.AzureBlob,
-            new AzureBlobExportOptions { ContainerUri = containerUri });
+            new AzureBlobExportOptions
+            {
+                BlobContainerUri = blobContainerUri,
+                UseManagedIdentity = useManagedIdentity,
+            });
     }
 
     /// <summary>
@@ -39,25 +44,25 @@ public static class ExportDestination
     /// The <paramref name="connectionString"/> may contain a SAS token for authentication.
     /// </remarks>
     /// <param name="connectionString">A connection string for the Azure Blob Storage account.</param>
-    /// <param name="containerName">The name of the blob container.</param>
+    /// <param name="blobContainerName">The name of the blob container.</param>
     /// <returns>The corresponding export destination options.</returns>
     /// <exception cref="ArgumentException">
-    /// <paramref name="connectionString"/> or <paramref name="containerName"/> is empty or
+    /// <paramref name="connectionString"/> or <paramref name="blobContainerName"/> is empty or
     /// consists of white space characters.
     /// </exception>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="connectionString"/> or <paramref name="containerName"/> is <see langword="null"/>.
+    /// <paramref name="connectionString"/> or <paramref name="blobContainerName"/> is <see langword="null"/>.
     /// </exception>
-    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(string connectionString, string containerName)
+    public static ExportDataOptions<ExportDestinationType> ForAzureBlobStorage(string connectionString, string blobContainerName)
     {
         EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
-        EnsureArg.IsNotNullOrWhiteSpace(containerName, nameof(containerName));
+        EnsureArg.IsNotNullOrWhiteSpace(blobContainerName, nameof(blobContainerName));
         return new ExportDataOptions<ExportDestinationType>(
             ExportDestinationType.AzureBlob,
             new AzureBlobExportOptions
             {
                 ConnectionString = connectionString,
-                ContainerName = containerName,
+                BlobContainerName = blobContainerName,
             });
     }
 }

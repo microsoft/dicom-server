@@ -32,10 +32,8 @@ public partial class DicomWebClient : IDicomWebClient
             JsonSerializerOptions);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, GenerateRequestUri(DicomWebConstants.ExportUriString, partitionName));
-        {
-            request.Content = new StringContent(jsonString);
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
-        }
+        request.Content = new StringContent(jsonString);
+        request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);

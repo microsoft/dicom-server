@@ -598,10 +598,13 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>This operation does not support value types.</value>
   </data>
   <data name="ConflictingExportBlobConnections" xml:space="preserve">
-    <value>ConnectionString and ContainerName cannot be specified along with ContainerUri.</value>
+    <value>ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri.</value>
   </data>
   <data name="MissingExportBlobConnection" xml:space="preserve">
-    <value>Please specify both ConnectionString and ContainerName.</value>
+    <value>Please specify both ConnectionString and BlobContainerName.</value>
+  </data>
+  <data name="InvalidExportBlobAuthentication" xml:space="preserve">
+    <value>Managed identity cannot be used with a ConnectionString.</value>
   </data>
   <data name="ExistingReindexOperation" xml:space="preserve">
     <value>There is already an active re-index operation with ID '{0}'.</value>
