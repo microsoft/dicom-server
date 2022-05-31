@@ -53,7 +53,7 @@ jobs:
         Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
 
         $storageAccountName = $deployment.Outputs['storageAccountName'].Value
-        Write-Host "##vso[task.setvariable variable=azureStorageAccountName]$storageAccountName"
+        Write-Host "##vso[task.setvariable variable=azureStorageAccountName;isOutput=true]$storageAccountName"
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Deployment Binaries'
