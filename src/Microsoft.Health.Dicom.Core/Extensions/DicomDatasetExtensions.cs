@@ -522,27 +522,28 @@ public static class DicomDatasetExtensions
     }
 
     /// <summary>
-    /// Get updated dicom dataset after updating existing dataset with tag value present in newDataset.
+    /// Try to update dicom dataset after updating existing dataset with tag value present in newDataset.
     /// </summary>
     /// <remarks>
     /// Update for a tag happens only if this tag already had value in the existing dataset.
     /// </remarks>
-    /// <param name="existingDataset">Existing Dataset that will be updated.</param>
+    /// <param name="existingDataset">Existing Dataset.</param>
     /// <param name="newDataset">New Dataset.</param>
     /// <param name="tag">Tag to be updated.</param>
-    /// <returns>Updated dataset.</returns>
-    public static DicomDataset AddOrUpdate(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag)
+    /// <param name="updatedDataset">Dataset after updating <paramref name="existingDataset"/> based on values in <paramref name="newDataset"/>.</param>
+    /// <returns>True if update was successful, else returns false.</returns>
+    public static bool TryUpdate(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag, out DicomDataset updatedDataset)
     {
         EnsureArg.IsNotNull(existingDataset, nameof(existingDataset));
         EnsureArg.IsNotNull(newDataset, nameof(newDataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
+        updatedDataset = existingDataset;
+
         if (!existingDataset.Contains(tag))
         {
-            return existingDataset;
+            return false;
         }
-
-        DicomDataset updatedDataset = null;
 
         switch (tag.GetDefaultVR().Code)
         {
@@ -565,11 +566,16 @@ public static class DicomDatasetExtensions
                 updatedDataset = existingDataset.AddOrUpdate<short>(tag, newDataset.GetFirstValueOrDefault<short>(tag));
                 break;
             case var code when StringVRs.Contains(code):
-                if (newDataset.TryGetString(tag, out string newStringValue)
+                if (existingDataset.TryGetString(tag, out string existingStringValue)
+                    && !string.IsNullOrWhiteSpace(existingStringValue)
+                    && newDataset.TryGetString(tag, out string newStringValue)
                     && !string.IsNullOrWhiteSpace(newStringValue))
                 {
-                    // TODO Ali: Throw exception when string value was empty or null.
                     updatedDataset = existingDataset.AddOrUpdate<string>(tag, newStringValue);
+                }
+                else
+                {
+                    return false;
                 }
                 break;
             case var code when UIntVRs.Contains(code):
@@ -585,7 +591,7 @@ public static class DicomDatasetExtensions
                 updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<byte>(tag));
                 break;
             case "SQ":
-                updatedDataset = newDataset.CopyTo(existingDataset, tag);
+                newDataset.CopyTo(updatedDataset, tag);
                 break;
             // Other VR Types
             case "OD":
@@ -605,6 +611,6 @@ public static class DicomDatasetExtensions
                 break;
         }
 
-        return updatedDataset;
+        return true;
     }
 }

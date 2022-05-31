@@ -40,8 +40,9 @@ public interface IWorkitemResponseBuilder
     /// <summary>
     /// Builds the response for update workitem.
     /// </summary>
+    /// <param name="workitemInstanceUid">Workitem Instance UID.</param>
     /// <returns>An instance of <see cref="UpdateWorkitemResponse"/> represeting the response.</returns>
-    UpdateWorkitemResponse BuildUpdateWorkitemResponse();
+    UpdateWorkitemResponse BuildUpdateWorkitemResponse(string workitemInstanceUid = null);
 
     /// <summary>
     /// Adds a successful entry to the response.

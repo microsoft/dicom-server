@@ -160,10 +160,12 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     }
 
     /// <inheritdoc />
-    public async Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken)
+    public async Task<IEnumerable<DicomTag>> UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
+
+        List<DicomTag> warningTags;
 
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
@@ -178,6 +180,14 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
         try
         {
+            // Retrieve existing dataset.
+            var existingDataset = await RetrieveWorkitemAsync(workitemMetadata, cancellationToken).ConfigureAwait(false);
+
+            if (existingDataset == null)
+            {
+                throw new WorkitemNotFoundException();
+            }
+
             // Get the current and next watermarks for the workitem instance
             watermarkEntry = await _indexWorkitemStore
                 .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
@@ -188,16 +198,8 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
                 throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
             }
 
-            // Retrieve existing dataset.
-            var existingDataset = await RetrieveWorkitemAsync(workitemMetadata, cancellationToken).ConfigureAwait(false);
-
-            if (existingDataset == null)
-            {
-                throw new WorkitemNotFoundException();
-            }
-
             // Update `existingDatabase` object.
-            DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset);
+            DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset, out warningTags);
 
             // store the blob with the new watermark.
             await StoreWorkitemBlobAsync(workitemMetadata, updatedDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
@@ -232,16 +234,26 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
             throw;
         }
+
+        return warningTags;
     }
 
-    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset)
+    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset, out List<DicomTag> warningTags)
     {
-        // TODO Ali: Collect list of elements that were not updated and send them back in Warning.
-        DicomDataset updatedDataset = existingDataset;
+        DicomDataset mergedDataset = existingDataset;
+        List<DicomTag> unsuccessfulUpdateTags = new List<DicomTag>();
 
-        newDataset.Each(di => updatedDataset = updatedDataset.AddOrUpdate(newDataset, di.Tag));
+        newDataset.Each(di =>
+        {
+            if (!mergedDataset.TryUpdate(newDataset, di.Tag, out mergedDataset))
+            {
+                unsuccessfulUpdateTags.Add(di.Tag);
+            }
+        });
 
-        return updatedDataset;
+        warningTags = new List<DicomTag>(unsuccessfulUpdateTags);
+
+        return mergedDataset;
     }
 
     /// <inheritdoc />

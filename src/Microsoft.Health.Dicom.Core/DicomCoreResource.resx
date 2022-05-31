@@ -603,20 +603,27 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="MissingExportBlobConnection" xml:space="preserve">
     <value>Please specify both ConnectionString and ContainerName.</value>
   </data>
-	<data name="WorkitemCurrentlyBeingUpdated" xml:space="preserve">
+  <data name="WorkitemCurrentlyBeingUpdated" xml:space="preserve">
     <value>The workitem instance is currently being updated. Please try again later.</value>
   </data>
-	<data name="TransactionUIDAbsent" xml:space="preserve">
+  <data name="TransactionUIDAbsent" xml:space="preserve">
     <value>The transaction UID is missing.</value>
   </data>
-	<data name="WorkitemProcedureStepStateNotAllowed" xml:space="preserve">
+  <data name="WorkitemProcedureStepStateNotAllowed" xml:space="preserve">
     <value>Procedure step state is present in the dataset provided to be updated which is not allowed.</value>
   </data>
-	<data name="WorkitemUpdateRequestSuccess" xml:space="preserve">
+  <data name="WorkitemUpdateRequestSuccess" xml:space="preserve">
     <value>The workitem instance has been updated successfully.</value>
   </data>
-	<data name="AttributeMustNotBeEmpty" xml:space="preserve">
+  <data name="AttributeMustNotBeEmpty" xml:space="preserve">
     <value>The attribute with tag '{0}' must not be empty.</value>
     <comment>{0} Dicom Tag.</comment>
+  </data>
+  <data name="WorkitemUpdatedWithModification" xml:space="preserve">
+    <value>The Workitem was updated with modifications.</value>
+  </data>
+  <data name="WorkitemUpdateWarningTags" xml:space="preserve">
+    <value>Following tags could not be updated as they were not present when the workitem was created: {0}</value>
+    <comment>{0} comma separated list of tags that could not be updated.</comment>
   </data>
 </root>

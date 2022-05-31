@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -51,7 +53,7 @@ public partial class WorkitemService
             await UpdateWorkitemAsync(dataset, workitemMetadata, cancellationToken);
         }
 
-        return _responseBuilder.BuildUpdateWorkitemResponse();
+        return _responseBuilder.BuildUpdateWorkitemResponse(workitemInstanceUid);
     }
 
     /// <summary>
@@ -110,13 +112,20 @@ public partial class WorkitemService
     {
         try
         {
-            await _workitemOrchestrator
+            IEnumerable<DicomTag> warningTags = await _workitemOrchestrator
                 .UpdateWorkitemAsync(dataset, workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
 
             _logger.LogInformation("Successfully updated the DICOM instance work-item entry.");
 
-            _responseBuilder.AddSuccess(DicomCoreResource.WorkitemUpdateRequestSuccess);
+            if (warningTags != null && warningTags.Any())
+            {
+                _responseBuilder.AddSuccess(string.Join(" ", DicomCoreResource.WorkitemUpdatedWithModification, DicomCoreResource.WorkitemUpdateWarningTags, string.Join(", ", warningTags)));
+            }
+            else
+            {
+                _responseBuilder.AddSuccess(DicomCoreResource.WorkitemUpdateRequestSuccess);
+            }
         }
         catch (Exception ex)
         {

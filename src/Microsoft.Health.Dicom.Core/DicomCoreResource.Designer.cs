@@ -1325,7 +1325,16 @@ namespace Microsoft.Health.Dicom.Core {
                 return ResourceManager.GetString("WorkitemProcedureStepStateNotAllowed", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Workitem was updated with modifications..
+        /// </summary>
+        internal static string WorkitemUpdatedWithModification {
+            get {
+                return ResourceManager.GetString("WorkitemUpdatedWithModification", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to The workitem instance state is &apos;{0}&apos;..
         /// </summary>
@@ -1341,6 +1350,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string WorkitemUpdateRequestSuccess {
             get {
                 return ResourceManager.GetString("WorkitemUpdateRequestSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Following tags could not be updated as they were not present when the workitem was created: {0}.
+        /// </summary>
+        internal static string WorkitemUpdateWarningTags {
+            get {
+                return ResourceManager.GetString("WorkitemUpdateWarningTags", resourceCulture);
             }
         }
     }
