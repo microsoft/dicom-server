@@ -4,7 +4,6 @@ variables:
   testFeaturesEnabledEnvironmentUrl: 'https://$(deploymentName)-featuresenabled.azurewebsites.net/'
   testApplicationScope: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com/.default'
   testApplicationResource: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com'
-  azureStorageAccountName: 'dcmcipermanpmlxszw4sayty'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'

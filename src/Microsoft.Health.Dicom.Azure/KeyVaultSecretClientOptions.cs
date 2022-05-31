@@ -15,7 +15,8 @@ internal sealed class KeyVaultSecretClientOptions : SecretClientOptions
     // This value is based on the SecretClient's parameter name and is read automatically from the configuration
     public Uri VaultUri { get; set; }
 
-    [Obsolete]
+    // TODO: Replace usage of Endpoint with VaultUri
+    [Obsolete($"Please use {nameof(VaultUri)} instead.")]
     public Uri Endpoint
     {
         get => _endpoint;

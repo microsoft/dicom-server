@@ -53,3 +53,6 @@ jobs:
     displayName: 'Setup Authentication'
 
   - template: ../common/run-e2e-tests.yml
+
+  variables:
+    azureStorageAccountName: $[ stageDependencies.DeployTestEnvironment.Provision.outputs['deploy.azureStorageAccountName'] ]
