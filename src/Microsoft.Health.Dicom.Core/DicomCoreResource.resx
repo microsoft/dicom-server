@@ -606,4 +606,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="InvalidExportBlobAuthentication" xml:space="preserve">
     <value>Managed identity cannot be used with a ConnectionString.</value>
   </data>
+  <data name="ExistingReindexOperation" xml:space="preserve">
+    <value>There is already an active re-index operation with ID '{0}'.</value>
+    <comment>{0} Operation ID</comment>
+  </data>
 </root>

@@ -3,10 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.IO.Hashing;
 using System.Text;
 using EnsureThat;
+using HashDepot;
 
 namespace Microsoft.Health.Dicom.Blob.Utilities;
 internal static class HashingHelper
@@ -22,7 +21,7 @@ internal static class HashingHelper
         EnsureArg.IsNotDefault(value, nameof(value));
 
         byte[] buffer = Encoding.UTF8.GetBytes(value.ToString());
-        string hash = BitConverter.ToUInt32(XxHash32.Hash(buffer)).ToString();
+        var hash = XXHash.Hash64(buffer).ToString();
 
         // If the hashLength is greater than the hash, assigning the length of the hash and not throw error
         hashLength = hashLength > hash.Length ? hash.Length : hashLength;

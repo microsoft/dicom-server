@@ -31,6 +31,7 @@
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Scrutor" Version="4.1.0" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,10 +48,6 @@
     <None Include="Features\Workitem\WorkitemService.*.cs">
       <DependentUpon>Features\Workitem\WorkitemService.cs</DependentUpon>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>
