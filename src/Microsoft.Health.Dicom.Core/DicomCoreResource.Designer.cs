@@ -413,6 +413,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is already an active re-index operation with ID &apos;{0}&apos;..
+        /// </summary>
+        internal static string ExistingReindexOperation {
+            get {
+                return ResourceManager.GetString("ExistingReindexOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extended Query Tag feature is disabled..
         /// </summary>
         internal static string ExtendedQueryTagFeatureDisabled {
