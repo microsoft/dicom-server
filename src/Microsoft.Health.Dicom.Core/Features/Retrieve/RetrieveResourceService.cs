@@ -35,8 +35,8 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
     private readonly IMetadataStore _metadataStore;
     private readonly RetrieveConfiguration _retrieveConfiguration;
     private readonly ILogger<RetrieveResourceService> _logger;
-    private readonly LocalMemoryCache<InstanceIdentifier, InstanceMetadata> _instanceMetadataCache;
-    private readonly LocalMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>> _framesRangeCache;
+    private readonly EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata> _instanceMetadataCache;
+    private readonly EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>> _framesRangeCache;
     private bool _disposed;
 
     public RetrieveResourceService(
@@ -74,8 +74,8 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         _metadataStore = metadataStore;
         _retrieveConfiguration = retrieveConfiguration?.Value;
         _logger = logger;
-        _instanceMetadataCache = new LocalMemoryCache<InstanceIdentifier, InstanceMetadata>(intanceMetadataCacheOption, loggerFactory, loggerFactory.CreateLogger<LocalMemoryCache<InstanceIdentifier, InstanceMetadata>>());
-        _framesRangeCache = new LocalMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>(intanceMetadataCacheOption, loggerFactory, loggerFactory.CreateLogger<LocalMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>>());
+        _instanceMetadataCache = new EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>(intanceMetadataCacheOption, loggerFactory, loggerFactory.CreateLogger<EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>>());
+        _framesRangeCache = new EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>(intanceMetadataCacheOption, loggerFactory, loggerFactory.CreateLogger<EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>>());
     }
 
     public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)

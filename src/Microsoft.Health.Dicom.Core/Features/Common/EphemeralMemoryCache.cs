@@ -14,18 +14,23 @@ using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common;
 
-internal class LocalMemoryCache<TIn, TOut> : IDisposable
+/// <summary>
+/// Cache that stores a limited number of items for a limited amount of time.
+/// </summary>
+/// <typeparam name="TIn"></typeparam>
+/// <typeparam name="TOut"></typeparam>
+internal class EphemeralMemoryCache<TIn, TOut> : IDisposable
 {
     private readonly CacheConfiguration _configuration;
     private readonly MemoryCache _memoryCache;
-    private readonly ILogger<LocalMemoryCache<TIn, TOut>> _logger;
+    private readonly ILogger<EphemeralMemoryCache<TIn, TOut>> _logger;
     private readonly SemaphoreSlim _semaphore;
     private bool _disposed;
 
-    public LocalMemoryCache(
+    public EphemeralMemoryCache(
         IOptionsSnapshot<CacheConfiguration> configuration,
         ILoggerFactory loggerFactory,
-        ILogger<LocalMemoryCache<TIn, TOut>> logger)
+        ILogger<EphemeralMemoryCache<TIn, TOut>> logger)
     {
         EnsureArg.IsNotNull(configuration?.Value, nameof(configuration));
         EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory));
