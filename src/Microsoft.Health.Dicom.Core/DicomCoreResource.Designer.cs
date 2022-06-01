@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
+        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri..
         /// </summary>
         internal static string ConflictingExportBlobConnections {
             get {
@@ -613,6 +613,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Managed identity cannot be used with a ConnectionString..
+        /// </summary>
+        internal static string InvalidExportBlobAuthentication {
+            get {
+                return ResourceManager.GetString("InvalidExportBlobAuthentication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid as it cannot be parsed into a valid Dicom Tag..
         /// </summary>
         internal static string InvalidExtendedQueryTag {
@@ -814,7 +823,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please specify both ConnectionString and ContainerName..
+        ///   Looks up a localized string similar to Please specify both ConnectionString and BlobContainerName..
         /// </summary>
         internal static string MissingExportBlobConnection {
             get {

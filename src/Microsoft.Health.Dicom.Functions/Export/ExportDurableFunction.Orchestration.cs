@@ -41,6 +41,8 @@ public partial class ExportDurableFunction
         // Are we done?
         if (input.Source == null)
         {
+            await context.CallActivityWithRetryAsync(nameof(CompleteCopyAsync), _options.RetryOptions, input.Destination);
+
             logger.LogInformation("Completed export to '{Sink}'.", input.Destination.Type);
             return;
         }
@@ -66,6 +68,7 @@ public partial class ExportDurableFunction
                 new ExportBatchArguments
                 {
                     Destination = input.Destination,
+                    Partition = input.Partition,
                     Source = batch,
                 }));
         }

@@ -24,6 +24,18 @@ public interface IExportSinkProvider
     ExportDestinationType Type { get; }
 
     /// <summary>
+    /// Asynchronously completes a copy operation to the sink.
+    /// </summary>
+    /// <param name="options">The sink-specific options.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>A task representing the <see cref="CompleteCopyAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    public Task CompleteCopyAsync(object options, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously creates a new instance of the <see cref="IExportSink"/> interface whose implementation
     /// is based on the value of the <see cref="Type"/> property.
     /// </summary>

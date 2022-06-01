@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -42,7 +43,26 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
         : this(serializerOptions, logger)
     {
-        _secretStore = EnsureArg.IsNotNull(secretStore, nameof(secretStore));
+        // The real Azure Functions runtime/container will use DryIoc for dependency injection
+        // and will still select this ctor for use, even if no ISecretStore service is configured.
+        // So instead, we simply allow null in either ctor.
+        _secretStore = secretStore;
+    }
+
+    protected override async Task CompleteCopyAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
+    {
+        if (_secretStore == null)
+        {
+            if (options.Secret != null)
+                _logger.LogWarning("No secret store has been registered, but a secret was previously configured. Unable to clean up sensitive information.");
+        }
+        else if (options.Secret != null)
+        {
+            if (await _secretStore.DeleteSecretAsync(options.Secret.Name, cancellationToken))
+                _logger.LogInformation("Successfully cleaned up sensitive information from secret store.");
+            else
+                _logger.LogWarning("Sensitive information has already been deleted for this operation.");
+        }
     }
 
     protected override async Task<IExportSink> CreateAsync(IServiceProvider provider, AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
@@ -51,7 +71,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
         return new AzureBlobExportSink(
             provider.GetRequiredService<IFileStore>(),
-            options.GetBlobContainerClient(provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export")),
+            await options.GetBlobContainerClientAsync(
+                provider.GetRequiredService<IExportIdentityProvider>(),
+                provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export"),
+                cancellationToken),
             Options.Create(
                 new AzureBlobExportFormatOptions(
                     operationId,
@@ -68,28 +91,35 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         if (options.Secret != null)
             options.Secret = null;
 
-        if (_secretStore == null)
+        // Determine whether we need to store any settings in the secret store
+        BlobSecrets secrets = null;
+        if (options.BlobContainerUri != null)
         {
-            _logger.LogWarning("No secret store has been registered. Sensitive export settings will be preserved in plaintext.");
-            return options;
+            if (IsSensitiveBlobContainerUri(options.BlobContainerUri))
+                secrets = new BlobSecrets { BlobContainerUri = options.BlobContainerUri };
+        }
+        else if (IsSensitiveConnectionString(options.ConnectionString))
+        {
+            secrets = new BlobSecrets { ConnectionString = options.ConnectionString };
         }
 
-        // TODO: Should we detect if the ContainerUri actually has a SAS token before storing the secret?
-        var secrets = new BlobSecrets
+        // If there is sensitive info, store the secret(s)
+        if (secrets != null)
         {
-            ConnectionString = options.ConnectionString,
-            ContainerUri = options.ContainerUri,
-        };
+            if (_secretStore == null)
+                throw new InvalidOperationException(DicomBlobResource.MissingSecretStore);
 
-        string name = operationId.ToString(OperationId.FormatSpecifier);
-        string version = await _secretStore.SetSecretAsync(
-            name,
-            JsonSerializer.Serialize(secrets, _serializerOptions),
-            cancellationToken);
+            string name = operationId.ToString(OperationId.FormatSpecifier);
+            string version = await _secretStore.SetSecretAsync(
+                name,
+                JsonSerializer.Serialize(secrets, _serializerOptions),
+                MediaTypeNames.Application.Json,
+                cancellationToken);
 
-        options.ConnectionString = null;
-        options.ContainerUri = null;
-        options.Secret = new SecretKey { Name = name, Version = version };
+            options.BlobContainerUri = null;
+            options.ConnectionString = null;
+            options.Secret = new SecretKey { Name = name, Version = version };
+        }
 
         return options;
     }
@@ -114,17 +144,39 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             BlobSecrets secrets = JsonSerializer.Deserialize<BlobSecrets>(json, _serializerOptions);
 
             options.ConnectionString = secrets.ConnectionString;
-            options.ContainerUri = secrets.ContainerUri;
+            options.BlobContainerUri = secrets.BlobContainerUri;
             options.Secret = null;
         }
 
         return options;
     }
 
+    private static bool IsSensitiveBlobContainerUri(Uri blobContainerUri)
+    {
+        // Assume any parameter is for authentication
+        // Note: Shared Key would be present in header
+        var builder = new UriBuilder(blobContainerUri);
+        return builder.Query != null && builder.Query.Length > 1; // More than "?"
+    }
+
+    private static bool IsSensitiveConnectionString(string connectionString)
+    {
+        // Emulator is a well-known account and account key
+        if (connectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) ||
+            (connectionString.Contains("AccountName=devstoreaccount1;", StringComparison.OrdinalIgnoreCase) &&
+            connectionString.Contains("AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;", StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        return connectionString.Contains("AccountKey=", StringComparison.OrdinalIgnoreCase) ||
+            connectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase);
+    }
+
     private sealed class BlobSecrets
     {
         public string ConnectionString { get; set; }
 
-        public Uri ContainerUri { get; set; }
+        public Uri BlobContainerUri { get; set; }
     }
 }

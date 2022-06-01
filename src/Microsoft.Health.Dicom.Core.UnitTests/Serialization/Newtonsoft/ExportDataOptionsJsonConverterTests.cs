@@ -36,6 +36,15 @@ public class ExportDataOptionsJsonConverterTests
     }
 
     [Fact]
+    public void GivenNullJson_WhenReading_ThenDeserialize()
+    {
+        const string json = "null";
+
+        ExportDataOptions<ExportSourceType> actual = JsonConvert.DeserializeObject<ExportDataOptions<ExportSourceType>>(json, _serializeSettings);
+        Assert.Null(actual);
+    }
+
+    [Fact]
     public void GivenInvalidSourceOptionsJson_WhenReading_ThenDeserialize()
     {
         const string json = @"{
@@ -66,7 +75,7 @@ public class ExportDataOptionsJsonConverterTests
   ""type"": ""azureblob"",
   ""settings"": {
     ""connnectionStrong"":""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerNamee"": ""mycontainer""
+    ""blobContainerNamee"": ""mycontainer""
   }
 }";
 
@@ -75,8 +84,8 @@ public class ExportDataOptionsJsonConverterTests
 
         var options = actual.Settings as AzureBlobExportOptions;
         Assert.Null(options.ConnectionString);
-        Assert.Null(options.ContainerName);
-        Assert.Null(options.ContainerUri);
+        Assert.Null(options.BlobContainerName);
+        Assert.Null(options.BlobContainerUri);
     }
 
     [Fact]
@@ -114,12 +123,13 @@ public class ExportDataOptionsJsonConverterTests
   ""type"": ""azureblob"",
   ""settings"": {
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerName"": ""mycontainer"",
-    ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
+    ""blobContainerName"": ""mycontainer"",
+    ""blobContainerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""secret"": {
       ""name"": ""foo"",
       ""version"": ""1""
-    }
+    },
+    ""useManagedIdentity"": true
   }
 }";
 
@@ -128,10 +138,19 @@ public class ExportDataOptionsJsonConverterTests
 
         var options = actual.Settings as AzureBlobExportOptions;
         Assert.Equal("BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", options.ConnectionString);
-        Assert.Equal("mycontainer", options.ContainerName);
-        Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.ContainerUri);
+        Assert.Equal("mycontainer", options.BlobContainerName);
+        Assert.Equal(new Uri("https://unit-test.blob.core.windows.net/mycontainer"), options.BlobContainerUri);
         Assert.Equal("foo", options.Secret.Name);
         Assert.Equal("1", options.Secret.Version);
+        Assert.True(options.UseManagedIdentity);
+    }
+
+    [Fact]
+    public void GivenNullValue_WhenWriting_ThenSerialize()
+    {
+        ExportDataOptions<ExportSourceType> value = null;
+        string actual = JsonConvert.SerializeObject(value, _serializeSettings);
+        Assert.Equal("null", actual);
     }
 
     [Fact]
@@ -172,9 +191,10 @@ public class ExportDataOptionsJsonConverterTests
             new AzureBlobExportOptions
             {
                 ConnectionString = "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar",
-                ContainerName = "mycontainer",
-                ContainerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer"),
+                BlobContainerName = "mycontainer",
+                BlobContainerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer"),
                 Secret = new SecretKey { Name = "foo", Version = "1" },
+                UseManagedIdentity = true,
             });
 
         string actual = JsonConvert.SerializeObject(expected, _serializeSettings);
@@ -182,9 +202,10 @@ public class ExportDataOptionsJsonConverterTests
 @"{
   ""type"": ""azureBlob"",
   ""settings"": {
-    ""containerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
+    ""blobContainerUri"": ""https://unit-test.blob.core.windows.net/mycontainer"",
     ""connectionString"": ""BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar"",
-    ""containerName"": ""mycontainer"",
+    ""blobContainerName"": ""mycontainer"",
+    ""useManagedIdentity"": true,
     ""secret"": {
       ""name"": ""foo"",
       ""version"": ""1""

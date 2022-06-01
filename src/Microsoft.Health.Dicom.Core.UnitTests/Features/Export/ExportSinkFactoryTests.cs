@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
@@ -17,6 +16,31 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Export;
 
 public class ExportSinkFactoryTests
 {
+    [Fact]
+    public async Task GivenNoProviders_WhenCompletingCopy_ThenThrowException()
+    {
+        var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSinkProvider>());
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => factory.CompleteCopyAsync(
+            new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob)));
+    }
+
+    [Fact]
+    public async Task GivenValidProviders_WhenCompletingCopy_ThenInvokeCorrectMethod()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        var options = new AzureBlobExportOptions();
+        var destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob, options);
+
+        IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
+        provider.Type.Returns(ExportDestinationType.AzureBlob);
+
+        var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), new IExportSinkProvider[] { provider });
+        await factory.CompleteCopyAsync(destination, tokenSource.Token);
+
+        await provider.Received(1).CompleteCopyAsync(options, tokenSource.Token);
+    }
+
     [Fact]
     public async Task GivenNoProviders_WhenCreatingSink_ThenThrowException()
     {
@@ -64,18 +88,18 @@ public class ExportSinkFactoryTests
         var operationId = Guid.NewGuid();
         var options = new AzureBlobExportOptions();
         var destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob, options);
-        IConfiguration expectedConfig = Substitute.For<IConfiguration>();
+        var expected = new AzureBlobExportOptions();
 
         IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
         provider.Type.Returns(ExportDestinationType.AzureBlob);
-        provider.SecureSensitiveInfoAsync(options, operationId, tokenSource.Token).Returns(expectedConfig);
+        provider.SecureSensitiveInfoAsync(options, operationId, tokenSource.Token).Returns(expected);
 
         var factory = new ExportSinkFactory(Substitute.For<IServiceProvider>(), new IExportSinkProvider[] { provider });
         ExportDataOptions<ExportDestinationType> actual = await factory.SecureSensitiveInfoAsync(destination, operationId, tokenSource.Token);
 
         await provider.Received(1).SecureSensitiveInfoAsync(options, operationId, tokenSource.Token);
         Assert.Equal(ExportDestinationType.AzureBlob, actual.Type);
-        Assert.Same(expectedConfig, actual.Settings);
+        Assert.Same(expected, actual.Settings);
     }
 
     [Fact]
@@ -93,7 +117,6 @@ public class ExportSinkFactoryTests
 
         var options = new AzureBlobExportOptions();
         var destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob, options);
-        IConfiguration expectedConfig = Substitute.For<IConfiguration>();
 
         IExportSinkProvider provider = Substitute.For<IExportSinkProvider>();
         provider.Type.Returns(ExportDestinationType.AzureBlob);
