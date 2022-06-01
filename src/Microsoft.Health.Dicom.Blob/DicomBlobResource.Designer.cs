@@ -124,7 +124,7 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot fetch secret values because no secret store has been configured..
+        ///   Looks up a localized string similar to Export settings contain sensitive data but no secret store has been configured..
         /// </summary>
         internal static string MissingSecretStore {
             get {

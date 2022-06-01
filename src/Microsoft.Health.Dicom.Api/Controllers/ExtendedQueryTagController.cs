@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
@@ -65,10 +66,24 @@ public class ExtendedQueryTagController : ControllerBase
         _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {ExtendedQueryTags}.", extendedQueryTags);
 
         EnsureFeatureIsEnabled();
-        AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
 
-        Response.AddLocationHeader(response.Operation.Href);
-        return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
+        try
+        {
+            AddExtendedQueryTagResponse response = await _mediator.AddExtendedQueryTagsAsync(extendedQueryTags, HttpContext.RequestAborted);
+
+            Response.AddLocationHeader(response.Operation.Href);
+            return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
+        }
+        catch (ExistingReindexException ere)
+        {
+            Response.AddLocationHeader(ere.ExistingOperation.Href);
+            return new ContentResult
+            {
+                Content = ere.Message,
+                ContentType = MediaTypeNames.Text.Plain,
+                StatusCode = (int)HttpStatusCode.Conflict,
+            };
+        }
     }
 
     [Produces(KnownContentTypes.ApplicationJson)]

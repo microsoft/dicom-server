@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -66,62 +67,70 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
+    public Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
+        => GetStateAsync(
+            operationId,
+            async (operation, state, checkpoint, token) =>
+            {
+                OperationStatus status = state.RuntimeStatus.ToOperationStatus();
+                return new OperationState<DicomOperation>
+                {
+                    CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
+                    LastUpdatedTime = state.LastUpdatedTime,
+                    OperationId = operationId,
+                    PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
+                    Resources = await GetResourceUrlsAsync(operation, checkpoint.ResourceIds, cancellationToken),
+                    Status = status,
+                    Type = operation,
+                };
+            },
+            cancellationToken);
+
+    /// <inheritdoc/>
+    public async IAsyncEnumerable<OperationReference> FindOperationsAsync(OperationQueryCondition<DicomOperation> query, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
+        EnsureArg.IsNotNull(query, nameof(query));
 
-        // TODO: Pass token when supported
-        DurableOrchestrationStatus state = await GetStatusInternalAsync(operationId);
-
-        if (state == null)
+        var operations = query.Operations == null ? null : new HashSet<DicomOperation>(query.Operations);
+        var result = new OrchestrationStatusQueryResult();
+        do
         {
-            return null;
-        }
+            result = await _durableClient.ListInstancesAsync(
+                query.ForDurableFunctions(result.ContinuationToken),
+                cancellationToken);
 
-        OperationStatus status = state.RuntimeStatus.ToOperationStatus();
-        DicomOperation type = state.GetDicomOperation();
-        IOperationCheckpoint checkpoint = ParseCheckpoint(type, state);
-        return new OperationState<DicomOperation>
-        {
-            CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
-            LastUpdatedTime = state.LastUpdatedTime,
-            OperationId = operationId,
-            PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
-            Resources = await GetResourceUrlsAsync(type, checkpoint.ResourceIds, cancellationToken),
-            Status = status,
-            Type = type
-        };
+            IEnumerable<Guid> matches = GetValidOperationIds(result
+                .DurableOrchestrationState
+                .Where(s => operations == null || operations.Contains(s.GetDicomOperation())));
+
+            foreach (Guid operationId in matches)
+            {
+                yield return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
+            }
+        } while (result.ContinuationToken != null && !cancellationToken.IsCancellationRequested);
     }
 
     /// <inheritdoc/>
-    public async Task<OperationCheckpointState<DicomOperation>> GetLastCheckpointAsync(Guid operationId, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        DurableOrchestrationStatus state = await GetStatusInternalAsync(operationId);
-
-        if (state == null)
-        {
-            return null;
-        }
-
-        DicomOperation type = state.GetDicomOperation();
-        IOperationCheckpoint checkpoint = ParseCheckpoint(state.GetDicomOperation(), state);
-
-        return new OperationCheckpointState<DicomOperation>
-        {
-            OperationId = operationId,
-            Status = state.RuntimeStatus.ToOperationStatus(),
-            Type = type,
-            Checkpoint = checkpoint
-        };
-    }
+    public Task<OperationCheckpointState<DicomOperation>> GetLastCheckpointAsync(Guid operationId, CancellationToken cancellationToken = default)
+        => GetStateAsync(
+            operationId,
+            (operation, state, checkpoint, token) =>
+                Task.FromResult(new OperationCheckpointState<DicomOperation>
+                {
+                    OperationId = operationId,
+                    Status = state.RuntimeStatus.ToOperationStatus(),
+                    Type = operation,
+                    Checkpoint = checkpoint
+                }),
+            cancellationToken);
 
     /// <inheritdoc/>
     public async Task<OperationReference> StartReindexingInstancesAsync(Guid operationId, IReadOnlyCollection<int> tagKeys, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(tagKeys, nameof(tagKeys));
         EnsureArg.HasItems(tagKeys, nameof(tagKeys));
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
@@ -143,6 +152,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
         EnsureArg.IsNotNull(partition, nameof(partition));
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         // TODO: Pass token when supported
         string instanceId = await _durableClient.StartNewAsync(
@@ -178,17 +189,35 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
     }
 
-    // Note that the Durable Task Framework does not preserve the original CreatedTime
-    // when an orchestration is restarted via ContinueAsNew, so we may store the original
-    // in the checkpoint
-    private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
-        => type switch
+    private async Task<T> GetStateAsync<T>(
+        Guid operationId,
+        Func<DicomOperation, DurableOrchestrationStatus, IOperationCheckpoint, CancellationToken, Task<T>> factory,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
+
+        if (state == null)
         {
-            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
-            DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
-            DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
-            _ => NullOperationCheckpoint.Value,
-        };
+            return null;
+        }
+
+        _logger.LogInformation(
+            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
+            state.InstanceId,
+            state.Name);
+
+        DicomOperation type = state.GetDicomOperation();
+        if (type == DicomOperation.Unknown)
+        {
+            _logger.LogWarning("Orchestration instance with '{Name}' did not resolve to a public operation type.", state.Name);
+            return null;
+        }
+
+        return await factory(type, state, ParseCheckpoint(type, state), cancellationToken);
+    }
 
     private async Task<IReadOnlyCollection<Uri>> GetResourceUrlsAsync(
         DicomOperation type,
@@ -216,26 +245,24 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         }
     }
 
-    private async Task<DurableOrchestrationStatus> GetStatusInternalAsync(Guid operationId)
+    // Note that the Durable Task Framework does not preserve the original CreatedTime
+    // when an orchestration is restarted via ContinueAsNew, so we may store the original
+    // in the checkpoint
+    private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
+        => type switch
+        {
+            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
+            DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
+            DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
+            _ => NullOperationCheckpoint.Value,
+        };
+
+    private static IEnumerable<Guid> GetValidOperationIds(IEnumerable<DurableOrchestrationStatus> statuses)
     {
-        DurableOrchestrationStatus state = await _durableClient.GetStatusAsync(operationId.ToString(OperationId.FormatSpecifier), showInput: true);
-        if (state == null)
+        foreach (DurableOrchestrationStatus status in statuses)
         {
-            return null;
+            if (Guid.TryParse(status.InstanceId, out Guid operationId))
+                yield return operationId;
         }
-
-        _logger.LogInformation(
-            "Successfully found the state of orchestration instance '{InstanceId}' with name '{Name}'.",
-            state.InstanceId,
-            state.Name);
-
-        DicomOperation type = state.GetDicomOperation();
-        if (type == DicomOperation.Unknown)
-        {
-            _logger.LogWarning("Orchestration instance with '{Name}' did not resolve to a public operation type.", state.Name);
-            return null;
-        }
-
-        return state;
     }
 }

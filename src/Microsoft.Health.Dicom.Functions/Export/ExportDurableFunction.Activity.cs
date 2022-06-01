@@ -79,7 +79,7 @@ public partial class ExportDurableFunction
     /// </summary>
     /// <param name="context">The context for the activity.</param>
     /// <returns>
-    /// A task representing the <see cref="ExportBatchAsync"/> operation.
+    /// A task representing the <see cref="GetErrorHrefAsync"/> operation.
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the URI.
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
@@ -91,5 +91,18 @@ public partial class ExportDurableFunction
         ExportDataOptions<ExportDestinationType> destination = context.GetInput<ExportDataOptions<ExportDestinationType>>();
         await using IExportSink sink = await _sinkFactory.CreateAsync(destination, context.GetOperationId());
         return sink.ErrorHref;
+    }
+
+    /// <summary>
+    /// Asynchronously completes a copy operation to the sink.
+    /// </summary>
+    /// <param name="destination">The options for a specific sink type.</param>
+    /// <returns>A task representing the <see cref="CompleteCopyAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
+    [FunctionName(nameof(CompleteCopyAsync))]
+    public Task CompleteCopyAsync([ActivityTrigger] ExportDataOptions<ExportDestinationType> destination)
+    {
+        EnsureArg.IsNotNull(destination, nameof(destination));
+        return _sinkFactory.CompleteCopyAsync(destination);
     }
 }

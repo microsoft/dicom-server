@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectionString and ContainerName cannot be specified along with ContainerUri..
+        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri..
         /// </summary>
         internal static string ConflictingExportBlobConnections {
             get {
@@ -404,6 +404,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is already an active re-index operation with ID &apos;{0}&apos;..
+        /// </summary>
+        internal static string ExistingReindexOperation {
+            get {
+                return ResourceManager.GetString("ExistingReindexOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extended Query Tag feature is disabled..
         /// </summary>
         internal static string ExtendedQueryTagFeatureDisabled {
@@ -591,6 +600,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidDoubleValue {
             get {
                 return ResourceManager.GetString("InvalidDoubleValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Managed identity cannot be used with a ConnectionString..
+        /// </summary>
+        internal static string InvalidExportBlobAuthentication {
+            get {
+                return ResourceManager.GetString("InvalidExportBlobAuthentication", resourceCulture);
             }
         }
         
@@ -796,7 +814,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please specify both ConnectionString and ContainerName..
+        ///   Looks up a localized string similar to Please specify both ConnectionString and BlobContainerName..
         /// </summary>
         internal static string MissingExportBlobConnection {
             get {

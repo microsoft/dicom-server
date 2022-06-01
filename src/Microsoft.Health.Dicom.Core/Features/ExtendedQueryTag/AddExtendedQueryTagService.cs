@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -26,6 +27,16 @@ public class AddExtendedQueryTagService : IAddExtendedQueryTagService
     private readonly IDicomOperationsClient _client;
     private readonly IExtendedQueryTagEntryValidator _extendedQueryTagEntryValidator;
     private readonly int _maxAllowedCount;
+
+    private static readonly OperationQueryCondition<DicomOperation> ReindexQuery = new OperationQueryCondition<DicomOperation>
+    {
+        Operations = new DicomOperation[] { DicomOperation.Reindex },
+        Statuses = new OperationStatus[]
+        {
+            OperationStatus.NotStarted,
+            OperationStatus.Running,
+        }
+    };
 
     public AddExtendedQueryTagService(
         IExtendedQueryTagStore extendedQueryTagStore,
@@ -51,6 +62,14 @@ public class AddExtendedQueryTagService : IAddExtendedQueryTagService
         IEnumerable<AddExtendedQueryTagEntry> extendedQueryTags,
         CancellationToken cancellationToken = default)
     {
+        // Check if any extended query tag operation is ongoing
+        OperationReference activeReindex = await _client
+            .FindOperationsAsync(ReindexQuery, cancellationToken)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (activeReindex != null)
+            throw new ExistingReindexException(activeReindex);
+
         _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
         var normalized = extendedQueryTags
             .Select(item => item.Normalize())

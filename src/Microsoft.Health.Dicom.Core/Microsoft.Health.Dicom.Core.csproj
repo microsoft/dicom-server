@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.24.0" />
+    <PackageReference Include="Azure.Identity" Version="1.6.0" />
     <PackageReference Include="Ensure.That" Version="10.1.0" />
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
     <PackageReference Include="fo-dicom.Codecs" Version="5.1.0" />
@@ -29,6 +31,7 @@
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Scrutor" Version="4.1.0" />
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,10 +48,6 @@
     <None Include="Features\Workitem\WorkitemService.*.cs">
       <DependentUpon>Features\Workitem\WorkitemService.cs</DependentUpon>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\fork\Microsoft.Health.FellowOakDicom.Serialization\Microsoft.Health.FellowOakDicom.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

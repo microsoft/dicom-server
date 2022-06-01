@@ -12,11 +12,13 @@ namespace Microsoft.Health.Dicom.Core.Models.Export;
 
 internal sealed class AzureBlobExportOptions : IValidatableObject
 {
-    public Uri ContainerUri { get; set; }
+    public Uri BlobContainerUri { get; set; }
 
     public string ConnectionString { get; set; }
 
-    public string ContainerName { get; set; }
+    public string BlobContainerName { get; set; }
+
+    public bool UseManagedIdentity { get; set; }
 
     [JsonProperty] // Newtonsoft is only used internally while this property would be ignored by System.Text.Json
     internal SecretKey Secret { get; set; }
@@ -29,12 +31,14 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var results = new List<ValidationResult>();
-        if (ContainerUri == null)
+        if (BlobContainerUri == null)
         {
-            if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(ContainerName))
+            if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(BlobContainerName))
                 results.Add(new ValidationResult(DicomCoreResource.MissingExportBlobConnection));
+            else if (UseManagedIdentity)
+                results.Add(new ValidationResult(DicomCoreResource.InvalidExportBlobAuthentication));
         }
-        else if (!string.IsNullOrWhiteSpace(ConnectionString) || !string.IsNullOrWhiteSpace(ContainerName))
+        else if (!string.IsNullOrWhiteSpace(ConnectionString) || !string.IsNullOrWhiteSpace(BlobContainerName))
         {
             results.Add(new ValidationResult(DicomCoreResource.ConflictingExportBlobConnections));
         }

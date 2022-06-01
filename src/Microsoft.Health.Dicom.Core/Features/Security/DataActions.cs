@@ -26,11 +26,11 @@ public enum DataActions : ulong
     Delete = 1 << 2,
 
     [EnumMember(Value = "manageExtendedQueryTags")]
-    ManageExtendedQueryTags = 1 << 3,    // Allow to manage extended query tags.
+    ManageExtendedQueryTags = 1 << 3,
 
     [EnumMember(Value = "export")]
     Export = 1 << 4,
 
     [EnumMember(Value = "*")]
-    All = (ManageExtendedQueryTags << 1) - 1,
+    All = (Export << 1) - 1,
 }
