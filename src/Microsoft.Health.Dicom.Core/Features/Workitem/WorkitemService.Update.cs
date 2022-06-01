@@ -38,7 +38,7 @@ public partial class WorkitemService
         {
             _responseBuilder.AddFailure(
                 FailureReasonCodes.UpsInstanceNotFound,
-                string.Format(DicomCoreResource.WorkitemInstanceNotFound, workitemInstanceUid),
+                string.Format(DicomCoreResource.UpdateWorkitemInstanceNotFound, workitemInstanceUid),
                 dataset);
             return _responseBuilder.BuildUpdateWorkitemResponse();
         }
@@ -146,6 +146,10 @@ public partial class WorkitemService
 
                 case WorkitemNotFoundException:
                     failureCode = FailureReasonCodes.UpsInstanceNotFound;
+                    break;
+
+                case DataStoreException dsEx when dsEx.FailureCode.HasValue:
+                    failureCode = FailureReasonCodes.UpsUpdateConflict;
                     break;
             }
 

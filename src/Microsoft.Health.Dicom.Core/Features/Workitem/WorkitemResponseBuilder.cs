@@ -136,11 +136,10 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             status = WorkitemResponseStatus.Success;
             url = _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
         }
-        // TODO Ali: Take care of all the failure reasons here.
-        ////else if (failureReason == FailureReasonCodes.SopInstanceAlreadyExists)
-        ////{
-        ////    status = WorkitemResponseStatus.Conflict;
-        ////}
+        else if (failureReason == FailureReasonCodes.UpsUpdateConflict)
+        {
+            status = WorkitemResponseStatus.Conflict;
+        }
 
         return new UpdateWorkitemResponse(status, url, _message);
     }

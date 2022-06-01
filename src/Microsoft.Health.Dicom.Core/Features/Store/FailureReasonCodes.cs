@@ -123,4 +123,10 @@ internal static class FailureReasonCodes
     /// FAILURE - Procedure step state is present in the dataset provided to be updated which is not allowed.
     /// </summary>
     public const ushort UpsProcedureStepStateNotAllowed = 0xC303;
+
+    /// <summary>
+    /// FAILURE - The request is inconsistent with the current state of the Target Workitem. Please try again.
+    /// Usually happens when an update request updated the watermark before current request could finish.
+    /// </summary>
+    public const ushort UpsUpdateConflict = 0xC304;
 }

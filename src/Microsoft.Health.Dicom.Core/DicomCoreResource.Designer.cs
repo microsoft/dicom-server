@@ -1246,6 +1246,24 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request is inconsistent with the current state of the Target Workitem. Please try again..
+        /// </summary>
+        internal static string UpdateWorkitemInstanceConflictFailure {
+            get {
+                return ResourceManager.GetString("UpdateWorkitemInstanceConflictFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The target URI did not reference a claimed Workitem..
+        /// </summary>
+        internal static string UpdateWorkitemInstanceNotFound {
+            get {
+                return ResourceManager.GetString("UpdateWorkitemInstanceNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to UPS-RS feature is disabled..
         /// </summary>
         internal static string UpsRsFeatureDisabled {

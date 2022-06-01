@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
@@ -205,19 +206,33 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             await StoreWorkitemBlobAsync(workitemMetadata, updatedDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
                 .ConfigureAwait(false);
 
-            var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
-            // Update details in Sql Server.
-            //  Update the workitem watermark in the store.
-            //  Update extended query tag tables.
-            await _indexWorkitemStore
-                .UpdateWorkitemTransactionAsync(
-                    workitemMetadata,
-                    watermarkEntry.Value.NextWatermark,
-                    updatedDataset,
-                    queryTags,
-                    cancellationToken)
-                .ConfigureAwait(false);
+                // Update details in Sql Server.
+                //  Update the workitem watermark in the store.
+                //  Update extended query tag tables.
+                await _indexWorkitemStore
+                    .UpdateWorkitemTransactionAsync(
+                        workitemMetadata,
+                        watermarkEntry.Value.NextWatermark,
+                        updatedDataset,
+                        queryTags,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // attempt to delete the blob with proposed watermark
+                if (watermarkEntry.HasValue)
+                {
+                    await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.NextWatermark, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                throw new DataStoreException(DicomCoreResource.UpdateWorkitemInstanceConflictFailure, FailureReasonCodes.UpsUpdateConflict);
+            }
 
             // Delete the blob with the old watermark
             await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)
@@ -225,13 +240,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         }
         catch
         {
-            // attempt to delete the blob with proposed watermark
-            if (watermarkEntry.HasValue)
-            {
-                await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.NextWatermark, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
             throw;
         }
 

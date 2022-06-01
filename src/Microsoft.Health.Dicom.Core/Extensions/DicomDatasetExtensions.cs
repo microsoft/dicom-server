@@ -566,9 +566,7 @@ public static class DicomDatasetExtensions
                 updatedDataset = existingDataset.AddOrUpdate<short>(tag, newDataset.GetFirstValueOrDefault<short>(tag));
                 break;
             case var code when StringVRs.Contains(code):
-                if (existingDataset.TryGetString(tag, out string existingStringValue)
-                    && !string.IsNullOrWhiteSpace(existingStringValue)
-                    && newDataset.TryGetString(tag, out string newStringValue)
+                if (newDataset.TryGetString(tag, out string newStringValue)
                     && !string.IsNullOrWhiteSpace(newStringValue))
                 {
                     updatedDataset = existingDataset.AddOrUpdate<string>(tag, newStringValue);

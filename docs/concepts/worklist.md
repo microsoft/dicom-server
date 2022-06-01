@@ -254,3 +254,42 @@ The legal values correspond to the requested state transition. They are: "IN PRO
 * Responses will include the header fields specified in [section 11.7.3.2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7.3.2)
 * A success response shall have no payload.
 * A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
+
+## Update Workitem Transaction
+
+This transaction modifies attributes of an existing Workitem. It corresponds to the UPS DIMSE N-SET operation.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.6
+
+To N-SET a UPS instance currently in the SCHEDULED state, the Transaction UID Attribute shall not be present in the request. For a UPS instance in the IN PROGRESS state, the SCU shall provide the current Transaction UID (0008,1195) as an Attribute. If the Workitem is in the COMPLETED or CANCELED state, the response shall be a 400 (Bad Request) failure response.
+
+| Method  | Path                            | Description           |
+| :------ | :------------------------------ | :-------------------- |
+| POST     | ../workitems/{workitem}?{transaction-uid}	| Update Workitem Transaction	|
+
+The `Content-Type` header is required, and must have the value `application/dicom+json`.
+
+The request payload contains a dataset with the changes to the target Workitem. The dataset shall include all elements that are to be modified. 
+
+When modifying a sequence, the SCU shall include in the N-SET request all Items in the sequence, not just the Items to be modified. When multiple Attributes need updating as a group, do this as multiple Attributes in a single N-SET request, not as multiple N-SET requests.
+
+The SCU shall not set the value of the Procedure Step State (0074,1000) Attribute using N-SET. Procedure Step State is managed using N-ACTION.
+
+The SCU can only set Attribute Values that have already been created with an N-CREATE request.
+
+### Update Workitem Transaction Response Status Codes
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| The Target Workitem was updated.                                 |
+| 400 (Bad Request)            	| There was a problem with the request. For example: (1) the Target Workitem was in the COMPLETED or CANCELED state. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect. (4) the dataset did not conform to the requirements.
+| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
+| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
+| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+
+### Update Workitem Transaction Response Payload
+The origin server shall support header fields as required in [Table 11.6.3-2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#table_11.6.3-2).
+
+A success response shall have either no payload, or a payload containing a Status Report document.
+
+A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
