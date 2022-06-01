@@ -5,8 +5,10 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
@@ -26,7 +28,7 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
     protected override void OnValidate(DicomDataset dataset)
     {
         // if transaction UID is present, make sure it is not empty.
-        ValidateNotEmptyValue(dataset, DicomTag.TransactionUID);
+        dataset.ValidateRequirement(DicomTag.TransactionUID, RequirementCode.ThreeThree);
 
         // SOP Common Module
         // TODO: validate character set
@@ -35,21 +37,21 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
 
         // Unified Procedure Step Scheduled Procedure Information Module
         // If either of these values are present, make sure they are not empty.
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledProcedureStepPriority);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledProcedureStepModificationDateTime);
-        ValidateNotEmptyValue(dataset, DicomTag.ProcedureStepLabel);
-        ValidateNotEmptyValue(dataset, DicomTag.WorklistLabel);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledProcessingParametersSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledStationNameCodeSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledStationNameCodeSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledStationClassCodeSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledStationGeographicLocationCodeSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledStationNameCodeSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledProcedureStepStartDateTime);
-        ValidateNotEmptyValue(dataset, DicomTag.ScheduledWorkitemCodeSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.CommentsOnTheScheduledProcedureStep);
-        ValidateNotEmptyValue(dataset, DicomTag.InputReadinessState);
-        ValidateNotEmptyValue(dataset, DicomTag.InputInformationSequence);
+
+        dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepPriority, RequirementCode.ThreeOne);
+        // TODO Ali: Set DicomTag.ScheduledProcedureStepModificationDateTime in dicomDataset as current time.
+        ValidateNotPresent(dataset, DicomTag.ScheduledProcedureStepModificationDateTime);
+        dataset.ValidateRequirement(DicomTag.ProcedureStepLabel, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.WorklistLabel, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.ScheduledProcessingParametersSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.ScheduledStationNameCodeSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.ScheduledStationClassCodeSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.ScheduledStationGeographicLocationCodeSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepStartDateTime, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.ScheduledWorkitemCodeSequence, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.CommentsOnTheScheduledProcedureStep, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.InputReadinessState, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.InputInformationSequence, RequirementCode.ThreeTwo);
 
         // Unified Procedure Step Relationship Module
         ValidateNotPresent(dataset, DicomTag.PatientName);
@@ -69,9 +71,9 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
 
         // Unified Procedure Step Progress Information Module
         ValidateNotPresent(dataset, DicomTag.ProcedureStepState);
-        ValidateNotEmptyValue(dataset, DicomTag.ProcedureStepProgressInformationSequence);
-        ValidateNotEmptyValue(dataset, DicomTag.ProcedureStepCancellationDateTime);
-        ValidateNotEmptyValue(dataset, DicomTag.UnifiedProcedureStepPerformedProcedureSequence);
+        dataset.ValidateRequirement(DicomTag.ProcedureStepProgressInformationSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.ProcedureStepCancellationDateTime, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, RequirementCode.ThreeTwo);
     }
 
     /// <summary>

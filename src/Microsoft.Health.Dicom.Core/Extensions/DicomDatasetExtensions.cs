@@ -111,6 +111,21 @@ public static class DicomDatasetExtensions
 
     private static readonly HashSet<string> UShortVRs = new HashSet<string> { "US" };
 
+    private static readonly HashSet<RequirementCode> MandatoryRequirementCodes = new HashSet<RequirementCode>
+    {
+        RequirementCode.OneOne,
+        RequirementCode.TwoOne,
+        RequirementCode.TwoTwo
+    };
+
+    private static readonly HashSet<RequirementCode> NonZeroLengthRequirementCodes = new HashSet<RequirementCode>
+    {
+        RequirementCode.OneOne,
+        RequirementCode.ThreeOne,
+        RequirementCode.ThreeTwo,
+        RequirementCode.ThreeThree
+    };
+
     /// <summary>
     /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
     /// </summary>
@@ -443,8 +458,7 @@ public static class DicomDatasetExtensions
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
-        // We only validate attributes that are mandatory for the SCU (1 or 2). We won't validate any optional attributes (3).
-        dataset.ValidateRequiredAttribute(tag, (requirement is RequirementCode.OneOne));
+        dataset.ValidateRequiredAttribute(tag, requirement);
     }
 
     public static void ValidateRequirement(
@@ -496,11 +510,20 @@ public static class DicomDatasetExtensions
         }
     }
 
-    private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool valueCannotBeZeroLength = true)
+    private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, RequirementCode requirementCode)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(tag, nameof(tag));
 
-        if (!dataset.Contains(tag))
+        dataset.ValidateRequiredAttribute(tag, MandatoryRequirementCodes.Contains(requirementCode), NonZeroLengthRequirementCodes.Contains(requirementCode));
+    }
+
+    private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool isMandatory = true, bool isNonZero = true)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(tag, nameof(tag));
+
+        if (isMandatory && !dataset.Contains(tag))
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.MissingAttribute,
@@ -510,14 +533,29 @@ public static class DicomDatasetExtensions
                     tag));
         }
 
-        if (valueCannotBeZeroLength && dataset.GetValueCount(tag) < 1)
+        if (isNonZero)
         {
-            throw new DatasetValidationException(
-                FailureReasonCodes.MissingAttributeValue,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.MissingRequiredValue,
-                    tag));
+            if (dataset.Contains(tag) && dataset.GetValueCount(tag) < 1)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.MissingAttributeValue,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingRequiredValue,
+                        tag));
+            }
+
+            if (StringVRs.Contains(tag.GetDefaultVR().Code)
+                    && dataset.TryGetString(tag, out string newStringValue)
+                    && string.IsNullOrWhiteSpace(newStringValue))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.AttributeMustNotBeEmpty,
+                        tag));
+            }
         }
     }
 

@@ -23,4 +23,16 @@ public enum RequirementCode
     /// Mandatory for the SCU, and can be zero length.
     /// </summary>
     TwoTwo,
+    /// <summary>
+    /// Optional for the SCU, and cannot be zero length. The SCP will apply a default.
+    /// </summary>
+    ThreeOne,
+    /// <summary>
+    /// Optional for the SCU, and cannot be zero length.
+    /// </summary>
+    ThreeTwo,
+    /// <summary>
+    /// Optional for the SCU, and cannot be zero length.
+    /// </summary>
+    ThreeThree,
 }
