@@ -106,4 +106,25 @@ public partial class AuditTests
             $"workitems/{workitemUid}/state",
             HttpStatusCode.OK);
     }
+
+    [Fact]
+    public async Task GivenUpdateWorkitemTransactionRequest_WhenWorkitemIsUpdated_ThenAuditLogEntriesShouldBeCreated()
+    {
+        var workitemUid = TestUidGenerator.Generate();
+        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
+
+        using var response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
+        Assert.True(response.IsSuccessStatusCode);
+
+        var updateWorkitemRequestDicomDataset = new DicomDataset
+        {
+            { DicomTag.WorklistLabel, "WORKITEM-TEST" },
+        };
+
+        await ExecuteAndValidate(
+            () => _instancesManager.UpdateWorkitemAsync(updateWorkitemRequestDicomDataset, workitemUid),
+            AuditEventSubType.UpdateWorkitem,
+            $"workitems/{workitemUid}",
+            HttpStatusCode.OK);
+    }
 }
