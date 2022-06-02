@@ -131,7 +131,6 @@ public partial class WorkitemService
         {
             ushort failureCode = FailureReasonCodes.ProcessingFailure;
 
-            // TODO Ali: See if other failure codes need to be added here.
             switch (ex)
             {
                 case DatasetValidationException dvEx:

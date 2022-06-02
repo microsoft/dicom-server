@@ -27,7 +27,7 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
     /// <param name="dataset">Dataset to be validated.</param>
     protected override void OnValidate(DicomDataset dataset)
     {
-        // if transaction UID is present, make sure it is not empty.
+        // If transaction UID is present, make sure it is not empty.
         dataset.ValidateRequirement(DicomTag.TransactionUID, RequirementCode.ThreeThree);
 
         // SOP Common Module
@@ -37,17 +37,20 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
 
         // Unified Procedure Step Scheduled Procedure Information Module
         // If either of these values are present, make sure they are not empty.
-
         dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepPriority, RequirementCode.ThreeOne);
-        // TODO Ali: Set DicomTag.ScheduledProcedureStepModificationDateTime in dicomDataset as current time.
-        ValidateNotPresent(dataset, DicomTag.ScheduledProcedureStepModificationDateTime);
         dataset.ValidateRequirement(DicomTag.ProcedureStepLabel, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.WorklistLabel, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.ScheduledProcessingParametersSequence, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.ScheduledStationNameCodeSequence, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.ScheduledStationClassCodeSequence, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.ScheduledStationGeographicLocationCodeSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.ScheduledHumanPerformersSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.HumanPerformerCodeSequence, RequirementCode.OneOne);
+        dataset.ValidateRequirement(DicomTag.HumanPerformerName, RequirementCode.OneOne);
+        dataset.ValidateRequirement(DicomTag.HumanPerformerOrganization, RequirementCode.OneOne);
         dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepStartDateTime, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.ExpectedCompletionDateTime, RequirementCode.ThreeOne);
+        dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepExpirationDateTime, RequirementCode.ThreeThree);
         dataset.ValidateRequirement(DicomTag.ScheduledWorkitemCodeSequence, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.CommentsOnTheScheduledProcedureStep, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.InputReadinessState, RequirementCode.ThreeOne);
@@ -55,19 +58,26 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
 
         // Unified Procedure Step Relationship Module
         ValidateNotPresent(dataset, DicomTag.PatientName);
+        ValidateNotPresent(dataset, DicomTag.PatientID);
 
         // Issuer of Patient ID Macro
         ValidateNotPresent(dataset, DicomTag.IssuerOfPatientID);
         ValidateNotPresent(dataset, DicomTag.IssuerOfPatientIDQualifiersSequence);
 
-        ValidateNotPresent(dataset, DicomTag.OtherPatientIDsSequence);
+        dataset.ValidateRequirement(DicomTag.OtherPatientIDsSequence, RequirementCode.ThreeThree);
         ValidateNotPresent(dataset, DicomTag.PatientBirthDate);
         ValidateNotPresent(dataset, DicomTag.PatientSex);
+        dataset.ValidateRequirement(DicomTag.ReferencedPatientPhotoSequence, RequirementCode.ThreeThree);
         ValidateNotPresent(dataset, DicomTag.AdmissionID);
         ValidateNotPresent(dataset, DicomTag.IssuerOfAdmissionIDSequence);
         ValidateNotPresent(dataset, DicomTag.AdmittingDiagnosesDescription);
         ValidateNotPresent(dataset, DicomTag.AdmittingDiagnosesCodeSequence);
         ValidateNotPresent(dataset, DicomTag.ReferencedRequestSequence);
+        ValidateNotPresent(dataset, DicomTag.ReplacedProcedureStepSequence);
+
+        dataset.ValidateRequirement(DicomTag.MedicalAlerts, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.PregnancyStatus, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.SpecialNeeds, RequirementCode.ThreeTwo);
 
         // Unified Procedure Step Progress Information Module
         ValidateNotPresent(dataset, DicomTag.ProcedureStepState);

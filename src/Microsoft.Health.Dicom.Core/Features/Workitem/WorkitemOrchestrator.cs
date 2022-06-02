@@ -259,6 +259,10 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             }
         });
 
+        // Set Scheduled Procedure Step Modification DateTime as the current time.
+        // Reference: https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3
+        mergedDataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
+
         warningTags = new List<DicomTag>(unsuccessfulUpdateTags);
 
         return mergedDataset;
