@@ -45,9 +45,6 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
         dataset.ValidateRequirement(DicomTag.ScheduledStationClassCodeSequence, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.ScheduledStationGeographicLocationCodeSequence, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.ScheduledHumanPerformersSequence, RequirementCode.ThreeTwo);
-        dataset.ValidateRequirement(DicomTag.HumanPerformerCodeSequence, RequirementCode.OneOne);
-        dataset.ValidateRequirement(DicomTag.HumanPerformerName, RequirementCode.OneOne);
-        dataset.ValidateRequirement(DicomTag.HumanPerformerOrganization, RequirementCode.OneOne);
         dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepStartDateTime, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.ExpectedCompletionDateTime, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepExpirationDateTime, RequirementCode.ThreeThree);
