@@ -10,7 +10,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.1.45</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>6.1.58</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>3.8.2</Hl7FhirPackageVersion>
     <LangVersion>Latest</LangVersion>
