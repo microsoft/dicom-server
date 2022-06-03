@@ -39,5 +39,5 @@
       <DependentUpon>CopyDurableFunctionTests.cs</DependentUpon>
     </None>
   </ItemGroup>
-  
+
 </Project>
