@@ -10,7 +10,7 @@ az appservice plan create
 
 ## Create function app
 ```
-az functionapp create --name dicom-uploader --storage-account {storage-account-name} --resource-group {resource-group-name} --plan {app-service-plan-name} --deployment-container-image-name {to-be-updated}/dicomuploadimage:v2022.05.27.1 --functions-version 4 --assign-identity [system]
+az functionapp create --name dicom-uploader --storage-account {storage-account-name} --resource-group {resource-group-name} --plan {app-service-plan-name} --deployment-container-image-name dicomoss.azurecr.io/dicom-uploader:0.0.1 --functions-version 4 --assign-identity [system]
 ```
 
 ## Grant permissions for function's managed identity
