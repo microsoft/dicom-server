@@ -61,17 +61,17 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     public async Task<DicomWebResponse> ChangeWorkitemStateAsync(
-        DicomDataset dicomDataset,
+        IEnumerable<DicomDataset> dicomDatasets,
         string workitemUid,
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         var uri = GenerateChangeWorkitemStateRequestUri(workitemUid, partitionName);
 
-        return await Request(uri, dicomDataset, HttpMethod.Put, cancellationToken)
+        return await Request(uri, dicomDatasets, HttpMethod.Put, cancellationToken)
             .ConfigureAwait(false);
     }
 
