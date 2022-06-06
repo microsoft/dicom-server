@@ -19,7 +19,7 @@ public class CopyOptions
     /// <summary>
     /// Gets or sets the number of threads available for each batch.
     /// </summary>
-    [Range(1, int.MaxValue)]
+    [Range(-1, int.MaxValue)]
     public int MaxParallelThreads { get; set; } = -1;
 
     /// <summary>
