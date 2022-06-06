@@ -261,7 +261,7 @@ This transaction modifies attributes of an existing Workitem. It corresponds to 
 
 Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.6
 
-To N-SET a UPS instance currently in the SCHEDULED state, the Transaction UID Attribute shall not be present in the request. For a UPS instance in the IN PROGRESS state, the SCU shall provide the current Transaction UID (0008,1195) as an Attribute. If the Workitem is in the COMPLETED or CANCELED state, the response shall be a 400 (Bad Request) failure response.
+To update a Workitem currently in the SCHEDULED state, the Transaction UID Attribute shall not be present. For a Workitem in the IN PROGRESS state, the request must include the current Transaction UID as a query parameter. If the Workitem is already in the COMPLETED or CANCELED states, the response will be 400 (Bad Request).
 
 | Method  | Path                            | Description           |
 | :------ | :------------------------------ | :-------------------- |
@@ -269,13 +269,10 @@ To N-SET a UPS instance currently in the SCHEDULED state, the Transaction UID At
 
 The `Content-Type` header is required, and must have the value `application/dicom+json`.
 
-The request payload contains a dataset with the changes to the target Workitem. The dataset shall include all elements that are to be modified. 
+The request payload contains a dataset with the changes to be applied to the target Workitem. When modifying a sequence, the request must include all Items in the sequence, not just the Items to be modified.
+When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
 
-When modifying a sequence, the SCU shall include in the N-SET request all Items in the sequence, not just the Items to be modified. When multiple Attributes need updating as a group, do this as multiple Attributes in a single N-SET request, not as multiple N-SET requests.
-
-The SCU shall not set the value of the Procedure Step State (0074,1000) Attribute using N-SET. Procedure Step State is managed using N-ACTION.
-
-The SCU can only set Attribute Values that have already been created with an N-CREATE request.
+The request cannot set the value of the Procedure Step State (0074,1000) Attribute. Procedure Step State is managed using the Change State transaction, or the Request Cancellation transaction.
 
 ### Update Workitem Transaction Response Status Codes
 | Code                         	| Description |

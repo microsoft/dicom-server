@@ -61,17 +61,17 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     public async Task<DicomWebResponse> ChangeWorkitemStateAsync(
-        DicomDataset dicomDataset,
+        IEnumerable<DicomDataset> dicomDatasets,
         string workitemUid,
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         var uri = GenerateChangeWorkitemStateRequestUri(workitemUid, partitionName);
 
-        return await Request(uri, dicomDataset, HttpMethod.Put, cancellationToken)
+        return await Request(uri, dicomDatasets, HttpMethod.Put, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -96,14 +96,14 @@ public partial class DicomWebClient : IDicomWebClient
             DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
     }
 
-    public async Task<DicomWebResponse> UpdateWorkitemAsync(DicomDataset dicomDataset, string workitemUid, string transactionUid, string partitionName, CancellationToken cancellationToken)
+    public async Task<DicomWebResponse> UpdateWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string transactionUid, string partitionName, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         var uri = GenerateWorkitemUpdateRequestUri(workitemUid, transactionUid, partitionName);
 
-        return await Request(uri, dicomDataset, HttpMethod.Post, cancellationToken).ConfigureAwait(false);
+        return await Request(uri, dicomDatasets, HttpMethod.Post, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<DicomWebResponse> Request<TContent>(

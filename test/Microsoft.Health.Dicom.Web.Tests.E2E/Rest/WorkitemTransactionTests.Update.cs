@@ -33,7 +33,7 @@ public partial class WorkItemTransactionTests
             {DicomTag.WorklistLabel, newWorklistLabel },
         };
 
-        using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(updateDicomDataset, workitemUid)
+        using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid)
             .ConfigureAwait(false);
         Assert.True(updateWorkitemResponse.IsSuccessStatusCode);
 
