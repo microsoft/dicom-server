@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Microsoft.Health.Dicom.Functions.Utils;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Indexing;
@@ -154,7 +153,7 @@ public partial class ReindexDurableFunction
     [Obsolete("Please use ReindexBatchV2Async instead.")]
     [FunctionName(nameof(ReindexBatchAsync))]
     public Task ReindexBatchAsync([ActivityTrigger] ReindexBatch batch, ILogger logger)
-        => ReindexBatchV2Async(batch?.ToArguments(_options.BatchThreadCount), logger);
+        => ReindexBatchV2Async(batch?.ToArguments(), logger);
 
     /// <summary>
     /// Asynchronously re-indexes a range of data.
@@ -180,9 +179,14 @@ public partial class ReindexDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
-        await TaskBatch.RunAsync(instanceIdentifiers,
-            id => _instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id),
-            arguments.ThreadCount);
+        await Parallel.ForEachAsync(
+            instanceIdentifiers,
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            (id, token) => new ValueTask(_instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id, token)));
 
         logger.LogInformation("Completed re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
             arguments.WatermarkRange,

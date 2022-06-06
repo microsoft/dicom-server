@@ -4,8 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -14,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
-using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -48,30 +46,27 @@ public partial class ExportDurableFunction
         source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
         sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
 
-        bool[] exports;
-        ExportProgress progress = default;
-        IAsyncEnumerator<ReadResult> sourceEnumerator = source.GetAsyncEnumerator();
-        do
-        {
-            // Only process a subset of the batch at a time based on the desired number of threads
-            exports = await Task.WhenAll(
-                await sourceEnumerator
-                    .Take(_options.BatchThreadCount)
-                    .Select(x => sink.CopyAsync(x))
-                    .ToArrayAsync());
+        int successes = 0, failures = 0;
+        await Parallel.ForEachAsync(
+                source,
+                new ParallelOptions
+                {
+                    CancellationToken = default,
+                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
+                },
+                async (result, token) =>
+                {
+                    if (await sink.CopyAsync(result, token))
+                        Interlocked.Increment(ref successes);
+                    else
+                        Interlocked.Increment(ref failures);
+                });
 
-            progress += exports
-                .Select(success => success ? new ExportProgress(1, 0) : new ExportProgress(0, 1))
-                .Aggregate(default(ExportProgress), (x, y) => x + y);
-        } while (exports.Length > 0);
+        logger.LogInformation("Successfully exported {Files} DCM files.", successes);
+        if (failures > 0)
+            logger.LogWarning("Failed to export {Files} DCM files.", failures);
 
-        logger.LogInformation("Successfully exported {Files} DCM files.", progress.Exported);
-        if (progress.Failed > 0)
-        {
-            logger.LogWarning("Failed to export {Files} DCM files.", progress.Failed);
-        }
-
-        return progress;
+        return new ExportProgress(successes, failures);
     }
 
     /// <summary>

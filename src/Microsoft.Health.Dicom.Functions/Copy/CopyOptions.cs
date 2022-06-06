@@ -20,7 +20,7 @@ public class CopyOptions
     /// Gets or sets the number of threads available for each batch.
     /// </summary>
     [Range(1, int.MaxValue)]
-    public int BatchThreadCount { get; set; } = 5;
+    public int MaxParallelThreads { get; set; } = -1;
 
     /// <summary>
     /// Gets or sets the <see cref="ActivityRetryOptions"/> for copy activities.
