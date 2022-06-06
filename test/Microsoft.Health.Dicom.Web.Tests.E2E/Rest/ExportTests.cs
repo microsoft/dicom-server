@@ -159,6 +159,15 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}");
             Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid2}/{unknownSeriesUid2}");
             Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid3}");
+
+            // Make sure there aren't any unknown identifiers!
+            Assert.All(
+                errors.Select(e => e.GetProperty("identifier").GetString()),
+                id => Assert.True(
+                    id == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}" ||
+                    id == $"{unknownStudyUid2}/{unknownSeriesUid2}" ||
+                    id == $"{unknownStudyUid3}"));
+
         }
         finally
         {
