@@ -37,8 +37,6 @@ internal sealed class AzureBlobExportSink : IExportSink
     private readonly AzureBlobExportFormatOptions _output;
     private readonly BlobOperationOptions _blobOptions;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly SemaphoreSlim _errorSemaphore;
-    private bool _disposed;
 
     private const int BlockSize = 2 * 1024 * 1024; // 2MB
 
@@ -55,7 +53,6 @@ internal sealed class AzureBlobExportSink : IExportSink
         _blobOptions = EnsureArg.IsNotNull(blobOptions?.Value, nameof(blobOptions));
         _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
         _errors = new ConcurrentQueue<ExportErrorLogEntry>();
-        _errorSemaphore = new SemaphoreSlim(1, 1); // Only 1 writer for errors at a time
     }
 
     public Uri ErrorHref
@@ -96,26 +93,8 @@ internal sealed class AzureBlobExportSink : IExportSink
         }
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        if (_disposed)
-            return;
-
-        await _errorSemaphore.WaitAsync();
-        try
-        {
-            if (_disposed)
-                return;
-
-            await FlushErrorsAsync();
-            _disposed = true;
-        }
-        finally
-        {
-            _errorSemaphore.Release();
-            _errorSemaphore.Dispose();
-        }
-    }
+    public ValueTask DisposeAsync()
+        => new ValueTask(FlushAsync());
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -149,7 +128,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         }
     }
 
-    private async ValueTask FlushErrorsAsync(CancellationToken cancellationToken = default)
+    public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
         AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
 

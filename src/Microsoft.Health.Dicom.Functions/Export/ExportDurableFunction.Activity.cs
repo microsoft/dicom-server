@@ -42,10 +42,10 @@ public partial class ExportDurableFunction
         await using IExportSource source = await _sourceFactory.CreateAsync(args.Source, args.Partition);
         await using IExportSink sink = await _sinkFactory.CreateAsync(args.Destination, context.GetOperationId());
 
-        // Export
         source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
         sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
 
+        // Copy files
         int successes = 0, failures = 0;
         await Parallel.ForEachAsync(
                 source,
@@ -61,6 +61,9 @@ public partial class ExportDurableFunction
                     else
                         Interlocked.Increment(ref failures);
                 });
+
+        // Flush any files or errors
+        await sink.FlushAsync();
 
         logger.LogInformation("Successfully exported {Files} DCM files.", successes);
         if (failures > 0)

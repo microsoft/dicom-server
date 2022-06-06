@@ -78,6 +78,7 @@ public partial class ExportDurableFunctionTests
         await sink.Received(1).CopyAsync(expectedData[2], Arg.Any<CancellationToken>());
         await sink.Received(1).CopyAsync(expectedData[3], Arg.Any<CancellationToken>());
         await sink.Received(1).CopyAsync(expectedData[4], Arg.Any<CancellationToken>());
+        await sink.Received(1).FlushAsync(default);
     }
 
     [Fact]
