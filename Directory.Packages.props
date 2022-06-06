@@ -87,7 +87,7 @@
     <PackageVersion Include="NSubstitute" Version="4.3.0" />
     <PackageVersion Include="Polly" Version="7.2.3" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
-    <PackageVersion Include="Scrutor" Version="4.1.0" />
+    <PackageVersion Include="Scrutor" Version="4.2.0" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.3.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.18.0" />
