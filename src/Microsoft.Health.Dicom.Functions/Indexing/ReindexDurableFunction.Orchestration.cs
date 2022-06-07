@@ -78,7 +78,7 @@ public partial class ReindexDurableFunction
                     .Select(x => context.CallActivityWithRetryAsync(
                         nameof(ReindexBatchV2Async),
                         _options.RetryOptions,
-                        ReindexBatchArguments.FromOptions(queryTags, x, _options))));
+                        new ReindexBatchArguments(queryTags, x))));
 
                 // Create a new orchestration with the same instance ID to process the remaining data
                 logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);

@@ -61,7 +61,7 @@ public class DataPartitionFeatureValidatorService : IHostedService
                     }
                 }
             }
-            catch (BadRequestException ex)
+            catch (DataStoreNotReadyException ex)
             {
                 // If a consumer doesn't upgrade the schema, then the service won't be started. So silently failing.
                 _logger.LogWarning("Silently failing, schema version not upgraded. {Message}", ex.Message);

@@ -40,8 +40,8 @@ jobs:
         $cxt = New-AzStorageContext -StorageAccountName '$(azureStorageAccountName)' -StorageAccountKey $primaryKey
         $token = New-AzStorageAccountSASToken -Service Blob -ResourceType Container,Object -Permission 'rwdl' -Start $start -ExpiryTime $end -Context $cxt
 
-        $blobContainerUri = "https://$(azureStorageAccountName).blob.core.windows.net/export-e2e-test$token"
-        Write-Host "##vso[task.setvariable variable=Tests__Export__BlobContainerUri]$blobContainerUri"
+        $connectionString = "BlobEndpoint=https://$(azureStorageAccountName).blob.core.windows.net;SharedAccessSignature=$token"
+        Write-Host "##vso[task.setvariable variable=Tests__Export__ConnectionString]$connectionString"
 
   - bash: |
       echo "##vso[task.setvariable variable=Resource]$(testEnvironmentUrl)"
