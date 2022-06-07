@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Text;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -12,15 +11,13 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal sealed class AzureBlobExportFormatOptions
 {
-    public Encoding ErrorEncoding { get; }
-
     public string ErrorFile { get; }
 
     public string FilePattern { get; }
 
     public Guid OperationId { get; }
 
-    public AzureBlobExportFormatOptions(Guid operationId, string dicomFilePattern, string errorFilePattern, Encoding errorEncoding)
+    public AzureBlobExportFormatOptions(Guid operationId, string dicomFilePattern, string errorFilePattern)
     {
         OperationId = operationId;
         FilePattern = ExportFilePattern.Parse(
@@ -31,7 +28,6 @@ internal sealed class AzureBlobExportFormatOptions
                 EnsureArg.IsNotNullOrWhiteSpace(errorFilePattern, nameof(errorFilePattern)),
                 ExportPatternPlaceholders.Operation),
             operationId);
-        ErrorEncoding = EnsureArg.IsNotNull(errorEncoding, nameof(errorEncoding));
     }
 
     public string GetFilePath(VersionedInstanceIdentifier identifier)

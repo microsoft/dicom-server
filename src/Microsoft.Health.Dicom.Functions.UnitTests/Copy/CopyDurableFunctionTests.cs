@@ -25,7 +25,7 @@ public partial class CopyDurableFunctionTests
     {
         _options = new CopyOptions
         {
-            BatchThreadCount = 1,
+            MaxParallelThreads = 1,
             RetryOptions = new ActivityRetryOptions { MaxNumberOfAttempts = 5 }
         };
         _batchingOptions = new BatchingOptions

@@ -26,6 +26,6 @@ public class ReindexBatch
     /// </summary>
     public IReadOnlyCollection<ExtendedQueryTagStoreEntry> QueryTags { get; set; }
 
-    internal ReindexBatchArguments ToArguments(int threadCount)
-        => new ReindexBatchArguments(QueryTags, WatermarkRange, threadCount);
+    internal ReindexBatchArguments ToArguments()
+        => new ReindexBatchArguments(QueryTags, WatermarkRange);
 }

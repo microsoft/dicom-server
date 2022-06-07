@@ -504,9 +504,7 @@ public partial class ReindexDurableFunctionTests
         IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags,
         WatermarkRange expected)
     {
-        return x => ReferenceEquals(x.QueryTags, queryTags)
-            && x.WatermarkRange == expected
-            && x.ThreadCount == _options.BatchThreadCount;
+        return x => ReferenceEquals(x.QueryTags, queryTags) && x.WatermarkRange == expected;
     }
 
     private static Expression<Predicate<GetInstanceStatusOptions>> GetPredicate()
