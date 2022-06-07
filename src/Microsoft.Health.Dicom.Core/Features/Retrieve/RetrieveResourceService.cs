@@ -173,7 +173,7 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
         // need the entire DicomDataset for transcoding
-        if (!needsTranscoding)
+        if (!needsTranscoding && instance.InstanceProperties.HasFrameMetadata)
         {
             _logger.LogInformation("Executing fast frame get.");
 
@@ -184,23 +184,18 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
                 _metadataStore.GetInstanceFramesRangeAsync,
                 cancellationToken);
 
-            // handle back-compat and case when fragment != frames
-            if (framesRange != null)
-            {
-                var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+            var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
-                IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
-                                                                        instance.VersionedInstanceIdentifier,
-                                                                        framesRange,
-                                                                        message.Frames,
-                                                                        responseTransferSyntax,
-                                                                        cancellationToken);
-                return new RetrieveResourceResponse(
-                    fastFrames,
-                    mediaType,
-                    isSinglePart);
-            }
-            _logger.LogInformation("Could not find frames range metadata.");
+            IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
+                                                                    instance.VersionedInstanceIdentifier,
+                                                                    framesRange,
+                                                                    message.Frames,
+                                                                    responseTransferSyntax,
+                                                                    cancellationToken);
+            return new RetrieveResourceResponse(
+                fastFrames,
+                mediaType,
+                isSinglePart);
         }
 
         _logger.LogInformation("Transcoding Instance");
@@ -286,10 +281,12 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
+            Stream stream = await _blobDataStore.GetFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
-                    await _blobDataStore.GetFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken),
-                    GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata));
+                    stream,
+                    GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
+                    stream.Length);
         }
     }
 
@@ -306,7 +303,7 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         foreach (Stream frameStream in frameStreams)
         {
             yield return
-                new RetrieveResourceInstance(frameStream, responseTransferSyntax);
+                new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameStream.Length);
         }
     }
 
@@ -318,7 +315,7 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
     {
         Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
-        yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata));
+        yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata), transcodedStream.Length);
     }
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(
@@ -339,10 +336,11 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
 
         foreach (int frame in frames)
         {
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier, framesRange[frame], cancellationToken);
+            FrameRange frameRange = framesRange[frame];
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier, frameRange, cancellationToken);
 
             yield return
-                new RetrieveResourceInstance(frameStream, responseTransferSyntax);
+                new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
     }
 

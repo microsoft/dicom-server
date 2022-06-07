@@ -33,11 +33,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobMetadataStore : IMetadataStore
 {
-    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
-    private const string GetInstanceFramesRangeStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceFramesRangeAsync);
-
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -118,7 +115,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), throwOnNotFound: true, cancellationToken)));
+        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
     }
 
     /// <inheritdoc />
@@ -129,17 +126,21 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
-            {
-                await blobClient.DownloadToAsync(stream, cancellationToken);
-
-                stream.Seek(0, SeekOrigin.Begin);
-
-                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
-            }
-        }, throwOnNotFound: true, cancellationToken);
+            BlobDownloadResult result = await blobClient.DownloadContentAsync(cancellationToken);
+            return result.Content.ToObjectFromJson<DicomDataset>(_jsonSerializerOptions);
+        }, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task DeleteInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient blobClient = GetInstanceFramesRange(versionedInstanceIdentifier);
+
+        await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task StoreInstanceFramesRangeAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             IReadOnlyDictionary<int, FrameRange> framesRange,
@@ -148,7 +149,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(framesRange, nameof(framesRange));
 
-        BlockBlobClient blob = GetInstanceFramesRange(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceFramesRange(versionedInstanceIdentifier);
 
         try
         {
@@ -159,7 +160,7 @@ public class BlobMetadataStore : IMetadataStore
                 await utf8Writer.FlushAsync(cancellationToken);
                 stream.Seek(0, SeekOrigin.Begin);
 
-                await blob.UploadAsync(
+                await blobClient.UploadAsync(
                     stream,
                     new BlobHttpHeaders()
                     {
@@ -179,6 +180,7 @@ public class BlobMetadataStore : IMetadataStore
 
     }
 
+    /// <inheritdoc />
     public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
@@ -186,15 +188,9 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceFramesRangeStreamTagName))
-            {
-                await cloudBlockBlob.DownloadToAsync(stream, cancellationToken);
-
-                stream.Seek(0, SeekOrigin.Begin);
-
-                return await JsonSerializer.DeserializeAsync<IReadOnlyDictionary<int, FrameRange>>(stream, _jsonSerializerOptions, t);
-            }
-        }, throwOnNotFound: false, cancellationToken);
+            BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+            return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
+        }, cancellationToken);
     }
 
     private BlockBlobClient GetInstanceFramesRange(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -262,19 +258,15 @@ public class BlobMetadataStore : IMetadataStore
         return clients.ToArray();
     }
 
-    private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, bool throwOnNotFound, CancellationToken cancellationToken)
+    private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
     {
         try
         {
             return await action(cancellationToken);
         }
-        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && throwOnNotFound)
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
             throw new ItemNotFoundException(ex);
-        }
-        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !throwOnNotFound)
-        {
-            return default(T);
         }
         catch (Exception ex)
         {

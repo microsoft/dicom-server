@@ -1,34 +1,59 @@
-﻿/*************************************************************
-    Stored procedures for updating an instance status.
+﻿SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+
+/*************************************************************
+    Instance Table
+    Add HasFrameMetadata column.
 **************************************************************/
---
--- STORED PROCEDURE
---     UpdateInstanceStatusV6
---
--- DESCRIPTION
---     Updates a DICOM instance status, which allows for consistency during indexing.
---
--- PARAMETERS
---     @partitionKey
---         * The partition key.
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
---     @watermark
---         * The watermark.
---     @status
---         * The new status to update to.
---     @maxTagKey
---         * Optional max ExtendedQueryTag key
---     @hasFrameMetadata
---         * Optional flag to indicate frame metadata existance
---
--- RETURN VALUE
---     None
---
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.columns
+    WHERE   NAME = 'HasFrameMetadata'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    ALTER TABLE dbo.Instance ADD HasFrameMetadata BIT NOT NULL DEFAULT 0
+END
+GO
+
+/*************************************************************
+    New GetInstanceWithProperties Stored procedure
+**************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetInstanceWithProperties (
+    @validStatus        TINYINT,
+    @partitionKey       INT,
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64) = NULL,
+    @sopInstanceUid     VARCHAR(64) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+
+    SELECT  StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            Watermark,
+            TransferSyntaxUid,
+            HasFrameMetadata
+    FROM    dbo.Instance
+    WHERE   PartitionKey            = @partitionKey
+            AND StudyInstanceUid    = @studyInstanceUid
+            AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+            AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
+            AND Status              = @validStatus
+
+END
+GO
+
+/*************************************************************
+    UpdateInstanceStatusV6 Stored procedure
+    Add new HasFrameMetadata param with default
+**************************************************************/
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
@@ -82,3 +107,7 @@ BEGIN
 
     COMMIT TRANSACTION
 END
+
+GO
+
+COMMIT TRANSACTION

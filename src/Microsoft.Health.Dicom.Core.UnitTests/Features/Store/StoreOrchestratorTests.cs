@@ -158,6 +158,7 @@ public class StoreOrchestratorTests
                 DefaultVersionedInstanceIdentifier.Version,
                 expectedTags,
                 false,
+                false,
                 DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()

@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V21
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -279,7 +279,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTime2Column CreatedDate = new DateTime2Column("CreatedDate", 7);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly NullableVarCharColumn TransferSyntaxUid = new NullableVarCharColumn("TransferSyntaxUid", 64);
-            internal readonly BitColumn HasFrameMetadata = new BitColumn("HasFrameMetadata");
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
             internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey");
             internal readonly Index IX_Instance_StudyInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_Status_PartitionKey");
@@ -1720,9 +1719,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Int64> _watermark = new ParameterDefinition<System.Int64>("@watermark", global::System.Data.SqlDbType.BigInt, false);
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxTagKey = new ParameterDefinition<System.Nullable<System.Int32>>("@maxTagKey", global::System.Data.SqlDbType.Int, true);
-            private readonly ParameterDefinition<System.Nullable<System.Boolean>> _hasFrameMetadata = new ParameterDefinition<System.Nullable<System.Boolean>>("@hasFrameMetadata", global::System.Data.SqlDbType.Bit, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey, System.Nullable<System.Boolean> hasFrameMetadata)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateInstanceStatusV6";
@@ -1733,7 +1731,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _watermark.AddParameter(command.Parameters, watermark);
                 _status.AddParameter(command.Parameters, status);
                 _maxTagKey.AddParameter(command.Parameters, maxTagKey);
-                _hasFrameMetadata.AddParameter(command.Parameters, hasFrameMetadata);
             }
         }
 

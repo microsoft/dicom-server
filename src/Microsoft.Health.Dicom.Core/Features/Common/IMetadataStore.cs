@@ -77,4 +77,14 @@ public interface IMetadataStore
     Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously deletes a DICOM instance frameRange metadata.
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    Task DeleteInstanceFramesRangeAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        CancellationToken cancellationToken = default);
 }

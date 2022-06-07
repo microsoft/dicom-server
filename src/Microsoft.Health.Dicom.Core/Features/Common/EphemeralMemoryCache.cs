@@ -52,7 +52,7 @@ internal class EphemeralMemoryCache<TIn, TOut> : IDisposable
     /// </summary>
     /// <param name="key"></param>
     /// <param name="input"></param>
-    /// <param name="asyncFactory"></param>
+    /// <param name="asyncFactory">Make sure asyncFactory returns result and throws if any errors. Null values cannot be store</param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public async Task<TOut> GetAsync(
@@ -86,7 +86,7 @@ internal class EphemeralMemoryCache<TIn, TOut> : IDisposable
             // MemoryCache class does not allow null as a value
             if (result == null)
             {
-                return result;
+                throw new InvalidOperationException();
             }
 
             _memoryCache.Set(

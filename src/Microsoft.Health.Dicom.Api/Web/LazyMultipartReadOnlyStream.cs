@@ -120,7 +120,7 @@ public class LazyMultipartReadOnlyStream : Stream
             }
         }
 
-        if (_bufferPosition == _bufferLength && _currentStreamContent.Stream.Position == _currentStreamContent.Stream.Length)
+        if (_bufferPosition == _bufferLength && _currentStreamContent.Stream.Position == _currentStreamContent.StreamLength)
         {
             if (await _asyncEnumerator.MoveNextAsync())
             {

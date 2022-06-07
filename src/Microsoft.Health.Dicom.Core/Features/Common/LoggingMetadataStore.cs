@@ -163,4 +163,13 @@ public class LoggingMetadataStore : IMetadataStore
 
         return _metadataStore.GetInstanceFramesRangeAsync(versionedInstanceIdentifier, cancellationToken);
     }
+
+    public Task DeleteInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        _logger.LogDebug("Getting dicom instance framesRange with `{Version}`", versionedInstanceIdentifier.Version);
+
+        return _metadataStore.DeleteInstanceFramesRangeAsync(versionedInstanceIdentifier, cancellationToken);
+    }
+
 }

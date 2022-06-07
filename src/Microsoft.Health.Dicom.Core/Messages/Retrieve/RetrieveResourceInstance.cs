@@ -9,12 +9,14 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 public class RetrieveResourceInstance
 {
-    public RetrieveResourceInstance(Stream stream, string transferSyntaxUid = null)
+    public RetrieveResourceInstance(Stream stream, string transferSyntaxUid = null, long streamLength = 0)
     {
         Stream = stream;
         TransferSyntaxUid = transferSyntaxUid;
+        StreamLength = streamLength;
     }
 
     public Stream Stream { get; }
     public string TransferSyntaxUid { get; }
+    public long StreamLength { get; }
 }
