@@ -144,7 +144,7 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
 )
 WITH (DATA_COMPRESSION = PAGE);
 
-CREATE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
     ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
@@ -166,7 +166,7 @@ CREATE TABLE dbo.ExtendedQueryTagDouble (
 )
 WITH (DATA_COMPRESSION = PAGE);
 
-CREATE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
     ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
@@ -205,7 +205,7 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
 )
 WITH (DATA_COMPRESSION = PAGE);
 
-CREATE CLUSTERED INDEX IXC_ExtendedQueryTagLong
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
     ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
@@ -241,7 +241,7 @@ CREATE TABLE dbo.ExtendedQueryTagPersonName (
 )
 WITH (DATA_COMPRESSION = PAGE);
 
-CREATE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
     ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
@@ -266,7 +266,7 @@ CREATE TABLE dbo.ExtendedQueryTagString (
 )
 WITH (DATA_COMPRESSION = PAGE);
 
-CREATE CLUSTERED INDEX IXC_ExtendedQueryTagString
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
     ON dbo.ExtendedQueryTagString(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
@@ -2199,8 +2199,16 @@ BEGIN
                FROM   @stringExtendedQueryTags)
         BEGIN
             UPDATE ets
-            SET    TagValue  = input.TagValue,
-                   Watermark = @newWatermark
+            SET    TagValue = input.TagValue
+            FROM   dbo.ExtendedQueryTagString AS ets
+                   INNER JOIN
+                   @stringExtendedQueryTags AS input
+                   ON ets.TagKey = input.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND ResourceType = @workitemResourceType
+                   AND ets.TagValue <> input.TagValue;
+            UPDATE ets
+            SET    Watermark = @newWatermark
             FROM   dbo.ExtendedQueryTagString AS ets
                    INNER JOIN
                    @stringExtendedQueryTags AS input
@@ -2212,8 +2220,16 @@ BEGIN
                FROM   @dateTimeExtendedQueryTags)
         BEGIN
             UPDATE etdt
-            SET    TagValue  = input.TagValue,
-                   Watermark = @newWatermark
+            SET    TagValue = input.TagValue
+            FROM   dbo.ExtendedQueryTagDateTime AS etdt
+                   INNER JOIN
+                   @dateTimeExtendedQueryTags AS input
+                   ON etdt.TagKey = input.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND ResourceType = @workitemResourceType
+                   AND etdt.TagValue <> input.TagValue;
+            UPDATE etdt
+            SET    Watermark = @newWatermark
             FROM   dbo.ExtendedQueryTagDateTime AS etdt
                    INNER JOIN
                    @dateTimeExtendedQueryTags AS input
@@ -2225,8 +2241,16 @@ BEGIN
                FROM   @personNameExtendedQueryTags)
         BEGIN
             UPDATE etpn
-            SET    TagValue  = input.TagValue,
-                   Watermark = @newWatermark
+            SET    TagValue = input.TagValue
+            FROM   dbo.ExtendedQueryTagPersonName AS etpn
+                   INNER JOIN
+                   @personNameExtendedQueryTags AS input
+                   ON etpn.TagKey = input.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND ResourceType = @workitemResourceType
+                   AND etpn.TagValue <> input.TagValue;
+            UPDATE etpn
+            SET    Watermark = @newWatermark
             FROM   dbo.ExtendedQueryTagPersonName AS etpn
                    INNER JOIN
                    @personNameExtendedQueryTags AS input

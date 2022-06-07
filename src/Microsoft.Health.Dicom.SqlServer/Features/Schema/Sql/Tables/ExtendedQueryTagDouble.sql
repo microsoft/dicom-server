@@ -24,7 +24,7 @@ CREATE TABLE dbo.ExtendedQueryTagDouble (
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO, PartitionKey is moved down to support cross partition query in future
-CREATE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
+CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
 (
     ResourceType,
     TagKey,
