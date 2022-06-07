@@ -179,8 +179,7 @@ public class StoreOrchestrator : IStoreOrchestrator
                 _logger.LogInformation("This file fragment count {FragmentsCount} does not match frame count {NumberOfFrames}", pixelDataFragment.Fragments.Count, dicomPixel.NumberOfFrames);
             }
         }
-
-        if (pixelData is DicomOtherByte)
+        else if (pixelData is DicomOtherByte)
         {
             var dicomPixelOtherByte = dataset.GetDicomItem<DicomOtherByte>(DicomTag.PixelData);
 
@@ -194,8 +193,7 @@ public class StoreOrchestrator : IStoreOrchestrator
                 }
             }
         }
-
-        if (pixelData is DicomOtherWord)
+        else if (pixelData is DicomOtherWord)
         {
             var dicomPixelWordByte = dataset.GetDicomItem<DicomOtherWord>(DicomTag.PixelData);
 
