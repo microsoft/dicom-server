@@ -24,6 +24,8 @@ GO
 -- PARAMETERS
 --     @workitemKey
 --         * Refers to WorkItemKey
+--     @partitionKey
+--         * Refers to Partition Key
 --     @stringExtendedQueryTags
 --         * String extended query tag data
 --     @dateTimeExtendedQueryTags
@@ -35,6 +37,7 @@ GO
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.UpdateIndexWorkitemInstanceCore
     @workitemKey                                                                 BIGINT,
+    @partitionKey                                                                INT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
@@ -52,17 +55,7 @@ BEGIN
 
         UPDATE ets
         SET
-            TagValue = input.TagValue
-        FROM dbo.ExtendedQueryTagString AS ets
-        INNER JOIN @stringExtendedQueryTags AS input
-            ON ets.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-            AND ets.TagValue <> input.TagValue
-
-        UPDATE ets
-        SET
+            TagValue = input.TagValue,
             Watermark = @newWatermark
         FROM dbo.ExtendedQueryTagString AS ets
         INNER JOIN @stringExtendedQueryTags AS input
@@ -70,6 +63,8 @@ BEGIN
         WHERE
             SopInstanceKey1 = @workitemKey
             AND ResourceType = @workitemResourceType
+            AND PartitionKey = @partitionKey
+            AND ets.TagValue <> input.TagValue
 
     END
 
@@ -79,17 +74,7 @@ BEGIN
 
         UPDATE etdt
         SET
-            TagValue = input.TagValue
-        FROM dbo.ExtendedQueryTagDateTime AS etdt
-        INNER JOIN @dateTimeExtendedQueryTags AS input
-            ON etdt.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-            AND etdt.TagValue <> input.TagValue
-
-        UPDATE etdt
-        SET
+            TagValue = input.TagValue,
             Watermark = @newWatermark
         FROM dbo.ExtendedQueryTagDateTime AS etdt
         INNER JOIN @dateTimeExtendedQueryTags AS input
@@ -97,6 +82,8 @@ BEGIN
         WHERE
             SopInstanceKey1 = @workitemKey
             AND ResourceType = @workitemResourceType
+            AND PartitionKey = @partitionKey
+            AND etdt.TagValue <> input.TagValue
 
     END
 
@@ -106,17 +93,7 @@ BEGIN
 
         UPDATE etpn
         SET
-            TagValue = input.TagValue
-        FROM dbo.ExtendedQueryTagPersonName AS etpn
-        INNER JOIN @personNameExtendedQueryTags AS input
-            ON etpn.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-            AND etpn.TagValue <> input.TagValue
-
-        UPDATE etpn
-        SET
+            TagValue = input.TagValue,
             Watermark = @newWatermark
         FROM dbo.ExtendedQueryTagPersonName AS etpn
         INNER JOIN @personNameExtendedQueryTags AS input
@@ -124,6 +101,8 @@ BEGIN
         WHERE
             SopInstanceKey1 = @workitemKey
             AND ResourceType = @workitemResourceType
+            AND PartitionKey = @partitionKey
+            AND etpn.TagValue <> input.TagValue
 
     END
 END
@@ -143,6 +122,8 @@ GO
 -- PARAMETERS
 --     @workitemKey
 --         * The workitem key.
+--     @partitionKey
+--         * Refers to Partition Key
 --     @watermark
 --         * The existing workitem watermark.
 --     @proposedWatermark
@@ -156,6 +137,7 @@ GO
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemTransaction
     @workitemKey                    BIGINT,
+    @partitionKey                   INT,
     @watermark                      BIGINT,
     @proposedWatermark              BIGINT,
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
@@ -169,7 +151,7 @@ BEGIN
 
     DECLARE @newWatermark AS BIGINT;
     DECLARE @currentDate AS DATETIME2(7) = SYSUTCDATETIME();
-    
+
     -- To update the workitem watermark, current watermark MUST match.
     -- This check is to make sure no two parties can update the workitem with the outdated data.
     UPDATE dbo.Workitem
@@ -178,7 +160,7 @@ BEGIN
     WHERE
         WorkitemKey = @workitemKey
         AND Watermark = @watermark
-    
+
     IF @@ROWCOUNT = 0
         THROW 50499, 'Workitem update failed', 1;
 
@@ -186,6 +168,7 @@ BEGIN
 
         EXEC dbo.UpdateIndexWorkitemInstanceCore
             @workitemKey,
+            @partitionKey,
             @stringExtendedQueryTags,
             @dateTimeExtendedQueryTags,
             @personNameExtendedQueryTags
@@ -201,6 +184,7 @@ BEGIN
     COMMIT TRANSACTION;
 END
 GO
+
 
 COMMIT TRANSACTION
 GO

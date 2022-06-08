@@ -11,6 +11,8 @@
 -- PARAMETERS
 --     @workitemKey
 --         * The workitem key.
+--     @partitionKey
+--         * Refers to Partition Key
 --     @watermark
 --         * The existing workitem watermark.
 --     @proposedWatermark
@@ -24,6 +26,7 @@
 ------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemTransaction
     @workitemKey                    BIGINT,
+    @partitionKey                   INT,
     @watermark                      BIGINT,
     @proposedWatermark              BIGINT,
     @stringExtendedQueryTags        dbo.InsertStringExtendedQueryTagTableType_1 READONLY,
@@ -37,7 +40,7 @@ BEGIN
 
     DECLARE @newWatermark AS BIGINT;
     DECLARE @currentDate AS DATETIME2(7) = SYSUTCDATETIME();
-    
+
     -- To update the workitem watermark, current watermark MUST match.
     -- This check is to make sure no two parties can update the workitem with the outdated data.
     UPDATE dbo.Workitem
@@ -46,7 +49,7 @@ BEGIN
     WHERE
         WorkitemKey = @workitemKey
         AND Watermark = @watermark
-    
+
     IF @@ROWCOUNT = 0
         THROW 50499, 'Workitem update failed', 1;
 
@@ -54,6 +57,7 @@ BEGIN
 
         EXEC dbo.UpdateIndexWorkitemInstanceCore
             @workitemKey,
+            @partitionKey,
             @stringExtendedQueryTags,
             @dateTimeExtendedQueryTags,
             @personNameExtendedQueryTags

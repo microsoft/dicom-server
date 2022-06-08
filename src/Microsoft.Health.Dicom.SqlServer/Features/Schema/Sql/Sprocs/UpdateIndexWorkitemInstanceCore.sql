@@ -8,6 +8,8 @@
 -- PARAMETERS
 --     @workitemKey
 --         * Refers to WorkItemKey
+--     @partitionKey
+--         * Refers to Partition Key
 --     @stringExtendedQueryTags
 --         * String extended query tag data
 --     @dateTimeExtendedQueryTags
@@ -19,6 +21,7 @@
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.UpdateIndexWorkitemInstanceCore
     @workitemKey                                                                 BIGINT,
+    @partitionKey                                                                INT,
     @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1         READONLY,
     @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2     READONLY,
     @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
@@ -36,17 +39,7 @@ BEGIN
 
         UPDATE ets
         SET
-            TagValue = input.TagValue
-        FROM dbo.ExtendedQueryTagString AS ets
-        INNER JOIN @stringExtendedQueryTags AS input
-            ON ets.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-            AND ets.TagValue <> input.TagValue
-
-        UPDATE ets
-        SET
+            TagValue = input.TagValue,
             Watermark = @newWatermark
         FROM dbo.ExtendedQueryTagString AS ets
         INNER JOIN @stringExtendedQueryTags AS input
@@ -54,6 +47,8 @@ BEGIN
         WHERE
             SopInstanceKey1 = @workitemKey
             AND ResourceType = @workitemResourceType
+            AND PartitionKey = @partitionKey
+            AND ets.TagValue <> input.TagValue
 
     END
 
@@ -63,17 +58,7 @@ BEGIN
 
         UPDATE etdt
         SET
-            TagValue = input.TagValue
-        FROM dbo.ExtendedQueryTagDateTime AS etdt
-        INNER JOIN @dateTimeExtendedQueryTags AS input
-            ON etdt.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-            AND etdt.TagValue <> input.TagValue
-
-        UPDATE etdt
-        SET
+            TagValue = input.TagValue,
             Watermark = @newWatermark
         FROM dbo.ExtendedQueryTagDateTime AS etdt
         INNER JOIN @dateTimeExtendedQueryTags AS input
@@ -81,6 +66,8 @@ BEGIN
         WHERE
             SopInstanceKey1 = @workitemKey
             AND ResourceType = @workitemResourceType
+            AND PartitionKey = @partitionKey
+            AND etdt.TagValue <> input.TagValue
 
     END
 
@@ -90,17 +77,7 @@ BEGIN
 
         UPDATE etpn
         SET
-            TagValue = input.TagValue
-        FROM dbo.ExtendedQueryTagPersonName AS etpn
-        INNER JOIN @personNameExtendedQueryTags AS input
-            ON etpn.TagKey = input.TagKey
-        WHERE
-            SopInstanceKey1 = @workitemKey
-            AND ResourceType = @workitemResourceType
-            AND etpn.TagValue <> input.TagValue
-
-        UPDATE etpn
-        SET
+            TagValue = input.TagValue,
             Watermark = @newWatermark
         FROM dbo.ExtendedQueryTagPersonName AS etpn
         INNER JOIN @personNameExtendedQueryTags AS input
@@ -108,6 +85,8 @@ BEGIN
         WHERE
             SopInstanceKey1 = @workitemKey
             AND ResourceType = @workitemResourceType
+            AND PartitionKey = @partitionKey
+            AND etpn.TagValue <> input.TagValue
 
     END
 END

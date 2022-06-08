@@ -49,6 +49,7 @@ internal class SqlWorkitemStoreV22 : SqlWorkitemStoreV21
             VLatest.UpdateWorkitemTransaction.PopulateCommand(
                 sqlCommandWrapper,
                 workitemMetadata.WorkitemKey,
+                workitemMetadata.PartitionKey,
                 workitemMetadata.Watermark,
                 proposedWatermark,
                 parameters);

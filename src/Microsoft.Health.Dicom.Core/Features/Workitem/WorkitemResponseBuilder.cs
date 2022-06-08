@@ -29,7 +29,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     private readonly IUrlResolver _urlResolver;
     private DicomDataset _dataset;
     private string _message;
-    private bool _hasWarningOrFailure;
 
     public WorkitemResponseBuilder(IUrlResolver urlResolver)
     {
@@ -142,7 +141,7 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             status = WorkitemResponseStatus.Conflict;
         }
 
-        return new UpdateWorkitemResponse(status, url, _message, _hasWarningOrFailure);
+        return new UpdateWorkitemResponse(status, url, _message);
     }
 
     /// <inheritdoc />
@@ -154,13 +153,12 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     }
 
     /// <inheritdoc />
-    public void AddSuccess(string message, bool isWarning = false)
+    public void AddSuccess(string warning = default)
     {
-        EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNull(warning, nameof(warning));
 
         _dataset = new DicomDataset();
-        _message = message;
-        _hasWarningOrFailure = isWarning;
+        _message = warning;
     }
 
     /// <inheritdoc />
@@ -168,7 +166,6 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     {
         _message = message;
         _dataset = dicomDataset ?? new DicomDataset();
-        _hasWarningOrFailure = true;
 
         _dataset.Add(DicomTag.FailureReason, failureReasonCode.GetValueOrDefault(FailureReasonCodes.ProcessingFailure));
     }

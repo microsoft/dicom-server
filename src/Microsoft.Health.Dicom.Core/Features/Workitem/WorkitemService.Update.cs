@@ -120,19 +120,18 @@ public partial class WorkitemService
 
             _logger.LogInformation("Successfully updated the DICOM instance work-item entry.");
 
-            if (warningTags != null && warningTags.Any())
+            if (warningTags == null || warningTags.Any())
             {
-                _responseBuilder.AddSuccess(
-                    string.Join(
-                        " ",
-                        DicomCoreResource.WorkitemUpdatedWithModification,
-                        DicomCoreResource.WorkitemUpdateWarningTags,
-                        string.Join(", ", warningTags)),
-                    isWarning: true);
+                _responseBuilder.AddSuccess();
             }
             else
             {
-                _responseBuilder.AddSuccess(string.Empty);
+                _responseBuilder.AddSuccess(
+                    warning: string.Join(
+                        " ",
+                        DicomCoreResource.WorkitemUpdatedWithModification,
+                        DicomCoreResource.WorkitemUpdateWarningTags,
+                        string.Join(", ", warningTags)));
             }
         }
         catch (Exception ex)
