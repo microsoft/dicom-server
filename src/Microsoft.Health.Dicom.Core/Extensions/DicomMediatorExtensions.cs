@@ -281,7 +281,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<UpdateWorkitemResponse> UpdateWorkitemAsync(
-        this IMediator mediator, Stream requestBody, string requestContentType, string workitemInstanceUid, string transactionUid, CancellationToken cancellationToken)
+        this IMediator mediator, Stream requestBody, string requestContentType, string workitemInstanceUid, string transactionUid = default, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         EnsureArg.IsNotNull(requestBody, nameof(requestBody));

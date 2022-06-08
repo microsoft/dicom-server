@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Models;
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
 /// <summary>
-/// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement when Adding.
+/// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement when Updating.
 /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 3.4.5.4.2.1</see>
 /// </summary>
 public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
@@ -27,16 +27,45 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
     /// <param name="dataset">Dataset to be validated.</param>
     protected override void OnValidate(DicomDataset dataset)
     {
-        // If transaction UID is present, make sure it is not empty.
-        dataset.ValidateRequirement(DicomTag.TransactionUID, RequirementCode.ThreeThree);
-
         // SOP Common Module
         // TODO: validate character set
         ValidateNotPresent(dataset, DicomTag.SOPClassUID);
         ValidateNotPresent(dataset, DicomTag.SOPInstanceUID);
+        dataset.ValidateRequirement(DicomTag.InstanceCoercionDateTime, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstanceCreatorUID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.RelatedGeneralSOPClassUID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.OriginalSpecializedSOPClassUID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.CodingSchemeIdentificationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ContextGroupIdentificationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.MappingResourceIdentificationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.TimezoneOffsetFromUTC, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ContributingEquipmentSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstanceNumber, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.SOPInstanceStatus, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.SOPAuthorizationDateTime, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.SOPAuthorizationComment, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.AuthorizationEquipmentCertificationNumber, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.MACParametersSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.DigitalSignaturesSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.EncryptedAttributesSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.OriginalAttributesSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.HL7StructuredDocumentReferenceSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferencedSOPClassUID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferencedSOPInstanceUID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.LongitudinalTemporalInformationModified, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.QueryRetrieveView, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ConversionSourceAttributesSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferencedFrameNumber, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferencedSegmentNumber, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ContentQualification, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PrivateDataElement, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PrivateDataElementCharacteristicsSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstanceOriginStatus, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.BarcodeValue, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferencedDefinedProtocolSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferencedPerformedProtocolSequence, RequirementCode.ThreeThree);
 
         // Unified Procedure Step Scheduled Procedure Information Module
-        // If either of these values are present, make sure they are not empty.
         dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepPriority, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.ProcedureStepLabel, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.WorklistLabel, RequirementCode.ThreeOne);
@@ -52,6 +81,9 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
         dataset.ValidateRequirement(DicomTag.CommentsOnTheScheduledProcedureStep, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.InputReadinessState, RequirementCode.ThreeOne);
         dataset.ValidateRequirement(DicomTag.InputInformationSequence, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.StudyInstanceUID, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.OutputDestinationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ScheduledProcedureStepModificationDateTime, RequirementCode.ThreeThree);
 
         // Unified Procedure Step Relationship Module
         ValidateNotPresent(dataset, DicomTag.PatientName);
@@ -72,14 +104,93 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
         ValidateNotPresent(dataset, DicomTag.ReferencedRequestSequence);
         ValidateNotPresent(dataset, DicomTag.ReplacedProcedureStepSequence);
 
+        // Patient Demographic Module
+        dataset.ValidateRequirement(DicomTag.PatientAge, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.Occupation, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ConfidentialityConstraintOnPatientDataDescription, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientBirthTime, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.QualityControlSubject, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientInsurancePlanCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientPrimaryLanguageCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientSize, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientWeight, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientSizeCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientAddress, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.MilitaryRank, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.BranchOfService, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.CountryOfResidence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.RegionOfResidence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientTelephoneNumbers, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientTelecomInformation, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.EthnicGroup, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientReligiousPreference, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientComments, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ResponsiblePerson, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ResponsiblePersonRole, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ResponsibleOrganization, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientSpeciesDescription, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientSpeciesCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientBreedDescription, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientBreedCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.BreedRegistrationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.StrainDescription, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.StrainNomenclature, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.StrainCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.StrainAdditionalInformation, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.StrainStockSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.GeneticModificationsSequence, RequirementCode.ThreeThree);
+
+        // Patient Medical Module
         dataset.ValidateRequirement(DicomTag.MedicalAlerts, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.PregnancyStatus, RequirementCode.ThreeTwo);
         dataset.ValidateRequirement(DicomTag.SpecialNeeds, RequirementCode.ThreeTwo);
+        dataset.ValidateRequirement(DicomTag.Allergies, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.SmokingStatus, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.AdditionalPatientHistory, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.LastMenstrualDate, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientSexNeutered, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientBodyMassIndex, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.MeasuredAPDimension, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.MeasuredLateralDimension, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientState, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PertinentDocumentsSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PertinentResourcesSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientClinicalTrialParticipationSequence, RequirementCode.ThreeThree);
+
+        // Visit Identification Module
+        dataset.ValidateRequirement(DicomTag.InstitutionName, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstitutionAddress, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstitutionCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstitutionalDepartmentName, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.InstitutionalDepartmentTypeCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReasonForVisit, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReasonForVisitCodeSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ServiceEpisodeID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.IssuerOfServiceEpisodeIDSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ServiceEpisodeDescription, RequirementCode.ThreeThree);
+
+        // Visit Status Module
+        dataset.ValidateRequirement(DicomTag.VisitStatusID, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.CurrentPatientLocation, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.PatientInstitutionResidence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.VisitComments, RequirementCode.ThreeThree);
+
+        // Visit Admission Module
+        dataset.ValidateRequirement(DicomTag.ReferringPhysicianName, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferringPhysicianAddress, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferringPhysicianTelephoneNumbers, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ReferringPhysicianIdentificationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ConsultingPhysicianName, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.ConsultingPhysicianIdentificationSequence, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.RouteOfAdmissions, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.AdmittingDate, RequirementCode.ThreeThree);
+        dataset.ValidateRequirement(DicomTag.AdmittingTime, RequirementCode.ThreeThree);
 
         // Unified Procedure Step Progress Information Module
         ValidateNotPresent(dataset, DicomTag.ProcedureStepState);
         dataset.ValidateRequirement(DicomTag.ProcedureStepProgressInformationSequence, RequirementCode.ThreeTwo);
-        dataset.ValidateRequirement(DicomTag.ProcedureStepCancellationDateTime, RequirementCode.ThreeOne);
+
+        // Unified Procedure Step Performed Procedure Information Module
         dataset.ValidateRequirement(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, RequirementCode.ThreeTwo);
     }
 
