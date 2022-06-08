@@ -132,7 +132,7 @@ public partial class WorkitemService
             DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset, out List<DicomTag> warningTags);
 
             await _workitemOrchestrator
-                .UpdateWorkitemAsync(dataset, workitemMetadata, cancellationToken)
+                .UpdateWorkitemAsync(updatedDataset, workitemMetadata, cancellationToken)
                 .ConfigureAwait(false);
 
             _logger.LogInformation("Successfully updated the DICOM instance work-item entry.");
