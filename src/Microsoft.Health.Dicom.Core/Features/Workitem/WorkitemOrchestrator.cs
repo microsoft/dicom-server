@@ -161,7 +161,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<DicomTag>> UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken)
+    public async Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
@@ -177,14 +177,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
         (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
 
-        // Retrieve existing dataset.
-        var existingDataset = await RetrieveWorkitemAsync(workitemMetadata, cancellationToken).ConfigureAwait(false);
-
-        if (existingDataset == null)
-        {
-            throw new WorkitemNotFoundException();
-        }
-
         // Get the current and next watermarks for the workitem instance
         watermarkEntry = await _indexWorkitemStore
             .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
@@ -195,11 +187,8 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
         }
 
-        // Update `existingDatabase` object.
-        DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset, out List<DicomTag> warningTags);
-
         // store the blob with the new watermark.
-        await StoreWorkitemBlobAsync(workitemMetadata, updatedDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
+        await StoreWorkitemBlobAsync(workitemMetadata, dataset, watermarkEntry.Value.NextWatermark, cancellationToken)
             .ConfigureAwait(false);
 
         try
@@ -213,7 +202,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
                 .UpdateWorkitemTransactionAsync(
                     workitemMetadata,
                     watermarkEntry.Value.NextWatermark,
-                    updatedDataset,
+                    dataset,
                     queryTags,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -233,30 +222,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         // Delete the blob with the old watermark
         await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)
             .ConfigureAwait(false);
-
-        return warningTags;
-    }
-
-    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset, out List<DicomTag> warningTags)
-    {
-        DicomDataset mergedDataset = existingDataset;
-        List<DicomTag> unsuccessfulUpdateTags = new List<DicomTag>();
-
-        newDataset.Each(di =>
-        {
-            if (!mergedDataset.TryUpdate(newDataset, di.Tag, out mergedDataset))
-            {
-                unsuccessfulUpdateTags.Add(di.Tag);
-            }
-        });
-
-        // Set Scheduled Procedure Step Modification DateTime as the current time.
-        // Reference: https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3
-        mergedDataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
-
-        warningTags = new List<DicomTag>(unsuccessfulUpdateTags);
-
-        return mergedDataset;
     }
 
     /// <inheritdoc />

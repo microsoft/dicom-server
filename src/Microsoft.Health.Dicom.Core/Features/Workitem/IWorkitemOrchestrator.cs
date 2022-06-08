@@ -6,10 +6,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
-using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
@@ -69,8 +68,7 @@ public interface IWorkitemOrchestrator
     /// <param name="dataset">The workitem dataset with the cancel request.</param>
     /// <param name="workitemMetadata">The workitem metadata.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that updates a workitem DICOM dataset and returns list of tags that could not be updated.</returns>
-    Task<IEnumerable<DicomTag>> UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken);
+    Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets DicomDataset Blob from the Store for the given Workitem Instance identifier
