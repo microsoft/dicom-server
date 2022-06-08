@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
 /// <summary>
 /// Provides functionality to validate a <see cref="DicomDataset"/> to make sure it meets the minimum requirement when Updating.
-/// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 3.4.5.4.2.1</see>
+/// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 5.4.2.1</see>
 /// </summary>
 public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
 {

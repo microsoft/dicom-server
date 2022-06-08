@@ -129,24 +129,6 @@ public sealed class UrlResolver : IUrlResolver
         return RouteUri(routeName, routeValues);
     }
 
-    /// <inheritdoc />
-    public Uri ResolveUpdateWorkitemUri(string workitemInstanceUid)
-    {
-        EnsureArg.IsNotNull(workitemInstanceUid, nameof(workitemInstanceUid));
-        var routeValues = new RouteValueDictionary
-        {
-            { KnownActionParameterNames.WorkItemInstanceUid, workitemInstanceUid },
-        };
-
-        AddRouteValues(routeValues, out bool hasPartition);
-
-        var routeName = hasPartition
-            ? KnownRouteNames.PartitionedUpdateWorkitemInstance
-            : KnownRouteNames.UpdateWorkitemInstance;
-
-        return RouteUri(routeName, routeValues);
-    }
-
     private void AddRouteValues(RouteValueDictionary routeValues, out bool hasPartition)
     {
         hasPartition = _httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue(KnownActionParameterNames.PartitionName, out var partitionName);

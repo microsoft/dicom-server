@@ -158,26 +158,6 @@ public class UrlResolverTests
             });
     }
 
-    [Fact]
-    public void GivenAnInstance_WhenResolveUpdateWorkitemUriResolved_ThenCorrectUrlShouldBeReturned()
-    {
-        const string workitemInstanceUid = "123.123";
-        const string partitionName = "partition1";
-        const string version = "v1";
-        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
-        _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
-
-        _urlResolver.ResolveUpdateWorkitemUri(workitemInstanceUid);
-
-        ValidateUrlRouteContext(
-            KnownRouteNames.PartitionedUpdateWorkitemInstance,
-            routeValues =>
-            {
-                Assert.Equal(workitemInstanceUid, routeValues[KnownActionParameterNames.WorkItemInstanceUid]);
-                Assert.Equal(partitionName, routeValues[KnownActionParameterNames.PartitionName]);
-            });
-    }
-
     private void ValidateUrlRouteContext(string routeName, Action<RouteValueDictionary> routeValuesValidator = null)
     {
         Assert.NotNull(_capturedUrlRouteContext);
