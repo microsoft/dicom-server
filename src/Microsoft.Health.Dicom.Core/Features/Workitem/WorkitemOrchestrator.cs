@@ -166,8 +166,6 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(workitemMetadata, nameof(workitemMetadata));
 
-        List<DicomTag> warningTags;
-
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
             throw new DataStoreException(
@@ -179,69 +177,62 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
         (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
 
+        // Retrieve existing dataset.
+        var existingDataset = await RetrieveWorkitemAsync(workitemMetadata, cancellationToken).ConfigureAwait(false);
+
+        if (existingDataset == null)
+        {
+            throw new WorkitemNotFoundException();
+        }
+
+        // Get the current and next watermarks for the workitem instance
+        watermarkEntry = await _indexWorkitemStore
+            .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!watermarkEntry.HasValue)
+        {
+            throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
+        }
+
+        // Update `existingDatabase` object.
+        DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset, out List<DicomTag> warningTags);
+
+        // store the blob with the new watermark.
+        await StoreWorkitemBlobAsync(workitemMetadata, updatedDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
+            .ConfigureAwait(false);
+
         try
         {
-            // Retrieve existing dataset.
-            var existingDataset = await RetrieveWorkitemAsync(workitemMetadata, cancellationToken).ConfigureAwait(false);
+            var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
 
-            if (existingDataset == null)
-            {
-                throw new WorkitemNotFoundException();
-            }
-
-            // Get the current and next watermarks for the workitem instance
-            watermarkEntry = await _indexWorkitemStore
-                .GetCurrentAndNextWorkitemWatermarkAsync(workitemMetadata.WorkitemKey, cancellationToken)
-                .ConfigureAwait(false);
-
-            if (!watermarkEntry.HasValue)
-            {
-                throw new DataStoreException(DicomCoreResource.DataStoreOperationFailed);
-            }
-
-            // Update `existingDatabase` object.
-            DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset, out warningTags);
-
-            // store the blob with the new watermark.
-            await StoreWorkitemBlobAsync(workitemMetadata, updatedDataset, watermarkEntry.Value.NextWatermark, cancellationToken)
-                .ConfigureAwait(false);
-
-            try
-            {
-                var queryTags = await _workitemQueryTagService.GetQueryTagsAsync(cancellationToken).ConfigureAwait(false);
-
-                // Update details in Sql Server.
-                //  Update the workitem watermark in the store.
-                //  Update extended query tag tables.
-                await _indexWorkitemStore
-                    .UpdateWorkitemTransactionAsync(
-                        workitemMetadata,
-                        watermarkEntry.Value.NextWatermark,
-                        updatedDataset,
-                        queryTags,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            catch
-            {
-                // attempt to delete the blob with proposed watermark
-                if (watermarkEntry.HasValue)
-                {
-                    await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.NextWatermark, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-
-                throw new DataStoreException(DicomCoreResource.UpdateWorkitemInstanceConflictFailure, FailureReasonCodes.UpsUpdateConflict);
-            }
-
-            // Delete the blob with the old watermark
-            await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)
+            // Update details in Sql Server.
+            //  Update the workitem watermark in the store.
+            //  Update extended query tag tables.
+            await _indexWorkitemStore
+                .UpdateWorkitemTransactionAsync(
+                    workitemMetadata,
+                    watermarkEntry.Value.NextWatermark,
+                    updatedDataset,
+                    queryTags,
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
         catch
         {
-            throw;
+            // attempt to delete the blob with proposed watermark
+            if (watermarkEntry.HasValue)
+            {
+                await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.NextWatermark, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            throw new DataStoreException(DicomCoreResource.UpdateWorkitemInstanceConflictFailure, FailureReasonCodes.UpsUpdateConflict);
         }
+
+        // Delete the blob with the old watermark
+        await TryDeleteWorkitemBlobAsync(workitemMetadata, watermarkEntry.Value.CurrentWatermark, cancellationToken)
+            .ConfigureAwait(false);
 
         return warningTags;
     }

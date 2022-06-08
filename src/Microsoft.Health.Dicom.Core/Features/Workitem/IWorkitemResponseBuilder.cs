@@ -54,7 +54,12 @@ public interface IWorkitemResponseBuilder
     /// Adds a successful entry to the response with a status message
     /// </summary>
     /// <param name="message">The message related to the status</param>
-    void AddSuccess(string message);
+    /// <param name="isWarning">
+    /// The flag to indicate the message is a Warning.
+    ///     True - Has Warning
+    ///     False - No Warning
+    /// </param>
+    void AddSuccess(string message, bool isWarning = false);
 
     /// <summary>
     /// Adds a failed entry to the response.

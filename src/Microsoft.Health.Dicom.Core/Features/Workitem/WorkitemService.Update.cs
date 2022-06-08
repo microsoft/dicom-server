@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ public partial class WorkitemService
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
-        var workitemMetadata = await _workitemOrchestrator
+        WorkitemMetadataStoreEntry workitemMetadata = await _workitemOrchestrator
             .GetWorkitemMetadataAsync(workitemInstanceUid, cancellationToken)
             .ConfigureAwait(false);
 
@@ -38,7 +39,7 @@ public partial class WorkitemService
         {
             _responseBuilder.AddFailure(
                 FailureReasonCodes.UpsInstanceNotFound,
-                string.Format(DicomCoreResource.UpdateWorkitemInstanceNotFound, workitemInstanceUid),
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UpdateWorkitemInstanceNotFound, workitemInstanceUid),
                 dataset);
             return _responseBuilder.BuildUpdateWorkitemResponse();
         }
@@ -50,7 +51,8 @@ public partial class WorkitemService
         //  4. Dataset is valid.
         if (ValidateUpdateRequest(dataset, workitemMetadata, transactionUid))
         {
-            await UpdateWorkitemAsync(dataset, workitemMetadata, cancellationToken);
+            await UpdateWorkitemAsync(dataset, workitemMetadata, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         return _responseBuilder.BuildUpdateWorkitemResponse(workitemInstanceUid);
@@ -120,11 +122,17 @@ public partial class WorkitemService
 
             if (warningTags != null && warningTags.Any())
             {
-                _responseBuilder.AddSuccess(string.Join(" ", DicomCoreResource.WorkitemUpdatedWithModification, DicomCoreResource.WorkitemUpdateWarningTags, string.Join(", ", warningTags)));
+                _responseBuilder.AddSuccess(
+                    string.Join(
+                        " ",
+                        DicomCoreResource.WorkitemUpdatedWithModification,
+                        DicomCoreResource.WorkitemUpdateWarningTags,
+                        string.Join(", ", warningTags)),
+                    isWarning: true);
             }
             else
             {
-                _responseBuilder.AddSuccess(DicomCoreResource.WorkitemUpdateRequestSuccess);
+                _responseBuilder.AddSuccess(string.Empty);
             }
         }
         catch (Exception ex)

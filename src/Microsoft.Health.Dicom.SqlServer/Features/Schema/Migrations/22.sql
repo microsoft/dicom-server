@@ -2465,7 +2465,6 @@ BEGIN
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
         THROW 50499, 'Workitem update failed', 1;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
     BEGIN TRY
         EXECUTE dbo.UpdateIndexWorkitemInstanceCore @workitemKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
     END TRY

@@ -163,7 +163,7 @@ public class UrlResolverTests
     {
         const string workitemInstanceUid = "123.123";
         const string partitionName = "partition1";
-        const string version = "v1.0";
+        const string version = "v1";
         _httpContext.Request.RouteValues.Add(KnownActionParameterNames.PartitionName, partitionName);
         _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 

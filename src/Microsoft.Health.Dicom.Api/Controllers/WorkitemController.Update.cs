@@ -30,7 +30,6 @@ public partial class WorkitemController
     /// </remarks>
     /// <returns></returns>
     [HttpPost]
-    [Produces(KnownContentTypes.ApplicationDicomJson)]
     [Consumes(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
@@ -64,10 +63,9 @@ public partial class WorkitemController
         if (response.Status == WorkitemResponseStatus.Success)
         {
             Response.Headers.Add(HeaderNames.ContentLocation, response.Uri.ToString());
-            Response.Headers.Add(HeaderNames.Location, response.Uri.ToString());
         }
 
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (response.HasWarningOrFailure && !string.IsNullOrWhiteSpace(response.Message))
         {
             Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), response.Message);
         }

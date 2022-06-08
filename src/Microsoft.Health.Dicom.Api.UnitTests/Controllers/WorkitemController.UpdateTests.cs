@@ -96,6 +96,5 @@ public sealed class WorkitemControllerUpdateTests
         Assert.Equal(HttpStatusCode.OK, (HttpStatusCode)result.StatusCode);
         Assert.True(_controller.Response.Headers.ContainsKey(HeaderNames.ContentLocation));
         Assert.Equal(url, _controller.Response.Headers[HeaderNames.ContentLocation]);
-        Assert.Equal(url, _controller.Response.Headers[HeaderNames.Location]);
     }
 }
