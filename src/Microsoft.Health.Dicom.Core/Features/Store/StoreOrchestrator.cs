@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -146,8 +147,10 @@ public class StoreOrchestrator : IStoreOrchestrator
 
     private Dictionary<int, FrameRange> GetFramesOffset(DicomDataset dataset)
     {
-        DicomPixelData dicomPixel = DicomPixelData.Create(dataset);
-        var framesRange = new Dictionary<int, FrameRange>();
+        if (!dataset.TryGetPixelData(out DicomPixelData dicomPixel))
+        {
+            return null;
+        }
 
         if (dicomPixel.NumberOfFrames < 1)
         {
@@ -155,6 +158,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
 
         var pixelData = dataset.GetDicomItem<DicomItem>(DicomTag.PixelData);
+        var framesRange = new Dictionary<int, FrameRange>();
 
         // todo support case where fragments != frames.
         // This means offsettable matches the frames and we have to parse the bytes in pixelData to find the right fragment and end at the right fragment.

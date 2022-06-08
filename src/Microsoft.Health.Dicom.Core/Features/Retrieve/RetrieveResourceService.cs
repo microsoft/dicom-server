@@ -119,7 +119,7 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await CheckFileSizeForTranscoding(instance, cancellationToken);
+                FileProperties fileProperties = await CheckFileSize(instance, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
                 Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
@@ -198,8 +198,8 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
                 isSinglePart);
         }
 
-        _logger.LogInformation("Transcoding Instance");
-        FileProperties fileProperties = await CheckFileSizeForTranscoding(instance, cancellationToken);
+        _logger.LogInformation("Downloading the entire instance for frame parsing");
+        FileProperties fileProperties = await CheckFileSize(instance, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
         Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
@@ -209,7 +209,10 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
             isOriginalTransferSyntaxRequested,
             requestedTransferSyntax);
 
-        SetTranscodingBillingProperties(frameStreams.Sum(f => f.Length));
+        if (needsTranscoding)
+        {
+            SetTranscodingBillingProperties(frameStreams.Sum(f => f.Length));
+        }
 
         IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(
             frameStreams,
@@ -230,7 +233,7 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         _dicomRequestContextAccessor.RequestContext.BytesTranscoded = bytesTranscoded;
     }
 
-    private async Task<FileProperties> CheckFileSizeForTranscoding(InstanceMetadata instance, CancellationToken cancellationToken)
+    private async Task<FileProperties> CheckFileSize(InstanceMetadata instance, CancellationToken cancellationToken)
     {
         FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier, cancellationToken);
 
