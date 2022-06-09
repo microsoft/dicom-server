@@ -107,7 +107,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "/C:/Users/v-pbartley/OneDrive - Microsoft/Documents/OpenHack MC4H 2021/DICOM/red-triangle.dcm"
+						"src": "/C:/githealth/dicom-server/docs/dcms/red-triangle.dcm"
 					}
 				},
 				"url": {
@@ -162,7 +162,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "/C:/Users/v-pbartley/OneDrive - Microsoft/Documents/OpenHack MC4H 2021/DICOM/green-square.dcm"
+						"src": "/C:/githealth/dicom-server/docs/dcms/green-square.dcm"
 					}
 				},
 				"url": {
@@ -217,7 +217,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "/C:/Users/v-pbartley/OneDrive - Microsoft/Documents/OpenHack MC4H 2021/DICOM/blue-circle.dcm"
+						"src": "/C:/githealth/dicom-server/docs/dcms/blue-circle.dcm"
 					}
 				},
 				"url": {
