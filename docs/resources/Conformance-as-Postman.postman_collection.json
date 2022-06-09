@@ -1,12 +1,75 @@
 {
 	"info": {
-		"_postman_id": "bebc5c3a-cbcc-468d-81d5-660eded93581",
+		"_postman_id": "8241b02f-9ac3-4215-acdb-69548a9a82c4",
 		"name": "Conformance-as-Postman",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "15998620"
 	},
 	"item": [
 		{
-			"name": "Store-single-instance",
+			"name": "AuthorizeGetToken",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"bearerToken\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{clientId}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{clientSecret}}",
+							"type": "text"
+						},
+						{
+							"key": "resource",
+							"value": "{{resource}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenantId}}",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Store-single-instance (red-triangle.dcm)",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -44,12 +107,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "/C:/githealth/dicom-server/docs/dcms/red-triangle.dcm"
-					},
-					"options": {
-						"raw": {
-							"language": "text"
-						}
+						"src": "/C:/Users/v-pbartley/OneDrive - Microsoft/Documents/OpenHack MC4H 2021/DICOM/red-triangle.dcm"
 					}
 				},
 				"url": {
@@ -104,12 +162,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "/C:/githealth/dicom-server/docs/dcms/green-square.dcm"
-					},
-					"options": {
-						"raw": {
-							"language": "text"
-						}
+						"src": "/C:/Users/v-pbartley/OneDrive - Microsoft/Documents/OpenHack MC4H 2021/DICOM/green-square.dcm"
 					}
 				},
 				"url": {
@@ -164,12 +217,7 @@
 				"body": {
 					"mode": "file",
 					"file": {
-						"src": "/C:/githealth/dicom-server/docs/dcms/blue-circle.dcm"
-					},
-					"options": {
-						"raw": {
-							"language": "text"
-						}
+						"src": "/C:/Users/v-pbartley/OneDrive - Microsoft/Documents/OpenHack MC4H 2021/DICOM/blue-circle.dcm"
 					}
 				},
 				"url": {
@@ -230,12 +278,7 @@
 							"type": "file",
 							"src": "/C:/githealth/dicom-samples/visus.com/case1/dicomfile"
 						}
-					],
-					"options": {
-						"raw": {
-							"language": "text"
-						}
-					}
+					]
 				},
 				"url": {
 					"raw": "{{baseUrl}}/studies",
@@ -1178,6 +1221,16 @@
 			"response": []
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{bearerToken}}",
+				"type": "string"
+			}
+		]
+	},
 	"event": [
 		{
 			"listen": "prerequest",
