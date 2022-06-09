@@ -80,22 +80,18 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
             .ConfigureAwait(false);
     }
 
-    private async Task ChangeWorkitemStateAndValidate(string workitemUid, string transactionUid, string procedureStepState)
+    [Fact]
+    [Trait("Category", "bvt-fe")]
+    public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemCancelE2EWorkflowSuccessfully()
     {
-        var changeStateDicomDataset = new DicomDataset
-        {
-            { DicomTag.TransactionUID, transactionUid },
-            { DicomTag.ProcedureStepState, procedureStepState },
-        };
-
-        using var changeStateInProgressResponse = await _client.ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateDicomDataset, 1), workitemUid)
+        // Create
+        string workitemUid = TestUidGenerator.Generate();
+        await CreateWorkItemAndValidate(workitemUid)
             .ConfigureAwait(false);
 
-        Assert.True(changeStateInProgressResponse.IsSuccessStatusCode);
-
-        var dataset = await RetrieveWorkitemAndValidate(workitemUid)
+        // Cancel Workitem
+        await CancelWorkitemAndValidate(workitemUid)
             .ConfigureAwait(false);
-        Assert.Equal(ProcedureStepStateExtensions.GetProcedureStepState(procedureStepState), dataset.GetProcedureStepState());
     }
 
     private async Task CreateWorkItemAndValidate(string workitemUid)
@@ -127,5 +123,37 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
         Assert.NotNull(dataset);
 
         return dataset;
+    }
+
+    private async Task ChangeWorkitemStateAndValidate(string workitemUid, string transactionUid, string procedureStepState)
+    {
+        var changeStateDicomDataset = new DicomDataset
+        {
+            { DicomTag.TransactionUID, transactionUid },
+            { DicomTag.ProcedureStepState, procedureStepState },
+        };
+
+        using var changeStateInProgressResponse = await _client.ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateDicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
+
+        Assert.True(changeStateInProgressResponse.IsSuccessStatusCode);
+
+        var dataset = await RetrieveWorkitemAndValidate(workitemUid)
+            .ConfigureAwait(false);
+        Assert.Equal(ProcedureStepStateExtensions.GetProcedureStepState(procedureStepState), dataset.GetProcedureStepState());
+    }
+
+    private async Task CancelWorkitemAndValidate(string workitemUid)
+    {
+        var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
+
+        using var cancelResponse = await _client
+            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid)
+            .ConfigureAwait(false);
+        Assert.True(cancelResponse.IsSuccessStatusCode);
+
+        var dataset = await RetrieveWorkitemAndValidate(workitemUid)
+            .ConfigureAwait(false);
+        Assert.Equal(ProcedureStepStateExtensions.GetProcedureStepState(ProcedureStepStateConstants.Canceled), dataset.GetProcedureStepState());
     }
 }
