@@ -206,20 +206,11 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
     /// </summary>
     /// <param name="transactionUid">The Transaction Uid.</param>
     /// <param name="workitemMetadata">The Workitem Metadata.</param>
-    public static void ValidateWorkitemStateAndTransactionUid(
-        string transactionUid,
-        WorkitemMetadataStoreEntry workitemMetadata)
+    public static void ValidateWorkitemStateAndTransactionUid(string transactionUid, WorkitemMetadataStoreEntry workitemMetadata)
     {
         if (workitemMetadata == null)
         {
             throw new WorkitemNotFoundException();
-        }
-
-        if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
-        {
-            throw new DatasetValidationException(
-                FailureReasonCodes.ProcessingFailure,
-                DicomCoreResource.WorkitemCurrentlyBeingUpdated);
         }
 
         switch (workitemMetadata.ProcedureStepState)
@@ -239,7 +230,7 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
                 {
                     throw new DatasetValidationException(
                         FailureReasonCodes.UpsTransactionUidAbsent,
-                        DicomCoreResource.TransactionUIDAbsent);
+                        DicomCoreResource.InvalidWorkitemInstanceTargetUri);
                 }
 
                 // Provided Transaction UID has to be equal to the existing Transaction UID.
@@ -247,18 +238,19 @@ public class UpdateWorkitemDatasetValidator : WorkitemDatasetValidator
                 {
                     throw new DatasetValidationException(
                         FailureReasonCodes.UpsTransactionUidIncorrect,
-                        DicomCoreResource.InvalidTransactionUID);
+                        DicomCoreResource.InvalidWorkitemInstanceTargetUri);
                 }
 
                 break;
             case ProcedureStepState.Completed:
                 throw new DatasetValidationException(
                     FailureReasonCodes.UpsIsAlreadyCompleted,
-                    DicomCoreResource.WorkitemIsAlreadyCompleted);
+                    string.Concat(DicomCoreResource.UpdateWorkitemInstanceConflictFailure, " ", DicomCoreResource.WorkitemIsAlreadyCompleted));
+
             case ProcedureStepState.Canceled:
                 throw new DatasetValidationException(
                     FailureReasonCodes.UpsIsAlreadyCanceled,
-                    DicomCoreResource.WorkitemIsAlreadyCanceled);
+                    string.Concat(DicomCoreResource.UpdateWorkitemInstanceConflictFailure, " ", DicomCoreResource.WorkitemIsAlreadyCanceled));
         }
     }
 }

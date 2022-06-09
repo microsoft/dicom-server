@@ -629,7 +629,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Following tags could not be updated as they were not present when the workitem was created: {0}</value>
     <comment>{0} comma separated list of tags that could not be updated.</comment>
   </data>
-  <data name="UpdateWorkitemInstanceNotFound" xml:space="preserve">
+  <data name="InvalidWorkitemInstanceTargetUri" xml:space="preserve">
     <value>The target URI did not reference a claimed Workitem.</value>
   </data>
   <data name="ExistingReindexOperation" xml:space="preserve">
@@ -637,6 +637,6 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} Operation ID</comment>
   </data>
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">
-    <value>The request is inconsistent with the current state of the Target Workitem. Please try again.</value>
+    <value>The submitted request is inconsistent with the current state of the Workitem.</value>
   </data>
 </root>

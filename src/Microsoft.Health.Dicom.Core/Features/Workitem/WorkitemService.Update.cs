@@ -40,7 +40,7 @@ public partial class WorkitemService
         {
             _responseBuilder.AddFailure(
                 FailureReasonCodes.UpsInstanceNotFound,
-                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.UpdateWorkitemInstanceNotFound, workitemInstanceUid),
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidWorkitemInstanceTargetUri, workitemInstanceUid),
                 dataset);
             return _responseBuilder.BuildUpdateWorkitemResponse();
         }
@@ -143,14 +143,7 @@ public partial class WorkitemService
             }
             else
             {
-                _responseBuilder.AddSuccess(
-                    warning: string.Join(
-                        " ",
-                        DicomCoreResource.WorkitemUpdatedWithModification,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            DicomCoreResource.WorkitemUpdateWarningTags,
-                            string.Join(", ", warningTags))));
+                _responseBuilder.AddSuccess(DicomCoreResource.WorkitemUpdatedWithModification);
             }
         }
         catch (Exception ex)
@@ -159,20 +152,6 @@ public partial class WorkitemService
 
             switch (ex)
             {
-                case DatasetValidationException dvEx:
-                    failureCode = dvEx.FailureCode;
-                    break;
-
-                case DicomValidationException:
-                case ValidationException:
-                case WorkitemUpdateNotAllowedException:
-                    failureCode = FailureReasonCodes.UpsInstanceUpdateNotAllowed;
-                    break;
-
-                case WorkitemNotFoundException:
-                    failureCode = FailureReasonCodes.UpsInstanceNotFound;
-                    break;
-
                 case DataStoreException dsEx when dsEx.FailureCode.HasValue:
                     failureCode = FailureReasonCodes.UpsUpdateConflict;
                     break;

@@ -796,6 +796,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The target URI did not reference a claimed Workitem..
+        /// </summary>
+        internal static string InvalidWorkitemInstanceTargetUri {
+            get {
+                return ResourceManager.GetString("InvalidWorkitemInstanceTargetUri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified item cannot be found..
         /// </summary>
         internal static string ItemNotFound {
@@ -1246,20 +1255,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The request is inconsistent with the current state of the Target Workitem. Please try again..
+        ///   Looks up a localized string similar to The submitted request is inconsistent with the current state of the Workitem..
         /// </summary>
         internal static string UpdateWorkitemInstanceConflictFailure {
             get {
                 return ResourceManager.GetString("UpdateWorkitemInstanceConflictFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The target URI did not reference a claimed Workitem..
-        /// </summary>
-        internal static string UpdateWorkitemInstanceNotFound {
-            get {
-                return ResourceManager.GetString("UpdateWorkitemInstanceNotFound", resourceCulture);
             }
         }
         

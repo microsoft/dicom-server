@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -106,11 +105,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         // Check if the workitem is locked for read-write
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
-            throw new DataStoreException(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemUpdateIsNotAllowed,
-                    workitemMetadata.ProcedureStepState.GetStringValue()));
+            throw new DataStoreException(DicomCoreResource.WorkitemCurrentlyBeingUpdated);
         }
 
         (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
@@ -168,11 +163,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
 
         if (workitemMetadata.Status != WorkitemStoreStatus.ReadWrite)
         {
-            throw new DataStoreException(
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.WorkitemUpdateIsNotAllowed,
-                    workitemMetadata.WorkitemUid));
+            throw new DataStoreException(DicomCoreResource.WorkitemCurrentlyBeingUpdated);
         }
 
         (long CurrentWatermark, long NextWatermark)? watermarkEntry = null;
