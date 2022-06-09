@@ -65,7 +65,7 @@ public partial class WorkitemController
             Response.Headers.Add(HeaderNames.ContentLocation, response.Uri.ToString());
         }
 
-        if (response.HasWarningOrFailure && !string.IsNullOrWhiteSpace(response.Message))
+        if (!string.IsNullOrWhiteSpace(response.Message))
         {
             Response.SetWarning(HttpWarningCode.MiscPersistentWarning, Request.GetHost(dicomStandards: true), response.Message);
         }

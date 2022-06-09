@@ -9,12 +9,11 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 public sealed class UpdateWorkitemResponse
 {
-    public UpdateWorkitemResponse(WorkitemResponseStatus status, Uri uri, string message = null, bool hasWarningOrFailure = false)
+    public UpdateWorkitemResponse(WorkitemResponseStatus status, Uri uri, string message = null)
     {
         Status = status;
         Uri = uri;
         Message = message;
-        HasWarningOrFailure = hasWarningOrFailure;
     }
 
     public WorkitemResponseStatus Status { get; }
@@ -22,6 +21,4 @@ public sealed class UpdateWorkitemResponse
     public Uri Uri { get; }
 
     public string Message { get; }
-
-    public bool HasWarningOrFailure { get; }
 }
