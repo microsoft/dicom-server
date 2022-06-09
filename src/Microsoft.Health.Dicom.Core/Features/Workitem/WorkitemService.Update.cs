@@ -137,7 +137,7 @@ public partial class WorkitemService
 
             _logger.LogInformation("Successfully updated the DICOM instance work-item entry.");
 
-            if (warningTags == null || warningTags.Any())
+            if (warningTags == null || !warningTags.Any())
             {
                 _responseBuilder.AddSuccess();
             }
@@ -147,8 +147,10 @@ public partial class WorkitemService
                     warning: string.Join(
                         " ",
                         DicomCoreResource.WorkitemUpdatedWithModification,
-                        DicomCoreResource.WorkitemUpdateWarningTags,
-                        string.Join(", ", warningTags)));
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            DicomCoreResource.WorkitemUpdateWarningTags,
+                            string.Join(", ", warningTags))));
             }
         }
         catch (Exception ex)
