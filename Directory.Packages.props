@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <PackageVersion Include="Azure.Core" Version="1.24.0" />
-    <PackageVersion Include="Azure.Data.Tables" Version="12.5.0" />
+    <PackageVersion Include="Azure.Data.Tables" Version="12.6.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Identity" Version="1.6.0" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
