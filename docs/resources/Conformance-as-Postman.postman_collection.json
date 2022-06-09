@@ -108,6 +108,11 @@
 					"mode": "file",
 					"file": {
 						"src": "/C:/githealth/dicom-server/docs/dcms/red-triangle.dcm"
+					},
+					"options": {
+						"raw": {
+							"language": "text"
+						}
 					}
 				},
 				"url": {
@@ -163,6 +168,11 @@
 					"mode": "file",
 					"file": {
 						"src": "/C:/githealth/dicom-server/docs/dcms/green-square.dcm"
+					},
+					"options": {
+						"raw": {
+							"language": "text"
+						}
 					}
 				},
 				"url": {
@@ -218,6 +228,11 @@
 					"mode": "file",
 					"file": {
 						"src": "/C:/githealth/dicom-server/docs/dcms/blue-circle.dcm"
+					},
+					"options": {
+						"raw": {
+							"language": "text"
+						}
 					}
 				},
 				"url": {
@@ -278,7 +293,12 @@
 							"type": "file",
 							"src": "/C:/githealth/dicom-samples/visus.com/case1/dicomfile"
 						}
-					]
+					],
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
 				},
 				"url": {
 					"raw": "{{baseUrl}}/studies",
