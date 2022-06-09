@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,7 +23,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-public class RetrieveResourceService : IRetrieveResourceService, IDisposable
+public class RetrieveResourceService : IRetrieveResourceService
 {
     private readonly IFileStore _blobDataStore;
     private readonly IInstanceStore _instanceStore;
@@ -37,7 +36,6 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
     private readonly ILogger<RetrieveResourceService> _logger;
     private readonly EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata> _instanceMetadataCache;
     private readonly EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>> _framesRangeCache;
-    private bool _disposed;
 
     public RetrieveResourceService(
         IInstanceStore instanceStore,
@@ -47,6 +45,8 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         IMetadataStore metadataStore,
+        InstanceMetadataCache instanceMetadataCache,
+        FramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
         IOptionsSnapshot<InstanceMetadataCacheConfiguration> intanceMetadataCacheOption,
         IOptionsSnapshot<FramesRangeCacheConfiguration> framesRangeCacheOption,
@@ -60,6 +60,8 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        EnsureArg.IsNotNull(instanceMetadataCache, nameof(instanceMetadataCache));
+        EnsureArg.IsNotNull(framesRangeCache, nameof(framesRangeCache));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
         EnsureArg.IsNotNull(intanceMetadataCacheOption?.Value, nameof(intanceMetadataCacheOption));
@@ -74,8 +76,8 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         _metadataStore = metadataStore;
         _retrieveConfiguration = retrieveConfiguration?.Value;
         _logger = logger;
-        _instanceMetadataCache = new EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>(intanceMetadataCacheOption, loggerFactory, loggerFactory.CreateLogger<EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>>());
-        _framesRangeCache = new EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>(intanceMetadataCacheOption, loggerFactory, loggerFactory.CreateLogger<EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>>());
+        _instanceMetadataCache = instanceMetadataCache;
+        _framesRangeCache = framesRangeCache;
     }
 
     public async Task<RetrieveResourceResponse> GetInstanceResourceAsync(RetrieveResourceRequest message, CancellationToken cancellationToken)
@@ -368,25 +370,5 @@ public class RetrieveResourceService : IRetrieveResourceService, IDisposable
         }
 
         return retrieveInstances.First();
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                _instanceMetadataCache.Dispose();
-                _framesRangeCache.Dispose();
-            }
-
-            _disposed = true;
-        }
     }
 }

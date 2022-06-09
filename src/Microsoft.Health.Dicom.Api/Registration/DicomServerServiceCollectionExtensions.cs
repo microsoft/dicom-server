@@ -96,7 +96,7 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCache));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
 
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);

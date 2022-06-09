@@ -72,6 +72,8 @@ public class RetrieveResourceServiceTests
         var frameRangeCacheConfig = Substitute.For<IOptionsSnapshot<FramesRangeCacheConfiguration>>();
         frameRangeCacheConfig.Value.Returns(new FramesRangeCacheConfiguration());
         var loggerFactory = Substitute.For<ILoggerFactory>();
+        var instanceMetadataCache = Substitute.For<InstanceMetadataCache>();
+        var framesRangeCache = Substitute.For<FramesRangeCache>();
 
         _metadataStore = Substitute.For<IMetadataStore>();
         _retrieveResourceService = new RetrieveResourceService(
@@ -82,6 +84,8 @@ public class RetrieveResourceServiceTests
             _retrieveTransferSyntaxHandler,
             _dicomRequestContextAccessor,
             _metadataStore,
+            instanceMetadataCache,
+            framesRangeCache,
             retrieveConfigurationSnapshot,
             instanceCacheConfig,
             frameRangeCacheConfig,

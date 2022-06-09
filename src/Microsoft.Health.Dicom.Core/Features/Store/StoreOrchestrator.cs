@@ -162,7 +162,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
         // todo support case where fragments != frames.
         // This means offsettable matches the frames and we have to parse the bytes in pixelData to find the right fragment and end at the right fragment.
-        // there is also a 8 byte tag inbetween the fragment data that either we need to store differently or remove on the way out.
+        // there is also a 8 byte tag inbetween the fragment data that we need to handlee.
         // fo-dicom/DicomPixelData.cs/GetFrame has the logic
         if (pixelData is DicomFragmentSequence pixelDataFragment)
         {
