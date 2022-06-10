@@ -29,6 +29,26 @@ internal static class WorkitemRequestValidatorExtensions
         UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: true);
     }
 
+    /// <summary>
+    /// Validates an <see cref="UpdateWorkitemRequest"/>.
+    /// </summary>
+    /// <param name="request">The request to validate.</param>
+    /// <exception cref="BadRequestException">Thrown when request body is mising.</exception>
+    /// <exception cref="UidValidation">Thrown when the specified WorkitemInstanceUID is not a valid identifier.</exception>
+    internal static void Validate(this UpdateWorkitemRequest request)
+    {
+        EnsureArg.IsNotNull(request, nameof(request));
+        if (request.RequestBody == null)
+        {
+            throw new BadRequestException(DicomCoreResource.MissingRequestBody);
+        }
+
+        UidValidation.Validate(request.WorkitemInstanceUid, nameof(request.WorkitemInstanceUid), allowEmpty: false);
+
+        // Transaction UID can be empty if workitem is in SCHEDULED state.
+        UidValidation.Validate(request.TransactionUid, nameof(request.TransactionUid), allowEmpty: true);
+    }
+
     internal static void Validate(this CancelWorkitemRequest request)
     {
         EnsureArg.IsNotNull(request, nameof(request));

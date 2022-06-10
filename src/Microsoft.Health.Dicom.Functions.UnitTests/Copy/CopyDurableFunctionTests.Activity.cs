@@ -82,10 +82,10 @@ public partial class CopyDurableFunctionTests
         };
 
         // Arrange input
+        // Note: Parallel.ForEachAsync uses its own CancellationTokenSource
         _instanceStore
-            .GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created, CancellationToken.None)
+            .GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created, Arg.Any<CancellationToken>())
             .Returns(expected);
-
 
         // Call the activity
         await _function.CopyBatchAsync(range, NullLogger.Instance);
@@ -97,7 +97,7 @@ public partial class CopyDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _instanceCopier.Received(1).CopyInstanceAsync(identifier);
+            await _instanceCopier.Received(1).CopyInstanceAsync(identifier, Arg.Any<CancellationToken>());
         }
     }
 }

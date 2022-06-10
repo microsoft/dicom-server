@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -141,7 +142,22 @@ internal class DicomInstancesManager : IAsyncDisposable
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         return await _dicomWebClient
-            .ChangeWorkitemStateAsync(requestDataset, workitemUid, partitionName, cancellationToken)
+            .ChangeWorkitemStateAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, partitionName, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<DicomWebResponse> UpdateWorkitemAsync(
+        DicomDataset requestDataset,
+        string workitemUid,
+        string transactionUid = default,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(requestDataset, nameof(requestDataset));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
+        return await _dicomWebClient
+            .UpdateWorkitemAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, transactionUid, partitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 }

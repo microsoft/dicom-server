@@ -31,7 +31,7 @@ public partial class ExportDurableFunctionTests
         _sinkProvider = Substitute.For<IExportSinkProvider>();
         _options = new ExportOptions
         {
-            BatchThreadCount = 1,
+            MaxParallelThreads = 1,
             RetryOptions = new ActivityRetryOptions { MaxNumberOfAttempts = 5 }
         };
 

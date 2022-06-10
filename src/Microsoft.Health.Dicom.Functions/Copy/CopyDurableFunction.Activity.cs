@@ -13,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
-using Microsoft.Health.Dicom.Functions.Utils;
 
 namespace Microsoft.Health.Dicom.Functions.Copy;
 
@@ -69,7 +68,14 @@ public partial class CopyDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created);
 
-        await TaskBatch.RunAsync(instanceIdentifiers, id => _instanceCopier.CopyInstanceAsync(id), _options.BatchThreadCount);
+        await Parallel.ForEachAsync(
+            instanceIdentifiers,
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            (id, token) => new ValueTask(_instanceCopier.CopyInstanceAsync(id, token)));
         logger.LogInformation("Completed copying instances in the range {Range}.", range);
     }
 }

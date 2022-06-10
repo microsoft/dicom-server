@@ -64,6 +64,9 @@ internal abstract class ExportDataOptionsJsonConverter<T> : JsonConverter<Export
 
     public override ExportDataOptions<T> ReadJson(JsonReader reader, Type objectType, ExportDataOptions<T> existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
+        if (reader.TokenType == JsonToken.Null)
+            return null;
+
         ExportDataOptions intermediate = serializer.Deserialize<ExportDataOptions>(reader);
 
         Type type = _getType(intermediate.Type);

@@ -70,4 +70,20 @@ public interface ISecretStore
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously uploads the value for a secret.
+    /// </summary>
+    /// <param name="name">The name of the secret.</param>
+    /// <param name="value">The value of the secret.</param>
+    /// <param name="contentType">The optional content type that describes the value.</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// A task representing the <see cref="GetSecretAsync"/> operation.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is new version of the secret.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<string> SetSecretAsync(string name, string value, string contentType, CancellationToken cancellationToken = default);
 }

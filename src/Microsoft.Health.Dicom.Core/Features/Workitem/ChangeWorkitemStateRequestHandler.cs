@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -44,11 +46,11 @@ public class ChangeWorkitemStateRequestHandler : BaseHandler, IRequestHandler<Ch
         request.Validate();
 
         var changeStateDataset = await _workitemSerializer
-            .DeserializeAsync<DicomDataset>(request.RequestBody, request.RequestContentType)
+            .DeserializeAsync<IEnumerable<DicomDataset>>(request.RequestBody, request.RequestContentType)
             .ConfigureAwait(false);
 
         return await _workItemService
-            .ProcessChangeStateAsync(changeStateDataset, request.WorkitemInstanceUid, cancellationToken)
+            .ProcessChangeStateAsync(changeStateDataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
             .ConfigureAwait(false);
     }
 }

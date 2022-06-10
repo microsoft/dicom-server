@@ -288,8 +288,7 @@ CREATE TABLE dbo.Instance (
     LastStatusUpdatedDate DATETIME2 (7) NOT NULL,
     CreatedDate           DATETIME2 (7) NOT NULL,
     PartitionKey          INT           DEFAULT 1 NOT NULL,
-    TransferSyntaxUid     VARCHAR (64)  NULL,
-    HasFrameMetadata      BIT           DEFAULT 0 NOT NULL
+    TransferSyntaxUid     VARCHAR (64)  NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -1712,8 +1711,7 @@ BEGIN
            SeriesInstanceUid,
            SopInstanceUid,
            Watermark,
-           TransferSyntaxUid,
-           HasFrameMetadata
+           TransferSyntaxUid
     FROM   dbo.Instance
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
@@ -2190,6 +2188,61 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.UpdateIndexWorkitemInstanceCore
+@workitemKey BIGINT, @partitionKey INT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    DECLARE @workitemResourceType AS TINYINT = 1;
+    DECLARE @newWatermark AS BIGINT;
+    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
+    IF EXISTS (SELECT 1
+               FROM   @stringExtendedQueryTags)
+        BEGIN
+            UPDATE ets
+            SET    TagValue  = input.TagValue,
+                   Watermark = @newWatermark
+            FROM   dbo.ExtendedQueryTagString AS ets
+                   INNER JOIN
+                   @stringExtendedQueryTags AS input
+                   ON ets.TagKey = input.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND ResourceType = @workitemResourceType
+                   AND PartitionKey = @partitionKey
+                   AND ets.TagValue <> input.TagValue;
+        END
+    IF EXISTS (SELECT 1
+               FROM   @dateTimeExtendedQueryTags)
+        BEGIN
+            UPDATE etdt
+            SET    TagValue  = input.TagValue,
+                   Watermark = @newWatermark
+            FROM   dbo.ExtendedQueryTagDateTime AS etdt
+                   INNER JOIN
+                   @dateTimeExtendedQueryTags AS input
+                   ON etdt.TagKey = input.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND ResourceType = @workitemResourceType
+                   AND PartitionKey = @partitionKey
+                   AND etdt.TagValue <> input.TagValue;
+        END
+    IF EXISTS (SELECT 1
+               FROM   @personNameExtendedQueryTags)
+        BEGIN
+            UPDATE etpn
+            SET    TagValue  = input.TagValue,
+                   Watermark = @newWatermark
+            FROM   dbo.ExtendedQueryTagPersonName AS etpn
+                   INNER JOIN
+                   @personNameExtendedQueryTags AS input
+                   ON etpn.TagKey = input.TagKey
+            WHERE  SopInstanceKey1 = @workitemKey
+                   AND ResourceType = @workitemResourceType
+                   AND PartitionKey = @partitionKey
+                   AND etpn.TagValue <> input.TagValue;
+        END
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatus
 @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT
 AS
@@ -2219,7 +2272,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2231,8 +2284,7 @@ BEGIN
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     UPDATE dbo.Instance
     SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate,
-           HasFrameMetadata      = @hasFrameMetadata
+           LastStatusUpdatedDate = @currentDate
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = @seriesInstanceUid
@@ -2376,6 +2428,31 @@ BEGIN
            AND WorkitemKey = @workitemKey;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Workitem instance does not exist', 1;
+    COMMIT TRANSACTION;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.UpdateWorkitemTransaction
+@workitemKey BIGINT, @partitionKey INT, @watermark BIGINT, @proposedWatermark BIGINT, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @newWatermark AS BIGINT;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    UPDATE dbo.Workitem
+    SET    Watermark = @proposedWatermark
+    WHERE  WorkitemKey = @workitemKey
+           AND Watermark = @watermark;
+    IF @@ROWCOUNT = 0
+        THROW 50499, 'Workitem update failed', 1;
+    BEGIN TRY
+        EXECUTE dbo.UpdateIndexWorkitemInstanceCore @workitemKey, @partitionKey, @stringExtendedQueryTags, @dateTimeExtendedQueryTags, @personNameExtendedQueryTags;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
     COMMIT TRANSACTION;
 END
 

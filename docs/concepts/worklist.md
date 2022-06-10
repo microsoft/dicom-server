@@ -254,3 +254,39 @@ The legal values correspond to the requested state transition. They are: "IN PRO
 * Responses will include the header fields specified in [section 11.7.3.2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7.3.2)
 * A success response shall have no payload.
 * A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
+
+## Update Workitem Transaction
+
+This transaction modifies attributes of an existing Workitem. It corresponds to the UPS DIMSE N-SET operation.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.6
+
+To update a Workitem currently in the SCHEDULED state, the Transaction UID Attribute shall not be present. For a Workitem in the IN PROGRESS state, the request must include the current Transaction UID as a query parameter. If the Workitem is already in the COMPLETED or CANCELED states, the response will be 400 (Bad Request).
+
+| Method  | Path                            | Description           |
+| :------ | :------------------------------ | :-------------------- |
+| POST     | ../workitems/{workitem}?{transaction-uid}	| Update Workitem Transaction	|
+
+The `Content-Type` header is required, and must have the value `application/dicom+json`.
+
+The request payload contains a dataset with the changes to be applied to the target Workitem. When modifying a sequence, the request must include all Items in the sequence, not just the Items to be modified.
+When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
+
+The request cannot set the value of the Procedure Step State (0074,1000) Attribute. Procedure Step State is managed using the Change State transaction, or the Request Cancellation transaction.
+
+### Update Workitem Transaction Response Status Codes
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| The Target Workitem was updated.                                 |
+| 400 (Bad Request)            	| There was a problem with the request. For example: (1) the Target Workitem was in the COMPLETED or CANCELED state. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect. (4) the dataset did not conform to the requirements.
+| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
+| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
+| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+
+### Update Workitem Transaction Response Payload
+The origin server shall support header fields as required in [Table 11.6.3-2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#table_11.6.3-2).
+
+A success response shall have either no payload, or a payload containing a Status Report document.
+
+A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
