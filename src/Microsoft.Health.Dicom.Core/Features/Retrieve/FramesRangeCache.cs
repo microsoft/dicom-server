@@ -12,9 +12,9 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-public class FramesRangeCache : EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>
+public class FramesRangeCache : EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>, IFramesRangeCache
 {
-    public FramesRangeCache(IOptions<FramesRangeCacheConfiguration> configuration, ILoggerFactory loggerFactory, ILogger<EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>>> logger)
+    public FramesRangeCache(IOptions<FramesRangeCacheConfiguration> configuration, ILoggerFactory loggerFactory, ILogger<FramesRangeCache> logger)
         : base(configuration, loggerFactory, logger)
     {
     }

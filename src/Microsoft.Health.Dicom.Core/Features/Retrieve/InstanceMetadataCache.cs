@@ -11,9 +11,9 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-public class InstanceMetadataCache : EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>
+public class InstanceMetadataCache : EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>, IInstanceMetadataCache
 {
-    public InstanceMetadataCache(IOptions<InstanceMetadataCacheConfiguration> configuration, ILoggerFactory loggerFactory, ILogger<EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata>> logger)
+    public InstanceMetadataCache(IOptions<InstanceMetadataCacheConfiguration> configuration, ILoggerFactory loggerFactory, ILogger<InstanceMetadataCache> logger)
         : base(configuration, loggerFactory, logger)
     {
     }

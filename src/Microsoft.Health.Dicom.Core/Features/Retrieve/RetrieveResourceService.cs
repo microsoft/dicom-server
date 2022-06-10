@@ -34,8 +34,8 @@ public class RetrieveResourceService : IRetrieveResourceService
     private readonly IMetadataStore _metadataStore;
     private readonly RetrieveConfiguration _retrieveConfiguration;
     private readonly ILogger<RetrieveResourceService> _logger;
-    private readonly EphemeralMemoryCache<InstanceIdentifier, InstanceMetadata> _instanceMetadataCache;
-    private readonly EphemeralMemoryCache<VersionedInstanceIdentifier, IReadOnlyDictionary<int, FrameRange>> _framesRangeCache;
+    private readonly IInstanceMetadataCache _instanceMetadataCache;
+    private readonly IFramesRangeCache _framesRangeCache;
 
     public RetrieveResourceService(
         IInstanceStore instanceStore,
@@ -45,8 +45,8 @@ public class RetrieveResourceService : IRetrieveResourceService
         IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         IMetadataStore metadataStore,
-        InstanceMetadataCache instanceMetadataCache,
-        FramesRangeCache framesRangeCache,
+        IInstanceMetadataCache instanceMetadataCache,
+        IFramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
         IOptionsSnapshot<InstanceMetadataCacheConfiguration> intanceMetadataCacheOption,
         IOptionsSnapshot<FramesRangeCacheConfiguration> framesRangeCacheOption,

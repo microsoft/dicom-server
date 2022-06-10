@@ -159,8 +159,15 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.AddSingleton<InstanceMetadataCache>();
-        services.AddSingleton<FramesRangeCache>();
+        services.Add<InstanceMetadataCache>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<FramesRangeCache>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
 
         AddExtendedQueryTagServices(services);
 

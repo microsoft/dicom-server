@@ -145,7 +145,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
     }
 
-    private Dictionary<int, FrameRange> GetFramesOffset(DicomDataset dataset)
+    internal static Dictionary<int, FrameRange> GetFramesOffset(DicomDataset dataset)
     {
         if (!dataset.TryGetPixelData(out DicomPixelData dicomPixel))
         {
@@ -164,23 +164,16 @@ public class StoreOrchestrator : IStoreOrchestrator
         // This means offsettable matches the frames and we have to parse the bytes in pixelData to find the right fragment and end at the right fragment.
         // there is also a 8 byte tag inbetween the fragment data that we need to handlee.
         // fo-dicom/DicomPixelData.cs/GetFrame has the logic
-        if (pixelData is DicomFragmentSequence pixelDataFragment)
+        if (pixelData is DicomFragmentSequence pixelDataFragment
+            && pixelDataFragment.Fragments.Count == dicomPixel.NumberOfFrames)
         {
-            if (pixelDataFragment.Fragments.Count == dicomPixel.NumberOfFrames)
+            for (int i = 0; i < pixelDataFragment.Fragments.Count; i++)
             {
-                for (int i = 0; i < pixelDataFragment.Fragments.Count; i++)
+                var fragment = pixelDataFragment.Fragments[i];
+                if (TryGetBufferPosition(fragment, out long position, out long size))
                 {
-                    var fragment = pixelDataFragment.Fragments[i];
-                    if (TryGetBufferPosition(fragment, out long position, out long size))
-                    {
-                        framesRange.Add(i, new FrameRange(position, size));
-                    }
+                    framesRange.Add(i, new FrameRange(position, size));
                 }
-                return framesRange;
-            }
-            else
-            {
-                _logger.LogInformation("This file fragment count {FragmentsCount} does not match frame count {NumberOfFrames}", pixelDataFragment.Fragments.Count, dicomPixel.NumberOfFrames);
             }
         }
         else if (pixelData is DicomOtherByte)
