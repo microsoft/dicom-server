@@ -72,8 +72,8 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         var frameRangeCacheConfig = Substitute.For<IOptionsSnapshot<FramesRangeCacheConfiguration>>();
         frameRangeCacheConfig.Value.Returns(new FramesRangeCacheConfiguration());
         var loggerFactory = Substitute.For<ILoggerFactory>();
-        var instanceMetadataCache = Substitute.For<InstanceMetadataCache>();
-        var framesRangeCache = Substitute.For<FramesRangeCache>();
+        var instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
+        var framesRangeCache = Substitute.For<IFramesRangeCache>();
 
         _metadataStore = blobStorageFixture.MetadataStore;
         _retrieveResourceService = new RetrieveResourceService(
