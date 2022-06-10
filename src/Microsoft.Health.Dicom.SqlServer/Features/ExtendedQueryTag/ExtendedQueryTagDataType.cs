@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
-
 /// <summary>
 /// Date type of extended query tag.
 /// </summary>
@@ -35,3 +34,4 @@ internal enum ExtendedQueryTagDataType
     /// </summary>
     PersonNameData = 4,
 }
+

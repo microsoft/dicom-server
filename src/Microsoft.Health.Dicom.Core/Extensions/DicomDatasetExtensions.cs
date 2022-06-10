@@ -64,6 +64,68 @@ public static class DicomDatasetExtensions
         "\\-hhmm"
     };
 
+    private static readonly HashSet<string> ByteArrayVRs = new HashSet<string>
+    {
+        "OB",
+        "UN"
+    };
+
+    private static readonly HashSet<string> DecimalVRs = new HashSet<string> { "DS" };
+
+    private static readonly HashSet<string> DoubleVRs = new HashSet<string> { "FD" };
+
+    private static readonly HashSet<string> FloatVRs = new HashSet<string> { "FL" };
+
+    private static readonly HashSet<string> IntVRs = new HashSet<string>
+    {
+        "IS",
+        "SL"
+    };
+
+    private static readonly HashSet<string> LongVRs = new HashSet<string> { "SV" };
+
+    private static readonly HashSet<string> ShortVRs = new HashSet<string> { "SS" };
+
+    private static readonly HashSet<string> StringVRs = new HashSet<string>
+    {
+        "AE",
+        "AS",
+        "CS",
+        "DA",
+        "DT",
+        "LO",
+        "LT",
+        "PN",
+        "SH",
+        "ST",
+        "TM",
+        "UC",
+        "UI",
+        "UR",
+        "UT"
+    };
+
+    private static readonly HashSet<string> UIntVRs = new HashSet<string> { "UL" };
+
+    private static readonly HashSet<string> ULongVRs = new HashSet<string> { "UV" };
+
+    private static readonly HashSet<string> UShortVRs = new HashSet<string> { "US" };
+
+    private static readonly HashSet<RequirementCode> MandatoryRequirementCodes = new HashSet<RequirementCode>
+    {
+        RequirementCode.OneOne,
+        RequirementCode.TwoOne,
+        RequirementCode.TwoTwo
+    };
+
+    private static readonly HashSet<RequirementCode> NonZeroLengthRequirementCodes = new HashSet<RequirementCode>
+    {
+        RequirementCode.OneOne,
+        RequirementCode.ThreeOne,
+        RequirementCode.ThreeTwo,
+        RequirementCode.ThreeThree
+    };
+
     /// <summary>
     /// Gets a single value if the value exists; otherwise the default value for the type <typeparamref name="T"/>.
     /// </summary>
@@ -396,8 +458,7 @@ public static class DicomDatasetExtensions
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
-        // We only validate attributes that are mandatory for the SCU (1 or 2). We won't validate any optional attributes (3).
-        dataset.ValidateRequiredAttribute(tag, (requirement is RequirementCode.OneOne));
+        dataset.ValidateRequiredAttribute(tag, requirement);
     }
 
     public static void ValidateRequirement(
@@ -449,11 +510,20 @@ public static class DicomDatasetExtensions
         }
     }
 
-    private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool valueCannotBeZeroLength = true)
+    private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, RequirementCode requirementCode)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(tag, nameof(tag));
 
-        if (!dataset.Contains(tag))
+        dataset.ValidateRequiredAttribute(tag, MandatoryRequirementCodes.Contains(requirementCode), NonZeroLengthRequirementCodes.Contains(requirementCode));
+    }
+
+    private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool isMandatory = true, bool isNonZero = true)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(tag, nameof(tag));
+
+        if (isMandatory && !dataset.Contains(tag))
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.MissingAttribute,
@@ -463,14 +533,104 @@ public static class DicomDatasetExtensions
                     tag));
         }
 
-        if (valueCannotBeZeroLength && dataset.GetValueCount(tag) < 1)
+        if (isNonZero)
         {
-            throw new DatasetValidationException(
-                FailureReasonCodes.MissingAttributeValue,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.MissingRequiredValue,
-                    tag));
+            if (dataset.Contains(tag) && dataset.GetValueCount(tag) < 1)
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.MissingAttributeValue,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.MissingRequiredValue,
+                        tag));
+            }
+
+            if (StringVRs.Contains(tag.GetDefaultVR().Code)
+                    && dataset.TryGetString(tag, out string newStringValue)
+                    && string.IsNullOrWhiteSpace(newStringValue))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.AttributeMustNotBeEmpty,
+                        tag));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Try to update dicom dataset after updating existing dataset with tag value present in newDataset.
+    /// </summary>
+    /// <remarks>
+    /// Update for a tag happens regardless of whether the tag already had value in the existing dataset or not.
+    /// </remarks>
+    /// <param name="existingDataset">Existing Dataset.</param>
+    /// <param name="newDataset">New Dataset.</param>
+    /// <param name="tag">Tag to be updated.</param>
+    /// <param name="updatedDataset">Dataset after updating <paramref name="existingDataset"/> based on values in <paramref name="newDataset"/>.</param>
+    public static void AddOrUpdate(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag, out DicomDataset updatedDataset)
+    {
+        EnsureArg.IsNotNull(existingDataset, nameof(existingDataset));
+        EnsureArg.IsNotNull(newDataset, nameof(newDataset));
+        EnsureArg.IsNotNull(tag, nameof(tag));
+
+        updatedDataset = existingDataset;
+
+        switch (tag.GetDefaultVR().Code)
+        {
+            case var code when DecimalVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<decimal>(tag, newDataset.GetFirstValueOrDefault<decimal>(tag));
+                break;
+            case var code when DoubleVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<double>(tag, newDataset.GetFirstValueOrDefault<double>(tag));
+                break;
+            case var code when FloatVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<float>(tag, newDataset.GetFirstValueOrDefault<float>(tag));
+                break;
+            case var code when IntVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<int>(tag, newDataset.GetFirstValueOrDefault<int>(tag));
+                break;
+            case var code when LongVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<long>(tag, newDataset.GetFirstValueOrDefault<long>(tag));
+                break;
+            case var code when ShortVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<short>(tag, newDataset.GetFirstValueOrDefault<short>(tag));
+                break;
+            case var code when StringVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<string>(tag, newDataset.GetString(tag));
+                break;
+            case var code when UIntVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<uint>(tag, newDataset.GetFirstValueOrDefault<uint>(tag));
+                break;
+            case var code when ULongVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<ulong>(tag, newDataset.GetFirstValueOrDefault<ulong>(tag));
+                break;
+            case var code when UShortVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate<ushort>(tag, newDataset.GetFirstValueOrDefault<ushort>(tag));
+                break;
+            case var code when ByteArrayVRs.Contains(code):
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<byte>(tag));
+                break;
+            case "SQ":
+                newDataset.CopyTo(updatedDataset, tag);
+                break;
+            // Other VR Types
+            case "OD":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<double>(tag));
+                break;
+            case "OF":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<float>(tag));
+                break;
+            case "OL":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<uint>(tag));
+                break;
+            case "OW":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<ushort>(tag));
+                break;
+            case "OV":
+                updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<ulong>(tag));
+                break;
         }
     }
 }
