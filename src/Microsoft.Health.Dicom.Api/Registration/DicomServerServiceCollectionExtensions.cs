@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
@@ -96,6 +97,12 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
 
+        services.AddMiseWithDefaultAuthentication(configurationRoot, options =>
+        {
+            options.Audience = GetValidAudiences(dicomServerConfiguration)[0];
+            options.Authority = dicomServerConfiguration.Security.Authentication.Authority;
+            options.ClientId = "SomeClientId";
+        });
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
         services.AddApplicationInsightsTelemetry();
@@ -142,6 +149,24 @@ public static class DicomServerServiceCollectionExtensions
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
         return new DicomServerBuilder(services);
+    }
+
+    private static string[] GetValidAudiences(DicomServerConfiguration config)
+    {
+        if (config.Security.Authentication.Audiences != null)
+        {
+            return config.Security.Authentication.Audiences.ToArray();
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.Security.Authentication.Audience))
+        {
+            return new[]
+            {
+                config.Security.Authentication.Audience,
+            };
+        }
+
+        return null;
     }
 
     private class DicomServerBuilder : IDicomServerBuilder

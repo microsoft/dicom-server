@@ -32,7 +32,7 @@ public class QueryHandler : BaseHandler, IRequestHandler<QueryResourceRequest, Q
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        _logger.LogInformation("CodeChange - 1 in QueryHandler.Handler");
+        _logger.LogInformation("CodeChange - 2 - Mise Remote Auth works - in QueryHandler.Handler");
 
         if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {

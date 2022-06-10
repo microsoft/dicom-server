@@ -94,6 +94,8 @@
     <PackageVersion Include="xunit" Version="2.4.1" />
     <PackageVersion Include="xunit.assert" Version="2.4.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
+  <PackageVersion Include="Microsoft.Identity.ServiceEssentials.AspNetCore" Version="1.9.2" />
+
   </ItemGroup>
 
 </Project>

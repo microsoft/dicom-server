@@ -28,6 +28,7 @@
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Microsoft.Identity.ServiceEssentials.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup>
