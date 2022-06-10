@@ -19,7 +19,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Common;
 /// </summary>
 /// <typeparam name="TIn"></typeparam>
 /// <typeparam name="TOut"></typeparam>
-public class EphemeralMemoryCache<TIn, TOut> : IDisposable
+public abstract class EphemeralMemoryCache<TIn, TOut> : IDisposable
 {
     private readonly CacheConfiguration _configuration;
     private readonly MemoryCache _memoryCache;
@@ -27,7 +27,7 @@ public class EphemeralMemoryCache<TIn, TOut> : IDisposable
     private readonly SemaphoreSlim _semaphore;
     private bool _disposed;
 
-    public EphemeralMemoryCache(
+    protected EphemeralMemoryCache(
         IOptions<CacheConfiguration> configuration,
         ILoggerFactory loggerFactory,
         ILogger<EphemeralMemoryCache<TIn, TOut>> logger)
