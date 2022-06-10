@@ -44,7 +44,7 @@ public interface IIndexWorkitemStore
     /// <param name="workitemKey">The workitem instance key.</param>
     /// <param name="status">The Workitem status</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
+    /// <returns>A task representing asynchronous update workitem status operation.</returns>
     Task UpdateWorkitemStatusAsync(int partitionKey, long workitemKey, WorkitemStoreStatus status, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -68,7 +68,7 @@ public interface IIndexWorkitemStore
     /// <param name="dataset"></param>
     /// <param name="queryTags"></param>
     /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <returns>A task representing asynchronous update workitem operation.</returns>
     Task UpdateWorkitemTransactionAsync(WorkitemMetadataStoreEntry workitemMetadata, long proposedWatermark, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
     /// <summary>
