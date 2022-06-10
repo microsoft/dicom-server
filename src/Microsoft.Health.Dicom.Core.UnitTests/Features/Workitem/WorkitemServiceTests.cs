@@ -623,6 +623,18 @@ public sealed class WorkitemServiceTests
                 Arg.Is<string>(msg => msg == DicomCoreResource.WorkitemInstanceNotFound));
     }
 
+    [Fact]
+    public void GivenTwoDatasets_WhenMerging_Success()
+    {
+        var dataset1 = new DicomDataset();
+        var dataset2 = new DicomDataset { new DicomUniqueIdentifier(DicomTag.StudyInstanceUID, "1.2.3") };
+        var warningTags = new List<DicomTag>();
+
+        WorkitemService.GetMergedDataset(dataset1, dataset2, out warningTags);
+
+        Assert.True(dataset1.Contains(DicomTag.StudyInstanceUID));
+    }
+
     private QueryParameters CreateParameters(
         Dictionary<string, string> filters,
         QueryResource resourceType,

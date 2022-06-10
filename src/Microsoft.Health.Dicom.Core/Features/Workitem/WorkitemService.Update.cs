@@ -163,7 +163,9 @@ public partial class WorkitemService
         }
     }
 
-    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset, out List<DicomTag> warningTags)
+#pragma warning disable CA1002 // Do not expose generic lists
+    public static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset, out List<DicomTag> warningTags)
+#pragma warning restore CA1002 // Do not expose generic lists
     {
         DicomDataset mergedDataset = existingDataset;
         List<DicomTag> unsuccessfulUpdateTags = new List<DicomTag>();
@@ -178,7 +180,9 @@ public partial class WorkitemService
 
         // Set Scheduled Procedure Step Modification DateTime as the current time.
         // Reference: https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3
+#pragma warning disable CA1062 // Validate arguments of public methods
         mergedDataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
+#pragma warning restore CA1062 // Validate arguments of public methods
 
         warningTags = unsuccessfulUpdateTags;
 
