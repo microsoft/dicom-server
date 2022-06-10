@@ -21,11 +21,11 @@ using Microsoft.Health.SqlServer.Features.Storage;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
 /// <summary>
-/// Sql IndexDataStore version 6.
+/// Sql IndexDataStore version 23.
 /// </summary>
-internal class SqlIndexDataStoreV22 : SqlIndexDataStoreV10
+internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
 {
-    public SqlIndexDataStoreV22(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV23(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
     }
