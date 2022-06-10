@@ -622,9 +622,6 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The attribute with tag '{0}' must not be empty.</value>
     <comment>{0} Dicom Tag.</comment>
   </data>
-  <data name="WorkitemUpdatedWithModification" xml:space="preserve">
-    <value>The Workitem was updated with modifications.</value>
-  </data>
   <data name="WorkitemUpdateWarningTags" xml:space="preserve">
     <value>Following tags could not be updated as they were not present when the workitem was created: {0}</value>
     <comment>{0} comma separated list of tags that could not be updated.</comment>

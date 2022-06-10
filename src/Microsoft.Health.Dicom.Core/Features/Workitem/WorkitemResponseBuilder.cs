@@ -156,7 +156,7 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     public void AddSuccess(string warning = default)
     {
         _dataset = new DicomDataset();
-        _message = warning;
+        _message = warning ?? string.Empty;
     }
 
     /// <inheritdoc />

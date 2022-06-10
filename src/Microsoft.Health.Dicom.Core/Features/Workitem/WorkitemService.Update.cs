@@ -4,9 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -129,7 +127,7 @@ public partial class WorkitemService
             }
 
             // Update `existingDatabase` object.
-            DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset, out List<DicomTag> warningTags);
+            DicomDataset updatedDataset = GetMergedDataset(existingDataset, dataset);
 
             await _workitemOrchestrator
                 .UpdateWorkitemAsync(updatedDataset, workitemMetadata, cancellationToken)
@@ -137,14 +135,7 @@ public partial class WorkitemService
 
             _logger.LogInformation("Successfully updated the DICOM instance work-item entry.");
 
-            if (warningTags == null || !warningTags.Any())
-            {
-                _responseBuilder.AddSuccess();
-            }
-            else
-            {
-                _responseBuilder.AddSuccess(DicomCoreResource.WorkitemUpdatedWithModification);
-            }
+            _responseBuilder.AddSuccess();
         }
         catch (Exception ex)
         {
@@ -163,24 +154,15 @@ public partial class WorkitemService
         }
     }
 
-    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset, out List<DicomTag> warningTags)
+    private static DicomDataset GetMergedDataset(DicomDataset existingDataset, DicomDataset newDataset)
     {
         DicomDataset mergedDataset = existingDataset;
-        List<DicomTag> unsuccessfulUpdateTags = new List<DicomTag>();
 
-        newDataset.Each(di =>
-        {
-            if (!mergedDataset.TryUpdate(newDataset, di.Tag, out mergedDataset))
-            {
-                unsuccessfulUpdateTags.Add(di.Tag);
-            }
-        });
+        newDataset.Each(di => mergedDataset.AddOrUpdate(newDataset, di.Tag, out mergedDataset));
 
         // Set Scheduled Procedure Step Modification DateTime as the current time.
         // Reference: https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3
         mergedDataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
-
-        warningTags = unsuccessfulUpdateTags;
 
         return mergedDataset;
     }

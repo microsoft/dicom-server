@@ -563,25 +563,19 @@ public static class DicomDatasetExtensions
     /// Try to update dicom dataset after updating existing dataset with tag value present in newDataset.
     /// </summary>
     /// <remarks>
-    /// Update for a tag happens only if this tag already had value in the existing dataset.
+    /// Update for a tag happens regardless of whether the tag already had value in the existing dataset or not.
     /// </remarks>
     /// <param name="existingDataset">Existing Dataset.</param>
     /// <param name="newDataset">New Dataset.</param>
     /// <param name="tag">Tag to be updated.</param>
     /// <param name="updatedDataset">Dataset after updating <paramref name="existingDataset"/> based on values in <paramref name="newDataset"/>.</param>
-    /// <returns>True if update was successful, else returns false.</returns>
-    public static bool TryUpdate(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag, out DicomDataset updatedDataset)
+    public static void AddOrUpdate(this DicomDataset existingDataset, DicomDataset newDataset, DicomTag tag, out DicomDataset updatedDataset)
     {
         EnsureArg.IsNotNull(existingDataset, nameof(existingDataset));
         EnsureArg.IsNotNull(newDataset, nameof(newDataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
         updatedDataset = existingDataset;
-
-        if (!existingDataset.Contains(tag))
-        {
-            return false;
-        }
 
         switch (tag.GetDefaultVR().Code)
         {
@@ -638,7 +632,5 @@ public static class DicomDatasetExtensions
                 updatedDataset = existingDataset.AddOrUpdate(tag, newDataset.GetValues<ulong>(tag));
                 break;
         }
-
-        return true;
     }
 }

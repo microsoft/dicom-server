@@ -1363,15 +1363,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Workitem was updated with modifications..
-        /// </summary>
-        internal static string WorkitemUpdatedWithModification {
-            get {
-                return ResourceManager.GetString("WorkitemUpdatedWithModification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The workitem instance state is &apos;{0}&apos;..
         /// </summary>
         internal static string WorkitemUpdateIsNotAllowed {
