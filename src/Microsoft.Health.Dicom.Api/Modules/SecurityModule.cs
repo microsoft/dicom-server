@@ -75,7 +75,7 @@ public class SecurityModule : IStartupModule
                 services.Add<DicomRoleLoader>().Transient().AsImplementedInterfaces();
                 services.AddSingleton(_securityConfiguration.Authorization);
 
-                services.AddSingleton<IAuthorizationService<DataActions>, RoleBasedAuthorizationService<DataActions, IDicomRequestContext>>();
+                services.AddSingleton<IAuthorizationService<DataActions>, MyRoleBasedAuthorizationService<DataActions, IDicomRequestContext>>();
             }
             else
             {
