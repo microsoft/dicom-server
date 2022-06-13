@@ -41,25 +41,28 @@ public class SecurityModule : IStartupModule
 
         if (_securityConfiguration.Enabled)
         {
-            string[] validAudiences = GetValidAudiences();
-            string challengeAudience = validAudiences?.FirstOrDefault();
+            if (!_securityConfiguration.Authentication.DisableJwtBearer)
+            {
+                string[] validAudiences = GetValidAudiences();
+                string challengeAudience = validAudiences?.FirstOrDefault();
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.Authority = _securityConfiguration.Authentication.Authority;
-                options.RequireHttpsMetadata = true;
-                options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
-                options.TokenValidationParameters = new TokenValidationParameters
+                services.AddAuthentication(options =>
                 {
-                    ValidAudiences = validAudiences,
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = _securityConfiguration.Authentication.Authority;
+                    options.RequireHttpsMetadata = true;
+                    options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidAudiences = validAudiences,
+                    };
+                });
+            }
 
             services.AddControllers(mvcOptions =>
             {

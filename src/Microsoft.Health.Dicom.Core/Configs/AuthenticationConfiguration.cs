@@ -14,4 +14,14 @@ public class AuthenticationConfiguration
     public IEnumerable<string> Audiences { get; set; }
 
     public string Authority { get; set; }
+
+    /// <summary>
+    /// Gets or sets the clientID used by MISE.
+    /// </summary>
+    public string ClientId { get; set; }
+
+    /// <summary>
+    /// True to disable JwtBearer Authentication so that could use MISE, false otherwise.
+    /// </summary>
+    public bool DisableJwtBearer { get; set; }
 }
