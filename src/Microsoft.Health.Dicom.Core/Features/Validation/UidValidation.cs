@@ -48,7 +48,7 @@ internal class UidValidation : IElementValidation
     {
         if (!IsValid(value, allowEmpty))
         {
-            throw new InvalidIdentifierException(name, value);
+            throw new InvalidIdentifierException(name);
         }
     }
 }

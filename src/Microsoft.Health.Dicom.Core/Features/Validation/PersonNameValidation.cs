@@ -26,7 +26,7 @@ internal class PersonNameValidation : IElementValidation
         string[] groups = value.Split('=');
         if (groups.Length > 3)
         {
-            throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxGroups);
+            throw new ElementValidationException(name, DicomVR.PN, ValidationErrorCode.PersonNameExceedMaxGroups);
         }
 
         foreach (string group in groups)
@@ -38,18 +38,18 @@ internal class PersonNameValidation : IElementValidation
             catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
             {
                 // Reprocess the exception to make more meaningful message
-                throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameGroupExceedMaxLength);
+                throw new ElementValidationException(name, DicomVR.PN, ValidationErrorCode.PersonNameGroupExceedMaxLength);
             }
 
             if (ValidationUtils.ContainsControlExceptEsc(group))
             {
-                throw new ElementValidationException(name, vr, value, ValidationErrorCode.InvalidCharacters);
+                throw new ElementValidationException(name, vr, ValidationErrorCode.InvalidCharacters);
             }
         }
 
         if (groups.Select(g => g.Split('^').Length).Any(l => l > 5))
         {
-            throw new ElementValidationException(name, DicomVR.PN, value, ValidationErrorCode.PersonNameExceedMaxComponents);
+            throw new ElementValidationException(name, DicomVR.PN, ValidationErrorCode.PersonNameExceedMaxComponents);
         }
     }
 }

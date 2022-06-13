@@ -16,12 +16,12 @@ public static class PartitionNameValidator
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new InvalidPartitionNameException(value);
+            throw new InvalidPartitionNameException();
         }
 
         if (value.Length > 64 || !ValidIdentifierCharactersFormat.IsMatch(value))
         {
-            throw new InvalidPartitionNameException(value);
+            throw new InvalidPartitionNameException();
         }
     }
 }
