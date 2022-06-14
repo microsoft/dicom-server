@@ -13,13 +13,14 @@ The request body consists of the export source and destination.
     "source": {
         "type": "<source type>",
         "settings": {
-            // Source settings
+            "setting1": "<value>",
+            "setting2": "<value>"
         }
     },
     "destination": {
         "type": "<destination type>",
         "settings": {
-            // Destination settings
+            "setting3": "<value>"
         }
     }
 }
