@@ -133,7 +133,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            V21.UpdateInstanceStatusV6.PopulateCommand(
+            V22.UpdateInstanceStatusV6.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
