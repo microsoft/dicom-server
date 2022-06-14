@@ -31,8 +31,8 @@ Upon successfully starting an export operation, the export API returns a `202` s
 
 ```json
 {
-    id: "df1ff476b83a4a3eaf11b1eac2e5ac56",
-    href: "<base url>/<version>/operations/df1ff476b83a4a3eaf11b1eac2e5ac56"
+    "id": "df1ff476b83a4a3eaf11b1eac2e5ac56",
+    "href": "<base url>/<version>/operations/df1ff476b83a4a3eaf11b1eac2e5ac56"
 }
 ```
 
