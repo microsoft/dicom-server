@@ -51,7 +51,7 @@
     <PackageVersion Include="Microsoft.Extensions.FileProviders.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="6.0.5" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="6.0.6" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.20.0" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="$(SdkPackageVersion)" />
