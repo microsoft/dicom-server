@@ -6,8 +6,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using NSubstitute;
 using Xunit;
@@ -18,13 +16,11 @@ public class QueryTagServiceTests
 {
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
     private readonly IQueryTagService _queryTagService;
-    private readonly FeatureConfiguration _featureConfiguration;
 
     public QueryTagServiceTests()
     {
         _extendedQueryTagStore = Substitute.For<IExtendedQueryTagStore>();
-        _featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = true };
-        _queryTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(_featureConfiguration));
+        _queryTagService = new QueryTagService(_extendedQueryTagStore);
     }
 
     [Fact]
@@ -36,14 +32,5 @@ public class QueryTagServiceTests
         await _queryTagService.GetQueryTagsAsync();
         await _queryTagService.GetQueryTagsAsync();
         await _extendedQueryTagStore.Received(1).GetExtendedQueryTagsAsync(int.MaxValue, 0, Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task GivenEnableExtendedQueryTagsIsDisabled_WhenGetExtendedQueryTagsIsCalledMultipleTimes_ThenExtendedQueryTagStoreShouldNotBeCalled()
-    {
-        FeatureConfiguration featureConfiguration = new FeatureConfiguration() { EnableExtendedQueryTags = false };
-        IQueryTagService indexableDicomTagService = new QueryTagService(_extendedQueryTagStore, Options.Create(featureConfiguration));
-        await indexableDicomTagService.GetQueryTagsAsync();
-        await _extendedQueryTagStore.DidNotReceiveWithAnyArgs().GetExtendedQueryTagsAsync(default, default, default);
     }
 }
