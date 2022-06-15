@@ -72,10 +72,17 @@ public class BlobFileStore : IFileStore
         stream.Seek(0, SeekOrigin.Begin);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
+        var taskResponse = new List<Task<Response<BlobContentInfo>>>();
 
         try
         {
-            await Task.WhenAll(blobClients.Select(blob => blob.UploadAsync(stream, blobUploadOptions, cancellationToken)));
+            foreach (var blob in blobClients)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                taskResponse.Add(blob.UploadAsync(stream, blobUploadOptions, cancellationToken));
+            }
+
+            await Task.WhenAll(taskResponse);
             return blobClients[0].Uri;
         }
         catch (Exception ex)
