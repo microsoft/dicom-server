@@ -14,13 +14,10 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Api.Models;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Operations;
@@ -35,43 +32,8 @@ public class ExtendedQueryTagControllerTests
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
-            null,
-            Options.Create(new FeatureConfiguration()),
-            NullLogger<ExtendedQueryTagController>.Instance));
-
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
-            new Mediator(t => null),
-            null,
-            NullLogger<ExtendedQueryTagController>.Instance));
-
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
-            new Mediator(t => null),
-            Options.Create<FeatureConfiguration>(null),
-            NullLogger<ExtendedQueryTagController>.Instance));
-
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(
-            new Mediator(t => null),
-            Options.Create(new FeatureConfiguration()),
-            null));
-    }
-
-    [Fact]
-    public async Task GivenFeatureIsDisabled_WhenCallingApi_ThenShouldThrowException()
-    {
-        IMediator _mediator = Substitute.For<IMediator>();
-        IOptions<FeatureConfiguration> featureConfig = Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = false });
-        var controller = new ExtendedQueryTagController(
-            _mediator,
-            featureConfig,
-            NullLogger<ExtendedQueryTagController>.Instance);
-
-        await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagAsync(DicomTag.PageNumberVector.GetPath()));
-        await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagErrorsAsync(DicomTag.PageNumberVector.GetPath(), new PaginationOptions()));
-        await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.GetTagsAsync(new PaginationOptions()));
-        await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.PostAsync(Array.Empty<AddExtendedQueryTagEntry>()));
-        await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.DeleteAsync(DicomTag.PageNumberVector.GetPath()));
-        await Assert.ThrowsAsync<ExtendedQueryTagFeatureDisabledException>(() => controller.UpdateTagAsync(DicomTag.PageNumberVector.GetPath(), new UpdateExtendedQueryTagOptions()));
+        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(null, NullLogger<ExtendedQueryTagController>.Instance));
+        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(new Mediator(t => null), null));
     }
 
     [Fact]
@@ -80,10 +42,7 @@ public class ExtendedQueryTagControllerTests
         IMediator mediator = Substitute.For<IMediator>();
         const string path = "11330001";
 
-        var controller = new ExtendedQueryTagController(
-            mediator,
-            Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = true }),
-            NullLogger<ExtendedQueryTagController>.Instance);
+        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance);
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         Guid id = Guid.NewGuid();
@@ -116,10 +75,7 @@ public class ExtendedQueryTagControllerTests
         IMediator mediator = Substitute.For<IMediator>();
         const string path = "11330001";
 
-        var controller = new ExtendedQueryTagController(
-            mediator,
-            Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = true }),
-            NullLogger<ExtendedQueryTagController>.Instance);
+        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance);
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         var expected = new GetExtendedQueryTagErrorsResponse(
@@ -155,10 +111,7 @@ public class ExtendedQueryTagControllerTests
         var expected = new AddExtendedQueryTagResponse(
             new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute)));
         IMediator mediator = Substitute.For<IMediator>();
-        var controller = new ExtendedQueryTagController(
-            mediator,
-            Options.Create(new FeatureConfiguration { EnableExtendedQueryTags = true }),
-            NullLogger<ExtendedQueryTagController>.Instance);
+        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance);
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         var input = new List<AddExtendedQueryTagEntry>

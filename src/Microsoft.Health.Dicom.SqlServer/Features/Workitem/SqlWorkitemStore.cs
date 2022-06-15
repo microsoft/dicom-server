@@ -56,6 +56,18 @@ internal sealed class SqlWorkitemStore : IIndexWorkitemStore
         await store.UpdateWorkitemProcedureStepStateAsync(workitemMetadata, proposedWatermark, procedureStepState, transactionUid, cancellationToken);
     }
 
+    public async Task UpdateWorkitemTransactionAsync(
+        WorkitemMetadataStoreEntry workitemMetadata,
+        long proposedWatermark,
+        DicomDataset dataset,
+        IEnumerable<QueryTag> queryTags,
+        CancellationToken cancellationToken = default)
+    {
+        var store = await _cache.GetAsync(cancellationToken: cancellationToken);
+
+        await store.UpdateWorkitemTransactionAsync(workitemMetadata, proposedWatermark, dataset, queryTags, cancellationToken);
+    }
+
     public async Task DeleteWorkitemAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
     {
         ISqlWorkitemStore store = await _cache.GetAsync(cancellationToken: cancellationToken);

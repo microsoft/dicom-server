@@ -21,4 +21,6 @@ public partial interface IDicomWebClient
     Task<DicomWebResponse<DicomDataset>> RetrieveWorkitemAsync(string workitemUid, string partitionName = default, CancellationToken cancellationToken = default);
 
     Task<DicomWebResponse> ChangeWorkitemStateAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string partitionName = default, CancellationToken cancellationToken = default);
+
+    Task<DicomWebResponse> UpdateWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string transactionUid = default, string partitionName = default, CancellationToken cancellationToken = default);
 }

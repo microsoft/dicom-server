@@ -79,6 +79,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The attribute with tag &apos;{0}&apos; must not be empty..
+        /// </summary>
+        internal static string AttributeMustNotBeEmpty {
+            get {
+                return ResourceManager.GetString("AttributeMustNotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The attribute with tag &apos;{0}&apos; cannot be present..
         /// </summary>
         internal static string AttributeNotAllowed {
@@ -787,6 +796,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The target URI did not reference a claimed Workitem..
+        /// </summary>
+        internal static string InvalidWorkitemInstanceTargetUri {
+            get {
+                return ResourceManager.GetString("InvalidWorkitemInstanceTargetUri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified item cannot be found..
         /// </summary>
         internal static string ItemNotFound {
@@ -1120,6 +1138,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transaction UID is missing..
+        /// </summary>
+        internal static string TransactionUIDAbsent {
+            get {
+                return ResourceManager.GetString("TransactionUIDAbsent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected token type &apos;{0}&apos; but read &apos;{1}&apos; instead..
         /// </summary>
         internal static string UnexpectedJsonToken {
@@ -1228,6 +1255,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The submitted request is inconsistent with the current state of the Workitem..
+        /// </summary>
+        internal static string UpdateWorkitemInstanceConflictFailure {
+            get {
+                return ResourceManager.GetString("UpdateWorkitemInstanceConflictFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to UPS-RS feature is disabled..
         /// </summary>
         internal static string UpsRsFeatureDisabled {
@@ -1260,6 +1296,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string WorkitemCancelRequestSuccess {
             get {
                 return ResourceManager.GetString("WorkitemCancelRequestSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance is currently being updated. Please try again later..
+        /// </summary>
+        internal static string WorkitemCurrentlyBeingUpdated {
+            get {
+                return ResourceManager.GetString("WorkitemCurrentlyBeingUpdated", resourceCulture);
             }
         }
         
@@ -1309,11 +1354,38 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Procedure step state is present in the dataset provided to be updated which is not allowed..
+        /// </summary>
+        internal static string WorkitemProcedureStepStateNotAllowed {
+            get {
+                return ResourceManager.GetString("WorkitemProcedureStepStateNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The workitem instance state is &apos;{0}&apos;..
         /// </summary>
         internal static string WorkitemUpdateIsNotAllowed {
             get {
                 return ResourceManager.GetString("WorkitemUpdateIsNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The workitem instance has been updated successfully..
+        /// </summary>
+        internal static string WorkitemUpdateRequestSuccess {
+            get {
+                return ResourceManager.GetString("WorkitemUpdateRequestSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Following tags could not be updated as they were not present when the workitem was created: {0}.
+        /// </summary>
+        internal static string WorkitemUpdateWarningTags {
+            get {
+                return ResourceManager.GetString("WorkitemUpdateWarningTags", resourceCulture);
             }
         }
     }

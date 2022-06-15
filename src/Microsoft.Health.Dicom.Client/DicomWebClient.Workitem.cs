@@ -96,6 +96,16 @@ public partial class DicomWebClient : IDicomWebClient
             DeserializeAsAsyncEnumerable<DicomDataset>(response.Content));
     }
 
+    public async Task<DicomWebResponse> UpdateWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets, string workitemUid, string transactionUid = default, string partitionName = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
+        EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
+
+        var uri = GenerateWorkitemUpdateRequestUri(workitemUid, transactionUid, partitionName);
+
+        return await Request(uri, dicomDatasets, HttpMethod.Post, cancellationToken).ConfigureAwait(false);
+    }
+
     private async Task<DicomWebResponse> Request<TContent>(
         Uri uri,
         TContent requestContent,

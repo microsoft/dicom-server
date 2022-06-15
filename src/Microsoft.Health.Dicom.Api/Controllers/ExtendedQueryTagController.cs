@@ -13,13 +13,11 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
@@ -37,20 +35,11 @@ public class ExtendedQueryTagController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ExtendedQueryTagController> _logger;
-    private readonly bool _featureEnabled;
 
-    public ExtendedQueryTagController(
-        IMediator mediator,
-        IOptions<FeatureConfiguration> featureConfiguration,
-        ILogger<ExtendedQueryTagController> logger)
+    public ExtendedQueryTagController(IMediator mediator, ILogger<ExtendedQueryTagController> logger)
     {
-        EnsureArg.IsNotNull(mediator, nameof(mediator));
-        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        _mediator = mediator;
-        _logger = logger;
-        _featureEnabled = featureConfiguration.Value.EnableExtendedQueryTags;
+        _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     [HttpPost]
@@ -64,8 +53,6 @@ public class ExtendedQueryTagController : ControllerBase
     public async Task<IActionResult> PostAsync([Required][FromBody] IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTags)
     {
         _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {ExtendedQueryTags}.", extendedQueryTags);
-
-        EnsureFeatureIsEnabled();
 
         try
         {
@@ -95,9 +82,7 @@ public class ExtendedQueryTagController : ControllerBase
     {
         _logger.LogInformation("DICOM Web Delete Extended Query Tag request received, with extended query tag path {TagPath}.", tagPath);
 
-        EnsureFeatureIsEnabled();
         await _mediator.DeleteExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
-
         return StatusCode((int)HttpStatusCode.NoContent);
     }
 
@@ -124,14 +109,12 @@ public class ExtendedQueryTagController : ControllerBase
         _logger.LogInformation("DICOM Web Get Extended Query Tag request received for all extended query tags");
 
         EnsureArg.IsNotNull(options, nameof(options));
-        EnsureFeatureIsEnabled();
         GetExtendedQueryTagsResponse response = await _mediator.GetExtendedQueryTagsAsync(
             options.Limit,
             options.Offset,
             HttpContext.RequestAborted);
 
-        return StatusCode(
-            (int)HttpStatusCode.OK, response.ExtendedQueryTags);
+        return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTags);
     }
 
     /// <summary>
@@ -153,11 +136,8 @@ public class ExtendedQueryTagController : ControllerBase
     {
         _logger.LogInformation("DICOM Web Get Extended Query Tag request received for extended query tag: {TagPath}", tagPath);
 
-        EnsureFeatureIsEnabled();
         GetExtendedQueryTagResponse response = await _mediator.GetExtendedQueryTagAsync(tagPath, HttpContext.RequestAborted);
-
-        return StatusCode(
-            (int)HttpStatusCode.OK, response.ExtendedQueryTag);
+        return StatusCode((int)HttpStatusCode.OK, response.ExtendedQueryTag);
     }
 
     /// <summary>
@@ -184,7 +164,6 @@ public class ExtendedQueryTagController : ControllerBase
         _logger.LogInformation("DICOM Web Get Extended Query Tag Errors request received for extended query tag: {TagPath}", tagPath);
 
         EnsureArg.IsNotNull(options, nameof(options));
-        EnsureFeatureIsEnabled();
         GetExtendedQueryTagErrorsResponse response = await _mediator.GetExtendedQueryTagErrorsAsync(
             tagPath,
             options.Limit,
@@ -204,20 +183,11 @@ public class ExtendedQueryTagController : ControllerBase
     [AuditEventType(AuditEventSubType.UpdateExtendedQueryTag)]
     public async Task<IActionResult> UpdateTagAsync([FromRoute] string tagPath, [FromBody] UpdateExtendedQueryTagOptions newValue)
     {
-        EnsureArg.IsNotNull(newValue, nameof(newValue));
-        _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {TagPath} and new value {NewValue}", tagPath, $"{nameof(newValue.QueryStatus)}: '{newValue.QueryStatus}'");
+        _logger.LogInformation("DICOM Web Update Extended Query Tag Query Status request received for extended query tag {TagPath} and new value {NewValue}", tagPath, $"{nameof(UpdateExtendedQueryTagOptions.QueryStatus)}: '{newValue?.QueryStatus}'");
 
-        EnsureFeatureIsEnabled();
-        var response = await _mediator.UpdateExtendedQueryTagAsync(tagPath, newValue.ToEntry(), HttpContext.RequestAborted);
+        EnsureArg.IsNotNull(newValue, nameof(newValue));
+        UpdateExtendedQueryTagResponse response = await _mediator.UpdateExtendedQueryTagAsync(tagPath, newValue.ToEntry(), HttpContext.RequestAborted);
 
         return StatusCode((int)HttpStatusCode.OK, response.TagEntry);
-    }
-
-    private void EnsureFeatureIsEnabled()
-    {
-        if (!_featureEnabled)
-        {
-            throw new ExtendedQueryTagFeatureDisabledException();
-        }
     }
 }

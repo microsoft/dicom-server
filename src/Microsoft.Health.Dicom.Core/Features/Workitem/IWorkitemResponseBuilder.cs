@@ -38,6 +38,13 @@ public interface IWorkitemResponseBuilder
     RetrieveWorkitemResponse BuildRetrieveWorkitemResponse();
 
     /// <summary>
+    /// Builds the response for update workitem.
+    /// </summary>
+    /// <param name="workitemInstanceUid">Workitem Instance UID.</param>
+    /// <returns>An instance of <see cref="UpdateWorkitemResponse"/> representing the response.</returns>
+    UpdateWorkitemResponse BuildUpdateWorkitemResponse(string workitemInstanceUid = null);
+
+    /// <summary>
     /// Adds a successful entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
@@ -46,8 +53,8 @@ public interface IWorkitemResponseBuilder
     /// <summary>
     /// Adds a successful entry to the response with a status message
     /// </summary>
-    /// <param name="message">The message related to the status</param>
-    void AddSuccess(string message);
+    /// <param name="warning">The warning message related to the status</param>
+    void AddSuccess(string warning = default);
 
     /// <summary>
     /// Adds a failed entry to the response.
