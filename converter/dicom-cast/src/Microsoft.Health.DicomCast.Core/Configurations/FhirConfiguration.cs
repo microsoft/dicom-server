@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Client.Configuration;
 
 namespace Microsoft.Health.DicomCast.Core.Configurations;
 

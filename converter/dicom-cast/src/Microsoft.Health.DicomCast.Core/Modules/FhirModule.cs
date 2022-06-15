@@ -6,8 +6,9 @@
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Client.Configuration;
+using Microsoft.Health.Client.Extensions;
 using Microsoft.Health.DicomCast.Core.Configurations;
-using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Extensions.DependencyInjection;
