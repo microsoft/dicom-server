@@ -14,9 +14,10 @@ az functionapp create --name dicom-uploader --storage-account {storage-account-n
 ```
 
 ## Grant permissions for function's managed identity
-Grant Function managed identity Dicom Data Owner
-Grant Function managed identity Storage Blob Contrib
-Grant Function Managed identity Storage Queeu Contrib
+
+- Grant Function managed identity Dicom Data Owner
+- Grant Function managed identity Storage Blob Contrib
+- Grant Function Managed identity Storage Queeu Contrib
 
 ## Update settings
 ```
