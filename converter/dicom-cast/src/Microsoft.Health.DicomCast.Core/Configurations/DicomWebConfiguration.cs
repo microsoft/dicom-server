@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Client.Configuration;
+using Microsoft.Health.Client.Authentication;
 
 namespace Microsoft.Health.DicomCast.Core.Configurations;
 
@@ -30,5 +30,5 @@ public class DicomWebConfiguration
     /// <summary>
     /// Authentication settings for DICOMWeb.
     /// </summary>
-    public AuthenticationConfiguration Authentication { get; set; }
+    public AuthenticationOptions Authentication { get; set; }
 }

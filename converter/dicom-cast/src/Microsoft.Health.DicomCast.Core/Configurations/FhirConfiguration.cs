@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Client.Configuration;
+using Microsoft.Health.Client.Authentication;
 
 namespace Microsoft.Health.DicomCast.Core.Configurations;
 
@@ -15,5 +15,5 @@ public class FhirConfiguration
     /// <summary>
     /// Authentication settings for the FHIR server.
     /// </summary>
-    public AuthenticationConfiguration Authentication { get; set; }
+    public AuthenticationOptions Authentication { get; set; }
 }
