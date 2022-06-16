@@ -22,15 +22,15 @@ public class Startup : FunctionsStartup
     {
         EnsureArg.IsNotNull(builder, nameof(builder));
 
-        var configuration = builder.GetContext().Configuration;
+        IConfiguration configuration = builder.GetContext().Configuration;
 
-        var dicomConfiguration = new DicomConfiguration();
-        var dicomWebConfigurationSection = configuration.GetSection(DicomConfiguration.SectionName);
-        dicomWebConfigurationSection.Bind(dicomConfiguration);
+        var dicomOptions = new DicomOptions();
+        IConfigurationSection dicomWebConfigurationSection = configuration.GetSection(DicomOptions.SectionName);
+        dicomWebConfigurationSection.Bind(dicomOptions);
 
         builder.Services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
             {
-                client.BaseAddress = dicomConfiguration.Endpoint;
+                client.BaseAddress = dicomOptions.Endpoint;
             })
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
     }

@@ -8,7 +8,7 @@ using Microsoft.Health.Client.Authentication;
 
 namespace DicomUploaderFunction.Configuration;
 
-public class DicomConfiguration
+public class DicomOptions
 {
     public const string SectionName = "DicomWeb";
 
