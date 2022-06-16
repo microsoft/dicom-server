@@ -84,8 +84,6 @@ public class BlobMetadataStore : IMetadataStore
 
         BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
 
-        var taskResponse = new List<Task<Response<BlobContentInfo>>>();
-
         try
         {
             await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
@@ -98,17 +96,15 @@ public class BlobMetadataStore : IMetadataStore
                 foreach (var blob in blobClients)
                 {
                     stream.Seek(0, SeekOrigin.Begin);
-                    taskResponse.Add(blob.UploadAsync(
+                    await blob.UploadAsync(
                         stream,
                         new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
                         metadata: null,
                         conditions: null,
                         accessTier: null,
                         progressHandler: null,
-                        cancellationToken));
+                        cancellationToken);
                 }
-
-                await Task.WhenAll(taskResponse);
             }
         }
         catch (Exception ex)
