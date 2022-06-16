@@ -92,16 +92,19 @@ public class BlobMetadataStore : IMetadataStore
                 // TODO: Use SerializeAsync in .NET 6
                 JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
                 await utf8Writer.FlushAsync(cancellationToken);
-                stream.Seek(0, SeekOrigin.Begin);
 
-                await Task.WhenAll(blobClients.Select(blob => blob.UploadAsync(
-                    stream,
-                    new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
-                    metadata: null,
-                    conditions: null,
-                    accessTier: null,
-                    progressHandler: null,
-                    cancellationToken)));
+                foreach (var blob in blobClients)
+                {
+                    stream.Seek(0, SeekOrigin.Begin);
+                    await blob.UploadAsync(
+                        stream,
+                        new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
+                        metadata: null,
+                        conditions: null,
+                        accessTier: null,
+                        progressHandler: null,
+                        cancellationToken);
+                }
             }
         }
         catch (Exception ex)
