@@ -33,7 +33,7 @@ internal class LongStringValidation : IElementValidation
 
         if (value.Contains('\\', StringComparison.OrdinalIgnoreCase) || ValidationUtils.ContainsControlExceptEsc(value))
         {
-            throw new ElementValidationException(name, DicomVR.LO, value, ValidationErrorCode.InvalidCharacters);
+            throw new ElementValidationException(name, DicomVR.LO, ValidationErrorCode.InvalidCharacters);
         }
     }
 }

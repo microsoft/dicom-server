@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// </summary>
 public class InvalidPartitionNameException : ValidationException
 {
-    public InvalidPartitionNameException(string value)
-        : base(string.Format(DicomCoreResource.InvalidPartitionName, value))
+    public InvalidPartitionNameException()
+        : base(DicomCoreResource.InvalidPartitionName)
     {
     }
 }

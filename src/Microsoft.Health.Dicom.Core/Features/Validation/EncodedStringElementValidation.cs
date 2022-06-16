@@ -41,7 +41,7 @@ internal class EncodedStringElementValidation : IElementValidation
         }
         catch (DicomValidationException)
         {
-            throw new ElementValidationException(element.Tag.GetFriendlyName(), element.ValueRepresentation, value, errorCode);
+            throw new ElementValidationException(element.Tag.GetFriendlyName(), element.ValueRepresentation, errorCode);
         }
     }
 }

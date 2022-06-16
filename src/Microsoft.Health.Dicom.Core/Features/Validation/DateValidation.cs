@@ -26,7 +26,7 @@ internal class DateValidation : IElementValidation
 
         if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
         {
-            throw new ElementValidationException(name, DicomVR.DA, value, ValidationErrorCode.DateIsInvalid);
+            throw new ElementValidationException(name, DicomVR.DA, ValidationErrorCode.DateIsInvalid);
         }
     }
 }
