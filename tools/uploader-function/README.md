@@ -5,7 +5,7 @@ This solution uses the Azure Function framework to allow uploads to a DICOM Serv
 Steps:
 ## Create app service plan
 ```
-az appservice plan create
+az functionapp plan create --resource-group {resource-group-name} --name {app-service-plan-name} --location {REGION} --number-of-workers 1 --sku EP1 --is-linux
 ```
 
 ## Create function app
