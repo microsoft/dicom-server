@@ -4,15 +4,5 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using Microsoft.Health.Client.Authentication;
 
-namespace DicomUploaderFunction.Configuration;
-
-public class DicomConfiguration
-{
-    public const string SectionName = "DicomWeb";
-
-    public Uri Endpoint { get; set; }
-
-    public AuthenticationOptions Authentication { get; set; }
-}
+[assembly: CLSCompliant(false)]
