@@ -10,8 +10,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 
 public class InvalidIdentifierException : ElementValidationException
 {
-    public InvalidIdentifierException(string name, string value)
-        : base(name, DicomVR.UI, value, ValidationErrorCode.UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid)
+    public InvalidIdentifierException(string name)
+        : base(name, DicomVR.UI, ValidationErrorCode.UidIsInvalid, DicomCoreResource.ErrorMessageUidIsInvalid)
     {
     }
 }

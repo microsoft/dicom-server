@@ -14,8 +14,7 @@ public class InvalidIdentifierExceptionTests
     public void GivenInvalidIdentifierException_WhenGetMessage_ShouldReturnExpected()
     {
         var name = "tagname";
-        var value = "tagvalue";
-        var exception = new InvalidIdentifierException(name, value);
-        Assert.Equal($"Dicom element '{name}' with value '{value}' failed validation for VR 'UI': DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", exception.Message);
+        var exception = new InvalidIdentifierException(name);
+        Assert.Equal($"Dicom element '{name}' failed validation for VR 'UI': DICOM Identifier is invalid. Value length should not exceed the maximum length of 64 characters. Value should contain characters in '0'-'9' and '.'. Each component must start with non-zero number.", exception.Message);
     }
 }

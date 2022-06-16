@@ -136,7 +136,7 @@
   </data>
   <data name="DuplicatedUidsNotAllowed" xml:space="preserve">
     <value>The values for StudyInstanceUID, SeriesInstanceUID, SOPInstanceUID must be unique.</value>
-    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID", "SeriesInstanceUID", "SOPInstanceUID"}</comment>
+    <comment>StudyInstanceUID, SeriesInstanceUID, and SOPInstanceUID are defined by the spec and does not need to be translated.</comment>
   </data>
   <data name="DuplicateAttribute" xml:space="preserve">
     <value>Invalid query: attribute '{0}' has been specified more than once using different ID formats. Each attribute is only allowed to be specified once.</value>
@@ -202,8 +202,8 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>The specified item cannot be found.</value>
   </data>
   <data name="MismatchStudyInstanceUid" xml:space="preserve">
-    <value>The StudyInstanceUid '{0}' in the payload does not match the specified StudyInstanceUid '{1}'.</value>
-    <comment>{0} and {1} are both StudyInstanceUid. StudyInstanceUID is defined by the spec and does not need to be translated. {NumberedPlaceholder="StudyInstanceUID"}.</comment>
+    <value>The StudyInstanceUid in the payload does not match the specified StudyInstanceUid.</value>
+    <comment>StudyInstanceUID is defined by the spec and does not need to be translated.</comment>
   </data>
   <data name="MissingRequestBody" xml:space="preserve">
     <value>The request body is missing.</value>
@@ -378,10 +378,6 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ExtendedQueryTagsOutOfDate" xml:space="preserve">
     <value>One or more extended query tags have been modified.</value>
   </data>
-  <data name="DicomElementValidationFailedWithValue" xml:space="preserve">
-    <value>Dicom element '{0}' with value '{1}' failed validation for VR '{2}': {3}</value>
-    <comment>Dicom element {0} of value {1} of VR {2}. {3} has more detailed message on why.</comment>
-  </data>
   <data name="ErrorMessageMultiValues" xml:space="preserve">
     <value>Dicom element has multiple values. Indexing is only supported on single value element.</value>
   </data>
@@ -452,8 +448,7 @@ Both parts in the range cannot be empty.
 For details on valid range queries, please refer to Search Matching section in Conformance Statement (https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md#search-matching).</value>
   </data>
   <data name="InvalidPartitionName" xml:space="preserve">
-    <value>The specified PartitionName value '{0}' is invalid. </value>
-    <comment>{0} PartitionName value.</comment>
+    <value>The specified PartitionName is invalid. </value>
   </data>
   <data name="DataPartitionsFeatureDisabled" xml:space="preserve">
     <value>Data partitions feature is disabled.</value>
@@ -462,8 +457,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>PartitionName value is missing in the route segment.</value>
   </data>
   <data name="DataPartitionNotFound" xml:space="preserve">
-    <value>Specified PartitionName '{0}' does not exist.</value>
-    <comment>{0} PartitionName value.</comment>
+    <value>Specified PartitionName does not exist.</value>
   </data>
   <data name="DataPartitionFeatureCannotBeDisabled" xml:space="preserve">
     <value>Data partitions feature cannot be disabled while existing data has already been partitioned.</value>
@@ -500,8 +494,8 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} String Value. {1} DicomTag.</comment>
   </data>
   <data name="UnexpectedTag" xml:space="preserve">
-    <value>'{0}' DicomTag is not expected for '{1}' operation. [WorkitemInstanceUID '{2}']</value>
-    <comment>{0} Dicom Tag. {1} Action/Operation. {2} WorkitemInstanceUID.</comment>
+    <value>'{0}' DicomTag is not expected for '{1}' operation.</value>
+    <comment>{0} Dicom Tag. {1} Action/Operation.</comment>
   </data>
   <data name="InvalidTransactionUID" xml:space="preserve">
     <value>Invalid TransactionUID for the specified Workitem Instance UID.</value>

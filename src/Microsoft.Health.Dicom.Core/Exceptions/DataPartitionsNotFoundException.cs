@@ -12,8 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// </summary>
 public class DataPartitionsNotFoundException : BadRequestException
 {
-    public DataPartitionsNotFoundException(string partitionName)
-        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionNotFound, partitionName))
+    public DataPartitionsNotFoundException()
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionNotFound))
     {
     }
 }
