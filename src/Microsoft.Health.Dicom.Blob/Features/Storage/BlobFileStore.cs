@@ -69,7 +69,6 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(stream, nameof(stream));
 
         BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
-        stream.Seek(0, SeekOrigin.Begin);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
         var taskResponse = new List<Task<Response<BlobContentInfo>>>();
