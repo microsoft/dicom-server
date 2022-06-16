@@ -29,6 +29,7 @@ public class ExportServiceTests
     private readonly IServiceProvider _serviceProvider;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
+    private readonly IDicomRequestContextAccessor _requestContextAccessor;
     private readonly IDicomRequestContext _requestContext;
     private readonly ExportService _service;
 
@@ -41,14 +42,16 @@ public class ExportServiceTests
         _client = Substitute.For<IDicomOperationsClient>();
         _guidFactory = Substitute.For<IGuidFactory>();
         _serviceProvider = Substitute.For<IServiceProvider>();
+        _requestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _requestContext = Substitute.For<IDicomRequestContext>();
         _requestContext.DataPartitionEntry.Returns(_partition);
+        _requestContextAccessor.RequestContext.Returns(_requestContext);
         _service = new ExportService(
             new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider }),
             new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider }),
             _guidFactory,
             _client,
-            _requestContext);
+            _requestContextAccessor);
     }
 
     [Fact]
@@ -57,10 +60,10 @@ public class ExportServiceTests
         var source = new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider });
         var sink = new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider });
 
-        Assert.Throws<ArgumentNullException>(() => new ExportService(null, sink, _guidFactory, _client, _requestContext));
-        Assert.Throws<ArgumentNullException>(() => new ExportService(source, null, _guidFactory, _client, _requestContext));
-        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, null, _client, _requestContext));
-        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, _guidFactory, null, _requestContext));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(null, sink, _guidFactory, _client, _requestContextAccessor));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, null, _guidFactory, _client, _requestContextAccessor));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, null, _client, _requestContextAccessor));
+        Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, _guidFactory, null, _requestContextAccessor));
         Assert.Throws<ArgumentNullException>(() => new ExportService(source, sink, _guidFactory, _client, null));
     }
 

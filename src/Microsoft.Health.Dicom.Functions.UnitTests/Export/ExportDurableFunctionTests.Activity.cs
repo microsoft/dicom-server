@@ -6,6 +6,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -33,6 +34,7 @@ public partial class ExportDurableFunctionTests
             ReadResult.ForIdentifier(new VersionedInstanceIdentifier("4", "5", "6", 101)),
             ReadResult.ForFailure(new ReadFailureEventArgs(DicomIdentifier.ForSeries("7", "8"), new IOException())),
             ReadResult.ForIdentifier(new VersionedInstanceIdentifier("9", "1.0", "1.1", 102)),
+            ReadResult.ForIdentifier(new VersionedInstanceIdentifier("121.3", "14", "1.516", 103))
         };
         var expectedInput = new ExportBatchArguments
         {
@@ -42,37 +44,41 @@ public partial class ExportDurableFunctionTests
         };
 
         // Arrange input, source, and sink
-        _options.BatchThreadCount = 2;
+        _options.MaxParallelThreads = 2;
 
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
         context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
         context.GetInput<ExportBatchArguments>().Returns(expectedInput);
 
+        // Note: Parallel.ForEachAsync uses its own CancellationTokenSource
         IExportSource source = Substitute.For<IExportSource>();
-        source.GetAsyncEnumerator(default).Returns(expectedData.ToAsyncEnumerable().GetAsyncEnumerator());
+        source.GetAsyncEnumerator(Arg.Any<CancellationToken>()).Returns(expectedData.ToAsyncEnumerable().GetAsyncEnumerator());
         _sourceProvider.CreateAsync(_serviceProvider, expectedInput.Source.Settings, expectedInput.Partition).Returns(source);
 
         IExportSink sink = Substitute.For<IExportSink>();
-        sink.CopyAsync(expectedData[0]).Returns(true);
-        sink.CopyAsync(expectedData[1]).Returns(false);
-        sink.CopyAsync(expectedData[2]).Returns(false);
-        sink.CopyAsync(expectedData[3]).Returns(true);
+        sink.CopyAsync(expectedData[0], Arg.Any<CancellationToken>()).Returns(true);
+        sink.CopyAsync(expectedData[1], Arg.Any<CancellationToken>()).Returns(false);
+        sink.CopyAsync(expectedData[2], Arg.Any<CancellationToken>()).Returns(false);
+        sink.CopyAsync(expectedData[3], Arg.Any<CancellationToken>()).Returns(true);
+        sink.CopyAsync(expectedData[4], Arg.Any<CancellationToken>()).Returns(true);
         _sinkProvider.CreateAsync(_serviceProvider, expectedInput.Destination.Settings, operationId).Returns(sink);
 
         // Call the activity
         ExportProgress actual = await _function.ExportBatchAsync(context, NullLogger.Instance);
 
         // Assert behavior
-        Assert.Equal(new ExportProgress(2, 2), actual);
+        Assert.Equal(new ExportProgress(3, 2), actual);
 
         context.Received(1).GetInput<ExportBatchArguments>();
         await _sourceProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Source.Settings, expectedInput.Partition);
         await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Destination.Settings, operationId);
-        source.Received(1).GetAsyncEnumerator(default);
-        await sink.Received(1).CopyAsync(expectedData[0]);
-        await sink.Received(1).CopyAsync(expectedData[1]);
-        await sink.Received(1).CopyAsync(expectedData[2]);
-        await sink.Received(1).CopyAsync(expectedData[3]);
+        source.Received(1).GetAsyncEnumerator(Arg.Any<CancellationToken>());
+        await sink.Received(1).CopyAsync(expectedData[0], Arg.Any<CancellationToken>());
+        await sink.Received(1).CopyAsync(expectedData[1], Arg.Any<CancellationToken>());
+        await sink.Received(1).CopyAsync(expectedData[2], Arg.Any<CancellationToken>());
+        await sink.Received(1).CopyAsync(expectedData[3], Arg.Any<CancellationToken>());
+        await sink.Received(1).CopyAsync(expectedData[4], Arg.Any<CancellationToken>());
+        await sink.Received(1).FlushAsync(default);
     }
 
     [Fact]
@@ -82,7 +88,7 @@ public partial class ExportDurableFunctionTests
         var expectedUri = new Uri($"http://storage/errors/{operationId}.json");
         var expectedInput = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions());
 
-        // Arrange input, source, and sink
+        // Arrange input
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
         context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
         context.GetInput<ExportDataOptions<ExportDestinationType>>().Returns(expectedInput);
@@ -99,5 +105,14 @@ public partial class ExportDurableFunctionTests
 
         context.Received(1).GetInput<ExportDataOptions<ExportDestinationType>>();
         await _sinkProvider.Received(1).CreateAsync(_serviceProvider, expectedInput.Settings, operationId);
+    }
+
+    [Fact]
+    public async Task GivenDestination_WhenComplete_ThenInvokeCorrectMethod()
+    {
+        var expected = new AzureBlobExportOptions();
+        await _function.CompleteCopyAsync(new ExportDataOptions<ExportDestinationType>(DestinationType, expected));
+
+        await _sinkProvider.Received(1).CompleteCopyAsync(expected, default);
     }
 }

@@ -33,7 +33,7 @@ public partial class WorkItemTransactionTests
             {DicomTag.ProcedureStepState, ProcedureStepStateConstants.InProgress },
         };
 
-        using var changeStateResponse = await _client.ChangeWorkitemStateAsync(changeStateDicomDataset, workitemUid)
+        using var changeStateResponse = await _client.ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateDicomDataset, 1), workitemUid)
             .ConfigureAwait(false);
         Assert.True(changeStateResponse.IsSuccessStatusCode);
 

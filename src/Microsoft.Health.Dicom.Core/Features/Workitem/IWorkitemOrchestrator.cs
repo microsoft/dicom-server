@@ -6,8 +6,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -61,6 +61,14 @@ public interface IWorkitemOrchestrator
     /// <param name="cancellationToken">The cancellation token</param>
     /// <returns>A task that represents the asynchronous orchestration of the retrieving a workitem DICOM dataset.</returns>
     Task<DicomDataset> RetrieveWorkitemAsync(WorkitemInstanceIdentifier workitemInstanceIdentifier, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously orchestrate updating the UPS-RS workitem.
+    /// </summary>
+    /// <param name="dataset">The workitem dataset with the cancel request.</param>
+    /// <param name="workitemMetadata">The workitem metadata.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    Task UpdateWorkitemAsync(DicomDataset dataset, WorkitemMetadataStoreEntry workitemMetadata, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets DicomDataset Blob from the Store for the given Workitem Instance identifier

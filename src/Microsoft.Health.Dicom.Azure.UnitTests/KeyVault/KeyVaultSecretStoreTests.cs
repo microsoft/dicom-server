@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,12 +130,38 @@ public class KeyVaultSecretStoreTests
         using var tokenSource = new CancellationTokenSource();
 
         Response<KeyVaultSecret> response = Substitute.For<Response<KeyVaultSecret>>();
-        _secretClient.SetSecretAsync(name, value, tokenSource.Token).Returns(response);
+        _secretClient
+            .SetSecretAsync(Arg.Is<KeyVaultSecret>(s => s.Name == name && s.Value == value && s.Properties.ContentType == null), tokenSource.Token)
+            .Returns(response);
+
         response.Value.Returns(CreateSecret(name, version, value));
 
         Assert.Equal(version, await _secretStore.SetSecretAsync(name, value, tokenSource.Token));
 
-        await _secretClient.Received(1).SetSecretAsync(name, value, tokenSource.Token);
+        await _secretClient
+            .Received(1)
+            .SetSecretAsync(Arg.Is<KeyVaultSecret>(s => s.Name == name && s.Value == value && s.Properties.ContentType == null), tokenSource.Token);
+    }
+
+    [Theory]
+    [InlineData("Secret1", "1", "foo", MediaTypeNames.Text.Plain)]
+    [InlineData("Secret1", "2", "bar", null)]
+    public async Task GivenKeyVault_WhenSettingSecretWithContentType_ThenUpdateVersion(string name, string version, string value, string contentType)
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        Response<KeyVaultSecret> response = Substitute.For<Response<KeyVaultSecret>>();
+        _secretClient
+            .SetSecretAsync(Arg.Is<KeyVaultSecret>(s => s.Name == name && s.Value == value), tokenSource.Token)
+            .Returns(response);
+
+        response.Value.Returns(CreateSecret(name, version, value));
+
+        Assert.Equal(version, await _secretStore.SetSecretAsync(name, value, contentType, tokenSource.Token));
+
+        await _secretClient
+            .Received(1)
+            .SetSecretAsync(Arg.Is<KeyVaultSecret>(s => s.Name == name && s.Value == value && s.Properties.ContentType == contentType), tokenSource.Token);
     }
 
     private static KeyVaultSecret CreateSecret(string name, string version, string value)

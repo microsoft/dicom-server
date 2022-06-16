@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
@@ -32,12 +33,12 @@ internal sealed class AzureBlobExportSink : IExportSink
 
     private readonly IFileStore _source;
     private readonly BlobContainerClient _dest;
-    private readonly StreamWriter _errorWriter;
+    private readonly ConcurrentQueue<ExportErrorLogEntry> _errors;
     private readonly AzureBlobExportFormatOptions _output;
     private readonly BlobOperationOptions _blobOptions;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    private const int BlockSize = 2 * 1024 * 1024;
+    private const int BlockSize = 2 * 1024 * 1024; // 2MB
 
     public AzureBlobExportSink(
         IFileStore source,
@@ -51,7 +52,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         _output = EnsureArg.IsNotNull(outputOptions?.Value, nameof(outputOptions));
         _blobOptions = EnsureArg.IsNotNull(blobOptions?.Value, nameof(blobOptions));
         _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
-        _errorWriter = new StreamWriter(new MemoryStream(BlockSize), _output.ErrorEncoding, leaveOpen: false);
+        _errors = new ConcurrentQueue<ExportErrorLogEntry>();
     }
 
     public Uri ErrorHref
@@ -72,7 +73,7 @@ internal sealed class AzureBlobExportSink : IExportSink
         // TODO: Use new blob SDK for copying block blobs when available
         if (value.Failure != null)
         {
-            await WriteErrorAsync(value.Failure.Identifier, value.Failure.Exception.Message, cancellationToken);
+            EnqueueError(value.Failure.Identifier, value.Failure.Exception.Message);
             return false;
         }
 
@@ -84,19 +85,16 @@ internal sealed class AzureBlobExportSink : IExportSink
             await destBlob.UploadAsync(sourceStream, new BlobUploadOptions { TransferOptions = _blobOptions.Upload }, cancellationToken);
             return true;
         }
-        catch (Exception ex) // TODO: Are there certain errors we want to throw instead?
+        catch (Exception ex) when (ex is not RequestFailedException rfe || rfe.Status < 400 || rfe.Status >= 500) // Do not include client errors
         {
             CopyFailure?.Invoke(this, new CopyFailureEventArgs(value.Identifier, ex));
-            await WriteErrorAsync(DicomIdentifier.ForInstance(value.Identifier), ex.Message, cancellationToken);
+            EnqueueError(DicomIdentifier.ForInstance(value.Identifier), ex.Message);
             return false;
         }
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        await FlushErrorsAsync();
-        await _errorWriter.DisposeAsync();
-    }
+    public ValueTask DisposeAsync()
+        => new ValueTask(FlushAsync());
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -130,37 +128,33 @@ internal sealed class AzureBlobExportSink : IExportSink
         }
     }
 
-    internal async ValueTask FlushErrorsAsync(CancellationToken cancellationToken = default)
+    public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
-        // Only flush if we have errors
-        if (_errorWriter.BaseStream.Length > 0)
+        AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
+
+        using var buffer = new MemoryStream(BlockSize);
+        while (!_errors.IsEmpty)
         {
-            // Move the stream back to the beginning
-            _errorWriter.BaseStream.Seek(0, SeekOrigin.Begin);
+            // Fill up the buffer
+            buffer.SetLength(0);
+            while (buffer.Position < BlockSize && _errors.TryDequeue(out ExportErrorLogEntry entry))
+            {
+                await JsonSerializer.SerializeAsync(buffer, entry, _jsonOptions, cancellationToken);
+                buffer.WriteByte(10); // '\n' in UTF-8 for normalized line endings across platforms
+            }
 
-            // Append the errors
-            AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
-            await client.AppendBlockAsync(_errorWriter.BaseStream, cancellationToken: cancellationToken);
-
-            // Reset the stream
-            _errorWriter.BaseStream.SetLength(0);
+            // Append the block
+            buffer.Seek(0, SeekOrigin.Begin);
+            await client.AppendBlockAsync(buffer, cancellationToken: cancellationToken);
         }
     }
 
-    private async ValueTask WriteErrorAsync(DicomIdentifier identifier, string message, CancellationToken cancellationToken = default)
-    {
-        await _errorWriter.WriteLineAsync(
-            JsonSerializer.Serialize(
-                new ExportErrorLogEntry
-                {
-                    Error = message,
-                    Identifier = identifier,
-                    Timestamp = Clock.UtcNow,
-                },
-                _jsonOptions));
-        await _errorWriter.FlushAsync();
-
-        if (_errorWriter.BaseStream.Position >= BlockSize)
-            await FlushErrorsAsync(cancellationToken);
-    }
+    private void EnqueueError(DicomIdentifier identifier, string message)
+        => _errors.Enqueue(
+            new ExportErrorLogEntry
+            {
+                Error = message,
+                Identifier = identifier,
+                Timestamp = Clock.UtcNow,
+            });
 }

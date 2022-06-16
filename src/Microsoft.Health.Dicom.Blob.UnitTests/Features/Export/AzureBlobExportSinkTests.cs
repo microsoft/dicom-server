@@ -67,8 +67,10 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _output = new AzureBlobExportFormatOptions(
             operationId,
             "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm",
-            "%Operation%/Errors.log",
-            Encoding.UTF8);
+            "%Operation%/Errors.log");
+        _destClient
+            .GetAppendBlobClient($"{_output.OperationId:N}/Errors.log")
+            .Returns(_errorBlob);
         _blobOptions = new BlobOperationOptions
         {
             Upload = new StorageTransferOptions
@@ -118,8 +120,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         var failure = new ReadFailureEventArgs(DicomIdentifier.ForSeries("1.2.3", "4.5"), new FileNotFoundException("Cannot find series."));
         using var tokenSource = new CancellationTokenSource();
 
-        _destClient.GetAppendBlobClient($"{_output.OperationId:N}/Errors.log").Returns(_errorBlob);
-
         Assert.False(await _sink.CopyAsync(ReadResult.ForFailure(failure), tokenSource.Token));
 
         await _fileStore.DidNotReceiveWithAnyArgs().GetFileAsync(default, default);
@@ -147,7 +147,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
             .Returns(Task.FromException<Response<BlobContentInfo>>(new IOException("Unable to copy.")));
-        _destClient.GetAppendBlobClient($"{_output.OperationId:N}/Errors.log").Returns(_errorBlob);
 
         Assert.False(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
@@ -219,7 +218,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         Response<bool> response = Substitute.For<Response<bool>>();
         response.Value.Returns(true);
         _destClient.ExistsAsync(tokenSource.Token).Returns(Task.FromResult(response));
-        _destClient.GetAppendBlobClient($"{_output.OperationId:N}/Errors.log").Returns(_errorBlob);
         _errorBlob
             .CreateIfNotExistsAsync(default, default, tokenSource.Token)
             .Returns(Substitute.For<Response<BlobContentInfo>>());
@@ -233,6 +231,29 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         // _destClient.Received(1).GetAppendBlobClient($"{_output.OperationId:N}/Errors.json");
     }
 
+    [Fact]
+    public async Task GivenErrors_WhenFlushing_ThenAppendBlock()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        var failure1 = new ReadFailureEventArgs(DicomIdentifier.ForStudy("1.2.3"), new StudyNotFoundException("Cannot find study."));
+        var failure2 = new ReadFailureEventArgs(DicomIdentifier.ForSeries("45.6", "789.10"), new SeriesNotFoundException("Cannot find series."));
+        var failure3 = new ReadFailureEventArgs(DicomIdentifier.ForInstance("1.1.12", "1.3.14151", "617"), new InstanceNotFoundException("Cannot find instance."));
+
+        Assert.False(await _sink.CopyAsync(ReadResult.ForFailure(failure1), tokenSource.Token));
+        Assert.False(await _sink.CopyAsync(ReadResult.ForFailure(failure2), tokenSource.Token));
+        Assert.False(await _sink.CopyAsync(ReadResult.ForFailure(failure3), tokenSource.Token));
+
+        // Nothing read yet
+        Assert.Equal(0, _errorStream.Position);
+
+        List<ExportErrorLogEntry> errors = await GetErrorsAsync(tokenSource.Token).ToListAsync(tokenSource.Token);
+        Assert.Equal(3, errors.Count);
+        Assert.Equal(failure1.Exception.Message, errors[0].Error);
+        Assert.Equal(failure2.Exception.Message, errors[1].Error);
+        Assert.Equal(failure3.Exception.Message, errors[2].Error);
+    }
+
     public async ValueTask DisposeAsync()
     {
         await _sink.DisposeAsync();
@@ -241,7 +262,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
     private async IAsyncEnumerable<ExportErrorLogEntry> GetErrorsAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await _sink.FlushErrorsAsync(cancellationToken);
+        await _sink.FlushAsync(cancellationToken);
 
         await _errorBlob
             .Received(1)

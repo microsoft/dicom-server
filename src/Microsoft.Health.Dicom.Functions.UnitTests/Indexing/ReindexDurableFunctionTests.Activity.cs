@@ -193,8 +193,9 @@ public partial class ReindexDurableFunctionTests
         };
 
         // Arrange input
+        // Note: Parallel.ForEachAsync uses its own CancellationTokenSource
         _instanceStore
-            .GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created, CancellationToken.None)
+            .GetInstanceIdentifiersByWatermarkRangeAsync(batch.WatermarkRange, IndexStatus.Created, Arg.Any<CancellationToken>())
             .Returns(expected);
 
         foreach (VersionedInstanceIdentifier identifier in expected)
@@ -212,14 +213,13 @@ public partial class ReindexDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, identifier);
+            await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, identifier, Arg.Any<CancellationToken>());
         }
     }
 
     [Fact]
     public async Task GivenBatch_WhenReindexing_ThenShouldReindexEachInstance()
     {
-        const int threadCount = 7;
         var args = new ReindexBatchArguments(
             new List<ExtendedQueryTagStoreEntry>
             {
@@ -227,8 +227,7 @@ public partial class ReindexDurableFunctionTests
                 new ExtendedQueryTagStoreEntry(2, "02", "DT", null, QueryTagLevel.Series, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
                 new ExtendedQueryTagStoreEntry(3, "03", "AS", "bar", QueryTagLevel.Study, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
             },
-            new WatermarkRange(3, 10),
-            threadCount);
+            new WatermarkRange(3, 10));
 
         var expected = new List<VersionedInstanceIdentifier>
         {
@@ -242,8 +241,9 @@ public partial class ReindexDurableFunctionTests
         };
 
         // Arrange input
+        // Note: Parallel.ForEachAsync uses its own CancellationTokenSource
         _instanceStore
-            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None)
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, Arg.Any<CancellationToken>())
             .Returns(expected);
 
         foreach (VersionedInstanceIdentifier identifier in expected)
@@ -261,7 +261,7 @@ public partial class ReindexDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _instanceReindexer.Received(1).ReindexInstanceAsync(args.QueryTags, identifier);
+            await _instanceReindexer.Received(1).ReindexInstanceAsync(args.QueryTags, identifier, Arg.Any<CancellationToken>());
         }
     }
 

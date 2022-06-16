@@ -4,8 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -14,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
-using Microsoft.Health.Dicom.Functions.Extensions;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -44,34 +42,34 @@ public partial class ExportDurableFunction
         await using IExportSource source = await _sourceFactory.CreateAsync(args.Source, args.Partition);
         await using IExportSink sink = await _sinkFactory.CreateAsync(args.Destination, context.GetOperationId());
 
-        // Export
         source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
         sink.CopyFailure += (source, e) => logger.LogError(e.Exception, "Unable to copy watermark {Watermark}", e.Identifier.Version);
 
-        bool[] exports;
-        ExportProgress progress = default;
-        IAsyncEnumerator<ReadResult> sourceEnumerator = source.GetAsyncEnumerator();
-        do
-        {
-            // Only process a subset of the batch at a time based on the desired number of threads
-            exports = await Task.WhenAll(
-                await sourceEnumerator
-                    .Take(_options.BatchThreadCount)
-                    .Select(x => sink.CopyAsync(x))
-                    .ToArrayAsync());
+        // Copy files
+        int successes = 0, failures = 0;
+        await Parallel.ForEachAsync(
+                source,
+                new ParallelOptions
+                {
+                    CancellationToken = default,
+                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
+                },
+                async (result, token) =>
+                {
+                    if (await sink.CopyAsync(result, token))
+                        Interlocked.Increment(ref successes);
+                    else
+                        Interlocked.Increment(ref failures);
+                });
 
-            progress += exports
-                .Select(success => success ? new ExportProgress(1, 0) : new ExportProgress(0, 1))
-                .Aggregate(default(ExportProgress), (x, y) => x + y);
-        } while (exports.Length > 0);
+        // Flush any files or errors
+        await sink.FlushAsync();
 
-        logger.LogInformation("Successfully exported {Files} DCM files.", progress.Exported);
-        if (progress.Failed > 0)
-        {
-            logger.LogWarning("Failed to export {Files} DCM files.", progress.Failed);
-        }
+        logger.LogInformation("Successfully exported {Files} DCM files.", successes);
+        if (failures > 0)
+            logger.LogWarning("Failed to export {Files} DCM files.", failures);
 
-        return progress;
+        return new ExportProgress(successes, failures);
     }
 
     /// <summary>
@@ -79,7 +77,7 @@ public partial class ExportDurableFunction
     /// </summary>
     /// <param name="context">The context for the activity.</param>
     /// <returns>
-    /// A task representing the <see cref="ExportBatchAsync"/> operation.
+    /// A task representing the <see cref="GetErrorHrefAsync"/> operation.
     /// The value of its <see cref="Task{TResult}.Result"/> property contains the URI.
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
@@ -91,5 +89,18 @@ public partial class ExportDurableFunction
         ExportDataOptions<ExportDestinationType> destination = context.GetInput<ExportDataOptions<ExportDestinationType>>();
         await using IExportSink sink = await _sinkFactory.CreateAsync(destination, context.GetOperationId());
         return sink.ErrorHref;
+    }
+
+    /// <summary>
+    /// Asynchronously completes a copy operation to the sink.
+    /// </summary>
+    /// <param name="destination">The options for a specific sink type.</param>
+    /// <returns>A task representing the <see cref="CompleteCopyAsync"/> operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="destination"/> is <see langword="null"/>.</exception>
+    [FunctionName(nameof(CompleteCopyAsync))]
+    public Task CompleteCopyAsync([ActivityTrigger] ExportDataOptions<ExportDestinationType> destination)
+    {
+        EnsureArg.IsNotNull(destination, nameof(destination));
+        return _sinkFactory.CompleteCopyAsync(destination);
     }
 }

@@ -10,9 +10,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Ensure.That" Version="10.1.0" />
-    <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
-    <PackageReference Include="Microsoft.Health.Operations" Version="$(HealthcareSharedPackageVersion)" />
+    <PackageReference Include="Ensure.That" />
+    <PackageReference Include="fo-dicom" />
+    <PackageReference Include="Microsoft.Health.Operations" />
   </ItemGroup>
 
   <ItemGroup>

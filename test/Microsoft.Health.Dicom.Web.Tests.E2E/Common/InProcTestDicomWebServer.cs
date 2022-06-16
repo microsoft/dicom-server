@@ -44,7 +44,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
 
         var featureSettings = new Dictionary<string, string>
         {
-            { "DicomServer:Features:EnableExtendedQueryTags", "true" },
+            { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             { "DicomServer:Features:EnableUpsRs", "true" }
         };

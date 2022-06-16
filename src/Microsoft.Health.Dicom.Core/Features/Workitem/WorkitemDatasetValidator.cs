@@ -23,6 +23,23 @@ public abstract class WorkitemDatasetValidator : IWorkitemDatasetValidator
 
     protected abstract void OnValidate(DicomDataset dataset);
 
+    protected static void ValidateNotEmptyValue(DicomDataset dataset, DicomTag tag)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+        if (dataset.TryGetString(tag, out string value))
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new DatasetValidationException(
+                    FailureReasonCodes.ValidationFailure,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        DicomCoreResource.AttributeMustNotBeEmpty,
+                        tag));
+            }
+        }
+    }
 
     protected static void ValidateEmptyValue(DicomDataset dataset, DicomTag tag)
     {

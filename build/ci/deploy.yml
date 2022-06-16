@@ -48,9 +48,12 @@ jobs:
             deployPackage = $false
         }
 
-        New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
+        $deployment = New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
 
         Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
+
+        $storageAccountName = $deployment.Outputs['storageAccountName'].Value
+        Write-Host "##vso[task.setvariable variable=azureStorageAccountName;isOutput=true]$storageAccountName"
 
   - task: DownloadBuildArtifacts@0
     displayName: 'Download Deployment Binaries'

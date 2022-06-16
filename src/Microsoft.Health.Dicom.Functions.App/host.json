@@ -26,9 +26,19 @@
     }
   },
   "DicomFunctions": {
+    "Export": {
+      "BatchSize": 100,
+      "MaxParallelThreads": 5,
+      "MaxParallelBatches": 10,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
+    },
     "Indexing": {
       "BatchSize": 100,
-      "BatchThreadCount": 5,
+      "MaxParallelThreads": 5,
       "MaxParallelBatches": 10,
       "RetryOptions": {
         "BackoffCoefficient": 3,
@@ -38,7 +48,7 @@
     },
     "Copy": {
       "BatchSize": 100,
-      "BatchThreadCount": 5,
+      "MaxParallelThreads": 5,
       "MaxParallelBatches": 10,
       "RetryOptions": {
         "BackoffCoefficient": 3,

@@ -27,10 +27,10 @@
   "author": "Microsoft",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^19.0.1",
+    "electron": "^19.0.4",
     "electron-builder": "^23.0.3",
     "ansi-regex": ">=6.0.1",
-    "async": ">=2.6.4"
+    "async": ">=3.2.4"
   },
   "dependencies": {
     "node-fetch": "^2.6.7",

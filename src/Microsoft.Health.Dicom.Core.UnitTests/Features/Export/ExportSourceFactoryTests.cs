@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -62,7 +61,6 @@ public class ExportSourceFactoryTests
 
         var options = new IdentifierExportOptions();
         var source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, options);
-        IConfiguration expectedConfig = Substitute.For<IConfiguration>();
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
