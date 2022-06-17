@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using EnsureThat;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Client;
+using Microsoft.Health.Client.Authentication;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
@@ -55,7 +55,7 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
                 ICredentialProvider credentialProvider;
                 if (testUser != null)
                 {
-                    var credentialConfiguration = new OAuth2UserPasswordCredentialConfiguration(
+                    var credentialConfiguration = new OAuth2UserPasswordCredentialOptions(
                         AuthenticationSettings.TokenUri,
                         AuthenticationSettings.Resource,
                         AuthenticationSettings.Scope,
@@ -64,19 +64,19 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
                         testUser.UserId,
                         testUser.Password);
 
-                    IOptionsMonitor<OAuth2UserPasswordCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
+                    IOptionsMonitor<OAuth2UserPasswordCredentialOptions> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
                     credentialProvider = new OAuth2UserPasswordCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                 }
                 else
                 {
-                    var credentialConfiguration = new OAuth2ClientCredentialConfiguration(
+                    var credentialConfiguration = new OAuth2ClientCredentialOptions(
                         AuthenticationSettings.TokenUri,
                         AuthenticationSettings.Resource,
                         AuthenticationSettings.Scope,
                         clientApplication.ClientId,
                         clientApplication.ClientSecret);
 
-                    IOptionsMonitor<OAuth2ClientCredentialConfiguration> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
+                    IOptionsMonitor<OAuth2ClientCredentialOptions> optionsMonitor = CreateOptionsMonitor(credentialConfiguration);
                     credentialProvider = new OAuth2ClientCredentialProvider(optionsMonitor, new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress });
                 }
 
