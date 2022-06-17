@@ -48,8 +48,6 @@ public class RetrieveResourceService : IRetrieveResourceService
         IInstanceMetadataCache instanceMetadataCache,
         IFramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
-        IOptionsSnapshot<InstanceMetadataCacheConfiguration> intanceMetadataCacheOption,
-        IOptionsSnapshot<FramesRangeCacheConfiguration> framesRangeCacheOption,
         ILogger<RetrieveResourceService> logger,
         ILoggerFactory loggerFactory)
     {
@@ -64,8 +62,6 @@ public class RetrieveResourceService : IRetrieveResourceService
         EnsureArg.IsNotNull(framesRangeCache, nameof(framesRangeCache));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
-        EnsureArg.IsNotNull(intanceMetadataCacheOption?.Value, nameof(intanceMetadataCacheOption));
-        EnsureArg.IsNotNull(framesRangeCacheOption?.Value, nameof(framesRangeCacheOption));
 
         _instanceStore = instanceStore;
         _blobDataStore = blobDataStore;
@@ -194,10 +190,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                                                                     message.Frames,
                                                                     responseTransferSyntax,
                                                                     cancellationToken);
-            return new RetrieveResourceResponse(
-                fastFrames,
-                mediaType,
-                isSinglePart);
+            return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
 
         _logger.LogInformation("Downloading the entire instance for frame parsing");
@@ -222,10 +215,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             isOriginalTransferSyntaxRequested,
             requestedTransferSyntax);
 
-        return new RetrieveResourceResponse(
-            frames,
-            mediaType,
-            isSinglePart);
+        return new RetrieveResourceResponse(frames, mediaType, isSinglePart);
 
     }
 

@@ -126,7 +126,7 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
-            BlobDownloadResult result = await blobClient.DownloadContentAsync(cancellationToken);
+            BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
             return result.Content.ToObjectFromJson<DicomDataset>(_jsonSerializerOptions);
         }, cancellationToken);
     }
@@ -135,7 +135,7 @@ public class BlobMetadataStore : IMetadataStore
     public async Task DeleteInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient blobClient = GetInstanceFramesRange(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
 
         await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
     }
@@ -149,7 +149,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(framesRange, nameof(framesRange));
 
-        BlockBlobClient blobClient = GetInstanceFramesRange(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
 
         try
         {
@@ -184,19 +184,13 @@ public class BlobMetadataStore : IMetadataStore
     public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient cloudBlockBlob = GetInstanceFramesRange(versionedInstanceIdentifier);
+        BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
 
         return ExecuteAsync(async t =>
         {
             BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
             return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
         }, cancellationToken);
-    }
-
-    private BlockBlobClient GetInstanceFramesRange(VersionedInstanceIdentifier versionedInstanceIdentifier)
-    {
-        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
-        return _container.GetBlockBlobClient(blobName);
     }
 
     /// <inheritdoc />
@@ -212,6 +206,12 @@ public class BlobMetadataStore : IMetadataStore
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
         }
+    }
+
+    private BlockBlobClient GetInstanceFramesRangeBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
+        return _container.GetBlockBlobClient(blobName);
     }
 
     private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)

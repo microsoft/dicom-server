@@ -69,10 +69,6 @@ public class RetrieveResourceServiceTests
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
-        var instanceCacheConfig = Substitute.For<IOptionsSnapshot<InstanceMetadataCacheConfiguration>>();
-        instanceCacheConfig.Value.Returns(new InstanceMetadataCacheConfiguration());
-        var frameRangeCacheConfig = Substitute.For<IOptionsSnapshot<FramesRangeCacheConfiguration>>();
-        frameRangeCacheConfig.Value.Returns(new FramesRangeCacheConfiguration());
         var loggerFactory = Substitute.For<ILoggerFactory>();
         _instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
         _framesRangeCache = Substitute.For<IFramesRangeCache>();
@@ -89,8 +85,6 @@ public class RetrieveResourceServiceTests
             _instanceMetadataCache,
             _framesRangeCache,
             retrieveConfigurationSnapshot,
-            instanceCacheConfig,
-            frameRangeCacheConfig,
             _logger,
             loggerFactory
             );

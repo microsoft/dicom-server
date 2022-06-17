@@ -62,7 +62,7 @@ public interface IMetadataStore
     /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
     /// <param name="framesRange">Dictionary of frame id and byte range</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns></returns>
+    /// <returns>A task that represents the async add of frame metadata</returns>
     Task StoreInstanceFramesRangeAsync(
             VersionedInstanceIdentifier versionedInstanceIdentifier,
             IReadOnlyDictionary<int, FrameRange> framesRange,

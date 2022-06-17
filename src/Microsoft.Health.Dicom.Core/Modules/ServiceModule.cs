@@ -160,12 +160,12 @@ public class ServiceModule : IStartupModule
             .AsImplementedInterfaces();
 
         services.Add<InstanceMetadataCache>()
-            .Scoped()
+            .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
 
         services.Add<FramesRangeCache>()
-            .Scoped()
+            .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
 
