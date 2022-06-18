@@ -18,4 +18,8 @@ public class ServicesConfiguration
     public RetrieveConfiguration RetrieveConfiguration { get; } = new RetrieveConfiguration();
 
     public BlobMigrationConfiguration BlobMigration { get; } = new BlobMigrationConfiguration();
+
+    public InstanceMetadataCacheConfiguration InstanceMetadataCacheConfiguration { get; } = new InstanceMetadataCacheConfiguration();
+
+    public FramesRangeCacheConfiguration FramesRangeCacheConfiguration { get; } = new FramesRangeCacheConfiguration();
 }

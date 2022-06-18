@@ -183,6 +183,25 @@ public partial class RetrieveTransactionResourceTests
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
+    [Fact]
+    public async Task GivenPathologyFile_WithOriginalGet_IsSuccessful()
+    {
+        string studyInstanceUid = "1.2.3.4.3";
+        string seriesInstanceUid = "1.2.3.4.3.9423673";
+        string sopInstanceUid = "1.3.6.1.4.1.45096.10.296485376.2210.1633373144.864450";
+
+        try
+        {
+            using MemoryStream memoryStream = new MemoryStream(Resource.layer9);
+            await _client.StoreAsync(memoryStream);
+            await _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new int[] { 1 });
+        }
+        finally
+        {
+            await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        }
+    }
+
     public static IEnumerable<object[]> GetUnsupportedAcceptHeadersForFrames
     {
         get

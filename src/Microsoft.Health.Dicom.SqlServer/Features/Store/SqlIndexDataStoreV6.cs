@@ -124,6 +124,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         long watermark,
         IEnumerable<QueryTag> queryTags,
         bool allowExpiredTags = false,
+        bool hasFrameMetadata = false,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -132,7 +133,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.UpdateInstanceStatusV6.PopulateCommand(
+            V22.UpdateInstanceStatusV6.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
