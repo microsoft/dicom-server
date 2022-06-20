@@ -58,6 +58,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob.UnitTests", "src\Microsoft.Health.Dicom.Blob.UnitTests\Microsoft.Health.Dicom.Blob.UnitTests.csproj", "{E2BD0627-CC6C-40D4-B875-00654FD059CF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{431CA883-505C-4DCE-9DF1-DC3DE8DF580A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager", "tools\Microsoft.Health.Dicom.SchemaManager\Microsoft.Health.Dicom.SchemaManager.csproj", "{F306F69F-07B8-4B44-9C9C-77B7B0538438}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.UnitTests", "tools\Microsoft.Health.Dicom.SchemaManager.UnitTests\Microsoft.Health.Dicom.SchemaManager.UnitTests.csproj", "{CBDB4A86-1D29-48A7-B23D-CFFC439D0D62}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -148,6 +154,14 @@ Global
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.Build.0 = Debug|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.ActiveCfg = Release|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.Build.0 = Release|x64
+		{F306F69F-07B8-4B44-9C9C-77B7B0538438}.Debug|x64.ActiveCfg = Debug|x64
+		{F306F69F-07B8-4B44-9C9C-77B7B0538438}.Debug|x64.Build.0 = Debug|x64
+		{F306F69F-07B8-4B44-9C9C-77B7B0538438}.Release|x64.ActiveCfg = Release|x64
+		{F306F69F-07B8-4B44-9C9C-77B7B0538438}.Release|x64.Build.0 = Release|x64
+		{CBDB4A86-1D29-48A7-B23D-CFFC439D0D62}.Debug|x64.ActiveCfg = Debug|x64
+		{CBDB4A86-1D29-48A7-B23D-CFFC439D0D62}.Debug|x64.Build.0 = Debug|x64
+		{CBDB4A86-1D29-48A7-B23D-CFFC439D0D62}.Release|x64.ActiveCfg = Release|x64
+		{CBDB4A86-1D29-48A7-B23D-CFFC439D0D62}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -173,6 +187,8 @@ Global
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{5571FE42-1EDB-4E25-992A-A37467487DB3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{F306F69F-07B8-4B44-9C9C-77B7B0538438} = {431CA883-505C-4DCE-9DF1-DC3DE8DF580A}
+		{CBDB4A86-1D29-48A7-B23D-CFFC439D0D62} = {431CA883-505C-4DCE-9DF1-DC3DE8DF580A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
