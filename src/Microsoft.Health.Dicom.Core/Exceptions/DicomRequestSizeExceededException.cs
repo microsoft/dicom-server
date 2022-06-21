@@ -7,9 +7,9 @@ using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-public class DicomFileLengthLimitExceededException : ValidationException
+public class DicomRequestSizeExceededException : ValidationException
 {
-    public DicomFileLengthLimitExceededException(long maxAllowedLength)
+    public DicomRequestSizeExceededException(long maxAllowedLength)
        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DicomFileLengthLimitExceeded, maxAllowedLength))
     {
     }

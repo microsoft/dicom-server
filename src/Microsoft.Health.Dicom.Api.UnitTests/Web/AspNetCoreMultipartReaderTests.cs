@@ -28,10 +28,12 @@ public class AspNetCoreMultipartReaderTests
     private const string DefaultBodyPartFinalSeparator = "--+b+--";
 
     private readonly ISeekableStreamConverter _seekableStreamConverter;
+    private readonly IOptions<StoreConfiguration> _storeConfiguration;
 
     public AspNetCoreMultipartReaderTests()
     {
         _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+        _storeConfiguration = CreateStoreConfiguration();
     }
 
     [Fact]
@@ -55,12 +57,7 @@ public class AspNetCoreMultipartReaderTests
     [Fact]
     public async Task GivenASingleBodyPartWithContentType_WhenReading_ThenCorrectMultipartBodyPartShouldBeReturned()
     {
-        string body = GenerateBody(
-            DefaultBodyPartSeparator,
-            $"Content-Type: application/dicom",
-            string.Empty,
-            "content",
-            DefaultBodyPartFinalSeparator);
+        string body = GenerateBody();
 
         await ExecuteAndValidateAsync(
             body,
@@ -92,12 +89,7 @@ public class AspNetCoreMultipartReaderTests
     public async Task GivenASingleBodyPartWithContentTypeAndRequestContentTypeWithTypeParameter_WhenReading_ThenContentTypeFromBodyPartShouldBeUsed()
     {
         const string requestContentType = "multipart/related; type=\"text/plain\"; boundary=+b+";
-        string body = GenerateBody(
-            DefaultBodyPartSeparator,
-            "Content-Type: application/dicom",
-            string.Empty,
-            "content",
-            DefaultBodyPartFinalSeparator);
+        string body = GenerateBody();
 
         await ExecuteAndValidateAsync(
             body,
@@ -190,12 +182,7 @@ public class AspNetCoreMultipartReaderTests
     {
         ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
-        string body = GenerateBody(
-            DefaultBodyPartSeparator,
-            $"Content-Type: application/dicom",
-            string.Empty,
-            "content",
-            DefaultBodyPartFinalSeparator);
+        string body = GenerateBody();
 
         seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new IOException());
 
@@ -207,21 +194,34 @@ public class AspNetCoreMultipartReaderTests
     }
 
     [Fact]
-    public async Task GivenAInvalidDataException__ThenDicomFileLengthLimitExceededExceptionShouldBeRethrown()
+    public async Task GivenAInvalidDataException_ThenDicomFileLengthLimitExceededExceptionShouldBeRethrown()
     {
         ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
-        string body = GenerateBody(
-            DefaultBodyPartSeparator,
-            $"Content-Type: application/dicom",
-            string.Empty,
-            "content",
-            DefaultBodyPartFinalSeparator);
-
+        string body = GenerateBody();
 
         seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new InvalidDataException());
 
-        await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
+        await Assert.ThrowsAsync<DicomRequestSizeExceededException>(
+            () => ExecuteAndValidateAsync(
+            body,
+            DefaultContentType,
+            seekableStreamConverter,
+            async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart)));
+    }
+
+    [Fact]
+    public async Task GivenAnOversizeRequest_ThenDicomFileLengthLimitExceededExceptionShouldBeRethrown()
+    {
+        ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+        _storeConfiguration.Value.Returns(new StoreConfiguration
+        {
+            MaxAllowedDicomFileSize = 1,
+        });
+
+        string body = GenerateBody();
+
+        await Assert.ThrowsAsync<DicomRequestSizeExceededException>(
             () => ExecuteAndValidateAsync(
             body,
             DefaultContentType,
@@ -246,7 +246,7 @@ public class AspNetCoreMultipartReaderTests
             contentType,
             body,
             seekableStreamConverter,
-            CreateStoreConfiguration());
+            _storeConfiguration);
     }
 
     private IOptions<StoreConfiguration> CreateStoreConfiguration()
@@ -307,7 +307,20 @@ public class AspNetCoreMultipartReaderTests
 
     private string GenerateBody(params string[] lines)
     {
+        if (lines.Length == 0)
+        {
+            lines = _defaultBody;
+        }
+
         // Body part requires \r\n as separator per RFC2616.
         return string.Join("\r\n", lines);
     }
+
+    private readonly string[] _defaultBody = new string[] {
+            DefaultBodyPartSeparator,
+            $"Content-Type: application/dicom",
+            string.Empty,
+            "content",
+            DefaultBodyPartFinalSeparator
+        };
 }

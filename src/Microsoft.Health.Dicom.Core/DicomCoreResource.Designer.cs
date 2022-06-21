@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The dicom file in the request section exceeded the allowed limit of {0} bytes..
+        ///   Looks up a localized string similar to The request exceeded the allowed limit of {0} bytes..
         /// </summary>
         internal static string DicomFileLengthLimitExceeded {
             get {

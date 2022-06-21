@@ -82,11 +82,12 @@ internal class AspNetCoreMultipartReader : IMultipartReader
             }
         }
 
-        _multipartReader = new MultipartReader(boundary, body)
+        if (body.Length > _storeConfiguration.Value.MaxAllowedDicomFileSize)
         {
-            // set the max length of each section in bytes
-            BodyLengthLimit = _storeConfiguration.Value.MaxAllowedDicomFileSize,
-        };
+            throw new DicomRequestSizeExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+        }
+
+        _multipartReader = new MultipartReader(boundary, body);
     }
 
     /// <inheritdoc />
@@ -132,7 +133,7 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         catch (InvalidDataException)
         {
             // This will result in bad request, we need to handle this differently when we make the processing serial.
-            throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+            throw new DicomRequestSizeExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
         catch (IOException)
         {
