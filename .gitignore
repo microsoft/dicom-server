@@ -290,3 +290,6 @@ tempkey.rsa
 
 # docker .env file
 **/.env
+
+# Local settings files
+local.settings.json

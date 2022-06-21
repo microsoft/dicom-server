@@ -34,3 +34,6 @@ LICENSE
 !.git/HEAD
 !.git/config
 !.git/refs/heads
+
+# Local settings files
+local.settings.json

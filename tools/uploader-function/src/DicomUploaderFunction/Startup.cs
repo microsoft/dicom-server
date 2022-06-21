@@ -28,10 +28,7 @@ public class Startup : FunctionsStartup
         IConfigurationSection dicomWebConfigurationSection = configuration.GetSection(DicomOptions.SectionName);
         dicomWebConfigurationSection.Bind(dicomOptions);
 
-        builder.Services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
-            {
-                client.BaseAddress = dicomOptions.Endpoint;
-            })
+        builder.Services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) => client.BaseAddress = dicomOptions.Endpoint)
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
     }
 }

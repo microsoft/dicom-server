@@ -8,8 +8,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client;
 
 namespace DicomUploaderFunction;
@@ -20,18 +20,17 @@ public class BlobUploader
 
     public BlobUploader(IDicomWebClient dicomWebClient)
     {
-        _dicomWebClient = dicomWebClient;
+        _dicomWebClient = EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
     }
 
     [FunctionName("BlobUploader")]
     public async Task Run(
         [BlobTrigger("%sourceblobcontainer%/{name}", Connection = "sourcestorage")]
         Stream myBlob,
-        string name,
-        ILogger log)
+        CancellationToken cancellationToken)
     {
         using var streamContent = new StreamContent(myBlob);
         streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/dicom");
-        await _dicomWebClient.StoreAsync(streamContent, partitionName: null, CancellationToken.None);
+        await _dicomWebClient.StoreAsync(streamContent, partitionName: null, cancellationToken);
     }
 }
