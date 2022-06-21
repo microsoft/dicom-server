@@ -6,6 +6,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using EnsureThat;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Microsoft.Health.Dicom.Api.Modules;
 
@@ -39,6 +41,26 @@ public class SecurityModule : IStartupModule
 
         if (_securityConfiguration.Enabled)
         {
+            string[] validAudiences = GetValidAudiences();
+            string challengeAudience = validAudiences?.FirstOrDefault();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.Authority = _securityConfiguration.Authentication.Authority;
+                options.RequireHttpsMetadata = true;
+                options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidAudiences = validAudiences,
+                };
+            });
+
             services.AddControllers(mvcOptions =>
             {
                 var policy = new AuthorizationPolicyBuilder()

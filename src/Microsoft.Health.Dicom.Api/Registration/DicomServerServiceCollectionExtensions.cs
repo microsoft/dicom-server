@@ -97,12 +97,12 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
 
-        services.AddMiseWithDefaultAuthentication(configurationRoot, options =>
-        {
-            options.Audience = GetValidAudiences(dicomServerConfiguration)[0];
-            options.Authority = dicomServerConfiguration.Security.Authentication.Authority;
-            options.ClientId = "SomeClientId";
-        });
+        //services.AddMiseWithDefaultAuthentication(configurationRoot, options =>
+        //{
+        //    options.Audience = GetValidAudiences(dicomServerConfiguration)[0];
+        //    options.Authority = dicomServerConfiguration.Security.Authentication.Authority;
+        //    options.ClientId = "SomeClientId";
+        //});
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
         services.AddApplicationInsightsTelemetry();
