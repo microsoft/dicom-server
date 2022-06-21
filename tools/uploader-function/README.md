@@ -57,3 +57,9 @@ az functionapp config appsettings set --name {function-app-name} --resource-grou
 | {source-blob-url} | The URL of your blob service that contains your DICOM files. |
 | {source-queue-url} | The URL of your queue service of the storage account that contains your DICOM files. This service is used to create a poison queue and messages in if there is a failure to upload a DICOM file. |
 | {dicom-service-endpoint} | The DICOM Service endpoint that you wish to upload DICOM files to. |
+
+## Troubleshooting
+
+* There is an application insights published along with the function that will contain traces and exceptions from the running of the service. You can find more about how to [Query telemetry data](https://docs.microsoft.com/en-us/azure/azure-functions/analyze-telemetry-data#query-telemetry-data)
+* When a blob is processed by the function it writes a [blob receipt](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-trigger?tabs=in-process%2Cextensionv5&pivots=programming-language-csharp#blob-receipts) into the {storage-account-name} specified in step 1.
+* When a blob fails to be processed it writes a [Poison blob](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-trigger?tabs=in-process%2Cextensionv5&pivots=programming-language-csharp#poison-blobs) into the queue service specified in {source-queue-url} above.

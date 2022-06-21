@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using DicomUploaderFunction.Configuration;
 using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -28,7 +29,11 @@ public class Startup : FunctionsStartup
         IConfigurationSection dicomWebConfigurationSection = configuration.GetSection(DicomOptions.SectionName);
         dicomWebConfigurationSection.Bind(dicomOptions);
 
-        builder.Services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) => client.BaseAddress = dicomOptions.Endpoint)
+        builder.Services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
+            {
+                client.Timeout = TimeSpan.FromMinutes(10);
+                client.BaseAddress = dicomOptions.Endpoint;
+            })
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
     }
 }
