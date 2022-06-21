@@ -83,7 +83,7 @@ public class ExceptionHandlingMiddleware
             case AuditHeaderTooLargeException:
             case ConnectionResetException:
             case OperationCanceledException:
-            case BadHttpRequestException br when br.Message.Equals("Unexpected end of request content.", StringComparison.OrdinalIgnoreCase):
+            case BadHttpRequestException:
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;
                 break;
