@@ -22,10 +22,10 @@ public static class DicomFileExtensions
         return pixelData;
     }
 
-    public static DicomPixelData GetPixelData(this DicomFile dicomFile)
+    public static bool TryGetPixelData(this DicomDataset dataset, out DicomPixelData dicomPixelData)
     {
-        EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-        DicomDataset dataset = dicomFile.Dataset;
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        dicomPixelData = null;
 
         // Validate the dataset has the correct DICOM tags.
         if (!dataset.Contains(DicomTag.BitsAllocated) ||
@@ -33,10 +33,24 @@ public static class DicomFileExtensions
             !dataset.Contains(DicomTag.Rows) ||
             !dataset.Contains(DicomTag.PixelData))
         {
+            return false;
+        }
+        dicomPixelData = DicomPixelData.Create(dataset);
+        return true;
+    }
+
+    public static DicomPixelData GetPixelData(this DicomFile dicomFile)
+    {
+        EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
+        DicomDataset dataset = dicomFile.Dataset;
+
+        // Validate the dataset has the correct DICOM tags.
+        if (!TryGetPixelData(dataset, out DicomPixelData dicomPixelData))
+        {
             throw new FrameNotFoundException();
         }
 
-        return DicomPixelData.Create(dataset);
+        return dicomPixelData;
     }
 
     public static void ValidateFrames(DicomPixelData pixelData, IEnumerable<int> frames)

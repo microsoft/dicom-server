@@ -33,9 +33,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobMetadataStore : IMetadataStore
 {
-    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
-
+    private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -130,14 +129,70 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
-            {
-                await blobClient.DownloadToAsync(stream, cancellationToken);
+            BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
+            return result.Content.ToObjectFromJson<DicomDataset>(_jsonSerializerOptions);
+        }, cancellationToken);
+    }
 
+    /// <inheritdoc />
+    public async Task DeleteInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+
+        await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task StoreInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            IReadOnlyDictionary<int, FrameRange> framesRange,
+            CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        EnsureArg.IsNotNull(framesRange, nameof(framesRange));
+
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+
+        try
+        {
+            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceFramesRangeTagName))
+            await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
+            {
+                JsonSerializer.Serialize(utf8Writer, framesRange, _jsonSerializerOptions);
+                await utf8Writer.FlushAsync(cancellationToken);
                 stream.Seek(0, SeekOrigin.Begin);
 
-                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
+                await blobClient.UploadAsync(
+                    stream,
+                    new BlobHttpHeaders()
+                    {
+                        ContentType = KnownContentTypes.ApplicationJson,
+                    },
+                    metadata: null,
+                    conditions: null,
+                    accessTier: null,
+                    progressHandler: null,
+                    cancellationToken);
             }
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
+
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+
+        return ExecuteAsync(async t =>
+        {
+            BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+            return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
         }, cancellationToken);
     }
 
@@ -154,6 +209,12 @@ public class BlobMetadataStore : IMetadataStore
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
         }
+    }
+
+    private BlockBlobClient GetInstanceFramesRangeBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
+        return _container.GetBlockBlobClient(blobName);
     }
 
     private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)

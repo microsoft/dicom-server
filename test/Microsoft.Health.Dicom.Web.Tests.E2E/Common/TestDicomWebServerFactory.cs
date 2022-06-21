@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 public class TestDicomWebServerFactory
 {
-    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, bool enableDataPartitions = false)
+    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, bool enableDataPartitions = false, bool enableDualWrite = false)
     {
         var options = new TestEnvironmentOptions();
         TestEnvironment.Variables.Bind(options);
@@ -20,7 +20,7 @@ public class TestDicomWebServerFactory
 
         if (environmentUrl == null)
         {
-            return new InProcTestDicomWebServer(startupType, enableDataPartitions);
+            return new InProcTestDicomWebServer(startupType, enableDataPartitions, enableDualWrite);
         }
         else if (!environmentUrl.IsAbsoluteUri)
         {

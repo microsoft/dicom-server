@@ -12,4 +12,5 @@ public interface IHttpStreamContent
 {
     IEnumerable<KeyValuePair<string, IEnumerable<string>>> Headers { get; init; }
     Stream Stream { get; init; }
+    long StreamLength { get; init; }
 }

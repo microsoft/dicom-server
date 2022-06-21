@@ -37,6 +37,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 
 public class RetrieveResourceServiceTests
 {
+    private readonly IMetadataStore _metadataStore;
     private readonly RetrieveResourceService _retrieveResourceService;
     private readonly IInstanceStore _instanceStore;
     private readonly IFileStore _fileStore;
@@ -52,6 +53,8 @@ public class RetrieveResourceServiceTests
     private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
     private readonly string _sopInstanceUid = TestUidGenerator.Generate();
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+    private readonly IInstanceMetadataCache _instanceMetadataCache;
+    private readonly IFramesRangeCache _framesRangeCache;
 
     public RetrieveResourceServiceTests()
     {
@@ -66,8 +69,25 @@ public class RetrieveResourceServiceTests
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
+        var loggerFactory = Substitute.For<ILoggerFactory>();
+        _instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
+        _framesRangeCache = Substitute.For<IFramesRangeCache>();
+
+        _metadataStore = Substitute.For<IMetadataStore>();
         _retrieveResourceService = new RetrieveResourceService(
-            _instanceStore, _fileStore, _retrieveTranscoder, _dicomFrameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, retrieveConfigurationSnapshot, _logger);
+            _instanceStore,
+            _fileStore,
+            _retrieveTranscoder,
+            _dicomFrameHandler,
+            _retrieveTransferSyntaxHandler,
+            _dicomRequestContextAccessor,
+            _metadataStore,
+            _instanceMetadataCache,
+            _framesRangeCache,
+            retrieveConfigurationSnapshot,
+            _logger,
+            loggerFactory
+            );
     }
 
     [Fact]
@@ -86,8 +106,14 @@ public class RetrieveResourceServiceTests
         List<InstanceMetadata> instances = SetupInstanceIdentifiersList(ResourceType.Study);
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
-        instances.SkipLast(1).Select(x => _fileStore.GetFileAsync(x.VersionedInstanceIdentifier, DefaultCancellationToken).Returns(
-            StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier), frames: 0, disposeStreams: true).Result.Value));
+        // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
+        for (int i = 0; i < instances.Count - 1; i++)
+        {
+            InstanceMetadata instance = instances[i];
+            KeyValuePair<DicomFile, Stream> stream = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instance.VersionedInstanceIdentifier), frames: 0, disposeStreams: false);
+            _fileStore.GetFileAsync(instance.VersionedInstanceIdentifier, DefaultCancellationToken).Returns(stream.Value);
+            _retrieveTranscoder.TranscodeFileAsync(stream.Value, "*").Returns(stream.Value);
+        }
 
         // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
         _fileStore.GetFileAsync(instances.Last().VersionedInstanceIdentifier, DefaultCancellationToken).Throws(new InstanceNotFoundException());
@@ -173,8 +199,13 @@ public class RetrieveResourceServiceTests
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
-        versionedInstanceIdentifiers.SkipLast(1).Select(x => _fileStore.GetFileAsync(x.VersionedInstanceIdentifier, DefaultCancellationToken).Returns(
-            StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier), frames: 0, disposeStreams: true).Result.Value));
+        for (int i = 0; i < versionedInstanceIdentifiers.Count - 1; i++)
+        {
+            InstanceMetadata instance = versionedInstanceIdentifiers[i];
+            KeyValuePair<DicomFile, Stream> stream = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(instance.VersionedInstanceIdentifier), frames: 0, disposeStreams: false);
+            _fileStore.GetFileAsync(instance.VersionedInstanceIdentifier, DefaultCancellationToken).Returns(stream.Value);
+            _retrieveTranscoder.TranscodeFileAsync(stream.Value, "*").Returns(stream.Value);
+        }
 
         // For the last identifier, set up the fileStore to throw a store exception with the status code 404 (NotFound).
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.Last().VersionedInstanceIdentifier, DefaultCancellationToken).Throws(new InstanceNotFoundException());
@@ -342,6 +373,7 @@ public class RetrieveResourceServiceTests
         Stream[] frames = framesToRequest.Select(f => GetFrameFromFile(streamAndStoredFile.Key.Dataset, f)).ToArray();
         var retrieveResourceRequest = new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() });
         _dicomFrameHandler.GetFramesResourceAsync(streamAndStoredFile.Value, retrieveResourceRequest.Frames, true, "*").Returns(frames);
+        _retrieveTranscoder.TranscodeFileAsync(streamAndStoredFile.Value, "*").Returns(streamAndStoredFile.Value);
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                retrieveResourceRequest,
@@ -375,6 +407,7 @@ public class RetrieveResourceServiceTests
             x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier, originalTransferSyntax)).Result).ToList();
         streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamsAndStoredFiles.First().Value.Length });
+        streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, requestedTransferSyntax).Returns(x.Value));
 
         // act
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -435,6 +468,8 @@ public class RetrieveResourceServiceTests
             x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier, originalTransferSyntax)).Result).ToList();
         streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamsAndStoredFiles.First().Value.Length });
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamsAndStoredFiles.First().Value.Length });
+        streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, requestedTransferSyntax).Returns(x.Value));
 
         // act
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -475,9 +510,27 @@ public class RetrieveResourceServiceTests
         // act and assert
         await Assert.ThrowsAsync<NotAcceptableException>(() =>
         _retrieveResourceService.GetInstanceResourceAsync(
-              new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+              new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() }),
               DefaultCancellationToken));
 
+    }
+
+    [Fact]
+    public async Task GetFrames_WithNoTranscode_HitsCache()
+    {
+        // arrange
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames, DefaultPartition.Key, new InstanceProperties() { HasFrameMetadata = true });
+        var framesToRequest = new List<int> { 1 };
+
+        // act
+        await _retrieveResourceService.GetInstanceResourceAsync(
+              new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame() }),
+              DefaultCancellationToken);
+
+        // assert
+        var identifier = new InstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultPartition.Key);
+        await _instanceMetadataCache.Received(1).GetAsync(Arg.Any<object>(), identifier, Arg.Any<Func<InstanceIdentifier, CancellationToken, Task<InstanceMetadata>>>(), Arg.Any<CancellationToken>());
+        await _framesRangeCache.Received(1).GetAsync(Arg.Any<object>(), Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<Func<VersionedInstanceIdentifier, CancellationToken, Task<IReadOnlyDictionary<int, FrameRange>>>>(), Arg.Any<CancellationToken>());
     }
 
     private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
@@ -504,6 +557,8 @@ public class RetrieveResourceServiceTests
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 0, partitionKey), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey), instanceProperty));
                 _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1));
+                var identifier = new InstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, partitionKey);
+                _instanceMetadataCache.GetAsync(Arg.Any<object>(), identifier, Arg.Any<Func<InstanceIdentifier, CancellationToken, Task<InstanceMetadata>>>(), Arg.Any<CancellationToken>()).Returns(dicomInstanceIdentifiersList.First());
                 break;
         }
         return dicomInstanceIdentifiersList;
