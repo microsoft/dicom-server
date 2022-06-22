@@ -46,13 +46,13 @@ public static class CommandCollectionExtensions
     {
         var switchMappings = new Dictionary<string, string>()
         {
-            { OptionAliases.ShortConnectionString, OptionAliases.ConnectionString },
-            { OptionAliases.ShortForce, OptionAliases.Force },
-            { OptionAliases.ShortLatest, OptionAliases.Latest },
-            { OptionAliases.ShortNext, OptionAliases.Next },
-            { OptionAliases.ShortManagedIdentityClientId, OptionAliases.ManagedIdentityClientId },
-            { OptionAliases.ShortAuthenticationType, OptionAliases.AuthenticationType },
-            { OptionAliases.ShortVersion, OptionAliases.Version },
+            { OptionAliases.ConnectionStringShort, OptionAliases.ConnectionString },
+            { OptionAliases.ForceShort, OptionAliases.Force },
+            { OptionAliases.LatestShort, OptionAliases.Latest },
+            { OptionAliases.NextShort, OptionAliases.Next },
+            { OptionAliases.ManagedIdentityClientIdShort, OptionAliases.ManagedIdentityClientId },
+            { OptionAliases.AuthenticationTypeShort, OptionAliases.AuthenticationType },
+            { OptionAliases.VersionShort, OptionAliases.Version },
             { OptionAliases.ConnectionString, OptionAliases.ConnectionString },
             { OptionAliases.Force, OptionAliases.Force },
             { OptionAliases.Latest, OptionAliases.Latest },

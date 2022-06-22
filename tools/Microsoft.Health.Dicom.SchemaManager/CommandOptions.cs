@@ -20,7 +20,7 @@ public static class CommandOptions
             IsRequired = true
         };
 
-        connectionStringOption.AddAlias(OptionAliases.ShortConnectionString);
+        connectionStringOption.AddAlias(OptionAliases.ConnectionStringShort);
 
         return connectionStringOption;
     }
@@ -34,7 +34,7 @@ public static class CommandOptions
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        managedIdentityClientIdOption.AddAlias(OptionAliases.ShortManagedIdentityClientId);
+        managedIdentityClientIdOption.AddAlias(OptionAliases.ManagedIdentityClientIdShort);
 
         return managedIdentityClientIdOption;
     }
@@ -48,7 +48,7 @@ public static class CommandOptions
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        connectionStringOption.AddAlias(OptionAliases.ShortAuthenticationType);
+        connectionStringOption.AddAlias(OptionAliases.AuthenticationTypeShort);
 
         return connectionStringOption;
     }
@@ -62,7 +62,7 @@ public static class CommandOptions
             Arity = ArgumentArity.ExactlyOne
         };
 
-        versionOption.AddAlias(OptionAliases.ShortVersion);
+        versionOption.AddAlias(OptionAliases.VersionShort);
 
         return versionOption;
     }
@@ -76,7 +76,7 @@ public static class CommandOptions
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        nextOption.AddAlias(OptionAliases.ShortNext);
+        nextOption.AddAlias(OptionAliases.NextShort);
 
         return nextOption;
     }
@@ -90,7 +90,7 @@ public static class CommandOptions
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        latestOption.AddAlias(OptionAliases.ShortLatest);
+        latestOption.AddAlias(OptionAliases.LatestShort);
 
         return latestOption;
     }
@@ -104,7 +104,7 @@ public static class CommandOptions
             Arity = ArgumentArity.ZeroOrOne
         };
 
-        forceOption.AddAlias(OptionAliases.ShortForce);
+        forceOption.AddAlias(OptionAliases.ForceShort);
 
         return forceOption;
     }
