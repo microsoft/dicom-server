@@ -102,6 +102,9 @@ public class ExceptionHandlingMiddleware
             case ExtendedQueryTagsOutOfDateException:
                 statusCode = HttpStatusCode.Conflict;
                 break;
+            case PayloadTooLargeException:
+                statusCode = HttpStatusCode.RequestEntityTooLarge;
+                break;
             case UnsupportedMediaTypeException:
                 statusCode = HttpStatusCode.UnsupportedMediaType;
                 break;

@@ -205,15 +205,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The dicom file in the request section exceeded the allowed limit of {0} bytes..
-        /// </summary>
-        internal static string DicomFileLengthLimitExceeded {
-            get {
-                return ResourceManager.GetString("DicomFileLengthLimitExceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
         /// </summary>
         internal static string DisallowedSeriesInstanceUIDAttribute {
@@ -1017,6 +1008,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string QueryTagAlreadySupported {
             get {
                 return ResourceManager.GetString("QueryTagAlreadySupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The request exceeded the allowed limit of {0} bytes..
+        /// </summary>
+        internal static string RequestLengthLimitExceeded {
+            get {
+                return ResourceManager.GetString("RequestLengthLimitExceeded", resourceCulture);
             }
         }
         

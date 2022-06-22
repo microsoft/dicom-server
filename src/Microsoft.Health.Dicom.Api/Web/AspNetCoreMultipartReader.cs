@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
@@ -100,6 +101,10 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         catch (InvalidDataException ex)
         {
             throw new InvalidMultipartRequestException(ex.Message);
+        }
+        catch (BadHttpRequestException)
+        {
+            throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
 
         if (section == null)
