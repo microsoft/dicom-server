@@ -70,6 +70,15 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The authentication type to connect with..
+        /// </summary>
+        internal static string AuthenticationTypeDescription {
+            get {
+                return ResourceManager.GetString("AuthenticationTypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The connection string of the SQL server to apply the schema update..
         /// </summary>
         internal static string ConnectionStringOptionDescription {
@@ -115,6 +124,15 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The client ID of the managed identity to be used..
+        /// </summary>
+        internal static string ManagedIdentityClientIdDescription {
+            get {
+                return ResourceManager.GetString("ManagedIdentityClientIdDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must include only one of the option from [version, next, latest]..
         /// </summary>
         internal static string MutuallyExclusiveValidation {
@@ -129,51 +147,6 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         internal static string NextOptionDescritpion {
             get {
                 return ResourceManager.GetString("NextOptionDescritpion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The root URL of the server to connect to..
-        /// </summary>
-        internal static string ServerOptionDescription {
-            get {
-                return ResourceManager.GetString("ServerOptionDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You must include a Server..
-        /// </summary>
-        internal static string ServerRequiredValidation {
-            get {
-                return ResourceManager.GetString("ServerRequiredValidation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Schema version &quot;{0}&quot; applied successfully..
-        /// </summary>
-        internal static string SuccessfulApplyFormatString {
-            get {
-                return ResourceManager.GetString("SuccessfulApplyFormatString", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Schema version already matches current version &quot;{0}&quot;..
-        /// </summary>
-        internal static string UnnecessaryApplyFormatString {
-            get {
-                return ResourceManager.GetString("UnnecessaryApplyFormatString", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to apply schema version &quot;{0}&quot;..
-        /// </summary>
-        internal static string UnsuccessfulApplyFormatString {
-            get {
-                return ResourceManager.GetString("UnsuccessfulApplyFormatString", resourceCulture);
             }
         }
         

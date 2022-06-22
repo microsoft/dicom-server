@@ -10,30 +10,45 @@ namespace Microsoft.Health.Dicom.SchemaManager;
 
 public static class CommandOptions
 {
-    public static Option ServerOption()
-    {
-        var serverOption = new Option<Uri>(
-            name: OptionAliases.Server,
-            description: Resources.ServerOptionDescription)
-        {
-            Arity = ArgumentArity.ExactlyOne
-        };
-
-        serverOption.AddAlias(OptionAliases.ShortServer);
-
-        return serverOption;
-    }
-
     public static Option ConnectionStringOption()
     {
         var connectionStringOption = new Option<string>(
             name: OptionAliases.ConnectionString,
             description: Resources.ConnectionStringOptionDescription)
         {
-            Arity = ArgumentArity.ExactlyOne
+            Arity = ArgumentArity.ExactlyOne,
+            IsRequired = true
         };
 
         connectionStringOption.AddAlias(OptionAliases.ShortConnectionString);
+
+        return connectionStringOption;
+    }
+
+    public static Option ManagedIdentityClientIdOption()
+    {
+        var managedIdentityClientIdOption = new Option<string>(
+            name: OptionAliases.ManagedIdentityClientId,
+            description: Resources.ManagedIdentityClientIdDescription)
+        {
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        managedIdentityClientIdOption.AddAlias(OptionAliases.ShortManagedIdentityClientId);
+
+        return managedIdentityClientIdOption;
+    }
+
+    public static Option AuthenticationTypeOption()
+    {
+        var connectionStringOption = new Option<string>(
+            name: OptionAliases.AuthenticationType,
+            description: Resources.AuthenticationTypeDescription)
+        {
+            Arity = ArgumentArity.ZeroOrOne
+        };
+
+        connectionStringOption.AddAlias(OptionAliases.ShortAuthenticationType);
 
         return connectionStringOption;
     }

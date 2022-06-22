@@ -13,7 +13,7 @@ public class CommandLineOptions
 
     public string? ConnectionString { get; set; }
 
-    public SqlServerAuthenticationType AuthenticationType { get; set; }
+    public SqlServerAuthenticationType? AuthenticationType { get; set; }
 
     public string? ManagedIdentityClientId { get; set; }
 }

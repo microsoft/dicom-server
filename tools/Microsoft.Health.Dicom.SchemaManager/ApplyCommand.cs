@@ -24,11 +24,14 @@ public class ApplyCommand : Command
         : base("apply", Resources.ApplyCommandDescription)
     {
         AddOption(CommandOptions.ConnectionStringOption());
-        AddOption(CommandOptions.ServerOption());
+        AddOption(CommandOptions.ManagedIdentityClientIdOption());
+        AddOption(CommandOptions.AuthenticationTypeOption());
         AddOption(CommandOptions.VersionOption());
         AddOption(CommandOptions.NextOption());
         AddOption(CommandOptions.LatestOption());
         AddOption(CommandOptions.ForceOption());
+
+        AddValidator(commandResult => MutuallyExclusiveOptionValidator.Validate(commandResult, new List<Option> { CommandOptions.VersionOption(), CommandOptions.NextOption(), CommandOptions.LatestOption() }, Resources.MutuallyExclusiveValidation));
 
         Handler = CommandHandler.Create(
             (MutuallyExclusiveType type, bool force, CancellationToken token)

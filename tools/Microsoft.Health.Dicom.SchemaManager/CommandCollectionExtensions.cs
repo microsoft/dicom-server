@@ -50,13 +50,15 @@ public static class CommandCollectionExtensions
             { OptionAliases.ShortForce, OptionAliases.Force },
             { OptionAliases.ShortLatest, OptionAliases.Latest },
             { OptionAliases.ShortNext, OptionAliases.Next },
-            { OptionAliases.ShortServer, OptionAliases.Server },
+            { OptionAliases.ShortManagedIdentityClientId, OptionAliases.ManagedIdentityClientId },
+            { OptionAliases.ShortAuthenticationType, OptionAliases.AuthenticationType },
             { OptionAliases.ShortVersion, OptionAliases.Version },
             { OptionAliases.ConnectionString, OptionAliases.ConnectionString },
             { OptionAliases.Force, OptionAliases.Force },
             { OptionAliases.Latest, OptionAliases.Latest },
             { OptionAliases.Next, OptionAliases.Next },
-            { OptionAliases.Server, OptionAliases.Server },
+            { OptionAliases.ManagedIdentityClientId, OptionAliases.ManagedIdentityClientId },
+            { OptionAliases.AuthenticationType, OptionAliases.AuthenticationType },
             { OptionAliases.Version, OptionAliases.Version },
         };
 
