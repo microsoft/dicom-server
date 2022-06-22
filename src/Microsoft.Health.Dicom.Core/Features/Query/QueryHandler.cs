@@ -19,20 +19,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Query;
 public class QueryHandler : BaseHandler, IRequestHandler<QueryResourceRequest, QueryResourceResponse>
 {
     private readonly IQueryService _queryService;
-    private readonly ILogger<QueryHandler> _logger;
 
-    public QueryHandler(IAuthorizationService<DataActions> authorizationService, IQueryService queryService, ILogger<QueryHandler> logger)
+    public QueryHandler(IAuthorizationService<DataActions> authorizationService, IQueryService queryService)
         : base(authorizationService)
     {
         _queryService = EnsureArg.IsNotNull(queryService, nameof(queryService));
-        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     public async Task<QueryResourceResponse> Handle(QueryResourceRequest request, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(request, nameof(request));
-
-        _logger.LogInformation("CodeChange - 2 - Mise Remote Auth works - in QueryHandler.Handler");
 
         if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
         {
