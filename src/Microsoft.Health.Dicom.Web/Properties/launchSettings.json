@@ -16,7 +16,7 @@
         "DicomServer:Security:Enabled": "true",
         "DicomServer:Security:Authentication:Audience": "https://dicom.healthcareapis.azure-test.net/",
         "DicomServer:Security:Authentication:Authority": "https://login.windows-ppe.net/f686d426-8d16-42db-81b7-ab578e110ccd/",
-        "DicomServer:Security:Authorization:Enabled": "true",
+        "DicomServer:Security:Authorization:Enabled": "false",
         "TestAuthEnvironment:FilePath": "..//..//testauthenvironment.json"
       },
       "applicationUrl": "https://localhost:63838/"
