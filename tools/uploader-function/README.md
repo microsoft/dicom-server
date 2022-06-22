@@ -31,7 +31,7 @@ az functionapp create --name {function-app-name} --storage-account {storage-acco
 | {resource-group-name} | The resource group you would like to place your function app in. | 
 | {app-service-plan-name} | The app service plan you created in the previous step. |
 
-## 3. Grant permissions for function's managed identity
+## 3. Grant permissions for the function's managed identity
 
 The managed identity for the function needs the following permissions to execute.
 
