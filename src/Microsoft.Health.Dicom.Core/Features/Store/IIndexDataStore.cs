@@ -79,9 +79,10 @@ public interface IIndexDataStore
     /// <param name="watermark">The DICOM instance watermark.</param>
     /// <param name="queryTags">Queryable dicom tags</param>
     /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
+    /// <param name="hasFrameMetadata">Has additional frame range metadata stores.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default);
+    Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Return a collection of deleted instances.

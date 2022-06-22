@@ -80,7 +80,7 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
             }
             else
             {
-                throw new DataPartitionsNotFoundException(partitionName);
+                throw new DataPartitionsNotFoundException();
             }
         }
 

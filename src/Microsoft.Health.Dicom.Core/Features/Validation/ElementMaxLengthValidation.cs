@@ -37,7 +37,6 @@ internal class ElementMaxLengthValidation : IElementValidation
             throw new ElementValidationException(
                 name,
                 vr,
-                value,
                 ValidationErrorCode.ExceedMaxLength,
                 string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ErrorMessageExceedMaxLength, maxLength));
         }

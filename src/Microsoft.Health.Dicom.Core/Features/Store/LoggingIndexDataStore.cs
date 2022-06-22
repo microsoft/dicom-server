@@ -221,13 +221,13 @@ public class LoggingIndexDataStore : IIndexDataStore
     }
 
     /// <inheritdoc />
-    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
+    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         LogEndAddInstanceDelegate(_logger, dicomDataset.ToVersionedInstanceIdentifier(watermark, partitionKey), null);
 
         try
         {
-            await IndexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
+            await IndexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
 
             LogOperationSucceededDelegate(_logger, null);
         }

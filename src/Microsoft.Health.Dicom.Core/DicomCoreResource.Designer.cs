@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specified PartitionName &apos;{0}&apos; does not exist..
+        ///   Looks up a localized string similar to Specified PartitionName does not exist..
         /// </summary>
         internal static string DataPartitionNotFound {
             get {
@@ -201,15 +201,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DicomElementValidationFailed {
             get {
                 return ResourceManager.GetString("DicomElementValidationFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dicom element &apos;{0}&apos; with value &apos;{1}&apos; failed validation for VR &apos;{2}&apos;: {3}.
-        /// </summary>
-        internal static string DicomElementValidationFailedWithValue {
-            get {
-                return ResourceManager.GetString("DicomElementValidationFailedWithValue", resourceCulture);
             }
         }
         
@@ -694,7 +685,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified PartitionName value &apos;{0}&apos; is invalid. .
+        ///   Looks up a localized string similar to The specified PartitionName is invalid. .
         /// </summary>
         internal static string InvalidPartitionName {
             get {
@@ -823,7 +814,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The StudyInstanceUid &apos;{0}&apos; in the payload does not match the specified StudyInstanceUid &apos;{1}&apos;..
+        ///   Looks up a localized string similar to The StudyInstanceUid in the payload does not match the specified StudyInstanceUid..
         /// </summary>
         internal static string MismatchStudyInstanceUid {
             get {
@@ -1156,7 +1147,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; DicomTag is not expected for &apos;{1}&apos; operation. [WorkitemInstanceUID &apos;{2}&apos;].
+        ///   Looks up a localized string similar to &apos;{0}&apos; DicomTag is not expected for &apos;{1}&apos; operation..
         /// </summary>
         internal static string UnexpectedTag {
             get {
