@@ -15,34 +15,36 @@ namespace Microsoft.Health.Web.Dicom.Tool;
 
 public static class Programstore
 {
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
         ParseArgumentsAndExecute(args);
-        await StoreImageAsync();
     }
 
     private static void ParseArgumentsAndExecute(string[] args)
     {
         var rootCommand = new RootCommand();
 
-        // Create a provisioning command with some options
-        var dicomWebCommand = new Command("Execute", "Execute Store Get and Delete");
+        var dicomWebCommand = new Command("execute", "Execute Store Get and Delete")
+        {
+            new Option<string>(
+                    "--dicomServiceUrl",
+                    description: "DicomService Url"),
+        };
 
-        dicomWebCommand.Handler = CommandHandler.Create(StoreImageAsync);
-
+        dicomWebCommand.Handler = CommandHandler.Create<string>(StoreImageAsync);
         rootCommand.AddCommand(dicomWebCommand);
         rootCommand.Invoke(args);
 
+        // To execute this exmaple, run the following command from the console of your VM that has system identity enabled
+        // dotnet run --project .\Microsoft.Health.Web.Dicom.Tool.csproj Execute --dicomServiceUrl <dicom service url>
     }
 
-    private static async Task StoreImageAsync()
+    private static async Task StoreImageAsync(string dicomServiceUrl)
     {
         var dicomFile = await DicomFile.OpenAsync(@"./Image/blue-circle.dcm");
 
         using var httpClient = new HttpClient();
 
-        //  put the serviceurl of your provisioned provisioned dicom service.
-        string dicomServiceUrl = "https://testdicomtool-dicomone.dicom.azurehealthcareapis.com"
         httpClient.BaseAddress = new Uri(dicomServiceUrl);
 
         var credential = new DefaultAzureCredential();
@@ -68,7 +70,7 @@ public static class Programstore
 
         var responseDelete = await client.DeleteStudyAsync(studyInstanceUid);
 
-        output = new string("Image retrieved with statuscode: ");
+        output = new string("Image deleted with statuscode: ");
         Console.WriteLine(output + responseDelete.StatusCode);
     }
 }
