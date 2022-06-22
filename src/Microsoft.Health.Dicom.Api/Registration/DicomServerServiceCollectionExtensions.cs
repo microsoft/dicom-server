@@ -25,13 +25,11 @@ using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
-using Microsoft.Health.Dicom.Api.Modules.Mise;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.Identity.ServiceEssentials;
 using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
