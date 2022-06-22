@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Registration;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Identity.ServiceEssentials.Extensions.AspNetCoreMiddleware;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -56,6 +57,7 @@ public static class DicomServerApplicationBuilderExtensions
             app.UseStaticFiles();
         }
 
+        app.UseMise();
         return app;
     }
 }

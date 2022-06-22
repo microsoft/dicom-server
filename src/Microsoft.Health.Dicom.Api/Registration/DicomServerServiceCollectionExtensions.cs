@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Linq;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.AspNetCore.Hosting;
@@ -26,11 +25,13 @@ using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
+using Microsoft.Health.Dicom.Api.Modules.Mise;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.Identity.ServiceEssentials;
 using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -97,13 +98,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
 
-        //services.AddMiseWithDefaultAuthentication(configurationRoot, options =>
-        //{
-        //    options.Audience = GetValidAudiences(dicomServerConfiguration)[0];
-        //    options.Authority = dicomServerConfiguration.Security.Authentication.Authority;
-        //    options.ClientId = "SomeClientId";
-        //});
-
         services.AddMise(configurationRoot, "TestClientId");
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -151,24 +145,6 @@ public static class DicomServerServiceCollectionExtensions
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
         return new DicomServerBuilder(services);
-    }
-
-    private static string[] GetValidAudiences(DicomServerConfiguration config)
-    {
-        if (config.Security.Authentication.Audiences != null)
-        {
-            return config.Security.Authentication.Audiences.ToArray();
-        }
-
-        if (!string.IsNullOrWhiteSpace(config.Security.Authentication.Audience))
-        {
-            return new[]
-            {
-                config.Security.Authentication.Audience,
-            };
-        }
-
-        return null;
     }
 
     private class DicomServerBuilder : IDicomServerBuilder
