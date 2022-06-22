@@ -71,7 +71,7 @@ public static class CommandOptions
     {
         var nextOption = new Option<bool>(
             name: OptionAliases.Next,
-            description: Resources.NextOptionDescritpion)
+            description: Resources.NextOptionDescription)
         {
             Arity = ArgumentArity.ZeroOrOne
         };

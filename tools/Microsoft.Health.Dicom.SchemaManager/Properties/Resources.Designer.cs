@@ -144,9 +144,9 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The next version to apply..
         /// </summary>
-        internal static string NextOptionDescritpion {
+        internal static string NextOptionDescription {
             get {
-                return ResourceManager.GetString("NextOptionDescritpion", resourceCulture);
+                return ResourceManager.GetString("NextOptionDescription", resourceCulture);
             }
         }
         

@@ -146,7 +146,7 @@
   <data name="MutuallyExclusiveValidation" xml:space="preserve">
     <value>You must include only one of the option from [version, next, latest].</value>
   </data>
-  <data name="NextOptionDescritpion" xml:space="preserve">
+  <data name="NextOptionDescription" xml:space="preserve">
     <value>The next version to apply.</value>
   </data>
   <data name="VersionOptionDescription" xml:space="preserve">
