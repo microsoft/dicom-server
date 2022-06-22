@@ -40,12 +40,16 @@ public static class Programstore
         var dicomFile = await DicomFile.OpenAsync(@"./Image/blue-circle.dcm");
 
         using var httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri("https://testdicomtool-dicomone.dicom.azurehealthcareapis.com");
 
-        var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions { ManagedIdentityClientId = "4dac65d8-3c77-4bed-8bf4-33ca92fd0b34" });
+        //  put the serviceurl of your provisioned provisioned dicom service.
+        string dicomServiceUrl = "https://testdicomtool-dicomone.dicom.azurehealthcareapis.com"
+        httpClient.BaseAddress = new Uri(dicomServiceUrl);
+
+        var credential = new DefaultAzureCredential();
         var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://dicom.healthcareapis.azure.com/.default" }));
         var accessToken = token.Token;
 
+        // Access token will expire after a certain period of time.
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         IDicomWebClient client = new DicomWebClient(httpClient);
