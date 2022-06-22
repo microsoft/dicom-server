@@ -39,7 +39,7 @@ The managed identity for the function needs the following permissions to execute
 | --- | --- |
 | Dicom Data Owner | The DICOM Service that the uploader will write to. |
 | [Storage Blob Data Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor) | The storage account used as the source of the DICOM files. |
-| [Storage Queue Data Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-queue-data-contributor) | The storage account used as athe source of the DICOM files. |
+| [Storage Queue Data Contributor](https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-queue-data-contributor) | The storage account used as the source of the DICOM files. |
 
 
 ## 4. Update settings
