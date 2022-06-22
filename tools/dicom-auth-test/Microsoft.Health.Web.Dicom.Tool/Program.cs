@@ -36,7 +36,7 @@ public static class Programstore
         rootCommand.Invoke(args);
 
         // To execute this exmaple, run the following command from the console of your VM that has system identity enabled
-        // dotnet run --project .\Microsoft.Health.Web.Dicom.Tool.csproj Execute --dicomServiceUrl <dicom service url>
+        // dotnet run --project .\Microsoft.Health.Web.Dicom.Tool.csproj execute --dicomServiceUrl <dicom service url>
     }
 
     private static async Task StoreImageAsync(string dicomServiceUrl)
@@ -48,10 +48,11 @@ public static class Programstore
         httpClient.BaseAddress = new Uri(dicomServiceUrl);
 
         var credential = new DefaultAzureCredential();
+
+        // Access token will expire after a certain period of time.
         var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://dicom.healthcareapis.azure.com/.default" }));
         var accessToken = token.Token;
 
-        // Access token will expire after a certain period of time.
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         IDicomWebClient client = new DicomWebClient(httpClient);
