@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial class DicomWebClient : IDicomWebClient
 {
-    public async Task<DicomWebResponse<OperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken)
+    public async Task<DicomWebResponse<OperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
         var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseOperationUri}/{operationId.ToString(OperationId.FormatSpecifier)}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
