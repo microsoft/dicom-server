@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applies the specified SQL schema update to the supplied connection string for the given server..
+        ///   Looks up a localized string similar to Applies the specified SQL schema update to the supplied connection string..
         /// </summary>
         internal static string ApplyCommandDescription {
             get {
@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The schema migration is run without validating the schema verison..
+        ///   Looks up a localized string similar to The schema migration is run without validating the schema version..
         /// </summary>
         internal static string ForceOptionDescription {
             get {
@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The versions between current version and latest available version to apply..
+        ///   Looks up a localized string similar to Applies versions between the current and latest version..
         /// </summary>
         internal static string LatestOptionDescription {
             get {
@@ -133,7 +133,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You must include only one of the option from [version, next, latest]..
+        ///   Looks up a localized string similar to You must include only one option from [version, next, latest]..
         /// </summary>
         internal static string MutuallyExclusiveValidation {
             get {
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The next version to apply..
+        ///   Looks up a localized string similar to Applies the next available version..
         /// </summary>
         internal static string NextOptionDescription {
             get {
@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The versions between current version and specified version to apply..
+        ///   Looks up a localized string similar to Applies versions between the current and specified version..
         /// </summary>
         internal static string VersionOptionDescription {
             get {

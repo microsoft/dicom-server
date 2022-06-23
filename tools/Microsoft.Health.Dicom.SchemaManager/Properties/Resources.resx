@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ApplyCommandDescription" xml:space="preserve">
-    <value>Applies the specified SQL schema update to the supplied connection string for the given server.</value>
+    <value>Applies the specified SQL schema update to the supplied connection string.</value>
   </data>
   <data name="AuthenticationTypeDescription" xml:space="preserve">
     <value>The authentication type to connect with.</value>
@@ -131,25 +131,25 @@
     <value>You must include a connection string.</value>
   </data>
   <data name="ForceOptionDescription" xml:space="preserve">
-    <value>The schema migration is run without validating the schema verison.</value>
+    <value>The schema migration is run without validating the schema version.</value>
   </data>
   <data name="IncompatibleVersionFormatString" xml:space="preserve">
     <value>The specified schema version "{0}" is incompatible.</value>
     <comment>{0} is a version.</comment>
   </data>
   <data name="LatestOptionDescription" xml:space="preserve">
-    <value>The versions between current version and latest available version to apply.</value>
+    <value>Applies versions between the current and latest version.</value>
   </data>
   <data name="ManagedIdentityClientIdDescription" xml:space="preserve">
     <value>The client ID of the managed identity to be used.</value>
   </data>
   <data name="MutuallyExclusiveValidation" xml:space="preserve">
-    <value>You must include only one of the option from [version, next, latest].</value>
+    <value>You must include only one option from [version, next, latest].</value>
   </data>
   <data name="NextOptionDescription" xml:space="preserve">
-    <value>The next version to apply.</value>
+    <value>Applies the next available version.</value>
   </data>
   <data name="VersionOptionDescription" xml:space="preserve">
-    <value>The versions between current version and specified version to apply.</value>
+    <value>Applies versions between the current and specified version.</value>
   </data>
 </root>

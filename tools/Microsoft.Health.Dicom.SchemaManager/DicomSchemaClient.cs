@@ -36,12 +36,7 @@ public class DicomSchemaClient : ISchemaClient
         for (int version = currentVersion; version <= SchemaVersionConstants.Max; version++)
         {
             string scriptUri = $"{version}.sql";
-            string diffScriptUri = string.Empty;
-            if (version > 1)
-            {
-                diffScriptUri = $"{version}.diff.sql";
-            }
-
+            string diffScriptUri = version > 1 ? $"{version}.diff.sql" : string.Empty;
             availableVersions.Add(new AvailableVersion(version, scriptUri, diffScriptUri));
         }
 

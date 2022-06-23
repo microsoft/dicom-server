@@ -23,6 +23,9 @@ public class ApplyCommand : Command
         ILogger<ApplyCommand> logger)
         : base("apply", Resources.ApplyCommandDescription)
     {
+        EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(schemaManager, nameof(schemaManager));
+
         AddOption(CommandOptions.ConnectionStringOption());
         AddOption(CommandOptions.ManagedIdentityClientIdOption());
         AddOption(CommandOptions.AuthenticationTypeOption());
@@ -37,9 +40,6 @@ public class ApplyCommand : Command
             (MutuallyExclusiveType type, bool force, CancellationToken token)
             => ApplyHandler(type, force, token));
 
-        EnsureArg.IsNotNull(logger, nameof(logger));
-        EnsureArg.IsNotNull(schemaManager, nameof(schemaManager));
-
         _schemaManager = schemaManager;
         _logger = logger;
     }
@@ -53,10 +53,10 @@ public class ApplyCommand : Command
 
         return _schemaManager.ApplySchema(type, token);
     }
+
     private bool EnsureForce()
     {
-        _logger.LogWarning("Are you sure to apply command with force option? Type 'yes' to confirm.");
+        _logger.LogWarning("Are you sure you want to force the apply command ? Type 'yes' to confirm.");
         return string.Equals(Console.ReadLine(), "yes", StringComparison.OrdinalIgnoreCase);
     }
-
 }

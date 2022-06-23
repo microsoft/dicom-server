@@ -49,9 +49,13 @@ internal class Program
 
         services.AddOptions<SqlServerDataStoreConfiguration>().Configure<IOptions<CommandLineOptions>>((s, c) =>
         {
-            if (!string.IsNullOrWhiteSpace(c.Value.ManagedIdentityClientId)) s.ManagedIdentityClientId = c.Value.ManagedIdentityClientId;
-            if (!string.IsNullOrWhiteSpace(c.Value.ConnectionString)) s.ConnectionString = c.Value.ConnectionString;
+            s.ConnectionString = c.Value.ConnectionString;
             s.AuthenticationType = c.Value.AuthenticationType ?? SqlServerAuthenticationType.ConnectionString;
+
+            if (!string.IsNullOrWhiteSpace(c.Value.ManagedIdentityClientId))
+            {
+                s.ManagedIdentityClientId = c.Value.ManagedIdentityClientId;
+            }
         });
 
         services.AddSqlServerConnection();
