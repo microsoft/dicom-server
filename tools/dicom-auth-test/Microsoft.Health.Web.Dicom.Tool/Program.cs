@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
@@ -22,17 +21,15 @@ public static class Programstore
 
     private static void ParseArgumentsAndExecute(string[] args)
     {
-        var rootCommand = new RootCommand();
-
-        var dicomWebCommand = new Command("execute", "Execute Store Get and Delete")
-        {
-            new Option<string>(
+        var dicomOption = new Option<string>(
                     "--dicomServiceUrl",
-                    description: "DicomService Url ex: https://testdicomweb-testdicom.dicom.azurehealthcareapis.com"),
-        };
+                    description: "DicomService Url ex: https://testdicomweb-testdicom.dicom.azurehealthcareapis.com");
 
-        dicomWebCommand.Handler = CommandHandler.Create<string>(StoreImageAsync);
-        rootCommand.AddCommand(dicomWebCommand);
+        var rootCommand = new RootCommand("Execute Store Get and Delete of dicom image");
+
+        rootCommand.AddOption(dicomOption);
+
+        rootCommand.SetHandler<string>(StoreImageAsync, dicomOption);
         rootCommand.Invoke(args);
     }
 

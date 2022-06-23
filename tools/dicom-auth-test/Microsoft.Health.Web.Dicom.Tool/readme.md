@@ -4,8 +4,8 @@ This is an example that demonstrates how can a dicomservice be accessed from an 
 ## How to execute
 To execute this example, run the following command from the console of your VM that has system identity enabled
 
-     dotnet run --project .\Microsoft.Health.Web.Dicom.Tool.csproj execute --dicomServiceUrl <dicom service url>
+     dotnet run --project .\Microsoft.Health.Web.Dicom.Tool.csproj --dicomServiceUrl <dicom service url>
 
 Example:
 
-     dotnet run --project.\Microsoft.Health.Web.Dicom.Tool.csproj execute --dicomServiceUrl "https://testdicomweb-testdicom.dicom.azurehealthcareapis.com"
+     dotnet run --project.\Microsoft.Health.Web.Dicom.Tool.csproj --dicomServiceUrl "https://testdicomweb-testdicom.dicom.azurehealthcareapis.com"
