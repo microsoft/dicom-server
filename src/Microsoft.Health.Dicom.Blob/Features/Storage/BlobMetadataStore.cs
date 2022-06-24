@@ -33,6 +33,7 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobMetadataStore : IMetadataStore
 {
+    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
     private readonly BlobContainerClient _container;
@@ -129,8 +130,14 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
-            BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
-            return result.Content.ToObjectFromJson<DicomDataset>(_jsonSerializerOptions);
+            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
+            {
+                await blobClient.DownloadToAsync(stream, cancellationToken);
+
+                stream.Seek(0, SeekOrigin.Begin);
+
+                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
+            }
         }, cancellationToken);
     }
 
