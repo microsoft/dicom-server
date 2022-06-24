@@ -21,7 +21,7 @@ public class ApplyCommand : Command
     public ApplyCommand(
         ISchemaManager schemaManager,
         ILogger<ApplyCommand> logger)
-        : base("apply", Resources.ApplyCommandDescription)
+        : base(Resources.ApplyCommandName, Resources.ApplyCommandDescription)
     {
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(schemaManager, nameof(schemaManager));

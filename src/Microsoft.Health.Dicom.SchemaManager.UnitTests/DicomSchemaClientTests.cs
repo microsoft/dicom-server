@@ -30,17 +30,14 @@ public class DicomSchemaClientTests
         //Act
         List<AvailableVersion>? actualVersions = await dicomSchemaClient.GetAvailabilityAsync();
 
-        var expectedVersions = new List<AvailableVersion>();
         int numberOfAvailableVersions = SchemaVersionConstants.Max - currentVersion + 1;
-        foreach (int version in Enumerable.Range(currentVersion, numberOfAvailableVersions))
-        {
-            expectedVersions.Add(new AvailableVersion(version, string.Empty, string.Empty));
-        }
+        var expectedVersions = Enumerable
+            .Range(currentVersion, numberOfAvailableVersions)
+            .Select(version => new AvailableVersion(version, $"{version}.sql", $"{version}.diff.sql"))
+            .ToList();
 
         //Assert
-        Assert.Equal(
-            expectedVersions.Select(x => x.Id),
-            actualVersions.Select(x => x.Id));
+        Assert.Equal(expectedVersions, actualVersions, new AvailableVersionEqualityCompare());
     }
 
     [Fact]
@@ -51,15 +48,47 @@ public class DicomSchemaClientTests
         var dicomSchemaClient = new DicomSchemaClient(_scriptProvider, _schemaDataStore, _schemaManagerDataStore);
 
         //Act
-        var actualVersions = await dicomSchemaClient.GetAvailabilityAsync();
+        List<AvailableVersion>? actualVersions = await dicomSchemaClient.GetAvailabilityAsync();
+
         var expectedVersions = new List<AvailableVersion>()
         {
-            new AvailableVersion(SchemaVersionConstants.Max, string.Empty, string.Empty),
+            new AvailableVersion(SchemaVersionConstants.Max, $"{SchemaVersionConstants.Max}.sql", $"{SchemaVersionConstants.Max}.diff.sql"),
         };
 
         //Assert
-        Assert.Equal(
-            expectedVersions.Select(x => x.Id),
-            actualVersions.Select(x => x.Id));
+        Assert.Equal(expectedVersions, actualVersions, new AvailableVersionEqualityCompare());
+    }
+
+    private class AvailableVersionEqualityCompare : IEqualityComparer<AvailableVersion>
+    {
+        public bool Equals(AvailableVersion? x, AvailableVersion? y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (x is null)
+            {
+                return false;
+            }
+
+            if (y is null)
+            {
+                return false;
+            }
+
+            if (x.GetType() != y.GetType())
+            {
+                return false;
+            }
+
+            return x.Id == y.Id && x.ScriptUri == y.ScriptUri && x.DiffUri == y.DiffUri;
+        }
+
+        public int GetHashCode(AvailableVersion obj)
+        {
+            return HashCode.Combine(obj.Id, obj.ScriptUri, obj.DiffUri);
+        }
     }
 }

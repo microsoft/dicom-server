@@ -120,9 +120,11 @@
   <data name="ApplyCommandDescription" xml:space="preserve">
     <value>Applies the specified SQL schema update to the supplied connection string.</value>
   </data>
+  <data name="ApplyCommandName" xml:space="preserve">
+    <value>apply</value>
+  </data>
   <data name="AuthenticationTypeDescription" xml:space="preserve">
-    <value>The authentication type to connect with.</value>
-    <comment>Valid values are ManagedIdentity and ConnectionString.</comment>
+    <value>The authentication type to use. Valid values are ManagedIdentity and ConnectionString.</value>
   </data>
   <data name="ConnectionStringOptionDescription" xml:space="preserve">
     <value>The connection string of the SQL server to apply the schema update.</value>

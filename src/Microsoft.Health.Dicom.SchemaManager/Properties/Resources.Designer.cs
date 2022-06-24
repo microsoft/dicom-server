@@ -70,7 +70,16 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The authentication type to connect with..
+        ///   Looks up a localized string similar to apply.
+        /// </summary>
+        internal static string ApplyCommandName {
+            get {
+                return ResourceManager.GetString("ApplyCommandName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The authentication type to use. Valid values are ManagedIdentity and ConnectionString..
         /// </summary>
         internal static string AuthenticationTypeDescription {
             get {

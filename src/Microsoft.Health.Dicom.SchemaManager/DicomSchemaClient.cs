@@ -31,14 +31,15 @@ public class DicomSchemaClient : ISchemaClient
     public async Task<List<AvailableVersion>> GetAvailabilityAsync(CancellationToken cancellationToken = default)
     {
         int currentVersion = await _schemaManagerDataStore.GetCurrentSchemaVersionAsync(cancellationToken);
-        var availableVersions = new List<AvailableVersion>();
 
-        for (int version = currentVersion; version <= SchemaVersionConstants.Max; version++)
-        {
-            string scriptUri = $"{version}.sql";
-            string diffScriptUri = version > 1 ? $"{version}.diff.sql" : string.Empty;
-            availableVersions.Add(new AvailableVersion(version, scriptUri, diffScriptUri));
-        }
+        int numberOfAvailableVersions = SchemaVersionConstants.Max - currentVersion + 1;
+        var availableVersions = Enumerable
+            .Range(currentVersion, numberOfAvailableVersions)
+            .Select(version => new AvailableVersion(
+                id: version,
+                scriptUri: $"{version}.sql",
+                diffUri: version > 1 ? $"{version}.diff.sql" : string.Empty))
+            .ToList();
 
         return availableVersions;
     }
