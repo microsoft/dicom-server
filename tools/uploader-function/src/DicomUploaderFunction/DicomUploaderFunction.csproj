@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Health.Client" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" />
+    <PackageReference Include="Newtonsoft.Json" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
