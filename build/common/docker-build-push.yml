@@ -57,7 +57,9 @@ steps:
       buildContext: '$(Build.Repository.LocalPath)'
       arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
       repository: dicom-uploader
-      tags: ${{ parameters.tag }}
+      tags: |
+        ${{ parameters.tag }}
+        latest
 
   # Build SQL for the sake of component governance
   - task: Docker@2

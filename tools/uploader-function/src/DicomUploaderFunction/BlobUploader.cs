@@ -25,7 +25,7 @@ public class BlobUploader
 
     [FunctionName("BlobUploader")]
     public async Task Run(
-        [BlobTrigger("%sourceblobcontainer%/{name}", Connection = "sourcestorage")]
+        [BlobTrigger("%sourcestorage:blobcontainer%/{name}", Connection = "sourcestorage")]
         Stream myBlob,
         CancellationToken cancellationToken)
     {

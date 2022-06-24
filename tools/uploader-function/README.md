@@ -1,6 +1,6 @@
 # Uploader Function
 
-This solution uses the [Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/) framework to allow uploads to a DICOM Service. The instructions below utilize the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/) for setting up the environment
+This solution uses the [Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/) framework to enable automatic uploads to a DICOM Service. The instructions below utilize the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/) for setting up the environment
 
 Steps:
 ## 1. Create app service plan
@@ -13,7 +13,7 @@ az functionapp plan create --resource-group {resource-group-name} --name {app-se
 | Property | Value |
 | --- | --- |
 | {resource-group-name} | The resource group that you would like to place your app service plan in. |
-| {app-service-plan-name} | The name of your app service plan.
+| {app-service-plan-name} | The name of your app service plan. |
 
 ## 2. Create function app
 This step creates your function app. 
@@ -21,7 +21,7 @@ This step creates your function app.
 > Note: It is safe to ignore warnings about the lack of credentials for accessing the container registry as it is publically accessible.
 
 ```
-az functionapp create --name {function-app-name} --storage-account {storage-account-name} --resource-group {resource-group-name} --plan {app-service-plan-name} --deployment-container-image-name dicomoss.azurecr.io/dicom-uploader:0.0.1 --functions-version 4 --assign-identity [system]
+az functionapp create --name {function-app-name} --storage-account {storage-account-name} --resource-group {resource-group-name} --plan {app-service-plan-name} --deployment-container-image-name dicomoss.azurecr.io/dicom-uploader:latest --functions-version 4 --assign-identity [system]
 ```
 
 | Property | Value |
@@ -46,7 +46,7 @@ The managed identity for the function needs the following permissions to execute
 This step updates the configuration for your uploader function app to run. 
 
 ```
-az functionapp config appsettings set --name {function-app-name} --resource-group {resource-group-name} --settings "sourceblobcontainer={source-container-name}" "sourcestorage__blobServiceUri={source-blob-url}" "sourcestorage__queueServiceUri={source-queue-url}" "DicomWeb__Endpoint={dicom-service-endpoint}" "DicomWeb__Authentication__Enabled=true" "DicomWeb__Authentication__AuthenticationType=ManagedIdentity" "DicomWeb__Authentication__ManagedIdentityCredential__Resource=https://dicom.healthcareapis.azure.com"
+az functionapp config appsettings set --name {function-app-name} --resource-group {resource-group-name} --settings "sourcestorage__blobcontainer={source-container-name}" "sourcestorage__blobServiceUri={source-blob-url}" "sourcestorage__queueServiceUri={source-queue-url}" "DicomWeb__Endpoint={dicom-service-endpoint}" "DicomWeb__Authentication__Enabled=true" "DicomWeb__Authentication__AuthenticationType=ManagedIdentity" "DicomWeb__Authentication__ManagedIdentityCredential__Resource=https://dicom.healthcareapis.azure.com"
 ```
 
 | Property | Value |
