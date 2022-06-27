@@ -133,6 +133,33 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No identity has been configured..
+        /// </summary>
+        internal static string MissingServerIdentity {
+            get {
+                return ResourceManager.GetString("MissingServerIdentity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public access to Azure Blob Storage containers is not supported..
+        /// </summary>
+        internal static string PublicBlobStorageConnectionUnsupported {
+            get {
+                return ResourceManager.GetString("PublicBlobStorageConnectionUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shared Access Signatures (SAS) are not supported..
+        /// </summary>
+        internal static string SasTokenAuthenticationUnsupported {
+            get {
+                return ResourceManager.GetString("SasTokenAuthenticationUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Placeholder &apos;{0}&apos; is not recognized..
         /// </summary>
         internal static string UnknownPlaceholder {

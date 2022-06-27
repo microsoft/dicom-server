@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account key authentication is not supported..
+        /// </summary>
+        internal static string AzureStorageAccountKeyUnsupported {
+            get {
+                return ResourceManager.GetString("AzureStorageAccountKeyUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel Reason not provided.
         /// </summary>
         internal static string CancelWorkitemUnknownReasonCode {
@@ -120,6 +129,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ChangeFeedOffsetCannotBeNegative {
             get {
                 return ResourceManager.GetString("ChangeFeedOffsetCannotBeNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to UseManagedIdentity cannot be specified if the BlobContainerUri container query string parameters..
+        /// </summary>
+        internal static string ConflictingBlobExportAuthentication {
+            get {
+                return ResourceManager.GetString("ConflictingBlobExportAuthentication", resourceCulture);
             }
         }
         

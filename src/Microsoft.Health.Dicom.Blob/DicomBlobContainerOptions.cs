@@ -5,15 +5,26 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Microsoft.Health.Dicom.Functions.Configuration;
+namespace Microsoft.Health.Dicom.Blob;
 
-internal class DicomBlobContainerConfiguration
+/// <summary>
+/// Represents the various Azure Blob Containers used by the DICOM server.
+/// </summary>
+public sealed class DicomBlobContainerOptions
 {
     public const string SectionName = "Containers";
 
+    /// <summary>
+    /// Gets or sets the container name for metadata.
+    /// </summary>
+    /// <value>The metadata container name.</value>
     [Required]
     public string Metadata { get; set; }
 
+    /// <summary>
+    /// Gets or sets the container name for files.
+    /// </summary>
+    /// <value>The file container name.</value>
     [Required]
     public string File { get; set; }
 }

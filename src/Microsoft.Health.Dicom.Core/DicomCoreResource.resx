@@ -630,4 +630,10 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">
     <value>The submitted request is inconsistent with the current state of the Workitem.</value>
   </data>
+  <data name="AzureStorageAccountKeyUnsupported" xml:space="preserve">
+    <value>Account key authentication is not supported.</value>
+  </data>
+  <data name="ConflictingBlobExportAuthentication" xml:space="preserve">
+    <value>UseManagedIdentity cannot be specified if the BlobContainerUri container query string parameters.</value>
+  </data>
 </root>

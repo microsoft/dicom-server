@@ -30,17 +30,26 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     public override ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
     private readonly ISecretStore _secretStore;
+    private readonly AzureBlobExportSinkProviderOptions _providerOptions;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly ILogger _logger;
 
-    public AzureBlobExportSinkProvider(IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
+    public AzureBlobExportSinkProvider(
+        IOptions<AzureBlobExportSinkProviderOptions> options,
+        IOptions<JsonSerializerOptions> serializerOptions,
+        ILogger<AzureBlobExportSinkProvider> logger)
     {
+        _providerOptions = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
-        : this(serializerOptions, logger)
+    public AzureBlobExportSinkProvider(
+        ISecretStore secretStore,
+        IOptions<AzureBlobExportSinkProviderOptions> options,
+        IOptions<JsonSerializerOptions> serializerOptions,
+        ILogger<AzureBlobExportSinkProvider> logger)
+        : this(options, serializerOptions, logger)
     {
         // The real Azure Functions runtime/container will use DryIoc for dependency injection
         // and will still select this ctor for use, even if no ISecretStore service is configured.
@@ -71,8 +80,8 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         return new AzureBlobExportSink(
             provider.GetRequiredService<IFileStore>(),
             await options.GetBlobContainerClientAsync(
-                provider.GetRequiredService<IExportIdentityProvider>(),
-                provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export"),
+                provider.GetRequiredService<IServerCredentialProvider>(),
+                provider.GetRequiredService<IOptionsSnapshot<AzureBlobClientOptions>>().Get("Export"),
                 cancellationToken),
             Options.Create(
                 new AzureBlobExportFormatOptions(
@@ -96,7 +105,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
             if (IsSensitiveBlobContainerUri(options.BlobContainerUri))
                 secrets = new BlobSecrets { BlobContainerUri = options.BlobContainerUri };
         }
-        else if (IsSensitiveConnectionString(options.ConnectionString))
+        else if (IsSensitiveConnectionString(options))
         {
             secrets = new BlobSecrets { ConnectionString = options.ConnectionString };
         }
@@ -125,6 +134,33 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     protected override Task ValidateAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
     {
         List<ValidationResult> results = options.Validate(new ValidationContext(this)).ToList();
+
+        // Run additional validation based on the sink provider options if the options themselves are configured correctly.
+        // We need to ensure that they do not contain SAS Tokens or use public access if it is disallowed
+        if (results.Count == 0)
+        {
+            if (options.BlobContainerUri != null)
+            {
+                if (options.BlobContainerUri.Query.Length > 1)
+                {
+                    if (!_providerOptions.AllowSasTokens)
+                        results.Add(new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported));
+                }
+                else if (!options.UseManagedIdentity && !_providerOptions.AllowPublicAccess)
+                {
+                    results.Add(new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported));
+                }
+            }
+            else if (!_providerOptions.AllowSasTokens && !options.IsEmulatorConnectionString() && options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported));
+            }
+            else if (!_providerOptions.AllowPublicAccess && !options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase))
+            {
+                results.Add(new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported));
+            }
+        }
+
         if (results.Count > 0)
             throw new ValidationException(results.First().ErrorMessage);
 
@@ -150,26 +186,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     }
 
     private static bool IsSensitiveBlobContainerUri(Uri blobContainerUri)
-    {
-        // Assume any parameter is for authentication
-        // Note: Shared Key would be present in header
-        var builder = new UriBuilder(blobContainerUri);
-        return builder.Query != null && builder.Query.Length > 1; // More than "?"
-    }
+       => blobContainerUri.Query.Length > 1;
 
-    private static bool IsSensitiveConnectionString(string connectionString)
-    {
-        // Emulator is a well-known account and account key
-        if (connectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) ||
-            (connectionString.Contains("AccountName=devstoreaccount1;", StringComparison.OrdinalIgnoreCase) &&
-            connectionString.Contains("AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;", StringComparison.OrdinalIgnoreCase)))
-        {
-            return false;
-        }
-
-        return connectionString.Contains("AccountKey=", StringComparison.OrdinalIgnoreCase) ||
-            connectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool IsSensitiveConnectionString(AzureBlobExportOptions options)
+        => !options.IsEmulatorConnectionString() && options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase);
 
     private sealed class BlobSecrets
     {

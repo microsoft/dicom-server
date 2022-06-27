@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Core.Features.Common;
 
-internal sealed class DefaultExportIdentityProvider : IExportIdentityProvider
+internal sealed class DefaultServerCredentialProvider : IServerCredentialProvider
 {
     // TODO: Allow users to configure defaults
     public Task<TokenCredential> GetCredentialAsync(CancellationToken cancellationToken = default)
