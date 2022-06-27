@@ -33,7 +33,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobMetadataStore : IMetadataStore
 {
-    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
     private readonly BlobContainerClient _container;
@@ -130,12 +129,14 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
+            BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
+
+            // DICOM metadata file was saved using UTF-8 encoding with BOM, When using JsonSerializer, by design UTF-8 BOM should be ignored
+            // Else, the following exception will occur "System.Text.Json.JsonReaderException: ''0xEF' is an invalid start of a value. LineNumber: 0 | BytePositionInLine: 0." at the line Reader.Read.
+            // So reading the content into stream which will remove the UTF-8 BOM. https://github.com/dotnet/runtime/issues/29838
+            using (Stream stream = _recyclableMemoryStreamManager.GetStream(result.Content))
             {
-                await blobClient.DownloadToAsync(stream, cancellationToken);
-
                 stream.Seek(0, SeekOrigin.Begin);
-
                 return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
             }
         }, cancellationToken);
