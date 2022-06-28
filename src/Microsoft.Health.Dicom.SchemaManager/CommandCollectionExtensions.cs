@@ -6,6 +6,7 @@
 using System.CommandLine;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.SqlServer.Configs;
 
 namespace Microsoft.Health.Dicom.SchemaManager;
 
@@ -71,6 +72,17 @@ public static class CommandCollectionExtensions
         services.AddOptions<CommandLineOptions>().Configure(x =>
         {
             x.ConnectionString = config[OptionAliases.ConnectionString];
+
+            x.ManagedIdentityClientId = config[OptionAliases.ManagedIdentityClientId];
+
+            string? authenticationTypeValue = config[OptionAliases.AuthenticationType];
+            if (!string.IsNullOrWhiteSpace(authenticationTypeValue))
+            {
+                if (Enum.TryParse(authenticationTypeValue, true, out SqlServerAuthenticationType sqlServerAuthenticationType))
+                {
+                    x.AuthenticationType = sqlServerAuthenticationType;
+                }
+            }
         });
 
         return services;
