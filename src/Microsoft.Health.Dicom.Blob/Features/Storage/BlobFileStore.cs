@@ -114,6 +114,10 @@ public class BlobFileStore : IFileStore
 
         await ExecuteAsync(async () =>
         {
+            // todo: RetrieableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrievel.
+            // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetriebleStream
+            //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+            //stream = result.Value.Content;
             stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
         });
 
@@ -152,6 +156,30 @@ public class BlobFileStore : IFileStore
             await operation.WaitForCompletionAsync(cancellationToken);
         }
     }
+
+    /// <inheritdoc />
+    public async Task<Stream> GetFileFrameAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        FrameRange range,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        EnsureArg.IsNotNull(range, nameof(range));
+
+        BlockBlobClient blob = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+
+        Stream stream = null;
+        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+
+        await ExecuteAsync(async () =>
+        {
+            var httpRange = new HttpRange(range.Offset, range.Length);
+            Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
+            stream = result.Value.Content;
+        });
+        return stream;
+    }
+
 
     private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)
     {

@@ -20,6 +20,7 @@ public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
 {
     private readonly Stream _stream;
     private readonly AsyncCache<DicomFile> _dicomFileCache;
+    private const int LargeObjectsizeInBytes = 1000;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="StreamOriginatedDicomInstanceEntry"/> class.
@@ -33,7 +34,7 @@ public sealed class StreamOriginatedDicomInstanceEntry : IDicomInstanceEntry
         EnsureArg.IsTrue(seekableStream.CanSeek, nameof(seekableStream));
 
         _stream = seekableStream;
-        _dicomFileCache = new AsyncCache<DicomFile>(_ => DicomFile.OpenAsync(_stream, FileReadOption.SkipLargeTags));
+        _dicomFileCache = new AsyncCache<DicomFile>(_ => DicomFile.OpenAsync(_stream, FileReadOption.ReadLargeOnDemand, largeObjectSize: LargeObjectsizeInBytes));
     }
 
     /// <inheritdoc />

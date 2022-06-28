@@ -8,4 +8,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Model;
 public class InstanceProperties
 {
     public string TransferSyntaxUid { get; init; }
+
+    public bool HasFrameMetadata { get; init; }
 }

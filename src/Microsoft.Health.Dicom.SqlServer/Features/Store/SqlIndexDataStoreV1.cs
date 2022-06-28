@@ -111,6 +111,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         long watermark,
         IEnumerable<QueryTag> queryTags,
         bool allowExpiredTags = false,
+        bool hasFrameMetadata = false,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

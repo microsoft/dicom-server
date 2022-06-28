@@ -58,6 +58,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Azur
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Blob.UnitTests", "src\Microsoft.Health.Dicom.Blob.UnitTests\Microsoft.Health.Dicom.Blob.UnitTests.csproj", "{E2BD0627-CC6C-40D4-B875-00654FD059CF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager", "src\Microsoft.Health.Dicom.SchemaManager\Microsoft.Health.Dicom.SchemaManager.csproj", "{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.UnitTests", "src\Microsoft.Health.Dicom.SchemaManager.UnitTests\Microsoft.Health.Dicom.SchemaManager.UnitTests.csproj", "{C8BB8AF3-DCD1-49A4-A082-9152686AD222}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.SchemaManager.Console", "src\Microsoft.Health.Dicom.SchemaManager.Console\Microsoft.Health.Dicom.SchemaManager.Console.csproj", "{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -148,6 +154,18 @@ Global
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Debug|x64.Build.0 = Debug|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.ActiveCfg = Release|x64
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF}.Release|x64.Build.0 = Release|x64
+		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Debug|x64.ActiveCfg = Debug|x64
+		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Debug|x64.Build.0 = Debug|x64
+		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Release|x64.ActiveCfg = Release|x64
+		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7}.Release|x64.Build.0 = Release|x64
+		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Debug|x64.ActiveCfg = Debug|x64
+		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Debug|x64.Build.0 = Debug|x64
+		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Release|x64.ActiveCfg = Release|x64
+		{C8BB8AF3-DCD1-49A4-A082-9152686AD222}.Release|x64.Build.0 = Release|x64
+		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Debug|x64.ActiveCfg = Debug|x64
+		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Debug|x64.Build.0 = Debug|x64
+		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.ActiveCfg = Release|x64
+		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -173,9 +191,12 @@ Global
 		{EDF1BF37-3E55-4B6B-B922-C5EEDB71F782} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{5571FE42-1EDB-4E25-992A-A37467487DB3} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{E2BD0627-CC6C-40D4-B875-00654FD059CF} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{C8BB8AF3-DCD1-49A4-A082-9152686AD222} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal

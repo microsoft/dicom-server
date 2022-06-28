@@ -129,7 +129,8 @@ public class LazyMultipartReadOnlyStreamTests
             yield return new DicomStreamContent()
             {
                 Stream = stream,
-                Headers = headers
+                Headers = headers,
+                StreamLength = stream.Length,
             };
         }
     }

@@ -8,13 +8,14 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Client.Extensions;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.DicomCast.Core.Configurations;
-using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
+using Microsoft.Health.Client.Authentication;
 
 namespace Microsoft.Health.DicomCast.Core.Modules;
 
@@ -40,7 +41,7 @@ internal static class DicomSourceStoreExtension
             client.BaseAddress = config.PrivateEndpoint == null ? config.Endpoint : config.PrivateEndpoint;
         })
             .AddPolicyHandler(retryPolicy)
-            .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
+            .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
 
         return (IServiceCollection)services.Add<ChangeFeedRetrieveService>()
             .Singleton()
