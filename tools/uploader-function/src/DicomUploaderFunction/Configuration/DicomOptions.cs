@@ -6,14 +6,13 @@
 using System;
 using Microsoft.Health.Client.Authentication;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations;
+namespace DicomUploaderFunction.Configuration;
 
-public class FhirConfiguration
+public class DicomOptions
 {
+    public const string SectionName = "DicomWeb";
+
     public Uri Endpoint { get; set; }
 
-    /// <summary>
-    /// Authentication settings for the FHIR server.
-    /// </summary>
     public AuthenticationOptions Authentication { get; set; }
 }

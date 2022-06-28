@@ -49,6 +49,14 @@ updates:
       time: "09:00"
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 30
+  
+  - package-ecosystem: "docker"
+    directory: "/tools/uploader-function/src/DicomUploaderFunction"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
 
   - package-ecosystem: "github-actions"
     directory: "/"

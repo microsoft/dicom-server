@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{404C6C33-DB00-4182-BD90-F10A8B17C321}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = ../../.editorconfig
+		Directory.Build.props = ../../Directory.Build.props
+		Directory.Packages.props = ../../Directory.Packages.props
+		GitVersion.yml = ../../GitVersion.yml
+		global.json = ../../global.json
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DicomUploaderFunction", "src\DicomUploaderFunction\DicomUploaderFunction.csproj", "{2B900BAE-4BB8-4105-9AD2-C2F755E842F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Client", "..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{547F1380-C686-4305-BEC4-4ABDFB486346}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2B900BAE-4BB8-4105-9AD2-C2F755E842F8}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{2B900BAE-4BB8-4105-9AD2-C2F755E842F8}.Debug|Any CPU.Build.0 = Debug|x64
+		{2B900BAE-4BB8-4105-9AD2-C2F755E842F8}.Release|Any CPU.ActiveCfg = Release|x64
+		{2B900BAE-4BB8-4105-9AD2-C2F755E842F8}.Release|Any CPU.Build.0 = Release|x64
+		{547F1380-C686-4305-BEC4-4ABDFB486346}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{547F1380-C686-4305-BEC4-4ABDFB486346}.Debug|Any CPU.Build.0 = Debug|x64
+		{547F1380-C686-4305-BEC4-4ABDFB486346}.Release|Any CPU.ActiveCfg = Release|x64
+		{547F1380-C686-4305-BEC4-4ABDFB486346}.Release|Any CPU.Build.0 = Release|x64
+	EndGlobalSection
+EndGlobal
