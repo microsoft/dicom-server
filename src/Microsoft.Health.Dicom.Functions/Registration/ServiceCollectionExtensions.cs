@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Copy;
@@ -127,6 +128,25 @@ public static class ServiceCollectionExtensions
             .Metadata;
 
         return builder.AddMetadataStorageDataStore(configuration, containerName);
+    }
+
+    /// <summary>
+    /// Adds health checks to the Azure Functions.
+    /// </summary>
+    /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
+    /// <returns>An <see cref="IHealthChecksBuilder"/> for registering health checks.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="builder"/> is <see langword="null"/>.</exception>
+    public static IHealthChecksBuilder AddHealthChecks(this IDicomFunctionsBuilder builder)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+
+        IHealthChecksBuilder result = builder.Services.AddHealthChecks();
+
+        // We cannot run any hosted services in Azure functions, so they must be removed.
+        // Luckily we'll rely directly on the IHealthService.
+        builder.Services.RemoveAll(typeof(IHostedService));
+
+        return result;
     }
 
     private static IServiceCollection AddInstanceCopier(this IServiceCollection services)
