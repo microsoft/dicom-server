@@ -19,7 +19,7 @@ using Microsoft.Health.Client.Authentication;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-internal static class DicomSourceStoreExtension
+internal static class DicomModulesExtensions
 {
     private const string DicomWebConfigurationSectionName = "DicomWeb";
 
