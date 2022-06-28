@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Health.Dicom.SchemaManager": {
-      "commandName": "Project",
-      "commandLineArgs": "apply --connection-string \"server=(local);Initial Catalog=DICOM;TrustServerCertificate=True;Integrated Security=True\" --version 22"
-    }
-  }
-}
