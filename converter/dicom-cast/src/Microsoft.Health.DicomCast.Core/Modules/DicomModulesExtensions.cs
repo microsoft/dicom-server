@@ -17,7 +17,7 @@ using Polly;
 using Polly.Extensions.Http;
 using Microsoft.Health.Client.Authentication;
 
-namespace Microsoft.Health.DicomCast.Core.Modules;
+namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class DicomSourceStoreExtension
 {
