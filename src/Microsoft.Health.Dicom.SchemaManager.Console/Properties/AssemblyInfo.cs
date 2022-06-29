@@ -3,17 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using Microsoft.Health.Client.Authentication;
+using System.Resources;
 
-namespace Microsoft.Health.DicomCast.Core.Configurations;
-
-public class FhirConfiguration
-{
-    public Uri Endpoint { get; set; }
-
-    /// <summary>
-    /// Authentication settings for the FHIR server.
-    /// </summary>
-    public AuthenticationOptions Authentication { get; set; }
-}
+[assembly: NeutralResourcesLanguage("en-us")]
+[assembly: CLSCompliant(false)]

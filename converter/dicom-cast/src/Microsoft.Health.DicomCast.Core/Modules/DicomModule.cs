@@ -8,9 +8,10 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Client.Authentication;
+using Microsoft.Health.Client.Extensions;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.DicomCast.Core.Configurations;
-using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Polly;
@@ -49,7 +50,7 @@ public class DicomModule : IStartupModule
                 client.BaseAddress = config.PrivateEndpoint == null ? config.Endpoint : config.PrivateEndpoint;
             })
             .AddPolicyHandler(retryPolicy)
-            .AddAuthenticationHandler(services, dicomWebConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), DicomWebConfigurationSectionName);
+            .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
 
         services.Add<ChangeFeedRetrieveService>()
             .Singleton()
