@@ -44,6 +44,7 @@ public static class SchemaManagerServiceCollectionBuilder
 
         services.AddMediatR(typeof(SchemaUpgradedNotification).Assembly);
 
+        services.AddSingleton<IBaseSchemaRunner, DicomBaseSchemaRunner>();
         services.AddSingleton<ISchemaClient, DicomSchemaClient>();
         services.AddSingleton<ISchemaManager, SqlSchemaManager>();
         services.AddLogging(configure => configure.AddConsole());
