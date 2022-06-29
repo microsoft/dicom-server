@@ -24,11 +24,13 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlobExportOptions>
 {
+    internal const string ClientOptionsName = "Export";
+
     public override ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
     private readonly ISecretStore _secretStore;
     private readonly IFileStore _fileStore;
-    private readonly IServerCredentialProvider _serverCredentialProvider;
+    private readonly IExternalOperationCredentialProvider _credentialProvider;
     private readonly AzureBlobExportSinkProviderOptions _providerOptions;
     private readonly AzureBlobClientOptions _clientOptions;
     private readonly BlobOperationOptions _operationOptions;
@@ -37,7 +39,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     public AzureBlobExportSinkProvider(
         IFileStore fileStore,
-        IServerCredentialProvider serverCredentialProvider,
+        IExternalOperationCredentialProvider credentialProvider,
         IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
         IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
         IOptionsSnapshot<BlobOperationOptions> operationOptions,
@@ -45,9 +47,9 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         ILogger<AzureBlobExportSinkProvider> logger)
     {
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
-        _serverCredentialProvider = EnsureArg.IsNotNull(serverCredentialProvider, nameof(serverCredentialProvider));
+        _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
         _providerOptions = EnsureArg.IsNotNull(providerOptions?.Value, nameof(providerOptions));
-        _clientOptions = EnsureArg.IsNotNull(clientOptions?.Get("Export"), nameof(clientOptions));
+        _clientOptions = EnsureArg.IsNotNull(clientOptions?.Get(ClientOptionsName), nameof(clientOptions));
         _operationOptions = EnsureArg.IsNotNull(operationOptions?.Value, nameof(operationOptions));
         _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -56,13 +58,13 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     public AzureBlobExportSinkProvider(
         ISecretStore secretStore,
         IFileStore fileStore,
-        IServerCredentialProvider serverCredentialProvider,
+        IExternalOperationCredentialProvider credentialProvider,
         IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
         IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
         IOptionsSnapshot<BlobOperationOptions> operationOptions,
         IOptionsSnapshot<JsonSerializerOptions> serializerOptions,
         ILogger<AzureBlobExportSinkProvider> logger)
-        : this(fileStore, serverCredentialProvider, providerOptions, clientOptions, operationOptions, serializerOptions, logger)
+        : this(fileStore, credentialProvider, providerOptions, clientOptions, operationOptions, serializerOptions, logger)
     {
         // The real Azure Functions runtime/container will use DryIoc for dependency injection
         // and will still select this ctor for use, even if no ISecretStore service is configured.
@@ -92,7 +94,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
         return new AzureBlobExportSink(
             _fileStore,
-            await options.GetBlobContainerClientAsync(_serverCredentialProvider, _clientOptions, cancellationToken),
+            await options.GetBlobContainerClientAsync(_credentialProvider, _clientOptions, cancellationToken),
             new AzureBlobExportFormatOptions(
                 operationId,
                 AzureBlobExportOptions.DicomFilePattern,

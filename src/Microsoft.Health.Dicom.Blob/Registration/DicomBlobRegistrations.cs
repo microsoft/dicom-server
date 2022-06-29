@@ -25,11 +25,15 @@ internal static class DicomBlobRegistrations
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSinkProvider, AzureBlobExportSinkProvider>());
 
         if (configureProvider != null)
+        {
             services.Configure(configureProvider);
+        }
 
-        OptionsBuilder<AzureBlobClientOptions> builder = services.AddOptions<AzureBlobClientOptions>("Export");
+        OptionsBuilder<AzureBlobClientOptions> builder = services.AddOptions<AzureBlobClientOptions>(AzureBlobExportSinkProvider.ClientOptionsName);
         if (configureClient != null)
+        {
             builder.Configure(configureClient);
+        }
 
         return services;
     }

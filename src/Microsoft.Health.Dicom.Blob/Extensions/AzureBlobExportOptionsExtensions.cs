@@ -18,7 +18,7 @@ internal static class AzureBlobExportOptionsExtensions
 {
     public static async Task<BlobContainerClient> GetBlobContainerClientAsync(
         this AzureBlobExportOptions exportOptions,
-        IServerCredentialProvider credentialProvider,
+        IExternalOperationCredentialProvider credentialProvider,
         BlobClientOptions options,
         CancellationToken cancellationToken = default)
     {

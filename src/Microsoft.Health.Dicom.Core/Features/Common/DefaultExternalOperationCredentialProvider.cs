@@ -10,7 +10,7 @@ using Azure.Identity;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common;
 
-internal sealed class DefaultServerCredentialProvider : IServerCredentialProvider
+internal sealed class DefaultExternalOperationCredentialProvider : IExternalOperationCredentialProvider
 {
     // TODO: Allow users to configure defaults
     public Task<TokenCredential> GetCredentialAsync(CancellationToken cancellationToken = default)

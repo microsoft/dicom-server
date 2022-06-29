@@ -32,7 +32,7 @@ public class AzureBlobExportSinkProviderTests
 {
     private readonly ISecretStore _secretStore;
     private readonly IFileStore _fileStore;
-    private readonly IServerCredentialProvider _serverCredentialProvider;
+    private readonly IExternalOperationCredentialProvider _credentialProvider;
     private readonly AzureBlobExportSinkProviderOptions _providerOptions;
     private readonly AzureBlobClientOptions _clientOptions;
     private readonly BlobOperationOptions _operationOptions;
@@ -44,7 +44,7 @@ public class AzureBlobExportSinkProviderTests
     {
         _secretStore = Substitute.For<ISecretStore>();
         _fileStore = Substitute.For<IFileStore>();
-        _serverCredentialProvider = Substitute.For<IServerCredentialProvider>();
+        _credentialProvider = Substitute.For<IExternalOperationCredentialProvider>();
         _providerOptions = new AzureBlobExportSinkProviderOptions { AllowPublicAccess = true, AllowSasTokens = true };
         _clientOptions = new AzureBlobClientOptions();
         _operationOptions = new BlobOperationOptions { Upload = new StorageTransferOptions() };
@@ -54,18 +54,18 @@ public class AzureBlobExportSinkProviderTests
         _sinkProvider = new AzureBlobExportSinkProvider(
             _secretStore,
             _fileStore,
-            _serverCredentialProvider,
+            _credentialProvider,
             CreateSnapshot(_providerOptions),
-            CreateSnapshot(_clientOptions, "Export"),
+            CreateSnapshot(_clientOptions, AzureBlobExportSinkProvider.ClientOptionsName),
             CreateSnapshot(_operationOptions),
             CreateSnapshot(_serializerOptions),
             NullLogger<AzureBlobExportSinkProvider>.Instance);
 
         _secretlessSinkProvider = new AzureBlobExportSinkProvider(
             _fileStore,
-            _serverCredentialProvider,
+            _credentialProvider,
             CreateSnapshot(_providerOptions),
-            CreateSnapshot(_clientOptions, "Export"),
+            CreateSnapshot(_clientOptions, AzureBlobExportSinkProvider.ClientOptionsName),
             CreateSnapshot(_operationOptions),
             CreateSnapshot(_serializerOptions),
             NullLogger<AzureBlobExportSinkProvider>.Instance);
@@ -134,7 +134,7 @@ public class AzureBlobExportSinkProviderTests
             .Returns(GetJson(containerUri));
 
         if (useManagedIdentity)
-            _serverCredentialProvider.GetCredentialAsync(tokenSource.Token).Returns(new DefaultAzureCredential());
+            _credentialProvider.GetCredentialAsync(tokenSource.Token).Returns(new DefaultAzureCredential());
 
         IExportSink sink = await _sinkProvider.CreateAsync(options, operationId, tokenSource.Token);
 
@@ -145,9 +145,9 @@ public class AzureBlobExportSinkProviderTests
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token);
 
         if (useManagedIdentity)
-            await _serverCredentialProvider.Received(1).GetCredentialAsync(tokenSource.Token);
+            await _credentialProvider.Received(1).GetCredentialAsync(tokenSource.Token);
         else
-            await _serverCredentialProvider.DidNotReceiveWithAnyArgs().GetCredentialAsync(default);
+            await _credentialProvider.DidNotReceiveWithAnyArgs().GetCredentialAsync(default);
     }
 
     [Fact]
