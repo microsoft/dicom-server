@@ -9,12 +9,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Mime;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Storage;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -33,29 +31,44 @@ namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Export;
 public class AzureBlobExportSinkProviderTests
 {
     private readonly ISecretStore _secretStore;
+    private readonly IFileStore _fileStore;
+    private readonly IServerCredentialProvider _serverCredentialProvider;
     private readonly AzureBlobExportSinkProviderOptions _providerOptions;
+    private readonly AzureBlobClientOptions _clientOptions;
+    private readonly BlobOperationOptions _operationOptions;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly AzureBlobExportSinkProvider _sinkProvider;
-    private readonly IServerCredentialProvider _identityProvider;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly AzureBlobExportSinkProvider _secretlessSinkProvider;
 
     public AzureBlobExportSinkProviderTests()
     {
         _secretStore = Substitute.For<ISecretStore>();
+        _fileStore = Substitute.For<IFileStore>();
+        _serverCredentialProvider = Substitute.For<IServerCredentialProvider>();
         _providerOptions = new AzureBlobExportSinkProviderOptions { AllowPublicAccess = true, AllowSasTokens = true };
+        _clientOptions = new AzureBlobClientOptions();
+        _operationOptions = new BlobOperationOptions { Upload = new StorageTransferOptions() };
         _serializerOptions = new JsonSerializerOptions();
         _serializerOptions.ConfigureDefaultDicomSettings();
-        _sinkProvider = new AzureBlobExportSinkProvider(_secretStore, Options.Create(_providerOptions), Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
-        _identityProvider = Substitute.For<IServerCredentialProvider>();
 
-        var services = new ServiceCollection();
-        services.AddScoped(p => Substitute.For<IFileStore>());
-        services.AddSingleton(_identityProvider);
-        services.AddOptions<AzureBlobClientOptions>("Export");
-        services.Configure<BlobOperationOptions>(o => o.Upload = new StorageTransferOptions());
-        services.Configure<JsonSerializerOptions>(o => o.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
+        _sinkProvider = new AzureBlobExportSinkProvider(
+            _secretStore,
+            _fileStore,
+            _serverCredentialProvider,
+            CreateSnapshot(_providerOptions),
+            CreateSnapshot(_clientOptions, "Export"),
+            CreateSnapshot(_operationOptions),
+            CreateSnapshot(_serializerOptions),
+            NullLogger<AzureBlobExportSinkProvider>.Instance);
 
-        _serviceProvider = services.BuildServiceProvider();
+        _secretlessSinkProvider = new AzureBlobExportSinkProvider(
+            _fileStore,
+            _serverCredentialProvider,
+            CreateSnapshot(_providerOptions),
+            CreateSnapshot(_clientOptions, "Export"),
+            CreateSnapshot(_operationOptions),
+            CreateSnapshot(_serializerOptions),
+            NullLogger<AzureBlobExportSinkProvider>.Instance);
     }
 
     [Theory]
@@ -63,21 +76,11 @@ public class AzureBlobExportSinkProviderTests
     [InlineData(false, true, false)]
     [InlineData(true, false, false)]
     [InlineData(true, true, true)]
-    public async Task GivenCompletedOperation_WhenCleaningUp_SkipIfNoWork(bool configureStore, bool addSecret, bool expectDelete)
+    public async Task GivenCompletedOperation_WhenCleaningUp_SkipIfNoWork(bool enableSecrets, bool addSecret, bool expectDelete)
     {
         using var tokenSource = new CancellationTokenSource();
 
-        var provider = configureStore
-            ? new AzureBlobExportSinkProvider(
-                _secretStore,
-                Options.Create(_providerOptions),
-                Options.Create(_serializerOptions),
-                NullLogger<AzureBlobExportSinkProvider>.Instance)
-            : new AzureBlobExportSinkProvider(
-                Options.Create(_providerOptions),
-                Options.Create(_serializerOptions),
-                NullLogger<AzureBlobExportSinkProvider>.Instance);
-
+        AzureBlobExportSinkProvider provider = enableSecrets ? _sinkProvider : _secretlessSinkProvider;
         var options = new AzureBlobExportOptions
         {
             Secret = addSecret ? new SecretKey { Name = "secret" } : null
@@ -101,8 +104,7 @@ public class AzureBlobExportSinkProviderTests
             Secret = new SecretKey { Name = "foo", Version = "bar" },
         };
 
-        var provider = new AzureBlobExportSinkProvider(Options.Create(_providerOptions), Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.CreateAsync(_serviceProvider, options, Guid.NewGuid()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _secretlessSinkProvider.CreateAsync(options, Guid.NewGuid()));
         await _secretStore.DidNotReceiveWithAnyArgs().GetSecretAsync(default, default, default);
     }
 
@@ -132,9 +134,9 @@ public class AzureBlobExportSinkProviderTests
             .Returns(GetJson(containerUri));
 
         if (useManagedIdentity)
-            _identityProvider.GetCredentialAsync(tokenSource.Token).Returns(new DefaultAzureCredential());
+            _serverCredentialProvider.GetCredentialAsync(tokenSource.Token).Returns(new DefaultAzureCredential());
 
-        IExportSink sink = await _sinkProvider.CreateAsync(_serviceProvider, options, operationId, tokenSource.Token);
+        IExportSink sink = await _sinkProvider.CreateAsync(options, operationId, tokenSource.Token);
 
         Assert.IsType<AzureBlobExportSink>(sink);
         Assert.Equal(errorHref, sink.ErrorHref);
@@ -143,9 +145,9 @@ public class AzureBlobExportSinkProviderTests
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token);
 
         if (useManagedIdentity)
-            await _identityProvider.Received(1).GetCredentialAsync(tokenSource.Token);
+            await _serverCredentialProvider.Received(1).GetCredentialAsync(tokenSource.Token);
         else
-            await _identityProvider.DidNotReceiveWithAnyArgs().GetCredentialAsync(default);
+            await _serverCredentialProvider.DidNotReceiveWithAnyArgs().GetCredentialAsync(default);
     }
 
     [Fact]
@@ -171,7 +173,7 @@ public class AzureBlobExportSinkProviderTests
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token)
             .Returns(GetJson(connectionString));
 
-        IExportSink sink = await _sinkProvider.CreateAsync(_serviceProvider, options, operationId, tokenSource.Token);
+        IExportSink sink = await _sinkProvider.CreateAsync(options, operationId, tokenSource.Token);
 
         Assert.IsType<AzureBlobExportSink>(sink);
         Assert.Equal(errorHref, sink.ErrorHref);
@@ -184,7 +186,7 @@ public class AzureBlobExportSinkProviderTests
     [InlineData("BlobEndpoint=https://unit-test.blob.core.windows.net/;SharedAccessSignature=sastoken", "export-e2e-test", null)]
     [InlineData(null, null, "https://dcmcipermanpmlxszw4sayty.blob.core.windows.net/export-e2e-test?sig=sastoken")]
     [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "Cannot use inline Uri")]
-    public async Task GivenSasTokenWithNoStore_WhenSecuringInfo_ThenThrow(string connectionString, string blobContainerName, string blobContainerUri)
+    public async Task GivenSasTokenWithNoSecretStore_WhenSecuringInfo_ThenThrow(string connectionString, string blobContainerName, string blobContainerUri)
     {
         var operationId = Guid.NewGuid();
         var options = new AzureBlobExportOptions
@@ -194,8 +196,7 @@ public class AzureBlobExportSinkProviderTests
             ConnectionString = connectionString,
         };
 
-        var provider = new AzureBlobExportSinkProvider(Options.Create(_providerOptions), Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.SecureSensitiveInfoAsync(options, operationId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _secretlessSinkProvider.SecureSensitiveInfoAsync(options, operationId));
         await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default, default);
     }
 
@@ -212,8 +213,7 @@ public class AzureBlobExportSinkProviderTests
             ConnectionString = connectionString,
         };
 
-        var provider = new AzureBlobExportSinkProvider(Options.Create(_providerOptions), Options.Create(_serializerOptions), NullLogger<AzureBlobExportSinkProvider>.Instance);
-        var actual = (AzureBlobExportOptions)await provider.SecureSensitiveInfoAsync(options, Guid.NewGuid());
+        var actual = (AzureBlobExportOptions)await _sinkProvider.SecureSensitiveInfoAsync(options, Guid.NewGuid());
 
         await _secretStore.DidNotReceiveWithAnyArgs().SetSecretAsync(default, default, default, default);
 
@@ -271,12 +271,8 @@ public class AzureBlobExportSinkProviderTests
             UseManagedIdentity = false, // Be explicit
         };
 
-        var provider = new AzureBlobExportSinkProvider(
-            Options.Create(new AzureBlobExportSinkProviderOptions { AllowPublicAccess = false, AllowSasTokens = true }),
-            Options.Create(_serializerOptions),
-            NullLogger<AzureBlobExportSinkProvider>.Instance);
-
-        await Assert.ThrowsAsync<ValidationException>(() => provider.ValidateAsync(options));
+        _providerOptions.AllowPublicAccess = false;
+        await Assert.ThrowsAsync<ValidationException>(() => _sinkProvider.ValidateAsync(options));
     }
 
     [Theory]
@@ -292,12 +288,18 @@ public class AzureBlobExportSinkProviderTests
             ConnectionString = connectionString,
         };
 
-        var provider = new AzureBlobExportSinkProvider(
-            Options.Create(new AzureBlobExportSinkProviderOptions { AllowPublicAccess = true, AllowSasTokens = false }),
-            Options.Create(_serializerOptions),
-            NullLogger<AzureBlobExportSinkProvider>.Instance);
+        _providerOptions.AllowSasTokens = false;
+        await Assert.ThrowsAsync<ValidationException>(() => _sinkProvider.ValidateAsync(options));
+    }
 
-        await Assert.ThrowsAsync<ValidationException>(() => provider.ValidateAsync(options));
+    private static IOptionsSnapshot<T> CreateSnapshot<T>(T options, string name = "") where T : class
+    {
+        IOptionsSnapshot<T> snapshot = Substitute.For<IOptionsSnapshot<T>>();
+        snapshot.Get(name).Returns(options);
+        if (name == "")
+            snapshot.Value.Returns(options);
+
+        return snapshot;
     }
 
     private static string GetJson(Uri blobContainerUri)

@@ -31,7 +31,9 @@ internal static class AzureBlobExportOptionsExtensions
             {
                 TokenCredential credential = await credentialProvider.GetCredentialAsync(cancellationToken);
                 if (credential == null)
+                {
                     throw new InvalidOperationException(DicomBlobResource.MissingServerIdentity);
+                }
 
                 return new BlobContainerClient(exportOptions.BlobContainerUri, credential);
             }

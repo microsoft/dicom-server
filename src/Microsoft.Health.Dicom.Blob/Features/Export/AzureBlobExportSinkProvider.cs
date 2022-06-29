@@ -12,7 +12,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -30,26 +29,42 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     public override ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
     private readonly ISecretStore _secretStore;
+    private readonly IFileStore _fileStore;
+    private readonly IServerCredentialProvider _serverCredentialProvider;
     private readonly AzureBlobExportSinkProviderOptions _providerOptions;
+    private readonly AzureBlobClientOptions _clientOptions;
+    private readonly BlobOperationOptions _operationOptions;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly ILogger _logger;
 
     public AzureBlobExportSinkProvider(
-        IOptions<AzureBlobExportSinkProviderOptions> options,
-        IOptions<JsonSerializerOptions> serializerOptions,
+        IFileStore fileStore,
+        IServerCredentialProvider serverCredentialProvider,
+        IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
+        IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
+        IOptionsSnapshot<BlobOperationOptions> operationOptions,
+        IOptionsSnapshot<JsonSerializerOptions> serializerOptions,
         ILogger<AzureBlobExportSinkProvider> logger)
     {
-        _providerOptions = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+        _serverCredentialProvider = EnsureArg.IsNotNull(serverCredentialProvider, nameof(serverCredentialProvider));
+        _providerOptions = EnsureArg.IsNotNull(providerOptions?.Value, nameof(providerOptions));
+        _clientOptions = EnsureArg.IsNotNull(clientOptions?.Get("Export"), nameof(clientOptions));
+        _operationOptions = EnsureArg.IsNotNull(operationOptions?.Value, nameof(operationOptions));
         _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     public AzureBlobExportSinkProvider(
         ISecretStore secretStore,
-        IOptions<AzureBlobExportSinkProviderOptions> options,
-        IOptions<JsonSerializerOptions> serializerOptions,
+        IFileStore fileStore,
+        IServerCredentialProvider serverCredentialProvider,
+        IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
+        IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
+        IOptionsSnapshot<BlobOperationOptions> operationOptions,
+        IOptionsSnapshot<JsonSerializerOptions> serializerOptions,
         ILogger<AzureBlobExportSinkProvider> logger)
-        : this(options, serializerOptions, logger)
+        : this(fileStore, serverCredentialProvider, providerOptions, clientOptions, operationOptions, serializerOptions, logger)
     {
         // The real Azure Functions runtime/container will use DryIoc for dependency injection
         // and will still select this ctor for use, even if no ISecretStore service is configured.
@@ -73,23 +88,19 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         }
     }
 
-    protected override async Task<IExportSink> CreateAsync(IServiceProvider provider, AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
+    protected override async Task<IExportSink> CreateAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
         options = await RetrieveSensitiveOptionsAsync(options, cancellationToken);
 
         return new AzureBlobExportSink(
-            provider.GetRequiredService<IFileStore>(),
-            await options.GetBlobContainerClientAsync(
-                provider.GetRequiredService<IServerCredentialProvider>(),
-                provider.GetRequiredService<IOptionsSnapshot<AzureBlobClientOptions>>().Get("Export"),
-                cancellationToken),
-            Options.Create(
-                new AzureBlobExportFormatOptions(
-                    operationId,
-                    AzureBlobExportOptions.DicomFilePattern,
-                    AzureBlobExportOptions.ErrorLogPattern)),
-            provider.GetRequiredService<IOptions<BlobOperationOptions>>(),
-            provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
+            _fileStore,
+            await options.GetBlobContainerClientAsync(_serverCredentialProvider, _clientOptions, cancellationToken),
+            new AzureBlobExportFormatOptions(
+                operationId,
+                AzureBlobExportOptions.DicomFilePattern,
+                AzureBlobExportOptions.ErrorLogPattern),
+            _operationOptions,
+            _serializerOptions);
     }
 
     protected override async Task<AzureBlobExportOptions> SecureSensitiveInfoAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
