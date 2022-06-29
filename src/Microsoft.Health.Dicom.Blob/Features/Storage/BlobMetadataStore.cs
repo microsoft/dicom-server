@@ -131,9 +131,8 @@ public class BlobMetadataStore : IMetadataStore
         {
             BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
 
-            // DICOM metadata file was saved using UTF-8 encoding with BOM, When using JsonSerializer, by design UTF-8 BOM should be ignored
-            // Else, the following exception will occur "System.Text.Json.JsonReaderException: ''0xEF' is an invalid start of a value. LineNumber: 0 | BytePositionInLine: 0." at the line Reader.Read.
-            // So passing as stream which will remove the UTF-8 BOM. https://github.com/dotnet/runtime/issues/29838
+            // DICOM metadata file includes UTF-8 encoding with BOM and there is a bug with the BinaryData.ToObjectFromJson method as seen in this issue: https://github.com/dotnet/runtime/issues/71447
+            // So passing as stream which will remove the UTF-8 BOM.
             return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
         }, cancellationToken);
     }
