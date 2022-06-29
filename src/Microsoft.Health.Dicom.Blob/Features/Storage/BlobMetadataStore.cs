@@ -133,12 +133,8 @@ public class BlobMetadataStore : IMetadataStore
 
             // DICOM metadata file was saved using UTF-8 encoding with BOM, When using JsonSerializer, by design UTF-8 BOM should be ignored
             // Else, the following exception will occur "System.Text.Json.JsonReaderException: ''0xEF' is an invalid start of a value. LineNumber: 0 | BytePositionInLine: 0." at the line Reader.Read.
-            // So reading the content into stream which will remove the UTF-8 BOM. https://github.com/dotnet/runtime/issues/29838
-            using (Stream stream = _recyclableMemoryStreamManager.GetStream(result.Content))
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
-            }
+            // So passing as stream which will remove the UTF-8 BOM. https://github.com/dotnet/runtime/issues/29838
+            return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
         }, cancellationToken);
     }
 
