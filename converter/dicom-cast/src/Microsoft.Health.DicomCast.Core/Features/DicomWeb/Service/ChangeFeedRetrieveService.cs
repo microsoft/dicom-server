@@ -37,8 +37,6 @@ public class ChangeFeedRetrieveService : IChangeFeedRetrieveService
             $"?offset={offset}&limit={DefaultLimit}&includeMetadata={true}",
             cancellationToken);
 
-        ChangeFeedEntry[] changeFeedEntries = await result.ToArrayAsync(cancellationToken);
-
         return await result.ToArrayAsync(cancellationToken) ?? Array.Empty<ChangeFeedEntry>();
     }
 }
