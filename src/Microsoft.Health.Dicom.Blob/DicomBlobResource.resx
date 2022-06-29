@@ -160,4 +160,19 @@
     <value>Placeholder '{0}' is not recognized.</value>
     <comment>{0} Placeholder</comment>
   </data>
+  <data name="ConflictingExportBlobConnections" xml:space="preserve">
+    <value>ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri.</value>
+  </data>
+  <data name="MissingExportBlobConnection" xml:space="preserve">
+    <value>Please specify both ConnectionString and BlobContainerName.</value>
+  </data>
+  <data name="InvalidExportBlobAuthentication" xml:space="preserve">
+    <value>Managed identity cannot be used with a ConnectionString.</value>
+  </data>
+  <data name="AzureStorageAccountKeyUnsupported" xml:space="preserve">
+    <value>Account key authentication is not supported.</value>
+  </data>
+  <data name="ConflictingBlobExportAuthentication" xml:space="preserve">
+    <value>UseManagedIdentity cannot be specified if the BlobContainerUri container query string parameters.</value>
+  </data>
 </root>

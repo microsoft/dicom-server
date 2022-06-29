@@ -4,9 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
@@ -113,10 +111,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         BlobSecrets secrets = null;
         if (options.BlobContainerUri != null)
         {
-            if (IsSensitiveBlobContainerUri(options.BlobContainerUri))
+            if (ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
                 secrets = new BlobSecrets { BlobContainerUri = options.BlobContainerUri };
         }
-        else if (IsSensitiveConnectionString(options))
+        else if (ContainsKey(options.ConnectionString, AzureStorageConnection.SharedAccessSignature))
         {
             secrets = new BlobSecrets { ConnectionString = options.ConnectionString };
         }
@@ -144,38 +142,71 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     protected override Task ValidateAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
     {
-        List<ValidationResult> results = options.Validate(new ValidationContext(this)).ToList();
+        ValidationResult error = null;
 
-        // Run additional validation based on the sink provider options if the options themselves are configured correctly.
-        // We need to ensure that they do not contain SAS Tokens or use public access if it is disallowed
-        if (results.Count == 0)
+        // Using connection strings?
+        if (options.BlobContainerUri == null)
         {
-            if (options.BlobContainerUri != null)
+            // No connection info?
+            if (string.IsNullOrWhiteSpace(options.ConnectionString) || string.IsNullOrWhiteSpace(options.BlobContainerName))
             {
-                if (options.BlobContainerUri.Query.Length > 1)
+                error = new ValidationResult(DicomBlobResource.MissingExportBlobConnection);
+            }
+            else // Otherwise, validate the connection string
+            {
+                if (!IsEmulator(options.ConnectionString) &&
+                    ContainsKey(options.ConnectionString, AzureStorageConnection.AccountKey))
                 {
-                    if (!_providerOptions.AllowSasTokens)
-                        results.Add(new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported));
+                    // Account keys are not allowed
+                    error = new ValidationResult(DicomBlobResource.AzureStorageAccountKeyUnsupported);
                 }
-                else if (!options.UseManagedIdentity && !_providerOptions.AllowPublicAccess)
+                else if (!_providerOptions.AllowSasTokens &&
+                    ContainsKey(options.ConnectionString, AzureStorageConnection.SharedAccessSignature))
                 {
-                    results.Add(new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported));
+                    // SAS tokens are not allowed
+                    error = new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported);
+                }
+                else if (!_providerOptions.AllowPublicAccess &&
+                    !ContainsKey(options.ConnectionString, AzureStorageConnection.SharedAccessSignature))
+                {
+                    // Public access not allowed
+                    error = new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported);
+                }
+                else if (options.UseManagedIdentity)
+                {
+                    // Managed identity must be used with URIs
+                    error = new ValidationResult(DicomBlobResource.InvalidExportBlobAuthentication);
                 }
             }
-            else if (!_providerOptions.AllowSasTokens && !options.IsEmulatorConnectionString() && options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase))
+        }
+        else // Otherwise, using a blob container URI
+        {
+            if (!string.IsNullOrWhiteSpace(options.ConnectionString) || !string.IsNullOrWhiteSpace(options.BlobContainerName))
             {
-                results.Add(new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported));
+                // Conflicting connection info
+                error = new ValidationResult(DicomBlobResource.ConflictingExportBlobConnections);
             }
-            else if (!_providerOptions.AllowPublicAccess && !options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase))
+            else if (options.UseManagedIdentity &&
+                ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
             {
-                results.Add(new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported));
+                // Managed identity and SAS both specified
+                error = new ValidationResult(DicomBlobResource.ConflictingBlobExportAuthentication);
+            }
+            else if (!_providerOptions.AllowSasTokens &&
+                ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
+            {
+                // SAS tokens are not allowed
+                error = new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported);
+            }
+            else if (!_providerOptions.AllowPublicAccess && !options.UseManagedIdentity &&
+                !ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
+            {
+                // No auth specified, but public access is forbidden
+                error = new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported);
             }
         }
 
-        if (results.Count > 0)
-            throw new ValidationException(results.First().ErrorMessage);
-
-        return Task.CompletedTask;
+        return error == null ? Task.CompletedTask : throw new ValidationException(error.ErrorMessage);
     }
 
     private async Task<AzureBlobExportOptions> RetrieveSensitiveOptionsAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
@@ -196,11 +227,38 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         return options;
     }
 
-    private static bool IsSensitiveBlobContainerUri(Uri blobContainerUri)
-       => blobContainerUri.Query.Length > 1;
+    private static bool IsEmulator(string connectionString)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+        return connectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) ||
+            ContainsPair(connectionString, AzureStorageConnection.AccountName, "devstoreaccount1");
+    }
 
-    private static bool IsSensitiveConnectionString(AzureBlobExportOptions options)
-        => !options.IsEmulatorConnectionString() && options.ConnectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase);
+    // Note: These Contain methods may produce false positives as they do not check for the exact name
+
+    private static bool ContainsKey(string connectionString, string key)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+        EnsureArg.IsNotNullOrWhiteSpace(key, nameof(key));
+
+        return connectionString.Contains(key + '=', StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsPair(string connectionString, string key, string value)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+        EnsureArg.IsNotNullOrWhiteSpace(key, nameof(key));
+
+        return connectionString.Contains(key + '=' + value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsQueryStringParameter(Uri storageUri, string name)
+    {
+        EnsureArg.IsNotNull(storageUri, nameof(storageUri));
+        EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
+
+        return storageUri.Query.Contains(name + '=', StringComparison.OrdinalIgnoreCase);
+    }
 
     private sealed class BlobSecrets
     {

@@ -4,14 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Models.Export;
 
-internal sealed class AzureBlobExportOptions : IValidatableObject
+internal sealed class AzureBlobExportOptions
 {
     public Uri BlobContainerUri { get; set; }
 
@@ -28,39 +25,4 @@ internal sealed class AzureBlobExportOptions : IValidatableObject
     internal const string DicomFilePattern = "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm";
 
     internal const string ErrorLogPattern = "%Operation%/Errors.log";
-
-    private static readonly Regex EmulatorAccountNameRegex = new Regex("AccountName=devstoreaccount1(?:;|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        var results = new List<ValidationResult>();
-        if (BlobContainerUri == null)
-        {
-            if (string.IsNullOrWhiteSpace(ConnectionString) || string.IsNullOrWhiteSpace(BlobContainerName))
-            {
-                results.Add(new ValidationResult(DicomCoreResource.MissingExportBlobConnection));
-            }
-            else
-            {
-                if (!IsEmulatorConnectionString() && ConnectionString.Contains("AccountKey=", StringComparison.OrdinalIgnoreCase))
-                    results.Add(new ValidationResult(DicomCoreResource.AzureStorageAccountKeyUnsupported));
-
-                if (UseManagedIdentity)
-                    results.Add(new ValidationResult(DicomCoreResource.InvalidExportBlobAuthentication));
-            }
-        }
-        else
-        {
-            if (!string.IsNullOrWhiteSpace(ConnectionString) || !string.IsNullOrWhiteSpace(BlobContainerName))
-                results.Add(new ValidationResult(DicomCoreResource.ConflictingExportBlobConnections));
-
-            if (BlobContainerUri.Query.Length > 1 && UseManagedIdentity)
-                results.Add(new ValidationResult(DicomCoreResource.ConflictingBlobExportAuthentication));
-        }
-
-        return results;
-    }
-
-    internal bool IsEmulatorConnectionString()
-        => ConnectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) || EmulatorAccountNameRegex.IsMatch(ConnectionString);
 }

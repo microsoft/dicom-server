@@ -97,15 +97,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account key authentication is not supported..
-        /// </summary>
-        internal static string AzureStorageAccountKeyUnsupported {
-            get {
-                return ResourceManager.GetString("AzureStorageAccountKeyUnsupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cancel Reason not provided.
         /// </summary>
         internal static string CancelWorkitemUnknownReasonCode {
@@ -129,24 +120,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ChangeFeedOffsetCannotBeNegative {
             get {
                 return ResourceManager.GetString("ChangeFeedOffsetCannotBeNegative", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to UseManagedIdentity cannot be specified if the BlobContainerUri container query string parameters..
-        /// </summary>
-        internal static string ConflictingBlobExportAuthentication {
-            get {
-                return ResourceManager.GetString("ConflictingBlobExportAuthentication", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri..
-        /// </summary>
-        internal static string ConflictingExportBlobConnections {
-            get {
-                return ResourceManager.GetString("ConflictingExportBlobConnections", resourceCulture);
             }
         }
         
@@ -622,15 +595,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Managed identity cannot be used with a ConnectionString..
-        /// </summary>
-        internal static string InvalidExportBlobAuthentication {
-            get {
-                return ResourceManager.GetString("InvalidExportBlobAuthentication", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid as it cannot be parsed into a valid Dicom Tag..
         /// </summary>
         internal static string InvalidExtendedQueryTag {
@@ -837,15 +801,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MismatchStudyInstanceUid {
             get {
                 return ResourceManager.GetString("MismatchStudyInstanceUid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please specify both ConnectionString and BlobContainerName..
-        /// </summary>
-        internal static string MissingExportBlobConnection {
-            get {
-                return ResourceManager.GetString("MissingExportBlobConnection", resourceCulture);
             }
         }
         

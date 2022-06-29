@@ -61,6 +61,15 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account key authentication is not supported..
+        /// </summary>
+        internal static string AzureStorageAccountKeyUnsupported {
+            get {
+                return ResourceManager.GetString("AzureStorageAccountKeyUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to authenticate for Azure Blob Storage container &apos;{0}&apos; in account &apos;{1}&apos;..
         /// </summary>
         internal static string BlobStorageAuthenticateFailure {
@@ -88,6 +97,24 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to UseManagedIdentity cannot be specified if the BlobContainerUri container query string parameters..
+        /// </summary>
+        internal static string ConflictingBlobExportAuthentication {
+            get {
+                return ResourceManager.GetString("ConflictingBlobExportAuthentication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri..
+        /// </summary>
+        internal static string ConflictingExportBlobConnections {
+            get {
+                return ResourceManager.GetString("ConflictingExportBlobConnections", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Azure Blob Storage container &apos;{0}&apos; does not exist in account &apos;{1}&apos;..
         /// </summary>
         internal static string ContainerDoesNotExist {
@@ -106,6 +133,15 @@ namespace Microsoft.Health.Dicom.Blob {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Managed identity cannot be used with a ConnectionString..
+        /// </summary>
+        internal static string InvalidExportBlobAuthentication {
+            get {
+                return ResourceManager.GetString("InvalidExportBlobAuthentication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not parse pattern for &apos;{0}&apos; for property &apos;{1}&apos;..
         /// </summary>
         internal static string InvalidPattern {
@@ -120,6 +156,15 @@ namespace Microsoft.Health.Dicom.Blob {
         internal static string MalformedPlaceholder {
             get {
                 return ResourceManager.GetString("MalformedPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please specify both ConnectionString and BlobContainerName..
+        /// </summary>
+        internal static string MissingExportBlobConnection {
+            get {
+                return ResourceManager.GetString("MissingExportBlobConnection", resourceCulture);
             }
         }
         

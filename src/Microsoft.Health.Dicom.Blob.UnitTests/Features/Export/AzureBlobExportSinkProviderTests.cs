@@ -258,6 +258,33 @@ public class AzureBlobExportSinkProviderTests
     }
 
     [Theory]
+    [InlineData(null, "  ", "mycontainer", false)]
+    [InlineData(null, "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", null, false)]
+    [InlineData("https://unit-test.blob.core.windows.net/mycontainer", "BlobEndpoint=https://unit-test.blob.core.windows.net/;Foo=Bar", null, false)]
+    [InlineData("https://unit-test.blob.core.windows.net/mycontainer", null, "mycontainer", false)]
+    [InlineData(null, "BlobEndpoint=https://unit-test.blob.core.windows.net/;AccountKey=abc123", "mycontainer", false)]
+    [InlineData(null, "BlobEndpoint=https://unit-test.blob.core.windows.net/;SharedAccessSignature=abc123", "mycontainer", true)]
+    [InlineData("https://unit-test.blob.core.windows.net/mycontainer?sig=foo", null, null, true)]
+    [InlineData("https://unit-test.blob.core.windows.net/mycontainer?foo=bar&sig=baz", null, null, true)]
+    [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "URIs cannot be used inline.")]
+    public async Task GivenInvalidOptions_WhenValidating_ThrowValidationException(
+        string blobContainerUri,
+        string connectionString,
+        string blobContainerName,
+        bool useManagedIdentity)
+    {
+        var options = new AzureBlobExportOptions
+        {
+            ConnectionString = connectionString,
+            BlobContainerName = blobContainerName,
+            BlobContainerUri = blobContainerUri != null ? new Uri(blobContainerUri, UriKind.Absolute) : null,
+            UseManagedIdentity = useManagedIdentity,
+        };
+
+        await Assert.ThrowsAsync<ValidationException>(() => _sinkProvider.ValidateAsync(options));
+    }
+
+    [Theory]
     [InlineData("BlobEndpoint=https://unit-test.blob.core.windows.net/", "export-e2e-test", null)]
     [InlineData(null, null, "https://dcmcipermanpmlxszw4sayty.blob.core.windows.net/export-e2e-test")]
     [SuppressMessage("Design", "CA1054:URI-like parameters should not be strings", Justification = "Cannot use inline Uri")]
