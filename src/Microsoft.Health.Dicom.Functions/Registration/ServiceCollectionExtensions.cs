@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Text.Json;
 using EnsureThat;
 using FellowOakDicom;
@@ -142,9 +143,11 @@ public static class ServiceCollectionExtensions
 
         IHealthChecksBuilder result = builder.Services.AddHealthChecks();
 
-        // We cannot run any hosted services in Azure functions, so they must be removed.
-        // Luckily we'll rely directly on the IHealthService.
-        builder.Services.RemoveAll(typeof(IHostedService));
+        // We cannot run any hosted services in Azure functions, so the newly added one must be removed.
+        // Instead, we'll rely on the IHealthService directly.
+        ServiceDescriptor healthCheckHostedService = builder.Services
+            .Single(x => x.ServiceType == typeof(IHostedService) && x.ImplementationType?.Name == "HealthCheckPublisherHostedService");
+        builder.Services.Remove(healthCheckHostedService);
 
         return result;
     }
