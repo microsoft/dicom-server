@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +27,7 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(HttpMethod.Post, uri);
         {
             request.Content = new StringContent(jsonString);
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType) { CharSet = Encoding.UTF8.WebName };
         }
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
@@ -102,7 +104,7 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
         {
             request.Content = new StringContent(jsonString);
-            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType) { CharSet = Encoding.UTF8.WebName };
         }
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
