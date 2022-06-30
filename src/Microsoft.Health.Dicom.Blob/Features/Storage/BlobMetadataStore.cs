@@ -127,13 +127,13 @@ public class BlobMetadataStore : IMetadataStore
             BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
             return ExecuteAsync(async t =>
             {
-            // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
-            BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
+                // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
+                BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
 
-            // DICOM metadata file includes UTF-8 encoding with BOM and there is a bug with the
-            // BinaryData.ToObjectFromJson method as seen in this issue: https://github.com/dotnet/runtime/issues/71447
-            return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
-        }, cancellationToken);
+                // DICOM metadata file includes UTF-8 encoding with BOM and there is a bug with the
+                // BinaryData.ToObjectFromJson method as seen in this issue: https://github.com/dotnet/runtime/issues/71447
+                return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
+            }, cancellationToken);
         }
         catch (ItemNotFoundException ex)
         {

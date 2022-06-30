@@ -59,7 +59,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
         functionsBuilder.Services
             .AddSingleton<BlobStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
-            .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
+            .AddPersistence<IFileStore, BlobFileStore>()
             .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
             .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
 
