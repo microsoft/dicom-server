@@ -5,10 +5,12 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Export;
+using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -68,6 +70,16 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddAzureBlobExportSink(
                 o => configuration.GetSection(functionSectionName).GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
                 o => blobConfig.Bind(o)); // Re-use the blob store's configuration
+
+        // Health Check
+        // Note: Can't use AddHealthChecks as it adds an IHostedService
+        functionsBuilder.Services.Configure<HealthCheckServiceOptions>(
+            options => options.Registrations.Add(
+                new HealthCheckRegistration(
+                    "AzureBlob",
+                    s => ActivatorUtilities.GetServiceOrCreateInstance<DicomBlobContainerHealthCheck>(s),
+                    failureStatus: null,
+                    tags: null)));
 
         return functionsBuilder;
     }

@@ -10,8 +10,10 @@ using EnsureThat;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Health.Dicom.Azure;
 using Microsoft.Health.Dicom.Azure.KeyVault;
+using Microsoft.Health.Dicom.Azure.KeyVault.Health;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
@@ -98,6 +100,16 @@ public static class KeyVaultClientRegistrationExtensions
             });
 
             services.AddScoped<ISecretStore, KeyVaultSecretStore>();
+
+            // Health Check
+            // Note: Can't use AddHealthChecks as it adds an IHostedService which are invalid for Azure Functions
+            services.Configure<HealthCheckServiceOptions>(
+                options => options.Registrations.Add(
+                    new HealthCheckRegistration(
+                        "KeyVaultSecrets",
+                        s => ActivatorUtilities.GetServiceOrCreateInstance<KeyVaultSecretHealthCheck>(s),
+                        failureStatus: null,
+                        tags: null)));
         }
 
         return services;

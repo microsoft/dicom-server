@@ -8,7 +8,6 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Operations.Functions;
-using Microsoft.Health.SqlServer.Features.Health;
 
 [assembly: FunctionsStartup(typeof(Microsoft.Health.Dicom.Functions.App.Startup))]
 namespace Microsoft.Health.Dicom.Functions.App;
@@ -25,7 +24,6 @@ public class Startup : FunctionsStartup
             .AddBlobStorage(config)
             .AddSqlServer(config)
             .AddKeyVaultClient(config)
-            .AddHealthChecks()
-            .AddCheck<SqlServerHealthCheck>("SQL");
+            .AddHealthChecks();
     }
 }

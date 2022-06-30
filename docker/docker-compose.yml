@@ -33,13 +33,20 @@ services:
     platform: linux/amd64
     environment:
       AzureFunctionsJobHost__BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AzureFunctionsJobHost__Logging__Console__IsEnabled: "true"
       AzureFunctionsJobHost__SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true"
       AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       AZURE_FUNCTIONS_ENVIRONMENT: "Development"
       WEBSITE_HOSTNAME: "localhost:80"
     ports:
-      - "7072:80" # This is typically set by Visual Studio automatically
+      - "7072:8080"
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health/checks"]
+      interval: 15s
+      timeout: 10s
+      retries: 4
+      start_period: 15s
     depends_on:
       - azurite
   azurite:
@@ -58,10 +65,11 @@ services:
       SA_PASSWORD: ${SAPASSWORD:-L0ca1P@ssw0rd}
       ACCEPT_EULA: "Y"
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd","-U sa -P ${SAPASSWORD:-L0ca1P@ssw0rd} -Q 'SELECT * FROM INFORMATION_SCHEMA.TABLES'"]
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "${SAPASSWORD:-L0ca1P@ssw0rd}", "-Q", "SELECT * FROM INFORMATION_SCHEMA.TABLES"]
       interval: 10s
       timeout: 10s
       retries: 6
+      start_period: 15s
     # # These port bindings [source]:[dest] can be uncommented to connect to SQL Server via Microsoft SQL Management Studio
     # ports:
     #   - "1433:1433"

@@ -8,30 +8,40 @@ using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using EnsureThat;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Health;
 
 internal sealed class DicomBlobContainerHealthCheck : IHealthCheck
 {
     private readonly BlobServiceClient _client;
-    private readonly string _containerName;
+    private readonly DicomBlobContainerOptions _options;
+    private readonly ILogger _logger;
 
-    public DicomBlobContainerHealthCheck(BlobServiceClient client, string containerName)
+    public DicomBlobContainerHealthCheck(BlobServiceClient client, IOptions<DicomBlobContainerOptions> options, ILogger<DicomBlobContainerHealthCheck> logger)
     {
         _client = EnsureArg.IsNotNull(client, nameof(client));
-        _containerName = EnsureArg.IsNotNullOrWhiteSpace(containerName, nameof(containerName));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        BlobContainerClient containerClient = _client.GetBlobContainerClient(_containerName);
-        if (!await containerClient.ExistsAsync(cancellationToken))
-        {
-            return new HealthCheckResult(context.Registration.FailureStatus, description: $"Container '{_containerName}' not exists");
-        }
+        EnsureArg.IsNotNull(context, nameof(context));
 
-        await containerClient.GetPropertiesAsync(cancellationToken: cancellationToken);
+        _logger.LogInformation($"Starting {nameof(DicomBlobContainerHealthCheck)}.");
+        await Task.WhenAll(
+            CheckContainerAsync(_options.File, cancellationToken),
+            CheckContainerAsync(_options.Metadata, cancellationToken));
 
+        _logger.LogInformation("Successfully connected to Azure Blob Storage.");
         return HealthCheckResult.Healthy();
+    }
+
+    private Task CheckContainerAsync(string containerName, CancellationToken cancellationToken)
+    {
+        BlobContainerClient containerClient = _client.GetBlobContainerClient(containerName);
+        return containerClient.GetPropertiesAsync(cancellationToken: cancellationToken);
     }
 }

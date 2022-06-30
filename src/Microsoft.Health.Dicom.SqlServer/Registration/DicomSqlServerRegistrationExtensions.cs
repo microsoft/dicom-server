@@ -7,6 +7,7 @@ using System;
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -27,6 +28,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
+using Microsoft.Health.SqlServer.Features.Health;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Registration;
 
@@ -88,6 +90,16 @@ public static class DicomSqlServerRegistrationExtensions
             .AddSqlIndexDataStores()
             .AddSqlInstanceStores()
             .AddSqlPartitionStores();
+
+        // Add health check
+        // Note: Can't use AddHealthChecks as it adds an IHostedService
+        services.Configure<HealthCheckServiceOptions>(
+            options => options.Registrations.Add(
+                new HealthCheckRegistration(
+                    "SQL",
+                    s => ActivatorUtilities.GetServiceOrCreateInstance<SqlServerHealthCheck>(s),
+                    failureStatus: null,
+                    tags: null)));
 
         return dicomFunctionsBuilder;
     }

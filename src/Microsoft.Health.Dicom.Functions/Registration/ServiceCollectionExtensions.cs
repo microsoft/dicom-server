@@ -13,6 +13,7 @@ using Microsoft.Azure.WebJobs.Host.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Copy;
@@ -54,6 +55,17 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         services.RegisterModule<ServiceModule>();
+
+        // Remove BackgroundServiceHealthCheck if found
+        services.PostConfigure<HealthCheckServiceOptions>(
+            options =>
+            {
+                HealthCheckRegistration registration = options.Registrations.SingleOrDefault(r => r.Name == "BackgroundServiceHealthCheck");
+                if (registration != null)
+                {
+                    options.Registrations.Remove(registration);
+                }
+            });
 
         return new DicomFunctionsBuilder(services
             .AddInstanceCopier()

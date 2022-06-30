@@ -14,7 +14,10 @@ jobs:
     workingDirectory: 'docker'
 
   - bash: for i in {1..12}; do curl -fsS "$(testEnvironmentUrl)health/check" > /dev/null && exit 0 || sleep 5; done; exit 1
-    displayName: 'Wait for the DICOM Server to Start'
+    displayName: 'Wait for DICOM Server'
+
+  - bash: for i in {1..12}; do curl -fsS "$(testFunctionsUrl)health/check" > /dev/null && exit 0 || sleep 5; done; exit 1
+    displayName: 'Wait for DICOM Functions'
 
   - template: ../common/run-e2e-features-enabled-tests.yml
 
