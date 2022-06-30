@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,7 +121,7 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(httpMethod, uri);
         {
             request.Content = new StringContent(jsonString);
-            request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicomJson;
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType) { CharSet = Encoding.UTF8.WebName };
         }
 
         request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
