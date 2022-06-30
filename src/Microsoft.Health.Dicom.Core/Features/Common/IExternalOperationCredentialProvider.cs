@@ -8,23 +8,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
 
-namespace Microsoft.Health.Dicom.Core.Features.Export;
+namespace Microsoft.Health.Dicom.Core.Features.Common;
 
 /// <summary>
-/// Represents a provider for identities used by the export operation.
+/// Represents a credential provider for the identity used by operations that
+/// interact with components external to the DICOM server.
 /// </summary>
-public interface IExportIdentityProvider
+public interface IExternalOperationCredentialProvider
 {
     /// <summary>
-    /// Asynchronously creates a new instance of the <see cref="IExportSink"/> interface whose implementation
-    /// is based on the value of the <see cref="Type"/> property.
+    /// Asynchronously retrieves the token credential used for external operations.
     /// </summary>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
     /// <returns>
     /// A task representing the <see cref="GetCredentialAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property is the credential for the identity.
+    /// The value of its <see cref="Task{TResult}.Result"/> property is the credential for the operation;
+    /// otherwise <see langword="null"/> if no credentials could be found.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<TokenCredential> GetCredentialAsync(CancellationToken cancellationToken = default);

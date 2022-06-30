@@ -20,7 +20,7 @@ public class ExportSourceFactoryTests
     [Fact]
     public async Task GivenNoProviders_WhenCreatingSource_ThenThrowException()
     {
-        var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
+        var factory = new ExportSourceFactory(Array.Empty<IExportSourceProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => factory.CreateAsync(new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers), PartitionEntry.Default));
     }
@@ -30,7 +30,6 @@ public class ExportSourceFactoryTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        IServiceProvider serviceProvider = Substitute.For<IServiceProvider>();
         var options = new IdentifierExportOptions();
         var partition = PartitionEntry.Default;
         var source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, options);
@@ -38,18 +37,18 @@ public class ExportSourceFactoryTests
 
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
-        provider.CreateAsync(serviceProvider, options, partition, tokenSource.Token).Returns(expected);
+        provider.CreateAsync(options, partition, tokenSource.Token).Returns(expected);
 
-        var factory = new ExportSourceFactory(serviceProvider, new IExportSourceProvider[] { provider });
+        var factory = new ExportSourceFactory(new IExportSourceProvider[] { provider });
         Assert.Same(expected, await factory.CreateAsync(source, partition, tokenSource.Token));
 
-        await provider.Received(1).CreateAsync(serviceProvider, options, partition, tokenSource.Token);
+        await provider.Received(1).CreateAsync(options, partition, tokenSource.Token);
     }
 
     [Fact]
     public async Task GivenNoProviders_WhenValidating_ThenThrowException()
     {
-        var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), Array.Empty<IExportSourceProvider>());
+        var factory = new ExportSourceFactory(Array.Empty<IExportSourceProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => factory.ValidateAsync(new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers)));
     }
@@ -65,7 +64,7 @@ public class ExportSourceFactoryTests
         IExportSourceProvider provider = Substitute.For<IExportSourceProvider>();
         provider.Type.Returns(ExportSourceType.Identifiers);
 
-        var factory = new ExportSourceFactory(Substitute.For<IServiceProvider>(), new IExportSourceProvider[] { provider });
+        var factory = new ExportSourceFactory(new IExportSourceProvider[] { provider });
         await factory.ValidateAsync(source, tokenSource.Token);
 
         await provider.Received(1).ValidateAsync(options, tokenSource.Token);

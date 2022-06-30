@@ -28,7 +28,6 @@ public interface IExportSourceProvider
     /// Asynchronously creates a new instance of the <see cref="IExportSource"/> interface whose implementation
     /// is based on the value of the <see cref="Type"/> property.
     /// </summary>
-    /// <param name="provider">An <see cref="IServiceProvider"/> to retrieve additional dependencies.</param>
     /// <param name="options">The source-specific options.</param>
     /// <param name="partition">The data partition.</param>
     /// <param name="cancellationToken">
@@ -40,10 +39,10 @@ public interface IExportSourceProvider
     /// instance of the <see cref="IExportSource"/> interface.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="provider"/>, <paramref name="options"/>, or <paramref name="partition"/> is <see langword="null"/>.
+    /// <paramref name="options"/> or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<IExportSource> CreateAsync(IServiceProvider provider, object options, PartitionEntry partition, CancellationToken cancellationToken = default);
+    Task<IExportSource> CreateAsync(object options, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously ensures that the given <paramref name="options"/> can be used to create a valid source.
