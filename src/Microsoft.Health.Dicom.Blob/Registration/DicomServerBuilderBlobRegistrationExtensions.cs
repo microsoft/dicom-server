@@ -7,6 +7,7 @@ using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Health;
+using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
@@ -47,7 +48,9 @@ public static class DicomServerBuilderBlobRegistrationExtensions
                 "WorkitemHealthCheck");
 
         serverBuilder.Services
-            .AddAzureBlobExportSink(o => blobConfig.Bind(o)); // Re-use the blob store's configuration
+            .AddAzureBlobExportSink(
+                o => configuration.GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
+                o => blobConfig.Bind(o)); // Re-use the blob store's configuration for the client
 
         return serverBuilder;
     }

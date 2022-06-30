@@ -147,8 +147,32 @@
   <data name="MissingSecretStore" xml:space="preserve">
     <value>Export settings contain sensitive data but no secret store has been configured.</value>
   </data>
+  <data name="MissingServerIdentity" xml:space="preserve">
+    <value>No identity has been configured.</value>
+  </data>
+  <data name="PublicBlobStorageConnectionUnsupported" xml:space="preserve">
+    <value>Public access to Azure Blob Storage containers is not supported.</value>
+  </data>
+  <data name="SasTokenAuthenticationUnsupported" xml:space="preserve">
+    <value>Shared Access Signatures (SAS) are not supported.</value>
+  </data>
   <data name="UnknownPlaceholder" xml:space="preserve">
     <value>Placeholder '{0}' is not recognized.</value>
     <comment>{0} Placeholder</comment>
+  </data>
+  <data name="ConflictingExportBlobConnections" xml:space="preserve">
+    <value>ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri.</value>
+  </data>
+  <data name="MissingExportBlobConnection" xml:space="preserve">
+    <value>Please specify both ConnectionString and BlobContainerName.</value>
+  </data>
+  <data name="InvalidExportBlobAuthentication" xml:space="preserve">
+    <value>Managed identity cannot be used with a ConnectionString.</value>
+  </data>
+  <data name="AzureStorageAccountKeyUnsupported" xml:space="preserve">
+    <value>Account key authentication is not supported.</value>
+  </data>
+  <data name="ConflictingBlobExportAuthentication" xml:space="preserve">
+    <value>UseManagedIdentity cannot be specified if the BlobContainerUri container query string parameters.</value>
   </data>
 </root>

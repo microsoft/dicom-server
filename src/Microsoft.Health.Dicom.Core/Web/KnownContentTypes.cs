@@ -11,6 +11,7 @@ public static class KnownContentTypes
     public const string ApplicationDicomJson = "application/dicom+json";
     public const string ApplicationOctetStream = "application/octet-stream";
     public const string ApplicationJson = "application/json";
+    public const string ApplicationJsonUtf8 = "application/json; charset=utf-8";
     public const string ImageJpeg = "image/jpeg";
     public const string ImagePng = "image/png";
     public const string MultipartRelated = "multipart/related";

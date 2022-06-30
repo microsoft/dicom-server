@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -30,11 +29,11 @@ internal sealed class IdentifierExportSource : IExportSource
     private readonly PartitionEntry _partition;
     private readonly Queue<DicomIdentifier> _identifiers;
 
-    public IdentifierExportSource(IInstanceStore instanceStore, PartitionEntry partition, IOptions<IdentifierExportOptions> options)
+    public IdentifierExportSource(IInstanceStore instanceStore, PartitionEntry partition, IdentifierExportOptions options)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _partition = EnsureArg.IsNotNull(partition, nameof(partition));
-        _identifiers = new Queue<DicomIdentifier>(EnsureArg.IsNotNull(options?.Value.Values, nameof(options)));
+        _identifiers = new Queue<DicomIdentifier>(EnsureArg.IsNotNull(options?.Values, nameof(options)));
     }
 
     public ValueTask DisposeAsync()

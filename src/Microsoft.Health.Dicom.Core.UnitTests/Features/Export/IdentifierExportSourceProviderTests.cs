@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -18,16 +16,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Export;
 
 public class IdentifierExportSourceProviderTests
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly IdentifierExportSourceProvider _provider;
 
     public IdentifierExportSourceProviderTests()
-    {
-        var services = new ServiceCollection();
-        services.AddScoped(p => Substitute.For<IInstanceStore>());
-        _serviceProvider = services.BuildServiceProvider();
-        _provider = new IdentifierExportSourceProvider();
-    }
+        => _provider = new IdentifierExportSourceProvider(Substitute.For<IInstanceStore>());
 
     [Fact]
     public async Task GivenConfig_WhenCreatingSource_ThenReturnSource()
@@ -42,7 +34,7 @@ public class IdentifierExportSourceProviderTests
             },
         };
 
-        IExportSource source = await _provider.CreateAsync(_serviceProvider, options, PartitionEntry.Default);
+        IExportSource source = await _provider.CreateAsync(options, PartitionEntry.Default);
         Assert.IsType<IdentifierExportSource>(source);
     }
 

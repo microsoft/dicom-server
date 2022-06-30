@@ -3,17 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.ComponentModel.DataAnnotations;
+namespace Microsoft.Health.Dicom.Blob;
 
-namespace Microsoft.Health.Dicom.Functions.Configuration;
-
-internal class DicomBlobContainerConfiguration
+internal static class AzureStorageConnection
 {
-    public const string SectionName = "Containers";
+    public const string AccountName = "AccountName";
 
-    [Required]
-    public string Metadata { get; set; }
+    public const string AccountKey = "AccountKey";
 
-    [Required]
-    public string File { get; set; }
+    public const string SharedAccessSignature = "SharedAccessSignature";
+
+    internal static class Uri
+    {
+        public const string Sig = "sig";
+    }
 }

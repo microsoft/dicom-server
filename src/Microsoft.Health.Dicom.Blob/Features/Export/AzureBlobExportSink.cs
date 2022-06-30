@@ -16,7 +16,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -43,15 +42,15 @@ internal sealed class AzureBlobExportSink : IExportSink
     public AzureBlobExportSink(
         IFileStore source,
         BlobContainerClient dest,
-        IOptions<AzureBlobExportFormatOptions> outputOptions,
-        IOptions<BlobOperationOptions> blobOptions,
-        IOptions<JsonSerializerOptions> jsonOptions)
+        AzureBlobExportFormatOptions outputOptions,
+        BlobOperationOptions blobOptions,
+        JsonSerializerOptions jsonOptions)
     {
         _source = EnsureArg.IsNotNull(source, nameof(source));
         _dest = EnsureArg.IsNotNull(dest, nameof(source));
-        _output = EnsureArg.IsNotNull(outputOptions?.Value, nameof(outputOptions));
-        _blobOptions = EnsureArg.IsNotNull(blobOptions?.Value, nameof(blobOptions));
-        _jsonOptions = EnsureArg.IsNotNull(jsonOptions?.Value, nameof(jsonOptions));
+        _output = EnsureArg.IsNotNull(outputOptions, nameof(outputOptions));
+        _blobOptions = EnsureArg.IsNotNull(blobOptions, nameof(blobOptions));
+        _jsonOptions = EnsureArg.IsNotNull(jsonOptions, nameof(jsonOptions));
         _errors = new ConcurrentQueue<ExportErrorLogEntry>();
     }
 
