@@ -14,7 +14,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Copy;
 using Microsoft.Health.Dicom.Core.Modules;
@@ -69,6 +68,20 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
+    /// Adds the metadata store for the DICOM functions.
+    /// </summary>
+    /// <param name="builder">The DICOM functions builder instance.</param>
+    /// <param name="configuration">The host configuration for the functions.</param>
+    /// <returns>The functions builder.</returns>
+    public static IDicomFunctionsBuilder AddBlobStorage(this IDicomFunctionsBuilder builder, IConfiguration configuration)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+        return builder.AddBlobStorage(configuration, DicomFunctionsConfiguration.SectionName);
+    }
+
+    /// <summary>
     /// Adds MSSQL Server implementations for indexing DICOM data and storing its metadata.
     /// </summary>
     /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
@@ -83,52 +96,6 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         return builder.AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c));
-    }
-
-    /// <summary>
-    /// Adds Azure Storage implementations for storing DICOM instances.
-    /// </summary>
-    /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
-    /// <param name="configuration">The <see cref="IConfiguration"/> root.</param>
-    /// <returns>The <paramref name="builder"/> for additional methods calls.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
-    /// </exception>
-    public static IDicomFunctionsBuilder AddFileStorageDataStore(this IDicomFunctionsBuilder builder, IConfiguration configuration)
-    {
-        EnsureArg.IsNotNull(builder, nameof(builder));
-        EnsureArg.IsNotNull(configuration, nameof(configuration));
-
-        string containerName = configuration
-            .GetSection(BlobDataStoreConfiguration.SectionName)
-            .GetSection(DicomBlobContainerConfiguration.SectionName)
-            .Get<DicomBlobContainerConfiguration>()
-            .File;
-
-        return builder.AddFileStorageDataStore(configuration, containerName);
-    }
-
-    /// <summary>
-    /// Adds Azure Storage implementations for storing DICOM metadata.
-    /// </summary>
-    /// <param name="builder">The <see cref="IDicomFunctionsBuilder"/>.</param>
-    /// <param name="configuration">The <see cref="IConfiguration"/> root.</param>
-    /// <returns>The <paramref name="builder"/> for additional methods calls.</returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="builder"/> or <paramref name="configuration"/> is <see langword="null"/>.
-    /// </exception>
-    public static IDicomFunctionsBuilder AddMetadataStorageDataStore(this IDicomFunctionsBuilder builder, IConfiguration configuration)
-    {
-        EnsureArg.IsNotNull(builder, nameof(builder));
-        EnsureArg.IsNotNull(configuration, nameof(configuration));
-
-        string containerName = configuration
-            .GetSection(BlobDataStoreConfiguration.SectionName)
-            .GetSection(DicomBlobContainerConfiguration.SectionName)
-            .Get<DicomBlobContainerConfiguration>()
-            .Metadata;
-
-        return builder.AddMetadataStorageDataStore(configuration, containerName);
     }
 
     /// <summary>

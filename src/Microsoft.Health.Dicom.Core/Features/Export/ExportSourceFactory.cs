@@ -21,25 +21,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 /// </summary>
 public sealed class ExportSourceFactory
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly Dictionary<ExportSourceType, IExportSourceProvider> _providers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportSourceFactory"/> class.
     /// </summary>
-    /// <param name="serviceProvider">An <see cref="IServiceProvider"/> to retrieve additional dependencies per provider.</param>
     /// <param name="providers">A collection of source providers.</param>
     /// <exception cref="ArgumentException">
     /// Two or more providers have the same value for their <see cref="IExportSourceProvider.Type"/> property.
     /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="serviceProvider"/> or <paramref name="providers"/> is <see langword="null"/>.
-    /// </exception>
-    public ExportSourceFactory(IServiceProvider serviceProvider, IEnumerable<IExportSourceProvider> providers)
-    {
-        _serviceProvider = EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-        _providers = EnsureArg.IsNotNull(providers, nameof(providers)).ToDictionary(x => x.Type);
-    }
+    /// <exception cref="ArgumentNullException"><paramref name="providers"/> is <see langword="null"/>.</exception>
+    public ExportSourceFactory(IEnumerable<IExportSourceProvider> providers)
+        => _providers = EnsureArg.IsNotNull(providers, nameof(providers)).ToDictionary(x => x.Type);
 
     /// <summary>
     /// Asynchronously creates a new instance of the <see cref="IExportSource"/> interface whose implementation
@@ -63,8 +56,7 @@ public sealed class ExportSourceFactory
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     public Task<IExportSource> CreateAsync(ExportDataOptions<ExportSourceType> source, PartitionEntry partition, CancellationToken cancellationToken = default)
-        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type)
-            .CreateAsync(_serviceProvider, source.Settings, partition, cancellationToken);
+        => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type).CreateAsync(source.Settings, partition, cancellationToken);
 
     /// <summary>
     /// Asynchronously ensures that the given options can be used to create a valid source.
@@ -87,11 +79,7 @@ public sealed class ExportSourceFactory
     }
 
     private IExportSourceProvider GetProvider(ExportSourceType type)
-    {
-        if (!_providers.TryGetValue(type, out IExportSourceProvider provider))
-            throw new KeyNotFoundException(
-                string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedExportSource, type));
-
-        return provider;
-    }
+        => _providers.TryGetValue(type, out IExportSourceProvider provider)
+            ? provider
+            : throw new KeyNotFoundException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedExportSource, type));
 }
