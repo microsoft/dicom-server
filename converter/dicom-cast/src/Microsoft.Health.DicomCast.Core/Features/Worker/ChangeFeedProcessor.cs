@@ -93,38 +93,31 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
                             _logger.LogInformation("Skip DICOM event with SequenceId {SequenceId} due to deletion before processing creation.", changeFeedEntry.Sequence);
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) when (ex is FhirNonRetryableException or DicomTagException or TimeoutRejectedException)
                     {
-                        if (ex is FhirNonRetryableException || ex is DicomTagException || ex is TimeoutRejectedException)
+                        string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
+                        string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
+                        string sopInstanceUid = changeFeedEntry.SopInstanceUid;
+                        long changeFeedSequence = changeFeedEntry.Sequence;
+
+                        ErrorType errorType = ErrorType.FhirError;
+
+                        if (ex is DicomTagException)
                         {
-                            string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
-                            string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
-                            string sopInstanceUid = changeFeedEntry.SopInstanceUid;
-                            long changeFeedSequence = changeFeedEntry.Sequence;
-
-                            ErrorType errorType = ErrorType.FhirError;
-
-                            if (ex is DicomTagException)
-                            {
-                                errorType = ErrorType.DicomError;
-                            }
-                            else if (ex is TimeoutRejectedException)
-                            {
-                                errorType = ErrorType.TransientFailure;
-                            }
-
-                            await _exceptionStore.WriteExceptionAsync(
-                                changeFeedEntry,
-                                ex,
-                                errorType,
-                                cancellationToken);
-
-                            _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyInstanceUid}, SeriesUid: {SeriesInstanceUid}, instanceUid: {SopInstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+                            errorType = ErrorType.DicomError;
                         }
-                        else
+                        else if (ex is TimeoutRejectedException)
                         {
-                            throw;
+                            errorType = ErrorType.TransientFailure;
                         }
+
+                        await _exceptionStore.WriteExceptionAsync(
+                            changeFeedEntry,
+                            ex,
+                            errorType,
+                            cancellationToken);
+
+                        _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyInstanceUid}, SeriesUid: {SeriesInstanceUid}, instanceUid: {SopInstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
                     }
                 }
 

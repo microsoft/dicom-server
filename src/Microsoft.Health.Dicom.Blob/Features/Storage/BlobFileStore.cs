@@ -85,7 +85,6 @@ public class BlobFileStore : IFileStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
             throw new DataStoreException(ex);
         }
     }
@@ -105,7 +104,6 @@ public class BlobFileStore : IFileStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
             throw new DataStoreException(ex);
         }
     }
@@ -141,12 +139,6 @@ public class BlobFileStore : IFileStore
 
             throw;
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "The operation failed.");
-
-            throw;
-        }
     }
 
     public async Task<FileProperties> GetFilePropertiesAsync(
@@ -171,12 +163,6 @@ public class BlobFileStore : IFileStore
         catch (ItemNotFoundException ex)
         {
             _logger.LogWarning(ex, "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
-
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "The operation failed.");
 
             throw;
         }

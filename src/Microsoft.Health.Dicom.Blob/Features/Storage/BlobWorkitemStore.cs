@@ -96,7 +96,6 @@ public class BlobWorkitemStore : IWorkitemStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
             throw new DataStoreException(ex);
         }
     }
@@ -121,12 +120,10 @@ public class BlobWorkitemStore : IWorkitemStore
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
-            _logger.LogWarning(ex, "The operation failed.");
             throw new ItemNotFoundException(ex);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
             throw new DataStoreException(ex);
         }
     }
@@ -143,7 +140,6 @@ public class BlobWorkitemStore : IWorkitemStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
             throw new DataStoreException(ex);
         }
     }

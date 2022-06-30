@@ -33,43 +33,26 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
     /// <inheritdoc />
     public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        try
+        EnsureArg.IsNotNull(stream, nameof(stream));
+
+        int bufferThreshold = DefaultBufferThreshold;
+        long? bufferLimit = null;
+        Stream seekableStream = null;
+
+        if (!stream.CanSeek)
         {
-
-            EnsureArg.IsNotNull(stream, nameof(stream));
-
-            int bufferThreshold = DefaultBufferThreshold;
-            long? bufferLimit = null;
-            Stream seekableStream = null;
-
-            if (!stream.CanSeek)
-            {
-                seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
-                _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
-                await seekableStream.DrainAsync(cancellationToken);
-            }
-            else
-            {
-                seekableStream = stream;
-            }
-
-            seekableStream.Seek(0, SeekOrigin.Begin);
-
-            return seekableStream;
-
+            seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
+            _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
+            await seekableStream.DrainAsync(cancellationToken);
         }
-        catch (InvalidMultipartBodyPartException ex)
+        else
         {
-            _logger.LogWarning(ex, "Unexpected end of the stream. This is likely due to the request being multipart but has no section.");
-
-            throw;
+            seekableStream = stream;
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Unhandled exception while reading stream.");
 
-            throw;
-        }
+        seekableStream.Seek(0, SeekOrigin.Begin);
+
+        return seekableStream;
     }
 
     private static class AspNetCoreTempDirectory

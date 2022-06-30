@@ -108,8 +108,6 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
-
             throw new DataStoreException(ex);
         }
     }
@@ -119,18 +117,9 @@ public class BlobMetadataStore : IMetadataStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        try
-        {
-            BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-            await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "The operation failed.");
-
-            throw;
-        }
+        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
     }
 
     /// <inheritdoc />
@@ -153,12 +142,6 @@ public class BlobMetadataStore : IMetadataStore
         catch (ItemNotFoundException ex)
         {
             _logger.LogWarning(ex, "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
-
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "The operation failed.");
 
             throw;
         }
@@ -208,8 +191,6 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The operation failed.");
-
             throw new DataStoreException(ex);
         }
 
