@@ -34,7 +34,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobMetadataStore : IMetadataStore
 {
-    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
     private readonly BlobContainerClient _container;
@@ -142,17 +141,13 @@ public class BlobMetadataStore : IMetadataStore
         try
         {
             BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
-
             return ExecuteAsync(async t =>
             {
-                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
-                {
-                    await blobClient.DownloadToAsync(stream, cancellationToken);
+                BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
 
-                    stream.Seek(0, SeekOrigin.Begin);
-
-                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
-                }
+                // DICOM metadata file includes UTF-8 encoding with BOM and there is a bug with the BinaryData.ToObjectFromJson method as seen in this issue: https://github.com/dotnet/runtime/issues/71447
+                // So passing as stream which will remove the UTF-8 BOM.
+                return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
             }, cancellationToken);
         }
         catch (ItemNotFoundException ex)

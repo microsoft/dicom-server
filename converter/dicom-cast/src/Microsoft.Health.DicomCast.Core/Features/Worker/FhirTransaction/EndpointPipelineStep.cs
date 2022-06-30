@@ -40,7 +40,9 @@ public class EndpointPipelineStep : FhirTransactionPipelineStepBase
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
-        string queryParameter = $"name={FhirTransactionConstants.EndpointName}&connection-type={FhirTransactionConstants.EndpointConnectionTypeSystem}|{FhirTransactionConstants.EndpointConnectionTypeCode}";
+        string endpointName = $"{FhirTransactionConstants.EndpointName} {_dicomWebEndpoint}";
+
+        string queryParameter = $"name={endpointName}&connection-type={FhirTransactionConstants.EndpointConnectionTypeSystem}|{FhirTransactionConstants.EndpointConnectionTypeCode}";
 
         Endpoint endpoint = await _fhirService.RetrieveEndpointAsync(queryParameter, cancellationToken);
 
@@ -50,7 +52,7 @@ public class EndpointPipelineStep : FhirTransactionPipelineStepBase
         {
             endpoint = new Endpoint()
             {
-                Name = FhirTransactionConstants.EndpointName,
+                Name = endpointName,
                 Status = Endpoint.EndpointStatus.Active,
                 ConnectionType = new Coding()
                 {
