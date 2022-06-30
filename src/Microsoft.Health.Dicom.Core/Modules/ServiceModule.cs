@@ -55,8 +55,6 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Decorate<IStoreOrchestrator, LoggingStoreOrchestrator>();
-
         services.Add<DicomInstanceEntryReaderForMultipartRequest>()
             .Singleton()
             .AsSelf()
@@ -67,14 +65,10 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
-
         services.Add<DicomInstanceEntryReaderManager>()
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
-
-        services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
 
         services.Add<StoreResponseBuilder>()
             .Transient()

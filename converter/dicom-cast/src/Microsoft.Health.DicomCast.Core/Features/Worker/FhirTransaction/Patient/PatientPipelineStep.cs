@@ -10,6 +10,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
@@ -19,14 +20,16 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 /// <summary>
 /// Pipeline step for handling <see cref="ImagingStudy"/>.
 /// </summary>
-public class PatientPipelineStep : IFhirTransactionPipelineStep
+public class PatientPipelineStep : FhirTransactionPipelineStepBase
 {
     private readonly IFhirService _fhirService;
     private readonly IPatientSynchronizer _patientSynchronizer;
 
     public PatientPipelineStep(
         IFhirService fhirService,
-        IPatientSynchronizer patientSynchronizer)
+        IPatientSynchronizer patientSynchronizer,
+        ILogger<PatientPipelineStep> logger)
+        : base(logger)
     {
         EnsureArg.IsNotNull(fhirService, nameof(fhirService));
         EnsureArg.IsNotNull(patientSynchronizer, nameof(patientSynchronizer));
@@ -36,7 +39,7 @@ public class PatientPipelineStep : IFhirTransactionPipelineStep
     }
 
     /// <inheritdoc/>
-    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    protected override async Task PrepareRequestImplementationAsync(FhirTransactionContext context, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
@@ -97,7 +100,7 @@ public class PatientPipelineStep : IFhirTransactionPipelineStep
     }
 
     /// <inheritdoc/>
-    public void ProcessResponse(FhirTransactionContext context)
+    protected override void ProcessResponseImplementation(FhirTransactionContext context)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 

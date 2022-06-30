@@ -36,13 +36,13 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
         serverBuilder
-            .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore, LoggingFileStore>(
+            .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore>(
                 configuration,
                 "DcmHealthCheck")
-            .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore, LoggingMetadataStore>(
+            .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore>(
                 configuration,
                 "MetadataHealthCheck")
-            .AddStorageDataStore<WorkitemStoreConfigurationSection, IWorkitemStore, BlobWorkitemStore, LoggingWorkitemStore>(
+            .AddStorageDataStore<WorkitemStoreConfigurationSection, IWorkitemStore, BlobWorkitemStore>(
                 configuration,
                 "WorkitemHealthCheck");
 
@@ -52,11 +52,10 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         return serverBuilder;
     }
 
-    private static IDicomServerBuilder AddStorageDataStore<TStoreConfigurationSection, TIStore, TStore, TLogStore>(
+    private static IDicomServerBuilder AddStorageDataStore<TStoreConfigurationSection, TIStore, TStore>(
         this IDicomServerBuilder serverBuilder, IConfiguration configuration, string healthCheckName)
         where TStoreConfigurationSection : class, IStoreConfigurationSection, new()
         where TStore : class, TIStore
-        where TLogStore : TIStore
     {
         var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
 
@@ -65,7 +64,7 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         serverBuilder.Services
             .AddSingleton<TStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<TStoreConfigurationSection>())
-            .AddPersistence<TIStore, TStore, TLogStore>()
+            .AddPersistence<TIStore, TStore>()
             .AddBlobServiceClient(blobConfig)
             .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
@@ -82,19 +81,13 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         return serverBuilder;
     }
 
-    internal static IServiceCollection AddPersistence<TIStore, TStore, TLogStore>(this IServiceCollection services)
+    internal static IServiceCollection AddPersistence<TIStore, TStore>(this IServiceCollection services)
         where TStore : class, TIStore
-        where TLogStore : TIStore
     {
         services.Add<TStore>()
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
-
-        // TODO: Ideally, the logger can be registered in the API layer since it's agnostic to the implementation.
-        // However, the current implementation of the decorate method requires the concrete type to be already registered,
-        // so we need to register here. Need to some more investigation to see how we might be able to do this.
-        services.Decorate<TIStore, TLogStore>();
 
         return services;
     }

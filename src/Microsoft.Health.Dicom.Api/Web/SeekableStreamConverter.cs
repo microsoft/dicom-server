@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Web;
@@ -21,37 +22,54 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
 {
     private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<SeekableStreamConverter> _logger;
 
-    public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
+    public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, ILogger<SeekableStreamConverter> logger)
     {
-        EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
-
-        _httpContextAccessor = httpContextAccessor;
+        _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc />
     public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(stream, nameof(stream));
-
-        int bufferThreshold = DefaultBufferThreshold;
-        long? bufferLimit = null;
-        Stream seekableStream = null;
-
-        if (!stream.CanSeek)
+        try
         {
-            seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
-            _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
-            await seekableStream.DrainAsync(cancellationToken);
+
+            EnsureArg.IsNotNull(stream, nameof(stream));
+
+            int bufferThreshold = DefaultBufferThreshold;
+            long? bufferLimit = null;
+            Stream seekableStream = null;
+
+            if (!stream.CanSeek)
+            {
+                seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
+                _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
+                await seekableStream.DrainAsync(cancellationToken);
+            }
+            else
+            {
+                seekableStream = stream;
+            }
+
+            seekableStream.Seek(0, SeekOrigin.Begin);
+
+            return seekableStream;
+
         }
-        else
+        catch (InvalidMultipartBodyPartException ex)
         {
-            seekableStream = stream;
+            _logger.LogWarning(ex, "Unexpected end of the stream. This is likely due to the request being multipart but has no section.");
+
+            throw;
         }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unhandled exception while reading stream.");
 
-        seekableStream.Seek(0, SeekOrigin.Begin);
-
-        return seekableStream;
+            throw;
+        }
     }
 
     private static class AspNetCoreTempDirectory

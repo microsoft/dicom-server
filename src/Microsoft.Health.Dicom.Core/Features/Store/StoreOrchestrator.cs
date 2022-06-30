@@ -62,6 +62,13 @@ public class StoreOrchestrator : IStoreOrchestrator
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
+
+        string dicomInstanceIdentifier = (await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken))
+            .ToInstanceIdentifier()
+            .ToString();
+
+        _logger.LogInformation("Storing a DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
+
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
         DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
@@ -82,9 +89,13 @@ public class StoreOrchestrator : IStoreOrchestrator
             bool hasFrameMetadata = await frameRangeTask;
 
             await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata: hasFrameMetadata, cancellationToken: cancellationToken);
+
+            _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
         }
         catch (Exception)
         {
+            _logger.LogWarning("Failed to store the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
+
             // Exception occurred while storing the file. Try delete the index.
             await TryCleanupInstanceIndexAsync(versionedInstanceIdentifier);
             throw;

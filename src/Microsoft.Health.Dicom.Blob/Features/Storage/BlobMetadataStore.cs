@@ -16,6 +16,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -42,6 +43,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
+    private readonly ILogger<BlobMetadataStore> _logger;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -50,24 +52,22 @@ public class BlobMetadataStore : IMetadataStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-        IOptions<JsonSerializerOptions> jsonSerializerOptions)
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
+        ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-        EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
-        EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
+        _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        _nameWithUid = EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
+        _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-        _jsonSerializerOptions = jsonSerializerOptions.Value;
-        _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-        _nameWithUid = fileNameWithUid;
-        _nameWithPrefix = nameWithPrefix;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
     }
 
@@ -109,6 +109,8 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "The operation failed.");
+
             throw new DataStoreException(ex);
         }
     }
@@ -117,28 +119,54 @@ public class BlobMetadataStore : IMetadataStore
     public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
+        try
+        {
+            BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+
+            await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "The operation failed.");
+
+            throw;
+        }
     }
 
     /// <inheritdoc />
     public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
 
-        return ExecuteAsync(async t =>
+        try
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+
+            return ExecuteAsync(async t =>
             {
-                await blobClient.DownloadToAsync(stream, cancellationToken);
+                await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
+                {
+                    await blobClient.DownloadToAsync(stream, cancellationToken);
 
-                stream.Seek(0, SeekOrigin.Begin);
+                    stream.Seek(0, SeekOrigin.Begin);
 
-                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
-            }
-        }, cancellationToken);
+                    return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
+                }
+            }, cancellationToken);
+        }
+        catch (ItemNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+
+            throw;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "The operation failed.");
+
+            throw;
+        }
     }
 
     /// <inheritdoc />
@@ -185,6 +213,8 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "The operation failed.");
+
             throw new DataStoreException(ex);
         }
 
