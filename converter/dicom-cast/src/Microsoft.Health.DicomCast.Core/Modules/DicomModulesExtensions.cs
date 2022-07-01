@@ -44,9 +44,11 @@ public static class DicomModulesExtensions
             .AddPolicyHandler(retryPolicy)
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
 
-        return (IServiceCollection)services.Add<ChangeFeedRetrieveService>()
+        services.Add<ChangeFeedRetrieveService>()
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        return services;
     }
 }
