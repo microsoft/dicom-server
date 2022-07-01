@@ -57,9 +57,8 @@ public class DicomSchemaClient : ISchemaClient
         {
             compatibleVersions = await _schemaDataStore.GetLatestCompatibleVersionsAsync(cancellationToken);
         }
-        catch (SqlRecordNotFoundException ex) when (ex.Message.Equals("The compatibility information was not found.", StringComparison.Ordinal))
+        catch (CompatibleVersionsNotFoundException)
         {
-            // TODO: Throw a more exact error message type in the schemaDataStore
             compatibleVersions = new CompatibleVersions(0, SchemaVersionConstants.Max);
         }
 

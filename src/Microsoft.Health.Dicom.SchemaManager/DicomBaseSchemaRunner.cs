@@ -33,9 +33,8 @@ public class DicomBaseSchemaRunner : IBaseSchemaRunner
         {
             await _baseSchemaRunner.EnsureInstanceSchemaRecordExistsAsync(cancellationToken);
         }
-        catch (SchemaManagerException ex) when (ex.Message.Equals("The current version information could not be fetched from the service. Please try again.", StringComparison.Ordinal))
+        catch (InstanceSchemaNotFoundException)
         {
-            // TODO: Throw a more exact error message type in the baseSchemaRunner
             _logger.LogInformation("There was no current information found, this is a new DB.");
         }
     }
