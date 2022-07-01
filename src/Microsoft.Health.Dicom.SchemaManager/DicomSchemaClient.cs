@@ -4,7 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.ObjectModel;
+using EnsureThat;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Exceptions;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.SqlServer.Features.Schema.Manager.Model;
@@ -17,15 +20,18 @@ public class DicomSchemaClient : ISchemaClient
     private readonly IScriptProvider _scriptProvider;
     private readonly ISchemaDataStore _schemaDataStore;
     private readonly ISchemaManagerDataStore _schemaManagerDataStore;
+    private readonly IOptions<CommandLineOptions> _commandLineOptions;
 
     public DicomSchemaClient(
         IScriptProvider scriptProvider,
         ISchemaDataStore schemaDataStore,
-        ISchemaManagerDataStore schemaManagerDataStore)
+        ISchemaManagerDataStore schemaManagerDataStore,
+        IOptions<CommandLineOptions> commandLineOptions)
     {
         _scriptProvider = scriptProvider;
         _schemaDataStore = schemaDataStore;
         _schemaManagerDataStore = schemaManagerDataStore;
+        _commandLineOptions = EnsureArg.IsNotNull(commandLineOptions, nameof(commandLineOptions));
     }
 
     public async Task<List<AvailableVersion>> GetAvailabilityAsync(CancellationToken cancellationToken = default)
@@ -46,7 +52,17 @@ public class DicomSchemaClient : ISchemaClient
 
     public async Task<CompatibleVersion> GetCompatibilityAsync(CancellationToken cancellationToken = default)
     {
-        CompatibleVersions compatibleVersions = await _schemaDataStore.GetLatestCompatibleVersionsAsync(cancellationToken);
+        CompatibleVersions compatibleVersions;
+        try
+        {
+            compatibleVersions = await _schemaDataStore.GetLatestCompatibleVersionsAsync(cancellationToken);
+        }
+        catch (SqlRecordNotFoundException ex) when (ex.Message.Equals("The compatibility information was not found.", StringComparison.Ordinal))
+        {
+            // TODO: Throw a more exact error message type in the schemaDataStore
+            compatibleVersions = new CompatibleVersions(0, SchemaVersionConstants.Max);
+        }
+
         return new CompatibleVersion(compatibleVersions.Min, compatibleVersions.Max);
     }
 
