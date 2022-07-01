@@ -42,7 +42,7 @@ public class HealthCheckFunction
     /// </returns>
     /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
     [FunctionName(nameof(CheckHealthAsync))]
-    public async Task<IActionResult> CheckHealthAsync([HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "health/checks")] HttpRequest request)
+    public async Task<IActionResult> CheckHealthAsync([HttpTrigger(AuthorizationLevel.Anonymous, "GET", Route = "health/check")] HttpRequest request)
     {
         await _middleware.InvokeAsync(EnsureArg.IsNotNull(request, nameof(request)).HttpContext);
         return new EmptyResult(); // Avoid trying to write already written response
