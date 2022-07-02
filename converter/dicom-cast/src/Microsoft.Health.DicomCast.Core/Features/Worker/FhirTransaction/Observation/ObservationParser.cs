@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.StructuredReport;
@@ -13,52 +14,40 @@ using Hl7.Fhir.Model;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-public class ObservationParser
+public static class ObservationParser
 {
-    public IReadOnlyCollection<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
+    public static IReadOnlyCollection<Observation> Parse(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(patientReference, nameof(patientReference));
         EnsureArg.IsNotNull(imagingStudyReference, nameof(imagingStudyReference));
         EnsureArg.IsNotNull(identifier, nameof(identifier));
 
-        var observations = new List<Observation>();
-        ParseDicomDataset(dataset, patientReference, imagingStudyReference, observations, identifier);
-
-        return observations;
+        return ParseDicomDataset(dataset, patientReference, imagingStudyReference, identifier).ToList();
     }
 
-    private void ParseDicomDataset(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, List<Observation> observations, Identifier identifier)
+    private static IEnumerable<Observation> ParseDicomDataset(DicomDataset dataset, ResourceReference patientReference, ResourceReference imagingStudyReference, Identifier identifier)
     {
-        var structuredReport = new DicomStructuredReport(dataset);
+        if (dataset.TryGetSequence(DicomTag.ConceptNameCodeSequence, out DicomSequence codes) && codes.Items.Count > 0)
+        {
+            var code = new DicomCodeItem(codes);
 
-        try
-        {
-            if (ObservationConstants.IrradiationEvents.Contains(structuredReport.Code))
-            {
-                observations.Add(CreateIrradiationEvent(dataset, patientReference, identifier));
-            }
+            if (ObservationConstants.IrradiationEvents.Contains(code) && TryCreateIrradiationEvent(dataset, patientReference, identifier, out Observation irradiationEvent))
+                yield return irradiationEvent;
 
-            if (ObservationConstants.DoseSummaryReportCodes.Contains(structuredReport.Code))
-            {
-                observations.Add(CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier));
-            }
-        }
-        catch (DicomDataException)
-        {
-            // Ignore, this occurs when the report has no content sequence and we attempt to access report.Code; i.e and empty report
-        }
-        catch (MissingMemberException)
-        {
-            // Occurs when a required attribute is unable to be extracted from a dataset.
-            // Ignore and move onto the next one.
+            if (ObservationConstants.DoseSummaryReportCodes.Contains(code))
+                yield return CreateDoseSummary(dataset, imagingStudyReference, patientReference, identifier);
         }
 
         // Recursively iterate through every child in the document checking for nested observations.
         // Return the final aggregated list of observations.
-        foreach (DicomContentItem childItem in structuredReport.Children())
+        if (dataset.TryGetSequence(DicomTag.ContentSequence, out DicomSequence children))
         {
-            ParseDicomDataset(childItem.Dataset, patientReference, imagingStudyReference, observations, identifier);
+            foreach (DicomDataset child in children)
+            {
+                foreach (Observation childObservation in ParseDicomDataset(child, patientReference, imagingStudyReference, identifier))
+                    yield return childObservation;
+            }
         }
     }
 
@@ -124,11 +113,11 @@ public class ObservationParser
         return observation;
     }
 
-    private static Observation CreateIrradiationEvent(DicomDataset dataset, ResourceReference patientRef, Identifier identifier)
+    private static bool TryCreateIrradiationEvent(DicomDataset dataset, ResourceReference patientRef, Identifier identifier, out Observation observation)
     {
         var report = new DicomStructuredReport(dataset);
         // create the observation
-        var observation = new Observation
+        observation = new Observation
         {
             Code = ObservationConstants.IrradiationEventCodeableConcept,
             Subject = patientRef,
@@ -139,7 +128,8 @@ public class ObservationParser
         DicomUID irradiationEventUidValue = report.Get<DicomUID>(ObservationConstants.IrradiationEventUid, null);
         if (irradiationEventUidValue == null)
         {
-            throw new MissingMemberException($"unable to extract {nameof(ObservationConstants.IrradiationEventUid)} from dataset");
+            observation = default;
+            return false;
         }
 
         observation.Identifier.Add(identifier);
@@ -161,7 +151,7 @@ public class ObservationParser
             ObservationConstants.CtdIwPhantomType
         });
 
-        return observation;
+        return true;
     }
 
     private static void ApplyDicomTransforms(Observation observation,

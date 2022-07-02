@@ -65,8 +65,6 @@ public class WorkerModule : IStartupModule
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
-
-        services.AddSingleton<ObservationParser>();
     }
 
     private static void RegisterPipeline(IServiceCollection services)

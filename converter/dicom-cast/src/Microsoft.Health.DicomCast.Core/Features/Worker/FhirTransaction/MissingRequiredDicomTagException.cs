@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using EnsureThat;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 
@@ -22,6 +23,6 @@ public class MissingRequiredDicomTagException : DicomTagException
     {
         EnsureArg.IsNotNullOrWhiteSpace(dicomTagName, nameof(dicomTagName));
 
-        return string.Format(DicomCastCoreResource.MissingRequiredDicomTag, dicomTagName);
+        return string.Format(CultureInfo.CurrentCulture, DicomCastCoreResource.MissingRequiredDicomTag, dicomTagName);
     }
 }
