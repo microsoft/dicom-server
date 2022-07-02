@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -38,7 +39,7 @@ internal abstract class CsvModelBinder<T> : IModelBinder
             {
                 if (!TryParse(split[i], out T parsedValue))
                 {
-                    bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, string.Format(DicomApiResource.InvalidParse, split[i], typeof(T).Name));
+                    bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, string.Format(CultureInfo.CurrentCulture, DicomApiResource.InvalidParse, split[i], typeof(T).Name));
                     return Task.CompletedTask;
                 }
 

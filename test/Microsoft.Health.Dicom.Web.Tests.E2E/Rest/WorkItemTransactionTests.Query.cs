@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ public partial class WorkItemTransactionTests
             () => _client.QueryWorkitemAsync("Modality=CT"));
 
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-        Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality"));
+        Assert.Equal(exception.ResponseMessage, string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedSearchParameter, "Modality"));
     }
 
     [Fact]
@@ -144,6 +145,6 @@ public partial class WorkItemTransactionTests
             () => _client.QueryWorkitemAsync("PatientName=Foo&limit=500"));
 
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-        Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.InvalidQueryStringValue, "Limit", "The field Limit must be between 1 and 200."));
+        Assert.Equal(exception.ResponseMessage, string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidQueryStringValue, "Limit", "The field Limit must be between 1 and 200."));
     }
 }

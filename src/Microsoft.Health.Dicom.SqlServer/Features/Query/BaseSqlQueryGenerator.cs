@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -145,9 +146,9 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
 
         StringBuilder
             .Append(dicomTagSqlEntry.SqlColumn, tableAlias).Append(" BETWEEN ")
-            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, longRangeValueMatchCondition.Minimum.ToString()))
+            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, longRangeValueMatchCondition.Minimum.ToString(CultureInfo.InvariantCulture)))
             .Append(" AND ")
-            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, longRangeValueMatchCondition.Maximum.ToString()))
+            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, longRangeValueMatchCondition.Maximum.ToString(CultureInfo.InvariantCulture)))
             .AppendLine();
     }
 
@@ -180,9 +181,9 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
 
         StringBuilder
             .Append(dicomTagSqlEntry.SqlColumn, tableAlias).Append(" BETWEEN ")
-            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Minimum.ToString(SqlDateFormat)))
+            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Minimum.ToString(SqlDateFormat, CultureInfo.InvariantCulture)))
             .Append(" AND ")
-            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Maximum.ToString(SqlDateFormat)))
+            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, rangeValueMatchCondition.Maximum.ToString(SqlDateFormat, CultureInfo.InvariantCulture)))
             .AppendLine();
     }
 
@@ -199,7 +200,7 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
         StringBuilder
             .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
             .Append("=")
-            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, dateSingleValueMatchCondition.Value.ToString(SqlDateFormat)))
+            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, dateSingleValueMatchCondition.Value.ToString(SqlDateFormat, CultureInfo.InvariantCulture)))
             .AppendLine();
     }
 

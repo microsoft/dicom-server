@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -55,7 +56,7 @@ internal static class QueryOptionsExtensions
             {
                 if (qsp.Value.Count > 1)
                 {
-                    throw new QueryParseException(string.Format(DicomApiResource.DuplicateAttributeId, attributeId));
+                    throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomApiResource.DuplicateAttributeId, attributeId));
                 }
 
                 // No need to also check for duplicate keys as they are aggregated together in StringValues

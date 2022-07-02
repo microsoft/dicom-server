@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Dicom.Core.Models;
@@ -47,7 +48,7 @@ internal static class HttpResponseExtensions
             host = UnknownAgentHost;
         }
 
-        response.Headers.Warning = string.Format(WarningHeaderPattern, (int)code, host, message);
+        response.Headers.Warning = string.Format(CultureInfo.InvariantCulture, WarningHeaderPattern, (int)code, host, message);
     }
 
     public static bool TryAddErroneousAttributesHeader(this HttpResponse response, IReadOnlyCollection<string> erroneousAttributes)

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,19 +14,19 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial class DicomWebClient : IDicomWebClient
 {
-    public async Task<DicomWebResponse> DeleteStudyAsync(
+    public Task<DicomWebResponse> DeleteStudyAsync(
         string studyInstanceUid,
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-        return await DeleteAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName),
-            cancellationToken).ConfigureAwait(false);
+        return DeleteAsync(
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName),
+            cancellationToken);
     }
 
-    public async Task<DicomWebResponse> DeleteSeriesAsync(
+    public Task<DicomWebResponse> DeleteSeriesAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
         string partitionName = default,
@@ -34,12 +35,12 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        return await DeleteAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
-            cancellationToken).ConfigureAwait(false);
+        return DeleteAsync(
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
+            cancellationToken);
     }
 
-    public async Task<DicomWebResponse> DeleteInstanceAsync(
+    public Task<DicomWebResponse> DeleteInstanceAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
@@ -51,9 +52,9 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
 
-        return await DeleteAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
-            cancellationToken).ConfigureAwait(false);
+        return DeleteAsync(
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+            cancellationToken);
     }
 
     private async Task<DicomWebResponse> DeleteAsync(Uri requestUri, CancellationToken cancellationToken)

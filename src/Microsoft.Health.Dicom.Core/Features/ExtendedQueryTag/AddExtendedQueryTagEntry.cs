@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
@@ -25,18 +26,18 @@ public class AddExtendedQueryTagEntry : ExtendedQueryTagEntry, IValidatableObjec
         if (string.IsNullOrWhiteSpace(Path))
         {
             property = nameof(Path);
-            yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
+            yield return new ValidationResult(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
         }
 
         if (!Level.HasValue)
         {
             property = nameof(Level);
-            yield return new ValidationResult(string.Format(DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
+            yield return new ValidationResult(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.AddExtendedQueryTagEntryPropertyNotSpecified, property), new[] { property });
         }
         else if (!Enum.IsDefined(Level.GetValueOrDefault()))
         {
             property = nameof(Level);
-            yield return new ValidationResult(string.Format(DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
+            yield return new ValidationResult(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDicomTagLevel, Level), new[] { property });
         }
     }
 }

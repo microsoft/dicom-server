@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
@@ -21,7 +22,7 @@ public class ErrorCodeOperationFilter : IOperationFilter
         {
             if (responseType.StatusCode == 400 || responseType.StatusCode == 404 || responseType.StatusCode == 406 || responseType.StatusCode == 415)
             {
-                string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString();
+                string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString(CultureInfo.InvariantCulture);
 
                 OpenApiResponse response = operation.Responses[responseKey];
 

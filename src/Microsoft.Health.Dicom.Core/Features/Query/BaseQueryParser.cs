@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
@@ -109,6 +110,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
                 if (parsedMinDateTime > parsedMaxDateTime)
                 {
                     throw new QueryParseException(string.Format(
+                        CultureInfo.CurrentCulture,
                         exceptionBaseMessage,
                         value,
                         minDateTime,
@@ -143,6 +145,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
                 if (parsedMinTime > parsedMaxTime)
                 {
                     throw new QueryParseException(string.Format(
+                        CultureInfo.CurrentCulture,
                         DicomCoreResource.InvalidTimeRangeValue,
                         value,
                         minTime,
@@ -166,7 +169,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
     {
         if (!double.TryParse(value, out double val))
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.InvalidDoubleValue, value, queryTag.GetName()));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDoubleValue, value, queryTag.GetName()));
         }
 
         return new DoubleSingleValueMatchCondition(queryTag, val);
@@ -176,7 +179,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
     {
         if (!long.TryParse(value, out long val))
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.InvalidLongValue, value, queryTag.GetName()));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidLongValue, value, queryTag.GetName()));
         }
 
         return new LongSingleValueMatchCondition(queryTag, val);
@@ -186,7 +189,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
     {
         if (!DateTime.TryParseExact(date, DateTagValueFormat, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateValue, date, tagName));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDateValue, date, tagName));
         }
 
         return parsedDate;
@@ -202,11 +205,11 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
         {
             if (DateTime.TryParseExact(encodedDateTime, DateTimeTagValueWithOffsetFormats, null, System.Globalization.DateTimeStyles.None, out DateTime parsedDateTimeOffsetNotSupported))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.DateTimeWithOffsetNotSupported, encodedDateTime, tagName));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DateTimeWithOffsetNotSupported, encodedDateTime, tagName));
             }
             else
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.InvalidDateTimeValue, encodedDateTime, tagName));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidDateTimeValue, encodedDateTime, tagName));
             }
         }
 
@@ -224,7 +227,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
         }
         catch (Exception)
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.InvalidTimeValue, time, queryTag.GetName()));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidTimeValue, time, queryTag.GetName()));
         }
 
         return timeValue.Ticks;

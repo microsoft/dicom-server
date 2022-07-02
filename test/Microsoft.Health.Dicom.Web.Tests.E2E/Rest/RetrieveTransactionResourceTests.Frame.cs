@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -67,7 +68,7 @@ public partial class RetrieveTransactionResourceTests
     [MemberData(nameof(GetUnsupportedAcceptHeadersForFrames))]
     public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
     {
-        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
+        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
 
         using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
         using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -177,7 +178,7 @@ public partial class RetrieveTransactionResourceTests
     [InlineData(0, 1)]
     public async Task GivenInvalidFrames_WhenRetrievingFrame_TheServerShouldReturnBadRequest(params int[] frames)
     {
-        var requestUri = new Uri(string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", frames)), UriKind.Relative);
+        var requestUri = new Uri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", frames)), UriKind.Relative);
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
            () => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);

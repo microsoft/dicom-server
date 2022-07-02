@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -186,7 +187,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
             .ConfigureAwait(false);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains(string.Format("The field '[0].{0}' in request body is invalid: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
+        Assert.Contains(string.Format(CultureInfo.CurrentCulture, "The field '[0].{0}' in request body is invalid: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
     }
 
     [Fact]

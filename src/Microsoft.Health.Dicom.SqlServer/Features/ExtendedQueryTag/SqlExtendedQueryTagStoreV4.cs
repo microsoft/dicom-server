@@ -87,7 +87,7 @@ internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV2
             {
                 if (!await reader.ReadAsync(cancellationToken))
                 {
-                    throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
+                    throw new ExtendedQueryTagNotFoundException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
                 }
 
                 (int tagKey, string path, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(

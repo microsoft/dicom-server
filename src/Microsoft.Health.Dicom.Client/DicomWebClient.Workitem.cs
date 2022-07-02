@@ -79,7 +79,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotEmptyOrWhiteSpace(queryString, nameof(queryString));
 
-        var requestUri = GenerateRequestUri(DicomWebConstants.WorkitemUriString + GetQueryParamUriString(queryString), partitionName);
+        var requestUri = GenerateRequestUri(DicomWebConstants.WorkitemUriString + FormatQueryString(queryString), partitionName);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 

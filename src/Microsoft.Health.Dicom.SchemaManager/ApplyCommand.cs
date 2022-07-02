@@ -5,6 +5,7 @@
 
 using System.CommandLine;
 using System.CommandLine.NamingConventionBinder;
+using System.Diagnostics.CodeAnalysis;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.SchemaManager.Properties;
@@ -13,6 +14,7 @@ using Microsoft.Health.SqlServer.Features.Schema.Manager.Model;
 
 namespace Microsoft.Health.Dicom.SchemaManager;
 
+[SuppressMessage("Naming", "CA1710: Identifiers should have correct suffix", Justification = "Base class is also called Command.")]
 public class ApplyCommand : Command
 {
     private readonly ISchemaManager _schemaManager;
