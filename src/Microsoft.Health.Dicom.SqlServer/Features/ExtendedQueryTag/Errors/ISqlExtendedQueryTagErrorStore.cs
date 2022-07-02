@@ -6,7 +6,7 @@
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 
 internal interface ISqlExtendedQueryTagErrorStore : IExtendedQueryTagErrorStore, IVersioned
 {

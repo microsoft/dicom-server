@@ -77,20 +77,24 @@ internal static class ExtendedQueryTagDataRowsBuilder
             // Create row
             switch (dataType)
             {
-                case ExtendedQueryTagDataType.StringData: AddStringRow(instance, stringRows, queryTag, tagKey); break;
-                case ExtendedQueryTagDataType.LongData: AddLongRow(instance, longRows, queryTag, tagKey); break;
-                case ExtendedQueryTagDataType.DoubleData: AddDoubleRow(instance, doubleRows, queryTag, tagKey); break;
+                case ExtendedQueryTagDataType.StringData:
+                    AddStringRow(instance, stringRows, queryTag, tagKey);
+                    break;
+                case ExtendedQueryTagDataType.LongData:
+                    AddLongRow(instance, longRows, queryTag, tagKey);
+                    break;
+                case ExtendedQueryTagDataType.DoubleData:
+                    AddDoubleRow(instance, doubleRows, queryTag, tagKey);
+                    break;
                 case ExtendedQueryTagDataType.DateTimeData:
                     if ((int)schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
-                    {
                         AddDateTimeRow(instance, dateTimeRows, queryTag, tagKey);
-                    }
                     else
-                    {
                         AddDateTimeWithUtcRow(instance, dateTimeWithUtcRows, queryTag, tagKey);
-                    }
                     break;
-                case ExtendedQueryTagDataType.PersonNameData: AddPersonNameRow(instance, personNameRows, queryTag, tagKey); break;
+                case ExtendedQueryTagDataType.PersonNameData:
+                    AddPersonNameRow(instance, personNameRows, queryTag, tagKey);
+                    break;
                 default:
                     Debug.Fail($"Not able to handle {dataType}");
                     break;

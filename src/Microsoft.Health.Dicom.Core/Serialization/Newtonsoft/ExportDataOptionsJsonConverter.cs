@@ -56,7 +56,7 @@ internal abstract class ExportDataOptionsJsonConverter<T> : JsonConverter<Export
     private readonly Func<T, Type> _getType;
     private readonly NamingStrategy _namingStrategy;
 
-    public ExportDataOptionsJsonConverter(Func<T, Type> getType, NamingStrategy namingStrategy)
+    protected ExportDataOptionsJsonConverter(Func<T, Type> getType, NamingStrategy namingStrategy)
     {
         _getType = EnsureArg.IsNotNull(getType, nameof(getType));
         _namingStrategy = EnsureArg.IsNotNull(namingStrategy, nameof(namingStrategy));

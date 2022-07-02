@@ -75,22 +75,22 @@ internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV2
         return results;
     }
 
-    public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string path, CancellationToken cancellationToken = default)
+    public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
+            VLatest.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath);
 
             var executionTimeWatch = Stopwatch.StartNew();
             using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
             {
                 if (!await reader.ReadAsync(cancellationToken))
                 {
-                    throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, path));
+                    throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
                 }
 
-                (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
+                (int tagKey, string path, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus, byte queryStatus, int errorCount, Guid? operationId) = reader.ReadRow(
                     VLatest.ExtendedQueryTag.TagKey,
                     VLatest.ExtendedQueryTag.TagPath,
                     VLatest.ExtendedQueryTag.TagVR,
@@ -104,7 +104,7 @@ internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV2
                 executionTimeWatch.Stop();
                 Logger.StoredProcedureSucceeded(nameof(VLatest.GetExtendedQueryTag), executionTimeWatch);
 
-                return new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId);
+                return new ExtendedQueryTagStoreJoinEntry(tagKey, path, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, (QueryStatus)queryStatus, errorCount, operationId);
             }
 
         }

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -11,13 +12,14 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Microsoft.Health.Dicom.Core.Features.HealthCheck;
 
-public class BackgroundServiceHealthCheckCache
+public sealed class BackgroundServiceHealthCheckCache : IDisposable
 {
     private readonly MemoryCache _cache;
 
     private const string OldestDeleteInstanceCacheKey = "_oldestDeleted";
     private const string NumDeleteMaxRetryCacheKey = "_numMaxRetries";
 
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "MemoryCache disposed by BackgroundServiceHealthCheckCache")]
     public BackgroundServiceHealthCheckCache()
         : this(new MemoryCache(new MemoryCacheOptions()))
     {
@@ -47,4 +49,7 @@ public class BackgroundServiceHealthCheckCache
             return getRetries(cancellationToken);
         });
     }
+
+    public void Dispose()
+        => _cache.Dispose();
 }

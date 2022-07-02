@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Api.Features.Routing;
 
-internal class KnownRouteNames
+internal static class KnownRouteNames
 {
     internal const string RetrieveStudy = nameof(RetrieveStudy);
     internal const string PartitionRetrieveStudy = nameof(PartitionRetrieveStudy);

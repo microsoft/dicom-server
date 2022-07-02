@@ -46,7 +46,7 @@ internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
 
     public override async Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
         IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
-        int maxCount,
+        int maxAllowedCount,
         bool ready = false,
         CancellationToken cancellationToken = default)
     {
@@ -96,22 +96,22 @@ internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
         return tags.GetRange(offset, Math.Min(limit, tags.Count - offset));
     }
 
-    public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string path, CancellationToken cancellationToken = default)
+    public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            V2.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, path);
+            V2.GetExtendedQueryTag.PopulateCommand(sqlCommandWrapper, tagPath);
 
             var executionTimeWatch = Stopwatch.StartNew();
             using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
             {
                 if (!await reader.ReadAsync(cancellationToken))
                 {
-                    throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, path));
+                    throw new ExtendedQueryTagNotFoundException(string.Format(DicomCoreResource.ExtendedQueryTagNotFound, tagPath));
                 }
 
-                (int tagKey, string tagPath, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
+                (int tagKey, string path, string tagVR, string tagPrivateCreator, int tagLevel, int tagStatus) = reader.ReadRow(
                     V2.ExtendedQueryTag.TagKey,
                     V2.ExtendedQueryTag.TagPath,
                     V2.ExtendedQueryTag.TagVR,
@@ -122,7 +122,7 @@ internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
                 executionTimeWatch.Stop();
                 Logger.StoredProcedureSucceeded(nameof(V2.GetExtendedQueryTag), executionTimeWatch);
 
-                return new ExtendedQueryTagStoreJoinEntry(tagKey, tagPath, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0);
+                return new ExtendedQueryTagStoreJoinEntry(tagKey, path, tagVR, tagPrivateCreator, (QueryTagLevel)tagLevel, (ExtendedQueryTagStatus)tagStatus, QueryStatus.Enabled, 0);
             }
         }
     }

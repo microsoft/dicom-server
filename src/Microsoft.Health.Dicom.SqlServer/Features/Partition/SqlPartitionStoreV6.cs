@@ -19,15 +19,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Partition;
 
 internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 {
-
-    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
-
     public SqlPartitionStoreV6(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
     {
         SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
     }
 
     public override SchemaVersion Version => SchemaVersion.V6;
+
+    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
     public override async Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken)
     {

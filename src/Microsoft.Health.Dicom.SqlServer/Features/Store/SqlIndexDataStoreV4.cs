@@ -32,15 +32,15 @@ internal class SqlIndexDataStoreV4 : SqlIndexDataStoreV3
 
     public override SchemaVersion Version => SchemaVersion.V4;
 
-    public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+    public override async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(instance, nameof(instance));
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
+            var rows = ExtendedQueryTagDataRowsBuilder.Build(dicomDataset, queryTags, Version);
             V4.IndexInstanceTableValuedParameters parameters = new V4.IndexInstanceTableValuedParameters(
                 rows.StringRows,
                 rows.LongRows,
