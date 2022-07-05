@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.ObjectModel;
-using EnsureThat;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Exceptions;
 using Microsoft.Health.SqlServer.Features.Schema;
@@ -20,18 +18,15 @@ public class DicomSchemaClient : ISchemaClient
     private readonly IScriptProvider _scriptProvider;
     private readonly ISchemaDataStore _schemaDataStore;
     private readonly ISchemaManagerDataStore _schemaManagerDataStore;
-    private readonly IOptions<CommandLineOptions> _commandLineOptions;
 
     public DicomSchemaClient(
         IScriptProvider scriptProvider,
         ISchemaDataStore schemaDataStore,
-        ISchemaManagerDataStore schemaManagerDataStore,
-        IOptions<CommandLineOptions> commandLineOptions)
+        ISchemaManagerDataStore schemaManagerDataStore)
     {
         _scriptProvider = scriptProvider;
         _schemaDataStore = schemaDataStore;
         _schemaManagerDataStore = schemaManagerDataStore;
-        _commandLineOptions = EnsureArg.IsNotNull(commandLineOptions, nameof(commandLineOptions));
     }
 
     public async Task<List<AvailableVersion>> GetAvailabilityAsync(CancellationToken cancellationToken = default)
