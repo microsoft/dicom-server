@@ -21,7 +21,7 @@ public class EndpointPipelineStepTests
 {
     private const string EndpointConnectionTypeSystem = "http://terminology.hl7.org/CodeSystem/endpoint-connection-type";
     private const string EndpointConnectionTypeCode = "dicom-wado-rs";
-    private const string EndpointName = "DICOM WADO-RS endpoint";
+    private const string EndpointName = "DICOM WADO-RS endpoint https://dicom/";
     private const string EndpointPayloadTypeText = "DICOM WADO-RS";
     private const string DicomMimeType = "application/dicom";
 

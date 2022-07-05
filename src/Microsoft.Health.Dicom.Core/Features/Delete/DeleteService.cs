@@ -106,6 +106,7 @@ public class DeleteService : IDeleteService
                         {
                             _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier, cancellationToken),
                             _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier, cancellationToken),
+                            _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier, cancellationToken),
                         };
 
                         await Task.WhenAll(tasks);

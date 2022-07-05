@@ -159,6 +159,16 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<InstanceMetadataCache>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<FramesRangeCache>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
         AddExtendedQueryTagServices(services);
 
         AddWorkItemServices(services);
@@ -250,11 +260,16 @@ public class ServiceModule : IStartupModule
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        services.Add<UpdateWorkitemDatasetValidator>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
     }
 
     private static void AddExportServices(IServiceCollection services)
     {
-        services.AddScoped<IExportIdentityProvider, DefaultExportIdentityProvider>();
+        services.AddScoped<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ExportSourceFactory>();
         services.AddScoped<ExportSinkFactory>();

@@ -39,7 +39,6 @@ public interface IExportSinkProvider
     /// Asynchronously creates a new instance of the <see cref="IExportSink"/> interface whose implementation
     /// is based on the value of the <see cref="Type"/> property.
     /// </summary>
-    /// <param name="provider">An <see cref="IServiceProvider"/> to retrieve additional dependencies.</param>
     /// <param name="options">The sink-specific options.</param>
     /// <param name="operationId">The ID for the export operation.</param>
     /// <param name="cancellationToken">
@@ -50,11 +49,9 @@ public interface IExportSinkProvider
     /// The value of its <see cref="Task{TResult}.Result"/> property is the corresponding
     /// instance of the <see cref="IExportSink"/> interface.
     /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="provider"/> or <paramref name="options"/> is <see langword="null"/>.
-    /// </exception>
+    /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<IExportSink> CreateAsync(IServiceProvider provider, object options, Guid operationId, CancellationToken cancellationToken = default);
+    Task<IExportSink> CreateAsync(object options, Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously stores sensitive information in a secure format and returns the updated configuration.

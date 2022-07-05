@@ -29,7 +29,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 /// </summary>
 public class InProcTestDicomWebServer : TestDicomWebServer
 {
-    public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
+    public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions, bool enableDualWrite = false)
         : base(new Uri("http://localhost/"))
     {
         string contentRoot = GetProjectPath("src", startupType);
@@ -45,9 +45,14 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         var featureSettings = new Dictionary<string, string>
         {
             { "DicomServer:Features:EnableExport", "true" },
-            { "DicomServer:Features:EnableExtendedQueryTags", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             { "DicomServer:Features:EnableUpsRs", "true" }
+        };
+
+
+        var serviceSettings = new Dictionary<string, string>
+        {
+            { "DicomServer:Services:BlobMigration:FormatType", "Dual" }
         };
 
         string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
@@ -67,6 +72,12 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 config.AddInMemoryCollection(authSettings);
                 config.AddInMemoryCollection(featureSettings);
                 config.AddInMemoryCollection(sqlSettings);
+
+                if (enableDualWrite)
+                {
+                    config.AddInMemoryCollection(serviceSettings);
+                }
+
                 IConfigurationRoot existingConfig = config.Build();
 
                 config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");

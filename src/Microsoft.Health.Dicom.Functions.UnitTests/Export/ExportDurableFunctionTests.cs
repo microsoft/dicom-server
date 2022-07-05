@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -22,11 +21,9 @@ public partial class ExportDurableFunctionTests
     private readonly IExportSourceProvider _sourceProvider;
     private readonly IExportSinkProvider _sinkProvider;
     private readonly ExportOptions _options;
-    private readonly IServiceProvider _serviceProvider;
 
     public ExportDurableFunctionTests()
     {
-        _serviceProvider = Substitute.For<IServiceProvider>();
         _sourceProvider = Substitute.For<IExportSourceProvider>();
         _sinkProvider = Substitute.For<IExportSinkProvider>();
         _options = new ExportOptions
@@ -38,8 +35,8 @@ public partial class ExportDurableFunctionTests
         _sourceProvider.Type.Returns(SourceType);
         _sinkProvider.Type.Returns(DestinationType);
         _function = new ExportDurableFunction(
-            new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider }),
-            new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider }),
+            new ExportSourceFactory(new IExportSourceProvider[] { _sourceProvider }),
+            new ExportSinkFactory(new IExportSinkProvider[] { _sinkProvider }),
             Options.Create(_options));
     }
 }

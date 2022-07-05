@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "4d554ba2-8aab-4602-9c91-85ace2a22110",
+		"_postman_id": "35418f43-ac55-489f-92e2-9ee7b0309571",
 		"name": "Dicom Data Partition Feature",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -411,7 +411,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[\r\n    {\r\n        \"00741000\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"IN PROGRESS\"\r\n            ]\r\n        },\r\n        \"00081195\": {\r\n            \"vr\": \"UI\",\r\n            \"Value\": [\r\n                \"2.25.1.1.1.1\"\r\n            ]\r\n        }\r\n    }\r\n]",
+					"raw": "[\r\n    {\r\n        \"00741000\": {\r\n            \"vr\": \"CS\",\r\n            \"Value\": [\r\n                \"IN PROGRESS\"\r\n            ]\r\n        },\r\n        \"00081195\": {\r\n            \"vr\": \"UI\",\r\n            \"Value\": [\r\n                \"{{transactionUid}}\"\r\n            ]\r\n        }\r\n    }\r\n]",
 					"options": {
 						"raw": {
 							"language": "text"
@@ -431,7 +431,125 @@
 						"state"
 					]
 				},
-				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the change workitem state request dataset in dicom+json format."
+				"description": "The following is required.\n\n* Method: PUT\n* Headers:\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the change workitem state request dataset in dicom+json format."
+			},
+			"response": []
+		},
+		{
+			"name": "Update-unclaimed-workitem",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"00741202\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"New Worklist Label\"\r\n            ]\r\n        }\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems/{{workitem1}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems",
+						"{{workitem1}}"
+					]
+				},
+				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the update workitem dataset in dicom+json format."
+			},
+			"response": []
+		},
+		{
+			"name": "Update-claimed-workitem",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true,
+					"content-type": true,
+					"user-agent": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/dicom+json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "[\r\n    {\r\n        \"00741202\": {\r\n            \"vr\": \"LO\",\r\n            \"Value\": [\r\n                \"New Worklist Label2\"\r\n            ]\r\n        }\r\n    }\r\n]",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/partitions/{{partitionName}}/workitems/{{workitem1}}?{{transactionUid}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"partitions",
+						"{{partitionName}}",
+						"workitems",
+						"{{workitem1}}"
+					],
+					"query": [
+						{
+							"key": "{{transactionUid}}",
+							"value": null
+						}
+					]
+				},
+				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Content-Type: application/dicom+json`\n* Body:\n    * Contains the update workitem dataset in dicom+json format."
 			},
 			"response": []
 		},
@@ -458,7 +576,7 @@
 						"{{workitem1}}"
 					]
 				},
-				"description": "The following is required.\n\n* Method: POST\n* Headers:\n   *  `Accept: application/dicom+json`"
+				"description": "The following is required.\n\n* Method: GET\n* Headers:\n   *  `Accept: application/dicom+json`"
 			},
 			"response": []
 		}
@@ -486,7 +604,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://{service-name}.azurewebsites.net/v1"
+			"value": "https://localhost:63838/v1"
 		},
 		{
 			"key": "study1",
@@ -511,6 +629,11 @@
 		{
 			"key": "workitem1",
 			"value": "1",
+			"type": "default"
+		},
+		{
+			"key": "transactionUid",
+			"value": "1.2.3",
 			"type": "default"
 		}
 	]

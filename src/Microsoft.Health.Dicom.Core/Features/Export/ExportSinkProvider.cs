@@ -21,11 +21,10 @@ internal abstract class ExportSinkProvider<TOptions> : IExportSinkProvider
         return CompleteCopyAsync((TOptions)options, cancellationToken);
     }
 
-    public Task<IExportSink> CreateAsync(IServiceProvider provider, object options, Guid operationId, CancellationToken cancellationToken = default)
+    public Task<IExportSink> CreateAsync(object options, Guid operationId, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(provider, nameof(provider));
         EnsureArg.IsNotNull(options, nameof(options));
-        return CreateAsync(provider, (TOptions)options, operationId, cancellationToken);
+        return CreateAsync((TOptions)options, operationId, cancellationToken);
     }
 
     public async Task<object> SecureSensitiveInfoAsync(object options, Guid operationId, CancellationToken cancellationToken = default)
@@ -42,7 +41,7 @@ internal abstract class ExportSinkProvider<TOptions> : IExportSinkProvider
 
     protected abstract Task CompleteCopyAsync(TOptions options, CancellationToken cancellationToken = default);
 
-    protected abstract Task<IExportSink> CreateAsync(IServiceProvider provider, TOptions options, Guid operationId, CancellationToken cancellationToken = default);
+    protected abstract Task<IExportSink> CreateAsync(TOptions options, Guid operationId, CancellationToken cancellationToken = default);
 
     protected abstract Task<TOptions> SecureSensitiveInfoAsync(TOptions options, Guid operationId, CancellationToken cancellationToken = default);
 

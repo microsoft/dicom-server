@@ -115,13 +115,33 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
             status = WorkitemResponseStatus.NotFound;
         }
 
-        // alaways remove Transaction UID from the result dicomDataset.
+        // always remove Transaction UID from the result dicomDataset.
         if (null != _dataset)
         {
             _dataset.Remove(DicomTag.TransactionUID);
         }
 
         return new RetrieveWorkitemResponse(status, _dataset, _message);
+    }
+
+    /// <inheritdoc />
+    public UpdateWorkitemResponse BuildUpdateWorkitemResponse(string workitemInstanceUid = null)
+    {
+        Uri url = null;
+        WorkitemResponseStatus status = WorkitemResponseStatus.Failure;
+
+        if (!_dataset.TryGetSingleValue<ushort>(DicomTag.FailureReason, out var failureReason)
+            && !string.IsNullOrWhiteSpace(workitemInstanceUid))
+        {
+            status = WorkitemResponseStatus.Success;
+            url = _urlResolver.ResolveRetrieveWorkitemUri(workitemInstanceUid);
+        }
+        else if (failureReason == FailureReasonCodes.UpsUpdateConflict)
+        {
+            status = WorkitemResponseStatus.Conflict;
+        }
+
+        return new UpdateWorkitemResponse(status, url, _message);
     }
 
     /// <inheritdoc />
@@ -133,12 +153,10 @@ public class WorkitemResponseBuilder : IWorkitemResponseBuilder
     }
 
     /// <inheritdoc />
-    public void AddSuccess(string message)
+    public void AddSuccess(string warning = default)
     {
-        EnsureArg.IsNotNull(message, nameof(message));
-
         _dataset = new DicomDataset();
-        _message = message;
+        _message = warning ?? string.Empty;
     }
 
     /// <inheritdoc />

@@ -45,12 +45,12 @@ public class ChangeWorkitemStateRequestHandler : BaseHandler, IRequestHandler<Ch
 
         request.Validate();
 
-        var changeStateDatasets = await _workitemSerializer
+        var changeStateDataset = await _workitemSerializer
             .DeserializeAsync<IEnumerable<DicomDataset>>(request.RequestBody, request.RequestContentType)
             .ConfigureAwait(false);
 
         return await _workItemService
-            .ProcessChangeStateAsync(changeStateDatasets.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
+            .ProcessChangeStateAsync(changeStateDataset.FirstOrDefault(), request.WorkitemInstanceUid, cancellationToken)
             .ConfigureAwait(false);
     }
 }

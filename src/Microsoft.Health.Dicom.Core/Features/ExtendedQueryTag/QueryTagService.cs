@@ -9,59 +9,34 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Features.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
-public class QueryTagService : IQueryTagService, IDisposable
+public sealed class QueryTagService : IQueryTagService, IDisposable
 {
     private readonly IExtendedQueryTagStore _extendedQueryTagStore;
-    private readonly AsyncCache<List<QueryTag>> _queryTagCache;
-    private readonly bool _enableExtendedQueryTags;
-    private bool _disposed;
+    private readonly AsyncCache<IReadOnlyCollection<QueryTag>> _queryTagCache;
 
-    public QueryTagService(IExtendedQueryTagStore extendedQueryTagStore, IOptions<FeatureConfiguration> featureConfiguration)
+    public QueryTagService(IExtendedQueryTagStore extendedQueryTagStore)
     {
         _extendedQueryTagStore = EnsureArg.IsNotNull(extendedQueryTagStore, nameof(extendedQueryTagStore));
-        _queryTagCache = new AsyncCache<List<QueryTag>>(ResolveQueryTagsAsync);
-        _enableExtendedQueryTags = EnsureArg.IsNotNull(featureConfiguration?.Value.EnableExtendedQueryTags, nameof(featureConfiguration)).GetValueOrDefault();
+        _queryTagCache = new AsyncCache<IReadOnlyCollection<QueryTag>>(ResolveQueryTagsAsync);
     }
 
     public static IReadOnlyList<QueryTag> CoreQueryTags { get; } = QueryLimit.CoreTags.Select(tag => new QueryTag(tag)).ToList();
 
     public void Dispose()
     {
-        Dispose(disposing: true);
+        _queryTagCache.Dispose();
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_disposed)
-        {
-            if (disposing)
-            {
-                _queryTagCache.Dispose();
-            }
+    public Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
+        => _queryTagCache.GetAsync(cancellationToken: cancellationToken);
 
-            _disposed = true;
-        }
-    }
-
-    public async Task<IReadOnlyCollection<QueryTag>> GetQueryTagsAsync(CancellationToken cancellationToken = default)
-    {
-        if (_disposed)
-        {
-            throw new ObjectDisposedException(nameof(QueryTagService));
-        }
-
-        return _enableExtendedQueryTags ? await _queryTagCache.GetAsync(cancellationToken: cancellationToken) : CoreQueryTags;
-    }
-
-    private async Task<List<QueryTag>> ResolveQueryTagsAsync(CancellationToken cancellationToken)
+    private async Task<IReadOnlyCollection<QueryTag>> ResolveQueryTagsAsync(CancellationToken cancellationToken)
     {
         var tags = new List<QueryTag>(CoreQueryTags);
         IReadOnlyList<ExtendedQueryTagStoreEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(int.MaxValue, 0, cancellationToken);
