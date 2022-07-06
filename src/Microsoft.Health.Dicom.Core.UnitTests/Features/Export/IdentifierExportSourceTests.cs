@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -48,7 +47,7 @@ public class IdentifierExportSourceTests
         };
 
         using var tokenSource = new CancellationTokenSource();
-        await using var source = new IdentifierExportSource(_store, _partition, Options.Create(_options));
+        await using var source = new IdentifierExportSource(_store, _partition, _options);
 
         var expected = new VersionedInstanceIdentifier[]
         {
@@ -133,7 +132,7 @@ public class IdentifierExportSourceTests
         _options.Values = identifierValues;
 
         using var tokenSource = new CancellationTokenSource();
-        await using var source = new IdentifierExportSource(_store, _partition, Options.Create(_options));
+        await using var source = new IdentifierExportSource(_store, _partition, _options);
 
         // Assert baseline
         if (expected == 0)

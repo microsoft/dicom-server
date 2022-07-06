@@ -18,7 +18,6 @@ using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -80,7 +79,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         };
         _jsonOptions = new JsonSerializerOptions();
         _jsonOptions.Converters.Add(new DicomIdentifierJsonConverter());
-        _sink = new AzureBlobExportSink(_fileStore, _destClient, Options.Create(_output), Options.Create(_blobOptions), Options.Create(_jsonOptions));
+        _sink = new AzureBlobExportSink(_fileStore, _destClient, _output, _blobOptions, _jsonOptions);
     }
 
     [Fact]

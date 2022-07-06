@@ -85,25 +85,20 @@ public class BlobMetadataStore : IMetadataStore
 
         try
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
-            await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
-            {
-                // TODO: Use SerializeAsync in .NET 6
-                JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
-                await utf8Writer.FlushAsync(cancellationToken);
+            await using Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName);
+            await JsonSerializer.SerializeAsync(stream, dicomDatasetWithoutBulkData, _jsonSerializerOptions, cancellationToken);
 
-                foreach (var blob in blobClients)
-                {
-                    stream.Seek(0, SeekOrigin.Begin);
-                    await blob.UploadAsync(
-                        stream,
-                        new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
-                        metadata: null,
-                        conditions: null,
-                        accessTier: null,
-                        progressHandler: null,
-                        cancellationToken);
-                }
+            foreach (BlockBlobClient blob in blobClients)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                await blob.UploadAsync(
+                    stream,
+                    new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJsonUtf8 },
+                    metadata: null,
+                    conditions: null,
+                    accessTier: null,
+                    progressHandler: null,
+                    cancellationToken);
             }
         }
         catch (Exception ex)
@@ -129,8 +124,12 @@ public class BlobMetadataStore : IMetadataStore
 
         return ExecuteAsync(async t =>
         {
+            // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
             BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
-            return result.Content.ToObjectFromJson<DicomDataset>(_jsonSerializerOptions);
+
+            // DICOM metadata file includes UTF-8 encoding with BOM and there is a bug with the
+            // BinaryData.ToObjectFromJson method as seen in this issue: https://github.com/dotnet/runtime/issues/71447
+            return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
         }, cancellationToken);
     }
 
@@ -156,25 +155,19 @@ public class BlobMetadataStore : IMetadataStore
 
         try
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceFramesRangeTagName))
-            await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
-            {
-                JsonSerializer.Serialize(utf8Writer, framesRange, _jsonSerializerOptions);
-                await utf8Writer.FlushAsync(cancellationToken);
-                stream.Seek(0, SeekOrigin.Begin);
+            // TOOD: Stream directly to blob storage
+            await using Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceFramesRangeTagName);
+            await JsonSerializer.SerializeAsync(stream, framesRange, _jsonSerializerOptions, cancellationToken);
 
-                await blobClient.UploadAsync(
-                    stream,
-                    new BlobHttpHeaders()
-                    {
-                        ContentType = KnownContentTypes.ApplicationJson,
-                    },
-                    metadata: null,
-                    conditions: null,
-                    accessTier: null,
-                    progressHandler: null,
-                    cancellationToken);
-            }
+            stream.Seek(0, SeekOrigin.Begin);
+            await blobClient.UploadAsync(
+                stream,
+                new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJsonUtf8 },
+                metadata: null,
+                conditions: null,
+                accessTier: null,
+                progressHandler: null,
+                cancellationToken);
         }
         catch (Exception ex)
         {

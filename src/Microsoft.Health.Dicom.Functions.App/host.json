@@ -34,6 +34,12 @@
         "BackoffCoefficient": 3,
         "FirstRetryInterval": "00:01:00",
         "MaxNumberOfAttempts": 4
+      },
+      "Sinks": {
+        "AzureBlob": {
+          "AllowPublicAccess": true,
+          "AllowSasTokens": true
+        }
       }
     },
     "Indexing": {

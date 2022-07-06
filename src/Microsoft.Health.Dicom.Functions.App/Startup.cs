@@ -21,8 +21,7 @@ public class Startup : FunctionsStartup
         IConfiguration config = builder.GetHostConfiguration();
         builder.Services
             .ConfigureFunctions(config)
-            .AddMetadataStorageDataStore(config)
-            .AddFileStorageDataStore(config)
+            .AddBlobStorage(config)
             .AddSqlServer(config)
             .AddKeyVaultClient(config);
     }

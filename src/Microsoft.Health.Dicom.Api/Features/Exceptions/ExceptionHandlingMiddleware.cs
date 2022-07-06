@@ -76,6 +76,7 @@ public class ExceptionHandlingMiddleware
                 statusCode = HttpStatusCode.BadRequest;
                 break;
             case FormatException:
+            case InvalidOperationException:
             case ValidationException:
             case ComponentModelValidationException:
             case NotSupportedException:

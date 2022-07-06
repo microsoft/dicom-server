@@ -15,15 +15,25 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class DicomBlobRegistrations
 {
-    public static IServiceCollection AddAzureBlobExportSink(this IServiceCollection services, Action<AzureBlobClientOptions> configure = null)
+    public static IServiceCollection AddAzureBlobExportSink(
+        this IServiceCollection services,
+        Action<AzureBlobExportSinkProviderOptions> configureProvider = null,
+        Action<AzureBlobClientOptions> configureClient = null)
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSinkProvider, AzureBlobExportSinkProvider>());
 
-        OptionsBuilder<AzureBlobClientOptions> builder = services.AddOptions<AzureBlobClientOptions>("Export");
-        if (configure != null)
-            builder.Configure(configure);
+        if (configureProvider != null)
+        {
+            services.Configure(configureProvider);
+        }
+
+        OptionsBuilder<AzureBlobClientOptions> builder = services.AddOptions<AzureBlobClientOptions>(AzureBlobExportSinkProvider.ClientOptionsName);
+        if (configureClient != null)
+        {
+            builder.Configure(configureClient);
+        }
 
         return services;
     }
