@@ -5,6 +5,7 @@
 
 using System.Collections.ObjectModel;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.SqlServer.Features.Exceptions;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
 using Microsoft.Health.SqlServer.Features.Schema.Manager.Model;
@@ -46,7 +47,16 @@ public class DicomSchemaClient : ISchemaClient
 
     public async Task<CompatibleVersion> GetCompatibilityAsync(CancellationToken cancellationToken = default)
     {
-        CompatibleVersions compatibleVersions = await _schemaDataStore.GetLatestCompatibleVersionsAsync(cancellationToken);
+        CompatibleVersions compatibleVersions;
+        try
+        {
+            compatibleVersions = await _schemaDataStore.GetLatestCompatibleVersionsAsync(cancellationToken);
+        }
+        catch (CompatibleVersionsNotFoundException)
+        {
+            compatibleVersions = new CompatibleVersions(0, SchemaVersionConstants.Max);
+        }
+
         return new CompatibleVersion(compatibleVersions.Min, compatibleVersions.Max);
     }
 
