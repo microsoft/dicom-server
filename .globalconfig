@@ -177,13 +177,12 @@ dotnet_naming_style.camel_case_underscore_style.capitalization  = camel_case
 # https://github.com/dotnet/roslyn/blob/0a73f08951f408624639e1601bb828b396f154c8/src/Analyzers/Core/Analyzers/EnforceOnBuildValues.cs#L99
 
 # Code Quality Rules
-dotnet_code_quality.api_surface                             = all
-dotnet_code_quality.exclude_async_void_methods              = true
-dotnet_code_quality.exclude_single_letter_type_parameters   = true
-dotnet_code_quality.exclude_extension_method_this_parameter = true
-dotnet_code_quality.dispose_analysis_kind                   = AllPaths
-dotnet_code_quality.enum_values_prefix_trigger              = AllEnumValues
-dotnet_code_quality.exclude_indirect_base_types             = false
+dotnet_code_quality.api_surface                           = all
+dotnet_code_quality.exclude_async_void_methods            = true
+dotnet_code_quality.exclude_single_letter_type_parameters = true
+dotnet_code_quality.dispose_analysis_kind                 = AllPaths
+dotnet_code_quality.enum_values_prefix_trigger            = AllEnumValues
+dotnet_code_quality.exclude_indirect_base_types           = false
 
 dotnet_code_quality.CA1802 = static # Use Literals Where Appropriate
 
