@@ -45,9 +45,9 @@ Compatible version: Any version from SchemaVersionConstants.Min to SchemaVersion
 
 #### Important Database Tables
 SchemaVersion
-- This table holds all schema versions that have ben applied to the database.
+- This table holds all schema versions that have been applied to the database.
 
-InstanceShema
+InstanceSchema
 - Each DICOM instance reports the schema version it is at, as well as the versions it is compatible with, to the InstanceSchema database table.
 
 ------------
