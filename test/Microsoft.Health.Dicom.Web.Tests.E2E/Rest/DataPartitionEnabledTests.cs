@@ -207,6 +207,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
+    [Trait("Category", "bvt-fe")]
     public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
     {
         DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();

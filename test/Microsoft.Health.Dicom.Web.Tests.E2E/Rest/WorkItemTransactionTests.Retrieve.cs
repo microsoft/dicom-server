@@ -14,7 +14,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public partial class WorkItemTransactionTests
 {
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenRetrieveWorkitem_WhenWorkitemIsFound_TheServerShouldRetrieveWorkitemSuccessfully()
     {
         var workitemUid = TestUidGenerator.Generate();

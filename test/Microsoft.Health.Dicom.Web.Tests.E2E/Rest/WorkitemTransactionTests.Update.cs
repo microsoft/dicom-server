@@ -15,7 +15,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public partial class WorkItemTransactionTests
 {
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenUpdateWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldUpdateWorkitemSuccessfully()
     {
         // Create
@@ -48,7 +47,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenUpdateWorkitemTransactionWithTransactionUid_WhenWorkitemIsFound_TheServerShouldUpdateWorkitemSuccessfully()
     {
         // Create

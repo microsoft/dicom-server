@@ -28,7 +28,6 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemE2EWorkflowSuccessfully()
     {
         // Create
@@ -81,7 +80,6 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemCancelE2EWorkflowSuccessfully()
     {
         // Create

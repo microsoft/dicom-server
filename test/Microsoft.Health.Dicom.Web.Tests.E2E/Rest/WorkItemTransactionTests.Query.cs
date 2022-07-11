@@ -57,7 +57,6 @@ public partial class WorkItemTransactionTests
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
     public async Task WhenQueryingWorkitemWithFilter_TheServerShouldReturnWorkitemSuccessfully()
     {
         var workitemUid = TestUidGenerator.Generate();
