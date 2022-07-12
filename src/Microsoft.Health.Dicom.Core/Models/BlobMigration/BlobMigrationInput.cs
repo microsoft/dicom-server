@@ -5,9 +5,9 @@
 
 using Microsoft.Health.Dicom.Core.Models.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Models.Copy;
+namespace Microsoft.Health.Dicom.Core.Models.BlobMigration;
 
-public class CopyInput
+public class BlobMigrationInput
 {
     public BatchingOptions Batching { get; set; }
 }

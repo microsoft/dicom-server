@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Models.Copy;
+using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -436,6 +436,21 @@ public class DicomAzureFunctionsClientTests
             .StartNewAsync(
                 FunctionNames.CopyFiles,
                 operationId.ToString(OperationId.FormatSpecifier),
-                Arg.Is<CopyInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
+                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
+    }
+
+    [Fact]
+    public async Task GivenValidArgs_WhenStartingDelete_ThenStartOrchestration()
+    {
+        var operationId = Guid.Parse("ce38a27e-b194-4645-b47a-fe91c38c330f");
+        using var tokenSource = new CancellationTokenSource();
+        await _client.StartBlobDeleteAsync(operationId, null, tokenSource.Token);
+
+        await _durableClient
+            .Received(1)
+            .StartNewAsync(
+                FunctionNames.DeleteFiles,
+                operationId.ToString(OperationId.FormatSpecifier),
+                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.Delete.Batching, x.Batching)));
     }
 }

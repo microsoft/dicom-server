@@ -9,17 +9,17 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Copy;
+namespace Microsoft.Health.Dicom.Core.Features.BlobMigration;
 
 /// <summary>
-/// Represents an Instancecopier which copies the dicom instance in the same container
+/// Represents an BlobMigrationService which copies the dicom instance in the same container and deletes old blobs
 /// </summary>
-public class InstanceCopier : IInstanceCopier
+public class BlobMigrationService : IBlobMigrationService
 {
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
 
-    public InstanceCopier(IMetadataStore metadataStore, IFileStore fileStore)
+    public BlobMigrationService(IMetadataStore metadataStore, IFileStore fileStore)
     {
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
@@ -32,5 +32,14 @@ public class InstanceCopier : IInstanceCopier
         return Task.WhenAll(
               _fileStore.CopyFileAsync(versionedInstanceIdentifier, cancellationToken),
               _metadataStore.CopyInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken));
+    }
+
+    public Task DeleteInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        return Task.WhenAll(
+              _fileStore.DeleteOldFileIfExistsAsync(versionedInstanceIdentifier, cancellationToken),
+              _metadataStore.DeleteOldInstanceMetadataIfExistsAsync(versionedInstanceIdentifier, cancellationToken));
     }
 }

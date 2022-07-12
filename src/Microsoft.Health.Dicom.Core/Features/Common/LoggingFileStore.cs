@@ -185,4 +185,15 @@ public class LoggingFileStore : IFileStore
     {
         return await _fileStore.GetFileFrameAsync(versionedInstanceIdentifier, range, cancellationToken);
     }
+
+    public async Task DeleteOldFileIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        _logger.LogDebug("Deleting old DICOM instance with `{Version}`", versionedInstanceIdentifier.Version);
+
+        await _fileStore.DeleteOldFileIfExistsAsync(versionedInstanceIdentifier, cancellationToken);
+
+        LogOperationSucceededDelegate(_logger, null);
+    }
 }

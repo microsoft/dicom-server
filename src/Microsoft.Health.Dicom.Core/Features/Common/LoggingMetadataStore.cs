@@ -172,4 +172,14 @@ public class LoggingMetadataStore : IMetadataStore
         return _metadataStore.DeleteInstanceFramesRangeAsync(versionedInstanceIdentifier, cancellationToken);
     }
 
+    public async Task DeleteOldInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        _logger.LogDebug("Deleting DICOM instance metadata with `{Version}`", versionedInstanceIdentifier.Version);
+
+        await _metadataStore.DeleteOldInstanceMetadataIfExistsAsync(versionedInstanceIdentifier, cancellationToken);
+
+        LogOperationSucceededDelegate(_logger, null);
+    }
 }

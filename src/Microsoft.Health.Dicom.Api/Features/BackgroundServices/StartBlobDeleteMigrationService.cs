@@ -19,15 +19,16 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
-public class StartBlobMigrationService : BackgroundService
+public class StartBlobDeleteMigrationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly bool _startBlobCopy;
+    private readonly bool _startBlobDelete;
     private readonly ILogger<StartBlobMigrationService> _logger;
-    private readonly Guid _operationId;
+    private readonly Guid _deleteOperationId;
+    private readonly Guid _copyOperationId;
 
-    public StartBlobMigrationService(
+    public StartBlobDeleteMigrationService(
         IServiceProvider serviceProvider,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         ILogger<StartBlobMigrationService> logger)
@@ -38,8 +39,9 @@ public class StartBlobMigrationService : BackgroundService
 
         _serviceProvider = serviceProvider;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
-        _startBlobCopy = blobMigrationFormatConfiguration.Value.StartCopy;
-        _operationId = blobMigrationFormatConfiguration.Value.CopyOperationId;
+        _startBlobDelete = blobMigrationFormatConfiguration.Value.StartCopy;
+        _deleteOperationId = blobMigrationFormatConfiguration.Value.DeleteOperationId;
+        _copyOperationId = blobMigrationFormatConfiguration.Value.CopyOperationId;
         _logger = logger;
     }
 
@@ -50,34 +52,37 @@ public class StartBlobMigrationService : BackgroundService
             using (var scope = _serviceProvider.CreateScope())
             {
                 // Start the background service only when the flag is turned on and the format type is not new service.
-                if (_blobMigrationFormatType != BlobMigrationFormatType.New && _startBlobCopy)
+                if (_blobMigrationFormatType == BlobMigrationFormatType.New && _startBlobDelete)
                 {
                     IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
-                    OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_operationId, stoppingToken);
+                    OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_deleteOperationId, stoppingToken);
 
                     if (existingInstance == null)
                     {
-                        _logger.LogDebug("No existing copy operation.");
+                        _logger.LogDebug("No existing delete operation.");
                     }
                     else
                     {
-                        _logger.LogDebug("Existing copy operation is in status: '{Status}'", existingInstance.Status);
+                        _logger.LogDebug("Existing delete operation is in status: '{Status}'", existingInstance.Status);
                     }
 
-                    if (IsOperationInterruptedOrNull(existingInstance))
+                    OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_copyOperationId, stoppingToken);
+
+                    // Make sure delete operation is completed before starting delete operation
+                    if (IsOperationInterruptedOrNull(existingInstance) && copyOperation?.Status == OperationStatus.Completed)
                     {
                         var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
 
-                        await operationsClient.StartBlobCopyAsync(_operationId, checkpoint?.Completed, stoppingToken);
+                        await operationsClient.StartBlobCopyAsync(_deleteOperationId, checkpoint?.Completed, stoppingToken);
                     }
                     else if (existingInstance.Status == OperationStatus.Completed)
                     {
-                        _logger.LogInformation("Copy operation with ID '{InstanceId}' has already completed successfully.", _operationId);
+                        _logger.LogInformation("Delete operation with ID '{InstanceId}' has already completed successfully.", _deleteOperationId);
                     }
                     else
                     {
-                        _logger.LogInformation("Copy operation with ID '{InstanceId}' has already been started by another client.", _operationId);
+                        _logger.LogInformation("Delete operation with ID '{InstanceId}' has already been started by another client.", _deleteOperationId);
                     }
                 }
             }

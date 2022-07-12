@@ -4,10 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Copy;
+using Microsoft.Health.Dicom.Core.Features.BlobMigration;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Functions.Copy;
+using Microsoft.Health.Dicom.Functions.BlobMigration;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 
@@ -16,14 +16,14 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
 public partial class CopyDurableFunctionTests
 {
     private readonly IInstanceStore _instanceStore;
-    private readonly IInstanceCopier _instanceCopier;
+    private readonly BlobMigrationService _instanceCopier;
     private readonly CopyDurableFunction _function;
-    private readonly CopyOptions _options;
+    private readonly BlobMigrationOptions _options;
     private readonly BatchingOptions _batchingOptions;
 
     public CopyDurableFunctionTests()
     {
-        _options = new CopyOptions
+        _options = new BlobMigrationOptions
         {
             MaxParallelThreads = 1,
             RetryOptions = new ActivityRetryOptions { MaxNumberOfAttempts = 5 }
@@ -35,7 +35,7 @@ public partial class CopyDurableFunctionTests
         };
 
         _instanceStore = Substitute.For<IInstanceStore>();
-        _instanceCopier = Substitute.For<IInstanceCopier>();
+        _instanceCopier = Substitute.For<BlobMigrationService>();
 
         _function = new CopyDurableFunction(_instanceStore, _instanceCopier, Options.Create(_options));
     }

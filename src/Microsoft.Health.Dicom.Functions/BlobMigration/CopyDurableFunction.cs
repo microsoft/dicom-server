@@ -5,10 +5,10 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Copy;
+using Microsoft.Health.Dicom.Core.Features.BlobMigration;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-namespace Microsoft.Health.Dicom.Functions.Copy;
+namespace Microsoft.Health.Dicom.Functions.BlobMigration;
 
 /// <summary>
 /// Represents the Azure Durable Functions that copy existing DICOM instances to new format.
@@ -16,16 +16,16 @@ namespace Microsoft.Health.Dicom.Functions.Copy;
 public partial class CopyDurableFunction
 {
     private readonly IInstanceStore _instanceStore;
-    private readonly CopyOptions _options;
-    private readonly IInstanceCopier _instanceCopier;
+    private readonly BlobMigrationOptions _options;
+    private readonly BlobMigrationService _blobMigrationService;
 
     public CopyDurableFunction(
         IInstanceStore instanceStore,
-        IInstanceCopier instanceCopier,
-        IOptions<CopyOptions> configOptions)
+        BlobMigrationService blobMigrationService,
+        IOptions<BlobMigrationOptions> configOptions)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-        _instanceCopier = EnsureArg.IsNotNull(instanceCopier, nameof(instanceCopier));
+        _blobMigrationService = EnsureArg.IsNotNull(blobMigrationService, nameof(blobMigrationService));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
         EnsureArg.IsNotNull(_options.RetryOptions, nameof(_options.RetryOptions));
     }

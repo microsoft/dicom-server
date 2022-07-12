@@ -52,7 +52,7 @@
         "MaxNumberOfAttempts": 4
       }
     },
-    "Copy": {
+    "BlobMigration": {
       "BatchSize": 100,
       "MaxParallelThreads": 5,
       "MaxParallelBatches": 10,
@@ -83,7 +83,7 @@
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
     "Statuses": [ "Completed" ],
-    "ExcludeFunctions": [ "CopyFilesAsync" ]
+    "ExcludeFunctions": [ "CopyFilesAsync", "DeleteFilesAsync" ]
   },
   "SqlServer": {
     "Retry": {

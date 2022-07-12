@@ -19,6 +19,7 @@ public class DurableOrchestrationStatusExtensionsTests
     [InlineData(FunctionNames.ReindexInstances, DicomOperation.Reindex)]
     [InlineData(FunctionNames.ExportDicomFiles, DicomOperation.Export)]
     [InlineData(FunctionNames.CopyFiles, DicomOperation.Copy)]
+    [InlineData(FunctionNames.DeleteFiles, DicomOperation.Delete)]
     [InlineData("reindexINSTANCESasync", DicomOperation.Reindex)]
     public void GivenOrchestrationStatus_WhenGettingDicomOperation_ThenConvertNameToType(string name, DicomOperation expected)
     {

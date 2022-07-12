@@ -87,4 +87,14 @@ public interface IMetadataStore
     Task DeleteInstanceFramesRangeAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously deletes a old DICOM instance metadata.
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    Task DeleteOldInstanceMetadataIfExistsAsync
+        (VersionedInstanceIdentifier versionedInstanceIdentifier,
+        CancellationToken cancellationToken);
 }

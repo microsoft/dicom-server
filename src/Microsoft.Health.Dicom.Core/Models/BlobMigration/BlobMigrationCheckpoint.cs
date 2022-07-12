@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Models.Copy;
+namespace Microsoft.Health.Dicom.Core.Models.BlobMigration;
 
-public class CopyCheckpoint : CopyInput, IOperationCheckpoint
+public class BlobMigrationCheckpoint : BlobMigrationInput, IOperationCheckpoint
 {
     public WatermarkRange? Completed { get; set; }
 

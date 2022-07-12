@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Models.Copy;
+using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -180,13 +180,29 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         string instanceId = await _durableClient.StartNewAsync(
             _options.Copy.Name,
             operationId.ToString(OperationId.FormatSpecifier),
-            new CopyCheckpoint
+            new BlobMigrationCheckpoint
             {
                 Batching = _options.Copy.Batching,
                 Completed = previousCheckpoint
             });
 
         _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
+    }
+
+    public async Task StartBlobDeleteAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Delete.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new BlobMigrationCheckpoint
+            {
+                Batching = _options.Delete.Batching,
+                Completed = previousCheckpoint
+            });
+
+        _logger.LogInformation("Successfully started delete operation with ID '{InstanceId}'.", instanceId);
     }
 
     private async Task<T> GetStateAsync<T>(
@@ -251,7 +267,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
-            DicomOperation.Copy => status.Input?.ToObject<CopyCheckpoint>() ?? new CopyCheckpoint(),
+            DicomOperation.Copy => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
+            DicomOperation.Delete => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,

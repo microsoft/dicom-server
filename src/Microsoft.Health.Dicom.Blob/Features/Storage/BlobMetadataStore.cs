@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
@@ -201,6 +202,24 @@ public class BlobMetadataStore : IMetadataStore
         {
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteOldInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
+        var newBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
+
+        if (await newBlobClient.ExistsAsync(cancellationToken))
+        {
+            await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
+        }
+        else
+        {
+            throw new DataStoreException("DICOM metadata does not exists with new format.", FailureReasonCodes.BlobNotFound);
         }
     }
 
