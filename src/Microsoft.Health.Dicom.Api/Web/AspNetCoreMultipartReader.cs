@@ -102,9 +102,9 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         {
             throw new InvalidMultipartRequestException(ex.Message);
         }
-        catch (BadHttpRequestException)
+        catch (BadHttpRequestException ex) when (ex.Message.StartsWith("Request body too large.", StringComparison.InvariantCulture))
         {
-            throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+            throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
 
         if (section == null)
@@ -137,7 +137,7 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         catch (InvalidDataException)
         {
             // This will result in bad request, we need to handle this differently when we make the processing serial.
-            throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+            throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
         catch (IOException)
         {

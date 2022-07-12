@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
+using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
@@ -12,13 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// </summary>
 public class PayloadTooLargeException : DicomServerException
 {
-    protected PayloadTooLargeException(string message)
-        : base(message)
-    {
-    }
-
-    protected PayloadTooLargeException(string message, Exception innerException)
-        : base(message, innerException)
+    public PayloadTooLargeException(long maxAllowedLength)
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.RequestLengthLimitExceeded, maxAllowedLength))
     {
     }
 }

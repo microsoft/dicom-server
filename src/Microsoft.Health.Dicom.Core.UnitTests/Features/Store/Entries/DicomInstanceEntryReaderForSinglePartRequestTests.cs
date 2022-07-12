@@ -99,7 +99,7 @@ public class DicomInstanceEntryReaderForSinglePartRequestTests
         stream.Write(Encoding.UTF8.GetBytes("someteststring"));
         stream.Seek(0, SeekOrigin.Begin);
 
-        await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
+        await Assert.ThrowsAsync<PayloadTooLargeException>(
             () => dicomInstanceEntryReaderLowLimit.ReadAsync(
                 DefaultContentType,
                 stream,
