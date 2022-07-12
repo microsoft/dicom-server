@@ -1,15 +1,7 @@
 # DICOM Schema Manager
 
 #### What is it?
-Schema Manager is a command line app that upgrades the schema in your database from one version to the next. This requires migration scripts, starting with version 1, with each subsequent version providing both full and diff scripts. The typical migration script folder should look like this:
-- 1.sql
-- 2.sql
-- 2.diff.sql
-- 3.sql
-- 3.diff.sql
-- ...
-
-[DICOM Migration Scripts](https://github.com/microsoft/dicom-server/tree/main/src/Microsoft.Health.Dicom.SqlServer/Features/Schema/Migrations)
+Schema Manager is a command line app that upgrades the schema in your database from one version to the next through migration scripts.
 
 ------------
 
@@ -64,3 +56,13 @@ Schema Manager runs through the following steps:
 	4. Branches based on the current version:
 		1. If the current version is 1, only applies the latest full migration script.
 		2. If the current version is > 1, applies each available version (excluding the current version) one at a time until the database's schema version reaches the desired version input by the user (latest, next, or a specific version).
+
+starting with version 1, with each subsequent version providing both full and diff scripts. The typical migration script folder should look like this:
+- 1.sql
+- 2.sql
+- 2.diff.sql
+- 3.sql
+- 3.diff.sql
+- ...
+
+[DICOM Migration Scripts](https://github.com/microsoft/dicom-server/tree/main/src/Microsoft.Health.Dicom.SqlServer/Features/Schema/Migrations)
