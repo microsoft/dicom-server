@@ -28,6 +28,7 @@ internal class AspNetCoreMultipartReader : IMultipartReader
 {
     private const string TypeParameterName = "type";
     private const string StartParameterName = "start";
+    private const string BodyTooLargeExceptionMessage = "Request body too large.";
     private readonly ISeekableStreamConverter _seekableStreamConverter;
     private readonly IOptions<StoreConfiguration> _storeConfiguration;
     private readonly string _rootContentType;
@@ -102,7 +103,7 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         {
             throw new InvalidMultipartRequestException(ex.Message);
         }
-        catch (BadHttpRequestException ex) when (ex.Message.StartsWith("Request body too large.", StringComparison.InvariantCulture))
+        catch (BadHttpRequestException ex) when (ex.Message.StartsWith(BodyTooLargeExceptionMessage, StringComparison.InvariantCulture))
         {
             throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
