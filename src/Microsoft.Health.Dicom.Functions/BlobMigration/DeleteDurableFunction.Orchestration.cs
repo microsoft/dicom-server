@@ -58,7 +58,8 @@ public partial class DeleteDurableFunction
                     x)));
 
             // Create a new orchestration with the same instance ID to process the remaining data
-            logger.LogInformation("Completed deleting the range {Range}. Continuing with new execution...", batchRange);
+            logger.LogInformation("Completed deleting the range {Range}. Total files deleted in range: '{NumFiles}'. " +
+                "Continuing with new execution...", batchRange, batchRange.End - batchRange.Start + 1);
 
             WatermarkRange completed = input.Completed.HasValue
                 ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)

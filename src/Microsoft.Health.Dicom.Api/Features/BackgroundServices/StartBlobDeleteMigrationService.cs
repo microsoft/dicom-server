@@ -24,14 +24,14 @@ public class StartBlobDeleteMigrationService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly bool _startBlobDelete;
-    private readonly ILogger<StartBlobMigrationService> _logger;
+    private readonly ILogger<StartBlobDeleteMigrationService> _logger;
     private readonly Guid _deleteOperationId;
     private readonly Guid _copyOperationId;
 
     public StartBlobDeleteMigrationService(
         IServiceProvider serviceProvider,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
-        ILogger<StartBlobMigrationService> logger)
+        ILogger<StartBlobDeleteMigrationService> logger)
     {
         EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
         EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
@@ -70,11 +70,18 @@ public class StartBlobDeleteMigrationService : BackgroundService
                     OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_copyOperationId, stoppingToken);
 
                     // Make sure delete operation is completed before starting delete operation
-                    if (IsOperationInterruptedOrNull(existingInstance) && copyOperation?.Status == OperationStatus.Completed)
+                    if (IsOperationInterruptedOrNull(existingInstance))
                     {
-                        var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
+                        if (copyOperation?.Status == OperationStatus.Completed)
+                        {
+                            var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
 
-                        await operationsClient.StartBlobCopyAsync(_deleteOperationId, checkpoint?.Completed, stoppingToken);
+                            await operationsClient.StartBlobDeleteAsync(_deleteOperationId, checkpoint?.Completed, stoppingToken);
+                        }
+                        else
+                        {
+                            _logger.LogDebug("Copy operation not exists or not in completed status. '{Status}'", copyOperation?.Status);
+                        }
                     }
                     else if (existingInstance.Status == OperationStatus.Completed)
                     {
