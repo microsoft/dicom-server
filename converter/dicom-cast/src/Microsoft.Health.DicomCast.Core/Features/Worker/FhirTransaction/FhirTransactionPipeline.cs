@@ -90,13 +90,15 @@ public class FhirTransactionPipeline : IFhirTransactionPipeline
                 {
                     try
                     {
+                        var entry = (ChangeFeedEntry)ctx[nameof(ChangeFeedEntry)];
+
                         // Create a context used throughout this process.
-                        var context = new FhirTransactionContext(changeFeedEntry);
+                        var fhirTransactionContext = new FhirTransactionContext(entry);
 
                         // Prepare all required objects for the transaction.
                         foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
                         {
-                            await pipeline.PrepareRequestAsync(context, cancellationToken);
+                            await pipeline.PrepareRequestAsync(fhirTransactionContext, tkn);
                         }
 
                         // Check to see if any resource needs to be created/updated.
@@ -109,7 +111,7 @@ public class FhirTransactionPipeline : IFhirTransactionPipeline
 
                         foreach (FhirTransactionRequestResponsePropertyAccessor propertyAccessor in _requestResponsePropertyAccessors)
                         {
-                            List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(context.Request)?.ToList();
+                            List<FhirTransactionRequestEntry> requestEntries = propertyAccessor.RequestEntryGetter(fhirTransactionContext.Request)?.ToList();
 
                             if (requestEntries == null || requestEntries.Count == 0)
                             {
@@ -140,7 +142,7 @@ public class FhirTransactionPipeline : IFhirTransactionPipeline
                         }
 
                         // Execute the transaction.
-                        Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, cancellationToken);
+                        Bundle responseBundle = await _fhirTransactionExecutor.ExecuteTransactionAsync(bundle, tkn);
 
                         // Process the response.
                         int processedResponseItems = 0;
@@ -156,18 +158,18 @@ public class FhirTransactionPipeline : IFhirTransactionPipeline
                             }
 
                             processedResponseItems += count;
-                            accessor.ResponseEntrySetter(context.Response, responseEntries);
+                            accessor.ResponseEntrySetter(fhirTransactionContext.Response, responseEntries);
                         }
 
                         // Execute any additional checks of the response.
                         foreach (IFhirTransactionPipelineStep pipeline in _fhirTransactionPipelines)
                         {
-                            pipeline.ProcessResponse(context);
+                            pipeline.ProcessResponse(fhirTransactionContext);
                         }
 
                         _logger.LogInformation("Successfully processed the change feed entry.");
                     }
-                    catch (TaskCanceledException ex) when (!cancellationToken.IsCancellationRequested)
+                    catch (TaskCanceledException ex) when (!tkn.IsCancellationRequested)
                     {
                         throw new RetryableException(ex);
                     }
