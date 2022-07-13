@@ -31,7 +31,7 @@ public class PartitionService : IPartitionService
 
         _logger.LogInformation("Creating partition with name '{PartitionName}'.", partitionName);
 
-        var partitionEntry = await _partitionCache.GetOrAddPartitionAsync(_partitionStore.AddPartitionAsync, partitionName, cancellationToken);
+        var partitionEntry = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
 
         return new AddPartitionResponse(partitionEntry);
     }
@@ -42,7 +42,7 @@ public class PartitionService : IPartitionService
 
         _logger.LogInformation("Getting partition with name '{PartitionName}'.", partitionName);
 
-        var partitionEntry = await _partitionCache.GetOrAddPartitionAsync(_partitionStore.GetPartitionAsync, partitionName, cancellationToken);
+        var partitionEntry = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.GetPartitionAsync, cancellationToken);
         return new GetPartitionResponse(partitionEntry);
     }
 
