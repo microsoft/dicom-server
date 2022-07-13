@@ -18,12 +18,12 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public class DataPartitionEnabledTests : IClassFixture<FeaturesEnabledHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
 
-    public DataPartitionEnabledTests(DataPartitionEnabledHttpIntegrationTestFixture<Startup> fixture)
+    public DataPartitionEnabledTests(FeaturesEnabledHttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
