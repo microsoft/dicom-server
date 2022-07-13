@@ -25,7 +25,7 @@ public class PartitionCacheTests
         config.Value.Returns(new DataPartitionConfiguration());
 
         var logger = Substitute.For<ILogger<PartitionCache>>();
-        var partitionCache = new PartitionCache(config, logger);
+        var partitionCache = new PartitionCache(config, Substitute.For<ILoggerFactory>(), logger);
 
         int numExecuted = 0;
 
@@ -36,7 +36,7 @@ public class PartitionCacheTests
             return new PartitionEntry(1, partitionName);
         };
 
-        var threadList = Enumerable.Range(0, 5).Select(async _ => await partitionCache.GetOrAddPartitionAsync(mockAction, "", CancellationToken.None)).ToList();
+        var threadList = Enumerable.Range(0, 5).Select(async _ => await partitionCache.GetAsync("", "", mockAction, CancellationToken.None)).ToList();
 
         await Task.WhenAll(threadList);
 
