@@ -30,7 +30,9 @@ Example command line usage:
 ------------
 
 #### Terminology
+
 Available version: Any version greater than or equal to the current version.
+
 Compatible version: Any version from SchemaVersionConstants.Min to SchemaVersionConstants.Max (inclusive).
 
 ------------
@@ -53,16 +55,14 @@ Schema Manager runs through the following steps:
 	2. Ensures instance schema records exist.
 		1. Since DICOM Server implements its own ISchemaClient (DicomSchemaClient), if there are no instance schema records, the upgrade continues uninterrupted. In healthcare-shared-components, this would throw an exception and cancel the upgrade.
 	3. Gets all available versions and compares them against all compatible versions.
-	4. Branches based on the current version:
-		1. If the current version is 1, only applies the latest full migration script.
-		2. If the current version is > 1, applies each available version (excluding the current version) one at a time until the database's schema version reaches the desired version input by the user (latest, next, or a specific version).
+	4. Based on the current schema version:
+		1. If there is no version (base schema only), the latest full migration script is applied.
+		2. If the current version is >= 1, each available version is applied (excluding the current version) one at a time until the database's schema version reaches the desired version input by the user (latest, next, or a specific version).
 
-starting with version 1, with each subsequent version providing both full and diff scripts. The typical migration script folder should look like this:
-- 1.sql
-- 2.sql
-- 2.diff.sql
-- 3.sql
-- 3.diff.sql
-- ...
+------------
 
-[DICOM Migration Scripts](https://github.com/microsoft/dicom-server/tree/main/src/Microsoft.Health.Dicom.SqlServer/Features/Schema/Migrations)
+#### SQL Script Locations
+
+- [Base Schema Script](https://github.com/microsoft/healthcare-shared-components/blob/main/src/Microsoft.Health.SqlServer/Features/Schema/Migrations/BaseSchema.sql)
+
+- [DICOM Migration Scripts](https://github.com/microsoft/dicom-server/tree/main/src/Microsoft.Health.Dicom.SqlServer/Features/Schema/Migrations)
