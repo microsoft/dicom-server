@@ -113,7 +113,9 @@ steps:
         command: 'push'
         containerRegistry: '$(azureContainerRegistry)'
         repository: dicom-uploader
-        tags: ${{ parameters.tag }}
+        tags: |
+          ${{ parameters.tag }}
+          latest
 
   - task: Docker@2
     displayName: Logout
