@@ -103,7 +103,7 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         {
             throw new InvalidMultipartRequestException(ex.Message);
         }
-        catch (BadHttpRequestException ex) when (ex.Message.StartsWith(BodyTooLargeExceptionMessage, StringComparison.InvariantCulture))
+        catch (BadHttpRequestException ex) when (ex.Message.StartsWith(BodyTooLargeExceptionMessage, StringComparison.OrdinalIgnoreCase))
         {
             throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
