@@ -50,7 +50,7 @@ InstanceSchema
 
 Schema Manager runs through the following steps:
 1. Verifies all arguments are supplied and valid.
-2. Calls the [healthcare-shared-components ApplySchema function](https://github.com/microsoft/healthcare-shared-components/blob/20506ffba19905abe882812a25d74866d1e1dcb0/src/Microsoft.Health.SqlServer/Features/Schema/Manager/SqlSchemaManager.cs#L53), which:
+2. Calls the [healthcare-shared-components ApplySchema function](https://github.com/microsoft/healthcare-shared-components/blob/main/src/Microsoft.Health.SqlServer/Features/Schema/Manager/SqlSchemaManager.cs#L53), which:
 	1. Ensures the base schema exists.
 	2. Ensures instance schema records exist.
 		1. Since DICOM Server implements its own ISchemaClient (DicomSchemaClient), if there are no instance schema records, the upgrade continues uninterrupted. In healthcare-shared-components, this would throw an exception and cancel the upgrade.
