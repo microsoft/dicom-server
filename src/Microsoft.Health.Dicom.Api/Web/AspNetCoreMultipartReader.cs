@@ -26,9 +26,16 @@ namespace Microsoft.Health.Dicom.Api.Web;
 /// </summary>
 internal class AspNetCoreMultipartReader : IMultipartReader
 {
+    /// <summary>
+    /// This is the exception message that will be returned by both <see href="https://github.com/dotnet/aspnetcore/blob/bf3352f2422bf16fa3ca49021f0e31961ce525eb/src/Servers/IIS/IIS/src/CoreStrings.resx#L151">IIS</see>
+    /// and <see href="https://github.com/dotnet/aspnetcore/blob/bf3352f2422bf16fa3ca49021f0e31961ce525eb/src/Servers/Kestrel/Core/src/CoreStrings.resx#L307">Kestrel</see>
+    /// in the case of the MultipartReader <see href="https://github.com/dotnet/aspnetcore/blob/6850cc8187751cdec3e4071e8786aeffe29d11ee/src/Servers/Kestrel/Core/src/Internal/Http/Http1ContentLengthMessageBody.cs#L248">attempting to read</see>
+    /// past the request body limit configured at the server level.
+    /// </summary>
+    private const string BodyTooLargeExceptionMessage = "Request body too large.";
+
     private const string TypeParameterName = "type";
     private const string StartParameterName = "start";
-    private const string BodyTooLargeExceptionMessage = "Request body too large.";
     private readonly ISeekableStreamConverter _seekableStreamConverter;
     private readonly IOptions<StoreConfiguration> _storeConfiguration;
     private readonly string _rootContentType;
