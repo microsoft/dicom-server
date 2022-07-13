@@ -13,9 +13,9 @@ DICOM Schema Manager currently has one command (**apply**) with the following op
 | `-cs, --connection-string` | The connection string of the SQL server to apply the schema update. (REQUIRED) |
 | `-mici, --managed-identity-client-id` | The client ID of the managed identity to be used. |
 | `-at, --authentication-type` | The authentication type to use. Valid values are `ManagedIdentity` and `ConnectionString`. |
-| `-v, --version` | Applies versions between the current and specified version. |
+| `-v, --version` | Applies all available versions from the current schema version to the specified version. |
 | `-n, --next` | Applies the next available version. |
-| `-l, --latest` | Applies versions between the current and latest version. |
+| `-l, --latest` | Applies all available versions from the current schema version to the latest. |
 | `-f, --force` | The schema migration is run without validating the schema version. |
 | `-?, -h, --help` | Show help and usage information. |
 

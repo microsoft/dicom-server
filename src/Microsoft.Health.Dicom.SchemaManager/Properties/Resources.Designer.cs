@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applies versions between the current and latest version..
+        ///   Looks up a localized string similar to Applies all available versions from the current schema version to the latest..
         /// </summary>
         internal static string LatestOptionDescription {
             get {
@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applies versions between the current and specified version..
+        ///   Looks up a localized string similar to Applies all available versions from the current schema version to the specified version..
         /// </summary>
         internal static string VersionOptionDescription {
             get {
