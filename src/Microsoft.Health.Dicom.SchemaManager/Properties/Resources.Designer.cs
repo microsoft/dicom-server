@@ -97,7 +97,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The schema migration is run without validating the schema version..
+        ///   Looks up a localized string similar to The schema migration is run without validating the specified schema version..
         /// </summary>
         internal static string ForceOptionDescription {
             get {
@@ -115,7 +115,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applies all available versions from the current schema version to the latest..
+        ///   Looks up a localized string similar to Applies all available versions from the current database version to the latest..
         /// </summary>
         internal static string LatestOptionDescription {
             get {
@@ -142,7 +142,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applies the next available version..
+        ///   Looks up a localized string similar to Applies the next available database version..
         /// </summary>
         internal static string NextOptionDescription {
             get {
@@ -151,7 +151,7 @@ namespace Microsoft.Health.Dicom.SchemaManager.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Applies all available versions from the current schema version to the specified version..
+        ///   Looks up a localized string similar to Applies all available versions from the current database version to the specified version..
         /// </summary>
         internal static string VersionOptionDescription {
             get {

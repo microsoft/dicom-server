@@ -1,11 +1,11 @@
 # DICOM Schema Manager
 
-#### What is it?
+### What is it?
 Schema Manager is a command line app that upgrades the schema in your database from one version to the next through migration scripts.
 
 ------------
 
-#### How do you use it?
+### How do you use it?
 DICOM Schema Manager currently has one command (**apply**) with the following options:
 
 | Option | Description |
@@ -13,10 +13,10 @@ DICOM Schema Manager currently has one command (**apply**) with the following op
 | `-cs, --connection-string` | The connection string of the SQL server to apply the schema update. (REQUIRED) |
 | `-mici, --managed-identity-client-id` | The client ID of the managed identity to be used. |
 | `-at, --authentication-type` | The authentication type to use. Valid values are `ManagedIdentity` and `ConnectionString`. |
-| `-v, --version` | Applies all available versions from the current schema version to the specified version. |
-| `-n, --next` | Applies the next available version. |
-| `-l, --latest` | Applies all available versions from the current schema version to the latest. |
-| `-f, --force` | The schema migration is run without validating the schema version. |
+| `-v, --version` | Applies all available versions from the current database version to the specified version. |
+| `-n, --next` | Applies the next available database version. |
+| `-l, --latest` | Applies all available versions from the current database version to the latest. |
+| `-f, --force` | The schema migration is run without validating the specified version. |
 | `-?, -h, --help` | Show help and usage information. |
 
 You can view the most up-to-date options by running the following command:
@@ -29,24 +29,33 @@ Example command line usage:
 
 ------------
 
-#### Terminology
+### Important Database Tables
 
-Available version: Any version greater than or equal to the current version.
-
-Compatible version: Any version from SchemaVersionConstants.Min to SchemaVersionConstants.Max (inclusive).
-
-------------
-
-#### Important Database Tables
-SchemaVersion
+**SchemaVersion**
 - This table holds all schema versions that have been applied to the database.
 
-InstanceSchema
+**InstanceSchema**
 - Each DICOM instance reports the schema version it is at, as well as the versions it is compatible with, to the InstanceSchema database table.
 
 ------------
 
-#### How does it work?
+### Terminology
+
+**Current database version**
+- The maximum SchemaVersion version in the database. In the event this table is empty, the version is 0.
+
+**Current instance version**
+- The maximum SchemaVersion version in the database that falls at or below the SchemaVersionConstants.Max value. For example, if the current database version is 25, but SchemaVersionConstants.Max is 23, the instance's current version will be 23.
+
+**Available version**
+- Any version greater than or equal to the current database version.
+
+**Compatible version**
+- Any version from SchemaVersionConstants.Min to SchemaVersionConstants.Max (inclusive).
+
+------------
+
+### How does it work?
 
 Schema Manager runs through the following steps:
 1. Verifies all arguments are supplied and valid.
@@ -61,7 +70,15 @@ Schema Manager runs through the following steps:
 
 ------------
 
-#### SQL Script Locations
+### Caveats
+
+Schema Manager works under the assumption that it will be updated at the same time as any DICOM binaries. It's possible to end up with a database in a bad state when running Schema Manager with a different tag version than the DICOM binary. For example, you could have a database upgraded to schema version 25, but the binary only supports up to schema version 23.
+
+Schema Manager is programmed to upgrade the database of an existing, running DICOM instance, or against a new database. If SchemaManager is run against an existing database with no running instances, SchemaManager will apply the latest SchemaVersion possible, and not take into account the compatibility from running instances. This is because the InstanceSchema table is only populated when DICOM services are running.
+
+------------
+
+### SQL Script Locations
 
 - [Base Schema Script](https://github.com/microsoft/healthcare-shared-components/blob/main/src/Microsoft.Health.SqlServer/Features/Schema/Migrations/BaseSchema.sql)
 
