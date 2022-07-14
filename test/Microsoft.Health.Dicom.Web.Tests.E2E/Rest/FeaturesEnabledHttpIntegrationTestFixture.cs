@@ -5,9 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class BlobDualWriteHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
+public class FeaturesEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
 {
-    public BlobDualWriteHttpIntegrationTestFixture()
-        : base(Common.DicomTestServerCategory.DualWrite)
+    public FeaturesEnabledHttpIntegrationTestFixture()
+        : base(Common.DicomTestServerCategory.Features)
     { }
 }

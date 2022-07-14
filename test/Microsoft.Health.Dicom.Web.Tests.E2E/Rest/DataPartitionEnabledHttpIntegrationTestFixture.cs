@@ -5,9 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class FeaturesEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
+public class DataPartitionEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
 {
-    public FeaturesEnabledHttpIntegrationTestFixture()
-        : base(enableFeatures: true)
+    public DataPartitionEnabledHttpIntegrationTestFixture()
+        : base(Common.DicomTestServerCategory.DataPartition)
     { }
 }

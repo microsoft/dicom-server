@@ -3,11 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
+using System;
 
-public class BlobDualWriteHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+
+[Flags]
+public enum DicomTestServerCategory : byte
 {
-    public BlobDualWriteHttpIntegrationTestFixture()
-        : base(Common.DicomTestServerCategory.DualWrite)
-    { }
+    None,
+    Features,
+    DataPartition,
+    DualWrite
 }
