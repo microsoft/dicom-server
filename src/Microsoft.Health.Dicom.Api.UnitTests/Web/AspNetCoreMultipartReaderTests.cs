@@ -207,7 +207,7 @@ public class AspNetCoreMultipartReaderTests
     }
 
     [Fact]
-    public async Task GivenAInvalidDataException__ThenDicomFileLengthLimitExceededExceptionShouldBeRethrown()
+    public async Task GivenAInvalidDataException__ThenPayloadTooLargeExceptionShouldBeRethrown()
     {
         ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
 
@@ -221,7 +221,7 @@ public class AspNetCoreMultipartReaderTests
 
         seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Throws(new InvalidDataException());
 
-        await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
+        await Assert.ThrowsAsync<PayloadTooLargeException>(
             () => ExecuteAndValidateAsync(
             body,
             DefaultContentType,
