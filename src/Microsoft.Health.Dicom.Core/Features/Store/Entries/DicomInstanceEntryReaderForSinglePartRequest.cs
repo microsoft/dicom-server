@@ -165,7 +165,7 @@ public class DicomInstanceEntryReaderForSinglePartRequest : IDicomInstanceEntryR
         {
             if (_bytesLeft < 0)
             {
-                throw new DicomFileLengthLimitExceededException(_limit);
+                throw new PayloadTooLargeException(_limit);
             }
         }
 
