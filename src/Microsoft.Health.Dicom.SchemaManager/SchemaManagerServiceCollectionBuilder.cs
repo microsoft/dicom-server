@@ -40,7 +40,8 @@ public static class SchemaManagerServiceCollectionBuilder
 
         services.AddSqlServerManagement<SchemaVersion>();
 
-        services.AddSingleton<IBaseSchemaRunner, BaseSchemaRunner>();
+        services.AddSingleton<BaseSchemaRunner>();
+        services.AddSingleton<IBaseSchemaRunner, DicomBaseSchemaRunner>();
 
         services.AddMediatR(typeof(SchemaUpgradedNotification).Assembly);
 
