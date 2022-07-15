@@ -42,13 +42,13 @@ Example command line usage:
 ### Terminology
 
 **Current database version**
-- The maximum SchemaVersion version in the database. In the event this table is empty, the version is 0.
+- The maximum SchemaVersion version in the database.
 
 **Current instance version**
 - The maximum SchemaVersion version in the database that falls at or below the SchemaVersionConstants.Max value. For example, if the current database version is 25, but SchemaVersionConstants.Max is 23, the instance's current version will be 23.
 
 **Available version**
-- Any version greater than or equal to the current database version.
+- Any version greater than the current database version.
 
 **Compatible version**
 - Any version from SchemaVersionConstants.Min to SchemaVersionConstants.Max (inclusive).
@@ -64,9 +64,9 @@ Schema Manager runs through the following steps:
 	2. Ensures instance schema records exist.
 		1. Since DICOM Server implements its own ISchemaClient (DicomSchemaClient), if there are no instance schema records, the upgrade continues uninterrupted. In healthcare-shared-components, this would throw an exception and cancel the upgrade.
 	3. Gets all available versions and compares them against all compatible versions.
-	4. Based on the current schema version:
+	4. Based on the current database schema version:
 		1. If there is no version (base schema only), the latest full migration script is applied.
-		2. If the current version is >= 1, each available version is applied (excluding the current version) one at a time until the database's schema version reaches the desired version input by the user (latest, next, or a specific version).
+		2. If the current version is >= 1, each available version is applied one at a time until the database's schema version reaches the desired version input by the user (latest, next, or a specific version).
 
 ------------
 
