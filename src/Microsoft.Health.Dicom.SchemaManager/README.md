@@ -1,7 +1,5 @@
 # Testing DICOM Schema Manager
 
----
-
 [Main DICOM Schema Manager Documentation](https://github.com/microsoft/dicom-server/blob/main/docs/resources/schema-manager.md)
 
 ---
