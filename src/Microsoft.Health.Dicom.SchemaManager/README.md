@@ -34,6 +34,8 @@
 
 The majority of the DICOM Schema Manager logic comes from healthcare-shared-components. You may notice while debugging that you skip some steps . Here's how to debug external code through the dicom-server solution in Visual Studio.
 
+NOTE: There is currently a bug where you cannot authenticate with microsofthealthoss.visualstudio.com unless you have a Microsoft employee account.
+
 1. [Uncheck "Enable Just My Code"](https://docs.microsoft.com/en-us/visualstudio/debugger/just-my-code).
 2. Add the Microsoft OSS symbol server.
    - Symbol server to add: `microsofthealthoss.visualstudio.com`
