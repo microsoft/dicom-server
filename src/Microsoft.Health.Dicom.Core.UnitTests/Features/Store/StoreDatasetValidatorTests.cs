@@ -125,6 +125,12 @@ public class StoreDatasetValidatorTests
         await _dicomDatasetValidator.ValidateAsync(
             _dicomDataset,
             studyInstanceUidPadded);
+
+        studyInstanceUidPadded = studyInstanceUid + " " + " ";
+
+        await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            studyInstanceUidPadded);
     }
 
     public static IEnumerable<object[]> GetDicomTagsToRemove()
