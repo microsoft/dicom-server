@@ -113,6 +113,20 @@ public class StoreDatasetValidatorTests
              studyInstanceUid);
     }
 
+    [Fact]
+    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidPadding_WhenValidated_ThenItShouldSucceed()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+
+        _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
+
+        string studyInstanceUidPadded = studyInstanceUid + " ";
+
+        await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            studyInstanceUidPadded);
+    }
+
     public static IEnumerable<object[]> GetDicomTagsToRemove()
     {
         return new List<object[]>
