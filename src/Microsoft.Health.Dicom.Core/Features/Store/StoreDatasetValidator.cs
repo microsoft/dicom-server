@@ -89,7 +89,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match.
         if (requiredStudyInstanceUid != null &&
-            !studyInstanceUid.Equals(requiredStudyInstanceUid, StringComparison.OrdinalIgnoreCase))
+            !studyInstanceUid.Equals(requiredStudyInstanceUid.Trim(), StringComparison.OrdinalIgnoreCase))
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.MismatchStudyInstanceUid,
