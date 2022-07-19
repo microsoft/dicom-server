@@ -8,7 +8,6 @@ using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
@@ -44,13 +43,16 @@ public class SecurityModule : IStartupModule
             string[] validAudiences = GetValidAudiences();
             string challengeAudience = validAudiences?.FirstOrDefault();
 
-            services.AddAuthentication(options =>
+            string[] prodValidAudiences = new[]
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
+                "https://dicom.healthcareapis.azure.com/",
+                "https://dicom.healthcareapis.azure.com"
+            };
+            string prodChallengeAudience = prodValidAudiences.FirstOrDefault();
+            string prodAuthority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/";
+
+            services.AddAuthentication()
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.Authority = _securityConfiguration.Authentication.Authority;
                 options.RequireHttpsMetadata = true;
@@ -59,16 +61,27 @@ public class SecurityModule : IStartupModule
                 {
                     ValidAudiences = validAudiences,
                 };
-            });
-
-            services.AddControllers(mvcOptions =>
+                options.ForwardDefaultSelector = ctx => "idp4";
+            })
+            .AddJwtBearer("idp4", options =>
             {
-                var policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-
-                mvcOptions.Filters.Add(new AuthorizeFilter(policy));
+                options.Authority = prodAuthority;
+                options.RequireHttpsMetadata = true;
+                options.Challenge = $"Bearer authorization_uri=\"{prodAuthority}\", resource_id=\"{prodChallengeAudience}\", realm=\"{prodChallengeAudience}\"";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidAudiences = prodValidAudiences,
+                };
             });
+
+            services
+                .AddAuthorization(options =>
+                {
+                    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+                        .RequireAuthenticatedUser()
+                        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "idp4")
+                        .Build();
+                });
 
             if (_securityConfiguration.Authorization.Enabled)
             {
