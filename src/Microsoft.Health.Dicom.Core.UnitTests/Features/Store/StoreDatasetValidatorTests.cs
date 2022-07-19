@@ -113,20 +113,16 @@ public class StoreDatasetValidatorTests
              studyInstanceUid);
     }
 
-    [Fact]
-    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidPadding_WhenValidated_ThenItShouldSucceed()
+    [Theory]
+    [InlineData(" ")]
+    [InlineData("  ")]
+    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidWhitespacePadding_WhenValidated_ThenItShouldSucceed(String padding)
     {
         string studyInstanceUid = TestUidGenerator.Generate();
 
         _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
 
-        string studyInstanceUidPadded = studyInstanceUid + " ";
-
-        await _dicomDatasetValidator.ValidateAsync(
-            _dicomDataset,
-            studyInstanceUidPadded);
-
-        studyInstanceUidPadded = studyInstanceUid + " " + " ";
+        string studyInstanceUidPadded = studyInstanceUid + padding;
 
         await _dicomDatasetValidator.ValidateAsync(
             _dicomDataset,
