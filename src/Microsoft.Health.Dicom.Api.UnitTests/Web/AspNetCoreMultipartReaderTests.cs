@@ -31,7 +31,7 @@ public class AspNetCoreMultipartReaderTests
 
     public AspNetCoreMultipartReaderTests()
     {
-        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), null);
     }
 
     [Fact]

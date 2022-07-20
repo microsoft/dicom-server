@@ -58,6 +58,7 @@ public class StoreController : ControllerBase
     [AuditEventType(AuditEventSubType.Store)]
     public async Task<IActionResult> PostInstanceAsync()
     {
+        _logger.LogInformation("asdasd");
         return await PostAsync(null);
     }
 

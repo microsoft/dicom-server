@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Web;
@@ -21,10 +23,12 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
 {
     private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<ISeekableStreamConverter> _logger;
 
-    public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
+    public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, ILogger<ISeekableStreamConverter> logger)
     {
         EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+        _logger = logger;
 
         _httpContextAccessor = httpContextAccessor;
     }
@@ -38,45 +42,29 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
         long? bufferLimit = null;
         Stream seekableStream = null;
 
+        var stop = new Stopwatch();
+        stop.Start();
+
         if (!stream.CanSeek)
         {
+            // seekableStream = new AspNetCore.WebUtilities.FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
             seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
             _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
-            await seekableStream.DrainAsync(cancellationToken);
+            await (seekableStream as FileBufferingReadStream).BufferAsync(cancellationToken);
+            // await seekableStream.DrainAsync(cancellationToken);
         }
         else
         {
             seekableStream = stream;
         }
 
+        stop.Stop();
+
+        _logger.LogInformation("Total time take to ConvertAsync: New Code : {ElapsedMilliseconds} ms", stop.ElapsedMilliseconds);
+        // _logger.LogInformation("Total time take to ConvertAsync: New Code : {ElapsedMilliseconds} ms", stop.ElapsedMilliseconds);
+
         seekableStream.Seek(0, SeekOrigin.Begin);
 
         return seekableStream;
-    }
-
-    private static class AspNetCoreTempDirectory
-    {
-        private static string s_tempDirectory;
-
-        public static Func<string> TempDirectoryFactory => GetTempDirectory;
-
-        private static string GetTempDirectory()
-        {
-            if (s_tempDirectory == null)
-            {
-                // Look for folders in the following order.
-                // ASPNETCORE_TEMP - User set temporary location.
-                string temp = Environment.GetEnvironmentVariable("ASPNETCORE_TEMP") ?? Path.GetTempPath();
-
-                if (!Directory.Exists(temp))
-                {
-                    throw new DirectoryNotFoundException(temp);
-                }
-
-                s_tempDirectory = temp;
-            }
-
-            return s_tempDirectory;
-        }
     }
 }

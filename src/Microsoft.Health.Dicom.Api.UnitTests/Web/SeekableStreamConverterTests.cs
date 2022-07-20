@@ -28,7 +28,7 @@ public class SeekableStreamConverterTests
         {
             MaxAllowedDicomFileSize = 1000000,
         });
-        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), null);
     }
 
     [Fact]
