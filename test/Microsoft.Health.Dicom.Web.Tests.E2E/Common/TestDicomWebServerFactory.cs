@@ -13,7 +13,7 @@ public class TestDicomWebServerFactory
 {
     public static TestDicomWebServer GetTestDicomWebServer(Type startupType, DicomTestServerCategory testServerCategory)
     {
-        Uri environmentUrl = GetDicomServerUrl(testServerCategory);
+        Uri environmentUrl = GetDicomServerUrl();
 
         if (environmentUrl == null)
         {
@@ -35,38 +35,15 @@ public class TestDicomWebServerFactory
         return new RemoteTestDicomWebServer(environmentUrl);
     }
 
-    private static Uri GetDicomServerUrl(DicomTestServerCategory testServerCategory)
+    private static Uri GetDicomServerUrl()
     {
         var options = new TestEnvironmentOptions();
         TestEnvironment.Variables.Bind(options);
-
-        if ((testServerCategory & DicomTestServerCategory.DataPartition) == DicomTestServerCategory.DataPartition)
-        {
-            return options.TestFeaturesEnabledEnvironmentUrl;
-        }
-
-        if ((testServerCategory & DicomTestServerCategory.Features) == DicomTestServerCategory.Features)
-        {
-            return options.TestFeaturesEnabledEnvironmentUrl;
-        }
-
-        if ((testServerCategory & DicomTestServerCategory.DualWrite) == DicomTestServerCategory.DualWrite)
-        {
-            return options.TestFeaturesEnabledEnvironmentUrl;
-        }
-
-        if (testServerCategory == DicomTestServerCategory.None)
-        {
-            return options.TestEnvironmentUrl;
-        }
-
-        throw new NotSupportedException($"Dicom TestServer Category {testServerCategory} not supported");
+        return options.TestEnvironmentUrl;
     }
 
     private sealed class TestEnvironmentOptions
     {
         public Uri TestEnvironmentUrl { get; set; }
-
-        public Uri TestFeaturesEnabledEnvironmentUrl { get; set; }
     }
 }
