@@ -7,10 +7,13 @@ using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-public class DicomFileLengthLimitExceededException : ValidationException
+/// <summary>
+/// The incoming payload exceeds configured limits.
+/// </summary>
+public class PayloadTooLargeException : DicomServerException
 {
-    public DicomFileLengthLimitExceededException(long maxAllowedLength)
-       : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DicomFileLengthLimitExceeded, maxAllowedLength))
+    public PayloadTooLargeException(long maxAllowedLength)
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.RequestLengthLimitExceeded, maxAllowedLength))
     {
     }
 }

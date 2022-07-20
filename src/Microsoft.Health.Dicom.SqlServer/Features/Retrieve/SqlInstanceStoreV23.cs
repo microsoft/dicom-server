@@ -22,7 +22,7 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V22;
+    public override SchemaVersion Version => SchemaVersion.V23;
 
     public override async Task<IEnumerable<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
