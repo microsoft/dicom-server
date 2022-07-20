@@ -3,12 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Core.Features.Security.Authorization;
@@ -50,9 +55,14 @@ public class SecurityModule : IStartupModule
             };
             string prodChallengeAudience = prodValidAudiences.FirstOrDefault();
             string prodAuthority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/";
+            Dictionary<string, string> audienceToSchemeMapper = new Dictionary<string, string>
+            {
+                { "https://dicom.healthcareapis.azure.com", "idp4" },
+                { "https://dicom.healthcareapis.azure-test.net", "default" },
+            };
 
-            services.AddAuthentication()
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            services.AddAuthentication("Selector")
+            .AddJwtBearer("default", options =>
             {
                 options.Authority = _securityConfiguration.Authentication.Authority;
                 options.RequireHttpsMetadata = true;
@@ -61,7 +71,6 @@ public class SecurityModule : IStartupModule
                 {
                     ValidAudiences = validAudiences,
                 };
-                options.ForwardDefaultSelector = ctx => "idp4";
             })
             .AddJwtBearer("idp4", options =>
             {
@@ -72,16 +81,78 @@ public class SecurityModule : IStartupModule
                 {
                     ValidAudiences = prodValidAudiences,
                 };
-            });
-
-            services
-                .AddAuthorization(options =>
+            })
+            .AddPolicyScheme(
+                "Selector",
+                "Selector",
+                options =>
                 {
-                    options.DefaultPolicy = new AuthorizationPolicyBuilder()
-                        .RequireAuthenticatedUser()
-                        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, "idp4")
-                        .Build();
-                });
+                    options.ForwardDefaultSelector = context =>
+                    {
+                        // Find the first authentication header with a JWT Bearer token whose issuer
+                        // contains one of the scheme names and return the found scheme name.
+                        StringValues headers = default(StringValues);
+
+                        if (!StringValues.IsNullOrEmpty(context.Request.Headers.Authorization))
+                        {
+                            Console.WriteLine("!!!!!!Found Authorization");
+                            headers = context.Request.Headers.Authorization;
+                        }
+
+                        if (!StringValues.IsNullOrEmpty(context.Request.Headers.WWWAuthenticate))
+                        {
+                            Console.WriteLine("!!!!!!Found WWWAuthenticate");
+                        }
+
+                        if (!StringValues.IsNullOrEmpty(context.Request.Headers.ProxyAuthorization))
+                        {
+                            Console.WriteLine("!!!!!!Found ProxyAuthorization");
+                        }
+
+                        foreach (var header in context.Request.Headers)
+                        {
+                            Console.WriteLine($"Header: {header.Key}, value {header.Value}");
+                        }
+
+                        if (StringValues.IsNullOrEmpty(headers))
+                        {
+                            // No authentication headers - how do we handle this error?
+                            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                            Console.WriteLine("!!!!!!Found no auth headers");
+                            return "default";
+                        }
+
+                        foreach (var header in headers)
+                        {
+                            var encodedToken = header.Substring(JwtBearerDefaults.AuthenticationScheme.Length + 1);
+                            var jwtHandler = new JwtSecurityTokenHandler();
+                            var decodedToken = jwtHandler.ReadJwtToken(encodedToken);
+                            var audiences = decodedToken?.Audiences;
+                            foreach (var audienceToScheme in audienceToSchemeMapper)
+                            {
+                                if (audiences != null && audiences.Any() && audiences.Any(a => a.Contains(audienceToScheme.Key, System.StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    // Found the scheme.
+                                    return audienceToScheme.Value;
+                                }
+                            }
+                        }
+
+                        // Handle error.
+                        Console.WriteLine("!!!!!!Did not match audicences");
+                        return "default";
+                    };
+                }
+            );
+
+            services.AddControllers(mvcOptions =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+
+                mvcOptions.Filters.Add(new AuthorizeFilter(policy));
+            });
 
             if (_securityConfiguration.Authorization.Enabled)
             {
