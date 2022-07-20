@@ -12,6 +12,7 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
+    Task<DicomWebResponse<Stream>> RetrieveSingleFrameAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int frame, string partitionName = default, CancellationToken cancellationToken = default);
     Task<DicomWebAsyncEnumerableResponse<Stream>> RetrieveFramesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames = default, string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType, string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax, string partitionName = default, CancellationToken cancellationToken = default);
     Task<DicomWebResponse<DicomFile>> RetrieveInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax, string partitionName = default, CancellationToken cancellationToken = default);
     Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch = default, string partitionName = default, CancellationToken cancellationToken = default);

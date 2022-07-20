@@ -161,6 +161,27 @@ public partial class RetrieveTransactionResourceTests
     }
 
     [Fact]
+    public async Task GivenInstanceWithFrames_WhenRetrieveSinglePartOneFrame_ThenServerShouldReturnExpectedContent()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 3);
+        DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
+        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+
+        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
+            dicomInstance.StudyInstanceUid,
+            dicomInstance.SeriesInstanceUid,
+            dicomInstance.SopInstanceUid,
+            1);
+        Stream frameStream = await response.GetValueAsync();
+        Assert.NotNull(frameStream);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GivenNonExistingFrames_WhenRetrieveFrame_ThenServerShouldReturnNotFound()
     {
         (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
