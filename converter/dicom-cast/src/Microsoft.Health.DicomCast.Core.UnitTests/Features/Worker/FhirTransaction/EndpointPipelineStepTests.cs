@@ -6,6 +6,7 @@
 using System.Linq;
 using System.Threading;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
@@ -41,7 +42,7 @@ public class EndpointPipelineStepTests
 
         _fhirService = Substitute.For<IFhirService>();
 
-        _endpointPipeline = new EndpointPipelineStep(optionsConfiguration, _fhirService);
+        _endpointPipeline = new EndpointPipelineStep(optionsConfiguration, _fhirService, NullLogger<EndpointPipelineStep>.Instance);
     }
 
     [Fact]

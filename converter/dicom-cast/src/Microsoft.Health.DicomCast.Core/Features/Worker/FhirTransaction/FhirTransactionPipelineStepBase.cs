@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-public class LoggingFhirTransactionPipelineStep : IFhirTransactionPipelineStep
+public abstract class FhirTransactionPipelineStepBase : IFhirTransactionPipelineStep
 {
     private static readonly Func<ILogger, string, IDisposable> LogPreparingRequestDelegate =
         LoggerMessage.DefineScope<string>($"Executing {nameof(PrepareRequestAsync)} of {{PipelineStep}}.");
@@ -25,29 +25,25 @@ public class LoggingFhirTransactionPipelineStep : IFhirTransactionPipelineStep
             default,
             "Encountered an exception while processing.");
 
-    private readonly IFhirTransactionPipelineStep _fhirTransactionPipelineStep;
     private readonly ILogger _logger;
     private readonly string _pipelineStepName;
 
-    public LoggingFhirTransactionPipelineStep(
-        IFhirTransactionPipelineStep fhirTransactionPipelineStep,
-        ILogger<LoggingFhirTransactionPipelineStep> logger)
+    protected FhirTransactionPipelineStepBase(
+        ILogger<FhirTransactionPipelineStepBase> logger)
     {
-        EnsureArg.IsNotNull(fhirTransactionPipelineStep, nameof(fhirTransactionPipelineStep));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        _fhirTransactionPipelineStep = fhirTransactionPipelineStep;
         _logger = logger;
-        _pipelineStepName = fhirTransactionPipelineStep.GetType().Name;
+        _pipelineStepName = GetType().Name;
     }
 
-    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
     {
         using (LogPreparingRequestDelegate(_logger, _pipelineStepName))
         {
             try
             {
-                await _fhirTransactionPipelineStep.PrepareRequestAsync(context, cancellationToken);
+                await PrepareRequestImplementationAsync(context, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -68,7 +64,7 @@ public class LoggingFhirTransactionPipelineStep : IFhirTransactionPipelineStep
         {
             try
             {
-                _fhirTransactionPipelineStep.ProcessResponse(context);
+                ProcessResponseImplementation(context);
             }
             catch (Exception ex)
             {
@@ -77,4 +73,8 @@ public class LoggingFhirTransactionPipelineStep : IFhirTransactionPipelineStep
             }
         }
     }
+
+    protected abstract Task PrepareRequestImplementationAsync(FhirTransactionContext context, CancellationToken cancellationToken = default);
+
+    protected abstract void ProcessResponseImplementation(FhirTransactionContext context);
 }
