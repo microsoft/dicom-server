@@ -82,8 +82,7 @@ public class StoreController : ControllerBase
 
     private async Task<IActionResult> PostAsync(string studyInstanceUid)
     {
-        long fileSize = Request.ContentLength ?? 0;
-        _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {StudyInstanceUid} and file size of {FileSize} bytes", studyInstanceUid, fileSize);
+        _logger.LogInformation("DICOM Web Store Transaction request received, with study instance UID {StudyInstanceUid}", studyInstanceUid);
 
         StoreResponse storeResponse = await _mediator.StoreDicomResourcesAsync(
             Request.Body,

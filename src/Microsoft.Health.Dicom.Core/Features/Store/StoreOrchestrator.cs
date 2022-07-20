@@ -109,6 +109,8 @@ public class StoreOrchestrator : IStoreOrchestrator
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
+        _logger.LogInformation("Storing an DICOM instance of {FileSize} bytes", stream.Length);
+
         await _fileStore.StoreFileAsync(
             versionedInstanceIdentifier,
             stream,
