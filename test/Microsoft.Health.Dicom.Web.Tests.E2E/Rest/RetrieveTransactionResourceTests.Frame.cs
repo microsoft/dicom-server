@@ -63,18 +63,6 @@ public partial class RetrieveTransactionResourceTests
         }
     }
 
-    [Theory]
-    [MemberData(nameof(GetUnsupportedAcceptHeadersForFrames))]
-    public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
-    {
-        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
-
-        using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
-        using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-        Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
-    }
-
     [Fact]
     public async Task GivenUnsupportedTransferSyntax_WhenRetrieveFrameWithOriginalTransferSyntax_ThenOriginalContentReturned()
     {
