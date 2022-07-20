@@ -11,16 +11,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 public class TestDicomWebServerFactory
 {
-    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, DicomTestServerCategory testServerCategory)
+    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, TestServerFeatureSettingType featureSettingType)
     {
         Uri environmentUrl = GetDicomServerUrl();
 
         if (environmentUrl == null)
         {
-            var enableDataPartitions = (testServerCategory & DicomTestServerCategory.DataPartition) == DicomTestServerCategory.DataPartition;
-            var enableDualWrite = (testServerCategory & DicomTestServerCategory.DualWrite) == DicomTestServerCategory.DualWrite;
-
-            return new InProcTestDicomWebServer(startupType, enableDataPartitions, enableDualWrite);
+            return new InProcTestDicomWebServer(startupType, featureSettingType);
         }
         else if (!environmentUrl.IsAbsoluteUri)
         {

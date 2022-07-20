@@ -7,11 +7,21 @@ using System;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
+/// <summary>
+/// 
+/// </summary>
 [Flags]
-public enum DicomTestServerCategory : byte
+public enum TestServerFeatureSettingType : byte
 {
+    // Default
     None,
-    Features,
+
+    // Enable UPS-RS
+    UpsRs,
+
+    // Enable Data Partition
     DataPartition,
+
+    // Enable Dual Write
     DualWrite
 }

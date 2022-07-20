@@ -5,9 +5,9 @@
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class FeaturesEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
+public class UpsRsEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
 {
-    public FeaturesEnabledHttpIntegrationTestFixture()
-        : base(Common.DicomTestServerCategory.Features)
+    public UpsRsEnabledHttpIntegrationTestFixture()
+        : base(Common.TestServerFeatureSettingType.UpsRs)
     { }
 }

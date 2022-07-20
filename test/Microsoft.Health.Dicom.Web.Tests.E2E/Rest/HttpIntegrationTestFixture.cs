@@ -21,10 +21,10 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
     private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
 
     public HttpIntegrationTestFixture()
-        : this(DicomTestServerCategory.None)
+        : this(TestServerFeatureSettingType.None)
     { }
 
-    protected HttpIntegrationTestFixture(DicomTestServerCategory dicomTestServerCategory)
+    protected HttpIntegrationTestFixture(TestServerFeatureSettingType dicomTestServerCategory)
     {
         TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), dicomTestServerCategory);
     }
