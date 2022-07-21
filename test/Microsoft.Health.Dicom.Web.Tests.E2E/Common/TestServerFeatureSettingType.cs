@@ -8,7 +8,7 @@ using System;
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 /// <summary>
-/// 
+/// Flags Used to Enable/Disable specific feature setting in the local server app configuration for e2e tests.
 /// </summary>
 [Flags]
 public enum TestServerFeatureSettingType : byte
