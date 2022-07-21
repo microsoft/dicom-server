@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
@@ -61,18 +60,6 @@ public partial class RetrieveTransactionResourceTests
             Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
             frameIndex++;
         }
-    }
-
-    [Theory]
-    [MemberData(nameof(GetUnsupportedAcceptHeadersForFrames))]
-    public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
-    {
-        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
-
-        using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
-        using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-        Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
     }
 
     [Fact]
@@ -158,6 +145,27 @@ public partial class RetrieveTransactionResourceTests
         Assert.Equal(KnownContentTypes.MultipartRelated, response.ContentHeaders.ContentType.MediaType);
         Assert.Equal(pixelData.GetFrame(0).Data, frames[0].ToByteArray());
         Assert.Equal(pixelData.GetFrame(1).Data, frames[1].ToByteArray());
+    }
+
+    [Fact]
+    public async Task GivenInstanceWithFrames_WhenRetrieveSinglePartOneFrame_ThenServerShouldReturnExpectedContent()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 3);
+        DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
+        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+
+        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
+            dicomInstance.StudyInstanceUid,
+            dicomInstance.SeriesInstanceUid,
+            dicomInstance.SopInstanceUid,
+            1);
+        Stream frameStream = await response.GetValueAsync();
+        Assert.NotNull(frameStream);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
