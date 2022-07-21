@@ -8,6 +8,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class DataPartitionEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
 {
     public DataPartitionEnabledHttpIntegrationTestFixture()
-        : base(enableDataPartitions: true)
+        : base(Common.TestServerFeatureSettingType.DataPartition)
     { }
 }

@@ -15,12 +15,12 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
+public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIntegrationTestFixture<Startup>>
 {
     private readonly IDicomWebClient _client;
-    private readonly HttpIntegrationTestFixture<Startup> _fixture;
+    private readonly UpsRsEnabledHttpIntegrationTestFixture<Startup> _fixture;
 
-    public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+    public WorkItemTransactionTests(UpsRsEnabledHttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _fixture = fixture;
@@ -28,7 +28,7 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt")]
     public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemE2EWorkflowSuccessfully()
     {
         // Create
@@ -81,7 +81,7 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt")]
     public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemCancelE2EWorkflowSuccessfully()
     {
         // Create

@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public partial class WorkItemTransactionTests
 {
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt")]
     public async Task GivenChangeWorkitemState_WhenWorkitemIsFound_TheServerShouldChangeWorkitemStateSuccessfully()
     {
         // Create

@@ -21,12 +21,12 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
     private readonly Dictionary<(string, string), AuthenticationHttpMessageHandler> _authenticationHandlers = new Dictionary<(string, string), AuthenticationHttpMessageHandler>();
 
     public HttpIntegrationTestFixture()
-        : this(enableDataPartitions: false, enableDualWrite: false)
+        : this(TestServerFeatureSettingType.None)
     { }
 
-    protected HttpIntegrationTestFixture(bool enableDataPartitions, bool enableDualWrite = false)
+    protected HttpIntegrationTestFixture(TestServerFeatureSettingType dicomTestServerCategory)
     {
-        TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), enableDataPartitions, enableDualWrite);
+        TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), dicomTestServerCategory);
     }
 
     public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
