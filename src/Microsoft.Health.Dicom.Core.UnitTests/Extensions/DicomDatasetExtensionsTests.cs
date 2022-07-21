@@ -559,19 +559,51 @@ public class DicomDatasetExtensionsTests
     {
         yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneOne };
         yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.TwoOne };
-        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, ""), RequirementCode.TwoOne };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, string.Empty), RequirementCode.TwoOne };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneCTwo };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, string.Empty), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, string.Empty), RequirementCode.MustBeEmpty };
 
         yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.OneOne };
         yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.TwoOne };
         yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.TwoOne };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.OneCTwo };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.MustBeEmpty };
 
         yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.OneOne };
         yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.TwoOne };
         yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.TwoOne };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.OneCTwo };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.MustBeEmpty };
 
         yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.OneOne };
         yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.TwoOne };
         yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.TwoOne };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.OneCTwo };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.TwoCTwoC };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.MustBeEmpty };
     }
 
     public static IEnumerable<object[]> InvalidAttributeRequirements()
@@ -582,8 +614,48 @@ public class DicomDatasetExtensionsTests
 
         // present, but zero length
         yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.OneOne };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.ThreeOne };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.OneCTwo };
         yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.OneOne };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.ThreeOne };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.OneCTwo };
         yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.OneOne };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.ThreeOne };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.OneCTwo };
         yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.OneOne };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.ThreeOne };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.ThreeTwo };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.ThreeThree };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.OneCOne };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.OneCOneC };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.OneCTwo };
+
+        // present and has some value
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.MustBeEmpty };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.MustBeEmpty };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.MustBeEmpty };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.MustBeEmpty };
+
+        // present
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, new string[0]), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.ApprovalStatusDateTime, new DicomDateTime(DicomTag.ApprovalStatusDateTime, DateTime.UtcNow), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.SelectorSLValue, new DicomSignedLong(DicomTag.SelectorSLValue, 0), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence), RequirementCode.NotAllowed };
+        yield return new object[] { DicomTag.SnoutSequence, new DicomSequence(DicomTag.SnoutSequence, new DicomDataset[] { new DicomDataset(new DicomDecimalString(DicomTag.PixelBandwidth, "1.0")) }), RequirementCode.NotAllowed };
     }
 }

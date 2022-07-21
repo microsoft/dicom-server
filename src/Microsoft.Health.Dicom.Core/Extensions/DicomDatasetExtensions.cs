@@ -123,7 +123,10 @@ public static class DicomDatasetExtensions
         RequirementCode.OneOne,
         RequirementCode.ThreeOne,
         RequirementCode.ThreeTwo,
-        RequirementCode.ThreeThree
+        RequirementCode.ThreeThree,
+        RequirementCode.OneCOne,
+        RequirementCode.OneCOneC,
+        RequirementCode.OneCTwo
     };
 
     /// <summary>
@@ -515,7 +518,18 @@ public static class DicomDatasetExtensions
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
-        dataset.ValidateRequiredAttribute(tag, MandatoryRequirementCodes.Contains(requirementCode), NonZeroLengthRequirementCodes.Contains(requirementCode));
+        switch (requirementCode)
+        {
+            case RequirementCode.MustBeEmpty:
+                dataset.ValidateEmptyValue(tag);
+                break;
+            case RequirementCode.NotAllowed:
+                dataset.ValidateNotPresent(tag);
+                break;
+            default:
+                dataset.ValidateRequiredAttribute(tag, MandatoryRequirementCodes.Contains(requirementCode), NonZeroLengthRequirementCodes.Contains(requirementCode));
+                break;
+        }
     }
 
     private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool isMandatory = true, bool isNonZero = true)
@@ -556,6 +570,36 @@ public static class DicomDatasetExtensions
                         DicomCoreResource.AttributeMustNotBeEmpty,
                         tag));
             }
+        }
+    }
+
+    private static void ValidateEmptyValue(this DicomDataset dataset, DicomTag tag)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+        if (dataset.GetValueCount(tag) > 0)
+        {
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.AttributeMustBeEmpty,
+                    tag));
+        }
+    }
+
+    private static void ValidateNotPresent(this DicomDataset dataset, DicomTag tag)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+        if (dataset.Contains(tag))
+        {
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.AttributeNotAllowed,
+                    tag));
         }
     }
 

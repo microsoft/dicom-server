@@ -543,7 +543,7 @@ public sealed class WorkitemServiceTests
     {
         var dataset = new DicomDataset();
 
-        WorkitemService.SetSpecifiedAttributesForCreate(dataset, String.Empty);
+        WorkitemService.SetSpecifiedAttributesForCreate(dataset);
 
         Assert.True(dataset.Contains(tag));
         Assert.True(dataset.GetValueCount(tag) > 0);
