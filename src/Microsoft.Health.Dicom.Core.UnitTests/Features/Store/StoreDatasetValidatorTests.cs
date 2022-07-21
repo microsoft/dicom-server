@@ -119,19 +119,24 @@ public class StoreDatasetValidatorTests
     // even byte boundary.":
     // https://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
     [Theory]
-    [InlineData(" ")]
-    [InlineData("  ")]
-    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidWhitespacePadding_WhenValidated_ThenItShouldSucceed(String padding)
+    [InlineData(" ", "")]
+    [InlineData("  ", "")]
+    [InlineData(" ", " ")]
+    [InlineData("", " ")]
+    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidWhitespacePadding_WhenValidated_ThenItShouldSucceed(
+        string queryStudyInstanceUidPadding,
+        string saveStudyInstanceUidPadding)
     {
         string studyInstanceUid = TestUidGenerator.Generate();
+        string queryStudyInstanceUid = studyInstanceUid + queryStudyInstanceUidPadding;
+        string saveStudyInstanceUid = studyInstanceUid + saveStudyInstanceUidPadding;
 
-        _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid);
+        _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, saveStudyInstanceUid);
 
-        string studyInstanceUidPadded = studyInstanceUid + padding;
 
         await _dicomDatasetValidator.ValidateAsync(
             _dicomDataset,
-            studyInstanceUidPadded);
+            queryStudyInstanceUid);
     }
 
     public static IEnumerable<object[]> GetDicomTagsToRemove()
