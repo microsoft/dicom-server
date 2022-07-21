@@ -14,6 +14,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Utilities;
@@ -34,6 +35,7 @@ public class BlobWorkitemStore : IWorkitemStore
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private readonly ILogger<BlobWorkitemStore> _logger;
 
     public const int MaxPrefixLength = 3;
 
@@ -41,19 +43,19 @@ public class BlobWorkitemStore : IWorkitemStore
         BlobServiceClient client,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-        IOptions<JsonSerializerOptions> jsonSerializerOptions)
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
+        ILogger<BlobWorkitemStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
         var containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.WorkitemContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-        _jsonSerializerOptions = jsonSerializerOptions.Value;
-        _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
     }
 
     /// <inheritdoc />

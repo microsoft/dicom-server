@@ -14,6 +14,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -33,6 +34,7 @@ public class BlobFileStore : IFileStore
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
+    private readonly ILogger<BlobFileStore> _logger;
 
     public BlobFileStore(
         BlobServiceClient client,
@@ -40,22 +42,21 @@ public class BlobFileStore : IFileStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
-        IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration)
+        IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
+        ILogger<BlobFileStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(nameWithUid, nameof(nameWithUid));
-        EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-        EnsureArg.IsNotNull(options?.Value, nameof(options));
         EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
+        _nameWithUid = EnsureArg.IsNotNull(nameWithUid, nameof(nameWithUid));
+        _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.BlobContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-        _options = options.Value;
-        _nameWithUid = nameWithUid;
-        _nameWithPrefix = nameWithPrefix;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
     }
 
@@ -95,9 +96,16 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+        try
+        {
+            BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
+            await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
     }
 
     /// <inheritdoc />
@@ -107,21 +115,30 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
-
-        Stream stream = null;
-        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
-
-        await ExecuteAsync(async () =>
+        try
         {
-            // todo: RetrieableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrievel.
-            // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetriebleStream
-            //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
-            //stream = result.Value.Content;
-            stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
-        });
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
 
-        return stream;
+            Stream stream = null;
+            var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+
+            await ExecuteAsync(async () =>
+            {
+                // todo: RetrieableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrievel.
+                // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetriebleStream
+                //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+                //stream = result.Value.Content;
+                stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
+            });
+
+            return stream;
+        }
+        catch (ItemNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+
+            throw;
+        }
     }
 
     public async Task<FileProperties> GetFilePropertiesAsync(
@@ -130,16 +147,25 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
-        FileProperties fileProperties = null;
-
-        await ExecuteAsync(async () =>
+        try
         {
-            var response = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
-            fileProperties = response.Value.ToFileProperties();
-        });
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+            FileProperties fileProperties = null;
 
-        return fileProperties;
+            await ExecuteAsync(async () =>
+            {
+                var response = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
+                fileProperties = response.Value.ToFileProperties();
+            });
+
+            return fileProperties;
+        }
+        catch (ItemNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+
+            throw;
+        }
     }
 
     /// <inheritdoc/>

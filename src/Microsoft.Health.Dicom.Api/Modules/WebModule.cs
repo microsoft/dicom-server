@@ -6,7 +6,6 @@
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Api.Web;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Api.Modules;
@@ -21,8 +20,6 @@ public class WebModule : IStartupModule
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
-
-        services.Decorate<ISeekableStreamConverter, LoggingSeekableStreamConverter>();
 
         services.Add<AspNetCoreMultipartReaderFactory>()
             .Singleton()
