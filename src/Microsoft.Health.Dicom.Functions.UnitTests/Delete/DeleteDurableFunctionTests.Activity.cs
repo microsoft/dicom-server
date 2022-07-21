@@ -14,9 +14,9 @@ using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Delete;
 
-public partial class CopyDurableFunctionTests
+public partial class DeleteDurableFunctionTests
 {
     [Fact]
     public async Task GivenNoWatermark_WhenGettingInstanceBatches_ThenShouldInvokeCorrectMethod()
@@ -29,7 +29,7 @@ public partial class CopyDurableFunctionTests
             .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, null, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _function.GetCopyInstanceBatchesAsync(
+        IReadOnlyList<WatermarkRange> actual = await _function.GetDeleteInstanceBatchesAsync(
             new BatchCreationArguments(null, batchSize, maxParallelBatches),
             NullLogger.Instance);
 
@@ -53,7 +53,7 @@ public partial class CopyDurableFunctionTests
             .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, max, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _function.GetCopyInstanceBatchesAsync(
+        IReadOnlyList<WatermarkRange> actual = await _function.GetDeleteInstanceBatchesAsync(
             new BatchCreationArguments(max, batchSize, maxParallelBatches),
             NullLogger.Instance);
 
@@ -88,7 +88,7 @@ public partial class CopyDurableFunctionTests
             .Returns(expected);
 
         // Call the activity
-        await _function.CopyBatchAsync(range, NullLogger.Instance);
+        await _function.DeleteBatchAsync(range, NullLogger.Instance);
 
         // Assert behavior
         await _instanceStore

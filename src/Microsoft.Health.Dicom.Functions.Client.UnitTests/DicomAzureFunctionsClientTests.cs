@@ -75,6 +75,15 @@ public class DicomAzureFunctionsClientTests
                     Size = 50,
                 },
             },
+            Delete = new FanOutFunctionOptions
+            {
+                Name = FunctionNames.DeleteFiles,
+                Batching = new BatchingOptions
+                {
+                    MaxParallelCount = 2,
+                    Size = 50,
+                },
+            },
         };
         _client = new DicomAzureFunctionsClient(
             durableClientFactory,
