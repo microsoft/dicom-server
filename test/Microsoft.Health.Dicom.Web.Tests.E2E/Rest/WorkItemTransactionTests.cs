@@ -28,7 +28,7 @@ public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIn
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt")]
     public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemE2EWorkflowSuccessfully()
     {
         // Create
@@ -81,7 +81,7 @@ public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIn
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt")]
     public async Task GivenWorkitemTransaction_WhenWorkitemIsFound_TheServerShouldExecuteWorkitemCancelE2EWorkflowSuccessfully()
     {
         // Create
