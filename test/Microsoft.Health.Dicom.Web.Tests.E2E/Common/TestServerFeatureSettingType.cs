@@ -9,19 +9,20 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 /// <summary>
 /// Flags Used to Enable/Disable specific feature setting in the local server app configuration for e2e tests.
+/// Use only the powers of 2 for member values, to make use of the "flag" behavior.
 /// </summary>
 [Flags]
 public enum TestServerFeatureSettingType : byte
 {
     // Default
-    None,
+    None = 0,
 
     // Enable UPS-RS
-    UpsRs,
+    UpsRs = 1,
 
     // Enable Data Partition
-    DataPartition,
+    DataPartition = 2,
 
     // Enable Dual Write
-    DualWrite
+    DualWrite = 4
 }
