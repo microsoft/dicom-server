@@ -21,8 +21,8 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
         IEnumerable<DicomFile> dicomFiles,
         string studyInstanceUid,
-        string partitionName,
-        CancellationToken cancellationToken)
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
 
@@ -56,8 +56,8 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
         IEnumerable<Stream> streams,
         string studyInstanceUid,
-        string partitionName,
-        CancellationToken cancellationToken)
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(streams, nameof(streams));
 
@@ -71,8 +71,8 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
         Stream stream,
         string studyInstanceUid,
-        string partitionName,
-        CancellationToken cancellationToken)
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
 
@@ -88,8 +88,8 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
         DicomFile dicomFile,
         string studyInstanceUid,
-        string partitionName,
-        CancellationToken cancellationToken)
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
@@ -107,8 +107,8 @@ public partial class DicomWebClient : IDicomWebClient
 
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
         HttpContent content,
-        string partitionName,
-        CancellationToken cancellationToken)
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         return await StoreAsync(
             GenerateStoreRequestUri(partitionName),
@@ -117,7 +117,7 @@ public partial class DicomWebClient : IDicomWebClient
             .ConfigureAwait(false);
     }
 
-    private async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken)
+    private async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(requestUri, nameof(requestUri));
         EnsureArg.IsNotNull(content, nameof(content));

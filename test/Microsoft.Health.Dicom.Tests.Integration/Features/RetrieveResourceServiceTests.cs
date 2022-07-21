@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -34,6 +35,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features;
 
 public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>, IClassFixture<SqlDataStoreTestsFixture>
 {
+    private readonly IMetadataStore _metadataStore;
     private readonly RetrieveResourceService _retrieveResourceService;
     private readonly IIndexDataStore _indexDataStore;
     private readonly IInstanceStore _instanceStore;
@@ -65,8 +67,25 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
+        var loggerFactory = Substitute.For<ILoggerFactory>();
+        var instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
+        var framesRangeCache = Substitute.For<IFramesRangeCache>();
+
+        _metadataStore = blobStorageFixture.MetadataStore;
         _retrieveResourceService = new RetrieveResourceService(
-            _instanceStore, _fileStore, _retrieveTranscoder, _frameHandler, _retrieveTransferSyntaxHandler, _dicomRequestContextAccessor, retrieveConfigurationSnapshot, NullLogger<RetrieveResourceService>.Instance);
+            _instanceStore,
+            _fileStore,
+            _retrieveTranscoder,
+            _frameHandler,
+            _retrieveTransferSyntaxHandler,
+            _dicomRequestContextAccessor,
+            _metadataStore,
+            instanceMetadataCache,
+            framesRangeCache,
+            retrieveConfigurationSnapshot,
+            NullLogger<RetrieveResourceService>.Instance,
+            loggerFactory
+            );
     }
 
     [Fact]

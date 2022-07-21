@@ -23,6 +23,8 @@
 --         * The new status to update to.
 --     @maxTagKey
 --         * Optional max ExtendedQueryTag key
+--     @hasFrameMetadata
+--         * Optional flag to indicate frame metadata existance
 --
 -- RETURN VALUE
 --     None
@@ -34,7 +36,8 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
     @sopInstanceUid     VARCHAR(64),
     @watermark          BIGINT,
     @status             TINYINT,
-    @maxTagKey          INT = NULL
+    @maxTagKey          INT = NULL,
+    @hasFrameMetadata   BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON
@@ -50,7 +53,7 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = @currentDate
+    SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata
     WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid

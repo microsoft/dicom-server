@@ -84,7 +84,6 @@ internal class ElementRequiredLengthValidation : IElementValidation
             throw new ElementValidationException(
                 name,
                 dicomVR,
-                value,
                 ValidationErrorCode.UnexpectedLength,
                 string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
         }

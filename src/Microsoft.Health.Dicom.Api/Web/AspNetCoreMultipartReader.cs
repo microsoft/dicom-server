@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
@@ -25,6 +26,14 @@ namespace Microsoft.Health.Dicom.Api.Web;
 /// </summary>
 internal class AspNetCoreMultipartReader : IMultipartReader
 {
+    /// <summary>
+    /// This is the exception message that will be returned by both <see href="https://github.com/dotnet/aspnetcore/blob/bf3352f2422bf16fa3ca49021f0e31961ce525eb/src/Servers/IIS/IIS/src/CoreStrings.resx#L151">IIS</see>
+    /// and <see href="https://github.com/dotnet/aspnetcore/blob/bf3352f2422bf16fa3ca49021f0e31961ce525eb/src/Servers/Kestrel/Core/src/CoreStrings.resx#L307">Kestrel</see>
+    /// in the case of the MultipartReader <see href="https://github.com/dotnet/aspnetcore/blob/6850cc8187751cdec3e4071e8786aeffe29d11ee/src/Servers/Kestrel/Core/src/Internal/Http/Http1ContentLengthMessageBody.cs#L248">attempting to read</see>
+    /// past the request body limit configured at the server level.
+    /// </summary>
+    private const string BodyTooLargeExceptionMessage = "Request body too large.";
+
     private const string TypeParameterName = "type";
     private const string StartParameterName = "start";
     private readonly ISeekableStreamConverter _seekableStreamConverter;
@@ -101,6 +110,10 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         {
             throw new InvalidMultipartRequestException(ex.Message);
         }
+        catch (BadHttpRequestException ex) when (ex.Message.StartsWith(BodyTooLargeExceptionMessage, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+        }
 
         if (section == null)
         {
@@ -132,7 +145,7 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         catch (InvalidDataException)
         {
             // This will result in bad request, we need to handle this differently when we make the processing serial.
-            throw new DicomFileLengthLimitExceededException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+            throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
         catch (IOException)
         {

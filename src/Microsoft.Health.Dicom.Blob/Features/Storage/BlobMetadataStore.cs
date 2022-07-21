@@ -16,6 +16,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -33,15 +34,15 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobMetadataStore : IMetadataStore
 {
-    private const string GetInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(GetInstanceMetadataAsync);
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
-
+    private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
+    private readonly ILogger<BlobMetadataStore> _logger;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -50,24 +51,22 @@ public class BlobMetadataStore : IMetadataStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
-        IOptions<JsonSerializerOptions> jsonSerializerOptions)
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
+        ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-        EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
-        EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
+        _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        _nameWithUid = EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
+        _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-        _jsonSerializerOptions = jsonSerializerOptions.Value;
-        _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
-        _nameWithUid = fileNameWithUid;
-        _nameWithPrefix = nameWithPrefix;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
     }
 
@@ -86,22 +85,20 @@ public class BlobMetadataStore : IMetadataStore
 
         try
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName))
-            await using (Utf8JsonWriter utf8Writer = new Utf8JsonWriter(stream))
-            {
-                // TODO: Use SerializeAsync in .NET 6
-                JsonSerializer.Serialize(utf8Writer, dicomDatasetWithoutBulkData, _jsonSerializerOptions);
-                await utf8Writer.FlushAsync(cancellationToken);
-                stream.Seek(0, SeekOrigin.Begin);
+            await using Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName);
+            await JsonSerializer.SerializeAsync(stream, dicomDatasetWithoutBulkData, _jsonSerializerOptions, cancellationToken);
 
-                await Task.WhenAll(blobClients.Select(blob => blob.UploadAsync(
+            foreach (BlockBlobClient blob in blobClients)
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                await blob.UploadAsync(
                     stream,
-                    new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJson },
+                    new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJsonUtf8 },
                     metadata: null,
                     conditions: null,
                     accessTier: null,
                     progressHandler: null,
-                    cancellationToken)));
+                    cancellationToken);
             }
         }
         catch (Exception ex)
@@ -114,6 +111,7 @@ public class BlobMetadataStore : IMetadataStore
     public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
         BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
 
         await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
@@ -123,18 +121,81 @@ public class BlobMetadataStore : IMetadataStore
     public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+
+        try
+        {
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+            return ExecuteAsync(async t =>
+            {
+                // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
+                BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
+
+                // DICOM metadata file includes UTF-8 encoding with BOM and there is a bug with the
+                // BinaryData.ToObjectFromJson method as seen in this issue: https://github.com/dotnet/runtime/issues/71447
+                return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
+            }, cancellationToken);
+        }
+        catch (ItemNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+
+        await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public async Task StoreInstanceFramesRangeAsync(
+            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            IReadOnlyDictionary<int, FrameRange> framesRange,
+            CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        EnsureArg.IsNotNull(framesRange, nameof(framesRange));
+
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+
+        try
+        {
+            // TOOD: Stream directly to blob storage
+            await using Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceFramesRangeTagName);
+            await JsonSerializer.SerializeAsync(stream, framesRange, _jsonSerializerOptions, cancellationToken);
+
+            stream.Seek(0, SeekOrigin.Begin);
+            await blobClient.UploadAsync(
+                stream,
+                new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJsonUtf8 },
+                metadata: null,
+                conditions: null,
+                accessTier: null,
+                progressHandler: null,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
+
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+        BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
 
         return ExecuteAsync(async t =>
         {
-            await using (Stream stream = _recyclableMemoryStreamManager.GetStream(GetInstanceMetadataStreamTagName))
-            {
-                await blobClient.DownloadToAsync(stream, cancellationToken);
-
-                stream.Seek(0, SeekOrigin.Begin);
-
-                return await JsonSerializer.DeserializeAsync<DicomDataset>(stream, _jsonSerializerOptions, t);
-            }
+            BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+            return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
         }, cancellationToken);
     }
 
@@ -151,6 +212,12 @@ public class BlobMetadataStore : IMetadataStore
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
         }
+    }
+
+    private BlockBlobClient GetInstanceFramesRangeBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    {
+        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
+        return _container.GetBlockBlobClient(blobName);
     }
 
     private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)

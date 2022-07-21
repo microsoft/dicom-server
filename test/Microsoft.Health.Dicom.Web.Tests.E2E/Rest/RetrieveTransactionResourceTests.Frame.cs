@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
@@ -61,18 +60,6 @@ public partial class RetrieveTransactionResourceTests
             Assert.Equal(item.ToByteArray(), pixelData.GetFrame(frameIndex).Data);
             frameIndex++;
         }
-    }
-
-    [Theory]
-    [MemberData(nameof(GetUnsupportedAcceptHeadersForFrames))]
-    public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveFrame_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
-    {
-        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseRetrieveFramesUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), string.Join("%2C", new int[] { 1 })), UriKind.Relative);
-
-        using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
-        using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-        Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
     }
 
     [Fact]
@@ -161,6 +148,27 @@ public partial class RetrieveTransactionResourceTests
     }
 
     [Fact]
+    public async Task GivenInstanceWithFrames_WhenRetrieveSinglePartOneFrame_ThenServerShouldReturnExpectedContent()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 3);
+        DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
+        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+
+        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
+            dicomInstance.StudyInstanceUid,
+            dicomInstance.SeriesInstanceUid,
+            dicomInstance.SopInstanceUid,
+            1);
+        Stream frameStream = await response.GetValueAsync();
+        Assert.NotNull(frameStream);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GivenNonExistingFrames_WhenRetrieveFrame_ThenServerShouldReturnNotFound()
     {
         (InstanceIdentifier identifier, DicomFile file) = await CreateAndStoreDicomFile(2);
@@ -181,6 +189,25 @@ public partial class RetrieveTransactionResourceTests
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
            () => _client.RetrieveFramesAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), frames));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenPathologyFile_WithOriginalGet_IsSuccessful()
+    {
+        string studyInstanceUid = "1.2.3.4.3";
+        string seriesInstanceUid = "1.2.3.4.3.9423673";
+        string sopInstanceUid = "1.3.6.1.4.1.45096.10.296485376.2210.1633373144.864450";
+
+        try
+        {
+            using MemoryStream memoryStream = new MemoryStream(Resource.layer9);
+            await _client.StoreAsync(memoryStream);
+            await _client.RetrieveFramesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new int[] { 1 });
+        }
+        finally
+        {
+            await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        }
     }
 
     public static IEnumerable<object[]> GetUnsupportedAcceptHeadersForFrames

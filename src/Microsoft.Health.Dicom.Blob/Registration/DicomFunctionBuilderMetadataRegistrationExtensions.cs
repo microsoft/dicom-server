@@ -5,8 +5,10 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob;
+using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -14,63 +16,58 @@ using Microsoft.Health.Dicom.Core.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// A collection of <see langword="static"/> extension methods for configuring blob services for Azure Functions.
+/// </summary>
 public static class DicomFunctionsBuilderRegistrationExtensions
 {
     /// <summary>
     /// Adds the metadata store for the DICOM functions.
     /// </summary>
     /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
-    /// <param name="containerName">The name of the metadata container.</param>
-    /// <param name="configuration">The configuration for the function.</param>
+    /// <param name="configuration">The host configuration for the functions.</param>
+    /// <param name="functionSectionName">The name of the configuration section containing the functions.</param>
     /// <returns>The functions builder.</returns>
-    public static IDicomFunctionsBuilder AddMetadataStorageDataStore(
+    public static IDicomFunctionsBuilder AddBlobStorage(
         this IDicomFunctionsBuilder functionsBuilder,
         IConfiguration configuration,
-        string containerName)
+        string functionSectionName)
     {
         EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
-        EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
+        EnsureArg.IsNotNullOrWhiteSpace(functionSectionName, nameof(functionSectionName));
 
+        // Common services
         IConfigurationSection blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+        functionsBuilder.Services
+            .AddBlobServiceClient(blobConfig)
+            .AddOptions<DicomBlobContainerOptions>()
+            .Bind(blobConfig.GetSection(DicomBlobContainerOptions.SectionName))
+            .ValidateDataAnnotations();
+
+        // Metadata
         functionsBuilder.Services
             .AddSingleton<MetadataStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
-            .AddPersistence<IMetadataStore, BlobMetadataStore, LoggingMetadataStore>()
-            .AddBlobServiceClient(blobConfig)
+            .AddPersistence<IMetadataStore, BlobMetadataStore>()
             .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
-            .Configure<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName, c => c.ContainerName = containerName);
+            .AddOptions<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName)
+            .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.Metadata);
 
-        functionsBuilder.Services
-            .AddAzureBlobExportSink(o => blobConfig.Bind(o)); // Re-use the blob store's configuration
-
-        return functionsBuilder;
-    }
-
-    /// <summary>
-    /// Adds the DICOM instance store for the DICOM functions.
-    /// </summary>
-    /// <param name="functionsBuilder">The DICOM functions builder instance.</param>
-    /// <param name="containerName">The name of the metadata container.</param>
-    /// <param name="configuration">The configuration for the function.</param>
-    /// <returns>The functions builder.</returns>
-    public static IDicomFunctionsBuilder AddFileStorageDataStore(
-        this IDicomFunctionsBuilder functionsBuilder,
-        IConfiguration configuration,
-        string containerName)
-    {
-        EnsureArg.IsNotNull(functionsBuilder, nameof(functionsBuilder));
-        EnsureArg.IsNotNull(configuration, nameof(configuration));
-        EnsureArg.IsNotNullOrEmpty(containerName, nameof(containerName));
-
-        var blobConfig = configuration.GetSection(BlobServiceClientOptions.DefaultSectionName);
+        // Blob Files
         functionsBuilder.Services
             .AddSingleton<BlobStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
-            .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
-            .AddBlobServiceClient(blobConfig)
-            .Configure<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName, c => c.ContainerName = containerName);
+            .AddPersistence<IFileStore, BlobFileStore>()
+            .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
+            .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
+
+        // Export
+        functionsBuilder.Services
+            .AddAzureBlobExportSink(
+                o => configuration.GetSection(functionSectionName).GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
+                o => blobConfig.Bind(o)); // Re-use the blob store's configuration
 
         return functionsBuilder;
     }

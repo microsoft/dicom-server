@@ -6,8 +6,9 @@
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Client.Authentication;
+using Microsoft.Health.Client.Extensions;
 using Microsoft.Health.DicomCast.Core.Configurations;
-using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -42,7 +43,7 @@ public class FhirModule : IStartupModule
             {
                 sp.BaseAddress = fhirConfiguration.Endpoint;
             })
-            .AddAuthenticationHandler(services, fhirConfigurationSection.GetSection(AuthenticationConfiguration.SectionName), FhirConfigurationSectionName);
+            .AddAuthenticationHandler(fhirConfigurationSection.GetSection(AuthenticationOptions.SectionName));
 
         services.Add<FhirResourceValidator>()
             .Singleton()

@@ -48,6 +48,19 @@ steps:
       repository: dicom-functions
       tags: ${{ parameters.tag }}
 
+  - task: Docker@2
+    displayName: 'Build dicom-uploader'
+    inputs:
+      command: 'build'
+      containerRegistry: '$(azureContainerRegistry)'
+      Dockerfile: 'tools/uploader-function/src/DicomUploaderFunction/Dockerfile'
+      buildContext: '$(Build.Repository.LocalPath)'
+      arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
+      repository: dicom-uploader
+      tags: |
+        ${{ parameters.tag }}
+        latest
+
   # Build SQL for the sake of component governance
   - task: Docker@2
     displayName: 'Build SQL Server Image'
@@ -92,6 +105,17 @@ steps:
         containerRegistry: '$(azureContainerRegistry)'
         repository: dicom-functions
         tags: ${{ parameters.tag }}
+
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: 'Push dicom-uploader'
+      inputs:
+        command: 'push'
+        containerRegistry: '$(azureContainerRegistry)'
+        repository: dicom-uploader
+        tags: |
+          ${{ parameters.tag }}
+          latest
 
   - task: Docker@2
     displayName: Logout

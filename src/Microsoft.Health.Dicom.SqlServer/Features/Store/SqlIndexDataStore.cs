@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -19,9 +20,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 internal sealed class SqlIndexDataStore : IIndexDataStore
 {
     private readonly VersionedCache<ISqlIndexDataStore> _cache;
+    private readonly ILogger<SqlIndexDataStore> _logger;
 
-    public SqlIndexDataStore(VersionedCache<ISqlIndexDataStore> cache)
-        => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
+    public SqlIndexDataStore(VersionedCache<ISqlIndexDataStore> cache, ILogger<SqlIndexDataStore> logger)
+    {
+        _cache = EnsureArg.IsNotNull(cache, nameof(cache));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+    }
 
     public async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
     {
@@ -83,9 +88,9 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
     }
 
-    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, CancellationToken cancellationToken = default)
+    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, cancellationToken);
+        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
     }
 }

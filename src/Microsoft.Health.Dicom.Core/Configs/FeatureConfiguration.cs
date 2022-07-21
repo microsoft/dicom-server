@@ -18,11 +18,6 @@ public class FeatureConfiguration
     public bool EnableFullDicomItemValidation { get; set; }
 
     /// <summary>
-    /// Enables ExtendedQueryTags feature.
-    /// </summary>
-    public bool EnableExtendedQueryTags { get; set; }
-
-    /// <summary>
     /// Enables Data Partition feature.
     /// </summary>
     public bool EnableDataPartitions { get; set; }

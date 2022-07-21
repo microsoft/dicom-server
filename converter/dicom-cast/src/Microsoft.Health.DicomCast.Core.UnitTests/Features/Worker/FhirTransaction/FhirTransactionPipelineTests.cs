@@ -5,11 +5,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
+using Microsoft.Health.DicomCast.Core.Exceptions;
+using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Polly.Timeout;
 using Xunit;
 using Task = System.Threading.Tasks.Task;
 
@@ -20,6 +30,7 @@ public class FhirTransactionPipelineTests
     private readonly IList<IFhirTransactionPipelineStep> _fhirTransactionPipelineSteps = new List<IFhirTransactionPipelineStep>();
     private readonly FhirTransactionRequestResponsePropertyAccessors _fhirTransactionRequestResponsePropertyAccessors = new FhirTransactionRequestResponsePropertyAccessors();
     private readonly IFhirTransactionExecutor _fhirTransactionExecutor = Substitute.For<IFhirTransactionExecutor>();
+    private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
 
     private readonly FhirTransactionPipeline _fhirTransactionPipeline;
 
@@ -30,7 +41,7 @@ public class FhirTransactionPipelineTests
     public FhirTransactionPipelineTests()
     {
         // Use this step to capture the context. The same context will be used across all steps.
-        _captureFhirTransactionContextStep.When(pipeline => pipeline.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), CancellationToken.None))
+        _captureFhirTransactionContextStep.When(pipeline => pipeline.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), Arg.Any<CancellationToken>()))
             .Do(callback =>
             {
                 FhirTransactionContext context = callback.ArgAt<FhirTransactionContext>(0);
@@ -40,10 +51,16 @@ public class FhirTransactionPipelineTests
 
         _fhirTransactionPipelineSteps.Add(_captureFhirTransactionContextStep);
 
+        RetryConfiguration retryConfiguration = new RetryConfiguration();
+        retryConfiguration.TotalRetryDuration = new TimeSpan(0, 0, 15);
+
         _fhirTransactionPipeline = new FhirTransactionPipeline(
             _fhirTransactionPipelineSteps,
             _fhirTransactionRequestResponsePropertyAccessors,
-            _fhirTransactionExecutor);
+            _fhirTransactionExecutor,
+            _exceptionStore,
+            Options.Create(retryConfiguration),
+            NullLogger<FhirTransactionPipeline>.Instance);
     }
 
     [Theory]
@@ -63,8 +80,6 @@ public class FhirTransactionPipelineTests
             OnPrepareRequestAsyncCalled = (context, cancellationToken) =>
             {
                 context.Request.Patient = patientRequest;
-
-                Assert.Equal(CancellationToken.None, cancellationToken);
             },
         };
 
@@ -83,7 +98,7 @@ public class FhirTransactionPipelineTests
 
         _fhirTransactionExecutor.ExecuteTransactionAsync(
             Arg.Any<Bundle>(),
-            CancellationToken.None)
+            Arg.Any<CancellationToken>())
             .Returns(call =>
             {
                 // Make sure the request bundle is correct.
@@ -212,7 +227,7 @@ public class FhirTransactionPipelineTests
 
         _fhirTransactionExecutor.ExecuteTransactionAsync(
             Arg.Any<Bundle>(),
-            CancellationToken.None)
+            Arg.Any<CancellationToken>())
             .Returns(call =>
             {
                 // Make sure the request bundle is correct.
@@ -261,5 +276,51 @@ public class FhirTransactionPipelineTests
         Assert.NotNull(patientResponse);
         Assert.Same(patientResponse.Response, patientResponseEntry.Response);
         Assert.Same(patientResponse.Resource, patientResponseEntry.Resource);
+    }
+
+    [Fact]
+    public async Task GivenRetryableException_WhenProcessed_ThenItShouldRetry()
+    {
+        await ExecuteAndValidateRetryThenThrowTimeOut(new RetryableException());
+    }
+
+    [Fact]
+    public async Task GivenNotConflictException_WhenProcessed_ThenItShouldNotRetry()
+    {
+        await ExecuteAndValidate(new Exception(), 1);
+    }
+
+    [Fact]
+    public async Task GivenHttpRequestExceptionException_ProcessAsync_ShouldRetryRetryableException()
+    {
+        await ExecuteAndValidateRetryThenThrowTimeOut(new HttpRequestException());
+    }
+
+    [Fact]
+    public async Task GivenTaskCancelledExceptionException_ProcessAsync_ShouldRetryRetryableException()
+    {
+        await ExecuteAndValidateRetryThenThrowTimeOut(new TaskCanceledException());
+    }
+
+    private async Task ExecuteAndValidate(Exception ex, int expectedNumberOfCalls)
+    {
+        ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
+        var context = new FhirTransactionContext(changeFeedEntry);
+
+        _captureFhirTransactionContextStep.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), default).ThrowsForAnyArgs(ex);
+
+        await Assert.ThrowsAsync(ex.GetType(), () => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, default));
+
+        await _captureFhirTransactionContextStep.Received(expectedNumberOfCalls).PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), Arg.Any<CancellationToken>());
+    }
+
+    private async Task ExecuteAndValidateRetryThenThrowTimeOut(Exception ex)
+    {
+        ChangeFeedEntry changeFeedEntry = ChangeFeedGenerator.Generate();
+        var context = new FhirTransactionContext(changeFeedEntry);
+
+        _captureFhirTransactionContextStep.PrepareRequestAsync(Arg.Any<FhirTransactionContext>(), Arg.Any<CancellationToken>()).ThrowsForAnyArgs(ex);
+
+        await Assert.ThrowsAsync<TimeoutRejectedException>(() => _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, default));
     }
 }

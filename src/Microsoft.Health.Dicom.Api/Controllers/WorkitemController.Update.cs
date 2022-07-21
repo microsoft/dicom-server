@@ -34,7 +34,6 @@ public partial class WorkitemController
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
-    [ProducesResponseType((int)HttpStatusCode.NotAcceptable)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     [ProducesResponseType((int)HttpStatusCode.UnsupportedMediaType)]
     [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedUpdateWorkitemInstance)]

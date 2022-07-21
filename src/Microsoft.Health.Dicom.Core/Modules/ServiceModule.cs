@@ -55,8 +55,6 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Decorate<IStoreOrchestrator, LoggingStoreOrchestrator>();
-
         services.Add<DicomInstanceEntryReaderForMultipartRequest>()
             .Singleton()
             .AsSelf()
@@ -67,14 +65,10 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Decorate<IDicomInstanceEntryReader, LoggingDicomInstanceEntryReader>();
-
         services.Add<DicomInstanceEntryReaderManager>()
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
-
-        services.Decorate<IDicomInstanceEntryReaderManager, LoggingDicomInstanceEntryReaderManager>();
 
         services.Add<StoreResponseBuilder>()
             .Transient()
@@ -156,6 +150,16 @@ public class ServiceModule : IStartupModule
 
         services.Add<PartitionService>()
             .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<InstanceMetadataCache>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<FramesRangeCache>()
+            .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
 
@@ -259,7 +263,7 @@ public class ServiceModule : IStartupModule
 
     private static void AddExportServices(IServiceCollection services)
     {
-        services.AddScoped<IExportIdentityProvider, DefaultExportIdentityProvider>();
+        services.AddScoped<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ExportSourceFactory>();
         services.AddScoped<ExportSinkFactory>();

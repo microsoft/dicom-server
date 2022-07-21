@@ -93,11 +93,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         {
             throw new DatasetValidationException(
                 FailureReasonCodes.MismatchStudyInstanceUid,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    DicomCoreResource.MismatchStudyInstanceUid,
-                    studyInstanceUid,
-                    requiredStudyInstanceUid));
+                DicomCoreResource.MismatchStudyInstanceUid);
         }
 
         string EnsureRequiredTagIsPresent(DicomTag dicomTag)

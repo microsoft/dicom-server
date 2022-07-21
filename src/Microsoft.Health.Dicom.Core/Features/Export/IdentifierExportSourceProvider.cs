@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -21,12 +19,13 @@ internal sealed class IdentifierExportSourceProvider : ExportSourceProvider<Iden
 {
     public override ExportSourceType Type => ExportSourceType.Identifiers;
 
-    protected override Task<IExportSource> CreateAsync(IServiceProvider provider, IdentifierExportOptions options, PartitionEntry partition, CancellationToken cancellationToken = default)
-        => Task.FromResult<IExportSource>(
-            new IdentifierExportSource(
-                provider.GetRequiredService<IInstanceStore>(),
-                partition,
-                Options.Create(options)));
+    private readonly IInstanceStore _instanceStore;
+
+    public IdentifierExportSourceProvider(IInstanceStore instanceStore)
+        => _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+
+    protected override Task<IExportSource> CreateAsync(IdentifierExportOptions options, PartitionEntry partition, CancellationToken cancellationToken = default)
+        => Task.FromResult<IExportSource>(new IdentifierExportSource(_instanceStore, partition, options));
 
     protected override Task ValidateAsync(IdentifierExportOptions options, CancellationToken cancellationToken = default)
     {

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Api.Web;
@@ -21,12 +22,12 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
 {
     private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<SeekableStreamConverter> _logger;
 
-    public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor)
+    public SeekableStreamConverter(IHttpContextAccessor httpContextAccessor, ILogger<SeekableStreamConverter> logger)
     {
-        EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
-
-        _httpContextAccessor = httpContextAccessor;
+        _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc />

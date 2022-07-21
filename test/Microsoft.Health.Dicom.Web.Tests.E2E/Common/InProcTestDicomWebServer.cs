@@ -29,9 +29,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 /// </summary>
 public class InProcTestDicomWebServer : TestDicomWebServer
 {
-    public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions)
+    public InProcTestDicomWebServer(Type startupType, TestServerFeatureSettingType featureSettingType = TestServerFeatureSettingType.None)
         : base(new Uri("http://localhost/"))
     {
+        var enableDataPartitions = (featureSettingType & TestServerFeatureSettingType.DataPartition) == TestServerFeatureSettingType.DataPartition;
+        var enableDualWrite = (featureSettingType & TestServerFeatureSettingType.DualWrite) == TestServerFeatureSettingType.DualWrite;
+        var enableUpsRs = (featureSettingType & TestServerFeatureSettingType.UpsRs) == TestServerFeatureSettingType.UpsRs;
+
         string contentRoot = GetProjectPath("src", startupType);
 
         var authSettings = new Dictionary<string, string>
@@ -45,9 +49,14 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         var featureSettings = new Dictionary<string, string>
         {
             { "DicomServer:Features:EnableExport", "true" },
-            { "DicomServer:Features:EnableExtendedQueryTags", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
-            { "DicomServer:Features:EnableUpsRs", "true" }
+            { "DicomServer:Features:EnableUpsRs", enableUpsRs.ToString() }
+        };
+
+
+        var serviceSettings = new Dictionary<string, string>
+        {
+            { "DicomServer:Services:BlobMigration:FormatType", "Dual" }
         };
 
         string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
@@ -67,6 +76,12 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 config.AddInMemoryCollection(authSettings);
                 config.AddInMemoryCollection(featureSettings);
                 config.AddInMemoryCollection(sqlSettings);
+
+                if (enableDualWrite)
+                {
+                    config.AddInMemoryCollection(serviceSettings);
+                }
+
                 IConfigurationRoot existingConfig = config.Build();
 
                 config.AddDevelopmentAuthEnvironmentIfConfigured(existingConfig, "DicomServer");

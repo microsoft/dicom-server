@@ -101,6 +101,7 @@ internal class ResourceResult : IActionResult
                 new DicomStreamContent()
                 {
                     Stream = lazyInstanceEnumerator.Current.Stream,
+                    StreamLength = lazyInstanceEnumerator.Current.StreamLength,
                     Headers = new List<KeyValuePair<string, IEnumerable<string>>>()
                     {
                         new KeyValuePair<string, IEnumerable<string>>(KnownContentTypes.ContentType, new []{ $"{contentType}; {KnownContentTypes.TransferSyntax}={lazyInstanceEnumerator.Current.TransferSyntaxUid}"})
