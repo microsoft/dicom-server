@@ -192,8 +192,8 @@ public partial class RetrieveTransactionResourceTests
             dicomFile1.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID),
             retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
         Assert.Equal(
-            queryStudyInstanceUid.Trim(),
-            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID).Trim());
+            queryStudyInstanceUid.TrimEnd(),
+            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID).TrimEnd());
     }
 
     public static IEnumerable<object[]> GetAcceptHeadersForInstances
