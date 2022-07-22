@@ -113,6 +113,32 @@ public class StoreDatasetValidatorTests
              studyInstanceUid);
     }
 
+    // Sometimes users will pass a whitespace padded UID. This is likely a misinterpretation of documentation
+    // specifying "If ending on an odd byte boundary, except when used for network negotiation (see PS3.8),
+    // one trailing NULL (00H), as a padding character, shall follow the last component in order to align the UID on an
+    // even byte boundary.":
+    // https://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
+    [Theory]
+    [InlineData(" ", "")]
+    [InlineData("  ", "")]
+    [InlineData(" ", " ")]
+    [InlineData("", " ")]
+    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidWhitespacePadding_WhenValidated_ThenItShouldSucceed(
+        string queryStudyInstanceUidPadding,
+        string saveStudyInstanceUidPadding)
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string queryStudyInstanceUid = studyInstanceUid + queryStudyInstanceUidPadding;
+        string saveStudyInstanceUid = studyInstanceUid + saveStudyInstanceUidPadding;
+
+        _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, saveStudyInstanceUid);
+
+
+        await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            queryStudyInstanceUid);
+    }
+
     public static IEnumerable<object[]> GetDicomTagsToRemove()
     {
         return new List<object[]>
