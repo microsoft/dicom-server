@@ -61,7 +61,12 @@ public class SecurityModule : IStartupModule
                 { "https://dicom.healthcareapis.azure-test.net", "default" },
             };
 
-            services.AddAuthentication("Selector")
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer("default", options =>
             {
                 options.Authority = _securityConfiguration.Authentication.Authority;
@@ -83,8 +88,8 @@ public class SecurityModule : IStartupModule
                 };
             })
             .AddPolicyScheme(
-                "Selector",
-                "Selector",
+                JwtBearerDefaults.AuthenticationScheme,
+                JwtBearerDefaults.AuthenticationScheme,
                 options =>
                 {
                     options.ForwardDefaultSelector = context =>
