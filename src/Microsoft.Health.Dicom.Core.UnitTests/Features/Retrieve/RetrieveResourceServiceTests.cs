@@ -454,6 +454,23 @@ public class RetrieveResourceServiceTests
         }
     }
 
+    [Fact]
+    public async Task GetFrames_WithSinglePartAcceptOnMultipleFrames_Throws()
+    {
+        // arrange
+        string requestedTransferSyntax = "*";
+
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames);
+        var framesToRequest = new List<int> { 1, 2 };
+        var retrieveResourceRequest = new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, framesToRequest, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(requestedTransferSyntax, KnownContentTypes.ApplicationOctetStream, null, PayloadTypes.SinglePart) });
+
+        // act and assert
+        await Assert.ThrowsAsync<BadRequestException>(() =>
+            _retrieveResourceService.GetInstanceResourceAsync(
+               retrieveResourceRequest,
+               DefaultCancellationToken));
+    }
+
     [Theory]
     [InlineData("*", "1.2.840.10008.1.2.1", "*")] // this is the bug in old files, that is fixed for new files
     [InlineData("1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1", "1.2.840.10008.1.2.1")]
