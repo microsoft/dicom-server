@@ -99,7 +99,7 @@
     <PackageVersion Include="xunit" Version="2.4.1" />
     <PackageVersion Include="xunit.assert" Version="2.4.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
-    <PackageVersion Include="Microsoft.Health.Dicom.Client" Version="8.0.164" />
+    <PackageVersion Include="Microsoft.Health.Dicom.Client" Version="8.0.173" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
   </ItemGroup>
 
