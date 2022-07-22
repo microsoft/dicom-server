@@ -1,7 +1,7 @@
 variables:
   deploymentName: 'dcm-ci-permanent'
   testServerUrl: 'https://$(deploymentName).azurewebsites.net/'
-  testServerFeaturesEnabledUrl: 'https://$(deploymentName)-featuresenabled.azurewebsites.net/'
+  testServerDataPartitionEnabledUrl: 'https://$(deploymentName)-dp.azurewebsites.net/'
   testApplicationScope: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com/.default'
   testApplicationResource: 'https://$(deploymentName).resoluteopensource.onmicrosoft.com'
   resourceGroupName: $(deploymentName)

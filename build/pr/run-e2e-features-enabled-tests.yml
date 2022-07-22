@@ -13,7 +13,7 @@ jobs:
     displayName: 'Run docker-compose'
     workingDirectory: 'docker'
 
-  - bash: for i in {1..12}; do curl -fsS "$(testServerFeaturesEnabledUrl)health/check" > /dev/null && exit 0 || sleep 5; done; exit 1
+  - bash: for i in {1..12}; do curl -fsS "$(testServerDataPartitionEnabledUrl)health/check" > /dev/null && exit 0 || sleep 5; done; exit 1
     displayName: 'Wait for the DICOM Server to Start'
 
   - template: ../common/run-e2e-features-enabled-tests.yml
