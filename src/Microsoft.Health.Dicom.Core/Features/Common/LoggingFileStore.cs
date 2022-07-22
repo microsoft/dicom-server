@@ -185,4 +185,9 @@ public class LoggingFileStore : IFileStore
     {
         return await _fileStore.GetFileFrameAsync(versionedInstanceIdentifier, range, cancellationToken);
     }
+
+    public async Task<Stream> GetStreamingFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    {
+        return await _fileStore.GetStreamingFileAsync(versionedInstanceIdentifier, cancellationToken);
+    }
 }

@@ -76,7 +76,7 @@ internal sealed class AzureBlobExportSink : IExportSink
             return false;
         }
 
-        using Stream sourceStream = await _source.GetFileAsync(value.Identifier, cancellationToken);
+        using Stream sourceStream = await _source.GetStreamingFileAsync(value.Identifier, cancellationToken);
         BlobClient destBlob = _dest.GetBlobClient(_output.GetFilePath(value.Identifier));
 
         try
