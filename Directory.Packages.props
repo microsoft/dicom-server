@@ -20,7 +20,7 @@
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
     <PackageVersion Include="MediatR" Version="9.0.0" />
     <PackageVersion Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.20.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights" Version="2.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.20.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="2.20.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.7" />
