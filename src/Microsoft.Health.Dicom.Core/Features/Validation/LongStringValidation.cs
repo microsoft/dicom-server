@@ -7,19 +7,21 @@ using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 /// <summary>
-/// Validate Dicom VR LO 
+/// Validate Dicom VR LO
 /// </summary>
 internal class LongStringValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement)
+    public ValidationWarnings Validate(DicomElement dicomElement)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name);
+        return ValidationWarnings.None;
     }
 
     public static void Validate(string value, string name)

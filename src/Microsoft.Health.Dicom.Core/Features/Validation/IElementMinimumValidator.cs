@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -18,5 +19,5 @@ public interface IElementMinimumValidator
     /// </summary>
     /// <param name="dicomElement">The Dicom Element</param>
     /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement);
+    ValidationWarnings Validate(DicomElement dicomElement);
 }

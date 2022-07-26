@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -24,13 +25,15 @@ public class ElementMaxLengthValidationTests
     [Fact]
     public void GivenValueInRange_WhenValidating_ThenShouldPass()
     {
-        new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912"));
+        Assert.Equal(ValidationWarnings.None,
+            new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912")));
     }
 
     [Fact]
     public void GivenMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
     {
         // First one in range, second one out of range.
-        new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "0123456789121"));
+        Assert.Equal(ValidationWarnings.None,
+            new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "0123456789121")));
     }
 }

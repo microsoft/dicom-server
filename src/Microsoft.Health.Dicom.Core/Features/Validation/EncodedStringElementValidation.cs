@@ -7,12 +7,13 @@ using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class EncodedStringElementValidation : IElementValidation
 {
-    public void Validate(DicomElement element)
+    public ValidationWarnings Validate(DicomElement element)
     {
         DicomVR vr = element.ValueRepresentation;
         switch (vr.Code)
@@ -29,6 +30,7 @@ internal class EncodedStringElementValidation : IElementValidation
             default:
                 throw new ArgumentOutOfRangeException(nameof(element));
         };
+        return ValidationWarnings.None;
     }
 
     private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode)

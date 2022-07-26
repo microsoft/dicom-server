@@ -6,6 +6,7 @@
 using FellowOakDicom;
 using FellowOakDicom.IO;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -34,7 +35,8 @@ public class ElementRequiredLengthValidationTests
     public void GivenBinaryValueOfRequiredLength_WhenValidating_ThenShouldPass()
     {
         DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, short.MaxValue);
-        new ElementRequiredLengthValidation(2).Validate(element);
+        ValidationWarnings warning = new ElementRequiredLengthValidation(2).Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Fact]
@@ -42,7 +44,8 @@ public class ElementRequiredLengthValidationTests
     {
         // First value if valid, second value is invalid
         DicomElement element = new DicomSignedShort(DicomTag.LargestImagePixelValue, ByteConverter.ToByteBuffer(new byte[] { 1, 2, 3 }));
-        new ElementRequiredLengthValidation(2).Validate(element);
+        ValidationWarnings warning = new ElementRequiredLengthValidation(2).Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Fact]
@@ -57,7 +60,8 @@ public class ElementRequiredLengthValidationTests
     public void GivenStringValueOfRequiredLength_WhenValidating_ThenShouldPass()
     {
         DicomElement element = new DicomAgeString(DicomTag.PatientAge, "012W");
-        new ElementRequiredLengthValidation(4).Validate(element);
+        ValidationWarnings warning = new ElementRequiredLengthValidation(4).Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Fact]
@@ -65,6 +69,7 @@ public class ElementRequiredLengthValidationTests
     {
         // First is valid, second is invalid
         DicomElement element = new DicomAgeString(DicomTag.PatientAge, "012W", "012W2");
-        new ElementRequiredLengthValidation(4).Validate(element);
+        ValidationWarnings warning = new ElementRequiredLengthValidation(4).Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 }

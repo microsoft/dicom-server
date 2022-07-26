@@ -10,6 +10,7 @@ using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -37,7 +38,7 @@ internal class ElementRequiredLengthValidation : IElementValidation
         ExpectedLength = expectedLength;
     }
 
-    public void Validate(DicomElement dicomElement)
+    public ValidationWarnings Validate(DicomElement dicomElement)
     {
         DicomVR vr = dicomElement.ValueRepresentation;
         if (TryGetAsString(dicomElement, out string value))
@@ -48,6 +49,7 @@ internal class ElementRequiredLengthValidation : IElementValidation
         {
             ValidateByteBufferLength(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
         }
+        return ValidationWarnings.None;
     }
 
     private void ValidateByteBufferLength(DicomVR dicomVR, string name, IByteBuffer value)

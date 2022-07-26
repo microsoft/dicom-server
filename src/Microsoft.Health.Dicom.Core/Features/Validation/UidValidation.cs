@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -14,11 +15,13 @@ internal class UidValidation : IElementValidation
 {
     private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
-    public void Validate(DicomElement dicomElement)
+    public ValidationWarnings Validate(DicomElement dicomElement)
     {
+        ValidationWarnings warning = ValidationWarnings.None;
         string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
+        return warning;
     }
 
     public static bool IsValid(string value, bool allowEmpty = false)

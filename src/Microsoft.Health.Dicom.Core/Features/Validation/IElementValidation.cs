@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -18,5 +19,5 @@ internal interface IElementValidation
     /// </summary>
     /// <param name="dicomElement">The dicom element</param>
     /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement);
+    ValidationWarnings Validate(DicomElement dicomElement);
 }

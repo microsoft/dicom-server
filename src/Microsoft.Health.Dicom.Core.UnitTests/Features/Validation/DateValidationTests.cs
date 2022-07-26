@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -29,7 +30,8 @@ public class DateValidationTests
     public void GivenDAValidateValue_WhenValidating_ThenShouldPass(string value)
     {
         DicomDate element = new DicomDate(DicomTag.Date, value);
-        _validation.Validate(element);
+        ValidationWarnings warning = _validation.Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Fact]
@@ -37,6 +39,7 @@ public class DateValidationTests
     {
         // First one is valid, while second is invalid
         DicomDate element = new DicomDate(DicomTag.Date, "20210313", "20100141");
-        _validation.Validate(element);
+        ValidationWarnings warning = _validation.Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 }

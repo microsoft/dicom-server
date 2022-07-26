@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -19,14 +20,15 @@ public class DicomUidValidationTests
     public void GivenValidateUid_WhenValidating_ThenShouldPass(string value)
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
-        new UidValidation().Validate(element);
+        Assert.Equal(ValidationWarnings.None, new UidValidation().Validate(element));
     }
 
     [Fact]
     public void GivenMultipleValues_WhenValidating_ThenShouldVaidateFirstOne()
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, "13", "11|");
-        new UidValidation().Validate(element);
+        ValidationWarnings warning = new UidValidation().Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Theory]
