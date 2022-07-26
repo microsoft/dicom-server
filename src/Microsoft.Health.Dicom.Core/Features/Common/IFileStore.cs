@@ -79,5 +79,5 @@ public interface IFileStore
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteOldFileIfExistsAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 }

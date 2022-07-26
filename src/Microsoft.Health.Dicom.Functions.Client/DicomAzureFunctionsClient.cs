@@ -194,11 +194,11 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         cancellationToken.ThrowIfCancellationRequested();
 
         string instanceId = await _durableClient.StartNewAsync(
-            _options.Delete.Name,
+            _options.MigrationDeletion.Name,
             operationId.ToString(OperationId.FormatSpecifier),
             new BlobMigrationCheckpoint
             {
-                Batching = _options.Delete.Batching,
+                Batching = _options.MigrationDeletion.Batching,
                 Completed = previousCheckpoint
             });
 
@@ -268,8 +268,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         => type switch
         {
             DicomOperation.Copy => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
-            DicomOperation.Delete => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
+            DicomOperation.MigrationDeletion => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,
         };

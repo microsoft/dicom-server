@@ -29,7 +29,7 @@ public partial class DeleteDurableFunctionTests
             .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, null, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _function.GetDeleteInstanceBatchesAsync(
+        IReadOnlyList<WatermarkRange> actual = await _function.GetMigratedDeleteInstanceBatchesAsync(
             new BatchCreationArguments(null, batchSize, maxParallelBatches),
             NullLogger.Instance);
 
@@ -53,7 +53,7 @@ public partial class DeleteDurableFunctionTests
             .GetInstanceBatchesAsync(batchSize, maxParallelBatches, IndexStatus.Created, max, CancellationToken.None)
             .Returns(expected);
 
-        IReadOnlyList<WatermarkRange> actual = await _function.GetDeleteInstanceBatchesAsync(
+        IReadOnlyList<WatermarkRange> actual = await _function.GetMigratedDeleteInstanceBatchesAsync(
             new BatchCreationArguments(max, batchSize, maxParallelBatches),
             NullLogger.Instance);
 
@@ -88,7 +88,7 @@ public partial class DeleteDurableFunctionTests
             .Returns(expected);
 
         // Call the activity
-        await _function.DeleteBatchAsync(range, NullLogger.Instance);
+        await _function.DeleteMigratedBatchAsync(range, NullLogger.Instance);
 
         // Assert behavior
         await _instanceStore

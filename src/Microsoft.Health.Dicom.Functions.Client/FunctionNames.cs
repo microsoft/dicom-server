@@ -9,7 +9,7 @@ internal static class FunctionNames
 {
     public const string CopyFiles = "CopyFiles";
 
-    public const string DeleteFiles = "DeleteFiles";
+    public const string DeleteMigratedFiles = "DeleteMigratedFiles";
 
     public const string ExportDicomFiles = "ExportDicomFiles";
 

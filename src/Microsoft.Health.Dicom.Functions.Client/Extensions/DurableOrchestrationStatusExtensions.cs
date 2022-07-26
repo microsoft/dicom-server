@@ -21,8 +21,8 @@ internal static class DurableOrchestrationStatusExtensions
             if (status.Name.StartsWith(FunctionNames.CopyFiles, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Copy;
 
-            if (status.Name.StartsWith(FunctionNames.DeleteFiles, StringComparison.OrdinalIgnoreCase))
-                return DicomOperation.Delete;
+            if (status.Name.StartsWith(FunctionNames.DeleteMigratedFiles, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.MigrationDeletion;
 
             if (status.Name.StartsWith(FunctionNames.ExportDicomFiles, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Export;

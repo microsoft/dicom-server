@@ -33,5 +33,5 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an delete operation that deletes DICOM instance and metadata file in the same container.
     /// </summary>
-    Delete,
+    MigrationDeletion,
 }

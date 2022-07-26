@@ -21,13 +21,13 @@ public partial class DeleteDurableFunction
 {
     /// <summary>
     /// Asynchronously copy DICOM instances.
-    /// It goes through DICOM instances in the past, copy to files as new blob format.
+    /// It goes through DICOM instances in the past, deletes old format blob.
     /// </summary>
     /// <param name="context">The context for the orchestration instance.</param>
     /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>A task representing the <see cref="DeleteFilesAsync"/> operation.</returns>
-    [FunctionName(nameof(DeleteFilesAsync))]
-    public async Task DeleteFilesAsync(
+    /// <returns>A task representing the <see cref="DeleteMigratedFilesAsync"/> operation.</returns>
+    [FunctionName(nameof(DeleteMigratedFilesAsync))]
+    public async Task DeleteMigratedFilesAsync(
         [OrchestrationTrigger] IDurableOrchestrationContext context,
         ILogger logger)
     {
@@ -40,7 +40,7 @@ public partial class DeleteDurableFunction
         logger = context.CreateReplaySafeLogger(logger);
 
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-            nameof(GetDeleteInstanceBatchesAsync),
+            nameof(GetMigratedDeleteInstanceBatchesAsync),
             _options.RetryOptions,
             new BatchCreationArguments(input.Completed?.Start - 1, input.Batching.Size, input.Batching.MaxParallelCount));
 
@@ -52,10 +52,7 @@ public partial class DeleteDurableFunction
 
             logger.LogInformation("Beginning to delete the range {Range}.", batchRange);
             await Task.WhenAll(batches
-                .Select(x => context.CallActivityWithRetryAsync(
-                    nameof(DeleteBatchAsync),
-                    _options.RetryOptions,
-                    x)));
+                .Select(x => context.CallActivityWithRetryAsync(nameof(DeleteMigratedBatchAsync), _options.RetryOptions, x)));
 
             // Create a new orchestration with the same instance ID to process the remaining data
             logger.LogInformation("Completed deleting the range {Range}. Total files deleted in range: '{NumFiles}'. " +

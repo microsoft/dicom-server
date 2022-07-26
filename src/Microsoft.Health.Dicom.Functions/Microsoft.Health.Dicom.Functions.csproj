@@ -35,14 +35,14 @@
     <None Include="BlobMigration\CopyDurableFunction.*.cs">
       <DependentUpon>CopyDurableFunction.cs</DependentUpon>
     </None>
+    <None Include="BlobMigration\DeleteDurableFunction.*.cs">
+      <DependentUpon>DeleteDurableFunction.cs</DependentUpon>
+    </None>
     <None Include="Export\ExportDurableFunction.*.cs">
       <DependentUpon>ExportDurableFunction.cs</DependentUpon>
     </None>
     <None Include="Indexing\ReindexDurableFunction.*.cs">
       <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
-    </None>
-    <None Include="BlobMigration\DeleteDurableFunction.*.cs">
-      <DependentUpon>DeleteDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>
 

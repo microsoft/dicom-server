@@ -19,14 +19,14 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
+/// <summary>
+/// Background service to delete olb blob format after copy operation is successful
+/// </summary>
 public class StartBlobDeleteMigrationService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly bool _startBlobDelete;
     private readonly ILogger<StartBlobDeleteMigrationService> _logger;
-    private readonly Guid _deleteOperationId;
-    private readonly Guid _copyOperationId;
+    private readonly BlobMigrationConfiguration _blobMigrationFormatConfiguration;
 
     public StartBlobDeleteMigrationService(
         IServiceProvider serviceProvider,
@@ -38,10 +38,7 @@ public class StartBlobDeleteMigrationService : BackgroundService
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _serviceProvider = serviceProvider;
-        _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
-        _startBlobDelete = blobMigrationFormatConfiguration.Value.StartCopy;
-        _deleteOperationId = blobMigrationFormatConfiguration.Value.DeleteOperationId;
-        _copyOperationId = blobMigrationFormatConfiguration.Value.CopyOperationId;
+        _blobMigrationFormatConfiguration = blobMigrationFormatConfiguration.Value;
         _logger = logger;
     }
 
@@ -49,48 +46,48 @@ public class StartBlobDeleteMigrationService : BackgroundService
     {
         try
         {
-            using (var scope = _serviceProvider.CreateScope())
+            using IServiceScope scope = _serviceProvider.CreateScope();
+
+            // Start the background service only when the flag is turned on and the format type is new.
+            if (_blobMigrationFormatConfiguration.FormatType == BlobMigrationFormatType.New && _blobMigrationFormatConfiguration.StartDelete)
             {
-                // Start the background service only when the flag is turned on and the format type is not new service.
-                if (_blobMigrationFormatType == BlobMigrationFormatType.New && _startBlobDelete)
+                IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
+
+                // Get existing delete operation status
+                OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.DeleteOperationId, stoppingToken); ;
+
+                if (existingInstance == null)
                 {
-                    IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
+                    _logger.LogDebug("No existing delete operation.");
+                }
+                else
+                {
+                    _logger.LogDebug("Existing delete operation is in status: '{Status}'", existingInstance.Status);
+                }
 
-                    OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_deleteOperationId, stoppingToken);
+                OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.CopyOperationId, stoppingToken);
 
-                    if (existingInstance == null)
+                // Make sure delete operation is completed before starting delete operation
+                if (IsOperationInterruptedOrNull(existingInstance))
+                {
+                    if (copyOperation?.Status == OperationStatus.Completed)
                     {
-                        _logger.LogDebug("No existing delete operation.");
+                        var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
+
+                        await operationsClient.StartBlobDeleteAsync(_blobMigrationFormatConfiguration.DeleteOperationId, checkpoint?.Completed, stoppingToken);
                     }
                     else
                     {
-                        _logger.LogDebug("Existing delete operation is in status: '{Status}'", existingInstance.Status);
+                        _logger.LogDebug("Copy operation not exists or not in completed status. '{Status}'. Failed to start delete operation.", copyOperation?.Status);
                     }
-
-                    OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_copyOperationId, stoppingToken);
-
-                    // Make sure delete operation is completed before starting delete operation
-                    if (IsOperationInterruptedOrNull(existingInstance))
-                    {
-                        if (copyOperation?.Status == OperationStatus.Completed)
-                        {
-                            var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
-
-                            await operationsClient.StartBlobDeleteAsync(_deleteOperationId, checkpoint?.Completed, stoppingToken);
-                        }
-                        else
-                        {
-                            _logger.LogDebug("Copy operation not exists or not in completed status. '{Status}'", copyOperation?.Status);
-                        }
-                    }
-                    else if (existingInstance.Status == OperationStatus.Completed)
-                    {
-                        _logger.LogInformation("Delete operation with ID '{InstanceId}' has already completed successfully.", _deleteOperationId);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Delete operation with ID '{InstanceId}' has already been started by another client.", _deleteOperationId);
-                    }
+                }
+                else if (existingInstance.Status == OperationStatus.Completed)
+                {
+                    _logger.LogInformation("Delete operation with ID '{InstanceId}' has already completed successfully.", _blobMigrationFormatConfiguration.DeleteOperationId);
+                }
+                else
+                {
+                    _logger.LogInformation("Delete operation with ID '{InstanceId}' has already been started by another client.", _blobMigrationFormatConfiguration.DeleteOperationId);
                 }
             }
         }

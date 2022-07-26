@@ -27,8 +27,8 @@ public partial class DeleteDurableFunction
     /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
     /// property contains a list of batches as defined by their smallest and largest watermark.
     /// </returns>
-    [FunctionName(nameof(GetDeleteInstanceBatchesAsync))]
-    public Task<IReadOnlyList<WatermarkRange>> GetDeleteInstanceBatchesAsync(
+    [FunctionName(nameof(GetMigratedDeleteInstanceBatchesAsync))]
+    public Task<IReadOnlyList<WatermarkRange>> GetMigratedDeleteInstanceBatchesAsync(
         [ActivityTrigger] BatchCreationArguments arguments,
         ILogger logger)
     {
@@ -53,17 +53,17 @@ public partial class DeleteDurableFunction
     }
 
     /// <summary>
-    /// Asynchronously dletes a range of DICOM old instances.
+    /// Asynchronously deletes a range of DICOM old instances.
     /// </summary>
     /// <param name="range">The options that include the instances to copy.</param>
     /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>A task representing the <see cref="DeleteBatchAsync"/> operation.</returns>
-    [FunctionName(nameof(DeleteBatchAsync))]
-    public async Task DeleteBatchAsync([ActivityTrigger] WatermarkRange range, ILogger logger)
+    /// <returns>A task representing the <see cref="DeleteMigratedBatchAsync"/> operation.</returns>
+    [FunctionName(nameof(DeleteMigratedBatchAsync))]
+    public async Task DeleteMigratedBatchAsync([ActivityTrigger] WatermarkRange range, ILogger logger)
     {
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Beginning to delete instances in the range {Range}", range);
+        logger.LogInformation("Beginning to delete old format instances in the range {Range}", range);
 
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created);
@@ -76,6 +76,6 @@ public partial class DeleteDurableFunction
                 MaxDegreeOfParallelism = _options.MaxParallelThreads,
             },
             (id, token) => new ValueTask(_blobMigrationService.DeleteInstanceAsync(id, token)));
-        logger.LogInformation("Completed deleting instances in the range {Range}.", range);
+        logger.LogInformation("Completed deleting old format instances in the range {Range}.", range);
     }
 }

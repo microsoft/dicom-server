@@ -75,9 +75,9 @@ public class DicomAzureFunctionsClientTests
                     Size = 50,
                 },
             },
-            Delete = new FanOutFunctionOptions
+            MigrationDeletion = new FanOutFunctionOptions
             {
-                Name = FunctionNames.DeleteFiles,
+                Name = FunctionNames.DeleteMigratedFiles,
                 Batching = new BatchingOptions
                 {
                     MaxParallelCount = 2,
@@ -458,8 +458,8 @@ public class DicomAzureFunctionsClientTests
         await _durableClient
             .Received(1)
             .StartNewAsync(
-                FunctionNames.DeleteFiles,
+                FunctionNames.DeleteMigratedFiles,
                 operationId.ToString(OperationId.FormatSpecifier),
-                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.Delete.Batching, x.Batching)));
+                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.MigrationDeletion.Batching, x.Batching)));
     }
 }

@@ -39,13 +39,13 @@ public partial class DeleteDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(DeleteDurableFunction.DeleteBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
@@ -57,7 +57,7 @@ public partial class DeleteDurableFunctionTests
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
         // Invoke the orchestration
-        await _function.DeleteFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -66,7 +66,7 @@ public partial class DeleteDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
 
@@ -75,7 +75,7 @@ public partial class DeleteDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(DeleteDurableFunction.DeleteBatchAsync),
+                    nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(batch));
         }
@@ -111,19 +111,19 @@ public partial class DeleteDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(DeleteDurableFunction.DeleteBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _function.DeleteFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -133,7 +133,7 @@ public partial class DeleteDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)));
 
@@ -142,7 +142,7 @@ public partial class DeleteDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(DeleteDurableFunction.DeleteBatchAsync),
+                    nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(batch));
         }
@@ -174,13 +174,13 @@ public partial class DeleteDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.DeleteFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -189,13 +189,13 @@ public partial class DeleteDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(DeleteDurableFunction.DeleteBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
 
@@ -230,13 +230,13 @@ public partial class DeleteDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)))
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.DeleteFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -245,13 +245,13 @@ public partial class DeleteDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(DeleteDurableFunction.GetDeleteInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(DeleteDurableFunction.DeleteBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context

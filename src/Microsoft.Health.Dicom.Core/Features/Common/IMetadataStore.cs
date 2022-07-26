@@ -96,5 +96,5 @@ public interface IMetadataStore
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteOldInstanceMetadataIfExistsAsync
         (VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken = default);
 }
