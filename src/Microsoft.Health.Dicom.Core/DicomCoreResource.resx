@@ -624,4 +624,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">
     <value>The submitted request is inconsistent with the current state of the Workitem.</value>
   </data>
+  <data name="SinglePartSupportedForSingleFrame" xml:space="preserve">
+    <value>The accept header is supported for single frame retrieval, use multi-part accept header instead.</value>
+  </data>
 </root>

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -20,7 +21,10 @@ public class EncodedStringElementValidationTests
     [Theory]
     [MemberData(nameof(ValidElements))]
     public void GivenValidDicomStringElement_WhenValidating_ThenPass(DicomElement element)
-        => _validation.Validate(element);
+    {
+        ValidationWarnings warning = _validation.Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
+    }
 
     [Theory]
     [MemberData(nameof(InvalidElements))]
@@ -36,7 +40,8 @@ public class EncodedStringElementValidationTests
     public void GivenDicomStringElementWithMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
     {
         var element = new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff"), "ABC");
-        _validation.Validate(element);
+        ValidationWarnings warning = _validation.Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     public static IEnumerable<object[]> ValidElements = new object[][]

@@ -3,15 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using Microsoft.Health.Dicom.Core.Exceptions;
+namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-namespace Microsoft.Health.Dicom.Api.Web;
-
-internal class InvalidMultipartBodyPartException : DicomServerException
+public class UpsRsEnabledHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
 {
-    public InvalidMultipartBodyPartException(Exception innerException)
-        : base(DicomApiResource.InvalidMultipartBodyPart, innerException)
-    {
-    }
+    public UpsRsEnabledHttpIntegrationTestFixture()
+        : base(Common.TestServerFeatureSettingType.UpsRs)
+    { }
 }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using FellowOakDicom;
 using FellowOakDicom.IO;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -25,7 +26,7 @@ public class ElementMinimumValidatorTests
     [MemberData(nameof(SupportedDicomElements))]
     public void GivenSupportedVR_WhenValidating_ThenShouldPass(DicomElement dicomElement)
     {
-        _validator.Validate(dicomElement);
+        Assert.Equal(ValidationWarnings.None, _validator.Validate(dicomElement));
     }
 
     public static IEnumerable<object[]> SupportedDicomElements()

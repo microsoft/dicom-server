@@ -9,6 +9,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -22,10 +23,11 @@ internal class ElementMaxLengthValidation : IElementValidation
 
     public int MaxLength { get; }
 
-    public void Validate(DicomElement dicomElement)
+    public ValidationWarnings Validate(DicomElement dicomElement)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
         Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
+        return ValidationWarnings.None;
     }
 
     public static void Validate(string value, int maxLength, string name, DicomVR vr)

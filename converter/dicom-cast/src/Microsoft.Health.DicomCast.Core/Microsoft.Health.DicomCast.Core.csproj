@@ -25,7 +25,6 @@
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Polly.Extensions.Http" />
-    <PackageReference Include="Scrutor" />
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 

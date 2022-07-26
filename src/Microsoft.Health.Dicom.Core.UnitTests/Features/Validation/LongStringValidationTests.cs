@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -16,14 +17,20 @@ public class LongStringValidationTests
     [Fact]
     public void GivenValidateLongString_WhenValidating_ThenShouldPass()
     {
-        new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912"));
+        ValidationWarnings warning =
+            new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation,
+                "012345678912"));
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Fact]
     public void GivenMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
     {
-        var element = new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912", "0123456789012345678901234567890123456789012345678901234567890123456789");
-        new LongStringValidation().Validate(element);
+        var element = new DicomLongString(DicomTag.WindowCenterWidthExplanation,
+            "012345678912",
+            "0123456789012345678901234567890123456789012345678901234567890123456789");
+        ValidationWarnings warning = new LongStringValidation().Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Theory]

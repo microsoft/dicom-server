@@ -208,6 +208,7 @@ The following `Accept` headers are supported for retrieving frames:
 - `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1`
 - `multipart/related; type="image/jp2";` (when transfer-syntax is not specified, 1.2.840.10008.1.2.4.90 is used as default)
 - `multipart/related; type="image/jp2";transfer-syntax=1.2.840.10008.1.2.4.90`
+- `application/octet-stream; transfer-syntax=*` for single frame retrieval
 
 ### Retrieve Transfer Syntax
 

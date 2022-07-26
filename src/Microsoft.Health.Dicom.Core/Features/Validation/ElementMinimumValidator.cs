@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -33,8 +34,9 @@ public class ElementMinimumValidator : IElementMinimumValidator
         { DicomVR.US, new ElementRequiredLengthValidation(2) },
     };
 
-    public void Validate(DicomElement dicomElement)
+    public ValidationWarnings Validate(DicomElement dicomElement)
     {
+        ValidationWarnings warning = ValidationWarnings.None;
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
         DicomVR vr = dicomElement.ValueRepresentation;
         if (vr == null)
@@ -43,11 +45,13 @@ public class ElementMinimumValidator : IElementMinimumValidator
         }
         if (Validations.TryGetValue(vr, out IElementValidation validationRule))
         {
-            validationRule.Validate(dicomElement);
+            warning |= validationRule.Validate(dicomElement);
         }
         else
         {
             Debug.Fail($"Validating VR {vr?.Code} is not supported.");
         }
+
+        return warning;
     }
 }

@@ -1084,6 +1084,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The accept header is supported for single frame retrieval, use multi-part accept header instead..
+        /// </summary>
+        internal static string SinglePartSupportedForSingleFrame {
+            get {
+                return ResourceManager.GetString("SinglePartSupportedForSingleFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified study cannot be found..
         /// </summary>
         internal static string StudyInstanceNotFound {

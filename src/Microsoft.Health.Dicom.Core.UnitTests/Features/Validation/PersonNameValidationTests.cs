@@ -5,6 +5,7 @@
 
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -17,14 +18,16 @@ public class PersonNameValidationTests
     public void GivenValidatePersonName_WhenValidating_ThenShouldPass()
     {
         DicomElement element = new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz");
-        new PersonNameValidation().Validate(element);
+        ValidationWarnings warning = new PersonNameValidation().Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Fact]
     public void GivenMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
     {
         DicomElement element = new DicomPersonName(DicomTag.PatientName, new string[] { "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz", "abc^efg^hij^pqr^lmn^xyz" });
-        new PersonNameValidation().Validate(element);
+        ValidationWarnings warning = new PersonNameValidation().Validate(element);
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     [Theory]

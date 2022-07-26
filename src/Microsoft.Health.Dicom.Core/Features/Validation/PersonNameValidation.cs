@@ -7,12 +7,13 @@ using System.Linq;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class PersonNameValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement)
+    public ValidationWarnings Validate(DicomElement dicomElement)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
@@ -20,7 +21,7 @@ internal class PersonNameValidation : IElementValidation
         if (string.IsNullOrEmpty(value))
         {
             // empty values allowed
-            return;
+            return ValidationWarnings.None;
         }
 
         string[] groups = value.Split('=');
@@ -51,5 +52,6 @@ internal class PersonNameValidation : IElementValidation
         {
             throw new ElementValidationException(name, DicomVR.PN, ValidationErrorCode.PersonNameExceedMaxComponents);
         }
+        return ValidationWarnings.None;
     }
 }
