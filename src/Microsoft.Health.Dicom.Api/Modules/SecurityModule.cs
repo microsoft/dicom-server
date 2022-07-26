@@ -78,7 +78,6 @@ public class SecurityModule : IStartupModule
 
                         if (StringValues.IsNullOrEmpty(authHeaders))
                         {
-                            // No authentication headers - how do we handle this error?
                             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                             return null;
                         }
@@ -99,7 +98,6 @@ public class SecurityModule : IStartupModule
                             }
                         }
 
-                        // Handle error.
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         return null;
                     };
@@ -147,7 +145,7 @@ public class SecurityModule : IStartupModule
         {
             string[] validAudiences = GetValidAudiences(scheme);
             string challengeAudience = validAudiences?.FirstOrDefault();
-            AddToAudienceToSchemeMap(challengeAudience, scheme.Name);
+            AddToAudienceToSchemeMap(validAudiences, scheme.Name);
 
             authenticationBuilder.AddJwtBearer(scheme.Name, options =>
             {
@@ -162,9 +160,12 @@ public class SecurityModule : IStartupModule
         }
     }
 
-    private void AddToAudienceToSchemeMap(string audience, string schemeName)
+    private void AddToAudienceToSchemeMap(string[] audiences, string schemeName)
     {
-        _audienceToSchemeMapper.Add(audience, schemeName);
+        foreach (string audience in audiences)
+        {
+            _audienceToSchemeMapper.Add(audience, schemeName);
+        }
     }
 
     internal static string[] GetValidAudiences(AuthenticationConfiguration authenticationConfiguration)

@@ -27,8 +27,6 @@ public class DicomRequestContextMiddleware
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         HttpRequest request = context.Request;
 
-        Console.WriteLine($"DicomRequestContextMiddleware Auhtorization header: {context?.Request?.Headers?.Authorization}");
-
         var baseUri = new Uri(UriHelper.BuildAbsolute(
             request.Scheme,
             request.Host,

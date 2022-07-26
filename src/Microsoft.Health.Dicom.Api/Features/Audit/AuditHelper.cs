@@ -62,6 +62,7 @@ public class AuditHelper : IAuditHelper
     private void Log(AuditAction auditAction, HttpStatusCode? statusCode, HttpContext httpContext, IClaimsExtractor claimsExtractor)
     {
         IRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
+
         string auditEventType = dicomRequestContext.AuditEventType;
 
         // Audit the call if an audit event type is associated with the action.
