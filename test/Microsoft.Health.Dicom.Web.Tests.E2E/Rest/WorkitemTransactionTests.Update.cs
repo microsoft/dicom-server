@@ -20,8 +20,7 @@ public partial class WorkItemTransactionTests
     {
         // Create
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
-        var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-        var patientName = $"TestUser-{workitemUid}";
+        var workitemUid = TestUidGenerator.Generate();
 
         using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);
@@ -32,6 +31,12 @@ public partial class WorkItemTransactionTests
         var updateDicomDataset = new DicomDataset
         {
             {DicomTag.WorklistLabel, newWorklistLabel },
+            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            {
+                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+            }),
         };
 
         using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid)
@@ -53,8 +58,7 @@ public partial class WorkItemTransactionTests
     {
         // Create
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
-        var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-        var patientName = $"TestUser-{workitemUid}";
+        var workitemUid = TestUidGenerator.Generate();
 
         using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);
@@ -76,6 +80,12 @@ public partial class WorkItemTransactionTests
         var updateDicomDataset = new DicomDataset
         {
             {DicomTag.WorklistLabel, newWorklistLabel },
+            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            {
+                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+            }),
         };
 
         using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid, transactionUid)

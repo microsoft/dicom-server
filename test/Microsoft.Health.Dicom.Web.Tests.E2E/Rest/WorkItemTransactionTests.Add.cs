@@ -19,7 +19,7 @@ public partial class WorkItemTransactionTests
     public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
     {
         DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
-        var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+        var workitemUid = TestUidGenerator.Generate();
 
         using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
 

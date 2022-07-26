@@ -33,37 +33,7 @@ internal static class WorkitemDatasetValidatorExtension
                 break;
         }
 
-        foreach (var requirement in requirements)
-        {
-            dataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
-
-            // No need to validate children if parent is not allowed and already validated in the previous line.
-            if (requirement.RequirementCode != RequirementCode.NotAllowed && requirement.SequenceRequirements != null)
-            {
-                dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
-            }
-        }
-    }
-
-    private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, IReadOnlyCollection<RequirementDetail> requirements)
-    {
-        if (requirements.Count == 0 || !dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var sequenceDataset in sequence.Items)
-        {
-            foreach (var requirement in requirements)
-            {
-                sequenceDataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
-
-                if (null != requirement.SequenceRequirements)
-                {
-                    sequenceDataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
-                }
-            }
-        }
+        dataset.ValidateAllRequirements(requirements);
     }
 
     /// <summary>
@@ -536,7 +506,7 @@ internal static class WorkitemDatasetValidatorExtension
 
     private static HashSet<RequirementDetail> GetUnifiedProcedureStepPerformedProcedureInformationModuleRequirements(WorkitemRequestType requestType)
     {
-        return new HashSet<RequirementDetail>
+        HashSet<RequirementDetail> requirements = new HashSet<RequirementDetail>
         {
             new RequirementDetail(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, requestType == WorkitemRequestType.Add ? RequirementCode.TwoTwo : RequirementCode.ThreeTwo, new HashSet<RequirementDetail>
             {
@@ -555,9 +525,13 @@ internal static class WorkitemDatasetValidatorExtension
                 new RequirementDetail(DicomTag.PerformedWorkitemCodeSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.ThreeOne, GetUPSCodeSequenceMacroRequirements()),
                 new RequirementDetail(DicomTag.PerformedProcessingParametersSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.ThreeOne, GetUPSContentItemMacroRequirements()),
                 new RequirementDetail(DicomTag.PerformedProcedureStepEndDateTime, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.ThreeOne),
-                new RequirementDetail(DicomTag.OutputInformationSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.TwoTwo, GetReferencedInstancesAndAccessMacroRequirements()),
+                new RequirementDetail(DicomTag.OutputInformationSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.TwoTwo),
             }),
         };
+
+        requirements.UnionWith(GetReferencedInstancesAndAccessMacroRequirements());
+
+        return requirements;
     }
 
     private static HashSet<RequirementDetail> GetCodeSequenceMacroAttributesRequirements()

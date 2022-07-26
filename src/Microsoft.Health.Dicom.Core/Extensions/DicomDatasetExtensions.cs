@@ -449,6 +449,55 @@ public static class DicomDatasetExtensions
         }
     }
 
+    public static void ValidateAllRequirements(this DicomDataset dataset, IReadOnlyCollection<RequirementDetail> requirements)
+    {
+        if (requirements == null)
+        {
+            return;
+        }
+
+        foreach (var requirement in requirements)
+        {
+            dataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
+
+            bool isMandatory = MandatoryRequirementCodes.Contains(requirement.RequirementCode);
+
+            // Validate sequence requirements when:
+            //  1. Sequence requirements are present.
+            //  2. Parent is allowed.
+            //  3. Parent is mandatory and is non-zero, means it has to have children.
+            //  4. Parent is not mandatory and contains children.
+            if (requirement.SequenceRequirements != null
+                && (requirement.RequirementCode != RequirementCode.NotAllowed)
+                && ((isMandatory && NonZeroLengthRequirementCodes.Contains(requirement.RequirementCode))
+                    || (!isMandatory && dataset.Contains(requirement.DicomTag) && dataset.GetValueCount(requirement.DicomTag) > 0)))
+            {
+                dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
+            }
+        }
+    }
+
+    private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, IReadOnlyCollection<RequirementDetail> requirements)
+    {
+        if (requirements?.Count == 0 || !dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var sequenceDataset in sequence.Items)
+        {
+            foreach (var requirement in requirements)
+            {
+                sequenceDataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
+
+                if (null != requirement.SequenceRequirements)
+                {
+                    sequenceDataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Validate whether a dataset meets the service class user (SCU) and service class provider (SCP) requirements for a given attribute.
     /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 3.4.5.4.2.1</see>

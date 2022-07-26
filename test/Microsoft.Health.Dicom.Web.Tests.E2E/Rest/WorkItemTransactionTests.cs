@@ -41,6 +41,12 @@ public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIn
         var updateDicomDataset = new DicomDataset
         {
             { DicomTag.WorklistLabel, newWorklistLabel },
+            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            {
+                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+            }),
         };
         await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset)
             .ConfigureAwait(false);
@@ -52,24 +58,30 @@ public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIn
 
         // Update Workitem Transaction when the Workitem has been claimed.
         newWorklistLabel = "WORKLIST-IN-PROGRESS";
-        updateDicomDataset = new DicomDataset
-        {
-            { DicomTag.WorklistLabel, newWorklistLabel },
-        };
+        updateDicomDataset.AddOrUpdate(DicomTag.WorklistLabel, newWorklistLabel);
 
         // Setting following attributes for upcoming calls that will change the state to Completed.
         updateDicomDataset.AddOrUpdate(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
         {
             new DicomSequence(DicomTag.ActualHumanPerformersSequence, new DicomDataset
             {
-                new DicomSequence(DicomTag.HumanPerformerCodeSequence, new DicomDataset()),
+                new DicomSequence(DicomTag.HumanPerformerCodeSequence, new DicomDataset
+                {
+                    { DicomTag.CodeMeaning, "Sample-HumanPerformer-CodeMeaning" }
+                }),
                 { DicomTag.HumanPerformerName, @"Samples-TestFixture" }
             }),
-            new DicomSequence(DicomTag.PerformedStationNameCodeSequence, new DicomDataset()),
+            new DicomSequence(DicomTag.PerformedStationNameCodeSequence, new DicomDataset
+            {
+                { DicomTag.CodeMeaning, "Sample-PerformedStationName-CodeMeaning" }
+            }),
             { DicomTag.PerformedProcedureStepStartDateTime, DateTime.UtcNow },
-            new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset()),
+            new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset
+            {
+                { DicomTag.CodeMeaning, "Sample-PerformedWorkitem-CodeMeaning" }
+            }),
             { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow },
-            new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset())
+            new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset()),
         });
 
         await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset, transactionUid)
@@ -96,7 +108,7 @@ public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIn
 
     private async Task CreateWorkItemAndValidate(string workitemUid)
     {
-        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
+        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
 
         using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);

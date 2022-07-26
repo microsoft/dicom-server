@@ -210,7 +210,8 @@ public static class Samples
     public static DicomDataset CreateRandomWorkitemInstanceDataset(
         string workitemUid = null,
         bool validateItems = true,
-        DicomTransferSyntax dicomTransferSyntax = null)
+        DicomTransferSyntax dicomTransferSyntax = null,
+        WorkitemRequestType requestType = WorkitemRequestType.Add)
     {
         var ds = new DicomDataset(dicomTransferSyntax ?? DicomTransferSyntax.ExplicitVRLittleEndian);
 
@@ -220,7 +221,12 @@ public static class Samples
         }
 
         ds.Add(DicomTag.TransactionUID, string.Empty);
-        ds.Add(DicomTag.SOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
+
+        if (requestType != WorkitemRequestType.Add)
+        {
+            ds.Add(DicomTag.SOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
+        }
+
         ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
         ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N"));
         ds.Add(DicomTag.WorklistLabel, string.Empty);
@@ -237,11 +243,11 @@ public static class Samples
         ds.Add(DicomTag.IssuerOfPatientID, string.Empty);
         ds.Add(DicomTag.IssuerOfPatientIDQualifiersSequence, new DicomDataset());
         ds.Add(DicomTag.OtherPatientIDsSequence, new DicomDataset());
-        ds.Add(DicomTag.PatientBirthDate, string.Empty);
-        ds.Add(DicomTag.PatientSex, string.Empty);
-        ds.Add(DicomTag.AdmissionID, string.Empty);
+        ds.Add(DicomTag.PatientBirthDate, DateTime.Now);
+        ds.Add(DicomTag.PatientSex, "F");
+        ds.Add(DicomTag.AdmissionID, "1");
         ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
-        ds.Add(DicomTag.AdmittingDiagnosesDescription, string.Empty);
+        ds.Add(DicomTag.AdmittingDiagnosesDescription, "SampleDiagnosesDescription");
         ds.Add(DicomTag.AdmittingDiagnosesCodeSequence, new DicomDataset());
         ds.Add(DicomTag.ReferencedRequestSequence, new DicomDataset());
         ds.Add(DicomTag.ProcedureStepState, string.Empty);
@@ -250,7 +256,13 @@ public static class Samples
         ds.Add(new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence));
         ds.Add(DicomTag.ActualHumanPerformersSequence, new DicomDataset());
         ds.Add(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
-        ds.Add(DicomTag.HumanPerformerName, @"TestFixtureUser");
+        ds.Add(DicomTag.HumanPerformerName, "SampleFixtureUser");
+        ds.Add(DicomTag.TypeOfInstances, "SAMPLETYPEOFINST");
+        ds.Add(DicomTag.ReferencedSOPSequence, new DicomDataset
+        {
+            { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+            { DicomTag.ReferencedSOPInstanceUID, "1.2.3" },
+        });
 
         return ds;
     }

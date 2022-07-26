@@ -39,6 +39,7 @@ public sealed class WorkitemFinalStateValidatorExtensionTests
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
         dataset.AddOrUpdate(DicomTag.SOPClassUID, TestUidGenerator.Generate());
+        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
         dataset.AddOrUpdate(DicomTag.ProcedureStepState, ProcedureStepStateConstants.Canceled);
         dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
 
