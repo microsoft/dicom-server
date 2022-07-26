@@ -67,9 +67,9 @@ public class StartBlobDeleteMigrationService : BackgroundService
 
                 OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.CopyOperationId, stoppingToken);
 
-                // Make sure delete operation is completed before starting delete operation
                 if (IsOperationInterruptedOrNull(existingInstance))
                 {
+                    // Make sure copy operation is completed before starting delete operation
                     if (copyOperation?.Status == OperationStatus.Completed)
                     {
                         var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
@@ -93,7 +93,7 @@ public class StartBlobDeleteMigrationService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "Unhandled exception while starting blob migration.");
+            _logger.LogCritical(ex, "Unhandled exception while starting blob delete migration.");
         }
     }
 
