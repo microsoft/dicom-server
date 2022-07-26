@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Modules;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -19,16 +21,17 @@ public class SecurityModuleTests
         {
             Security =
             {
-                Authentication = new AuthenticationConfiguration
+                AuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
-                    Audience = "initialAudience",
-                },
+                    new AuthenticationConfiguration
+                    {
+                        Audience = "initialAudience",
+                    }
+                }
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
-
-        Assert.Equal(new[] { "initialAudience" }, securityModule.GetValidAudiences());
+        Assert.Equal(new[] { "initialAudience" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
     }
 
     [Fact]
@@ -38,17 +41,18 @@ public class SecurityModuleTests
         {
             Security =
             {
-                Authentication = new AuthenticationConfiguration
+                AuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
-                    Audience = "initialAudience",
-                    Audiences = new[] { "audience1", "audience2" },
-                },
+                    new AuthenticationConfiguration
+                    {
+                        Audience = "initialAudience",
+                        Audiences = new[] { "audience1", "audience2" }
+                    }
+                }
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
-
-        Assert.Equal(new[] { "audience1", "audience2" }, securityModule.GetValidAudiences());
+        Assert.Equal(new[] { "audience1", "audience2" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
     }
 
     [Fact]
@@ -58,16 +62,18 @@ public class SecurityModuleTests
         {
             Security =
             {
-                Authentication = new AuthenticationConfiguration
+                AuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
-                    Audiences = new[] { "audience1", "audience2" },
-                },
+                    new AuthenticationConfiguration
+                    {
+                        Audiences = new[] { "audience1", "audience2" }
+                    }
+                }
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
 
-        Assert.Equal(new[] { "audience1", "audience2" }, securityModule.GetValidAudiences());
+        Assert.Equal(new[] { "audience1", "audience2" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
     }
 
     [Fact]
@@ -77,12 +83,13 @@ public class SecurityModuleTests
         {
             Security =
             {
-                Authentication = new AuthenticationConfiguration(),
+                AuthenticationSchemes = new List<AuthenticationConfiguration>
+                {
+                    new AuthenticationConfiguration()
+                }
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
-
-        Assert.Null(securityModule.GetValidAudiences());
+        Assert.Null(SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
     }
 }

@@ -9,6 +9,8 @@ namespace Microsoft.Health.Dicom.Core.Configs;
 
 public class AuthenticationConfiguration
 {
+    public string Name { get; set; }
+
     public string Audience { get; set; }
 
     public IEnumerable<string> Audiences { get; set; }

@@ -3,12 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using EnsureThat;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -29,11 +29,13 @@ namespace Microsoft.Health.Dicom.Api.Modules;
 public class SecurityModule : IStartupModule
 {
     private readonly SecurityConfiguration _securityConfiguration;
+    private readonly Dictionary<string, string> _audienceToSchemeMapper;
 
     public SecurityModule(DicomServerConfiguration dicomServerConfiguration)
     {
         EnsureArg.IsNotNull(dicomServerConfiguration, nameof(dicomServerConfiguration));
         _securityConfiguration = dicomServerConfiguration.Security;
+        _audienceToSchemeMapper = new Dictionary<string, string>();
     }
 
     public void Load(IServiceCollection services)
@@ -45,49 +47,16 @@ public class SecurityModule : IStartupModule
 
         if (_securityConfiguration.Enabled)
         {
-            string[] validAudiences = GetValidAudiences();
-            string challengeAudience = validAudiences?.FirstOrDefault();
-
-            string[] prodValidAudiences = new[]
-            {
-                "https://dicom.healthcareapis.azure.com/",
-                "https://dicom.healthcareapis.azure.com"
-            };
-            string prodChallengeAudience = prodValidAudiences.FirstOrDefault();
-            string prodAuthority = "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/";
-            Dictionary<string, string> audienceToSchemeMapper = new Dictionary<string, string>
-            {
-                { "https://dicom.healthcareapis.azure.com", "idp4" },
-                { "https://dicom.healthcareapis.azure-test.net", "default" },
-            };
-
-            services.AddAuthentication(options =>
+            AuthenticationBuilder authenticationBuilder = services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer("default", options =>
-            {
-                options.Authority = _securityConfiguration.Authentication.Authority;
-                options.RequireHttpsMetadata = true;
-                options.Challenge = $"Bearer authorization_uri=\"{_securityConfiguration.Authentication.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidAudiences = validAudiences,
-                };
-            })
-            .AddJwtBearer("idp4", options =>
-            {
-                options.Authority = prodAuthority;
-                options.RequireHttpsMetadata = true;
-                options.Challenge = $"Bearer authorization_uri=\"{prodAuthority}\", resource_id=\"{prodChallengeAudience}\", realm=\"{prodChallengeAudience}\"";
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidAudiences = prodValidAudiences,
-                };
-            })
-            .AddPolicyScheme(
+            });
+
+            AddAuthenticationSchemes(authenticationBuilder);
+
+            authenticationBuilder.AddPolicyScheme(
                 JwtBearerDefaults.AuthenticationScheme,
                 JwtBearerDefaults.AuthenticationScheme,
                 options =>
@@ -96,44 +65,31 @@ public class SecurityModule : IStartupModule
                     {
                         // Find the first authentication header with a JWT Bearer token whose issuer
                         // contains one of the scheme names and return the found scheme name.
-                        StringValues headers = default(StringValues);
+                        StringValues authHeaders = default(StringValues);
 
                         if (!StringValues.IsNullOrEmpty(context.Request.Headers.Authorization))
                         {
-                            Console.WriteLine("!!!!!!Found Authorization");
-                            headers = context.Request.Headers.Authorization;
+                            authHeaders = context.Request.Headers.Authorization;
                         }
-
-                        if (!StringValues.IsNullOrEmpty(context.Request.Headers.WWWAuthenticate))
+                        else if (!StringValues.IsNullOrEmpty(context.Request.Headers.WWWAuthenticate))
                         {
-                            Console.WriteLine("!!!!!!Found WWWAuthenticate");
+                            authHeaders = context.Request.Headers.WWWAuthenticate;
                         }
 
-                        if (!StringValues.IsNullOrEmpty(context.Request.Headers.ProxyAuthorization))
-                        {
-                            Console.WriteLine("!!!!!!Found ProxyAuthorization");
-                        }
-
-                        foreach (var header in context.Request.Headers)
-                        {
-                            Console.WriteLine($"Header: {header.Key}, value {header.Value}");
-                        }
-
-                        if (StringValues.IsNullOrEmpty(headers))
+                        if (StringValues.IsNullOrEmpty(authHeaders))
                         {
                             // No authentication headers - how do we handle this error?
                             context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                            Console.WriteLine("!!!!!!Found no auth headers");
-                            return "default";
+                            return null;
                         }
 
-                        foreach (var header in headers)
+                        foreach (var authHeader in authHeaders)
                         {
-                            var encodedToken = header.Substring(JwtBearerDefaults.AuthenticationScheme.Length + 1);
+                            var encodedToken = authHeader.Substring(JwtBearerDefaults.AuthenticationScheme.Length + 1);
                             var jwtHandler = new JwtSecurityTokenHandler();
                             var decodedToken = jwtHandler.ReadJwtToken(encodedToken);
                             var audiences = decodedToken?.Audiences;
-                            foreach (var audienceToScheme in audienceToSchemeMapper)
+                            foreach (var audienceToScheme in _audienceToSchemeMapper)
                             {
                                 if (audiences != null && audiences.Any() && audiences.Any(a => a.Contains(audienceToScheme.Key, System.StringComparison.OrdinalIgnoreCase)))
                                 {
@@ -144,8 +100,8 @@ public class SecurityModule : IStartupModule
                         }
 
                         // Handle error.
-                        Console.WriteLine("!!!!!!Did not match audicences");
-                        return "default";
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        return null;
                     };
                 }
             );
@@ -185,18 +141,44 @@ public class SecurityModule : IStartupModule
         services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
     }
 
-    internal string[] GetValidAudiences()
+    private void AddAuthenticationSchemes(AuthenticationBuilder authenticationBuilder)
     {
-        if (_securityConfiguration.Authentication.Audiences != null)
+        foreach (var scheme in _securityConfiguration.AuthenticationSchemes)
         {
-            return _securityConfiguration.Authentication.Audiences.ToArray();
+            string[] validAudiences = GetValidAudiences(scheme);
+            string challengeAudience = validAudiences?.FirstOrDefault();
+            AddToAudienceToSchemeMap(challengeAudience, scheme.Name);
+
+            authenticationBuilder.AddJwtBearer(scheme.Name, options =>
+            {
+                options.Authority = scheme.Authority;
+                options.RequireHttpsMetadata = true;
+                options.Challenge = $"Bearer authorization_uri=\"{scheme.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidAudiences = validAudiences,
+                };
+            });
+        }
+    }
+
+    private void AddToAudienceToSchemeMap(string audience, string schemeName)
+    {
+        _audienceToSchemeMapper.Add(audience, schemeName);
+    }
+
+    internal static string[] GetValidAudiences(AuthenticationConfiguration authenticationConfiguration)
+    {
+        if (authenticationConfiguration.Audiences != null)
+        {
+            return authenticationConfiguration.Audiences.ToArray();
         }
 
-        if (!string.IsNullOrWhiteSpace(_securityConfiguration.Authentication.Audience))
+        if (!string.IsNullOrWhiteSpace(authenticationConfiguration.Audience))
         {
             return new[]
             {
-                _securityConfiguration.Authentication.Audience,
+                authenticationConfiguration.Audience,
             };
         }
 

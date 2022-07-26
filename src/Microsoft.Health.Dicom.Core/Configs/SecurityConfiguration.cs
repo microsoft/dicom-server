@@ -14,7 +14,7 @@ public class SecurityConfiguration
 {
     public bool Enabled { get; set; }
 
-    public AuthenticationConfiguration Authentication { get; set; } = new AuthenticationConfiguration();
+    public IEnumerable<AuthenticationConfiguration> AuthenticationSchemes { get; set; } = new List<AuthenticationConfiguration>();
 
     public virtual HashSet<string> PrincipalClaims { get; } = new HashSet<string>(StringComparer.Ordinal);
 
