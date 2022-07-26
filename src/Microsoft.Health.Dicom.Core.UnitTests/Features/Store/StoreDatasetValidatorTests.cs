@@ -119,11 +119,11 @@ public class StoreDatasetValidatorTests
     // even byte boundary.":
     // https://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
     [Theory]
-    [InlineData(" ", "")]
-    [InlineData("  ", "")]
-    [InlineData(" ", " ")]
     [InlineData("", " ")]
-    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUidWithUidWhitespacePadding_WhenValidated_ThenItShouldSucceed(
+    [InlineData(" ", " ")]
+    [InlineData(" ", "  ")]
+
+    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUid_WhenQueryUIDWithWhitespacePaddingValidated_ThenItShouldSucceedWithWarning(
         string queryStudyInstanceUidPadding,
         string saveStudyInstanceUidPadding)
     {
@@ -134,9 +134,33 @@ public class StoreDatasetValidatorTests
         _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, saveStudyInstanceUid);
 
 
-        await _dicomDatasetValidator.ValidateAsync(
+        ValidationWarnings warning = await _dicomDatasetValidator.ValidateAsync(
             _dicomDataset,
             queryStudyInstanceUid);
+
+        Assert.Equal(ValidationWarnings.StudyInstanceUIDWhitespacePadding, warning);
+    }
+
+    [Theory]
+    [InlineData("", "")]
+    [InlineData(" ", "")]
+    [InlineData("  ", "")]
+    public async Task GivenAValidDicomDatasetThatMatchesTheRequiredStudyInstanceUid_WhenQueryUIDWithoutWhitespacePaddingValidated_ThenItShouldSucceedWithoutWarning(
+        string queryStudyInstanceUidPadding,
+        string saveStudyInstanceUidPadding)
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string queryStudyInstanceUid = studyInstanceUid + queryStudyInstanceUidPadding;
+        string saveStudyInstanceUid = studyInstanceUid + saveStudyInstanceUidPadding;
+
+        _dicomDataset.AddOrUpdate(DicomTag.StudyInstanceUID, saveStudyInstanceUid);
+
+
+        ValidationWarnings warning = await _dicomDatasetValidator.ValidateAsync(
+            _dicomDataset,
+            queryStudyInstanceUid);
+
+        Assert.Equal(ValidationWarnings.None, warning);
     }
 
     public static IEnumerable<object[]> GetDicomTagsToRemove()

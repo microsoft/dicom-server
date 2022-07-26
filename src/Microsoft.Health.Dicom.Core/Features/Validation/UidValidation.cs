@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Text.RegularExpressions;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -21,6 +22,10 @@ internal class UidValidation : IElementValidation
         string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
+        if (value.EndsWith(" ", StringComparison.OrdinalIgnoreCase)) // Validate for padded whitespace
+        {
+            warning |= ValidationWarnings.StudyInstanceUIDWhitespacePadding;
+        }
         return warning;
     }
 
