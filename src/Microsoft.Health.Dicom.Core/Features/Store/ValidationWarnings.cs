@@ -27,4 +27,9 @@ public enum ValidationWarnings
     /// Data Set does not match SOP Class.
     /// </summary>
     DatasetDoesNotMatchSOPClass = 2,
+
+    /// <summary>
+    /// StudyInstanceUID has whitespace at the end.
+    /// </summary>
+    StudyInstanceUIDWhitespacePadding = 3,
 }

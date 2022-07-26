@@ -410,7 +410,7 @@ public static class DicomDatasetExtensions
                 warning |= ValidationWarnings.IndexedDicomTagHasMultipleValues;
             }
 
-            minimumValidator.Validate(dicomElement);
+            warning |= minimumValidator.Validate(dicomElement);
         }
         return warning;
     }
