@@ -59,8 +59,6 @@ public class WorkerModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Decorate<IChangeFeedProcessor, LoggingChangeFeedProcessor>();
-
         services.Add<SyncStateService>()
             .Singleton()
             .AsSelf()
@@ -76,16 +74,11 @@ public class WorkerModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Decorate<IFhirTransactionPipeline, RetryableFhirTransactionPipeline>();
-        services.Decorate<IFhirTransactionPipeline, LoggingFhirTransactionPipeline>();
-
         services.Add<Func<IFhirTransactionPipeline>>(sp => () => sp.GetRequiredService<IFhirTransactionPipeline>())
             .Transient()
             .AsSelf();
 
         RegisterPipelineSteps(services);
-
-        services.Decorate<IFhirTransactionPipelineStep, LoggingFhirTransactionPipelineStep>();
 
         services.Add<PatientSynchronizer>()
             .Singleton()

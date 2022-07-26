@@ -179,7 +179,7 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
-    [Produces(KnownContentTypes.MultipartRelated)]
+    [Produces(KnownContentTypes.ApplicationDicom, KnownContentTypes.MultipartRelated)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]

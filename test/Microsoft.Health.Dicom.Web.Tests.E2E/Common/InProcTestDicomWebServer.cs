@@ -29,9 +29,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 /// </summary>
 public class InProcTestDicomWebServer : TestDicomWebServer
 {
-    public InProcTestDicomWebServer(Type startupType, bool enableDataPartitions, bool enableDualWrite = false)
+    public InProcTestDicomWebServer(Type startupType, TestServerFeatureSettingType featureSettingType = TestServerFeatureSettingType.None)
         : base(new Uri("http://localhost/"))
     {
+        var enableDataPartitions = (featureSettingType & TestServerFeatureSettingType.DataPartition) == TestServerFeatureSettingType.DataPartition;
+        var enableDualWrite = (featureSettingType & TestServerFeatureSettingType.DualWrite) == TestServerFeatureSettingType.DualWrite;
+        var enableUpsRs = (featureSettingType & TestServerFeatureSettingType.UpsRs) == TestServerFeatureSettingType.UpsRs;
+
         string contentRoot = GetProjectPath("src", startupType);
 
         var authSettings = new Dictionary<string, string>
@@ -46,7 +50,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         {
             { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
-            { "DicomServer:Features:EnableUpsRs", "true" }
+            { "DicomServer:Features:EnableUpsRs", enableUpsRs.ToString() }
         };
 
 

@@ -43,7 +43,7 @@ public static class CommandCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection SetCommandLineOptions(this IServiceCollection services, string[] args)
+    public static IConfigurationBuilder AddSchemaCommandLine(this IConfigurationBuilder configurationBuilder, string[] args)
     {
         var switchMappings = new Dictionary<string, string>()
         {
@@ -63,12 +63,13 @@ public static class CommandCollectionExtensions
             { OptionAliases.Version, OptionAliases.Version },
         };
 
-        var builder = new ConfigurationBuilder();
+        configurationBuilder.AddCommandLine(args, switchMappings);
 
-        builder.AddCommandLine(args, switchMappings);
+        return configurationBuilder;
+    }
 
-        IConfigurationRoot config = builder.Build();
-
+    public static IServiceCollection SetCommandLineOptions(this IServiceCollection services, IConfiguration config)
+    {
         services.AddOptions<CommandLineOptions>().Configure(x =>
         {
             x.ConnectionString = config[OptionAliases.ConnectionString];

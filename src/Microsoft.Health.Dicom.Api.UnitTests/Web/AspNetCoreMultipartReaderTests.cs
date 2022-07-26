@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Api.Web;
@@ -31,7 +32,7 @@ public class AspNetCoreMultipartReaderTests
 
     public AspNetCoreMultipartReaderTests()
     {
-        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), NullLogger<SeekableStreamConverter>.Instance);
     }
 
     [Fact]
