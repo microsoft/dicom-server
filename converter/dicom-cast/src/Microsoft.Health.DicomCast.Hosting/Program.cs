@@ -53,7 +53,8 @@ public static class Program
     }
 
     /// <summary>
-    /// Adds ApplicationInsights for telemetry and logging.
+    /// Adds ApplicationInsights for telemetry and logging. We need to migrate to Application Insights
+    /// connection strings: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2560
     /// </summary>
     private static void AddApplicationInsightsTelemetry(IServiceCollection services, IConfiguration configuration)
     {
@@ -61,8 +62,10 @@ public static class Program
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             services.AddApplicationInsightsTelemetryWorkerService(instrumentationKey);
             services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }
