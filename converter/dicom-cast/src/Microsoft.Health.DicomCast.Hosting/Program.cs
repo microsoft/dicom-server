@@ -7,7 +7,6 @@ using System;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -64,11 +63,11 @@ public static class Program
         {
             var connectionString = $"InstrumentationKey={instrumentationKey}";
 
-            services.AddApplicationInsightsTelemetryWorkerService(applicationInsightsServiceOptions => applicationInsightsServiceOptions.ConnectionString = connectionString);
+            services.AddApplicationInsightsTelemetryWorkerService(aiServiceOptions => aiServiceOptions.ConnectionString = connectionString);
             services.AddLogging(
                 loggingBuilder => loggingBuilder.AddApplicationInsights(
-                    telemetryConfiguration => telemetryConfiguration.ConnectionString = connectionString,
-                    applicationInsightsLoggerOptions => { }
+                    telemetryConfig => telemetryConfig.ConnectionString = connectionString,
+                    aiLoggerOptions => { }
                 ));
         }
     }
