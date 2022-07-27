@@ -152,6 +152,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
         var requestUri = GenerateRequestUri(
             string.Format(
+                CultureInfo.InvariantCulture,
                 DicomWebConstants.BaseRetrieveFramesUriFormat,
                 studyInstanceUid,
                 seriesInstanceUid,

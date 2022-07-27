@@ -6,7 +6,10 @@ RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
     apk add --no-cache icu-libs && \
     addgroup nonroot && \
-    adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
+    adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot && \
+    # Explicitly set locale to be en_US for DICOM Web
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
