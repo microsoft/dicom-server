@@ -52,8 +52,7 @@ public class Startup
     }
 
     /// <summary>
-    /// Adds ApplicationInsights for telemetry and logging. We need to migrate to Application Insights
-    /// connection strings: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2560
+    /// Adds ApplicationInsights for telemetry and logging.
     /// </summary>
     private void AddApplicationInsightsTelemetry(IServiceCollection services)
     {
@@ -61,9 +60,9 @@ public class Startup
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            services.AddApplicationInsightsTelemetry(instrumentationKey);
-#pragma warning restore CS0618 // Type or member is obsolete
+            var connectionString = $"InstrumentationKey={instrumentationKey}";
+
+            services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
         }
     }
 }

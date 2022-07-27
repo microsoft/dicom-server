@@ -7,6 +7,7 @@ using System;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
+using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -53,8 +54,7 @@ public static class Program
     }
 
     /// <summary>
-    /// Adds ApplicationInsights for telemetry and logging. We need to migrate to Application Insights
-    /// connection strings: https://github.com/microsoft/ApplicationInsights-dotnet/issues/2560
+    /// Adds ApplicationInsights for telemetry and logging.
     /// </summary>
     private static void AddApplicationInsightsTelemetry(IServiceCollection services, IConfiguration configuration)
     {
@@ -62,10 +62,14 @@ public static class Program
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            services.AddApplicationInsightsTelemetryWorkerService(instrumentationKey);
-            services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
-#pragma warning restore CS0618 // Type or member is obsolete
+            var connectionString = $"InstrumentationKey={instrumentationKey}";
+
+            services.AddApplicationInsightsTelemetryWorkerService(applicationInsightsServiceOptions => applicationInsightsServiceOptions.ConnectionString = connectionString);
+            services.AddLogging(
+                loggingBuilder => loggingBuilder.AddApplicationInsights(
+                    telemetryConfiguration => telemetryConfiguration.ConnectionString = connectionString,
+                    applicationInsightsLoggerOptions => { }
+                ));
         }
     }
 }
