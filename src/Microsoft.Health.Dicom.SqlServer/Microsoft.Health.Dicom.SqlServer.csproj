@@ -25,7 +25,6 @@
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" />
     <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" />
-    <PackageReference Include="Scrutor" />
   </ItemGroup>
 
   <ItemGroup>

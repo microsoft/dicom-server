@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -28,7 +29,7 @@ public class SeekableStreamConverterTests
         {
             MaxAllowedDicomFileSize = 1000000,
         });
-        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>());
+        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), NullLogger<SeekableStreamConverter>.Instance);
     }
 
     [Fact]

@@ -363,9 +363,9 @@ The first part date {1} should be lesser than or equal to the second part date {
     <value>Input Dicom Tag Level '{0}' is invalid. It must have value 'Study', 'Series' or 'Instance'.</value>
     <comment>{0} input Dicom Tag Level.</comment>
   </data>
-  <data name="DicomFileLengthLimitExceeded" xml:space="preserve">
-    <value>The dicom file in the request section exceeded the allowed limit of {0} bytes.</value>
-    <comment>{0} Max number of bytes allowed per dicom file.</comment>
+  <data name="RequestLengthLimitExceeded" xml:space="preserve">
+    <value>The request exceeded the allowed limit of {0} bytes.</value>
+    <comment>{0} Max number of bytes allowed.</comment>
   </data>
   <data name="ExtendedQueryTagsExceedsMaxAllowedCount" xml:space="preserve">
     <value>Extended query tags exceeds max allowed count '{0}'.</value>
@@ -620,5 +620,8 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">
     <value>The submitted request is inconsistent with the current state of the Workitem.</value>
+  </data>
+  <data name="SinglePartSupportedForSingleFrame" xml:space="preserve">
+    <value>The accept header is supported for single frame retrieval, use multi-part accept header instead.</value>
   </data>
 </root>

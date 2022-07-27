@@ -86,7 +86,7 @@ public abstract class EphemeralMemoryCache<TIn, TOut> : IDisposable
             // MemoryCache class does not allow null as a value
             if (result == null)
             {
-                throw new InvalidOperationException();
+                return result;
             }
 
             _memoryCache.Set(

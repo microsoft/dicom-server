@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -30,7 +31,7 @@ public class DicomInstanceEntryReaderForSinglePartRequestTests
 
     public DicomInstanceEntryReaderForSinglePartRequestTests()
     {
-        _dicomInstanceEntryReader = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter, CreateStoreConfiguration(1000000));
+        _dicomInstanceEntryReader = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter, CreateStoreConfiguration(1000000), NullLogger<DicomInstanceEntryReaderForSinglePartRequest>.Instance);
     }
 
     [Fact]
@@ -91,7 +92,7 @@ public class DicomInstanceEntryReaderForSinglePartRequestTests
     [Fact]
     public async Task GivenBodyPartWithValidContentTypeExceedLimit_ThrowError()
     {
-        var dicomInstanceEntryReaderLowLimit = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter, CreateStoreConfiguration(1));
+        var dicomInstanceEntryReaderLowLimit = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter, CreateStoreConfiguration(1), NullLogger<DicomInstanceEntryReaderForSinglePartRequest>.Instance);
 
         using var source = new CancellationTokenSource();
 
@@ -99,7 +100,7 @@ public class DicomInstanceEntryReaderForSinglePartRequestTests
         stream.Write(Encoding.UTF8.GetBytes("someteststring"));
         stream.Seek(0, SeekOrigin.Begin);
 
-        await Assert.ThrowsAsync<DicomFileLengthLimitExceededException>(
+        await Assert.ThrowsAsync<PayloadTooLargeException>(
             () => dicomInstanceEntryReaderLowLimit.ReadAsync(
                 DefaultContentType,
                 stream,
@@ -109,7 +110,7 @@ public class DicomInstanceEntryReaderForSinglePartRequestTests
     [Fact]
     public async Task GivenBodyPartWithValidContentEqualsLimit_NoError()
     {
-        var dicomInstanceEntryReaderLowLimit = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter, CreateStoreConfiguration(14));
+        var dicomInstanceEntryReaderLowLimit = new DicomInstanceEntryReaderForSinglePartRequest(_seekableStreamConverter, CreateStoreConfiguration(14), NullLogger<DicomInstanceEntryReaderForSinglePartRequest>.Instance);
 
         using var source = new CancellationTokenSource();
 

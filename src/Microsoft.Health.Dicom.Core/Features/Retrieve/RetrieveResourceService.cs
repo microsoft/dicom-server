@@ -158,6 +158,12 @@ public class RetrieveResourceService : IRetrieveResourceService
         bool isSinglePart,
         CancellationToken cancellationToken)
     {
+
+        if (isSinglePart && message.Frames.Count() > 1)
+        {
+            throw new BadRequestException(DicomCoreResource.SinglePartSupportedForSingleFrame);
+        }
+
         _dicomRequestContextAccessor.RequestContext.PartCount = message.Frames.Count();
 
         // only caching frames which are required to provide all 3 UIDs and more immutable

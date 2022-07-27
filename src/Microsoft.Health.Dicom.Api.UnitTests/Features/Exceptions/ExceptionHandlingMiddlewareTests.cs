@@ -47,11 +47,12 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new ServiceUnavailableException(), HttpStatusCode.ServiceUnavailable };
         yield return new object[] { new ItemNotFoundException(new Exception()), HttpStatusCode.InternalServerError };
         yield return new object[] { new CustomServerException(), HttpStatusCode.ServiceUnavailable };
-        yield return new object[] { new BadHttpRequestException("Unexpected end of request content."), HttpStatusCode.BadRequest };
+        yield return new object[] { new BadHttpRequestException("Something bad happened!"), HttpStatusCode.BadRequest };
         yield return new object[] { new IOException("The request stream was aborted."), HttpStatusCode.BadRequest };
         yield return new object[] { new ConnectionResetException(string.Empty), HttpStatusCode.BadRequest };
         yield return new object[] { new OperationCanceledException(), HttpStatusCode.BadRequest };
         yield return new object[] { new InvalidOperationException(), HttpStatusCode.BadRequest };
+        yield return new object[] { new PayloadTooLargeException(1), HttpStatusCode.RequestEntityTooLarge };
     }
 
     [Theory]

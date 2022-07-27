@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Exceptions;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -29,16 +30,13 @@ public class DicomInstanceEntryReaderForSinglePartRequest : IDicomInstanceEntryR
 {
     private readonly ISeekableStreamConverter _seekableStreamConverter;
     private readonly StoreConfiguration _storeConfiguration;
+    private readonly ILogger<DicomInstanceEntryReaderForSinglePartRequest> _logger;
 
-    public DicomInstanceEntryReaderForSinglePartRequest(ISeekableStreamConverter seekableStreamConverter, IOptions<StoreConfiguration> storeConfiguration)
+    public DicomInstanceEntryReaderForSinglePartRequest(ISeekableStreamConverter seekableStreamConverter, IOptions<StoreConfiguration> storeConfiguration, ILogger<DicomInstanceEntryReaderForSinglePartRequest> logger)
     {
-        EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
-        EnsureArg.IsNotNull(storeConfiguration, nameof(storeConfiguration));
-        EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
-
-
-        _seekableStreamConverter = seekableStreamConverter;
-        _storeConfiguration = storeConfiguration.Value;
+        _seekableStreamConverter = EnsureArg.IsNotNull(seekableStreamConverter, nameof(seekableStreamConverter));
+        _storeConfiguration = EnsureArg.IsNotNull(storeConfiguration?.Value, nameof(storeConfiguration));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc />
@@ -165,7 +163,7 @@ public class DicomInstanceEntryReaderForSinglePartRequest : IDicomInstanceEntryR
         {
             if (_bytesLeft < 0)
             {
-                throw new DicomFileLengthLimitExceededException(_limit);
+                throw new PayloadTooLargeException(_limit);
             }
         }
 
