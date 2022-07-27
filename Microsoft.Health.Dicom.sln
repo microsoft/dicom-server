@@ -65,6 +65,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Sche
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.SchemaManager.Console", "src\Microsoft.Health.Dicom.SchemaManager.Console\Microsoft.Health.Dicom.SchemaManager.Console.csproj", "{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{55F45547-C3F9-44FF-B776-6AB420C7C5CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DicomUploaderFunction", "tools\uploader-function\DicomUploaderFunction.csproj", "{FC4A57CA-F217-4356-88BF-BDF58C988C1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Tool.ManagedIdentitySample", "tools\dicom-auth-test\Microsoft.Health.Dicom.Tool.ManagedIdentitySample.csproj", "{BF9A584D-A41C-4BA0-AE94-F4C89B0C849E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -167,6 +173,14 @@ Global
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Debug|x64.Build.0 = Debug|x64
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.ActiveCfg = Release|x64
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.Build.0 = Release|x64
+		{FC4A57CA-F217-4356-88BF-BDF58C988C1C}.Debug|x64.ActiveCfg = Debug|x64
+		{FC4A57CA-F217-4356-88BF-BDF58C988C1C}.Debug|x64.Build.0 = Debug|x64
+		{FC4A57CA-F217-4356-88BF-BDF58C988C1C}.Release|x64.ActiveCfg = Release|x64
+		{FC4A57CA-F217-4356-88BF-BDF58C988C1C}.Release|x64.Build.0 = Release|x64
+		{BF9A584D-A41C-4BA0-AE94-F4C89B0C849E}.Debug|x64.ActiveCfg = Debug|x64
+		{BF9A584D-A41C-4BA0-AE94-F4C89B0C849E}.Debug|x64.Build.0 = Debug|x64
+		{BF9A584D-A41C-4BA0-AE94-F4C89B0C849E}.Release|x64.ActiveCfg = Release|x64
+		{BF9A584D-A41C-4BA0-AE94-F4C89B0C849E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -195,6 +209,8 @@ Global
 		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C8BB8AF3-DCD1-49A4-A082-9152686AD222} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{FC4A57CA-F217-4356-88BF-BDF58C988C1C} = {55F45547-C3F9-44FF-B776-6AB420C7C5CA}
+		{BF9A584D-A41C-4BA0-AE94-F4C89B0C849E} = {55F45547-C3F9-44FF-B776-6AB420C7C5CA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_SortFileContentOnSave = True
