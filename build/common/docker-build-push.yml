@@ -53,7 +53,7 @@ steps:
     inputs:
       command: 'build'
       containerRegistry: '$(azureContainerRegistry)'
-      Dockerfile: 'tools/uploader-function/src/DicomUploaderFunction/Dockerfile'
+      Dockerfile: 'tools/uploader-function/Dockerfile'
       buildContext: '$(Build.Repository.LocalPath)'
       arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
       repository: dicom-uploader

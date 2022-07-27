@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0.301-alpine3.14@sha256:f7bcb4614e83e3da501b
 
 COPY Directory.Build.props Directory.Packages.props global.json nuget.config .editorconfig ./
 COPY ./src/Microsoft.Health.Dicom.Client /src/Microsoft.Health.Dicom.Client
-COPY ./tools/uploader-function/src/DicomUploaderFunction /tools/uploader-function/src/DicomUploaderFunction
-RUN cd /tools/uploader-function/src/DicomUploaderFunction && \
+COPY ./tools/uploader-function /tools/uploader-function
+RUN cd /tools/uploader-function && \
     mkdir -p /home/site/wwwroot && \
     dotnet publish *.csproj --output /home/site/wwwroot
 

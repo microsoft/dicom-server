@@ -51,7 +51,7 @@ updates:
     open-pull-requests-limit: 30
   
   - package-ecosystem: "docker"
-    directory: "/tools/uploader-function/src/DicomUploaderFunction"
+    directory: "/tools/uploader-function"
     schedule:
       interval: "daily"
       time: "09:00"
