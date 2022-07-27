@@ -267,9 +267,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
-            DicomOperation.Copy => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
+            DicomOperation.Copy or DicomOperation.MigrationDeletion => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
-            DicomOperation.MigrationDeletion => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOperationCheckpoint.Value,
         };

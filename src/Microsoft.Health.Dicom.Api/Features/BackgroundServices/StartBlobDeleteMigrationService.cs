@@ -65,10 +65,10 @@ public class StartBlobDeleteMigrationService : BackgroundService
                     _logger.LogDebug("Existing delete operation is in status: '{Status}'", existingInstance.Status);
                 }
 
-                OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.CopyOperationId, stoppingToken);
-
                 if (IsOperationInterruptedOrNull(existingInstance))
                 {
+                    OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.CopyOperationId, stoppingToken);
+
                     // Make sure copy operation is completed before starting delete operation
                     if (copyOperation?.Status == OperationStatus.Completed)
                     {
