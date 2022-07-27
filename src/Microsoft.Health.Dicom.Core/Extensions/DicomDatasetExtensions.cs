@@ -456,41 +456,51 @@ public static class DicomDatasetExtensions
             return;
         }
 
-        foreach (var requirement in requirements)
+        foreach (RequirementDetail requirement in requirements)
         {
             dataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
 
             bool isMandatory = MandatoryRequirementCodes.Contains(requirement.RequirementCode);
 
-            // Validate sequence requirements when:
-            //  1. Sequence requirements are present.
-            //  2. Parent is allowed.
-            //  3. Parent is mandatory and is non-zero, means it has to have children.
-            //  4. Parent is not mandatory and contains children.
-            if (requirement.SequenceRequirements != null
-                && (requirement.RequirementCode != RequirementCode.NotAllowed)
-                && ((isMandatory && NonZeroLengthRequirementCodes.Contains(requirement.RequirementCode))
-                    || (!isMandatory && dataset.Contains(requirement.DicomTag) && dataset.GetValueCount(requirement.DicomTag) > 0)))
+            // If no sequence requirements are present, move on to the next tag.
+            if (requirement.SequenceRequirements == null)
             {
-                dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
+                continue;
+            }
+
+            // If current tag is not allowed, no action needed for its potential children.
+            if (requirement.RequirementCode == RequirementCode.NotAllowed)
+            {
+                continue;
+            }
+
+            // Validate sequence only if
+            //  1. Parent is mandatory and is non-zero, means it has to have children.
+            //  2. Parent is not mandatory but contains children.
+            switch (isMandatory)
+            {
+                case true when NonZeroLengthRequirementCodes.Contains(requirement.RequirementCode):
+                case false when dataset.Contains(requirement.DicomTag) && dataset.GetValueCount(requirement.DicomTag) > 0:
+                    dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
+                    break;
             }
         }
     }
 
     private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, IReadOnlyCollection<RequirementDetail> requirements)
     {
-        if (requirements?.Count == 0 || !dataset.TryGetSequence(sequenceTag, out var sequence) || sequence.Items.Count == 0)
+        if (requirements == null || requirements.Count == 0 || !dataset.TryGetSequence(sequenceTag, out DicomSequence sequence) || sequence.Items.Count == 0)
         {
             return;
         }
 
-        foreach (var sequenceDataset in sequence.Items)
+        foreach (DicomDataset sequenceDataset in sequence.Items)
         {
-            foreach (var requirement in requirements)
+            foreach (RequirementDetail requirement in requirements)
             {
                 sequenceDataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
 
-                if (null != requirement.SequenceRequirements)
+                if (requirement.SequenceRequirements != null)
                 {
                     sequenceDataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
                 }

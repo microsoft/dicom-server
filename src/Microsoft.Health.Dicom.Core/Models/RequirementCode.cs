@@ -36,12 +36,12 @@ public enum RequirementCode
     /// </summary>
     ThreeThree,
     /// <summary>
-    /// Custom requirement code which is not part of the standard.
+    /// Special requirement that does not have a code in the table, however, it is still part of the standard.
     /// Must not be present.
     /// </summary>
     NotAllowed,
     /// <summary>
-    /// Custom requirement code which is not part of the standard.
+    /// Special requirement that does not have a code in the table, however, it is still part of the standard.
     /// Can be present but the value must be empty.
     /// </summary>
     MustBeEmpty,

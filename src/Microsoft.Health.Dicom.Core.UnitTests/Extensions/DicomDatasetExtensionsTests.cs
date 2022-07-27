@@ -561,6 +561,34 @@ public class DicomDatasetExtensionsTests
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.O);
     }
 
+    [Fact]
+    public void GivenAddWorkitemDataset_WhenRequirementIsMet_ValidationSucceeds()
+    {
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset(requestType: WorkitemRequestType.Add);
+        dataset.ValidateAllRequirements(WorkitemRequestType.Add);
+    }
+
+    [Fact]
+    public void GivenUpdateWorkitemDataset_WhenRequirementIsMet_ValidationSucceeds()
+    {
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset(requestType: WorkitemRequestType.Update);
+        dataset.ValidateAllRequirements(WorkitemRequestType.Update);
+    }
+
+    [Fact]
+    public void GivenAddWorkitemDataset_WhenRequirementIsNotMet_ValidationFails()
+    {
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset(requestType: WorkitemRequestType.Update);
+        Assert.Throws<DatasetValidationException>(() => dataset.ValidateAllRequirements(WorkitemRequestType.Add));
+    }
+
+    [Fact]
+    public void GivenUpdateWorkitemDataset_WhenRequirementIsNotMet_ValidationFails()
+    {
+        var dataset = Samples.CreateRandomWorkitemInstanceDataset(requestType: WorkitemRequestType.Add);
+        Assert.Throws<DatasetValidationException>(() => dataset.ValidateAllRequirements(WorkitemRequestType.Update));
+    }
+
     public static IEnumerable<object[]> ValidAttributeRequirements()
     {
         yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneOne };

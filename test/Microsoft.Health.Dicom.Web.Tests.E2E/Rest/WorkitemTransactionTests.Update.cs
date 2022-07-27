@@ -30,7 +30,7 @@ public partial class WorkItemTransactionTests
         // Update Workitem Transaction
         var updateDicomDataset = new DicomDataset
         {
-            {DicomTag.WorklistLabel, newWorklistLabel },
+            { DicomTag.WorklistLabel, newWorklistLabel },
             { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
             new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
             {
@@ -79,7 +79,7 @@ public partial class WorkItemTransactionTests
         // Update Workitem Transaction
         var updateDicomDataset = new DicomDataset
         {
-            {DicomTag.WorklistLabel, newWorklistLabel },
+            { DicomTag.WorklistLabel, newWorklistLabel },
             { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
             new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
             {

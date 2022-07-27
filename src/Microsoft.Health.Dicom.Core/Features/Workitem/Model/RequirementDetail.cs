@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 
 public sealed class RequirementDetail
 {
-    public RequirementDetail(DicomTag dicomTag, RequirementCode requirementCode, HashSet<RequirementDetail> sequenceRequirements = default)
+    public RequirementDetail(DicomTag dicomTag, RequirementCode requirementCode, IReadOnlyCollection<RequirementDetail> sequenceRequirements = default)
     {
         DicomTag = dicomTag;
         RequirementCode = requirementCode;

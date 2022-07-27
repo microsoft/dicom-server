@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -30,7 +29,7 @@ public class AddWorkitemDatasetValidatorTests
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
-        dataset = dataset.Add(new DicomDateTime(DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow));
+        dataset = dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         var validator = new AddWorkitemDatasetValidator();
 
