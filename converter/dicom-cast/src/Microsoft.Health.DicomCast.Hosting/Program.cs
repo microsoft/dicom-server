@@ -61,8 +61,14 @@ public static class Program
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
-            services.AddApplicationInsightsTelemetryWorkerService(instrumentationKey);
-            services.AddLogging(loggingBuilder => loggingBuilder.AddApplicationInsights(instrumentationKey));
+            var connectionString = $"InstrumentationKey={instrumentationKey}";
+
+            services.AddApplicationInsightsTelemetryWorkerService(aiServiceOptions => aiServiceOptions.ConnectionString = connectionString);
+            services.AddLogging(
+                loggingBuilder => loggingBuilder.AddApplicationInsights(
+                    telemetryConfig => telemetryConfig.ConnectionString = connectionString,
+                    aiLoggerOptions => { }
+                ));
         }
     }
 }

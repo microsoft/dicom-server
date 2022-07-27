@@ -60,7 +60,9 @@ public class Startup
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
-            services.AddApplicationInsightsTelemetry(instrumentationKey);
+            var connectionString = $"InstrumentationKey={instrumentationKey}";
+
+            services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
         }
     }
 }
