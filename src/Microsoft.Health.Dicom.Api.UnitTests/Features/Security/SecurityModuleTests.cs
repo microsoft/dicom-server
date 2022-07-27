@@ -21,7 +21,7 @@ public class SecurityModuleTests
         {
             Security =
             {
-                AuthenticationSchemes = new List<AuthenticationConfiguration>
+                AlternativeAuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
                     new AuthenticationConfiguration
                     {
@@ -31,7 +31,7 @@ public class SecurityModuleTests
             },
         };
 
-        Assert.Equal(new[] { "initialAudience" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
+        Assert.Equal(new[] { "initialAudience" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AlternativeAuthenticationSchemes.First()));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class SecurityModuleTests
         {
             Security =
             {
-                AuthenticationSchemes = new List<AuthenticationConfiguration>
+                AlternativeAuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
                     new AuthenticationConfiguration
                     {
@@ -52,7 +52,7 @@ public class SecurityModuleTests
             },
         };
 
-        Assert.Equal(new[] { "audience1", "audience2" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
+        Assert.Equal(new[] { "audience1", "audience2" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AlternativeAuthenticationSchemes.First()));
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class SecurityModuleTests
         {
             Security =
             {
-                AuthenticationSchemes = new List<AuthenticationConfiguration>
+                AlternativeAuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
                     new AuthenticationConfiguration
                     {
@@ -73,7 +73,7 @@ public class SecurityModuleTests
         };
 
 
-        Assert.Equal(new[] { "audience1", "audience2" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
+        Assert.Equal(new[] { "audience1", "audience2" }, SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AlternativeAuthenticationSchemes.First()));
     }
 
     [Fact]
@@ -83,13 +83,13 @@ public class SecurityModuleTests
         {
             Security =
             {
-                AuthenticationSchemes = new List<AuthenticationConfiguration>
+                AlternativeAuthenticationSchemes = new List<AuthenticationConfiguration>
                 {
                     new AuthenticationConfiguration()
                 }
             },
         };
 
-        Assert.Null(SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AuthenticationSchemes.First()));
+        Assert.Null(SecurityModule.GetValidAudiences(dicomServerConfiguration.Security.AlternativeAuthenticationSchemes.First()));
     }
 }

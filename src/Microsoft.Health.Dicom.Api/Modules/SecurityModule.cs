@@ -6,7 +6,6 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
 using EnsureThat;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,6 +29,7 @@ public class SecurityModule : IStartupModule
 {
     private readonly SecurityConfiguration _securityConfiguration;
     private readonly Dictionary<string, string> _audienceToSchemeMapper;
+    private string _defaultSchemeName;
 
     public SecurityModule(DicomServerConfiguration dicomServerConfiguration)
     {
@@ -75,11 +75,9 @@ public class SecurityModule : IStartupModule
                         {
                             authHeaders = context.Request.Headers.WWWAuthenticate;
                         }
-
-                        if (StringValues.IsNullOrEmpty(authHeaders))
+                        else
                         {
-                            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                            return null;
+                            return _defaultSchemeName;
                         }
 
                         foreach (var authHeader in authHeaders)
@@ -98,8 +96,7 @@ public class SecurityModule : IStartupModule
                             }
                         }
 
-                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                        return null;
+                        return _defaultSchemeName;
                     };
                 }
             );
@@ -141,23 +138,36 @@ public class SecurityModule : IStartupModule
 
     private void AddAuthenticationSchemes(AuthenticationBuilder authenticationBuilder)
     {
-        foreach (var scheme in _securityConfiguration.AuthenticationSchemes)
+        if (string.IsNullOrEmpty(_securityConfiguration.Authentication.Name))
         {
-            string[] validAudiences = GetValidAudiences(scheme);
-            string challengeAudience = validAudiences?.FirstOrDefault();
-            AddToAudienceToSchemeMap(validAudiences, scheme.Name);
-
-            authenticationBuilder.AddJwtBearer(scheme.Name, options =>
-            {
-                options.Authority = scheme.Authority;
-                options.RequireHttpsMetadata = true;
-                options.Challenge = $"Bearer authorization_uri=\"{scheme.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidAudiences = validAudiences,
-                };
-            });
+            _securityConfiguration.Authentication.Name = "defaultScheme";
         }
+
+        AddScheme(authenticationBuilder, _securityConfiguration.Authentication);
+        _defaultSchemeName = _securityConfiguration.Authentication.Name;
+
+        foreach (var scheme in _securityConfiguration.AlternativeAuthenticationSchemes)
+        {
+            AddScheme(authenticationBuilder, scheme);
+        }
+    }
+
+    private void AddScheme(AuthenticationBuilder authenticationBuilder, AuthenticationConfiguration scheme)
+    {
+        string[] validAudiences = GetValidAudiences(scheme);
+        string challengeAudience = validAudiences?.FirstOrDefault();
+        AddToAudienceToSchemeMap(validAudiences, scheme.Name);
+
+        authenticationBuilder.AddJwtBearer(scheme.Name, options =>
+        {
+            options.Authority = scheme.Authority;
+            options.RequireHttpsMetadata = true;
+            options.Challenge = $"Bearer authorization_uri=\"{scheme.Authority}\", resource_id=\"{challengeAudience}\", realm=\"{challengeAudience}\"";
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidAudiences = validAudiences,
+            };
+        });
     }
 
     private void AddToAudienceToSchemeMap(string[] audiences, string schemeName)
