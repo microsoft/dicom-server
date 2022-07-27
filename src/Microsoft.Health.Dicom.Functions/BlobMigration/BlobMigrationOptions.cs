@@ -7,14 +7,14 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
-namespace Microsoft.Health.Dicom.Functions.Copy;
+namespace Microsoft.Health.Dicom.Functions.BlobMigration;
 
 /// <summary>
-/// Represents the options for a copy function.
+/// Represents the options for a blob migration function.
 /// </summary>
-public class CopyOptions
+public class BlobMigrationOptions
 {
-    internal const string SectionName = "Copy";
+    internal const string SectionName = "BlobMigration";
 
     /// <summary>
     /// Gets or sets the number of threads available for each batch.

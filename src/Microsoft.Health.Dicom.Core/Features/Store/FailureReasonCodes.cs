@@ -129,4 +129,9 @@ internal static class FailureReasonCodes
     /// Usually happens when an update request updated the watermark before current request could finish.
     /// </summary>
     public const ushort UpsUpdateConflict = 0xC304;
+
+    /// <summary>
+    /// General exception related to blob not found.
+    /// </summary>
+    public const ushort BlobNotFound = 273;
 }

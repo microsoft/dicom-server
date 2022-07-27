@@ -14,9 +14,9 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 
-namespace Microsoft.Health.Dicom.Functions.Copy;
+namespace Microsoft.Health.Dicom.Functions.BlobMigration;
 
-public partial class CopyDurableFunction
+public partial class DeleteDurableFunction
 {
     /// <summary>
     /// Asynchronously retrieves the next set of instance batches based on the configured options.
@@ -27,8 +27,8 @@ public partial class CopyDurableFunction
     /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
     /// property contains a list of batches as defined by their smallest and largest watermark.
     /// </returns>
-    [FunctionName(nameof(GetCopyInstanceBatchesAsync))]
-    public Task<IReadOnlyList<WatermarkRange>> GetCopyInstanceBatchesAsync(
+    [FunctionName(nameof(GetMigratedDeleteInstanceBatchesAsync))]
+    public Task<IReadOnlyList<WatermarkRange>> GetMigratedDeleteInstanceBatchesAsync(
         [ActivityTrigger] BatchCreationArguments arguments,
         ILogger logger)
     {
@@ -53,17 +53,17 @@ public partial class CopyDurableFunction
     }
 
     /// <summary>
-    /// Asynchronously copy a range of DICOM instances.
+    /// Asynchronously deletes a range of DICOM old instances.
     /// </summary>
     /// <param name="range">The options that include the instances to copy.</param>
     /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>A task representing the <see cref="CopyBatchAsync"/> operation.</returns>
-    [FunctionName(nameof(CopyBatchAsync))]
-    public async Task CopyBatchAsync([ActivityTrigger] WatermarkRange range, ILogger logger)
+    /// <returns>A task representing the <see cref="DeleteMigratedBatchAsync"/> operation.</returns>
+    [FunctionName(nameof(DeleteMigratedBatchAsync))]
+    public async Task DeleteMigratedBatchAsync([ActivityTrigger] WatermarkRange range, ILogger logger)
     {
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        logger.LogInformation("Beginning to copy instances in the range {Range}", range);
+        logger.LogInformation("Beginning to delete old format instances in the range {Range}", range);
 
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(range, IndexStatus.Created);
@@ -75,7 +75,7 @@ public partial class CopyDurableFunction
                 CancellationToken = default,
                 MaxDegreeOfParallelism = _options.MaxParallelThreads,
             },
-            (id, token) => new ValueTask(_instanceCopier.CopyInstanceAsync(id, token)));
-        logger.LogInformation("Completed copying instances in the range {Range}.", range);
+            (id, token) => new ValueTask(_blobMigrationService.DeleteInstanceAsync(id, token)));
+        logger.LogInformation("Completed deleting old format instances in the range {Range}.", range);
     }
 }

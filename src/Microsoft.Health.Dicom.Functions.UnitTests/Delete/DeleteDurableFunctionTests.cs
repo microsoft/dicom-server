@@ -12,17 +12,17 @@ using Microsoft.Health.Dicom.Functions.BlobMigration;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Delete;
 
-public partial class CopyDurableFunctionTests
+public partial class DeleteDurableFunctionTests
 {
     private readonly IInstanceStore _instanceStore;
     private readonly BlobMigrationService _blobMigrationService;
-    private readonly CopyDurableFunction _function;
+    private readonly DeleteDurableFunction _function;
     private readonly BlobMigrationOptions _options;
     private readonly BatchingOptions _batchingOptions;
 
-    public CopyDurableFunctionTests()
+    public DeleteDurableFunctionTests()
     {
         _options = new BlobMigrationOptions
         {
@@ -38,6 +38,6 @@ public partial class CopyDurableFunctionTests
         _instanceStore = Substitute.For<IInstanceStore>();
         _blobMigrationService = Substitute.For<BlobMigrationService>(Substitute.For<IMetadataStore>(), Substitute.For<IFileStore>());
 
-        _function = new CopyDurableFunction(_instanceStore, _blobMigrationService, Options.Create(_options));
+        _function = new DeleteDurableFunction(_instanceStore, _blobMigrationService, Options.Create(_options));
     }
 }

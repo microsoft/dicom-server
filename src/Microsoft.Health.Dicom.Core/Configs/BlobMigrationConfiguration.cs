@@ -20,7 +20,17 @@ public class BlobMigrationConfiguration
     public bool StartCopy { get; set; }
 
     /// <summary>
+    /// Gets or sets flag to start delete old format blobs
+    /// </summary>
+    public bool StartDelete { get; set; }
+
+    /// <summary>
     /// Gets or sets the copy files operation id
     /// </summary>
-    public Guid OperationId { get; set; } = Guid.Parse("1d4689da-ca3b-4659-b0c7-7bf6c9ff25e1");
+    public Guid CopyOperationId { get; set; } = Guid.Parse("1d4689da-ca3b-4659-b0c7-7bf6c9ff25e1");
+
+    /// <summary>
+    /// Gets or sets the delete files operation id
+    /// </summary>
+    public Guid DeleteOperationId { get; set; } = Guid.Parse("ce38a27e-b194-4645-b47a-fe91c38c330f");
 }
