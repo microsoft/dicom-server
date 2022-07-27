@@ -9,6 +9,7 @@ using System.Threading;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
@@ -17,14 +18,16 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-public class EndpointPipelineStep : IFhirTransactionPipelineStep
+public class EndpointPipelineStep : FhirTransactionPipelineStepBase
 {
     private readonly IFhirService _fhirService;
     private readonly string _dicomWebEndpoint;
 
     public EndpointPipelineStep(
         IOptions<DicomWebConfiguration> dicomWebConfiguration,
-        IFhirService fhirService)
+        IFhirService fhirService,
+        ILogger<EndpointPipelineStep> logger)
+        : base(logger)
     {
         EnsureArg.IsNotNull(dicomWebConfiguration?.Value, nameof(dicomWebConfiguration));
         EnsureArg.IsNotNull(fhirService, nameof(fhirService));
@@ -33,11 +36,13 @@ public class EndpointPipelineStep : IFhirTransactionPipelineStep
         _dicomWebEndpoint = dicomWebConfiguration.Value.Endpoint.ToString();
     }
 
-    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    protected override async Task PrepareRequestImplementationAsync(FhirTransactionContext context, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
-        string queryParameter = $"name={FhirTransactionConstants.EndpointName}&connection-type={FhirTransactionConstants.EndpointConnectionTypeSystem}|{FhirTransactionConstants.EndpointConnectionTypeCode}";
+        string endpointName = $"{FhirTransactionConstants.EndpointName} {_dicomWebEndpoint}";
+
+        string queryParameter = $"name={endpointName}&connection-type={FhirTransactionConstants.EndpointConnectionTypeSystem}|{FhirTransactionConstants.EndpointConnectionTypeCode}";
 
         Endpoint endpoint = await _fhirService.RetrieveEndpointAsync(queryParameter, cancellationToken);
 
@@ -47,7 +52,7 @@ public class EndpointPipelineStep : IFhirTransactionPipelineStep
         {
             endpoint = new Endpoint()
             {
-                Name = FhirTransactionConstants.EndpointName,
+                Name = endpointName,
                 Status = Endpoint.EndpointStatus.Active,
                 ConnectionType = new Coding()
                 {
@@ -101,7 +106,7 @@ public class EndpointPipelineStep : IFhirTransactionPipelineStep
             endpoint);
     }
 
-    public void ProcessResponse(FhirTransactionContext context)
+    protected override void ProcessResponseImplementation(FhirTransactionContext context)
     {
         // No action needed.
     }

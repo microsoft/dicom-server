@@ -6,6 +6,7 @@
 using System.Net;
 using System.Threading;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -28,7 +29,7 @@ public class ImagingStudyPipelineStepTests
         _imagingStudyDeleteHandler = Substitute.For<IImagingStudyDeleteHandler>();
         _imagingStudyUpsertHandler = Substitute.For<IImagingStudyUpsertHandler>();
 
-        _imagingStudyPipeline = new ImagingStudyPipelineStep(_imagingStudyUpsertHandler, _imagingStudyDeleteHandler);
+        _imagingStudyPipeline = new ImagingStudyPipelineStep(_imagingStudyUpsertHandler, _imagingStudyDeleteHandler, NullLogger<ImagingStudyPipelineStep>.Instance);
     }
 
     [Fact]

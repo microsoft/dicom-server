@@ -375,6 +375,50 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         // TODO:  Verify warning content after https://microsofthealth.visualstudio.com/Health/_workitems/edit/91168 is fixed.
     }
 
+    /*
+     * A customer is sending us UIDs with a trailing space. This is invalid, but may be due to their interpretation of
+     * the padding requirement to add a null character to make length even.
+     * See https://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
+     *
+     * Sql Server will automatically pad strings for whitespace when comparing. See
+     * https://support.microsoft.com/en-us/topic/inf-how-sql-server-compares-strings-with-trailing-spaces-b62b1a2d-27d3-4260-216d-a605719003b0
+     *
+     * This test ensures that
+     * - when a user saves their file with StudyInstanceUID contianing whitespace, we allow it and save it with whitespace
+     * - when a user tries to save the same file with different number in whitespace padding, they receive a conflict
+     */
+    [Fact]
+    public async Task GivenInstanceWithPaddedStudyInstanceUIDAlreadyStored_WhenStoreInstanceWithMorePaddedId_ThenExpectConflict()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate() + " ";
+        var seriesInstanceUid = TestUidGenerator.Generate();
+        var sopInstanceUid = TestUidGenerator.Generate();
+
+        // store first time
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(
+            studyInstanceUid: studyInstanceUid,
+            seriesInstanceUid: seriesInstanceUid,
+            sopInstanceUid: sopInstanceUid);
+        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        // retrieve and assert file stored with padded whitespace
+        using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            dicomTransferSyntax: "*");
+
+        DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
+        Assert.Equal(
+            studyInstanceUid,
+            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+
+        // store again, with additional padding on studyInstanceUid
+        dicomFile1.Dataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid + "     ");
+        var ex = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
+        Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
+    }
+
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders
     {
         get

@@ -36,7 +36,5 @@ public class TableClientReadWriteTestProvider : ITableClientTestProvider
         await tableClient.UpsertEntityAsync(entity, cancellationToken: cancellationToken);
 
         await tableClient.GetEntityAsync<HealthEntity>(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
-
-        await tableClient.DeleteEntityAsync(TestPartitionKey, TestRowKey, cancellationToken: cancellationToken);
     }
 }

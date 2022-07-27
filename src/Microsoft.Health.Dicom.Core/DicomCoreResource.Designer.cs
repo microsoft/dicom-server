@@ -124,15 +124,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ConnectionString and BlobContainerName cannot be specified along with BlobContainerUri..
-        /// </summary>
-        internal static string ConflictingExportBlobConnections {
-            get {
-                return ResourceManager.GetString("ConflictingExportBlobConnections", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The prefix used to identify custom audit headers cannot be empty..
         /// </summary>
         internal static string CustomHeaderPrefixCannotBeEmpty {
@@ -201,15 +192,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DicomElementValidationFailed {
             get {
                 return ResourceManager.GetString("DicomElementValidationFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The dicom file in the request section exceeded the allowed limit of {0} bytes..
-        /// </summary>
-        internal static string DicomFileLengthLimitExceeded {
-            get {
-                return ResourceManager.GetString("DicomFileLengthLimitExceeded", resourceCulture);
             }
         }
         
@@ -604,15 +586,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Managed identity cannot be used with a ConnectionString..
-        /// </summary>
-        internal static string InvalidExportBlobAuthentication {
-            get {
-                return ResourceManager.GetString("InvalidExportBlobAuthentication", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The extended query tag &apos;{0}&apos; is invalid as it cannot be parsed into a valid Dicom Tag..
         /// </summary>
         internal static string InvalidExtendedQueryTag {
@@ -823,15 +796,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Please specify both ConnectionString and BlobContainerName..
-        /// </summary>
-        internal static string MissingExportBlobConnection {
-            get {
-                return ResourceManager.GetString("MissingExportBlobConnection", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The extended query tag(s) is missing..
         /// </summary>
         internal static string MissingExtendedQueryTag {
@@ -1021,6 +985,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request exceeded the allowed limit of {0} bytes..
+        /// </summary>
+        internal static string RequestLengthLimitExceeded {
+            get {
+                return ResourceManager.GetString("RequestLengthLimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The required condition for tag &apos;{0}&apos; is not met..
         /// </summary>
         internal static string RequiredConditionNotMet {
@@ -1107,6 +1080,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string SimpleErrorMessageUnexpectedVR {
             get {
                 return ResourceManager.GetString("SimpleErrorMessageUnexpectedVR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The accept header is supported for single frame retrieval, use multi-part accept header instead..
+        /// </summary>
+        internal static string SinglePartSupportedForSingleFrame {
+            get {
+                return ResourceManager.GetString("SinglePartSupportedForSingleFrame", resourceCulture);
             }
         }
         

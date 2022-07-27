@@ -13,7 +13,7 @@ public class AuditTestFixture : HttpIntegrationTestFixture<StartupWithTraceAudit
     private TraceAuditLogger _auditLogger;
 
     public AuditTestFixture()
-        : base()
+        : base(Common.TestServerFeatureSettingType.UpsRs)
     {
     }
 

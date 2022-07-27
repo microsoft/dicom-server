@@ -143,6 +143,59 @@ public partial class RetrieveTransactionResourceTests
         Assert.Equal(dicomFile1.ToByteArray(), (await instanceRetrieve.GetValueAsync()).ToByteArray());
     }
 
+
+    /*
+     * A customer is sending us UIDs with a trailing space. This is invalid, but may be due to their interpretation of
+     * the padding requirement to add a null character to make length even.
+     * See https://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
+     *
+     * Sql Server will automatically pad strings for whitespace when comparing. See
+     * https://support.microsoft.com/en-us/topic/inf-how-sql-server-compares-strings-with-trailing-spaces-b62b1a2d-27d3-4260-216d-a605719003b0
+     *
+     * This test ensures that
+     * - when a user saves their file with StudyInstanceUID contianing whitespace, we allow it and save it with whitespace
+     * - when a user retrieves that saved file, the StudyInstanceUID comes back with whitespace
+     * - when a user retrieves that saved file, they can do so with or without padding StudyInstanceUID in their query param
+     */
+    [Theory]
+    [InlineData(" ", " ")]
+    [InlineData("", " ")]
+    [InlineData(" ", "")]
+    [InlineData("     ", " ")]
+    public async Task GivenInstanceWithPaddedStudyInstanceUID_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(
+        string queryStudyInstanceUidPadding,
+        string saveStudyInstanceUidPadding)
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var queryStudyInstanceUid = studyInstanceUid + queryStudyInstanceUidPadding;
+        var saveStudyInstanceUid = studyInstanceUid + saveStudyInstanceUidPadding;
+
+
+        var seriesInstanceUid = TestUidGenerator.Generate();
+        var sopInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(
+            studyInstanceUid: saveStudyInstanceUid,
+            seriesInstanceUid: seriesInstanceUid,
+            sopInstanceUid: sopInstanceUid);
+        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
+            queryStudyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            dicomTransferSyntax: "*");
+
+        DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
+
+        Assert.Equal(
+            dicomFile1.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID),
+            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+        Assert.Equal(
+            queryStudyInstanceUid.TrimEnd(),
+            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID).TrimEnd());
+    }
+
     public static IEnumerable<object[]> GetAcceptHeadersForInstances
     {
         get

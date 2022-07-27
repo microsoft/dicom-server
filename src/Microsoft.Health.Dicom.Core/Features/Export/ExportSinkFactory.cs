@@ -20,25 +20,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Export;
 /// </summary>
 public sealed class ExportSinkFactory
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly Dictionary<ExportDestinationType, IExportSinkProvider> _providers;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportSinkFactory"/> class.
     /// </summary>
-    /// <param name="serviceProvider">An <see cref="IServiceProvider"/> to retrieve additional dependencies per provider.</param>
     /// <param name="providers">A collection of sink providers.</param>
     /// <exception cref="ArgumentException">
     /// Two or more providers have the same value for their <see cref="IExportSinkProvider.Type"/> property.
     /// </exception>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="serviceProvider"/> or <paramref name="providers"/> is <see langword="null"/>.
-    /// </exception>
-    public ExportSinkFactory(IServiceProvider serviceProvider, IEnumerable<IExportSinkProvider> providers)
-    {
-        _serviceProvider = EnsureArg.IsNotNull(serviceProvider, nameof(serviceProvider));
-        _providers = EnsureArg.IsNotNull(providers, nameof(providers)).ToDictionary(x => x.Type);
-    }
+    /// <exception cref="ArgumentNullException"><paramref name="providers"/> is <see langword="null"/>.</exception>
+    public ExportSinkFactory(IEnumerable<IExportSinkProvider> providers)
+        => _providers = EnsureArg.IsNotNull(providers, nameof(providers)).ToDictionary(x => x.Type);
 
     /// <summary>
     /// Asynchronously completes a copy operation to the sink.
@@ -77,8 +70,7 @@ public sealed class ExportSinkFactory
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     public Task<IExportSink> CreateAsync(ExportDataOptions<ExportDestinationType> destination, Guid operationId, CancellationToken cancellationToken = default)
-        => GetProvider(EnsureArg.IsNotNull(destination, nameof(destination)).Type)
-            .CreateAsync(_serviceProvider, destination.Settings, operationId, cancellationToken);
+        => GetProvider(EnsureArg.IsNotNull(destination, nameof(destination)).Type).CreateAsync(destination.Settings, operationId, cancellationToken);
 
     /// <summary>
     /// Asynchronously stores sensitive information in a secure format and returns the updated options.
@@ -133,11 +125,7 @@ public sealed class ExportSinkFactory
     }
 
     private IExportSinkProvider GetProvider(ExportDestinationType type)
-    {
-        if (!_providers.TryGetValue(type, out IExportSinkProvider provider))
-            throw new KeyNotFoundException(
-                string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedExportDestination, type));
-
-        return provider;
-    }
+        => _providers.TryGetValue(type, out IExportSinkProvider provider)
+            ? provider
+            : throw new KeyNotFoundException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedExportDestination, type));
 }

@@ -4,15 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -27,20 +24,47 @@ namespace Microsoft.Health.Dicom.Blob.Features.Export;
 
 internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlobExportOptions>
 {
+    internal const string ClientOptionsName = "Export";
+
     public override ExportDestinationType Type => ExportDestinationType.AzureBlob;
 
     private readonly ISecretStore _secretStore;
+    private readonly IFileStore _fileStore;
+    private readonly IExternalOperationCredentialProvider _credentialProvider;
+    private readonly AzureBlobExportSinkProviderOptions _providerOptions;
+    private readonly AzureBlobClientOptions _clientOptions;
+    private readonly BlobOperationOptions _operationOptions;
     private readonly JsonSerializerOptions _serializerOptions;
     private readonly ILogger _logger;
 
-    public AzureBlobExportSinkProvider(IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
+    public AzureBlobExportSinkProvider(
+        IFileStore fileStore,
+        IExternalOperationCredentialProvider credentialProvider,
+        IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
+        IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
+        IOptionsSnapshot<BlobOperationOptions> operationOptions,
+        IOptionsSnapshot<JsonSerializerOptions> serializerOptions,
+        ILogger<AzureBlobExportSinkProvider> logger)
     {
+        _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+        _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
+        _providerOptions = EnsureArg.IsNotNull(providerOptions?.Value, nameof(providerOptions));
+        _clientOptions = EnsureArg.IsNotNull(clientOptions?.Get(ClientOptionsName), nameof(clientOptions));
+        _operationOptions = EnsureArg.IsNotNull(operationOptions?.Value, nameof(operationOptions));
         _serializerOptions = EnsureArg.IsNotNull(serializerOptions?.Value, nameof(serializerOptions));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public AzureBlobExportSinkProvider(ISecretStore secretStore, IOptions<JsonSerializerOptions> serializerOptions, ILogger<AzureBlobExportSinkProvider> logger)
-        : this(serializerOptions, logger)
+    public AzureBlobExportSinkProvider(
+        ISecretStore secretStore,
+        IFileStore fileStore,
+        IExternalOperationCredentialProvider credentialProvider,
+        IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
+        IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
+        IOptionsSnapshot<BlobOperationOptions> operationOptions,
+        IOptionsSnapshot<JsonSerializerOptions> serializerOptions,
+        ILogger<AzureBlobExportSinkProvider> logger)
+        : this(fileStore, credentialProvider, providerOptions, clientOptions, operationOptions, serializerOptions, logger)
     {
         // The real Azure Functions runtime/container will use DryIoc for dependency injection
         // and will still select this ctor for use, even if no ISecretStore service is configured.
@@ -64,23 +88,19 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         }
     }
 
-    protected override async Task<IExportSink> CreateAsync(IServiceProvider provider, AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
+    protected override async Task<IExportSink> CreateAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
     {
         options = await RetrieveSensitiveOptionsAsync(options, cancellationToken);
 
         return new AzureBlobExportSink(
-            provider.GetRequiredService<IFileStore>(),
-            await options.GetBlobContainerClientAsync(
-                provider.GetRequiredService<IExportIdentityProvider>(),
-                provider.GetRequiredService<IOptionsMonitor<AzureBlobClientOptions>>().Get("Export"),
-                cancellationToken),
-            Options.Create(
-                new AzureBlobExportFormatOptions(
-                    operationId,
-                    AzureBlobExportOptions.DicomFilePattern,
-                    AzureBlobExportOptions.ErrorLogPattern)),
-            provider.GetRequiredService<IOptions<BlobOperationOptions>>(),
-            provider.GetRequiredService<IOptions<JsonSerializerOptions>>());
+            _fileStore,
+            await options.GetBlobContainerClientAsync(_credentialProvider, _clientOptions, cancellationToken),
+            new AzureBlobExportFormatOptions(
+                operationId,
+                AzureBlobExportOptions.DicomFilePattern,
+                AzureBlobExportOptions.ErrorLogPattern),
+            _operationOptions,
+            _serializerOptions);
     }
 
     protected override async Task<AzureBlobExportOptions> SecureSensitiveInfoAsync(AzureBlobExportOptions options, Guid operationId, CancellationToken cancellationToken = default)
@@ -93,10 +113,10 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         BlobSecrets secrets = null;
         if (options.BlobContainerUri != null)
         {
-            if (IsSensitiveBlobContainerUri(options.BlobContainerUri))
+            if (ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
                 secrets = new BlobSecrets { BlobContainerUri = options.BlobContainerUri };
         }
-        else if (IsSensitiveConnectionString(options.ConnectionString))
+        else if (ContainsKey(options.ConnectionString, AzureStorageConnection.SharedAccessSignature))
         {
             secrets = new BlobSecrets { ConnectionString = options.ConnectionString };
         }
@@ -124,11 +144,71 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     protected override Task ValidateAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
     {
-        List<ValidationResult> results = options.Validate(new ValidationContext(this)).ToList();
-        if (results.Count > 0)
-            throw new ValidationException(results.First().ErrorMessage);
+        ValidationResult error = null;
 
-        return Task.CompletedTask;
+        // Using connection strings?
+        if (options.BlobContainerUri == null)
+        {
+            // No connection info?
+            if (string.IsNullOrWhiteSpace(options.ConnectionString) || string.IsNullOrWhiteSpace(options.BlobContainerName))
+            {
+                error = new ValidationResult(DicomBlobResource.MissingExportBlobConnection);
+            }
+            else // Otherwise, validate the connection string
+            {
+                if (!IsEmulator(options.ConnectionString) &&
+                    ContainsKey(options.ConnectionString, AzureStorageConnection.AccountKey))
+                {
+                    // Account keys are not allowed
+                    error = new ValidationResult(DicomBlobResource.AzureStorageAccountKeyUnsupported);
+                }
+                else if (!_providerOptions.AllowSasTokens &&
+                    ContainsKey(options.ConnectionString, AzureStorageConnection.SharedAccessSignature))
+                {
+                    // SAS tokens are not allowed
+                    error = new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported);
+                }
+                else if (!_providerOptions.AllowPublicAccess &&
+                    !ContainsKey(options.ConnectionString, AzureStorageConnection.SharedAccessSignature))
+                {
+                    // Public access not allowed
+                    error = new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported);
+                }
+                else if (options.UseManagedIdentity)
+                {
+                    // Managed identity must be used with URIs
+                    error = new ValidationResult(DicomBlobResource.InvalidExportBlobAuthentication);
+                }
+            }
+        }
+        else // Otherwise, using a blob container URI
+        {
+            if (!string.IsNullOrWhiteSpace(options.ConnectionString) || !string.IsNullOrWhiteSpace(options.BlobContainerName))
+            {
+                // Conflicting connection info
+                error = new ValidationResult(DicomBlobResource.ConflictingExportBlobConnections);
+            }
+            else if (options.UseManagedIdentity &&
+                ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
+            {
+                // Managed identity and SAS both specified
+                error = new ValidationResult(DicomBlobResource.ConflictingBlobExportAuthentication);
+            }
+            else if (!_providerOptions.AllowSasTokens &&
+                ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
+            {
+                // SAS tokens are not allowed
+                error = new ValidationResult(DicomBlobResource.SasTokenAuthenticationUnsupported);
+            }
+            else if (!_providerOptions.AllowPublicAccess && !options.UseManagedIdentity &&
+                !ContainsQueryStringParameter(options.BlobContainerUri, AzureStorageConnection.Uri.Sig))
+            {
+                // No auth specified, but public access is forbidden
+                error = new ValidationResult(DicomBlobResource.PublicBlobStorageConnectionUnsupported);
+            }
+        }
+
+        return error == null ? Task.CompletedTask : throw new ValidationException(error.ErrorMessage);
     }
 
     private async Task<AzureBlobExportOptions> RetrieveSensitiveOptionsAsync(AzureBlobExportOptions options, CancellationToken cancellationToken = default)
@@ -149,26 +229,37 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
         return options;
     }
 
-    private static bool IsSensitiveBlobContainerUri(Uri blobContainerUri)
+    private static bool IsEmulator(string connectionString)
     {
-        // Assume any parameter is for authentication
-        // Note: Shared Key would be present in header
-        var builder = new UriBuilder(blobContainerUri);
-        return builder.Query != null && builder.Query.Length > 1; // More than "?"
+        EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+        return connectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) ||
+            ContainsPair(connectionString, AzureStorageConnection.AccountName, "devstoreaccount1");
     }
 
-    private static bool IsSensitiveConnectionString(string connectionString)
-    {
-        // Emulator is a well-known account and account key
-        if (connectionString.Equals("UseDevelopmentStorage=true", StringComparison.OrdinalIgnoreCase) ||
-            (connectionString.Contains("AccountName=devstoreaccount1;", StringComparison.OrdinalIgnoreCase) &&
-            connectionString.Contains("AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;", StringComparison.OrdinalIgnoreCase)))
-        {
-            return false;
-        }
+    // Note: These Contain methods may produce false positives as they do not check for the exact name
 
-        return connectionString.Contains("AccountKey=", StringComparison.OrdinalIgnoreCase) ||
-            connectionString.Contains("SharedAccessSignature=", StringComparison.OrdinalIgnoreCase);
+    private static bool ContainsKey(string connectionString, string key)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+        EnsureArg.IsNotNullOrWhiteSpace(key, nameof(key));
+
+        return connectionString.Contains(key + '=', StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsPair(string connectionString, string key, string value)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(connectionString, nameof(connectionString));
+        EnsureArg.IsNotNullOrWhiteSpace(key, nameof(key));
+
+        return connectionString.Contains(key + '=' + value, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ContainsQueryStringParameter(Uri storageUri, string name)
+    {
+        EnsureArg.IsNotNull(storageUri, nameof(storageUri));
+        EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
+
+        return storageUri.Query.Contains(name + '=', StringComparison.OrdinalIgnoreCase);
     }
 
     private sealed class BlobSecrets

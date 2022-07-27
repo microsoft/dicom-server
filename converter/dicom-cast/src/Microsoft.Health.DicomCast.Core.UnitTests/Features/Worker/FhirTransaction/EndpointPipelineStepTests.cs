@@ -6,6 +6,7 @@
 using System.Linq;
 using System.Threading;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
@@ -21,7 +22,7 @@ public class EndpointPipelineStepTests
 {
     private const string EndpointConnectionTypeSystem = "http://terminology.hl7.org/CodeSystem/endpoint-connection-type";
     private const string EndpointConnectionTypeCode = "dicom-wado-rs";
-    private const string EndpointName = "DICOM WADO-RS endpoint";
+    private const string EndpointName = "DICOM WADO-RS endpoint https://dicom/";
     private const string EndpointPayloadTypeText = "DICOM WADO-RS";
     private const string DicomMimeType = "application/dicom";
 
@@ -41,7 +42,7 @@ public class EndpointPipelineStepTests
 
         _fhirService = Substitute.For<IFhirService>();
 
-        _endpointPipeline = new EndpointPipelineStep(optionsConfiguration, _fhirService);
+        _endpointPipeline = new EndpointPipelineStep(optionsConfiguration, _fhirService, NullLogger<EndpointPipelineStep>.Instance);
     }
 
     [Fact]

@@ -39,7 +39,7 @@ public class EphemeralMemoryCacheTests
     }
 
     [Fact]
-    public async Task GivenCacheImp_WithFuncResultNull_Throws()
+    public async Task GivenCacheImp_WithFuncResultNull_ReturnsNull()
     {
         var config = Substitute.For<IOptions<CacheConfiguration>>();
         config.Value.Returns(new CacheConfiguration());
@@ -50,8 +50,7 @@ public class EphemeralMemoryCacheTests
             await Task.Run(() => 1);
             return null;
         };
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            cache.GetAsync(1, 1, mockAction, CancellationToken.None));
+        Assert.Null(await cache.GetAsync(1, 1, mockAction, CancellationToken.None));
     }
 
     public class TestEphemeralMemoryCache : EphemeralMemoryCache<int, int?>

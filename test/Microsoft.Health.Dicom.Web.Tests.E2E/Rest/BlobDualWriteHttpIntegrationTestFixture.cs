@@ -8,6 +8,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class BlobDualWriteHttpIntegrationTestFixture<TStartup> : HttpIntegrationTestFixture<TStartup>
 {
     public BlobDualWriteHttpIntegrationTestFixture()
-        : base(enableDataPartitions: false, enableDualWrite: true)
+        : base(Common.TestServerFeatureSettingType.DualWrite)
     { }
 }

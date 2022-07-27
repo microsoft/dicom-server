@@ -19,7 +19,7 @@ DICOM Cast can be deployed as an Azure Container Instance targeting an Azure Hea
 If you have an Azure subscription, click the link below to deploy to Azure:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fconverter%2Fdicom-cast%2Fsamples%2Ftemplates%2Fdeploy-with-healthcareapis.json" target="_blank">
-    <img src="https://azuredeploy.net/deploybutton.png"/>
+    <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
 
 If you do not have an Azure subscription, create a [free account](https://azure.microsoft.com/free) before you begin.
@@ -65,7 +65,7 @@ DICOM Cast can be deployed as an Azure Container Instance using the provided [AR
 If you have an Azure subscription, click the link below to deploy to Azure:
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdicom-server%2Fmain%2Fconverter%2Fdicom-cast%2Fsamples%2Ftemplates%2Fdefault-azuredeploy.json" target="_blank">
-    <img src="https://azuredeploy.net/deploybutton.png"/>
+    <img src="https://aka.ms/deploytoazurebutton"/>
 </a>
 
 If you do not have an Azure subscription, create a [free account](https://azure.microsoft.com/free) before you begin.

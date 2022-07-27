@@ -137,6 +137,46 @@ public partial class DicomWebClient : IDicomWebClient
         return await RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<DicomWebResponse<Stream>> RetrieveSingleFrameAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        int frame,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+        var requestUri = GenerateRequestUri(
+            string.Format(
+                DicomWebConstants.BaseRetrieveFramesUriFormat,
+                studyInstanceUid,
+                seriesInstanceUid,
+                sopInstanceUid,
+                frame),
+            partitionName);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.TryAddWithoutValidation(
+            "Accept",
+            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationOctetStream, DicomWebConstants.OriginalDicomTransferSyntax));
+
+        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+        return new DicomWebResponse<Stream>(
+            response,
+            async content =>
+            {
+                MemoryStream memoryStream = GetMemoryStream();
+                await content.CopyToAsync(memoryStream).ConfigureAwait(false);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                return memoryStream;
+            });
+    }
+
     private async Task<DicomWebResponse<DicomFile>> RetrieveInstanceAsync(
         Uri requestUri,
         string dicomTransferSyntax,

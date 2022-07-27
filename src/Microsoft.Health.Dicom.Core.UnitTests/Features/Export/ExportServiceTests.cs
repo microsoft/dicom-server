@@ -26,7 +26,6 @@ public class ExportServiceTests
     private readonly PartitionEntry _partition = new PartitionEntry(123, "export-partition");
     private readonly IExportSourceProvider _sourceProvider;
     private readonly IExportSinkProvider _sinkProvider;
-    private readonly IServiceProvider _serviceProvider;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IDicomRequestContextAccessor _requestContextAccessor;
@@ -41,14 +40,13 @@ public class ExportServiceTests
         _sinkProvider.Type.Returns(DestinationType);
         _client = Substitute.For<IDicomOperationsClient>();
         _guidFactory = Substitute.For<IGuidFactory>();
-        _serviceProvider = Substitute.For<IServiceProvider>();
         _requestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _requestContext = Substitute.For<IDicomRequestContext>();
         _requestContext.DataPartitionEntry.Returns(_partition);
         _requestContextAccessor.RequestContext.Returns(_requestContext);
         _service = new ExportService(
-            new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider }),
-            new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider }),
+            new ExportSourceFactory(new IExportSourceProvider[] { _sourceProvider }),
+            new ExportSinkFactory(new IExportSinkProvider[] { _sinkProvider }),
             _guidFactory,
             _client,
             _requestContextAccessor);
@@ -57,8 +55,8 @@ public class ExportServiceTests
     [Fact]
     public void GivenNullArgument_WhenConstructing_ThenThrowArgumentNullException()
     {
-        var source = new ExportSourceFactory(_serviceProvider, new IExportSourceProvider[] { _sourceProvider });
-        var sink = new ExportSinkFactory(_serviceProvider, new IExportSinkProvider[] { _sinkProvider });
+        var source = new ExportSourceFactory(new IExportSourceProvider[] { _sourceProvider });
+        var sink = new ExportSinkFactory(new IExportSinkProvider[] { _sinkProvider });
 
         Assert.Throws<ArgumentNullException>(() => new ExportService(null, sink, _guidFactory, _client, _requestContextAccessor));
         Assert.Throws<ArgumentNullException>(() => new ExportService(source, null, _guidFactory, _client, _requestContextAccessor));

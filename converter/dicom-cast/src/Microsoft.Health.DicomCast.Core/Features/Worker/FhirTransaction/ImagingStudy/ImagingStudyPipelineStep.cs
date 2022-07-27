@@ -10,6 +10,7 @@ using System.Threading;
 using EnsureThat;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
@@ -19,14 +20,16 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 /// <summary>
 /// Pipeline step for handling <see cref="ImagingStudy"/>.
 /// </summary>
-public class ImagingStudyPipelineStep : IFhirTransactionPipelineStep
+public class ImagingStudyPipelineStep : FhirTransactionPipelineStepBase
 {
     private readonly IImagingStudyUpsertHandler _imagingStudyUpsertHandler;
     private readonly IImagingStudyDeleteHandler _imagingStudyDeleteHandler;
 
     public ImagingStudyPipelineStep(
-       IImagingStudyUpsertHandler imagingStudyUpsertHandler,
-       IImagingStudyDeleteHandler imagingStudyDeleteHandler)
+        IImagingStudyUpsertHandler imagingStudyUpsertHandler,
+        IImagingStudyDeleteHandler imagingStudyDeleteHandler,
+        ILogger<ImagingStudyPipelineStep> logger)
+        : base(logger)
     {
         EnsureArg.IsNotNull(imagingStudyUpsertHandler, nameof(imagingStudyUpsertHandler));
         EnsureArg.IsNotNull(imagingStudyDeleteHandler, nameof(imagingStudyDeleteHandler));
@@ -36,7 +39,7 @@ public class ImagingStudyPipelineStep : IFhirTransactionPipelineStep
     }
 
     /// <inheritdoc/>
-    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken)
+    protected override async Task PrepareRequestImplementationAsync(FhirTransactionContext context, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
@@ -55,7 +58,7 @@ public class ImagingStudyPipelineStep : IFhirTransactionPipelineStep
     }
 
     /// <inheritdoc/>
-    public void ProcessResponse(FhirTransactionContext context)
+    protected override void ProcessResponseImplementation(FhirTransactionContext context)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
