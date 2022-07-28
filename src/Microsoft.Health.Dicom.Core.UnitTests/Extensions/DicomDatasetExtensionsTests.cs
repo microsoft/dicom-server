@@ -562,14 +562,14 @@ public class DicomDatasetExtensionsTests
     }
 
     [Fact]
-    public void GivenAddWorkitemDataset_WhenRequirementIsMet_ValidationSucceeds()
+    public void GivenAddWorkitemDataset_WhenAllRequirementsAreMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset(requestType: WorkitemRequestType.Add);
         dataset.ValidateAllRequirements(WorkitemRequestType.Add);
     }
 
     [Fact]
-    public void GivenUpdateWorkitemDataset_WhenRequirementIsMet_ValidationSucceeds()
+    public void GivenUpdateWorkitemDataset_WhenAllRequirementsAreMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset(requestType: WorkitemRequestType.Update);
         dataset.ValidateAllRequirements(WorkitemRequestType.Update);
