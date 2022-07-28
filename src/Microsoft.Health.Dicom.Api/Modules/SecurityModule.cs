@@ -111,22 +111,12 @@ public class SecurityModule : IStartupModule
 
     internal string FindAppropriateScheme(IHeaderDictionary requestHeaders)
     {
-        // Find the first authentication header with a JWT Bearer token whose issuer
-        // contains one of the scheme names and return the found scheme name.
-        StringValues authHeaders = default(StringValues);
-
-        if (!StringValues.IsNullOrEmpty(requestHeaders.Authorization))
-        {
-            authHeaders = requestHeaders.Authorization;
-        }
-        else if (!StringValues.IsNullOrEmpty(requestHeaders.WWWAuthenticate))
-        {
-            authHeaders = requestHeaders.WWWAuthenticate;
-        }
-        else
+        if (StringValues.IsNullOrEmpty(requestHeaders.Authorization))
         {
             return _defaultScheme;
         }
+
+        StringValues authHeaders = requestHeaders.Authorization;
 
         foreach (var authHeader in authHeaders)
         {
