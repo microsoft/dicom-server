@@ -24,6 +24,7 @@ using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Api.Features.Security;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -80,6 +81,7 @@ public static class DicomServerServiceCollectionExtensions
         EnsureArg.IsNotNull(services, nameof(services));
 
         var dicomServerConfiguration = new DicomServerConfiguration();
+        IJwtSecurityTokenParser securityTokenParser = new JwtSecurityTokenParser();
 
         configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
         configureAction?.Invoke(dicomServerConfiguration);
@@ -98,9 +100,8 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
 
-
-        services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
-        services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
+        services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration, securityTokenParser);
+        services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration, securityTokenParser);
         services.AddApplicationInsightsTelemetry();
 
         services.AddOptions();
