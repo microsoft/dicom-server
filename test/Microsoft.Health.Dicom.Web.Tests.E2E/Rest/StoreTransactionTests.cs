@@ -419,6 +419,34 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
     }
 
+    [Fact]
+    public async Task GivenInstance_WhenStoreInstanceWithoutPaddedStudyInstanceUID_ThenExpectNoWarning()
+    {
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(
+            studyInstanceUid: TestUidGenerator.Generate(),
+            seriesInstanceUid: TestUidGenerator.Generate(),
+            sopInstanceUid: TestUidGenerator.Generate());
+
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        Assert.DoesNotContain(
+            "StudyInstanceUI is padded with whitespace, which is not a valid DICOM format for UIDs.",
+            response.ResponseHeaders.Warning.ToString());
+    }
+
+    [Fact]
+    public async Task GivenInstance_WhenStoreInstanceWithPaddedStudyInstanceUID_ThenExpectWarning()
+    {
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(
+            studyInstanceUid: TestUidGenerator.Generate() + " ",
+            seriesInstanceUid: TestUidGenerator.Generate(),
+            sopInstanceUid: TestUidGenerator.Generate());
+
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        Assert.Contains(
+            "StudyInstanceUI is padded with whitespace, which is not a valid DICOM format for UIDs.",
+            response.ResponseHeaders.Warning.ToString());
+    }
+
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders
     {
         get
