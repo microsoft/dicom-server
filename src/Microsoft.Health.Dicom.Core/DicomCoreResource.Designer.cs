@@ -1102,7 +1102,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to StudyInstanceUI is padded with whitespace, which is not a valid DICOM format for UIDs..
+        ///   Looks up a localized string similar to StudyInstanceUID is padded with whitespace, which is not a valid DICOM format for UIDs..
         /// </summary>
         internal static string StudyInstanceUIDWhitespacePadding {
             get {
