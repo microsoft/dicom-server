@@ -9,7 +9,9 @@ using System.Linq;
 using System.Text.Json;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Features.Workitem.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -553,6 +555,25 @@ public class DicomDatasetExtensionsTests
         dataset.Remove(DicomTag.SOPInstanceUID);
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.O);
+    }
+
+    [Fact]
+    public void GivenADataset_WhenValidateQueryTag_AndStudyInstanceUIDPaddedWhitespace_ExpectWarning()
+    {
+        _dicomDataset.Add(DicomTag.StudyInstanceUID, "123.123" + " ");
+        ValidationWarnings warning = _dicomDataset.ValidateQueryTag(
+            new QueryTag(DicomTag.StudyInstanceUID),
+            new ElementMinimumValidator());
+        Assert.Equal(ValidationWarnings.StudyInstanceUIDWhitespacePadding, warning);
+    }
+    [Fact]
+    public void GivenAValidDataset_WhenValidateQueryTag_AndStudyInstanceUIDNotPaddedWhitespace_ExpectNoWarning()
+    {
+        _dicomDataset.Add(DicomTag.StudyInstanceUID, "123.123");
+        ValidationWarnings warning = _dicomDataset.ValidateQueryTag(
+            new QueryTag(DicomTag.StudyInstanceUID),
+            new ElementMinimumValidator());
+        Assert.NotEqual(ValidationWarnings.StudyInstanceUIDWhitespacePadding, warning);
     }
 
     public static IEnumerable<object[]> ValidAttributeRequirements()

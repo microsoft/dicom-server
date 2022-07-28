@@ -24,6 +24,18 @@ public class DicomUidValidationTests
     }
 
     [Fact]
+    public void GivenWhitespacePaddedUid_WhenValidating_ThenShouldWarn()
+    {
+        string paddedUID = "13.14.520 ";
+        Assert.Equal(
+            ValidationWarnings.StudyInstanceUIDWhitespacePadding,
+            new UidValidation().Validate(new DicomUniqueIdentifier(DicomTag.StudyInstanceUID, paddedUID)));
+        Assert.Equal(
+            ValidationWarnings.StudyInstanceUIDWhitespacePadding,
+            new UidValidation().Validate(new DicomUniqueIdentifier(DicomTag.SeriesInstanceUID, paddedUID)));
+    }
+
+    [Fact]
     public void GivenMultipleValues_WhenValidating_ThenShouldVaidateFirstOne()
     {
         DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, "13", "11|");
