@@ -429,7 +429,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
         Assert.DoesNotContain(
-            "StudyInstanceUI is padded with whitespace, which is not a valid DICOM format for UIDs.",
+            "StudyInstanceUID is padded with whitespace, which is not a valid DICOM format for UIDs.",
             response.ResponseHeaders.Warning.ToString());
     }
 
@@ -443,7 +443,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
         Assert.Contains(
-            "StudyInstanceUI is padded with whitespace, which is not a valid DICOM format for UIDs.",
+            "StudyInstanceUID is padded with whitespace, which is not a valid DICOM format for UIDs.",
             response.ResponseHeaders.Warning.ToString());
     }
 
