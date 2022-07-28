@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -200,6 +201,27 @@ public class BlobFileStore : IFileStore
         {
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task DeleteOldFileIfExistsAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
+
+        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
+        var newBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
+
+        // Delete the old file only if the new file exists
+        if (await newBlobClient.ExistsAsync(cancellationToken))
+        {
+            await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
+        }
+        else
+        {
+            throw new DataStoreException("DICOM instance does not exists with new format.", FailureReasonCodes.BlobNotFound);
         }
     }
 

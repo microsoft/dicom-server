@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.SchemaManager;
 
 public static class SchemaManagerParser
 {
-    public static Parser Build(ServiceProvider serviceProvider)
+    public static Parser Build(IServiceProvider serviceProvider)
     {
         var commandLineBuilder = new CommandLineBuilder();
 

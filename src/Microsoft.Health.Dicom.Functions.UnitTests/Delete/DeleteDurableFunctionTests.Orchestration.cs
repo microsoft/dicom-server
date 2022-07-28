@@ -18,12 +18,12 @@ using Microsoft.Health.Operations.Functions.Management;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Functions.UnitTests.Copy;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Delete;
 
-public partial class CopyDurableFunctionTests
+public partial class DeleteDurableFunctionTests
 {
     [Fact]
-    public async Task GivenNewOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndDuplicateBatches()
+    public async Task GivenNewOrchestrationWithWork_WhenDeletingInstances_ThenDivideAndDuplicateBatches()
     {
         DateTime createdTime = DateTime.UtcNow;
 
@@ -39,13 +39,13 @@ public partial class CopyDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CopyBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
@@ -57,7 +57,7 @@ public partial class CopyDurableFunctionTests
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
 
         // Invoke the orchestration
-        await _function.CopyFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -66,7 +66,7 @@ public partial class CopyDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
 
@@ -75,7 +75,7 @@ public partial class CopyDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(CopyDurableFunction.CopyBatchAsync),
+                    nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(batch));
         }
@@ -93,7 +93,7 @@ public partial class CopyDurableFunctionTests
     }
 
     [Fact]
-    public async Task GivenExistingOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndCopyBatches()
+    public async Task GivenExistingOrchestrationWithWork_WhenDeletingInstances_ThenDivideAndDeleteBatches()
     {
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
         var expectedInput = new BlobMigrationCheckpoint
@@ -111,19 +111,19 @@ public partial class CopyDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)))
             .Returns(expectedBatches);
         context
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CopyBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _function.CopyFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -133,7 +133,7 @@ public partial class CopyDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(35L)));
 
@@ -142,7 +142,7 @@ public partial class CopyDurableFunctionTests
             await context
                 .Received(1)
                 .CallActivityWithRetryAsync(
-                    nameof(CopyDurableFunction.CopyBatchAsync),
+                    nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                     _options.RetryOptions,
                     Arg.Is(batch));
         }
@@ -161,7 +161,7 @@ public partial class CopyDurableFunctionTests
     }
 
     [Fact]
-    public async Task GivenNoInstances_WhenCopyingInstances_ThenComplete()
+    public async Task GivenNoInstances_WhenDeletingInstances_ThenComplete()
     {
         var expectedBatches = new List<WatermarkRange>();
         var expectedInput = new BlobMigrationCheckpoint();
@@ -174,13 +174,13 @@ public partial class CopyDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)))
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.CopyFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -189,13 +189,13 @@ public partial class CopyDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(null)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CopyBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
 
@@ -213,7 +213,7 @@ public partial class CopyDurableFunctionTests
     [Theory]
     [InlineData(1, 100)]
     [InlineData(5, 1000)]
-    public async Task GivenNoRemainingInstances_WhenCopyingInstances_ThenComplete(long start, long end)
+    public async Task GivenNoRemainingInstances_WhenDeletingInstances_ThenComplete(long start, long end)
     {
         var expectedBatches = new List<WatermarkRange>();
         var expectedInput = new BlobMigrationCheckpoint
@@ -230,13 +230,13 @@ public partial class CopyDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)))
             .Returns(expectedBatches);
 
         // Invoke the orchestration
-        await _function.CopyFilesAsync(context, NullLogger.Instance);
+        await _function.DeleteMigratedFilesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -245,13 +245,13 @@ public partial class CopyDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(CopyDurableFunction.GetCopyInstanceBatchesAsync),
+                nameof(DeleteDurableFunction.GetMigratedDeleteInstanceBatchesAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(start - 1)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(CopyDurableFunction.CopyBatchAsync),
+                nameof(DeleteDurableFunction.DeleteMigratedBatchAsync),
                 _options.RetryOptions,
                 Arg.Any<object>());
         await context

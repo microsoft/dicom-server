@@ -38,6 +38,9 @@
     <None Include="Copy\CopyDurableFunctionTests.*.cs">
       <DependentUpon>CopyDurableFunctionTests.cs</DependentUpon>
     </None>
+    <None Include="Delete\DeleteDurableFunctionTests.*.cs">
+      <DependentUpon>DeleteDurableFunctionTests.cs</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>

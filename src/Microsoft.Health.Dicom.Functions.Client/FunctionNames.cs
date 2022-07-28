@@ -9,6 +9,8 @@ internal static class FunctionNames
 {
     public const string CopyFiles = "CopyFiles";
 
+    public const string DeleteMigratedFiles = "DeleteMigratedFiles";
+
     public const string ExportDicomFiles = "ExportDicomFiles";
 
     public const string ReindexInstances = "ReindexInstances";

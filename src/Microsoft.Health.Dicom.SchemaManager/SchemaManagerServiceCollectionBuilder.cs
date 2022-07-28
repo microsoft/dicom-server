@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,13 +18,11 @@ namespace Microsoft.Health.Dicom.SchemaManager;
 
 public static class SchemaManagerServiceCollectionBuilder
 {
-    public static ServiceCollection Build(string[] args)
+    public static IServiceCollection AddSchemaManager(this IServiceCollection services, IConfiguration config)
     {
-        var services = new ServiceCollection();
-
         services.AddCliCommands();
 
-        services.SetCommandLineOptions(args);
+        services.SetCommandLineOptions(config);
 
         services.AddOptions<SqlServerDataStoreConfiguration>().Configure<IOptions<CommandLineOptions>>((s, c) =>
         {

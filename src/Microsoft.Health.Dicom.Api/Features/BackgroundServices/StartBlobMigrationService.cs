@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Models.Copy;
+using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Operations;
 
@@ -39,7 +39,7 @@ public class StartBlobMigrationService : BackgroundService
         _serviceProvider = serviceProvider;
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
         _startBlobCopy = blobMigrationFormatConfiguration.Value.StartCopy;
-        _operationId = blobMigrationFormatConfiguration.Value.OperationId;
+        _operationId = blobMigrationFormatConfiguration.Value.CopyOperationId;
         _logger = logger;
     }
 
@@ -67,7 +67,7 @@ public class StartBlobMigrationService : BackgroundService
 
                     if (IsOperationInterruptedOrNull(existingInstance))
                     {
-                        var checkpoint = existingInstance?.Checkpoint as CopyCheckpoint;
+                        var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
 
                         await operationsClient.StartBlobCopyAsync(_operationId, checkpoint?.Completed, stoppingToken);
                     }

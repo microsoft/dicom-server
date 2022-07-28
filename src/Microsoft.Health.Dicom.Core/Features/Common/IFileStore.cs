@@ -72,6 +72,16 @@ public interface IFileStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously deletes a old DICOM file from the file store if the file exists.
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    Task DeleteOldFileIfExistsAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously gets a streaming file from the file store.
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
