@@ -1,5 +1,5 @@
 <#
-.SYNOPSIS 
+.SYNOPSIS
 Generates the OpenApi doc for the specified version and compares it with the baseline to make sure no breaking changes are introduced
 .Parameter SwaggerDir
 The working directory
@@ -24,17 +24,12 @@ param(
 dotnet new tool-manifest --force
 dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
 
-docker create -v ${SwaggerDir}:/swagger --name openAPIDiff openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02
-
-foreach ($Version in $Versions)
-{
-    write-host "Generating Yaml file for $Version"
-
-    dotnet swagger tofile --yaml --output (Join-Path -Path "$SwaggerDir" -ChildPath "$Version.yaml") "$AssemblyDir" $Version
-
-    write-host "Running comparison with baseline for version $Version"
-    docker run --rm -t --volumes-from openAPIDiff openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02 "/swagger/$Version/swagger.yaml" "/swagger/$version.yaml" --fail-on-incompatible
-
+# $error.clear()
+try{
+    Write-Information "Testing that swagger will work ..."
+    dotnet swagger 2>&1
+}
+catch{
+    Write-Error "Error occured - $error"
 }
 
-docker rm openAPIDiff --force
