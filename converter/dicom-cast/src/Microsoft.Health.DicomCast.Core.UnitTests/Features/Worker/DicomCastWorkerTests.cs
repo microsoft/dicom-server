@@ -7,6 +7,9 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -27,6 +30,7 @@ public class DicomCastWorkerTests
     private readonly IHostApplicationLifetime _hostApplication = Substitute.For<IHostApplicationLifetime>();
     private readonly DicomCastWorker _dicomCastWorker;
     private readonly IFhirService _fhirService;
+    private readonly TelemetryClient _telemetryClient;
 
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
     private readonly CancellationToken _cancellationToken;
@@ -39,12 +43,18 @@ public class DicomCastWorkerTests
 
         _fhirService = Substitute.For<IFhirService>();
 
+        _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
+
         _dicomCastWorker = new DicomCastWorker(
             Options.Create(_dicomCastWorkerConfiguration),
             _changeFeedProcessor,
             NullLogger<DicomCastWorker>.Instance,
             _hostApplication,
-            _fhirService);
+            _fhirService,
+            _telemetryClient);
     }
 
     [Fact]
@@ -66,6 +76,20 @@ public class DicomCastWorkerTests
         await _dicomCastWorker.ExecuteAsync(_cancellationToken);
 
         await _changeFeedProcessor.Received(invocationCount).ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _cancellationToken);
+    }
+
+    [Fact]
+    public async Task GivenWorkerIsBeingCanceled_WhenExecutingAndFailed_ThenProperMetricsisLogged()
+    {
+        _changeFeedProcessor.When(processor => processor.ProcessAsync(_dicomCastWorkerConfiguration.PollIntervalDuringCatchup, _cancellationToken))
+            .Do(_ =>
+            {
+                throw new TaskCanceledException();
+            });
+
+        await _dicomCastWorker.ExecuteAsync(_cancellationToken);
+
+        Assert.True(_telemetryClient.GetMetric("cast-failed").SeriesCount == 1);
     }
 
     [Fact(Skip = "Flaky test, bug: https://microsofthealth.visualstudio.com/Health/_boards/board/t/Medical%20Imaging/Stories/?workitem=78349")]
