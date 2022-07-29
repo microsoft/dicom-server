@@ -69,7 +69,7 @@
     <PackageVersion Include="Microsoft.Health.Client" Version="$(HealthcareSharedPackageVersion)" />
     <PackageVersion Include="Microsoft.Health.Core" Version="$(HealthcareSharedPackageVersion)" />
     <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="$(HealthcareSharedPackageVersion)" />
-    <PackageVersion Include="Microsoft.Health.Dicom.Client" Version="8.0.123" />
+    <PackageVersion Include="Microsoft.Health.Dicom.Client" Version="8.0.184" />
     <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="$(HealthcareSharedPackageVersion)" />
     <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="$(HealthcareSharedPackageVersion)" />
     <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="$(FhirServerPackageVersion)" />
