@@ -108,7 +108,7 @@ public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIn
 
     private async Task CreateWorkItemAndValidate(string workitemUid)
     {
-        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
+        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
 
         using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);

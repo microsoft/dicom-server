@@ -460,8 +460,6 @@ public static class DicomDatasetExtensions
         {
             dataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
 
-            bool isMandatory = MandatoryRequirementCodes.Contains(requirement.RequirementCode);
-
             // If no sequence requirements are present, move on to the next tag.
             if (requirement.SequenceRequirements == null)
             {
@@ -474,15 +472,17 @@ public static class DicomDatasetExtensions
                 continue;
             }
 
+            bool isMandatory = MandatoryRequirementCodes.Contains(requirement.RequirementCode);
+            bool isNonZero = NonZeroLengthRequirementCodes.Contains(requirement.RequirementCode);
+            bool hasChildren = dataset.Contains(requirement.DicomTag) && dataset.GetValueCount(requirement.DicomTag) > 0;
+
             // Validate sequence only if
-            //  1. Parent is mandatory and is non-zero, means it has to have children.
-            //  2. Parent is not mandatory but contains children.
-            switch (isMandatory)
+            //  1. Parent is mandatory and is non-zero, means it has to have children. OR
+            //  2. Parent contains children regardless of being mandatory or not.
+            if ((isMandatory && isNonZero) ||
+                hasChildren)
             {
-                case true when NonZeroLengthRequirementCodes.Contains(requirement.RequirementCode):
-                case false when dataset.Contains(requirement.DicomTag) && dataset.GetValueCount(requirement.DicomTag) > 0:
-                    dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
-                    break;
+                dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
             }
         }
     }

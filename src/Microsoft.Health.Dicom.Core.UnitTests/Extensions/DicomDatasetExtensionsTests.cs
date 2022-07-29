@@ -446,7 +446,6 @@ public class DicomDatasetExtensionsTests
     public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementRIsMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.R);
     }
@@ -455,7 +454,6 @@ public class DicomDatasetExtensionsTests
     public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementRCIsMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.RC, (ds, t) => true);
     }
@@ -472,7 +470,6 @@ public class DicomDatasetExtensionsTests
     public void GivenADataset_WhenProcedureStepStateIsCanceledFinalStateRequirementXIsMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Canceled, FinalStateRequirementCode.X);
     }
@@ -529,7 +526,6 @@ public class DicomDatasetExtensionsTests
     public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementRIsMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.R);
     }
@@ -538,7 +534,6 @@ public class DicomDatasetExtensionsTests
     public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementRCIsMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.RC, (ds, t) => true);
     }
@@ -547,7 +542,6 @@ public class DicomDatasetExtensionsTests
     public void GivenADataset_WhenProcedureStepStateIsCompletedFinalStateRequirementPIsMet_ValidationSucceeds()
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
-        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
 
         dataset.ValidateRequirement(DicomTag.SOPInstanceUID, ProcedureStepState.Completed, FinalStateRequirementCode.P);
     }

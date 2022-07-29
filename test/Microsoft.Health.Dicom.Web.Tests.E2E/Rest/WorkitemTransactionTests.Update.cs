@@ -20,7 +20,7 @@ public partial class WorkItemTransactionTests
     {
         // Create
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
-        var workitemUid = TestUidGenerator.Generate();
+        var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
         using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);
@@ -58,7 +58,7 @@ public partial class WorkItemTransactionTests
     {
         // Create
         var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
-        var workitemUid = TestUidGenerator.Generate();
+        var workitemUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
         using var addResponse = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);

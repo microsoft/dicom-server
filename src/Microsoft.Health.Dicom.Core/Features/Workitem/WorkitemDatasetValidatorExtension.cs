@@ -107,7 +107,7 @@ internal static class WorkitemDatasetValidatorExtension
         HashSet<RequirementDetail> requirements = new HashSet<RequirementDetail>
         {
             new RequirementDetail(DicomTag.SOPClassUID, requestType == WorkitemRequestType.Add ? RequirementCode.OneOne : RequirementCode.NotAllowed),
-            new RequirementDetail(DicomTag.SOPInstanceUID, RequirementCode.NotAllowed),
+            new RequirementDetail(DicomTag.SOPInstanceUID, requestType == WorkitemRequestType.Add ? RequirementCode.OneOne : RequirementCode.NotAllowed),
             new RequirementDetail(DicomTag.InstanceCreationDate, RequirementCode.ThreeThree),
             new RequirementDetail(DicomTag.InstanceCreationTime, RequirementCode.ThreeThree),
             new RequirementDetail(DicomTag.InstanceCoercionDateTime, RequirementCode.ThreeThree),

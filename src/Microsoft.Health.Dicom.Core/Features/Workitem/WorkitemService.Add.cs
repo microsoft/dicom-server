@@ -27,11 +27,10 @@ public partial class WorkitemService
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 
-        SetSpecifiedAttributesForCreate(dataset);
+        SetSpecifiedAttributesForCreate(dataset, workitemInstanceUid);
 
         if (ValidateAddRequest(dataset))
         {
-            ReconcileWorkitemInstanceUid(dataset, workitemInstanceUid);
             await AddWorkitemAsync(dataset, cancellationToken).ConfigureAwait(false);
         }
 
@@ -42,10 +41,13 @@ public partial class WorkitemService
     /// Sets attributes that are the Service Class Provider's responsibility according to:
     /// <see href='https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.5-3'/>
     /// </summary>
-    internal static void SetSpecifiedAttributesForCreate(DicomDataset dataset)
+    /// <param name="dataset">Dicom dataset.</param>
+    /// <param name="workitemQueryParameter">Workitem query parameter.</param>
+    internal static void SetSpecifiedAttributesForCreate(DicomDataset dataset, string workitemQueryParameter)
     {
         // SOP Common Module
         dataset.AddOrUpdate(DicomTag.SOPClassUID, DicomUID.UnifiedProcedureStepPush);
+        ReconcileWorkitemInstanceUid(dataset, workitemQueryParameter);
 
         // Unified Procedure Step Scheduled Procedure Information Module
         dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);

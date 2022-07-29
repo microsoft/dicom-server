@@ -37,8 +37,8 @@ public partial class AuditTests
     [Fact]
     public async Task GivenQueryWorkitemRequest_WhenWorkitemIsFound_ThenAuditLogEntriesShouldBeCreated()
     {
-        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();
         var workitemUid = TestUidGenerator.Generate();
+        var dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "Foo");
 
         using var response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);

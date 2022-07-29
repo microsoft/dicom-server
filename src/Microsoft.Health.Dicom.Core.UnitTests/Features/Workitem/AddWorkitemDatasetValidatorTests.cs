@@ -29,7 +29,13 @@ public class AddWorkitemDatasetValidatorTests
     {
         var dataset = Samples.CreateRandomWorkitemInstanceDataset();
 
-        dataset = dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
+        dataset = dataset.AddOrUpdate(
+            new DicomSequence(
+                DicomTag.ProcedureStepProgressInformationSequence,
+                new DicomDataset
+                {
+                    { DicomTag.ProcedureStepProgress, "1.0" },
+                }));
 
         var validator = new AddWorkitemDatasetValidator();
 

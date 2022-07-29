@@ -30,7 +30,8 @@ required to be present, required to not be present, required to be empty, or req
 found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
 
 Notes on dataset attributes:
-- **SOP Instance UID:** Given that SOP Instance UID is not allowed to be present in the dataset, it **must be** provided in the URI.
+- **SOP Instance UID:** Although the reference table above says that SOP Instance UID should not be present, this guidance is specific to the DIMSE protocol and is
+handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in the dataset if not in the URI.
 - **Conditional requirement codes:** All the conditional requirement codes including 1C and 2C are treated as optional.
 
 ### Create Response Status Codes
