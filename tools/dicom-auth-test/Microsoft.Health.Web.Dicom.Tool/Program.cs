@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.CommandLine;
 using System.Net.Http.Headers;
 using Azure.Core;

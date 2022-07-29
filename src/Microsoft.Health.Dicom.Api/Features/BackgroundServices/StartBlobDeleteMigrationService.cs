@@ -54,7 +54,7 @@ public class StartBlobDeleteMigrationService : BackgroundService
                 IDicomOperationsClient operationsClient = scope.ServiceProvider.GetRequiredService<IDicomOperationsClient>();
 
                 // Get existing delete operation status
-                OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.DeleteOperationId, stoppingToken); ;
+                OperationCheckpointState<DicomOperation> existingInstance = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.DeleteOperationId, stoppingToken);
 
                 if (existingInstance == null)
                 {
