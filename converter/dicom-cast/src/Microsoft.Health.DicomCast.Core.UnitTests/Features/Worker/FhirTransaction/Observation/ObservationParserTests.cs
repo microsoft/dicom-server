@@ -15,13 +15,6 @@ namespace Microsoft.Health.DicomCast.Core.UnitTests.Features.Worker.FhirTransact
 
 public class ObservationParserTests
 {
-    private readonly ObservationParser _observationParser;
-
-    public ObservationParserTests()
-    {
-        _observationParser = new ObservationParser();
-    }
-
     [Fact]
     public void RadiationEventWithAllSupportedAttributes()
     {
@@ -49,7 +42,7 @@ public class ObservationParserTests
                 DicomRelationship.Contains,
                 new DicomCodeItem("113691", "DCM", "IEC Body Dosimetry Phantom")));
 
-        var observations = _observationParser.Parse(
+        var observations = ObservationParser.Parse(
             report.Dataset,
             new ResourceReference(),
             new ResourceReference(),
@@ -165,7 +158,7 @@ public class ObservationParserTests
                 new DicomCodeItem("needle", "random-scheme", "this is made up"))
         );
 
-        var observations = _observationParser.Parse(
+        var observations = ObservationParser.Parse(
             report.Dataset,
             new ResourceReference(),
             new ResourceReference(),
@@ -202,7 +195,7 @@ public class ObservationParserTests
             .Add(DicomTag.StudyInstanceUID, "12345")
             .Add(DicomTag.AccessionNumber, "12345");
 
-        var observations = _observationParser.Parse(
+        var observations = ObservationParser.Parse(
             report.Dataset,
             new ResourceReference(),
             new ResourceReference(),
@@ -221,7 +214,7 @@ public class ObservationParserTests
                 DicomRelationship.HasProperties,
                 new DicomUID("1.3.12.2.123.5.4.5.123123.123123", "", DicomUidType.Unknown)));
 
-        var observations = _observationParser.Parse(
+        var observations = ObservationParser.Parse(
             report.Dataset,
             new ResourceReference(),
             new ResourceReference(),
@@ -240,7 +233,7 @@ public class ObservationParserTests
                 new DicomUID("1.3.12.2.1234.5.4.5.123123.3000000111", "foobar", DicomUidType.Unknown)
             ));
 
-        var observations = _observationParser.Parse(
+        var observations = ObservationParser.Parse(
             report.Dataset,
             new ResourceReference(),
             new ResourceReference(),
@@ -254,7 +247,7 @@ public class ObservationParserTests
         var report = new DicomStructuredReport(
             ObservationConstants.IrradiationEventXRayData);
 
-        var observations = _observationParser.Parse(
+        var observations = ObservationParser.Parse(
             report.Dataset,
             new ResourceReference(),
             new ResourceReference(),

@@ -35,15 +35,15 @@ internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
 
     public override SchemaVersion Version => SchemaVersion.V5;
 
-    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(instance, nameof(instance));
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
+            var rows = ExtendedQueryTagDataRowsBuilder.Build(dicomDataset, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
             V8.AddInstanceV2TableValuedParameters parameters = new V8.AddInstanceV2TableValuedParameters(
                 rows.StringRows,
                 rows.LongRows,
@@ -54,19 +54,19 @@ internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
 
             V8.AddInstanceV2.PopulateCommand(
                 sqlCommandWrapper,
-                instance.GetString(DicomTag.StudyInstanceUID),
-                instance.GetString(DicomTag.SeriesInstanceUID),
-                instance.GetString(DicomTag.SOPInstanceUID),
-                instance.GetFirstValueOrDefault<string>(DicomTag.PatientID),
-                instance.GetFirstValueOrDefault<string>(DicomTag.PatientName),
-                instance.GetFirstValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                instance.GetStringDateAsDate(DicomTag.StudyDate),
-                instance.GetFirstValueOrDefault<string>(DicomTag.StudyDescription),
-                instance.GetFirstValueOrDefault<string>(DicomTag.AccessionNumber),
-                instance.GetFirstValueOrDefault<string>(DicomTag.Modality),
-                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
-                instance.GetStringDateAsDate(DicomTag.PatientBirthDate),
-                instance.GetFirstValueOrDefault<string>(DicomTag.ManufacturerModelName),
+                dicomDataset.GetString(DicomTag.StudyInstanceUID),
+                dicomDataset.GetString(DicomTag.SeriesInstanceUID),
+                dicomDataset.GetString(DicomTag.SOPInstanceUID),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientName),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                dicomDataset.GetStringDateAsDate(DicomTag.StudyDate),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.StudyDescription),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.AccessionNumber),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.Modality),
+                dicomDataset.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                dicomDataset.GetStringDateAsDate(DicomTag.PatientBirthDate),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.ManufacturerModelName),
                 (byte)IndexStatus.Creating,
                 parameters);
 
@@ -91,15 +91,15 @@ internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
         }
     }
 
-    public override async Task ReindexInstanceAsync(DicomDataset instance, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+    public override async Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(instance, nameof(instance));
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            var rows = ExtendedQueryTagDataRowsBuilder.Build(instance, queryTags, Version);
+            var rows = ExtendedQueryTagDataRowsBuilder.Build(dicomDataset, queryTags, Version);
             V8.IndexInstanceV2TableValuedParameters parameters = new V8.IndexInstanceV2TableValuedParameters(
                 rows.StringRows,
                 rows.LongRows,

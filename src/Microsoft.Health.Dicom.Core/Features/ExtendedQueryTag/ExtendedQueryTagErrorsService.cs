@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -32,7 +33,7 @@ public class ExtendedQueryTagErrorsService : IExtendedQueryTagErrorsService
         EnsureArg.IsNotNull(tagPath, nameof(tagPath));
         string numericalTagPath = _dicomTagParser.TryParse(tagPath, out DicomTag[] tags)
             ? tags[0].GetPath()
-            : throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
+            : throw new InvalidExtendedQueryTagPathException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
 
         IReadOnlyList<ExtendedQueryTagError> extendedQueryTagErrors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(
             numericalTagPath,

@@ -30,9 +30,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Workitem;
 
 internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
 {
-    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
-    protected readonly ILogger<ISqlWorkitemStore> Logger;
-
     public SqlWorkitemStoreV9(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<ISqlWorkitemStore> logger)
     {
         SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
@@ -40,6 +37,10 @@ internal class SqlWorkitemStoreV9 : ISqlWorkitemStore
     }
 
     public virtual SchemaVersion Version => SchemaVersion.V9;
+
+    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
+
+    protected ILogger<ISqlWorkitemStore> Logger { get; }
 
     public virtual async Task<WorkitemInstanceIdentifier> BeginAddWorkitemAsync(int partitionKey, DicomDataset dataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
     }
 
     /// <inheritdoc />
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Caller will dipose of Stream.")]
     public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));

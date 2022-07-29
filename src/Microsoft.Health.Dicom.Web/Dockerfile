@@ -8,7 +8,10 @@ RUN set -x && \
     addgroup nonroot && \
     adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    ASPNETCORE_URLS=http://+:8080
+    ASPNETCORE_URLS=http://+:8080 \
+    # Explicitly set locale to be en_US for DICOM Web
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
 EXPOSE 8080
 USER nonroot
 

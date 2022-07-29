@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
@@ -37,12 +38,12 @@ public class WorkitemQueryParser : BaseQueryParser<BaseQueryExpression, BaseQuer
             // filter conditions with attributeId as key
             if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, filter.Key));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedSearchParameter, filter.Key));
             }
 
             if (!filterConditions.TryAdd(condition.QueryTag.WorkitemQueryTagStoreEntry.Key, condition))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.DuplicateAttribute, filter.Key));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DuplicateAttribute, filter.Key));
             }
         }
 
@@ -72,7 +73,7 @@ public class WorkitemQueryParser : BaseQueryParser<BaseQueryExpression, BaseQuer
 
         if (string.IsNullOrWhiteSpace(queryParameter.Value))
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, queryParameter.Key));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.QueryEmptyAttributeValue, queryParameter.Key));
         }
 
         if (!ValueParsers.TryGetValue(queryTag.VR, out Func<QueryTag, string, QueryFilterCondition> valueParser))
@@ -106,7 +107,7 @@ public class WorkitemQueryParser : BaseQueryParser<BaseQueryExpression, BaseQuer
     {
         if (dicomTags.Length > 2)
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.NestedSequencesNotSupported, attributeId));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.NestedSequencesNotSupported, attributeId));
         }
 
         QueryTag queryTag = queryTags.FirstOrDefault(item =>
@@ -116,7 +117,7 @@ public class WorkitemQueryParser : BaseQueryParser<BaseQueryExpression, BaseQuer
 
         if (queryTag == null)
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedSearchParameter, attributeId));
         }
 
         // Currently only 2 level of sequence tags are supported, so always taking the last element to create a new query tag
@@ -147,7 +148,7 @@ public class WorkitemQueryParser : BaseQueryParser<BaseQueryExpression, BaseQuer
         {
             if (!TryParseDicomAttributeId(field, out DicomTag[] dicomTags))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, field));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.IncludeFieldUnknownAttribute, field));
             }
 
             if (dicomTags.Length > 1)

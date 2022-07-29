@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
@@ -40,19 +41,19 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
     {
         // Study
         await _client.ValidateResponseStatusCodeAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid().ToString())),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, Guid.NewGuid())),
             acceptHeader,
             HttpStatusCode.NotAcceptable);
 
         // Series
         await _client.ValidateResponseStatusCodeAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString())),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, Guid.NewGuid(), Guid.NewGuid())),
             acceptHeader,
             HttpStatusCode.NotAcceptable);
 
         // Instance
         await _client.ValidateResponseStatusCodeAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString())),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid())),
             acceptHeader,
             HttpStatusCode.NotAcceptable);
     }

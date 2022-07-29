@@ -7,7 +7,9 @@
 # FROM mcr.microsoft.com/azure-functions/dotnet:4.0-appservice
 FROM mcr.microsoft.com/azure-functions/dotnet:4.9.0-slim@sha256:6bc5aa7c84d584f335c6ba2cdc106f875f1b408e65cd3ecf66e1825cb6d81b87 AS az-func-runtime
 ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
-    AzureWebJobsScriptRoot=/home/site/wwwroot
+    AzureWebJobsScriptRoot=/home/site/wwwroot \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
 RUN groupadd nonroot && useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot
 RUN chown -R nonroot:nonroot /azure-functions-host
 USER nonroot

@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 using Microsoft.Health.Dicom.SqlServer.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;

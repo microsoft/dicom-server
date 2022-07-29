@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -34,7 +35,7 @@ public class ETagGenerator : IETagGenerator
                 eTag = $"{maxWatermark}-{countInstances}";
                 break;
             case ResourceType.Instance:
-                eTag = maxWatermark.ToString();
+                eTag = maxWatermark.ToString(CultureInfo.InvariantCulture);
                 break;
             default:
                 break;

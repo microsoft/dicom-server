@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,7 +50,7 @@ public class GetExtendedQueryTagsService : IGetExtendedQueryTagsService
         }
         else
         {
-            throw new InvalidExtendedQueryTagPathException(string.Format(DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
+            throw new InvalidExtendedQueryTagPathException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidExtendedQueryTag, tagPath ?? string.Empty));
         }
 
         ExtendedQueryTagStoreJoinEntry extendedQueryTag = await _extendedQueryTagStore.GetExtendedQueryTagAsync(numericalTagPath, cancellationToken);

@@ -28,7 +28,6 @@ public class LazyMultipartReadOnlyStream : Stream
     private const string Crlf = "\r\n";
     private readonly Encoding _defaultHttpEncoding = Encoding.GetEncoding(28591);
     private readonly string _boundary;
-    private readonly string _intermediateBoundary;
     private const int KB = 1024;
 
     private byte[] _buffer;
@@ -52,7 +51,6 @@ public class LazyMultipartReadOnlyStream : Stream
         _bufferSize = bufferSize;
         _buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
         _boundary = boundary;
-        _intermediateBoundary = Crlf + "--" + _boundary + Crlf;
     }
 
     public override bool CanRead => true;
@@ -60,6 +58,12 @@ public class LazyMultipartReadOnlyStream : Stream
     public override bool CanSeek => false;
 
     public override bool CanWrite => false;
+
+    private string StartBoundary => "--" + _boundary + Crlf;
+
+    private string IntermediateBoundary => Crlf + "--" + _boundary + Crlf;
+
+    private string TerminatingBoundary => Crlf + "--" + _boundary + "--" + Crlf;
 
     #region NotImplemented Overrides
 #pragma warning disable CA1065 // Do not raise exceptions in unexpected locations
@@ -131,7 +135,7 @@ public class LazyMultipartReadOnlyStream : Stream
             else
             {
                 await _currentStreamContent.Stream.DisposeAsync();
-                CopyStringToBuffer(GetTerminatingBoundary());
+                CopyStringToBuffer(TerminatingBoundary);
                 _terminating = true;
             }
         }
@@ -182,12 +186,12 @@ public class LazyMultipartReadOnlyStream : Stream
         var multiPartStringBuilder = new StringBuilder();
         if (isStart)
         {
-            multiPartStringBuilder.Append(GetStartBoundary());
+            multiPartStringBuilder.Append(StartBoundary);
 
         }
         else
         {
-            multiPartStringBuilder.Append(GetIntermediateBoundary());
+            multiPartStringBuilder.Append(IntermediateBoundary);
         }
         AppendContentHeader(multiPartStringBuilder, _currentStreamContent.Headers);
         return multiPartStringBuilder.ToString();
@@ -196,21 +200,6 @@ public class LazyMultipartReadOnlyStream : Stream
     private byte[] EncodeStringToByteArray(string input)
     {
         return _defaultHttpEncoding.GetBytes(input);
-    }
-
-    private string GetStartBoundary()
-    {
-        return "--" + _boundary + Crlf;
-    }
-
-    private string GetIntermediateBoundary()
-    {
-        return _intermediateBoundary;
-    }
-
-    private string GetTerminatingBoundary()
-    {
-        return Crlf + "--" + _boundary + "--" + Crlf;
     }
 
     private static void AppendContentHeader(StringBuilder builder, IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers)

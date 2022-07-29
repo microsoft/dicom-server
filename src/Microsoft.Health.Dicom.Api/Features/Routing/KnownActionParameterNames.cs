@@ -5,7 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Api.Features.Routing;
 
-internal class KnownActionParameterNames
+internal static class KnownActionParameterNames
 {
     internal const string Version = "version";
     internal const string PartitionName = "partitionName";

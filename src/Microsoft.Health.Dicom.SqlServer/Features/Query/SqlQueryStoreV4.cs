@@ -26,10 +26,6 @@ internal class SqlQueryStoreV4 : ISqlQueryStore
 {
     public virtual SchemaVersion Version => SchemaVersion.V4;
 
-    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory;
-
-    protected readonly ILogger<ISqlQueryStore> Logger;
-
     public SqlQueryStoreV4(
         SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
         ILogger<ISqlQueryStore> logger)
@@ -40,6 +36,10 @@ internal class SqlQueryStoreV4 : ISqlQueryStore
         SqlConnectionWrapperFactory = sqlConnectionWrapperFactory;
         Logger = logger;
     }
+
+    protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
+
+    protected ILogger<ISqlQueryStore> Logger { get; }
 
     public virtual async Task<QueryResult> QueryAsync(
         int partitionKey,

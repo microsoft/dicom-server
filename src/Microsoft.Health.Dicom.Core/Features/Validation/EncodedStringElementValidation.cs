@@ -12,22 +12,22 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class EncodedStringElementValidation : IElementValidation
 {
-    public void Validate(DicomElement element)
+    public void Validate(DicomElement dicomElement)
     {
-        DicomVR vr = element.ValueRepresentation;
+        DicomVR vr = dicomElement.ValueRepresentation;
         switch (vr.Code)
         {
             case DicomVRCode.DT:
-                Validate(element, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid);
+                Validate(dicomElement, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid);
                 break;
             case DicomVRCode.IS:
-                Validate(element, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid);
+                Validate(dicomElement, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid);
                 break;
             case DicomVRCode.TM:
-                Validate(element, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid);
+                Validate(dicomElement, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(element));
+                throw new ArgumentOutOfRangeException(nameof(dicomElement));
         };
     }
 

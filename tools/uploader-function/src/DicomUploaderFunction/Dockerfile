@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0.301-alpine3.14@sha256:f7bcb4614e83e3da501bbd9733f74219d871c2e6d73765feaed0d3197c28f4c6 AS installer-env
 
-COPY Directory.Build.props Directory.Packages.props global.json nuget.config .editorconfig ./
+COPY Directory.Build.props Directory.Packages.props global.json nuget.config .editorconfig .globalconfig ./
 COPY ./src/Microsoft.Health.Dicom.Client /src/Microsoft.Health.Dicom.Client
 COPY ./tools/uploader-function/src/DicomUploaderFunction /tools/uploader-function/src/DicomUploaderFunction
 RUN cd /tools/uploader-function/src/DicomUploaderFunction && \

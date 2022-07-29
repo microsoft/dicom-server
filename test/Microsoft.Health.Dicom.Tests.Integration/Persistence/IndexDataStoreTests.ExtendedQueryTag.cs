@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -272,7 +273,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
     public static IEnumerable<object[]> SupportedTypes()
     {
-        yield return new object[] { ExtendedQueryTagDataType.DateTimeData, new DicomDate(DicomTag.AcquisitionDate, DateTime.Parse("2020/2/21")), DateTime.Parse("2020/2/21") };
+        yield return new object[] { ExtendedQueryTagDataType.DateTimeData, new DicomDate(DicomTag.AcquisitionDate, DateTime.Parse("2020/2/21", CultureInfo.InvariantCulture)), DateTime.Parse("2020/2/21", CultureInfo.InvariantCulture) };
         yield return new object[] { ExtendedQueryTagDataType.StringData, new DicomCodeString(DicomTag.ConversionType, "STRING"), "STRING" };
         yield return new object[] { ExtendedQueryTagDataType.DoubleData, new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0), 1.0 };
         yield return new object[] { ExtendedQueryTagDataType.LongData, new DicomSignedLong(DicomTag.ReferencePixelX0, 1), 1L };
@@ -387,7 +388,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private async Task<Instance> StoreInstanceWithDifferentTagValues(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int index, IReadOnlyList<QueryTag> queryTags)
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        dataset.Add(new DicomDate(DicomTag.AcquisitionDate, DateTime.Parse("2020/2/2" + index)));
+        dataset.Add(new DicomDate(DicomTag.AcquisitionDate, DateTime.Parse("2020/2/2" + index, CultureInfo.InvariantCulture)));
         dataset.Add(new DicomCodeString(DicomTag.ConversionType, "STRING" + index));
         dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
         dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));

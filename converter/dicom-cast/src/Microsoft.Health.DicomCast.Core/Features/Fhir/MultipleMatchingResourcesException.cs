@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using EnsureThat;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Fhir;
@@ -24,6 +25,6 @@ public class MultipleMatchingResourcesException : FhirNonRetryableException
     {
         EnsureArg.IsNotNullOrWhiteSpace(resourceType, nameof(resourceType));
 
-        return string.Format(DicomCastCoreResource.MultipleMatchingResourcesFound, resourceType);
+        return string.Format(CultureInfo.CurrentCulture, DicomCastCoreResource.MultipleMatchingResourcesFound, resourceType);
     }
 }

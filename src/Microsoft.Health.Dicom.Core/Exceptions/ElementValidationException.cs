@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -30,5 +31,5 @@ public class ElementValidationException : ValidationException
 
     public ValidationErrorCode ErrorCode { get; }
 
-    public override string Message => string.Format(DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, base.Message);
+    public override string Message => string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomElementValidationFailed, Name, VR.Code, base.Message);
 }

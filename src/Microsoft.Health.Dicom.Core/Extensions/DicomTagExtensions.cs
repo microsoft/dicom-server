@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
 
@@ -22,7 +23,7 @@ public static class DicomTagExtensions
     public static string GetPath(this DicomTag dicomTag)
     {
         EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
-        return dicomTag.Group.ToString("X4") + dicomTag.Element.ToString("X4");
+        return dicomTag.Group.ToString("X4", CultureInfo.InvariantCulture) + dicomTag.Element.ToString("X4", CultureInfo.InvariantCulture);
     }
 
     /// <summary>

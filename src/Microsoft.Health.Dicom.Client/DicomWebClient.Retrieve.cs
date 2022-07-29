@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -26,7 +27,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
         return await RetrieveInstancesAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseStudyUriFormat, studyInstanceUid), partitionName),
             dicomTransferSyntax,
             cancellationToken).ConfigureAwait(false);
     }
@@ -40,7 +41,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
         return await RetrieveMetadataAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveStudyMetadataUriFormat, studyInstanceUid), partitionName),
             ifNoneMatch,
             cancellationToken).ConfigureAwait(false);
     }
@@ -56,7 +57,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
         return await RetrieveInstancesAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseSeriesUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
             dicomTransferSyntax,
             cancellationToken).ConfigureAwait(false);
     }
@@ -72,7 +73,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
         return await RetrieveMetadataAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveSeriesMetadataUriFormat, studyInstanceUid, seriesInstanceUid), partitionName),
             ifNoneMatch,
             cancellationToken).ConfigureAwait(false);
     }
@@ -90,7 +91,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
         return await RetrieveInstanceAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
             dicomTransferSyntax,
             cancellationToken).ConfigureAwait(false);
     }
@@ -108,7 +109,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
         return await RetrieveMetadataAsync(
-            GenerateRequestUri(string.Format(DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveInstanceMetadataUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
             ifNoneMatch,
             cancellationToken).ConfigureAwait(false);
     }
@@ -128,6 +129,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
         var requestUri = GenerateRequestUri(
             string.Format(
+                CultureInfo.InvariantCulture,
                 DicomWebConstants.BaseRetrieveFramesUriFormat,
                 studyInstanceUid,
                 seriesInstanceUid,
@@ -150,6 +152,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
         var requestUri = GenerateRequestUri(
             string.Format(
+                CultureInfo.InvariantCulture,
                 DicomWebConstants.BaseRetrieveFramesUriFormat,
                 studyInstanceUid,
                 seriesInstanceUid,

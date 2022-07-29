@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using System.Text;
 using EnsureThat;
 using HashDepot;
@@ -20,8 +21,8 @@ internal static class HashingHelper
     {
         EnsureArg.IsNotDefault(value, nameof(value));
 
-        byte[] buffer = Encoding.UTF8.GetBytes(value.ToString());
-        var hash = XXHash.Hash64(buffer).ToString();
+        byte[] buffer = Encoding.UTF8.GetBytes(value.ToString(CultureInfo.InvariantCulture));
+        var hash = XXHash.Hash64(buffer).ToString(CultureInfo.InvariantCulture);
 
         // If the hashLength is greater than the hash, assigning the length of the hash and not throw error
         hashLength = hashLength > hash.Length ? hash.Length : hashLength;

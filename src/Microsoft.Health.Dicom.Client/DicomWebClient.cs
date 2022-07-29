@@ -27,6 +27,7 @@ using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
 namespace Microsoft.Health.Dicom.Client;
 
+[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers are responsible for disposing of return values.")]
 public partial class DicomWebClient : IDicomWebClient
 {
     private readonly string _apiVersion;
@@ -88,10 +89,8 @@ public partial class DicomWebClient : IDicomWebClient
         return streamContent;
     }
 
-    private static string GetQueryParamUriString(string queryString)
-    {
-        return string.IsNullOrWhiteSpace(queryString) == true ? string.Empty : "?" + queryString;
-    }
+    private static string FormatQueryString(string queryString)
+        => string.IsNullOrWhiteSpace(queryString) ? string.Empty : "?" + queryString;
 
     private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
     {
@@ -155,7 +154,7 @@ public partial class DicomWebClient : IDicomWebClient
 
     private Uri GenerateWorkitemUpdateRequestUri(string workitemUid, string transactionUid, string partitionName = default)
     {
-        return GenerateRequestUri(string.Format(DicomWebConstants.UpdateWorkitemUriFormat, workitemUid, transactionUid), partitionName);
+        return GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.UpdateWorkitemUriFormat, workitemUid, transactionUid), partitionName);
     }
 
     private async IAsyncEnumerable<Stream> ReadMultipartResponseAsStreamsAsync(HttpContent httpContent, [EnumeratorCancellation] CancellationToken cancellationToken = default)

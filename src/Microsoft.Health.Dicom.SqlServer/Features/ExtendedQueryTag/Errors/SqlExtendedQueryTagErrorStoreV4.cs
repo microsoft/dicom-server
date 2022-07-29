@@ -21,7 +21,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Error;
+namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 
 internal class SqlExtendedQueryTagErrorStoreV4 : SqlExtendedQueryTagErrorStoreV1
 {

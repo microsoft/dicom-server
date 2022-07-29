@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,12 +20,12 @@ public partial class DicomWebClient : IDicomWebClient
        string partitionName = default,
        CancellationToken cancellationToken = default)
     {
-        var uri = GenerateRequestUri(DicomWebConstants.StudiesUriString + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(DicomWebConstants.StudiesUriString + FormatQueryString(queryString), partitionName);
 
         return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudySeriesAsync(
+    public Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudySeriesAsync(
         string studyInstanceUid,
         string queryString,
         string partitionName = default,
@@ -32,9 +33,9 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-        var uri = GenerateRequestUri(string.Format(DicomWebConstants.QueryStudySeriesUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.QueryStudySeriesUriFormat, studyInstanceUid) + FormatQueryString(queryString), partitionName);
 
-        return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
+        return QueryAsync(uri, cancellationToken);
     }
 
     public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> QueryStudyInstanceAsync(
@@ -45,7 +46,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
 
-        var uri = GenerateRequestUri(string.Format(DicomWebConstants.QueryStudyInstanceUriFormat, studyInstanceUid) + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.QueryStudyInstanceUriFormat, studyInstanceUid) + FormatQueryString(queryString), partitionName);
 
         return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
     }
@@ -60,7 +61,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        var uri = GenerateRequestUri(string.Format(DicomWebConstants.QueryStudySeriesInstancesUriFormat, studyInstanceUid, seriesInstanceUid) + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.QueryStudySeriesInstancesUriFormat, studyInstanceUid, seriesInstanceUid) + FormatQueryString(queryString), partitionName);
 
         return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
     }
@@ -70,7 +71,7 @@ public partial class DicomWebClient : IDicomWebClient
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {
-        var uri = GenerateRequestUri(DicomWebConstants.SeriesUriString + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(DicomWebConstants.SeriesUriString + FormatQueryString(queryString), partitionName);
 
         return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
     }
@@ -83,7 +84,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        var uri = GenerateRequestUri(string.Format(DicomWebConstants.QuerySeriesInstanceUriFormat, seriesInstanceUid) + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.QuerySeriesInstanceUriFormat, seriesInstanceUid) + FormatQueryString(queryString), partitionName);
 
         return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
     }
@@ -93,7 +94,7 @@ public partial class DicomWebClient : IDicomWebClient
         string partitionName = default,
         CancellationToken cancellationToken = default)
     {
-        var uri = GenerateRequestUri(DicomWebConstants.InstancesUriString + GetQueryParamUriString(queryString), partitionName);
+        var uri = GenerateRequestUri(DicomWebConstants.InstancesUriString + FormatQueryString(queryString), partitionName);
 
         return await QueryAsync(uri, cancellationToken).ConfigureAwait(false);
     }

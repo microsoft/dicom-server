@@ -55,9 +55,11 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
 
         var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out object value);
 
-        if (!_isPartitionEnabled && routeContainsPartition) throw new DataPartitionsFeatureDisabledException();
+        if (!_isPartitionEnabled && routeContainsPartition)
+            throw new DataPartitionsFeatureDisabledException();
 
-        if (_isPartitionEnabled && !routeContainsPartition) throw new DataPartitionsMissingPartitionException();
+        if (_isPartitionEnabled && !routeContainsPartition)
+            throw new DataPartitionsMissingPartitionException();
 
         if (_isPartitionEnabled)
         {
