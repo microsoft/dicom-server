@@ -236,7 +236,7 @@ public static class Samples
             ds.Add(DicomTag.AdmittingDiagnosesCodeSequence, new DicomDataset
             {
                 { DicomTag.CodeMeaning, "CodeMeaning" }
-            }); ;
+            });
             ds.Add(new DicomSequence(DicomTag.ReferencedRequestSequence));
             ds.Add(new DicomSequence(DicomTag.InputInformationSequence));
             ds.Add(DicomTag.PatientName, string.Empty);
