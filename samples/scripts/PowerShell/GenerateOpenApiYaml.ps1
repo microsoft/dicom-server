@@ -21,6 +21,7 @@ param(
     [string]$SwashbuckleCLIVersion = '6.1.4'
 )
 
+echo "ErrorActionPreference is $ErrorActionPreference"
 dotnet new tool-manifest --force
 dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
 
@@ -29,7 +30,7 @@ dotnet tool list | Select-String "swashbuckle"
 
 try{
     Write-Information "Testing that swagger will work ..."
-    dotnet swagger 2>&1
+    dotnet swagger
 }
 catch{
     Write-Error "Error occured - $error"
