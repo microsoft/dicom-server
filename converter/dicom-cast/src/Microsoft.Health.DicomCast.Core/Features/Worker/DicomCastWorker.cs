@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using EnsureThat;
 using Microsoft.Extensions.Hosting;
@@ -71,6 +72,7 @@ public class DicomCastWorker : IDicomCastWorker
     }
 
     /// <inheritdoc/>
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "App shuts down on any error.")]
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         try
