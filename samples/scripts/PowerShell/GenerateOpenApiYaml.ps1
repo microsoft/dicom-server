@@ -28,11 +28,8 @@ dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
 echo "Using swagger version ..."
 dotnet tool list | Select-String "swashbuckle"
 
-try {
-    Write-Host "Testing that swagger will work ..."
-    dotnet swagger
-} catch {
-    Write-Host "In catch now."
-    Write-Error "Error occured - $error"
-}
+
+Write-Host "Testing that swagger will work ..."
+dotnet swagger
+
 
