@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -140,6 +141,8 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
         return hasFrameMetadata;
     }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Method will not throw.")]
     private async Task TryCleanupInstanceIndexAsync(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
         try

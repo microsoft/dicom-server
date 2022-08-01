@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -25,20 +24,7 @@ public class StreamOriginatedDicomInstanceEntryTests
         Stream stream = new MemoryStream();
 
         StreamOriginatedDicomInstanceEntry dicomInstanceEntry = CreateStreamOriginatedDicomInstanceEntry(stream);
-
-        Exception caughtException = null;
-
-        try
-        {
-            await dicomInstanceEntry.GetDicomDatasetAsync(default);
-        }
-        catch (Exception ex)
-        {
-            caughtException = ex;
-        }
-
-        Assert.NotNull(caughtException);
-        Assert.IsType<InvalidInstanceException>(caughtException);
+        await Assert.ThrowsAsync<InvalidInstanceException>(() => dicomInstanceEntry.GetDicomDatasetAsync(default).AsTask());
     }
 
     [Fact]

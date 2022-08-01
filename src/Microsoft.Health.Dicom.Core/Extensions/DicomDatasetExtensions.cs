@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using EnsureThat;
@@ -263,6 +264,7 @@ public static class DicomDatasetExtensions
     /// <param name="expectedVR">Expected VR of the element.</param>
     /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
     /// <returns>A long value representing the ticks if the value exists and conforms to the TM format; othewise <c>null</c>.</returns>
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate upon inspection of possible exceptions.")]
     public static long? GetStringTimeAsLong(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

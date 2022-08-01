@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -107,11 +108,12 @@ public class StoreService : IStoreService
         return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when refactoring validation.")]
     private async Task ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
     {
         IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
 
-        var warningReasonCode = (ushort?)null;
+        ushort? warningReasonCode = null;
         DicomDataset dicomDataset = null;
 
         try
@@ -194,6 +196,7 @@ public class StoreService : IStoreService
         }
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ignore errors during disposal.")]
     private async Task DisposeResourceAsync(int index)
     {
         try

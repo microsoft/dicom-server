@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -245,7 +246,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     /// <inheritdoc />
     public async Task<DicomDataset> GetWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken = default)
     {
-        if (null == identifier)
+        if (identifier == null)
         {
             return null;
         }
@@ -280,9 +281,10 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
     }
 
     /// <inheritdoc />
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when standardizing deletion exceptions.")]
     private async Task TryAddWorkitemCleanupAsync(WorkitemInstanceIdentifier identifier, CancellationToken cancellationToken)
     {
-        if (null == identifier)
+        if (identifier == null)
         {
             return;
         }
@@ -310,7 +312,7 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
         long? proposedWatermark = default,
         CancellationToken cancellationToken = default)
     {
-        if (null == identifier || null == dicomDataset)
+        if (identifier == null || dicomDataset == null)
         {
             return;
         }
@@ -320,9 +322,10 @@ public class WorkitemOrchestrator : IWorkitemOrchestrator
             .ConfigureAwait(false);
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when standardizing deletion exceptions.")]
     private async Task TryDeleteWorkitemBlobAsync(WorkitemInstanceIdentifier identifier, long? proposedWatermark = default, CancellationToken cancellationToken = default)
     {
-        if (null == identifier)
+        if (identifier == null)
         {
             return;
         }

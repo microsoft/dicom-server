@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -84,6 +85,7 @@ public class DicomInstanceEntryReaderForMultipartRequest : IDicomInstanceEntryRe
         return dicomInstanceEntries;
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ignore errors during disposal.")]
     private async Task DisposeResourceAsync(IDicomInstanceEntry resource)
     {
         try

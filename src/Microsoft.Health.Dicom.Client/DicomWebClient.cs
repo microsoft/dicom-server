@@ -205,6 +205,7 @@ public partial class DicomWebClient : IDicomWebClient
             catch (Exception ex)
             {
                 exception = ex;
+                throw;
             }
             finally
             {
@@ -213,11 +214,6 @@ public partial class DicomWebClient : IDicomWebClient
                 {
                     response.Dispose();
                 }
-            }
-
-            if (exception != null)
-            {
-                throw exception;
             }
         }
     }
