@@ -53,6 +53,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     }
 
     [Fact]
+    [Trait("Category", "bvt")]
     public async Task GivenFiles_WhenExporting_ThenSuccessfullyCopy()
     {
         // Define DICOM files
@@ -195,9 +196,11 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private static BlobContainerClient CreateContainerClient(AzureBlobConnectionOptions options)
     {
         if (options.BlobContainerUri != null)
+        {
             return options.UseManagedIdentity
                 ? new BlobContainerClient(options.BlobContainerUri, new DefaultAzureCredential())
                 : new BlobContainerClient(options.BlobContainerUri);
+        }
 
         return new BlobContainerClient(options.ConnectionString, options.BlobContainerName);
     }

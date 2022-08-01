@@ -11,7 +11,6 @@ ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
     LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8
 RUN groupadd nonroot && useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot
-RUN chown -R nonroot:nonroot /azure-functions-host
 USER nonroot
 
 # Copy the DICOM Server repository and build the Azure Functions project
@@ -31,4 +30,4 @@ RUN dotnet publish "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFI
 # Copy the published application
 FROM az-func-runtime AS dicom-az-func
 WORKDIR /home/site/wwwroot
-COPY --from=publish /home/site/wwwroot .
+COPY --chown=nonroot:nonroot --from=publish /home/site/wwwroot .

@@ -4,8 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using EnsureThat;
@@ -16,11 +14,10 @@ namespace Microsoft.Health.Dicom.Blob.Extensions;
 
 internal static class AzureBlobExportOptionsExtensions
 {
-    public static async Task<BlobContainerClient> GetBlobContainerClientAsync(
+    public static BlobContainerClient GetBlobContainerClient(
         this AzureBlobExportOptions exportOptions,
         IExternalOperationCredentialProvider credentialProvider,
-        BlobClientOptions options,
-        CancellationToken cancellationToken = default)
+        BlobClientOptions options)
     {
         EnsureArg.IsNotNull(exportOptions, nameof(exportOptions));
         EnsureArg.IsNotNull(options, nameof(options));
@@ -29,7 +26,7 @@ internal static class AzureBlobExportOptionsExtensions
         {
             if (exportOptions.UseManagedIdentity)
             {
-                TokenCredential credential = await credentialProvider.GetCredentialAsync(cancellationToken);
+                TokenCredential credential = credentialProvider.GetTokenCredential();
                 if (credential == null)
                 {
                     throw new InvalidOperationException(DicomBlobResource.MissingServerIdentity);
