@@ -24,7 +24,9 @@ param(
 dotnet new tool-manifest --force
 dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
 
-# $error.clear()
+echo "Using swagger version ..."
+dotnet tool list | Select-String "swashbuckle"
+
 try{
     Write-Information "Testing that swagger will work ..."
     dotnet swagger 2>&1

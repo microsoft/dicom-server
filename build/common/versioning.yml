@@ -27,7 +27,6 @@ jobs:
   - task: PowerShell@2
     displayName: 'Detect API Breaking Changes'
     inputs:
-      errorActionPreference: 'stop'
       filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
       arguments: >
         -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
