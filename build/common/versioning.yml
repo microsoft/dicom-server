@@ -5,10 +5,10 @@ jobs:
   steps:
 
   - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk'
+    displayName: 'Use 5.0.0 .NET Core runtime'
     inputs:
-      packageType: sdk
-      version: 3.1.402
+      packageType: runtime
+      version: 5.0.0
       useGlobalJson: true
 
   - task: DownloadBuildArtifacts@0
