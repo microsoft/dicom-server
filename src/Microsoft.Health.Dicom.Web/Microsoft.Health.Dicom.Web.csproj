@@ -32,4 +32,10 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <Target Name="SwaggerPostBuildTarget" AfterTargets="Build">
+    <Exec Command="dotnet tool restore"></Exec>
+    <Exec Command="dotnet swagger tofile --output --yaml ..\..\swagger\v1\swagger.yaml bin\x64\Debug\net6.0\Microsoft.Health.Dicom.Web.dll v1"></Exec>
+    <Exec Command="dotnet swagger tofile --output --yaml ..\..\swagger\v1-prerelease\swagger.yaml bin\x64\Debug\net6.0\Microsoft.Health.Dicom.Web.dll v1-prerelease"></Exec>
+  </Target>
+
 </Project>
