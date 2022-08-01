@@ -5,10 +5,10 @@ jobs:
   steps:
 
   - task: UseDotNet@2
-    displayName: 'Use 5.0.0 .NET Core runtime'
+    displayName: 'Use .NET Core sdk'
     inputs:
-      packageType: runtime
-      version: 5.0.0
+      packageType: sdk
+      version: 3.1.402
       useGlobalJson: true
 
   - task: DownloadBuildArtifacts@0
@@ -27,6 +27,7 @@ jobs:
   - task: PowerShell@2
     displayName: 'Detect API Breaking Changes'
     inputs:
+      errorActionPreference: 'stop'
       filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
       arguments: >
         -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
