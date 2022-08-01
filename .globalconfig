@@ -209,3 +209,6 @@ dotnet_diagnostic.IDE0065.severity = error # 'using' directive placement
 dotnet_diagnostic.IDE0073.severity = error # Require file header
 dotnet_diagnostic.IDE1005.severity = error # Use conditional delegate call
 dotnet_diagnostic.IDE1006.severity = error # Naming rule violation
+
+# Performance Rules
+dotnet_diagnostic.CA1822.severity = error # Mark members as static

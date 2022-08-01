@@ -72,7 +72,7 @@ public class StreamOriginatedDicomInstanceEntryTests
         }
     }
 
-    private async Task<Stream> CreateStreamAsync(DicomDataset dicomDataset)
+    private static async Task<Stream> CreateStreamAsync(DicomDataset dicomDataset)
     {
         var dicomFile = new DicomFile(dicomDataset);
 
@@ -85,6 +85,6 @@ public class StreamOriginatedDicomInstanceEntryTests
         return stream;
     }
 
-    private StreamOriginatedDicomInstanceEntry CreateStreamOriginatedDicomInstanceEntry(Stream stream)
+    private static StreamOriginatedDicomInstanceEntry CreateStreamOriginatedDicomInstanceEntry(Stream stream)
         => new StreamOriginatedDicomInstanceEntry(stream);
 }

@@ -116,7 +116,7 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal(0, _context.Response.Body.Length);
     }
 
-    private ExceptionHandlingMiddleware CreateExceptionHandlingMiddleware(RequestDelegate nextDelegate)
+    private static ExceptionHandlingMiddleware CreateExceptionHandlingMiddleware(RequestDelegate nextDelegate)
     {
         return Substitute.ForPartsOf<ExceptionHandlingMiddleware>(nextDelegate, NullLogger<ExceptionHandlingMiddleware>.Instance);
     }

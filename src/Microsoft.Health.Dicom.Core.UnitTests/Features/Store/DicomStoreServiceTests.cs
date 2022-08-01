@@ -230,7 +230,7 @@ public class DicomStoreServiceTests
         }
     }
 
-    private async Task ValidateDisposeAsync(IDicomInstanceEntry dicomInstanceEntry)
+    private static async Task ValidateDisposeAsync(IDicomInstanceEntry dicomInstanceEntry)
     {
         var timeout = DateTime.Now.AddSeconds(5);
 

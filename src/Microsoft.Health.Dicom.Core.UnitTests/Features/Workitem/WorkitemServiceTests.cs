@@ -623,7 +623,7 @@ public sealed class WorkitemServiceTests
                 Arg.Is<string>(msg => msg == DicomCoreResource.WorkitemInstanceNotFound));
     }
 
-    private QueryParameters CreateParameters(
+    private static QueryParameters CreateParameters(
         Dictionary<string, string> filters,
         QueryResource resourceType,
         string studyInstanceUid = null,

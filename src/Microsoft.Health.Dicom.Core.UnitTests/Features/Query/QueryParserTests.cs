@@ -538,10 +538,10 @@ public class QueryParserTests
         Assert.Equal(values.Length, queryExpression.IncludeFields.DicomTags.Count);
     }
 
-    private Dictionary<string, string> GetSingleton(string key, string value)
+    private static Dictionary<string, string> GetSingleton(string key, string value)
         => new Dictionary<string, string> { { key, value } };
 
-    private QueryParameters CreateParameters(
+    private static QueryParameters CreateParameters(
         Dictionary<string, string> filters,
         QueryResource resourceType,
         string studyInstanceUid = null,

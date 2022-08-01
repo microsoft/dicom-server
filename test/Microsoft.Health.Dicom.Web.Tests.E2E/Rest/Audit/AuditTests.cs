@@ -222,17 +222,17 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
             ae => ValidateExecutedAuditEntry(ae, expectedAction, expectedUri, expectedStatusCode));
     }
 
-    private void ValidateExecutingAuditEntry(AuditEntry auditEntry, string expectedAction, Uri expectedUri)
+    private static void ValidateExecutingAuditEntry(AuditEntry auditEntry, string expectedAction, Uri expectedUri)
     {
         ValidateAuditEntry(auditEntry, AuditAction.Executing, expectedAction, expectedUri, null);
     }
 
-    private void ValidateExecutedAuditEntry(AuditEntry auditEntry, string expectedAction, Uri expectedUri, HttpStatusCode? expectedStatusCode)
+    private static void ValidateExecutedAuditEntry(AuditEntry auditEntry, string expectedAction, Uri expectedUri, HttpStatusCode? expectedStatusCode)
     {
         ValidateAuditEntry(auditEntry, AuditAction.Executed, expectedAction, expectedUri, expectedStatusCode);
     }
 
-    private void ValidateAuditEntry(AuditEntry auditEntry, AuditAction expectedAuditAction, string expectedAction, Uri expectedUri, HttpStatusCode? expectedStatusCode)
+    private static void ValidateAuditEntry(AuditEntry auditEntry, AuditAction expectedAuditAction, string expectedAction, Uri expectedUri, HttpStatusCode? expectedStatusCode)
     {
         Assert.NotNull(auditEntry);
         Assert.Equal(expectedAuditAction, auditEntry.AuditAction);

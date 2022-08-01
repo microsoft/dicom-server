@@ -107,7 +107,7 @@ public class TranscoderTests
         return outputFile;
     }
 
-    private byte[] ToByteArray(Stream stream)
+    private static byte[] ToByteArray(Stream stream)
     {
         using (var memoryStream = new MemoryStream())
         {
@@ -116,7 +116,7 @@ public class TranscoderTests
         }
     }
 
-    private void VerifyDicomItems(IEnumerable<DicomItem> expected, IEnumerable<DicomItem> actual, params DicomTag[] ignoredTags)
+    private static void VerifyDicomItems(IEnumerable<DicomItem> expected, IEnumerable<DicomItem> actual, params DicomTag[] ignoredTags)
     {
         ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(ignoredTags);
         Dictionary<DicomTag, DicomItem> expectedDict = expected.ToDictionary(item => item.Tag);

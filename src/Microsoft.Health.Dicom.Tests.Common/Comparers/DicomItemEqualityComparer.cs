@@ -40,17 +40,17 @@ public class DicomItemEqualityComparer : IEqualityComparer<DicomItem>
         return x.Equals(y);
     }
 
-    private bool DicomItemEquals(DicomItem x, DicomItem y)
+    private static bool DicomItemEquals(DicomItem x, DicomItem y)
     {
         return x.Tag == y.Tag && x.ValueRepresentation == y.ValueRepresentation;
     }
 
-    private bool DicomElementEquals(DicomElement x, DicomElement y)
+    private static bool DicomElementEquals(DicomElement x, DicomElement y)
     {
         return DicomItemEquals(x, y) && x.Count == y.Count && ByteBufferEquals(x.Buffer, y.Buffer);
     }
 
-    private bool ByteBufferEquals(IByteBuffer x, IByteBuffer y)
+    private static bool ByteBufferEquals(IByteBuffer x, IByteBuffer y)
     {
         if (x == null || y == null)
         {

@@ -137,7 +137,7 @@ public class AcceptContentFilterAttributeTests
         Assert.Equal((int)HttpStatusCode.NotAcceptable, (_context.Result as StatusCodeResult)?.StatusCode);
     }
 
-    private AcceptContentFilterAttribute CreateFilter(string[] supportedMediaTypes)
+    private static AcceptContentFilterAttribute CreateFilter(string[] supportedMediaTypes)
     {
         return new AcceptContentFilterAttribute(supportedMediaTypes);
     }

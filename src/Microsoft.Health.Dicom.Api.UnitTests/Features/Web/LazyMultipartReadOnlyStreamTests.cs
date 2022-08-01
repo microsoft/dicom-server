@@ -117,7 +117,7 @@ public class LazyMultipartReadOnlyStreamTests
         return new MemoryStream(buffer);
     }
 
-    private async IAsyncEnumerable<DicomStreamContent> GetAsyncEnumerable(Stream[] streams)
+    private static async IAsyncEnumerable<DicomStreamContent> GetAsyncEnumerable(Stream[] streams)
     {
         List<KeyValuePair<string, IEnumerable<string>>> headers = new List<KeyValuePair<string, IEnumerable<string>>>();
         headers.Add(new KeyValuePair<string, IEnumerable<string>>(ContentType, new List<string> { $"{MediaType}; {TransferSyntax}={TestTransferSyntaxUid}" }));
