@@ -23,6 +23,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $container="openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02"
 
+if (Test-Path "$SwaggerDir/FromMain") { Remove-Item -Recurse -Force "$SwaggerDir/FromMain" }
 mkdir "$SwaggerDir/FromMain"
 
 foreach ($Version in $Versions)
@@ -41,4 +42,4 @@ foreach ($Version in $Versions)
     rm $old
 }
 
-rmdir "$SwaggerDir/FromMain"
+Remove-Item -Recurse -Force "$SwaggerDir/FromMain"
