@@ -500,7 +500,7 @@ public partial class ReindexDurableFunctionTests
             && x.MaxParallelBatches == _options.MaxParallelBatches;
     }
 
-    private Expression<Predicate<ReindexBatchArguments>> GetPredicate(
+    private static Expression<Predicate<ReindexBatchArguments>> GetPredicate(
         IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags,
         WatermarkRange expected)
     {

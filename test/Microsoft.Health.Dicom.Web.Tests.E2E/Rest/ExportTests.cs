@@ -182,7 +182,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     public Task DisposeAsync()
         => _instanceManager.DisposeAsync().AsTask();
 
-    private async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
+    private static async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
     {
         using var buffer = new MemoryStream();
         await new DicomFile(expected).SaveAsync(buffer);
@@ -195,9 +195,11 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private static BlobContainerClient CreateContainerClient(AzureBlobConnectionOptions options)
     {
         if (options.BlobContainerUri != null)
+        {
             return options.UseManagedIdentity
                 ? new BlobContainerClient(options.BlobContainerUri, new DefaultAzureCredential())
                 : new BlobContainerClient(options.BlobContainerUri);
+        }
 
         return new BlobContainerClient(options.ConnectionString, options.BlobContainerName);
     }

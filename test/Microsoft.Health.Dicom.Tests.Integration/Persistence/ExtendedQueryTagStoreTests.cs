@@ -413,7 +413,7 @@ public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private Task VerifyTagNotExistAsync(string tagPath)
         => Assert.ThrowsAsync<ExtendedQueryTagNotFoundException>(() => _extendedQueryTagStore.GetExtendedQueryTagAsync(tagPath));
 
-    private void AssertTag(
+    private static void AssertTag(
         int key,
         AddExtendedQueryTagEntry expected,
         ExtendedQueryTagStoreJoinEntry actual,

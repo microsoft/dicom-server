@@ -160,7 +160,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         return new List<DicomDataset> { dicomDataset1, dicomDataset2 };
     }
 
-    private DicomDataset CreateValidMetadataDataset(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    private static DicomDataset CreateValidMetadataDataset(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
         return new DicomDataset()
         {

@@ -93,7 +93,7 @@ public class AcceptTransferSyntaxFilterAttributeTests
         Assert.Null((_context.Result as StatusCodeResult)?.StatusCode);
     }
 
-    private AcceptTransferSyntaxFilterAttribute CreateFilter(string[] supportedTransferSyntaxes, bool allowMissing = false)
+    private static AcceptTransferSyntaxFilterAttribute CreateFilter(string[] supportedTransferSyntaxes, bool allowMissing = false)
     {
         return new AcceptTransferSyntaxFilterAttribute(supportedTransferSyntaxes, allowMissing);
     }

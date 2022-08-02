@@ -220,7 +220,7 @@ public class FhirTransactionRequestResponsePropertyAccessorTests
             CreatePropertyAccessor(responseEntrySetter: (response, responseEntry) => response.ImagingStudy = responseEntry.Single()));
     }
 
-    private FhirTransactionRequestResponsePropertyAccessor CreatePropertyAccessor(
+    private static FhirTransactionRequestResponsePropertyAccessor CreatePropertyAccessor(
         string propertyName = "Patient",
         Func<FhirTransactionRequest, IEnumerable<FhirTransactionRequestEntry>> requestEntryGetter = null,
         Action<FhirTransactionResponse, IEnumerable<FhirTransactionResponseEntry>> responseEntrySetter = null)

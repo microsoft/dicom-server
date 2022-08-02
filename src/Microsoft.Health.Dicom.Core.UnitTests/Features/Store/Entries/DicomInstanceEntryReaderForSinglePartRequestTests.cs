@@ -133,7 +133,7 @@ public class DicomInstanceEntryReaderForSinglePartRequestTests
             });
     }
 
-    private IOptions<StoreConfiguration> CreateStoreConfiguration(long maxSize)
+    private static IOptions<StoreConfiguration> CreateStoreConfiguration(long maxSize)
     {
         var configuration = Substitute.For<IOptions<StoreConfiguration>>();
         configuration.Value.Returns(new StoreConfiguration

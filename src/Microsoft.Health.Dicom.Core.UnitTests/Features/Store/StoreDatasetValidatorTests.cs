@@ -276,19 +276,6 @@ public class StoreDatasetValidatorTests
         }
     }
 
-    private static async Task AssertThrowsAsyncWithMessage<T>(Func<Task> testCode, string expectedMessage) where T : Exception
-    {
-        try
-        {
-            await testCode();
-        }
-        catch (Exception e)
-        {
-            Assert.IsType<T>(e);
-            Assert.Equal(expectedMessage, e.Message);
-        }
-    }
-
     public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()
     {
         foreach (var ts in Samples.GetAllDicomTransferSyntax())
