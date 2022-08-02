@@ -19,7 +19,7 @@ internal class SqlExtendedQueryTagStoreV1 : ISqlExtendedQueryTagStore
 
     public virtual Task<IReadOnlyList<ExtendedQueryTagStoreEntry>> AddExtendedQueryTagsAsync(
         IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTagEntries,
-        int maxCount,
+        int maxAllowedCount,
         bool ready = false,
         CancellationToken cancellationToken = default)
     {

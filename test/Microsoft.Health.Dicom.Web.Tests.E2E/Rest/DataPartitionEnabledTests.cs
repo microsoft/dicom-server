@@ -31,7 +31,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task WhenRetrievingPartitions_TheServerShouldReturnAllPartitions()
     {
         var newPartition1 = TestUidGenerator.Generate();
@@ -52,7 +52,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task GivenDatasetWithNewPartitionName_WhenStoring_TheServerShouldReturnWithNewPartition()
     {
         var newPartition = TestUidGenerator.Generate();
@@ -71,7 +71,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task GivenDatasetWithNewPartitionName_WhenStoringWithStudyUid_TheServerShouldReturnWithNewPartition()
     {
         var newPartition = TestUidGenerator.Generate();
@@ -89,7 +89,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task WhenRetrievingWithPartitionName_TheServerShouldReturnOnlyTheSpecifiedPartition()
     {
         var newPartition1 = "partition1";
@@ -112,7 +112,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task GivenDatasetInstancesWithDifferentPartitions_WhenDeleted_OneDeletedAndOtherRemains()
     {
         var newPartition1 = TestUidGenerator.Generate();
@@ -137,7 +137,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task GivenMatchingStudiesInDifferentPartitions_WhenSearchForStudySeriesLevel_OnePartitionMatchesResult()
     {
         var newPartition1 = TestUidGenerator.Generate();
@@ -169,7 +169,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
-    [Trait("Category", "bvt-fe")]
+    [Trait("Category", "bvt-dp")]
     public async Task GivenAnInstance_WhenRetrievingChangeFeedWithPartition_ThenPartitionNameIsReturned()
     {
         var newPartition = TestUidGenerator.Generate();
@@ -207,6 +207,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     }
 
     [Fact]
+    [Trait("Category", "bvt-dp")]
     public async Task WhenAddingWorkitem_TheServerShouldCreateWorkitemSuccessfully()
     {
         DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset();

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -110,7 +111,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (retrieveInstances.Count() > 1 && !isOriginalTransferSyntaxRequested)
             {
                 throw new NotAcceptableException(
-                    string.Format(DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
+                    string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
             }
 
             // transcoding of single instance
@@ -157,6 +158,12 @@ public class RetrieveResourceService : IRetrieveResourceService
         bool isSinglePart,
         CancellationToken cancellationToken)
     {
+
+        if (isSinglePart && message.Frames.Count() > 1)
+        {
+            throw new BadRequestException(DicomCoreResource.SinglePartSupportedForSingleFrame);
+        }
+
         _dicomRequestContextAccessor.RequestContext.PartCount = message.Frames.Count();
 
         // only caching frames which are required to provide all 3 UIDs and more immutable
@@ -232,7 +239,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         // limit the file size that can be read in memory
         if (fileProperties.ContentLength > _retrieveConfiguration.MaxDicomFileSize)
         {
-            throw new NotAcceptableException(string.Format(DicomCoreResource.RetrieveServiceFileTooBig, _retrieveConfiguration.MaxDicomFileSize));
+            throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceFileTooBig, _retrieveConfiguration.MaxDicomFileSize));
         }
 
         return fileProperties;

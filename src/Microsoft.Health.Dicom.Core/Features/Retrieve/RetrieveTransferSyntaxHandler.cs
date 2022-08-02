@@ -95,7 +95,7 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     {
         return new AcceptHeaderDescriptors(
          new AcceptHeaderDescriptor(
-             payloadType: PayloadTypes.MultipartRelated,
+             payloadType: PayloadTypes.SinglePartOrMultipartRelated,
              mediaType: KnownContentTypes.ApplicationOctetStream,
              isTransferSyntaxMandatory: false,
              transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,

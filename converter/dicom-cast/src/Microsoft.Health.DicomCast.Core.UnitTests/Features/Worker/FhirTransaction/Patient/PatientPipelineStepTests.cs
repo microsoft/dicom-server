@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using FellowOakDicom;
 using Hl7.Fhir.Model;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -32,7 +33,7 @@ public class PatientPipelineStepTests
 
     public PatientPipelineStepTests()
     {
-        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer);
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, NullLogger<PatientPipelineStep>.Instance);
     }
 
     [Fact]

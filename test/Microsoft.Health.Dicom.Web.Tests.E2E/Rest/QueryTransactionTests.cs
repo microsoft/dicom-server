@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
             () => _client.QueryStudyAsync("Modality=CT"));
 
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-        Assert.Equal(exception.ResponseMessage, string.Format(DicomCoreResource.UnsupportedSearchParameter, "Modality", "study"));
+        Assert.Equal(exception.ResponseMessage, string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedSearchParameter, "Modality", "study"));
     }
 
     [Fact]

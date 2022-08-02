@@ -97,7 +97,7 @@ public partial class CopyDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _instanceCopier.Received(1).CopyInstanceAsync(identifier, Arg.Any<CancellationToken>());
+            await _blobMigrationService.Received(1).CopyInstanceAsync(identifier, Arg.Any<CancellationToken>());
         }
     }
 }

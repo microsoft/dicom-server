@@ -11,6 +11,7 @@
     <PackageReference Include="Hl7.Fhir.R4" />
     <PackageReference Include="Hl7.Fhir.Support" />
     <PackageReference Include="Hl7.Fhir.Support.Poco" />
+    <PackageReference Include="Microsoft.ApplicationInsights" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
@@ -25,7 +26,6 @@
     <PackageReference Include="Microsoft.Health.Fhir.R4.Client" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Polly.Extensions.Http" />
-    <PackageReference Include="Scrutor" />
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 

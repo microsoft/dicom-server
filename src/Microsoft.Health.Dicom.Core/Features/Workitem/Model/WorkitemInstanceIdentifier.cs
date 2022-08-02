@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -48,7 +49,7 @@ public class WorkitemInstanceIdentifier
     }
 
     public override int GetHashCode()
-        => (PartitionKey + WorkitemUid + WorkitemKey.ToString() + Watermark.ToString()).GetHashCode(EqualsStringComparison);
+        => (PartitionKey + WorkitemUid + WorkitemKey.ToString(CultureInfo.InvariantCulture) + Watermark.ToString(CultureInfo.InvariantCulture)).GetHashCode(EqualsStringComparison);
 
     public override string ToString()
         => $"PartitionKey: {PartitionKey}, WorkitemKey: {WorkitemKey}, Watermark: {Watermark}";

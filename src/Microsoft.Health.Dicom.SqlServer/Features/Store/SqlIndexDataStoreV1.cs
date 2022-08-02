@@ -37,9 +37,9 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
     public virtual SchemaVersion Version => SchemaVersion.V1;
 
-    public virtual async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset instance, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public virtual async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(instance, nameof(instance));
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
@@ -47,17 +47,17 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         {
             V1.AddInstance.PopulateCommand(
                 sqlCommandWrapper,
-                instance.GetString(DicomTag.StudyInstanceUID),
-                instance.GetString(DicomTag.SeriesInstanceUID),
-                instance.GetString(DicomTag.SOPInstanceUID),
-                instance.GetFirstValueOrDefault<string>(DicomTag.PatientID),
-                instance.GetFirstValueOrDefault<string>(DicomTag.PatientName),
-                instance.GetFirstValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                instance.GetStringDateAsDate(DicomTag.StudyDate),
-                instance.GetFirstValueOrDefault<string>(DicomTag.StudyDescription),
-                instance.GetFirstValueOrDefault<string>(DicomTag.AccessionNumber),
-                instance.GetFirstValueOrDefault<string>(DicomTag.Modality),
-                instance.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
+                dicomDataset.GetString(DicomTag.StudyInstanceUID),
+                dicomDataset.GetString(DicomTag.SeriesInstanceUID),
+                dicomDataset.GetString(DicomTag.SOPInstanceUID),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientName),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.ReferringPhysicianName),
+                dicomDataset.GetStringDateAsDate(DicomTag.StudyDate),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.StudyDescription),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.AccessionNumber),
+                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.Modality),
+                dicomDataset.GetStringDateAsDate(DicomTag.PerformedProcedureStepStartDate),
                 (byte)IndexStatus.Creating);
 
             try

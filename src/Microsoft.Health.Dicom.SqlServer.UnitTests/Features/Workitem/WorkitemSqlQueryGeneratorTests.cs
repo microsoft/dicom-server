@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using FellowOakDicom;
@@ -55,8 +56,8 @@ AND w.Status = 1 ";
 AND cts1.TagValue=@p1";
 
         string builtString = stringBuilder.ToString();
-        Assert.Equal(queryTag.WorkitemQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-        Assert.Equal(filter.Value.ToString(), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(queryTag.WorkitemQueryTagStoreEntry.Key.ToString(CultureInfo.InvariantCulture), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Value, sqlParameterCollection[1].Value.ToString());
         Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
         Assert.Contains(expectedFilters, builtString);
     }
@@ -90,9 +91,9 @@ WHERE";
 AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
         string builtString = stringBuilder.ToString();
-        Assert.Equal(queryTag.WorkitemQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-        Assert.Equal(filter.Minimum.ToString(SqlDateFormat), sqlParameterCollection[1].Value.ToString());
-        Assert.Equal(filter.Maximum.ToString(SqlDateFormat), sqlParameterCollection[2].Value.ToString());
+        Assert.Equal(queryTag.WorkitemQueryTagStoreEntry.Key.ToString(CultureInfo.InvariantCulture), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter.Minimum.ToString(SqlDateFormat, CultureInfo.InvariantCulture), sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(filter.Maximum.ToString(SqlDateFormat, CultureInfo.InvariantCulture), sqlParameterCollection[2].Value.ToString());
         Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
         Assert.Contains(expectedFilters, builtString);
     }
@@ -136,10 +137,10 @@ AND cts2.TagKey=@p2
 AND cts2.TagValue=@p3";
 
         string builtString = stringBuilder.ToString();
-        Assert.Equal(queryTag1.WorkitemQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[0].Value.ToString());
-        Assert.Equal(filter1.Value.ToString(), sqlParameterCollection[1].Value.ToString());
-        Assert.Equal(queryTag2.WorkitemQueryTagStoreEntry.Key.ToString(), sqlParameterCollection[2].Value.ToString());
-        Assert.Equal(filter2.Value.ToString(), sqlParameterCollection[3].Value.ToString());
+        Assert.Equal(queryTag1.WorkitemQueryTagStoreEntry.Key.ToString(CultureInfo.InvariantCulture), sqlParameterCollection[0].Value.ToString());
+        Assert.Equal(filter1.Value, sqlParameterCollection[1].Value.ToString());
+        Assert.Equal(queryTag2.WorkitemQueryTagStoreEntry.Key.ToString(CultureInfo.InvariantCulture), sqlParameterCollection[2].Value.ToString());
+        Assert.Equal(filter2.Value, sqlParameterCollection[3].Value.ToString());
         Assert.Contains(expectedExtendedQueryTagTableFilter, builtString);
         Assert.Contains(expectedFilters, builtString);
     }

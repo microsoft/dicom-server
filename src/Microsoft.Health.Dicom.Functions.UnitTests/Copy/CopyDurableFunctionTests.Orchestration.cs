@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.Copy;
-using Microsoft.Health.Dicom.Functions.Copy;
+using Microsoft.Health.Dicom.Core.Models.BlobMigration;
+using Microsoft.Health.Dicom.Functions.BlobMigration;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.Management;
@@ -28,14 +28,14 @@ public partial class CopyDurableFunctionTests
         DateTime createdTime = DateTime.UtcNow;
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
-        var expectedInput = new CopyCheckpoint();
+        var expectedInput = new BlobMigrationCheckpoint();
         expectedInput.Batching = _batchingOptions;
 
         // Arrange the input
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
         context
-            .GetInput<CopyCheckpoint>()
+            .GetInput<BlobMigrationCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -62,7 +62,7 @@ public partial class CopyDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<CopyCheckpoint>();
+            .GetInput<BlobMigrationCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -88,7 +88,7 @@ public partial class CopyDurableFunctionTests
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<CopyCheckpoint>(x => GetPredicate(createdTime, expectedBatches, 50)(x)),
+                Arg.Is<BlobMigrationCheckpoint>(x => GetPredicate(createdTime, expectedBatches, 50)(x)),
                 false);
     }
 
@@ -96,7 +96,7 @@ public partial class CopyDurableFunctionTests
     public async Task GivenExistingOrchestrationWithWork_WhenCopyingInstances_ThenDivideAndCopyBatches()
     {
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(35);
-        var expectedInput = new CopyCheckpoint
+        var expectedInput = new BlobMigrationCheckpoint
         {
             Completed = new WatermarkRange(36, 42),
             CreatedTime = DateTime.UtcNow,
@@ -106,7 +106,7 @@ public partial class CopyDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<CopyCheckpoint>()
+            .GetInput<BlobMigrationCheckpoint>()
             .Returns(expectedInput);
 
         context
@@ -128,7 +128,7 @@ public partial class CopyDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<CopyCheckpoint>();
+            .GetInput<BlobMigrationCheckpoint>();
 
         await context
             .Received(1)
@@ -156,7 +156,7 @@ public partial class CopyDurableFunctionTests
         context
             .Received(1)
             .ContinueAsNew(
-                Arg.Is<CopyCheckpoint>(x => GetPredicate(expectedInput.CreatedTime.Value, expectedBatches, 42)(x)),
+                Arg.Is<BlobMigrationCheckpoint>(x => GetPredicate(expectedInput.CreatedTime.Value, expectedBatches, 42)(x)),
                 false);
     }
 
@@ -164,13 +164,13 @@ public partial class CopyDurableFunctionTests
     public async Task GivenNoInstances_WhenCopyingInstances_ThenComplete()
     {
         var expectedBatches = new List<WatermarkRange>();
-        var expectedInput = new CopyCheckpoint();
+        var expectedInput = new BlobMigrationCheckpoint();
         expectedInput.Batching = _batchingOptions;
 
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<CopyCheckpoint>()
+            .GetInput<BlobMigrationCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -185,7 +185,7 @@ public partial class CopyDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<CopyCheckpoint>();
+            .GetInput<BlobMigrationCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -216,7 +216,7 @@ public partial class CopyDurableFunctionTests
     public async Task GivenNoRemainingInstances_WhenCopyingInstances_ThenComplete(long start, long end)
     {
         var expectedBatches = new List<WatermarkRange>();
-        var expectedInput = new CopyCheckpoint
+        var expectedInput = new BlobMigrationCheckpoint
         {
             Completed = new WatermarkRange(start, end),
             CreatedTime = DateTime.UtcNow,
@@ -226,7 +226,7 @@ public partial class CopyDurableFunctionTests
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext();
         context
-            .GetInput<CopyCheckpoint>()
+            .GetInput<BlobMigrationCheckpoint>()
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -241,7 +241,7 @@ public partial class CopyDurableFunctionTests
         // Assert behavior
         context
             .Received(1)
-            .GetInput<CopyCheckpoint>();
+            .GetInput<BlobMigrationCheckpoint>();
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
@@ -306,7 +306,7 @@ public partial class CopyDurableFunctionTests
         IReadOnlyList<WatermarkRange> expectedBatches,
         long end)
     {
-        return x => x is CopyCheckpoint r
+        return x => x is BlobMigrationCheckpoint r
             && r.Completed == new WatermarkRange(expectedBatches[expectedBatches.Count - 1].Start, end)
             && r.CreatedTime == createdTime;
     }

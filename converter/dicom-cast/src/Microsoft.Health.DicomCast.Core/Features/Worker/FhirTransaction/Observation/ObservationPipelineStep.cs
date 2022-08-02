@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Hl7.Fhir.Utility;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Configurations;
@@ -17,7 +18,7 @@ using Microsoft.Health.DicomCast.Core.Features.Fhir;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 
-public class ObservationPipelineStep : IFhirTransactionPipelineStep
+public class ObservationPipelineStep : FhirTransactionPipelineStepBase
 {
     private readonly IObservationDeleteHandler _observationDeleteHandler;
     private readonly IObservationUpsertHandler _observationUpsertHandler;
@@ -25,14 +26,16 @@ public class ObservationPipelineStep : IFhirTransactionPipelineStep
 
     public ObservationPipelineStep(IObservationDeleteHandler observationDeleteHandler,
         IObservationUpsertHandler observationUpsertHandler,
-        IOptions<DicomCastConfiguration> dicomCastConfiguration)
+        IOptions<DicomCastConfiguration> dicomCastConfiguration,
+        ILogger<ObservationPipelineStep> logger)
+        : base(logger)
     {
         _observationDeleteHandler = EnsureArg.IsNotNull(observationDeleteHandler, nameof(observationDeleteHandler));
         _observationUpsertHandler = EnsureArg.IsNotNull(observationUpsertHandler, nameof(observationUpsertHandler));
         _dicomCastConfiguration = EnsureArg.IsNotNull(dicomCastConfiguration?.Value, nameof(dicomCastConfiguration));
     }
 
-    public async Task PrepareRequestAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
+    protected override async Task PrepareRequestImplementationAsync(FhirTransactionContext context, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
@@ -52,7 +55,7 @@ public class ObservationPipelineStep : IFhirTransactionPipelineStep
         }
     }
 
-    public void ProcessResponse(FhirTransactionContext context)
+    protected override void ProcessResponseImplementation(FhirTransactionContext context)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 

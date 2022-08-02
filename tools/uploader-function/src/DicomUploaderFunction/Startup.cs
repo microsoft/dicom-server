@@ -9,6 +9,7 @@ using EnsureThat;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Client.Authentication;
 using Microsoft.Health.Client.Extensions;
 using Microsoft.Health.Dicom.Client;
@@ -24,16 +25,16 @@ public class Startup : FunctionsStartup
         EnsureArg.IsNotNull(builder, nameof(builder));
 
         IConfiguration configuration = builder.GetContext().Configuration;
-
-        var dicomOptions = new DicomOptions();
         IConfigurationSection dicomWebConfigurationSection = configuration.GetSection(DicomOptions.SectionName);
-        dicomWebConfigurationSection.Bind(dicomOptions);
 
-        builder.Services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
-            {
-                client.Timeout = TimeSpan.FromMinutes(10);
-                client.BaseAddress = dicomOptions.Endpoint;
-            })
+        builder.Services
+            .Configure<DicomOptions>(dicomWebConfigurationSection)
+            .AddHttpClient<IDicomWebClient, DicomWebClient>(
+                (sp, client) =>
+                {
+                    client.Timeout = TimeSpan.FromMinutes(10);
+                    client.BaseAddress = sp.GetRequiredService<IOptions<DicomOptions>>().Value.Endpoint;
+                })
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
     }
 }

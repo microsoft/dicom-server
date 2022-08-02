@@ -16,11 +16,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Copy;
+using Microsoft.Health.Dicom.Core.Features.BlobMigration;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
-using Microsoft.Health.Dicom.Functions.Copy;
+using Microsoft.Health.Dicom.Functions.BlobMigration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Registration;
@@ -71,7 +71,7 @@ public static class ServiceCollectionExtensions
             .AddInstanceCopier()
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
-            .AddFunctionsOptions<CopyOptions>(configuration, CopyOptions.SectionName)
+            .AddFunctionsOptions<BlobMigrationOptions>(configuration, BlobMigrationOptions.SectionName)
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
@@ -134,7 +134,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddInstanceCopier(this IServiceCollection services)
     {
         EnsureArg.IsNotNull(services, nameof(services));
-        services.AddScoped<IInstanceCopier, InstanceCopier>();
+        services.AddScoped<BlobMigrationService, BlobMigrationService>();
         return services;
     }
 

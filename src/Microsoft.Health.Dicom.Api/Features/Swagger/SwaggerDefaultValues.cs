@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using EnsureThat;
@@ -38,7 +39,7 @@ public class SwaggerDefaultValues : IOperationFilter
         foreach (ApiResponseType responseType in context.ApiDescription.SupportedResponseTypes)
         {
             // REF: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/b7cf75e7905050305b115dd96640ddd6e74c7ac9/src/Swashbuckle.AspNetCore.SwaggerGen/SwaggerGenerator/SwaggerGenerator.cs#L383-L387
-            string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString();
+            string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString(CultureInfo.InvariantCulture);
             OpenApiResponse response = operation.Responses[responseKey];
 
             foreach (string contentType in response.Content.Keys)

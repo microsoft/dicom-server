@@ -38,11 +38,11 @@ public static class AcceptHeaderHelpers
            quality: quality);
     }
 
-    public static AcceptHeader CreateAcceptHeaderForGetFrame(string transferSyntax = "*", string mediaType = KnownContentTypes.ApplicationOctetStream, double? quality = null)
+    public static AcceptHeader CreateAcceptHeaderForGetFrame(string transferSyntax = "*", string mediaType = KnownContentTypes.ApplicationOctetStream, double? quality = null, PayloadTypes payloadType = PayloadTypes.MultipartRelated)
     {
         return CreateAcceptHeader(
           transferSyntax: transferSyntax,
-          payloadType: PayloadTypes.MultipartRelated,
+          payloadType: payloadType,
           mediaType: mediaType,
           quality: quality);
     }

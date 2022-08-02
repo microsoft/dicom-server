@@ -9,14 +9,12 @@
 <!-- List of Folders to include for GeoPolitical scanning -->
 <SourceGitFolder>&GitReposFolder;\VSTS\&GitRepoName;</SourceGitFolder>
 <GitRepoName>&GitRepoName;</GitRepoName>
-  <Component Include="List here folders to Include in a GeoPol Scan">    
+  <Component Include="List here folders to Include in a GeoPol Scan">
   <!-- . means the entire repo -->
     <IncludeFolder>.</IncludeFolder>
   </Component>
-    <Component Exclude="List exceptions here to not be scanned, that have been included above">    
+    <Component Exclude="List exceptions here to not be scanned, that have been included above">
     <ExcludeFolder>.gitignore</ExcludeFolder>
     <ExcludeFolder>GeoPol.xml</ExcludeFolder>
-    <ExcludeFolder>tools\scale-testing\PatientNames.txt</ExcludeFolder>
-    <ExcludeFolder>tools\scale-testing\PhysiciansNames.txt</ExcludeFolder>
   </Component>
 </GeoPol_Folders>

@@ -196,15 +196,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The dicom file in the request section exceeded the allowed limit of {0} bytes..
-        /// </summary>
-        internal static string DicomFileLengthLimitExceeded {
-            get {
-                return ResourceManager.GetString("DicomFileLengthLimitExceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
         /// </summary>
         internal static string DisallowedSeriesInstanceUIDAttribute {
@@ -994,6 +985,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request exceeded the allowed limit of {0} bytes..
+        /// </summary>
+        internal static string RequestLengthLimitExceeded {
+            get {
+                return ResourceManager.GetString("RequestLengthLimitExceeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The required condition for tag &apos;{0}&apos; is not met..
         /// </summary>
         internal static string RequiredConditionNotMet {
@@ -1080,6 +1080,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string SimpleErrorMessageUnexpectedVR {
             get {
                 return ResourceManager.GetString("SimpleErrorMessageUnexpectedVR", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The accept header is supported for single frame retrieval, use multi-part accept header instead..
+        /// </summary>
+        internal static string SinglePartSupportedForSingleFrame {
+            get {
+                return ResourceManager.GetString("SinglePartSupportedForSingleFrame", resourceCulture);
             }
         }
         

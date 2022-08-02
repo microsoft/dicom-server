@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
@@ -41,7 +42,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
             // filter conditions with attributeId as key
             if (!ParseFilterCondition(filter, queryTags, parameters.FuzzyMatching, out QueryFilterCondition condition))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.UnknownQueryParameter, filter.Key));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnknownQueryParameter, filter.Key));
             }
 
             if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.ErrorCount > 0)
@@ -51,7 +52,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
 
             if (!filterConditions.TryAdd(condition.QueryTag.Tag, condition))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.DuplicateAttribute, filter.Key));
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DuplicateAttribute, filter.Key));
             }
         }
 
@@ -120,12 +121,12 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
         // check if tag is disabled
         if (queryTag.IsExtendedQueryTag && queryTag.ExtendedQueryTagStoreEntry.QueryStatus == QueryStatus.Disabled)
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.QueryIsDisabledOnAttribute, queryParameter.Key));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.QueryIsDisabledOnAttribute, queryParameter.Key));
         }
 
         if (string.IsNullOrWhiteSpace(queryParameter.Value))
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.QueryEmptyAttributeValue, queryParameter.Key));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.QueryEmptyAttributeValue, queryParameter.Key));
         }
 
         if (!ValueParsers.TryGetValue(queryTag.VR, out Func<QueryTag, string, QueryFilterCondition> valueParser))
@@ -170,7 +171,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
 
         if (queryTag == null)
         {
-            throw new QueryParseException(string.Format(DicomCoreResource.UnsupportedSearchParameter, attributeId));
+            throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedSearchParameter, attributeId));
         }
 
         return queryTag;
@@ -194,7 +195,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
         {
             if (!TryParseDicomAttributeId(field, out DicomTag dicomTag))
             {
-                throw new QueryParseException(string.Format(DicomCoreResource.IncludeFieldUnknownAttribute, field));
+                throw new QueryParseException(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.IncludeFieldUnknownAttribute, field));
             }
 
             fields.Add(dicomTag);

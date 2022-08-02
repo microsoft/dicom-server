@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ internal sealed class IdentifierExportSourceProvider : ExportSourceProvider<Iden
     public IdentifierExportSourceProvider(IInstanceStore instanceStore)
         => _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
 
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dipose of source.")]
     protected override Task<IExportSource> CreateAsync(IdentifierExportOptions options, PartitionEntry partition, CancellationToken cancellationToken = default)
         => Task.FromResult<IExportSource>(new IdentifierExportSource(_instanceStore, partition, options));
 

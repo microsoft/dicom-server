@@ -6,12 +6,12 @@
 using System;
 
 [Flags]
-internal enum ExportPatternPlaceholders : sbyte
+internal enum ExportPatternPlaceholders
 {
     None = 0x0,
     Operation = 0x1,
     Study = 0x2,
     Series = 0x4,
     SopInstance = 0x8,
-    All = ~None,
+    All = Operation | Study | Series | SopInstance,
 }

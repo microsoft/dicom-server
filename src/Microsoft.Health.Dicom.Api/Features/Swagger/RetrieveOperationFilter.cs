@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.OpenApi.Models;
@@ -24,7 +25,7 @@ public class RetrieveOperationFilter : IOperationFilter
             {
                 if (responseType.StatusCode == 200)
                 {
-                    string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString();
+                    string responseKey = responseType.IsDefaultResponse ? "default" : responseType.StatusCode.ToString(CultureInfo.InvariantCulture);
 
                     OpenApiResponse response = operation.Responses[responseKey];
 

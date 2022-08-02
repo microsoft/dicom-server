@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -125,7 +126,7 @@ public class AddInstanceTableValuedParametersBuilderTests
             yield return BuildParam(DicomTag.PatientAge, "012W", schemaVersion, (tag, value) => new DicomAgeString(tag, value));
 
             yield return BuildParam(DicomTag.AcquisitionStartCondition, "0123456789", schemaVersion, (tag, value) => new DicomCodeString(tag, value));
-            yield return BuildParam(DicomTag.AcquisitionDate, DateTime.Parse("2021/5/20"), schemaVersion, (tag, value) => new DicomDate(tag, value));
+            yield return BuildParam(DicomTag.AcquisitionDate, DateTime.Parse("2021/5/20", CultureInfo.InvariantCulture), schemaVersion, (tag, value) => new DicomDate(tag, value));
 
             yield return BuildParam(DicomTag.TableOfParameterValues, 100.0, schemaVersion, (tag, value) => new DicomFloatingPointSingle(tag, (float)value));
             yield return BuildParam(DicomTag.DopplerCorrectionAngle, 100.0, schemaVersion, (tag, value) => new DicomFloatingPointDouble(tag, value));

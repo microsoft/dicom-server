@@ -19,13 +19,14 @@ using Microsoft.Health.Client.Authentication;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-internal static class DicomModulesExtensions
+public static class DicomModulesExtensions
 {
     private const string DicomWebConfigurationSectionName = "DicomWeb";
 
     public static IServiceCollection AddDicomModule(this IServiceCollection services, IConfiguration configuration)
     {
         EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         IConfigurationSection dicomWebConfigurationSection = configuration.GetSection(DicomWebConfigurationSectionName);
         services.AddOptions<DicomWebConfiguration>().Bind(dicomWebConfigurationSection);
@@ -43,9 +44,11 @@ internal static class DicomModulesExtensions
             .AddPolicyHandler(retryPolicy)
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
 
-        return (IServiceCollection)services.Add<ChangeFeedRetrieveService>()
+        services.Add<ChangeFeedRetrieveService>()
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        return services;
     }
 }

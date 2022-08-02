@@ -29,4 +29,9 @@ public enum DicomOperation
     /// Specifies an copy operation that copies DICOM instance and metadata file in the same container.
     /// </summary>
     Copy,
+
+    /// <summary>
+    /// Specifies an delete operation that deletes DICOM instance and metadata file in the same container.
+    /// </summary>
+    MigrationDeletion,
 }

@@ -9,6 +9,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
+using System.Globalization;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.ChangeFeed;
@@ -44,7 +45,7 @@ public class ExtendedQueryTagEntryValidatorTests
     {
         AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, DicomVRCode.AE);
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
-        Assert.Equal(string.Format("The extended query tag '{0}' is invalid as it cannot be parsed into a valid Dicom Tag.", path), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The extended query tag '{0}' is invalid as it cannot be parsed into a valid Dicom Tag.", path), ex.Message);
     }
 
     [Theory]
@@ -82,7 +83,7 @@ public class ExtendedQueryTagEntryValidatorTests
         string vr = "CS"; // expected vr should be LO. CS is not acceptable
         AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(tagPath, vr);
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
-        Assert.Equal(string.Format("The VR code '{0}' is incorrectly specified for '{1}'. The expected VR code for it is '{2}'. Retry this request either with the correct VR code or without specifying it.", vr, tagPath, "LO"), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The VR code '{0}' is incorrectly specified for '{1}'. The expected VR code for it is '{2}'. Retry this request either with the correct VR code or without specifying it.", vr, tagPath, "LO"), ex.Message);
     }
 
     [Fact]
@@ -92,7 +93,7 @@ public class ExtendedQueryTagEntryValidatorTests
         string vr = "LOX";
         AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(tagPath, vr);
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
-        Assert.Equal(string.Format("The VR code '{0}' for tag '{1}' is invalid.", vr, tagPath), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The VR code '{0}' for tag '{1}' is invalid.", vr, tagPath), ex.Message);
     }
 
     [Theory]
@@ -103,7 +104,7 @@ public class ExtendedQueryTagEntryValidatorTests
     {
         AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr);
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
-        Assert.Equal(string.Format("The VR code '{0}' specified for tag '{1}' is not supported.", expectedVR, path), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The VR code '{0}' specified for tag '{1}' is not supported.", expectedVR, path), ex.Message);
     }
 
 
@@ -124,7 +125,7 @@ public class ExtendedQueryTagEntryValidatorTests
         string vr = string.Empty;
         AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr, "PrivateCreator1");
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
-        Assert.Equal(string.Format("The vr for tag '12051003' is missing.", path), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The vr for tag '12051003' is missing.", path), ex.Message);
     }
 
     [Fact]
@@ -134,7 +135,7 @@ public class ExtendedQueryTagEntryValidatorTests
         string vr = DicomVRCode.OB;
         AddExtendedQueryTagEntry entry = CreateExtendedQueryTagEntry(path, vr);
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => { _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }); });
-        Assert.Equal(string.Format("The private creator for private tag '{0}' is missing.", path), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The private creator for private tag '{0}' is missing.", path), ex.Message);
     }
 
     [Fact]
@@ -157,7 +158,7 @@ public class ExtendedQueryTagEntryValidatorTests
     {
         AddExtendedQueryTagEntry entry = DicomTag.PatientName.BuildAddExtendedQueryTagEntry();
         var ex = Assert.Throws<ExtendedQueryTagEntryValidationException>(() => _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(new AddExtendedQueryTagEntry[] { entry }));
-        Assert.Equal(string.Format("The query tag '{0}' is already supported.", entry.Path), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, "The query tag '{0}' is already supported.", entry.Path), ex.Message);
     }
 
     [Fact]

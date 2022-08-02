@@ -4,17 +4,25 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.CommandLine.Parsing;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Dicom.SchemaManager;
 
-internal class Program
+internal static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        ServiceCollection serviceCollection = SchemaManagerServiceCollectionBuilder.Build(args);
+        IHost host = Host.CreateDefaultBuilder()
+            .ConfigureAppConfiguration(builder =>
+            {
+                builder.AddSchemaCommandLine(args);
+            })
+            .ConfigureServices((context, collection) =>
+            {
+                collection.AddSchemaManager(context.Configuration);
+            })
+            .Build();
 
-        var serviceProvider = serviceCollection.BuildServiceProvider();
-        Parser parser = SchemaManagerParser.Build(serviceProvider);
+        Parser parser = SchemaManagerParser.Build(host.Services);
 
         return await parser.InvokeAsync(args).ConfigureAwait(false);
     }

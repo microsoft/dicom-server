@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Xunit;
@@ -35,7 +36,7 @@ public class ExportFilePatternTests
     {
         var operationId = Guid.NewGuid();
         string format = ExportFilePattern.Parse("errors/%OperATion%/folder", ExportPatternPlaceholders.All);
-        Assert.Equal(string.Format(format, operationId), ExportFilePattern.Format(format, operationId));
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, format, operationId), ExportFilePattern.Format(format, operationId));
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public class ExportFilePatternTests
         var operationId = Guid.NewGuid();
         string format = ExportFilePattern.Parse("%OperATion%/%STudy%/other/%SerIES%/%SOPInstance%", ExportPatternPlaceholders.All);
         Assert.Equal(
-            string.Format(format, operationId, "1", "2", "3"),
+            string.Format(CultureInfo.InvariantCulture, format, operationId, "1", "2", "3"),
             ExportFilePattern.Format(format, operationId, new VersionedInstanceIdentifier("1", "2", "3", 1)));
     }
 }

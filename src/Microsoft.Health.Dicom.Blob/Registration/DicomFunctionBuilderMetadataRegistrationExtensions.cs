@@ -51,7 +51,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
         functionsBuilder.Services
             .AddSingleton<MetadataStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
-            .AddPersistence<IMetadataStore, BlobMetadataStore, LoggingMetadataStore>()
+            .AddPersistence<IMetadataStore, BlobMetadataStore>()
             .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
             .AddOptions<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName)
@@ -61,7 +61,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
         functionsBuilder.Services
             .AddSingleton<BlobStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
-            .AddPersistence<IFileStore, BlobFileStore, LoggingFileStore>()
+            .AddPersistence<IFileStore, BlobFileStore>()
             .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
             .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
 

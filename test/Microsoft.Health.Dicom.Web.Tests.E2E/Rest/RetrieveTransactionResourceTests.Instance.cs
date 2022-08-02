@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -64,7 +65,7 @@ public partial class RetrieveTransactionResourceTests
 
         await _instancesManager.StoreAsync(new[] { inputDicomFile });
 
-        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseInstanceUriFormat, instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid), UriKind.Relative);
+        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid), UriKind.Relative);
 
         using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: false, DicomWebConstants.ApplicationDicomMediaType, transferSyntax);
         using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -76,7 +77,7 @@ public partial class RetrieveTransactionResourceTests
     [MemberData(nameof(GeUnsupportedAcceptHeadersForInstances))]
     public async Task GivenUnsupportedAcceptHeaders_WhenRetrieveInstance_ThenServerShouldReturnNotAcceptable(bool singlePart, string mediaType, string transferSyntax)
     {
-        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()), UriKind.Relative);
+        var requestUri = new Uri(DicomApiVersions.Latest + string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()), UriKind.Relative);
 
         using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
         using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -141,6 +142,59 @@ public partial class RetrieveTransactionResourceTests
 
         using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*");
         Assert.Equal(dicomFile1.ToByteArray(), (await instanceRetrieve.GetValueAsync()).ToByteArray());
+    }
+
+
+    /*
+     * A customer is sending us UIDs with a trailing space. This is invalid, but may be due to their interpretation of
+     * the padding requirement to add a null character to make length even.
+     * See https://dicom.nema.org/dicom/2013/output/chtml/part05/chapter_9.html
+     *
+     * Sql Server will automatically pad strings for whitespace when comparing. See
+     * https://support.microsoft.com/en-us/topic/inf-how-sql-server-compares-strings-with-trailing-spaces-b62b1a2d-27d3-4260-216d-a605719003b0
+     *
+     * This test ensures that
+     * - when a user saves their file with StudyInstanceUID contianing whitespace, we allow it and save it with whitespace
+     * - when a user retrieves that saved file, the StudyInstanceUID comes back with whitespace
+     * - when a user retrieves that saved file, they can do so with or without padding StudyInstanceUID in their query param
+     */
+    [Theory]
+    [InlineData(" ", " ")]
+    [InlineData("", " ")]
+    [InlineData(" ", "")]
+    [InlineData("     ", " ")]
+    public async Task GivenInstanceWithPaddedStudyInstanceUID_WhenRetrieveInstance_ThenServerShouldReturnExpectedContent(
+        string queryStudyInstanceUidPadding,
+        string saveStudyInstanceUidPadding)
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var queryStudyInstanceUid = studyInstanceUid + queryStudyInstanceUidPadding;
+        var saveStudyInstanceUid = studyInstanceUid + saveStudyInstanceUidPadding;
+
+
+        var seriesInstanceUid = TestUidGenerator.Generate();
+        var sopInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(
+            studyInstanceUid: saveStudyInstanceUid,
+            seriesInstanceUid: seriesInstanceUid,
+            sopInstanceUid: sopInstanceUid);
+        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
+            queryStudyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            dicomTransferSyntax: "*");
+
+        DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
+
+        Assert.Equal(
+            dicomFile1.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID),
+            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID));
+        Assert.Equal(
+            queryStudyInstanceUid.TrimEnd(),
+            retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID).TrimEnd());
     }
 
     public static IEnumerable<object[]> GetAcceptHeadersForInstances

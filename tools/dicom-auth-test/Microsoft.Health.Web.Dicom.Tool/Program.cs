@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.CommandLine;
 using System.Net.Http.Headers;
 using Azure.Core;
@@ -12,7 +15,7 @@ using Microsoft.Health.Dicom.Client;
 
 namespace Microsoft.Health.Web.Dicom.Tool;
 
-public static class Programstore
+public static class Program
 {
     public static void Main(string[] args)
     {
@@ -21,7 +24,7 @@ public static class Programstore
 
     private static void ParseArgumentsAndExecute(string[] args)
     {
-        var dicomOption = new Option<string>(
+        var dicomOption = new Option<Uri>(
                     "--dicomServiceUrl",
                     description: "DicomService Url ex: https://testdicomweb-testdicom.dicom.azurehealthcareapis.com");
 
@@ -29,17 +32,17 @@ public static class Programstore
 
         rootCommand.AddOption(dicomOption);
 
-        rootCommand.SetHandler<string>(StoreImageAsync, dicomOption);
+        rootCommand.SetHandler(StoreImageAsync, dicomOption);
         rootCommand.Invoke(args);
     }
 
-    private static async Task StoreImageAsync(string dicomServiceUrl)
+    private static async Task StoreImageAsync(Uri dicomServiceUrl)
     {
         var dicomFile = await DicomFile.OpenAsync(@"./Image/blue-circle.dcm");
 
         using var httpClient = new HttpClient();
 
-        httpClient.BaseAddress = new Uri(dicomServiceUrl);
+        httpClient.BaseAddress = dicomServiceUrl;
 
         // Use VM assigned managed identity.
         var credential = new DefaultAzureCredential();

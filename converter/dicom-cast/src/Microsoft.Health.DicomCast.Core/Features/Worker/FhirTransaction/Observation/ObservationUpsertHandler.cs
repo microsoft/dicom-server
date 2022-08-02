@@ -18,12 +18,10 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 public class ObservationUpsertHandler : IObservationUpsertHandler
 {
     private readonly IFhirService _fhirService;
-    private readonly ObservationParser _observationParser;
 
-    public ObservationUpsertHandler(IFhirService fhirService, ObservationParser observationParser)
+    public ObservationUpsertHandler(IFhirService fhirService)
     {
         _fhirService = EnsureArg.IsNotNull(fhirService, nameof(fhirService));
-        _observationParser = EnsureArg.IsNotNull(observationParser, nameof(observationParser));
     }
 
     public async Task<IEnumerable<FhirTransactionRequestEntry>> BuildAsync(FhirTransactionContext context, CancellationToken cancellationToken)
@@ -37,7 +35,7 @@ public class ObservationUpsertHandler : IObservationUpsertHandler
 
         Identifier identifier = IdentifierUtility.CreateIdentifier(changeFeedEntry.StudyInstanceUid);
 
-        IReadOnlyCollection<Observation> observations = _observationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
+        IReadOnlyCollection<Observation> observations = ObservationParser.Parse(changeFeedEntry.Metadata, patientId.ToResourceReference(), imagingStudyId.ToResourceReference(), identifier);
 
         if (observations.Count == 0)
         {

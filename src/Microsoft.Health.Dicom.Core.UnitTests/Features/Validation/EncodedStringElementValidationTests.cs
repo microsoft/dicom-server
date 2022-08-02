@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -35,15 +36,15 @@ public class EncodedStringElementValidationTests
     [Fact]
     public void GivenDicomStringElementWithMultipleValues_WhenValidating_ThenShouldValidateFirstOne()
     {
-        var element = new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff"), "ABC");
+        var element = new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff", CultureInfo.InvariantCulture), "ABC");
         _validation.Validate(element);
     }
 
     public static IEnumerable<object[]> ValidElements = new object[][]
     {
-        new object[] { new DicomDateTime(DicomTag.EffectiveDateTime, DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss'.'ffffff'+'0000")) },
+        new object[] { new DicomDateTime(DicomTag.EffectiveDateTime, DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss'.'ffffff'+'0000", CultureInfo.InvariantCulture)) },
         new object[] { new DicomIntegerString(DicomTag.PixelAspectRatio, "0012345") },
-        new object[] { new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff")) },
+        new object[] { new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff", CultureInfo.InvariantCulture)) },
     };
 
     public static object[][] InvalidElements = new object[][]
