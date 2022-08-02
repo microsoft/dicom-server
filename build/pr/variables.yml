@@ -3,7 +3,6 @@ variables:
   deploymentName: 'msh-dicom-pr-$(prNumber)'
   testEnvironmentUrl: 'http://localhost:8080/'
   testFunctionsUrl: 'http://localhost:7072/api/'
-  testServerFeaturesEnabledUrl: 'http://localhost:8080/'
   resourceGroupName: $(deploymentName)
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'

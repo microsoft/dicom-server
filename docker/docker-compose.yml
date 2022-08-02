@@ -42,7 +42,7 @@ services:
       - "7072:8080"
     restart: on-failure
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health/checks"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health/check"]
       interval: 15s
       timeout: 10s
       retries: 4
