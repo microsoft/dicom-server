@@ -89,7 +89,7 @@ public class DicomCastWorkerTests
 
         await _dicomCastWorker.ExecuteAsync(_cancellationToken);
 
-        Assert.True(_telemetryClient.GetMetric("cast-failed").SeriesCount == 1);
+        Assert.True(_telemetryClient.GetMetric(Constants.CastingFailedForOtherReasons).SeriesCount == 1);
     }
 
     [Fact(Skip = "Flaky test, bug: https://microsofthealth.visualstudio.com/Health/_boards/board/t/Medical%20Imaging/Stories/?workitem=78349")]

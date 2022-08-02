@@ -111,19 +111,19 @@ public class DicomCastWorker : IDicomCastWorker
 
             if ((ex is FhirException) && ((FhirException)ex).StatusCode == HttpStatusCode.Forbidden)
             {
-                _telemetryClient.GetMetric("Cast-To-Fhir-Forbidden").TrackValue(1);
+                _telemetryClient.GetMetric(Constants.CastToFhirForbidden).TrackValue(1);
             }
             else if ((ex is DicomWebException) && ((DicomWebException)ex).StatusCode == HttpStatusCode.Forbidden)
             {
-                _telemetryClient.GetMetric("Dicom-To-Cast-Forbidden").TrackValue(1);
+                _telemetryClient.GetMetric(Constants.DicomToCastforbidden).TrackValue(1);
             }
             else if (ex is CredentialUnavailableException)
             {
-                _telemetryClient.GetMetric("Cast-MI-Unavailable").TrackValue(1);
+                _telemetryClient.GetMetric(Constants.CastMIUnavailable).TrackValue(1);
             }
             else
             {
-                _telemetryClient.GetMetric("Casting-Failed").TrackValue(1);
+                _telemetryClient.GetMetric(Constants.CastingFailedForOtherReasons).TrackValue(1);
             }
 
             // Any exception in ExecuteAsync will not shutdown application, call hostApplicationLifetime.StopApplication() to force shutdown.
