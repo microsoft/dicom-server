@@ -8,7 +8,7 @@ public static class Constants
 {
     // Represents different metrics the dicomcastworker will emit.
     public const string CastToFhirForbidden = "Cast-To-Fhir-Forbidden";
-    public const string DicomToCastforbidden = "Dicom-To-Cast-Forbidden";
+    public const string DicomToCastForbidden = "Dicom-To-Cast-Forbidden";
     public const string CastMIUnavailable = "Cast-Mi-Unavailable";
     public const string CastingFailedForOtherReasons = "Casting-Failed";
 }

@@ -26,8 +26,8 @@ public class DicomCastWorkerTests
     private const int DefaultNumberOfInvocations = 2;
 
     private readonly DicomCastWorkerConfiguration _dicomCastWorkerConfiguration = new DicomCastWorkerConfiguration();
-    private readonly IChangeFeedProcessor _changeFeedProcessor = Substitute.For<IChangeFeedProcessor>();
-    private readonly IHostApplicationLifetime _hostApplication = Substitute.For<IHostApplicationLifetime>();
+    private readonly IChangeFeedProcessor _changeFeedProcessor;
+    private readonly IHostApplicationLifetime _hostApplication;
     private readonly DicomCastWorker _dicomCastWorker;
     private readonly IFhirService _fhirService;
     private readonly TelemetryClient _telemetryClient;
@@ -40,6 +40,10 @@ public class DicomCastWorkerTests
         _cancellationToken = _cancellationTokenSource.Token;
 
         _dicomCastWorkerConfiguration.PollInterval = TimeSpan.Zero;
+
+        _changeFeedProcessor = Substitute.For<IChangeFeedProcessor>();
+
+        _hostApplication = Substitute.For<IHostApplicationLifetime>();
 
         _fhirService = Substitute.For<IFhirService>();
 

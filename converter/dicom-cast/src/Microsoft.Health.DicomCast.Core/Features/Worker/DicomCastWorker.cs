@@ -115,7 +115,7 @@ public class DicomCastWorker : IDicomCastWorker
             }
             else if ((ex is DicomWebException) && ((DicomWebException)ex).StatusCode == HttpStatusCode.Forbidden)
             {
-                _telemetryClient.GetMetric(Constants.DicomToCastforbidden).TrackValue(1);
+                _telemetryClient.GetMetric(Constants.DicomToCastForbidden).TrackValue(1);
             }
             else if (ex is CredentialUnavailableException)
             {
