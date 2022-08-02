@@ -15,4 +15,3 @@ variables:
   azureContainerRegistry: 'dicomoss.azurecr.io'
   deleteDataOnStartup: 'false'
   skipNugetSecurityAnalysis: 'true' # NuGet config contains multiple feeds but meets exception criteria
-  docker_buildkit: 1
