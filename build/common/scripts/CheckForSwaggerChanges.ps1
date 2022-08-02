@@ -20,8 +20,7 @@ param(
 
     [string]$SwashbuckleCLIVersion = '6.4.0'
 )
-
-echo "ErrorActionPreference is $ErrorActionPreference"
+$ErrorActionPreference = 'Stop'
 dotnet new tool-manifest --force
 dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
 
