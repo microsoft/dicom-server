@@ -25,7 +25,10 @@ $container="openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f
 
 foreach ($Version in $Versions)
 {
-    $WritePath=(Join-Path -Path "$SwaggerDir" -ChildPath "$Version.yaml")
+    $old=(Join-Path -Path "$SwaggerDir" -ChildPath "$Version/swagger.yaml")
+    $new="/$SwaggerDir/$Version.yaml"
     write-host "Running comparison with baseline for version $Version"
-    docker run --rm -t -v "${pwd}/${SwaggerDir}:/swagger:ro" $container /$WritePath "/$SwaggerDir/$version.yaml" --fail-on-incompatible
+    Write-Host "old: $old"
+    Write-Host "new: $new"
+    docker run --rm -t -v "${pwd}/${SwaggerDir}:/swagger:ro" $container /$old $new --fail-on-incompatible
 }
