@@ -21,5 +21,11 @@ param(
     [string]$SwashbuckleCLIVersion = '6.4.0'
 )
 $ErrorActionPreference = 'Stop'
+$container="openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02"
 
-ls "$SwaggerDir"
+foreach ($Version in $Versions)
+{
+    $WritePath=(Join-Path -Path "$SwaggerDir" -ChildPath "$Version.yaml")
+    write-host "Running comparison with baseline for version $Version"
+    docker run --rm -t -v "${pwd}/${SwaggerDir}:/swagger:ro" $container /$WritePath "/$SwaggerDir/$version.yaml" --fail-on-incompatible
+}
