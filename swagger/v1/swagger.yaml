@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Medical Imaging Server for DICOM
   license:
-    name: MIT License
+    name: out of date MIT License
     url: https://github.com/microsoft/dicom-server/blob/main/LICENSE
   version: '1'
 paths:
