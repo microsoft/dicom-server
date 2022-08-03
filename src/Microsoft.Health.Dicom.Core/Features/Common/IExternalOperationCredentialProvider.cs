@@ -16,7 +16,7 @@ public interface IExternalOperationCredentialProvider
     /// Retrieves the token credential used for external operations.
     /// </summary>
     /// <returns>
-    /// Tthe credential for the operation if found; otherwise <see langword="null"/>.
+    /// The credential for the operation, if found; otherwise <see langword="null"/>.
     /// </returns>
     TokenCredential GetTokenCredential();
 }
