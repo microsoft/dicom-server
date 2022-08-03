@@ -9,11 +9,12 @@ parameters:
     default: true
 
 steps:
-  - task: Docker@2
-    displayName: Login
-    inputs:
-      command: login
-      containerRegistry: '$(azureContainerRegistry)'
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: Login
+      inputs:
+        command: login
+        containerRegistry: '$(azureContainerRegistry)'
 
   - task: Docker@2
     displayName: 'Build dicom-server'
@@ -117,9 +118,10 @@ steps:
           ${{ parameters.tag }}
           latest
 
-  - task: Docker@2
-    displayName: Logout
-    inputs:
-      command: logout
-      containerRegistry: '$(azureContainerRegistry)'
-    condition: always()
+  - ${{ if eq(parameters.push, true) }}:
+    - task: Docker@2
+      displayName: Logout
+      inputs:
+        command: logout
+        containerRegistry: '$(azureContainerRegistry)'
+      condition: always()

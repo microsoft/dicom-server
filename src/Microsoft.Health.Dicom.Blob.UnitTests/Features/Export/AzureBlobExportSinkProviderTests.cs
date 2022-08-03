@@ -134,7 +134,7 @@ public class AzureBlobExportSinkProviderTests
             .Returns(GetJson(containerUri));
 
         if (useManagedIdentity)
-            _credentialProvider.GetCredentialAsync(tokenSource.Token).Returns(new DefaultAzureCredential());
+            _credentialProvider.GetTokenCredential().Returns(new DefaultAzureCredential());
 
         IExportSink sink = await _sinkProvider.CreateAsync(options, operationId, tokenSource.Token);
 
@@ -145,9 +145,9 @@ public class AzureBlobExportSinkProviderTests
             .GetSecretAsync(operationId.ToString(OperationId.FormatSpecifier), version, tokenSource.Token);
 
         if (useManagedIdentity)
-            await _credentialProvider.Received(1).GetCredentialAsync(tokenSource.Token);
+            _credentialProvider.Received(1).GetTokenCredential();
         else
-            await _credentialProvider.DidNotReceiveWithAnyArgs().GetCredentialAsync(default);
+            _credentialProvider.DidNotReceiveWithAnyArgs().GetTokenCredential();
     }
 
     [Fact]

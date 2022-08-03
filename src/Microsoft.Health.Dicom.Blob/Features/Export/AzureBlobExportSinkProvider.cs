@@ -94,7 +94,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
         return new AzureBlobExportSink(
             _fileStore,
-            await options.GetBlobContainerClientAsync(_credentialProvider, _clientOptions, cancellationToken),
+            options.GetBlobContainerClient(_credentialProvider, _clientOptions),
             new AzureBlobExportFormatOptions(
                 operationId,
                 AzureBlobExportOptions.DicomFilePattern,

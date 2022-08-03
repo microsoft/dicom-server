@@ -53,6 +53,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     }
 
     [Fact]
+    [Trait("Category", "bvt")]
     public async Task GivenFiles_WhenExporting_ThenSuccessfullyCopy()
     {
         // Define DICOM files
