@@ -24,6 +24,18 @@ jobs:
       archiveFilePatterns: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
       destinationFolder: '$(System.ArtifactsDirectory)/deploy/webArtifacts'
 
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'custom' # Options: build, push, pack, publish, restore, run, test, custom
+      custom: tool install --version 6.4.0 Swashbuckle.AspNetCore.Cli
+
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'custom' # Options: build, push, pack, publish, restore, run, test, custom
+      custom: foo bar
+
   - task: PowerShell@2
     displayName: 'Check for latest Swagger changes'
     inputs:

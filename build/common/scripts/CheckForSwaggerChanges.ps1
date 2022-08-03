@@ -18,7 +18,7 @@ param(
 
     [String[]]$Versions,
 
-    [string]$SwashbuckleCLIVersion = '6.1.4'
+    [string]$SwashbuckleCLIVersion = '6.4.0'
 )
 $ErrorActionPreference = 'Stop'
 dotnet new tool-manifest --force
