@@ -27,19 +27,8 @@ jobs:
   - task: PowerShell@2
     displayName: 'Check for latest Swagger changes'
     inputs:
-      filepath: '$(System.DefaultWorkingDirectory)/build/common/scripts/CheckForSwaggerChanges.ps1'
-      arguments: >
-        -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
-        -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
-        -Version 'v1-prerelease','v1'
-
-
-  - task: PowerShell@2
-    displayName: 'Check for breaking API / Swagger changes'
-    inputs:
-      failOnStderr: true
       workingDirectory: '$(System.DefaultWorkingDirectory)'
-      filepath: '$(System.DefaultWorkingDirectory)/build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
+      filepath: '$(System.DefaultWorkingDirectory)/build/common/scripts/CheckForSwaggerChanges.ps1'
       arguments: >
         -SwaggerDir 'swagger'
         -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
