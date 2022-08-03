@@ -37,7 +37,6 @@ jobs:
   - task: PowerShell@2
     displayName: 'Check for breaking API / Swagger changes'
     inputs:
-      failOnStderr: true
       workingDirectory: '$(System.DefaultWorkingDirectory)'
       filepath: '$(System.DefaultWorkingDirectory)/build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
       arguments: >
