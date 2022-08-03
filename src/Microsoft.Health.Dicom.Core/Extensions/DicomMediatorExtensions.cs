@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using MediatR;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -230,17 +231,19 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<AddWorkitemResponse> AddWorkitemAsync(
-        this IMediator mediator, Stream requestBody, string requestContentType, string workitemInstanceUid, CancellationToken cancellationToken)
+        this IMediator mediator, DicomDataset dicomDataSet, string requestContentType, string workitemInstanceUid, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new AddWorkitemRequest(requestBody, requestContentType, workitemInstanceUid), cancellationToken);
+
+        return mediator.Send(new AddWorkitemRequest(dicomDataSet, requestContentType, workitemInstanceUid), cancellationToken);
     }
 
     public static Task<CancelWorkitemResponse> CancelWorkitemAsync(
-        this IMediator mediator, Stream requestBody, string requestContentType, string workitemUid, CancellationToken cancellationToken)
+        this IMediator mediator, DicomDataset dicomDataSet, string requestContentType, string workitemUid, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new CancelWorkitemRequest(requestBody, requestContentType, workitemUid), cancellationToken);
+
+        return mediator.Send(new CancelWorkitemRequest(dicomDataSet, requestContentType, workitemUid), cancellationToken);
     }
 
     public static Task<QueryWorkitemResourceResponse> QueryWorkitemsAsync(
@@ -255,18 +258,16 @@ public static class DicomMediatorExtensions
 
     public static Task<ChangeWorkitemStateResponse> ChangeWorkitemStateAsync(
         this IMediator mediator,
-        Stream requestBody,
+        DicomDataset dicomDataSet,
         string requestContentType,
         string workitemUid,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        EnsureArg.IsNotNull(requestBody, nameof(requestBody));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         return mediator.Send(
-            new ChangeWorkitemStateRequest(requestBody, requestContentType, workitemUid),
-            cancellationToken);
+            new ChangeWorkitemStateRequest(dicomDataSet, requestContentType, workitemUid), cancellationToken);
     }
 
     public static Task<RetrieveWorkitemResponse> RetrieveWorkitemAsync(
@@ -281,13 +282,17 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<UpdateWorkitemResponse> UpdateWorkitemAsync(
-        this IMediator mediator, Stream requestBody, string requestContentType, string workitemInstanceUid, string transactionUid = default, CancellationToken cancellationToken = default)
+        this IMediator mediator,
+        DicomDataset dicomDataset,
+        string requestContentType,
+        string workitemInstanceUid,
+        string transactionUid = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        EnsureArg.IsNotNull(requestBody, nameof(requestBody));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemInstanceUid, nameof(workitemInstanceUid));
 
         // Not validating transaction Uid as it can be null if the procedure step state is in SCHEDULED state.
-        return mediator.Send(new UpdateWorkitemRequest(requestBody, requestContentType, workitemInstanceUid, transactionUid), cancellationToken);
+        return mediator.Send(new UpdateWorkitemRequest(dicomDataset, requestContentType, workitemInstanceUid, transactionUid), cancellationToken);
     }
 }

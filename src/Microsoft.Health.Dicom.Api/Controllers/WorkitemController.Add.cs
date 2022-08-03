@@ -1,11 +1,13 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -46,23 +48,23 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
     [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
     [AuditEventType(AuditEventSubType.AddWorkitem)]
-    public async Task<IActionResult> AddAsync()
+    public async Task<IActionResult> AddAsync([FromBody] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         // The Workitem UID is passed as the name of the first query parameter 
         string workitemUid = HttpContext.Request.Query.Keys.FirstOrDefault();
 
-        return await PostAddAsync(workitemUid);
+        return await PostAddAsync(workitemUid, dicomDatasets);
     }
 
-    private async Task<IActionResult> PostAddAsync(string workitemInstanceUid)
+    private async Task<IActionResult> PostAddAsync(string workitemInstanceUid, IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
-        long fileSize = Request.ContentLength ?? 0;
-        _logger.LogInformation("DICOM Web Add Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and file size of {FileSize} bytes",
+        long numberOfDatasets = dicomDatasets?.Count ?? 0;
+        _logger.LogInformation("DICOM Web Add Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and {NumberOfDatasets} DICOM dataset",
             workitemInstanceUid ?? string.Empty,
-            fileSize);
+            numberOfDatasets);
 
         AddWorkitemResponse response = await _mediator.AddWorkitemAsync(
-            Request.Body,
+            dicomDatasets?.FirstOrDefault(),
             Request.ContentType,
             workitemInstanceUid,
             HttpContext.RequestAborted);

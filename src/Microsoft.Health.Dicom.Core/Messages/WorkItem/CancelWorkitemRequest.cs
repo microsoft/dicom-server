@@ -1,9 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.IO;
+using FellowOakDicom;
 using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
@@ -11,18 +11,18 @@ namespace Microsoft.Health.Dicom.Core.Messages.Workitem;
 public class CancelWorkitemRequest : IRequest<CancelWorkitemResponse>
 {
     public CancelWorkitemRequest(
-        Stream requestBody,
+        DicomDataset dicomDataset,
         string requestContentType,
         string workItemInstanceUid)
     {
         WorkitemInstanceUid = workItemInstanceUid;
-        RequestBody = requestBody;
+        DicomDataset = dicomDataset;
         RequestContentType = requestContentType;
     }
 
     public string WorkitemInstanceUid { get; }
 
-    public Stream RequestBody { get; }
+    public DicomDataset DicomDataset { get; }
 
     public string RequestContentType { get; }
 }

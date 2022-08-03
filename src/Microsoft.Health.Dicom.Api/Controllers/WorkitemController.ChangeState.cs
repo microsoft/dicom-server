@@ -1,10 +1,13 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
@@ -32,11 +35,11 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionChangeStateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]
-    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid)
+    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, [FromBody] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         var response = await _mediator
                     .ChangeWorkitemStateAsync(
-                        Request.Body,
+                        dicomDatasets?.FirstOrDefault(),
                         Request.ContentType,
                         workitemInstanceUid,
                         cancellationToken: HttpContext.RequestAborted)
