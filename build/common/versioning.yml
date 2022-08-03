@@ -39,6 +39,6 @@ jobs:
     inputs:
       filepath: '$(System.DefaultWorkingDirectory)/build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
       arguments: >
-        -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
+        -SwaggerDir 'swagger'
         -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
         -Version 'v1-prerelease','v1'

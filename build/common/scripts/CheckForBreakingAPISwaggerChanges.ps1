@@ -1,8 +1,9 @@
 ﻿<#
 .SYNOPSIS
 Generates the OpenApi doc for the specified version and compares it with the baseline to make sure no breaking changes are introduced
+Run script from root of this repository
 .Parameter SwaggerDir
-The working directory
+Swagger directory path from root of this repository. Ex: 'swagger'
 .PARAMETER Versions
 Api versions to generate the OpenApiDoc for and compare with baseline
 .PARAMETER SwashbuckleCLIVersion
@@ -34,8 +35,7 @@ foreach ($Version in $Versions)
     write-host "Running comparison with baseline for version $Version"
     Write-Host "old: $old"
     Write-Host "new: $new"
-    docker run --rm -t -v "${pwd}/${SwaggerDir}:/swagger:ro" $container /$old /$new --fail-on-incompatible
-    rm $old
+    docker run --rm -t -v "${pwd}/${SwaggerDir}:/${SwaggerDir}:ro" $container /$old /$new --fail-on-incompatible
 }
 
 Remove-Item -Recurse -Force "$SwaggerDir/FromMain"
