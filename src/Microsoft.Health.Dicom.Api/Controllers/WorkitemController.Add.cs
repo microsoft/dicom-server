@@ -60,7 +60,7 @@ public partial class WorkitemController
     {
         long numberOfDatasets = dicomDatasets?.Count ?? 0;
         _logger.LogInformation("DICOM Web Add Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and {NumberOfDatasets} DICOM dataset",
-            workitemInstanceUid ?? string.Empty,
+            workitemInstanceUid,
             numberOfDatasets);
 
         AddWorkitemResponse response = await _mediator.AddWorkitemAsync(
