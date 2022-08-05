@@ -18,16 +18,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 public class UpdateWorkitemRequestHandler : BaseHandler, IRequestHandler<UpdateWorkitemRequest, UpdateWorkitemResponse>
 {
     private readonly IWorkitemService _workItemService;
-    private readonly IWorkitemSerializer _workitemSerializer;
 
     public UpdateWorkitemRequestHandler(
         IAuthorizationService<DataActions> authorizationService,
-        IWorkitemSerializer workitemSerializer,
         IWorkitemService workItemService)
         : base(authorizationService)
     {
         _workItemService = EnsureArg.IsNotNull(workItemService, nameof(workItemService));
-        _workitemSerializer = workitemSerializer;
     }
 
     /// <inheritdoc />

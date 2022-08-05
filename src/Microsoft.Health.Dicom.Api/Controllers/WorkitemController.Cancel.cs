@@ -51,7 +51,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedCancelWorkitemInstance)]
     [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
     [AuditEventType(AuditEventSubType.CancelWorkitem)]
-    public async Task<IActionResult> CancelAsync(string workitemInstanceUid, [FromBody] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> CancelAsync(string workitemInstanceUid, [FromBody(EmptyBodyBehavior = AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Disallow)] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}",
             workitemInstanceUid ?? string.Empty);

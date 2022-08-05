@@ -18,13 +18,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Workitem;
 
 public sealed class AddWorkitemRequestHandlerTests
 {
-    private readonly IWorkitemSerializer _workitemSerializer = Substitute.For<IWorkitemSerializer>();
     private readonly IWorkitemService _workitemService = Substitute.For<IWorkitemService>();
     private readonly AddWorkitemRequestHandler _target;
 
     public AddWorkitemRequestHandlerTests()
     {
-        _target = new AddWorkitemRequestHandler(new DisabledAuthorizationService<DataActions>(), _workitemSerializer, _workitemService);
+        _target = new AddWorkitemRequestHandler(new DisabledAuthorizationService<DataActions>(), _workitemService);
     }
 
     [Fact]

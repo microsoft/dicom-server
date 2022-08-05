@@ -35,7 +35,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionChangeStateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]
-    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, [FromBody] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, [FromBody(EmptyBodyBehavior = AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Disallow)] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         var response = await _mediator
                     .ChangeWorkitemStateAsync(

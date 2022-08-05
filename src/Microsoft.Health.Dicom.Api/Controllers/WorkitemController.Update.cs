@@ -41,7 +41,8 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedUpdateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.UpdateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.UpdateWorkitem)]
-    public async Task<IActionResult> UpdateAsync(string workitemInstanceUid, [FromBody] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> UpdateAsync(string workitemInstanceUid,
+        [FromBody(EmptyBodyBehavior = AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Disallow)] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         // The Transaction UID is passed as the first query parameter 
         string transactionUid = HttpContext.Request.Query.Keys.FirstOrDefault();
@@ -52,7 +53,9 @@ public partial class WorkitemController
     private async Task<IActionResult> PostUpdateAsync(string workitemInstanceUid, string transactionUid, IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         long fileSize = Request.ContentLength ?? 0;
-        _logger.LogInformation("DICOM Web Update Workitem Transaction request received with {NumberOfDicomDatasets} DICOM dataset.", dicomDatasets?.Count ?? 0);
+        _logger.LogInformation("DICOM Web Update Workitem Transaction request received with {NumberOfDicomDatasets} DICOM dataset, and file size of {FileSize} bytes.",
+            dicomDatasets?.Count ?? 0,
+            Request.ContentLength ?? 0);
 
         UpdateWorkitemResponse response = await _mediator.UpdateWorkitemAsync(
             dicomDatasets?.FirstOrDefault(),

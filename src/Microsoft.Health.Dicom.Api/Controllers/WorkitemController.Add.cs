@@ -48,7 +48,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
     [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
     [AuditEventType(AuditEventSubType.AddWorkitem)]
-    public async Task<IActionResult> AddAsync([FromBody] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> AddAsync([FromBody(EmptyBodyBehavior = AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Disallow)] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         // The Workitem UID is passed as the name of the first query parameter 
         string workitemUid = HttpContext.Request.Query.Keys.FirstOrDefault();
