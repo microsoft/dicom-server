@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -75,6 +75,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 OperationStatus status = state.RuntimeStatus.ToOperationStatus();
                 return new OperationState<DicomOperation>
                 {
+                    AdditionalProperties = checkpoint.AdditionalProperties?.Count > 0 ? checkpoint.AdditionalProperties : null,
                     CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
                     LastUpdatedTime = state.LastUpdatedTime,
                     OperationId = operationId,
