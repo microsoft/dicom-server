@@ -119,6 +119,12 @@ public partial class AuditTests
         var updateWorkitemRequestDicomDataset = new DicomDataset
         {
             { DicomTag.WorklistLabel, "WORKITEM-TEST" },
+            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            {
+                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+            }),
         };
 
         await ExecuteAndValidate(

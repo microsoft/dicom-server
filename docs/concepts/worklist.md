@@ -32,6 +32,7 @@ found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/p
 Notes on dataset attributes:
 - **SOP Instance UID:** Although the reference table above says that SOP Instance UID should not be present, this guidance is specific to the DIMSE protocol and is
 handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in the dataset if not in the URI.
+- **Conditional requirement codes:** All the conditional requirement codes including 1C and 2C are treated as optional.
 
 ### Create Response Status Codes
 
@@ -271,6 +272,13 @@ The `Content-Type` header is required, and must have the value `application/dico
 
 The request payload contains a dataset with the changes to be applied to the target Workitem. When modifying a sequence, the request must include all Items in the sequence, not just the Items to be modified.
 When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
+
+There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
+
+Notes on dataset attributes:
+- **Conditional requirement codes:** All the conditional requirement codes including 1C and 2C are treated as optional.
 
 The request cannot set the value of the Procedure Step State (0074,1000) Attribute. Procedure Step State is managed using the Change State transaction, or the Request Cancellation transaction.
 
