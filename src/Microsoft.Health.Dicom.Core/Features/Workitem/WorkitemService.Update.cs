@@ -43,6 +43,8 @@ public partial class WorkitemService
             return _responseBuilder.BuildUpdateWorkitemResponse();
         }
 
+        SetSpecifiedAttributesForUpdate(dataset);
+
         // Validate the following:
         //  1. If state is SCHEDULED, transaction UID is not provided.
         //  2. If state is IN PROGRESS, provided transaction UID matches the existing transaction UID.
@@ -55,6 +57,18 @@ public partial class WorkitemService
         }
 
         return _responseBuilder.BuildUpdateWorkitemResponse(workitemInstanceUid);
+    }
+
+    /// <summary>
+    /// Sets attributes that are the Service Class Provider's responsibility according to:
+    /// <see href='https://dicom.nema.org/dicom/2013/output/chtml/part04/sect_CC.2.html#table_CC.2.5-3'/>
+    /// </summary>
+    /// <param name="dataset">Dicom dataset.</param>
+    internal static void SetSpecifiedAttributesForUpdate(DicomDataset dataset)
+    {
+        // Set Scheduled Procedure Step Modification DateTime as the current time.
+        // Reference: https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3
+        dataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
     }
 
     /// <summary>
@@ -159,10 +173,6 @@ public partial class WorkitemService
         DicomDataset mergedDataset = existingDataset;
 
         newDataset.Each(di => mergedDataset.AddOrUpdate(newDataset, di.Tag, out mergedDataset));
-
-        // Set Scheduled Procedure Step Modification DateTime as the current time.
-        // Reference: https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3
-        mergedDataset.AddOrUpdate(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.UtcNow);
 
         return mergedDataset;
     }

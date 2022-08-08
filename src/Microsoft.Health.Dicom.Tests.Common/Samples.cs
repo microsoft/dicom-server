@@ -251,6 +251,7 @@ public static class Samples
             ds.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence));
         }
 
+        ds.Add(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.Now);
         ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
         ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N"));
         ds.Add(DicomTag.WorklistLabel, "WorklistLabel");

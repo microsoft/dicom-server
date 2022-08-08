@@ -106,6 +106,7 @@ internal static class WorkitemDatasetValidatorExtension
     {
         HashSet<RequirementDetail> requirements = new HashSet<RequirementDetail>
         {
+            new RequirementDetail(DicomTag.SpecificCharacterSet, RequirementCode.OneCOneC),
             new RequirementDetail(DicomTag.SOPClassUID, requestType == WorkitemRequestType.Add ? RequirementCode.OneOne : RequirementCode.NotAllowed),
             new RequirementDetail(DicomTag.SOPInstanceUID, requestType == WorkitemRequestType.Add ? RequirementCode.OneOne : RequirementCode.NotAllowed),
             new RequirementDetail(DicomTag.InstanceCreationDate, RequirementCode.ThreeThree),
@@ -157,6 +158,12 @@ internal static class WorkitemDatasetValidatorExtension
                 new RequirementDetail(DicomTag.ManufacturerModelName, RequirementCode.ThreeThree),
                 new RequirementDetail(DicomTag.DeviceSerialNumber, RequirementCode.ThreeThree),
                 new RequirementDetail(DicomTag.SoftwareVersions, RequirementCode.ThreeThree),
+                new RequirementDetail(DicomTag.DeviceUID, RequirementCode.ThreeThree),
+                new RequirementDetail(DicomTag.UDISequence, RequirementCode.ThreeThree, new HashSet<RequirementDetail>
+                {
+                    new RequirementDetail(DicomTag.UniqueDeviceIdentifier, RequirementCode.ThreeThree),
+                    new RequirementDetail(DicomTag.DeviceDescription, RequirementCode.ThreeThree),
+                }),
                 new RequirementDetail(DicomTag.SpatialResolution, RequirementCode.ThreeThree),
                 new RequirementDetail(DicomTag.DateOfLastCalibration, RequirementCode.ThreeThree),
                 new RequirementDetail(DicomTag.TimeOfLastCalibration, RequirementCode.ThreeThree),
@@ -218,6 +225,7 @@ internal static class WorkitemDatasetValidatorExtension
         return new HashSet<RequirementDetail>
         {
             new RequirementDetail(DicomTag.ScheduledProcedureStepPriority, requestType == WorkitemRequestType.Add ? RequirementCode.OneOne : RequirementCode.ThreeOne),
+            new RequirementDetail(DicomTag.ScheduledProcedureStepModificationDateTime, RequirementCode.OneOne),
             new RequirementDetail(DicomTag.ProcedureStepLabel, requestType == WorkitemRequestType.Add ? RequirementCode.OneOne : RequirementCode.ThreeOne),
             new RequirementDetail(DicomTag.WorklistLabel, requestType == WorkitemRequestType.Add ? RequirementCode.TwoOne : RequirementCode.ThreeOne),
             new RequirementDetail(DicomTag.ScheduledProcessingParametersSequence, requestType == WorkitemRequestType.Add ? RequirementCode.TwoTwo : RequirementCode.ThreeTwo, GetUPSContentItemMacroRequirements()),
