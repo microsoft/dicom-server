@@ -83,26 +83,27 @@ public partial class WorkItemTransactionTests
     {
         var workitemUid = TestUidGenerator.Generate();
         DicomDataset dicomDataset = Samples.CreateRandomWorkitemInstanceDataset(workitemUid);
-        var accessionNumber = Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper();
+        string codeValue = "testCodeVal";
         var dataset = new DicomDataset();
-        dataset.Add(DicomTag.AccessionNumber, accessionNumber);
-        dicomDataset.AddOrUpdate(DicomTag.ReferencedRequestSequence, dataset);
+        dataset.Add(DicomTag.CodeValue, codeValue);
+        dataset.Add(DicomTag.CodeMeaning, "testCodeMeaning");
+        dicomDataset.AddOrUpdate(DicomTag.ScheduledStationNameCodeSequence, dataset);
 
         using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
 
         Assert.True(response.IsSuccessStatusCode);
 
-        using DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryWorkitemAsync($"ReferencedRequestSequence.AccessionNumber={accessionNumber}");
+        using DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryWorkitemAsync($"ScheduledStationNameCodeSequence.CodeValue={codeValue}");
 
         Assert.Equal(HttpStatusCode.OK, queryResponse.StatusCode);
         Assert.Equal(KnownContentTypes.ApplicationDicomJson, queryResponse.ContentHeaders.ContentType.MediaType);
         DicomDataset[] datasets = await queryResponse.ToArrayAsync();
 
         Assert.NotNull(datasets);
-        DicomSequence sequence = datasets.FirstOrDefault()?.GetSequence(DicomTag.ReferencedRequestSequence);
+        DicomSequence sequence = datasets.FirstOrDefault()?.GetSequence(DicomTag.ScheduledStationNameCodeSequence);
         Assert.NotNull(sequence);
 
-        var actualValue = sequence.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.AccessionNumber) == accessionNumber);
+        var actualValue = sequence.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.CodeValue) == codeValue);
         Assert.NotNull(actualValue);
     }
 
