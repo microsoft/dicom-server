@@ -16,7 +16,7 @@ EXPOSE 8080
 USER nonroot
 
 # Copy the DICOM Server project and build it
-FROM mcr.microsoft.com/dotnet/sdk:6.0.302-alpine3.16@sha256:e0575d5756d32a4679f0cdec32a6fac22cbd43352ffe8e52c1620a34d9386a9d AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.400-alpine3.16@sha256:c899f275999b5a33c864fd0618b4e4e49a32d1a7ced41db4bd5317128b8b738e AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 WORKDIR /dicom-server
