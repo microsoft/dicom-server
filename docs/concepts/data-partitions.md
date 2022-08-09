@@ -12,7 +12,8 @@ Once enabled, the feature modifies the API surface of the DICOM server, and make
 > *The data partition feature **cannot be disabled** if partitions other than `Microsoft.Default` are present - a `DataPartitionsFeatureCannotBeDisabledException` will be thrown at startup.*
 
 ## API Changes
-All following URIs assume an implicit DICOM service base URI. For example, the base URI of a DICOM server running locally would be `https://localhost:63838/`. Example requests for new and modified APIs can be found in the [data partition Postman collection](../resources/data-partition-feature.postman_collection.json).
+All following URIs assume an implicit DICOM service base URI. For example, the base URI of a DICOM server running locally would be `https://localhost:63838/`.
+Example requests can be sent in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json) by providing a value for the `partitionName` collection variable.
 
 ### List Partitions
 Lists all data partitions.
