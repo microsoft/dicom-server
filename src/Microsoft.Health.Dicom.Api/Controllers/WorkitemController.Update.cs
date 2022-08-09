@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -41,8 +42,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedUpdateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.UpdateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.UpdateWorkitem)]
-    public async Task<IActionResult> UpdateAsync(string workitemInstanceUid,
-        [FromBody(EmptyBodyBehavior = AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Disallow)] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> UpdateAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyCollection<DicomDataset> dicomDatasets)
     {
         // The Transaction UID is passed as the first query parameter 
         string transactionUid = HttpContext.Request.Query.Keys.FirstOrDefault();
