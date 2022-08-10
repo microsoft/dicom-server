@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -17,12 +17,9 @@ public enum TestServerFeatureSettingType : byte
     // Default
     None = 0,
 
-    // Enable UPS-RS
-    UpsRs = 1,
-
     // Enable Data Partition
-    DataPartition = 2,
+    DataPartition = 1,
 
     // Enable Dual Write
-    DualWrite = 4
+    DualWrite = 2
 }
