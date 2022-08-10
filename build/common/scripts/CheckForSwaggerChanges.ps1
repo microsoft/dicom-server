@@ -16,13 +16,11 @@ param(
 
     [string]$AssemblyDir,
 
-    [String[]]$Versions,
-
-    [string]$SwashbuckleCLIVersion = '6.4.0'
+    [String[]]$Versions
 )
-$ErrorActionPreference = 'Stop'
-dotnet new tool-manifest --force
-dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
+
+$ErrorActionPreference = 'Stop' # ensure script behaves same locally as within default pwsh ado task
+dotnet tool restore
 
 Write-Host "Using swagger version ..."
 dotnet tool list | Select-String "swashbuckle"
