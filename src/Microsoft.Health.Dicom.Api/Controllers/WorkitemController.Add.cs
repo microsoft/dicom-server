@@ -49,7 +49,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedAddWorkitemInstance)]
     [VersionedRoute(KnownRoutes.AddWorkitemInstancesRoute, Name = KnownRouteNames.AddWorkitemInstance)]
     [AuditEventType(AuditEventSubType.AddWorkitem)]
-    public async Task<IActionResult> AddAsync([FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> AddAsync([FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
         // The Workitem UID is passed as the name of the first query parameter 
         string workitemUid = HttpContext.Request.Query.Keys.FirstOrDefault();
@@ -57,15 +57,15 @@ public partial class WorkitemController
         return await PostAddAsync(workitemUid, dicomDatasets);
     }
 
-    private async Task<IActionResult> PostAddAsync(string workitemInstanceUid, IReadOnlyCollection<DicomDataset> dicomDatasets)
+    private async Task<IActionResult> PostAddAsync(string workitemInstanceUid, IReadOnlyList<DicomDataset> dicomDatasets)
     {
-        long numberOfDatasets = dicomDatasets?.Count ?? 0;
+        long numberOfDatasets = dicomDatasets.Count;
         _logger.LogInformation("DICOM Web Add Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and {NumberOfDatasets} DICOM dataset",
             workitemInstanceUid,
             numberOfDatasets);
 
         AddWorkitemResponse response = await _mediator.AddWorkitemAsync(
-            dicomDatasets?.FirstOrDefault(),
+            dicomDatasets[0],
             Request.ContentType,
             workitemInstanceUid,
             HttpContext.RequestAborted);

@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -52,13 +51,13 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedCancelWorkitemInstance)]
     [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
     [AuditEventType(AuditEventSubType.CancelWorkitem)]
-    public async Task<IActionResult> CancelAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyCollection<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> CancelAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
         _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}",
-            workitemInstanceUid ?? string.Empty);
+            workitemInstanceUid);
 
         var response = await _mediator.CancelWorkitemAsync(
-                dicomDatasets?.FirstOrDefault(),
+                dicomDatasets[0],
                 Request.ContentType,
                 workitemInstanceUid,
                 HttpContext.RequestAborted)

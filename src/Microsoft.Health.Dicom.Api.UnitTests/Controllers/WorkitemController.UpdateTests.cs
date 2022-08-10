@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -56,7 +57,7 @@ public sealed class WorkitemControllerUpdateTests
                 Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new UpdateWorkitemResponse(WorkitemResponseStatus.Failure, new Uri("https://www.microsoft.com")));
 
-        ObjectResult result = await _controller.UpdateAsync(_id, null) as ObjectResult;
+        ObjectResult result = await _controller.UpdateAsync(_id, Array.Empty<DicomDataset>()) as ObjectResult;
 
         Assert.IsType<ObjectResult>(result);
         Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)result.StatusCode);
@@ -72,7 +73,7 @@ public sealed class WorkitemControllerUpdateTests
                 Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new UpdateWorkitemResponse(WorkitemResponseStatus.Conflict, new Uri("https://www.microsoft.com")));
 
-        ObjectResult result = await _controller.UpdateAsync(_id, null) as ObjectResult;
+        ObjectResult result = await _controller.UpdateAsync(_id, Array.Empty<DicomDataset>()) as ObjectResult;
 
         Assert.IsType<ObjectResult>(result);
         Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)result.StatusCode);
@@ -90,7 +91,7 @@ public sealed class WorkitemControllerUpdateTests
                 Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new UpdateWorkitemResponse(WorkitemResponseStatus.Success, new Uri(url)));
 
-        ObjectResult result = await _controller.UpdateAsync(_id, null) as ObjectResult;
+        ObjectResult result = await _controller.UpdateAsync(_id, Array.Empty<DicomDataset>()) as ObjectResult;
 
         Assert.IsType<ObjectResult>(result);
         Assert.Equal(HttpStatusCode.OK, (HttpStatusCode)result.StatusCode);
