@@ -6,17 +6,14 @@ Run script from root of this repository
 Swagger directory path from root of this repository. Ex: 'swagger'
 .PARAMETER Versions
 Api versions to generate the OpenApiDoc for and compare with baseline
-.PARAMETER SwashbuckleCLIVersion
-Version of SwashbuckleCLI to use
 #>
 
 param(
     [string]$SwaggerDir,
 
-    [String[]]$Versions,
-
-    [string]$SwashbuckleCLIVersion = '6.4.0'
+    [String[]]$Versions
 )
+
 $ErrorActionPreference = 'Stop'
 $container="openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02"
 
