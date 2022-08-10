@@ -16,7 +16,8 @@ The DICOM OSS project is setup to autogenerate this documentation for you on bui
 ## Customization and Defaulting
 
 Swagger and customizations are
-set [here](https://github.com/microsoft/dicom-server/blob/main/src/Microsoft.Health.Dicom.Api/Registration/DicomServerServiceCollectionExtensions.cs#L133).
+set [here](https://github.com/microsoft/dicom-server/blob/main/src/Microsoft.Health.Dicom.Api/Registration/DicomServerServiceCollectionExtensions.cs#L133)
+.
 
 We've written some customizations and added defaults.
 
@@ -43,7 +44,7 @@ specifying `name of the swagger doc you want to retrieve, as configured in your 
 Example:
 
 ```
-<Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1\swagger.yaml bin\x64\Debug\net6.0\Microsoft.Health.Dicom.Web.dll v1"></Exec>
+<Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1"></Exec>
 ```
 
 Be sure to also update the build/common/versioning.yml Powershell tasks to check for new versions.
@@ -65,6 +66,9 @@ You can run this script locally as well:
 .\build\common\scripts\CheckForSwaggerChanges.ps1  -SwaggerDir 'swagger' -AssemblyDir 'src\Microsoft.Health.Dicom.Web\bin\x64\Debug\net6.0\Microsoft.Health.Dicom.Web.dll' -Version 'v1-prerelease','v1'
 ```
 
+Note that this script does not use `dotnet swagger`'s comparison to detect changes as that only looks like API changes.
+We want to compare the file as a whole, so we use Powershell's `Compare-Object` instead.
+
 #### Checks for Breaking APIChanges
 
 As a way to ensure we always consider breaking API changes, there is a step in our ADO pipeline that will error out if
@@ -75,4 +79,24 @@ You can run this script locally as well:
 
 ```
 .\build\common\scripts\CheckForBreakingAPISwaggerChanges.ps1  -SwaggerDir 'swagger' -Version 'v1-prerelease','v1'
+```
+
+Example output with no changes:
+
+```
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/10/2022   9:22 AM                FromMain
+Running comparison with baseline for version v1-prerelease
+old: swagger\FromMain\v1-prerelease.yaml
+new: swagger\v1-prerelease\swagger.yaml
+No differences. Specifications are equivalents
+Running comparison with baseline for version v1
+old: swagger\FromMain\v1.yaml
+new: swagger\v1\swagger.yaml
+No differences. Specifications are equivalents
+
+
+PS C:\dev\hls\dicom-server>
 ```
