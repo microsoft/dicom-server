@@ -7,8 +7,6 @@ The working directory
 Path for the web projects dll
 .PARAMETER Versions
 Api versions to compare with
-.PARAMETER SwashbuckleCLIVersion
-Version of SwashbuckleCLI to use
 #>
 
 param(

@@ -1,12 +1,12 @@
 # API Versioning for DICOM Server
 
-This guide gives an overview of the API version policies for DICOM Server. 
+This guide gives an overview of the API version policies for DICOM Server.
 
 All versions of the DICOM APIs will always conform to the DICOMweb™ Standard specifications, but versions may expose different APIs based on our [conformance statement](https://github.com/microsoft/dicom-server/blob/main/docs/resources/conformance-statement.md).
 
 ## Specifying version of REST API in Requests
 
-The version of the REST API must be explicitly specified in the request URL as in the following example: 
+The version of the REST API must be explicitly specified in the request URL as in the following example:
 
 `https://<service_url>/v<version>/studies`
 
@@ -47,7 +47,7 @@ Non-breaking changes (Version is not incremented):
 
 `ReportApiVersions` is turned on, which means we will return the headers `api-supported-versions` and `api-deprecated-versions` when appropriate.
 
-- `api-supported-versions` will list which versions are supported for the requested API. It is only returned when calling an endpoint annotated with `[ApiVersion("<someVersion>")]`. 
+- `api-supported-versions` will list which versions are supported for the requested API. It is only returned when calling an endpoint annotated with `[ApiVersion("<someVersion>")]`.
 
 - `api-deprecated-versions` will list which versions have been deprecated for the requested API. It is only returned when calling an endpoint annotated with `[ApiVersion("<someVersion>", Deprecated = true)]`.
 
@@ -59,3 +59,7 @@ Example:
 ```
 
 ![Response headers](images/api-headers-example.PNG)
+
+### API documentation / Swagger Update
+Be sure to make appropriate updates to swagger files and add new version checks where necessary. Information on where and
+how to do this is [here](./resources/swagger.md).
