@@ -154,7 +154,7 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
         };
     }
 
-    private async Task ValidateResponseMetadataDatasetAsync(DicomWebAsyncEnumerableResponse<DicomDataset> response, DicomDataset storedInstance1, DicomDataset storedInstance2)
+    private static async Task ValidateResponseMetadataDatasetAsync(DicomWebAsyncEnumerableResponse<DicomDataset> response, DicomDataset storedInstance1, DicomDataset storedInstance2)
     {
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/dicom+json", response.ContentHeaders.ContentType.MediaType);

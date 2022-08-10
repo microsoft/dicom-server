@@ -40,8 +40,7 @@ public class TableHealthCheck : IHealthCheck
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to connect to the table data store.");
-
-            return HealthCheckResult.Unhealthy("Failed to connect to the table data store.");
+            throw;
         }
     }
 }

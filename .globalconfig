@@ -186,13 +186,14 @@ dotnet_code_quality.exclude_indirect_base_types           = false
 
 dotnet_code_quality.CA1802 = static # Use Literals Where Appropriate
 
-dotnet_diagnostic.CA1031.severity = none       # Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = error      # Do not catch general exception types
 dotnet_diagnostic.CA1032.severity = suggestion # Implement standard exception constructors
 dotnet_diagnostic.CA1054.severity = error      # URI parameters should not be strings
 dotnet_diagnostic.CA1305.severity = error      # Specify IFormatProvider
 dotnet_diagnostic.CA1716.severity = error      # Identifiers should not match keywords
+dotnet_diagnostic.CA1822.severity = error      # Mark members as static
 dotnet_diagnostic.CA1848.severity = none       # Do not encourage LoggerMessage delegates in every instance
-dotnet_diagnostic.CA2007.severity = suggestion # Do not directly await a Task
+dotnet_diagnostic.CA2007.severity = none       # Do not directly await a Task
 
 # C# Compiler Rules
 dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member
@@ -207,5 +208,6 @@ dotnet_diagnostic.IDE0044.severity = error # Add readonly modifier
 dotnet_diagnostic.IDE0055.severity = error # Fix formatting
 dotnet_diagnostic.IDE0065.severity = error # 'using' directive placement
 dotnet_diagnostic.IDE0073.severity = error # Require file header
+dotnet_diagnostic.IDE0161.severity = error # Use file-scoped namespace
 dotnet_diagnostic.IDE1005.severity = error # Use conditional delegate call
 dotnet_diagnostic.IDE1006.severity = error # Naming rule violation

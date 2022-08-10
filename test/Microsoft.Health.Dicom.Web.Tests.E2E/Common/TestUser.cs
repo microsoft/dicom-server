@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Health.Dicom.Tests.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
@@ -23,6 +24,7 @@ public class TestUser : IEquatable<TestUser>
 
     public string Password { get; }
 
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Instance member for consistency.")]
     public string GrantType => "password";
 
     public bool Equals(TestUser other)

@@ -9,12 +9,12 @@ using System.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class HttpRequestMessageBuilder
+public static class HttpRequestMessageBuilder
 {
     private const string TransferSyntaxHeaderName = "transfer-syntax";
     private const string MultipartRelatedContentType = "multipart/related";
 
-    public HttpRequestMessage Build(Uri requestUri, bool singlePart, string mediaType, string dicomTransferSyntax)
+    public static HttpRequestMessage Build(Uri requestUri, bool singlePart, string mediaType, string dicomTransferSyntax)
     {
         MediaTypeWithQualityHeaderValue headerValue = singlePart ? BuildSinglePartMediaTypeHeader(mediaType) : BuildMultipartMediaTypeHeader(mediaType);
         var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -22,7 +22,7 @@ public class HttpRequestMessageBuilder
         return request;
     }
 
-    private MediaTypeWithQualityHeaderValue BuildMultipartMediaTypeHeader(string mediaType)
+    private static MediaTypeWithQualityHeaderValue BuildMultipartMediaTypeHeader(string mediaType)
     {
         var multipartHeader = new MediaTypeWithQualityHeaderValue(MultipartRelatedContentType);
         var contentHeader = new NameValueHeaderValue("type", "\"" + mediaType + "\"");
@@ -30,12 +30,12 @@ public class HttpRequestMessageBuilder
         return multipartHeader;
     }
 
-    private MediaTypeWithQualityHeaderValue BuildSinglePartMediaTypeHeader(string mediaType)
+    private static MediaTypeWithQualityHeaderValue BuildSinglePartMediaTypeHeader(string mediaType)
     {
         return new MediaTypeWithQualityHeaderValue(mediaType);
     }
 
-    private string BuildAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
+    private static string BuildAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
     {
         string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
 

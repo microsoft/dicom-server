@@ -14,5 +14,9 @@ public class SwaggerConfiguration
 
     public string Title { get; set; } = "Medical Imaging Server for DICOM";
 
-    public OpenApiLicense License { get; } = new OpenApiLicense();
+    public OpenApiLicense License { get; } = new()
+    {
+        Name = "MIT License",
+        Url = new System.Uri("https://github.com/microsoft/dicom-server/blob/main/LICENSE"),
+    };
 }

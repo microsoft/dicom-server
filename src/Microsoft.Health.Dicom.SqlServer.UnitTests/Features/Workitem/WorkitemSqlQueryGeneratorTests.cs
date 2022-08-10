@@ -170,7 +170,7 @@ AND cts2.TagValue=@p3";
         Assert.Contains(expectedFilters, stringBuilder.ToString());
     }
 
-    private SqlParameterCollection CreateSqlParameterCollection()
+    private static SqlParameterCollection CreateSqlParameterCollection()
     {
         return (SqlParameterCollection)typeof(SqlParameterCollection).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null).Invoke(null);
     }

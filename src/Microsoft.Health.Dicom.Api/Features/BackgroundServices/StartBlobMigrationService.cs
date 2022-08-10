@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -43,6 +44,7 @@ public class StartBlobMigrationService : BackgroundService
         _logger = logger;
     }
 
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not throw exceptions.")]
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         try

@@ -210,7 +210,8 @@ public static class Samples
     public static DicomDataset CreateRandomWorkitemInstanceDataset(
         string workitemUid = null,
         bool validateItems = true,
-        DicomTransferSyntax dicomTransferSyntax = null)
+        DicomTransferSyntax dicomTransferSyntax = null,
+        WorkitemRequestType requestType = WorkitemRequestType.Add)
     {
         var ds = new DicomDataset(dicomTransferSyntax ?? DicomTransferSyntax.ExplicitVRLittleEndian);
 
@@ -220,37 +221,53 @@ public static class Samples
         }
 
         ds.Add(DicomTag.TransactionUID, string.Empty);
-        ds.Add(DicomTag.SOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
+
+        if (requestType == WorkitemRequestType.Add)
+        {
+            ds.Add(DicomTag.SOPClassUID, TestUidGenerator.Generate());
+            ds.Add(DicomTag.SOPInstanceUID, workitemUid ?? TestUidGenerator.Generate());
+            ds.Add(new DicomSequence(DicomTag.ScheduledProcessingParametersSequence));
+            ds.Add(new DicomSequence(DicomTag.ScheduledStationNameCodeSequence));
+            ds.Add(new DicomSequence(DicomTag.ScheduledStationClassCodeSequence));
+            ds.Add(new DicomSequence(DicomTag.ScheduledStationGeographicLocationCodeSequence));
+            ds.Add(new DicomSequence(DicomTag.ScheduledWorkitemCodeSequence));
+            ds.Add(new DicomSequence(DicomTag.IssuerOfPatientIDQualifiersSequence));
+            ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
+            ds.Add(DicomTag.AdmittingDiagnosesCodeSequence, new DicomDataset
+            {
+                { DicomTag.CodeMeaning, "CodeMeaning" }
+            });
+            ds.Add(new DicomSequence(DicomTag.ReferencedRequestSequence));
+            ds.Add(new DicomSequence(DicomTag.InputInformationSequence));
+            ds.Add(DicomTag.PatientName, string.Empty);
+            ds.Add(DicomTag.IssuerOfPatientID, string.Empty);
+            ds.Add(new DicomSequence(DicomTag.OtherPatientIDsSequence));
+            ds.Add(DicomTag.PatientBirthDate, DateTime.Now);
+            ds.Add(DicomTag.PatientSex, "F");
+            ds.Add(DicomTag.AdmissionID, "1");
+            ds.Add(DicomTag.AdmittingDiagnosesDescription, "SampleDiagnosesDescription");
+            ds.Add(DicomTag.ProcedureStepState, "SCHEDULED");
+            ds.Add(new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence));
+            ds.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence));
+        }
+
+        ds.Add(DicomTag.ScheduledProcedureStepModificationDateTime, DateTime.Now);
         ds.Add(DicomTag.ScheduledProcedureStepPriority, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
         ds.Add(DicomTag.ProcedureStepLabel, Guid.NewGuid().ToString("N"));
-        ds.Add(DicomTag.WorklistLabel, string.Empty);
-        ds.Add(DicomTag.ScheduledProcessingParametersSequence, new DicomDataset());
-        ds.Add(DicomTag.ScheduledStationNameCodeSequence, new DicomDataset());
-        ds.Add(DicomTag.ScheduledStationClassCodeSequence, new DicomDataset());
-        ds.Add(DicomTag.ScheduledStationGeographicLocationCodeSequence, new DicomDataset());
+        ds.Add(DicomTag.WorklistLabel, "WorklistLabel");
         ds.Add(DicomTag.ScheduledProcedureStepStartDateTime, DateTime.Now);
-        ds.Add(DicomTag.ScheduledWorkitemCodeSequence, new DicomDataset());
-        ds.Add(DicomTag.CommentsOnTheScheduledProcedureStep, string.Empty);
+        ds.Add(DicomTag.CommentsOnTheScheduledProcedureStep, "SampleComments");
         ds.Add(DicomTag.InputReadinessState, Guid.NewGuid().ToString("N").Substring(0, 14).ToUpper());
-        ds.Add(DicomTag.InputInformationSequence, new DicomDataset());
-        ds.Add(DicomTag.PatientName, string.Empty);
-        ds.Add(DicomTag.IssuerOfPatientID, string.Empty);
-        ds.Add(DicomTag.IssuerOfPatientIDQualifiersSequence, new DicomDataset());
-        ds.Add(DicomTag.OtherPatientIDsSequence, new DicomDataset());
-        ds.Add(DicomTag.PatientBirthDate, string.Empty);
-        ds.Add(DicomTag.PatientSex, string.Empty);
-        ds.Add(DicomTag.AdmissionID, string.Empty);
-        ds.Add(DicomTag.IssuerOfAdmissionIDSequence, new DicomDataset());
-        ds.Add(DicomTag.AdmittingDiagnosesDescription, string.Empty);
-        ds.Add(DicomTag.AdmittingDiagnosesCodeSequence, new DicomDataset());
-        ds.Add(DicomTag.ReferencedRequestSequence, new DicomDataset());
-        ds.Add(DicomTag.ProcedureStepState, string.Empty);
-        ds.Add(new DicomSequence(DicomTag.ProcedureStepProgressInformationSequence));
-        ds.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence));
         ds.Add(new DicomSequence(DicomTag.ProcedureStepDiscontinuationReasonCodeSequence));
-        ds.Add(DicomTag.ActualHumanPerformersSequence, new DicomDataset());
-        ds.Add(DicomTag.HumanPerformerCodeSequence, new DicomDataset());
-        ds.Add(DicomTag.HumanPerformerName, @"TestFixtureUser");
+        ds.Add(new DicomSequence(DicomTag.ActualHumanPerformersSequence));
+        ds.Add(new DicomSequence(DicomTag.HumanPerformerCodeSequence));
+        ds.Add(DicomTag.HumanPerformerName, "SampleFixtureUser");
+        ds.Add(DicomTag.TypeOfInstances, "SAMPLETYPEOFINST");
+        ds.Add(DicomTag.ReferencedSOPSequence, new DicomDataset
+        {
+            { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+            { DicomTag.ReferencedSOPInstanceUID, "1.2.3" },
+        });
 
         return ds;
     }

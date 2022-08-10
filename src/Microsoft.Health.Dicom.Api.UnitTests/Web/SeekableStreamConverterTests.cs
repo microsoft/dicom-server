@@ -63,7 +63,7 @@ public class SeekableStreamConverterTests
             () => _seekableStreamConverter.ConvertAsync(nonseekableStream, CancellationToken.None));
     }
 
-    private Stream SetupNonSeekableStreamException<TException>()
+    private static Stream SetupNonSeekableStreamException<TException>()
         where TException : Exception, new()
     {
         Stream nonseekableStream = Substitute.For<Stream>();

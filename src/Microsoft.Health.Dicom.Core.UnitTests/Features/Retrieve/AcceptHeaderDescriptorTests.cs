@@ -105,7 +105,7 @@ public class AcceptHeaderDescriptorTests
         }
     }
 
-    private (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForAcceptableSet(bool inSet, string acceptHeaderTransferSyntax)
+    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForAcceptableSet(bool inSet, string acceptHeaderTransferSyntax)
     {
         AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(transferSyntax: acceptHeaderTransferSyntax);
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
@@ -117,7 +117,7 @@ public class AcceptHeaderDescriptorTests
         return (acceptHeader, descriptor);
     }
 
-    private (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForTransferSyntaxMandatory(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax)
+    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForTransferSyntaxMandatory(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax)
     {
         AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(transferSyntax: acceptHeaderTransferSyntax);
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
@@ -129,7 +129,7 @@ public class AcceptHeaderDescriptorTests
         return (acceptHeader, descriptor);
     }
 
-    private (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForMediaType(string descriptorMediaType, string acceptHeaderMediaType)
+    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForMediaType(string descriptorMediaType, string acceptHeaderMediaType)
     {
         AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(mediaType: acceptHeaderMediaType);
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
@@ -141,7 +141,7 @@ public class AcceptHeaderDescriptorTests
         return (acceptHeader, descriptor);
     }
 
-    private (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForPayloadType(PayloadTypes descriptorPayloadType, PayloadTypes acceptHeaderPayloadType)
+    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForPayloadType(PayloadTypes descriptorPayloadType, PayloadTypes acceptHeaderPayloadType)
     {
         AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(payloadType: acceptHeaderPayloadType);
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
@@ -153,7 +153,7 @@ public class AcceptHeaderDescriptorTests
         return (acceptHeader, descriptor);
     }
 
-    private AcceptHeaderDescriptor CreateAcceptHeaderDescriptor(
+    private static AcceptHeaderDescriptor CreateAcceptHeaderDescriptor(
         PayloadTypes payloadType = PayloadTypes.SinglePart,
         string mediaType = KnownContentTypes.ApplicationDicom,
         bool isTransferSyntaxMandatory = true,

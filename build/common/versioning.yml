@@ -5,7 +5,7 @@ jobs:
   steps:
 
   - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk'
+    displayName: 'Use .NET sdk'
     inputs:
       useGlobalJson: true
 
@@ -23,10 +23,20 @@ jobs:
       destinationFolder: '$(System.ArtifactsDirectory)/deploy/webArtifacts'
 
   - task: PowerShell@2
-    displayName: 'Detect API Breaking Changes'
+    displayName: 'Check for latest Swagger changes'
     inputs:
-      filepath: '$(System.DefaultWorkingDirectory)/samples/scripts/PowerShell/GenerateOpenApiYaml.ps1'
+      pwsh: true
+      filepath: './build/common/scripts/CheckForSwaggerChanges.ps1'
       arguments: >
         -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
         -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
+        -Version 'v1-prerelease','v1'
+
+  - task: PowerShell@2
+    displayName: 'Check for breaking API / Swagger changes'
+    inputs:
+      pwsh: true
+      filepath: './build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
+      arguments: >
+        -SwaggerDir 'swagger'
         -Version 'v1-prerelease','v1'

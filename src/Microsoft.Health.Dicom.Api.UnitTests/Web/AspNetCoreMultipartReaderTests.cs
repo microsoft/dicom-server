@@ -250,7 +250,7 @@ public class AspNetCoreMultipartReaderTests
             CreateStoreConfiguration());
     }
 
-    private IOptions<StoreConfiguration> CreateStoreConfiguration()
+    private static IOptions<StoreConfiguration> CreateStoreConfiguration()
     {
         var configuration = Substitute.For<IOptions<StoreConfiguration>>();
         configuration.Value.Returns(new StoreConfiguration
@@ -260,7 +260,7 @@ public class AspNetCoreMultipartReaderTests
         return configuration;
     }
 
-    private async Task<MemoryStream> CreateMemoryStream(string content)
+    private static async Task<MemoryStream> CreateMemoryStream(string content)
     {
         MemoryStream stream = new MemoryStream();
 
@@ -295,7 +295,7 @@ public class AspNetCoreMultipartReaderTests
         }
     }
 
-    private async Task ValidateMultipartBodyPartAsync(string expectedContentType, string expectedBody, MultipartBodyPart actual)
+    private static async Task ValidateMultipartBodyPartAsync(string expectedContentType, string expectedBody, MultipartBodyPart actual)
     {
         Assert.NotNull(actual);
         Assert.Equal(expectedContentType, actual.ContentType);
@@ -306,7 +306,7 @@ public class AspNetCoreMultipartReaderTests
         }
     }
 
-    private string GenerateBody(params string[] lines)
+    private static string GenerateBody(params string[] lines)
     {
         // Body part requires \r\n as separator per RFC2616.
         return string.Join("\r\n", lines);

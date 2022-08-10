@@ -251,10 +251,10 @@ public class WorkitemQueryParserTests
         Assert.Equal(values.Length, BaseQueryExpression.IncludeFields.DicomTags.Count);
     }
 
-    private Dictionary<string, string> GetSingleton(string key, string value)
+    private static Dictionary<string, string> GetSingleton(string key, string value)
         => new Dictionary<string, string> { { key, value } };
 
-    private BaseQueryParameters CreateParameters(
+    private static BaseQueryParameters CreateParameters(
         Dictionary<string, string> filters,
         bool fuzzyMatching = false,
         string[] includeField = null)
