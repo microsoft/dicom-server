@@ -45,7 +45,7 @@ public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegr
         return (dicomInstance, dicomFile);
     }
 
-    private InstanceIdentifier RandomizeInstanceIdentifier(DicomDataset dataset)
+    private static InstanceIdentifier RandomizeInstanceIdentifier(DicomDataset dataset)
     {
         InstanceIdentifier newId = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
         dataset.AddOrUpdate(DicomTag.StudyInstanceUID, newId.StudyInstanceUid);

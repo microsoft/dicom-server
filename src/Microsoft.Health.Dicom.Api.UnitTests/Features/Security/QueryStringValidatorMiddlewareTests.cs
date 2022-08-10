@@ -56,7 +56,7 @@ public class QueryStringValidatorMiddlewareTests
         Assert.Null(_context.Response.ContentType);
     }
 
-    private QueryStringValidatorMiddleware CreateQueryStringValidatorMiddleware(RequestDelegate nextDelegate)
+    private static QueryStringValidatorMiddleware CreateQueryStringValidatorMiddleware(RequestDelegate nextDelegate)
     {
         return Substitute.ForPartsOf<QueryStringValidatorMiddleware>(nextDelegate);
     }

@@ -95,7 +95,7 @@ public class FrameHandlerTests
         yield return new object[] { false, DicomTransferSyntax.JPEGProcess1.UID.UID, true };
     }
 
-    private DicomDataset GenerateDatasetsFromIdentifiers()
+    private static DicomDataset GenerateDatasetsFromIdentifiers()
     {
         var ds = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
         {

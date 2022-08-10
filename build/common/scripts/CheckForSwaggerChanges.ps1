@@ -16,17 +16,14 @@ param(
 
     [string]$AssemblyDir,
 
-    [String[]]$Versions,
-
-    [string]$SwashbuckleCLIVersion = '6.4.0'
+    [String[]]$Versions
 )
-$ErrorActionPreference = 'Stop'
-dotnet new tool-manifest --force
-dotnet tool install --version $SwashbuckleCLIVersion Swashbuckle.AspNetCore.Cli
+
+$ErrorActionPreference = 'Stop' # ensure script behaves same locally as within default pwsh ado task
+dotnet tool restore
 
 Write-Host "Using swagger version ..."
 dotnet tool list | Select-String "swashbuckle"
-
 
 Write-Host "Testing that swagger will work ..."
 dotnet swagger
@@ -43,9 +40,7 @@ foreach ($Version in $Versions)
     if ($HasDifferences){
         Write-Host $HasDifferences
         throw "The swagger yaml checked in with this PR is not up to date with code. Please build the sln, which will trigger a hook to autogenerate these files on your behalf. Differences shown above."
-    }else{
+    } else{
         Write-Host "Swagger checked in with this PR is up to date with code."
     }
-
-
 }

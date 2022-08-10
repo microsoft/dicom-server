@@ -453,7 +453,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
             dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
     }
 
-    private (string SopInstanceUid, string SopClassUid, ushort FailureReason) ConvertToFailedSopSequenceEntry(DicomDataset dicomDataset, ushort failureReason)
+    private static (string SopInstanceUid, string SopClassUid, ushort FailureReason) ConvertToFailedSopSequenceEntry(DicomDataset dicomDataset, ushort failureReason)
     {
         return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID),

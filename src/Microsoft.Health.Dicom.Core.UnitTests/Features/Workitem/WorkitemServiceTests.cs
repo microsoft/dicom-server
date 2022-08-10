@@ -543,7 +543,7 @@ public sealed class WorkitemServiceTests
     {
         var dataset = new DicomDataset();
 
-        WorkitemService.SetSpecifiedAttributesForCreate(dataset, String.Empty);
+        WorkitemService.SetSpecifiedAttributesForCreate(dataset, string.Empty);
 
         Assert.True(dataset.Contains(tag));
         Assert.True(dataset.GetValueCount(tag) > 0);
@@ -623,7 +623,7 @@ public sealed class WorkitemServiceTests
                 Arg.Is<string>(msg => msg == DicomCoreResource.WorkitemInstanceNotFound));
     }
 
-    private QueryParameters CreateParameters(
+    private static QueryParameters CreateParameters(
         Dictionary<string, string> filters,
         QueryResource resourceType,
         string studyInstanceUid = null,

@@ -3,21 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
-using FellowOakDicom;
-
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
-public abstract class WorkitemDatasetValidator : IWorkitemDatasetValidator
+/// <summary>
+/// Workitem request type
+/// </summary>
+public enum WorkitemRequestType
 {
-    public string Name => GetType().Name;
-
-    public void Validate(DicomDataset dataset)
-    {
-        EnsureArg.IsNotNull(dataset, nameof(dataset));
-
-        OnValidate(dataset);
-    }
-
-    protected abstract void OnValidate(DicomDataset dataset);
+    Add,
+    Update
 }

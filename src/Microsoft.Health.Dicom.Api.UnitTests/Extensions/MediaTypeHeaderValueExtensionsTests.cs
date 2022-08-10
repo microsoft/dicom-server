@@ -109,7 +109,7 @@ public class MediaTypeHeaderValueExtensionsTests
         Assert.Equal(quality, acceptHeader.Quality);
     }
 
-    private MediaTypeHeaderValue CreateMediaTypeHeaderValue(string mediaType, string type, string transferSyntax, double? quality)
+    private static MediaTypeHeaderValue CreateMediaTypeHeaderValue(string mediaType, string type, string transferSyntax, double? quality)
     {
         MediaTypeHeaderValue result = new MediaTypeHeaderValue(mediaType);
         if (!string.IsNullOrEmpty(type))
@@ -130,12 +130,12 @@ public class MediaTypeHeaderValueExtensionsTests
         return result;
     }
 
-    private string QuoteText(string text)
+    private static string QuoteText(string text)
     {
         return $"\"{text}\"";
     }
 
-    private NameValueHeaderValue CreateNameValueHeaderValue(string key, string value, bool quoteValue = true)
+    private static NameValueHeaderValue CreateNameValueHeaderValue(string key, string value, bool quoteValue = true)
     {
         return new NameValueHeaderValue(key, quoteValue ? QuoteText(value) : value);
     }

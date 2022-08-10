@@ -579,7 +579,7 @@ AND CONTAINS(ctpn1.TagValueWords, @p1)";
         Assert.Contains(expectedFilters, stringBuilder.ToString());
     }
 
-    private SqlParameterCollection CreateSqlParameterCollection()
+    private static SqlParameterCollection CreateSqlParameterCollection()
     {
         return (SqlParameterCollection)typeof(SqlParameterCollection).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null).Invoke(null);
     }

@@ -330,7 +330,7 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
         await _instancesManager.DisposeAsync();
     }
 
-    private string GetEtagFromResponse(DicomWebAsyncEnumerableResponse<DicomDataset> response)
+    private static string GetEtagFromResponse(DicomWebAsyncEnumerableResponse<DicomDataset> response)
     {
         string eTag = null;
 
@@ -400,7 +400,7 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
         Assert.Equal(expectedDataset.Count(), retrievedDataset.Count());
     }
 
-    private async Task ValidateResponseMetadataDatasetAsync(
+    private static async Task ValidateResponseMetadataDatasetAsync(
         DicomWebAsyncEnumerableResponse<DicomDataset> response,
         DicomDataset storedInstance1,
         DicomDataset storedInstance2)
@@ -442,7 +442,7 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
         Assert.False(true, "Retrieved dataset doesnot match the stored dataset");
     }
 
-    private void ValidateNoContent(DicomWebAsyncEnumerableResponse<DicomDataset> response)
+    private static void ValidateNoContent(DicomWebAsyncEnumerableResponse<DicomDataset> response)
     {
         Assert.Equal(0, response.ContentHeaders.ContentLength);
     }

@@ -30,7 +30,6 @@ public class TableHealthCheckTests
     public async Task GivenTableDataStoreIsAvailable_WhenTableIsChecked_ThenHealthyStateShouldBeReturned()
     {
         HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
-
         Assert.Equal(HealthStatus.Healthy, result.Status);
     }
 
@@ -38,8 +37,6 @@ public class TableHealthCheckTests
     public async Task GivenTableDataStoreIsNotAvailable_WhenHealthIsChecked_ThenUnhealthyStateShouldBeReturned()
     {
         _testProvider.PerformTestAsync(default).ThrowsForAnyArgs<HttpRequestException>();
-        HealthCheckResult result = await _healthCheck.CheckHealthAsync(new HealthCheckContext());
-
-        Assert.Equal(HealthStatus.Unhealthy, result.Status);
+        await Assert.ThrowsAsync<HttpRequestException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext()));
     }
 }

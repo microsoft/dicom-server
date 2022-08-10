@@ -57,7 +57,7 @@ public class ETagGeneratorTests
         Assert.Equal(expectedETag, eTag);
     }
 
-    private string GetExpectedETag(ResourceType resourceType, List<VersionedInstanceIdentifier> versionedInstanceIdentifiers)
+    private static string GetExpectedETag(ResourceType resourceType, List<VersionedInstanceIdentifier> versionedInstanceIdentifiers)
     {
         string eTag = string.Empty;
 

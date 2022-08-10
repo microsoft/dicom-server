@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Health.Dicom.Core.Features.Workitem;
 
+[SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Response builder handles all exceptions.")]
 public partial class WorkitemService : IWorkitemService
 {
     private readonly IWorkitemResponseBuilder _responseBuilder;

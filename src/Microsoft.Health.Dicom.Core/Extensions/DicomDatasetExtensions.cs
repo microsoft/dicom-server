@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using EnsureThat;
@@ -123,7 +124,10 @@ public static class DicomDatasetExtensions
         RequirementCode.OneOne,
         RequirementCode.ThreeOne,
         RequirementCode.ThreeTwo,
-        RequirementCode.ThreeThree
+        RequirementCode.ThreeThree,
+        RequirementCode.OneCOne,
+        RequirementCode.OneCOneC,
+        RequirementCode.OneCTwo
     };
 
     /// <summary>
@@ -263,6 +267,7 @@ public static class DicomDatasetExtensions
     /// <param name="expectedVR">Expected VR of the element.</param>
     /// <remarks>If expectedVR is provided, and not match, will return null.</remarks>
     /// <returns>A long value representing the ticks if the value exists and conforms to the TM format; othewise <c>null</c>.</returns>
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate upon inspection of possible exceptions.")]
     public static long? GetStringTimeAsLong(this DicomDataset dicomDataset, DicomTag dicomTag, DicomVR expectedVR = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -446,6 +451,65 @@ public static class DicomDatasetExtensions
         }
     }
 
+    public static void ValidateAllRequirements(this DicomDataset dataset, IReadOnlyCollection<RequirementDetail> requirements)
+    {
+        if (requirements == null)
+        {
+            return;
+        }
+
+        foreach (RequirementDetail requirement in requirements)
+        {
+            dataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
+
+            // If no sequence requirements are present, move on to the next tag.
+            if (requirement.SequenceRequirements == null)
+            {
+                continue;
+            }
+
+            // If current tag is not allowed, no action needed for its potential children.
+            if (requirement.RequirementCode == RequirementCode.NotAllowed)
+            {
+                continue;
+            }
+
+            bool isMandatory = MandatoryRequirementCodes.Contains(requirement.RequirementCode);
+            bool isNonZero = NonZeroLengthRequirementCodes.Contains(requirement.RequirementCode);
+            bool hasChildren = dataset.Contains(requirement.DicomTag) && dataset.GetValueCount(requirement.DicomTag) > 0;
+
+            // Validate sequence only if
+            //  1. Parent is mandatory and is non-zero, means it has to have children. OR
+            //  2. Parent contains children regardless of being mandatory or not.
+            if ((isMandatory && isNonZero) ||
+                hasChildren)
+            {
+                dataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
+            }
+        }
+    }
+
+    private static void ValidateSequence(this DicomDataset dataset, DicomTag sequenceTag, IReadOnlyCollection<RequirementDetail> requirements)
+    {
+        if (requirements == null || requirements.Count == 0 || !dataset.TryGetSequence(sequenceTag, out DicomSequence sequence) || sequence.Items.Count == 0)
+        {
+            return;
+        }
+
+        foreach (DicomDataset sequenceDataset in sequence.Items)
+        {
+            foreach (RequirementDetail requirement in requirements)
+            {
+                sequenceDataset.ValidateRequirement(requirement.DicomTag, requirement.RequirementCode);
+
+                if (requirement.SequenceRequirements != null)
+                {
+                    sequenceDataset.ValidateSequence(requirement.DicomTag, requirement.SequenceRequirements);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Validate whether a dataset meets the service class user (SCU) and service class provider (SCP) requirements for a given attribute.
     /// <see href="https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_5.4.2.1">Dicom 3.4.5.4.2.1</see>
@@ -515,7 +579,18 @@ public static class DicomDatasetExtensions
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(tag, nameof(tag));
 
-        dataset.ValidateRequiredAttribute(tag, MandatoryRequirementCodes.Contains(requirementCode), NonZeroLengthRequirementCodes.Contains(requirementCode));
+        switch (requirementCode)
+        {
+            case RequirementCode.MustBeEmpty:
+                dataset.ValidateEmptyValue(tag);
+                break;
+            case RequirementCode.NotAllowed:
+                dataset.ValidateNotPresent(tag);
+                break;
+            default:
+                dataset.ValidateRequiredAttribute(tag, MandatoryRequirementCodes.Contains(requirementCode), NonZeroLengthRequirementCodes.Contains(requirementCode));
+                break;
+        }
     }
 
     private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, bool isMandatory = true, bool isNonZero = true)
@@ -556,6 +631,36 @@ public static class DicomDatasetExtensions
                         DicomCoreResource.AttributeMustNotBeEmpty,
                         tag));
             }
+        }
+    }
+
+    private static void ValidateEmptyValue(this DicomDataset dataset, DicomTag tag)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+        if (dataset.GetValueCount(tag) > 0)
+        {
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.AttributeMustBeEmpty,
+                    tag));
+        }
+    }
+
+    private static void ValidateNotPresent(this DicomDataset dataset, DicomTag tag)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+        if (dataset.Contains(tag))
+        {
+            throw new DatasetValidationException(
+                FailureReasonCodes.ValidationFailure,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.AttributeNotAllowed,
+                    tag));
         }
     }
 

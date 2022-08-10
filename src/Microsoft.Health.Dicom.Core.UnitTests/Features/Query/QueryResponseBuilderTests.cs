@@ -143,7 +143,7 @@ public class QueryResponseBuilderTests
         Assert.Contains<DicomTag>(DicomTag.SOPInstanceUID, tags); // Valid instance tag
     }
 
-    private DicomDataset GenerateTestDataSet()
+    private static DicomDataset GenerateTestDataSet()
     {
         return new DicomDataset()
         {

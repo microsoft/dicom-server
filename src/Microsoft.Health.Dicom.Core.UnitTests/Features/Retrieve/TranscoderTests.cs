@@ -335,7 +335,7 @@ public class TranscoderTests
         return (dicomFile, stream);
     }
 
-    private void ValidateTransferSyntax(
+    private static void ValidateTransferSyntax(
        DicomTransferSyntax expectedTransferSyntax,
        Stream responseStream)
     {

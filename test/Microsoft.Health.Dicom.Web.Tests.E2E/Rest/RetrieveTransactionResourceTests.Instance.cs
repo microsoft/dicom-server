@@ -67,7 +67,7 @@ public partial class RetrieveTransactionResourceTests
 
         var requestUri = new Uri(DicomApiVersions.Latest + string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid), UriKind.Relative);
 
-        using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: false, DicomWebConstants.ApplicationDicomMediaType, transferSyntax);
+        using HttpRequestMessage request = HttpRequestMessageBuilder.Build(requestUri, singlePart: false, DicomWebConstants.ApplicationDicomMediaType, transferSyntax);
         using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,7 +79,7 @@ public partial class RetrieveTransactionResourceTests
     {
         var requestUri = new Uri(DicomApiVersions.Latest + string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate()), UriKind.Relative);
 
-        using HttpRequestMessage request = new HttpRequestMessageBuilder().Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
+        using HttpRequestMessage request = HttpRequestMessageBuilder.Build(requestUri, singlePart: singlePart, mediaType, transferSyntax);
         using HttpResponseMessage response = await _client.HttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
         Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);

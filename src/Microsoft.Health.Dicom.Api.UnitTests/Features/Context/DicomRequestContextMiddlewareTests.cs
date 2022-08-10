@@ -32,7 +32,7 @@ public class DicomRequestContextMiddlewareTests
         Assert.Equal(new Uri("https://localhost:30/studies"), dicomRequestContext.BaseUri);
     }
 
-    private async Task<IDicomRequestContext> SetupAsync(HttpContext httpContext)
+    private static async Task<IDicomRequestContext> SetupAsync(HttpContext httpContext)
     {
         var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         var dicomContextMiddleware = new DicomRequestContextMiddleware(next: (innerHttpContext) => Task.CompletedTask);
@@ -44,7 +44,7 @@ public class DicomRequestContextMiddlewareTests
         return dicomRequestContextAccessor.RequestContext;
     }
 
-    private HttpContext CreateHttpContext()
+    private static HttpContext CreateHttpContext()
     {
         HttpContext httpContext = new DefaultHttpContext();
 

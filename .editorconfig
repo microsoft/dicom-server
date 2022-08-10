@@ -18,38 +18,39 @@ generated_code = true
 
 # C# files
 [*.cs]
+charset              = utf-8
 file_header_template = -------------------------------------------------------------------------------------------------\nCopyright (c) Microsoft Corporation. All rights reserved.\nLicensed under the MIT License (MIT). See LICENSE in the repo root for license information.\n-------------------------------------------------------------------------------------------------
 
 # Xml project files
-[*.{csproj,dcproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
-indent_size = 2
-
-[*.{csproj,dcproj,vbproj,proj,nativeproj,locproj}]
-charset = utf-8
-
-# Xml build files
-[*.builds]
+[*.{csproj,dcproj}]
+charset     = utf-8
 indent_size = 2
 
 # Xml files
-[*.{xml,stylecop,resx,ruleset}]
+[*.{xml,resx}]
+charset     = utf-8
 indent_size = 2
 
 # Xml config files
 [*.{props,targets,config,nuspec}]
+charset     = utf-8
 indent_size = 2
 
 # JSON files
 [*.json]
+charset     = utf-8
 indent_size = 2
 
 # YAML files
 [*.{yml,yaml}]
+charset     = utf-8
 indent_size = 2
 
 # Shell scripts
 [*.sh]
+charset     = utf-8
 end_of_line = lf
 
 [*.{cmd,bat}]
+charset     = utf-8
 end_of_line = crlf

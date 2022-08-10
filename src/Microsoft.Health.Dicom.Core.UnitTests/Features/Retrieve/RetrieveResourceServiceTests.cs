@@ -581,7 +581,7 @@ public class RetrieveResourceServiceTests
         return dicomInstanceIdentifiersList;
     }
 
-    private DicomDataset GenerateDatasetsFromIdentifiers(InstanceIdentifier instanceIdentifier, string transferSyntaxUid = null)
+    private static DicomDataset GenerateDatasetsFromIdentifiers(InstanceIdentifier instanceIdentifier, string transferSyntaxUid = null)
     {
         DicomTransferSyntax syntax = DicomTransferSyntax.ExplicitVRLittleEndian;
         if (transferSyntaxUid != null)
