@@ -52,9 +52,7 @@ public partial class WorkitemController
 
     private async Task<IActionResult> PostUpdateAsync(string workitemInstanceUid, string transactionUid, IReadOnlyList<DicomDataset> dicomDatasets)
     {
-        _logger.LogInformation("DICOM Web Update Workitem Transaction request received with {NumberOfDicomDatasets} DICOM dataset, and file size of {FileSize} bytes.",
-            dicomDatasets.Count,
-            Request.ContentLength);
+        _logger.LogInformation("DICOM Web Update Workitem Transaction request received with file size of {FileSize} bytes.", Request.ContentLength);
 
         UpdateWorkitemResponse response = await _mediator.UpdateWorkitemAsync(
             dicomDatasets[0],

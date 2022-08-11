@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Routing;
@@ -37,6 +38,8 @@ public partial class WorkitemController
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]
     public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
+        _logger.LogInformation("DICOM Web ChangeState Workitem Transaction request received with file size of {FileSize} bytes.", Request.ContentLength);
+
         var response = await _mediator
                     .ChangeWorkitemStateAsync(
                         dicomDatasets[0],

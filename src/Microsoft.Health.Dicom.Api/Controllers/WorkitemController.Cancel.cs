@@ -53,8 +53,7 @@ public partial class WorkitemController
     [AuditEventType(AuditEventSubType.CancelWorkitem)]
     public async Task<IActionResult> CancelAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
-        _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}",
-            workitemInstanceUid);
+        _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received with file size of {FileSize} bytes.", Request.ContentLength);
 
         var response = await _mediator.CancelWorkitemAsync(
                 dicomDatasets[0],

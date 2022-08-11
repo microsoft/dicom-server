@@ -59,10 +59,7 @@ public partial class WorkitemController
 
     private async Task<IActionResult> PostAddAsync(string workitemInstanceUid, IReadOnlyList<DicomDataset> dicomDatasets)
     {
-        long numberOfDatasets = dicomDatasets.Count;
-        _logger.LogInformation("DICOM Web Add Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}, and {NumberOfDatasets} DICOM dataset",
-            workitemInstanceUid,
-            numberOfDatasets);
+        _logger.LogInformation("DICOM Web Add Workitem Transaction request received with file size of {FileSize} bytes.", Request.ContentLength);
 
         AddWorkitemResponse response = await _mediator.AddWorkitemAsync(
             dicomDatasets[0],
