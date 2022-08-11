@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -120,17 +120,17 @@ public class DicomRequestContextDataPopulatingFilterAttributeTests
             switch (resourceType)
             {
                 case ResourceType.Study:
-                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.StudyInstanceUid, StudyInstanceUid);
+                    Assert.Equal(StudyInstanceUid, _dicomRequestContextAccessor.RequestContext.StudyInstanceUid);
                     break;
                 case ResourceType.Series:
-                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.StudyInstanceUid, StudyInstanceUid);
-                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.SeriesInstanceUid, SeriesInstanceUid);
+                    Assert.Equal(StudyInstanceUid, _dicomRequestContextAccessor.RequestContext.StudyInstanceUid);
+                    Assert.Equal(SeriesInstanceUid, _dicomRequestContextAccessor.RequestContext.SeriesInstanceUid);
                     break;
                 case ResourceType.Instance:
                 case ResourceType.Frames:
-                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.StudyInstanceUid, StudyInstanceUid);
-                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.SeriesInstanceUid, SeriesInstanceUid);
-                    Assert.Equal(_dicomRequestContextAccessor.RequestContext.SopInstanceUid, SopInstanceUid);
+                    Assert.Equal(StudyInstanceUid, _dicomRequestContextAccessor.RequestContext.StudyInstanceUid);
+                    Assert.Equal(SeriesInstanceUid, _dicomRequestContextAccessor.RequestContext.SeriesInstanceUid);
+                    Assert.Equal(SopInstanceUid, _dicomRequestContextAccessor.RequestContext.SopInstanceUid);
                     break;
                 default:
                     break;
