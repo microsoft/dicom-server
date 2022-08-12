@@ -15,12 +15,12 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public partial class WorkItemTransactionTests : IClassFixture<UpsRsEnabledHttpIntegrationTestFixture<Startup>>
+public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
     private readonly IDicomWebClient _client;
-    private readonly UpsRsEnabledHttpIntegrationTestFixture<Startup> _fixture;
+    private readonly HttpIntegrationTestFixture<Startup> _fixture;
 
-    public WorkItemTransactionTests(UpsRsEnabledHttpIntegrationTestFixture<Startup> fixture)
+    public WorkItemTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _fixture = fixture;

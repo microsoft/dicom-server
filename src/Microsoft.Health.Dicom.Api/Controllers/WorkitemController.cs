@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -16,7 +16,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [ApiVersion("1")]
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-[ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public partial class WorkitemController : ControllerBase
 {
