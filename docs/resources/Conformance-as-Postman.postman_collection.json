@@ -1,72 +1,10 @@
 {
 	"info": {
-		"_postman_id": "1cf38014-19fa-4de9-a9c8-018434bbb2ef",
+		"_postman_id": "a291cc81-1292-4959-835a-1259a1776495",
 		"name": "Conformance-as-Postman",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "AuthorizeGetToken",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"var jsonData = JSON.parse(responseBody);\r",
-							"postman.setEnvironmentVariable(\"bearerToken\", jsonData.access_token);"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "urlencoded",
-					"urlencoded": [
-						{
-							"key": "grant_type",
-							"value": "client_credentials",
-							"type": "text"
-						},
-						{
-							"key": "client_id",
-							"value": "{{clientId}}",
-							"type": "text"
-						},
-						{
-							"key": "client_secret",
-							"value": "{{clientSecret}}",
-							"type": "text"
-						},
-						{
-							"key": "resource",
-							"value": "{{resource}}",
-							"type": "text"
-						}
-					]
-				},
-				"url": {
-					"raw": "https://login.microsoftonline.com/{{tenantId}}/oauth2/token",
-					"protocol": "https",
-					"host": [
-						"login",
-						"microsoftonline",
-						"com"
-					],
-					"path": [
-						"{{tenantId}}",
-						"oauth2",
-						"token"
-					]
-				}
-			},
-			"response": []
-		},
 		{
 			"name": "Store-single-instance (red-triangle.dcm)",
 			"event": [
@@ -619,17 +557,6 @@
 		},
 		{
 			"name": "Search-for-studies",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true
@@ -1269,17 +1196,6 @@
 		},
 		{
 			"name": "Create-workitem",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
@@ -1333,17 +1249,6 @@
 		},
 		{
 			"name": "Search-for-workitems",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
@@ -1398,17 +1303,6 @@
 		},
 		{
 			"name": "Request-cancellation-workitem",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
@@ -1452,37 +1346,7 @@
 			"response": []
 		},
 		{
-			"name": "Delete-a-specific-study",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{optionallyPartitionedUrl}}/studies/{{study1}}",
-					"host": [
-						"{{optionallyPartitionedUrl}}"
-					],
-					"path": [
-						"studies",
-						"{{study1}}"
-					]
-				},
-				"description": "This request deletes a single study (and all child series and instances).\r\n\r\n> Delete is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/{{study}}\r\n* Method: DELETE\r\n* Headers: No special headers needed"
-			},
-			"response": []
-		},
-		{
 			"name": "Change-Workitem-State",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
@@ -1527,17 +1391,6 @@
 		},
 		{
 			"name": "Update-unclaimed-workitem",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
@@ -1581,17 +1434,6 @@
 		},
 		{
 			"name": "Update-claimed-workitem",
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
 			"protocolProfileBehavior": {
 				"disabledSystemHeaders": {
 					"accept": true,
@@ -1670,7 +1512,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{bearerToken}}",
+				"value": "",
 				"type": "string"
 			}
 		]
