@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -478,9 +478,6 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="NestedSequencesNotSupported" xml:space="preserve">
     <value>Nested Dicom sequence tags are currently not supported.</value>
-  </data>
-  <data name="UpsRsFeatureDisabled" xml:space="preserve">
-    <value>UPS-RS feature is disabled.</value>
   </data>
   <data name="InvalidProcedureStepStateTransition" xml:space="preserve">
     <value>The workitem instance can not transition to '{0}' state: {1}.</value>
