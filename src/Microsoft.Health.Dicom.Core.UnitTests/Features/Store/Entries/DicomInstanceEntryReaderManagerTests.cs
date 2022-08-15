@@ -33,7 +33,7 @@ public class DicomInstanceEntryReaderManagerTests
     }
 
     [Theory]
-    [InlineData("invalid")]
+    [InlineData("unsupported")]
     [InlineData("")]
     [InlineData(null)]
     public void GivenANotSupportedContentType_WhenFindReaderIsCalled_ThenNullShouldBeReturned(string contentType)
