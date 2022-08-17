@@ -27,7 +27,7 @@
   "author": "Microsoft",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^20.0.0",
+    "electron": "^20.0.2",
     "electron-builder": "^23.3.3",
     "ansi-regex": ">=6.0.1",
     "async": ">=3.2.4"

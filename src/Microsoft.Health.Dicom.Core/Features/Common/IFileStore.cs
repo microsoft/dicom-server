@@ -80,4 +80,14 @@ public interface IFileStore
     Task DeleteOldFileIfExistsAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously gets a streaming file from the file store.
+    /// </summary>
+    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous get operation.</returns>
+    Task<Stream> GetStreamingFileAsync(
+        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        CancellationToken cancellationToken = default);
 }

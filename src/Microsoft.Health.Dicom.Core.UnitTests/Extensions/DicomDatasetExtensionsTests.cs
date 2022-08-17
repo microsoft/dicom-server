@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -267,8 +267,8 @@ public class DicomDatasetExtensionsTests
 
         _dicomDataset.AddValueIfNotNull(dicomTag, value);
 
-        Assert.True(_dicomDataset.TryGetSingleValue<string>(dicomTag, out string writtenValue));
-        Assert.Equal(writtenValue, value);
+        Assert.True(_dicomDataset.TryGetSingleValue(dicomTag, out string writtenValue));
+        Assert.Equal(value, writtenValue);
     }
 
     [Fact]
