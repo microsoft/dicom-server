@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -49,12 +49,15 @@ public class StoreHandlerTests
         await Assert.ThrowsAsync<InvalidIdentifierException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
     }
 
-    [Fact]
-    public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown()
+    [Theory]
+    [InlineData("invalid")]
+    [InlineData("")]
+    [InlineData(null)]
+    public async Task GivenUnsupportedContentType_WhenHandled_ThenUnsupportedMediaTypeExceptionShouldBeThrown(string requestContentType)
     {
         _dicomInstanceEntryReaderManager.FindReader(default).ReturnsForAnyArgs((IDicomInstanceEntryReader)null);
 
-        var storeRequest = new StoreRequest(Stream.Null, "invalid");
+        var storeRequest = new StoreRequest(Stream.Null, requestContentType);
 
         await Assert.ThrowsAsync<UnsupportedMediaTypeException>(() => _storeHandler.Handle(storeRequest, CancellationToken.None));
     }
