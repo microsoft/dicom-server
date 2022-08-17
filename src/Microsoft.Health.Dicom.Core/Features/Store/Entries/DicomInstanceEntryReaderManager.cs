@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -26,8 +26,6 @@ public class DicomInstanceEntryReaderManager : IDicomInstanceEntryReaderManager
     /// <inheritdoc />
     public IDicomInstanceEntryReader FindReader(string contentType)
     {
-        EnsureArg.IsNotNull(contentType, nameof(contentType));
-
         return _dicomInstanceEntryReaders.FirstOrDefault(reader => reader.CanRead(contentType));
     }
 }
