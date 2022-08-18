@@ -132,5 +132,9 @@ public class DicomCastWorker : IDicomCastWorker
             // Please refer to .net core issue on github for more details: "Exceptions in BackgroundService ExecuteAsync are (sometimes) hidden" https://github.com/dotnet/extensions/issues/2363
             _hostApplicationLifetime.StopApplication();
         }
+        finally
+        {
+            _telemetryClient.Flush();
+        }
     }
 }
