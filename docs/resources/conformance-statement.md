@@ -2,21 +2,38 @@
 
 > This is currently a work-in progress document
 
-The **Azure for Health API** supports a subset of the DICOMweb&trade; Standard. Support includes:
+The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade; Standard. Support includes:
 
-- [Store (STOW-RS)](#store-stow-rs)
-- [Retrieve (WADO-RS)](#retrieve-wado-rs)
-- [Search (QIDO-RS)](#search-qido-rs)
+- [Studies Service](#studies-service)
+  - [Store (STOW-RS)](#store-stow-rs)
+  - [Retrieve (WADO-RS)](#retrieve-wado-rs)
+  - [Search (QIDO-RS)](#search-qido-rs)
+  - [Delete (Non-standard)](#delete)
+- [Worklist Service (UPS Push and Pull SOPs)](#worklist-service)
+  - [Create](#create)
+  - [Retrieve](#retrieve)
+  - [Update](#update)
+  - [Change State](#change-state)
+  - [Request Cancellation](#request-cancellation)
+  - [Search](#search)
 
 Additionally, the following non-standard API(s) are supported:
+- [Change Feed](../concepts/change-feed.md)
+- [Extended Query Tags](../concepts/extended-query-tags.md)
 
-- [Delete](#delete)
+All paths below include an implicit base URL of the server, such as `https://localhost:63838` when running locally.
 
-Our service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified in the request URL as in the following example: 
+The service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified as part of the base URL as in the following example: 
 
-`https://<service_url>/v<version>/studies`
+`https://localhost:63838/v1/studies`
 
 For more information on how to specify the version when making requests, visit the [Api Versioning Documentation](../api-versioning.md).
+
+You can find example requests for supported transactions in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json).
+
+# Studies Service
+
+The [Studies Service](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#chapter_10) allows users to store, retrieve, and search for DICOM Studies, Series, and Instances. We have added the non-standard Delete transaction to enable a full resource lifecycle.
 
 ## Store (STOW-RS)
 
@@ -471,19 +488,11 @@ There are no restrictions on the request's `Accept` header, `Content-Type` heade
 
 The response body will be empty. The status code is the only useful information returned.
 
+# Worklist Service (UPS-RS)
 
-# Worklist (UPS-RS) Support
+The DICOM service supports the Push and Pull SOPs of the [Worklist Service (UPS-RS)](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#chapter_11). This service provides access to one Worklist containing Workitems, each of which represents a Unified Procedure Step (UPS).
 
-The DICOM service supports a subset of the Worklist Service (UPS-RS) defined in the DICOMweb&trade; Standard. Partially supported transactions include:
-
-- [Create](#create)
-- [Search](#search)
-- [Request Cancellation](#request-cancellation)
-
-The base URI for all operations below should include the [desired API version](../api-versioning.md) and the [data partition](data-partitions.md) if that feature is enabled.
 Throughout, the variable `{workitem}` in a URI template stands for a Workitem UID.
-
-You can find example requests for these transactions in the [data partition Postman collection](../resources/data-partition-feature.postman_collection.json).
 
 ## Create
 
@@ -526,6 +535,158 @@ a URI reference to the created Workitem.
 
 A failure response payload will contain a message describing the failure.
 
+## Request Cancellation
+
+This transaction enables the user to request cancellation of a non-owned Workitem.
+
+There are
+[four valid Workitem states](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.1.1-1):
+- `SCHEDULED`
+- `IN PROGRESS`
+- `CANCELED`
+- `COMPLETED`
+
+This transaction will only succeed against Workitems in the `SCHEDULED` state. Any user can claim ownership of a Workitem by
+setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
+the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
+forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
+return failure. An owned Workitem can be canceled via the Change Workitem State transaction.
+
+| Method  | Path                                            | Description                                      |
+| :------ | :---------------------------------------------- | :----------------------------------------------- |
+| POST    | ../workitems/{workitem}/cancelrequest           | Request the cancellation of a scheduled Workitem |
+
+The `Content-Type` headers is required, and must have the value `application/dicom+json`.
+
+The request payload may include Action Information as [defined in the DICOM Standard](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.2-1).
+
+### Request Cancellation Response Status Codes
+
+| Code                         | Description |
+| :--------------------------- | :---------- |
+| 202 (Accepted)               | The request was accepted by the server, but the Target Workitem state has not necessarily changed yet. |
+| 400 (Bad Request)            | There was a problem with the syntax of the request. |
+| 401 (Unauthorized)           | The client is not authenticated. |
+| 404 (Not Found)              | The Target Workitem was not found. |
+| 409 (Conflict)               | The request is inconsistent with the current state of the Target Workitem. For example, the Target Workitem is in the SCHEDULED or COMPLETED state. |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+
+### Request Cancellation Response Payload
+
+A success response will have no payload, and a failure response payload will contain a message describing the failure.
+If the Workitem Instance is already in a canceled state, the response will include the following HTTP Warning header:
+`299: The UPS is already in the requested state of CANCELED.`
+
+
+## Retrieve Workitem Transaction
+
+This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.5
+
+If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
+
+| Method  | Path                    | Description   |
+| :------ | :---------------------- | :------------ |
+| GET     | ../workitems/{workitem}	| Request to retrieve a Workitem	|
+
+The `Accept` header is required, and must have the value `application/dicom+json`.
+
+### Retrieve Workitem Response Status Codes
+
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| Workitem Instance was successfully retrieved. |
+| 400 (Bad Request)            	| There was a problem with the request.			|
+| 401 (Unauthorized)           	| The client is not authenticated. 				|
+| 404 (Not Found)              	| The Target Workitem was not found. 			|
+
+### Retrieve Workitem Response Payload
+
+* A success response has a single part payload containing the requested Workitem in the Selected Media Type.
+* The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute of the Workitem, since that should only be known to the Owner.
+
+## Update Workitem Transaction
+
+This transaction modifies attributes of an existing Workitem. It corresponds to the UPS DIMSE N-SET operation.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.6
+
+To update a Workitem currently in the SCHEDULED state, the Transaction UID Attribute shall not be present. For a Workitem in the IN PROGRESS state, the request must include the current Transaction UID as a query parameter. If the Workitem is already in the COMPLETED or CANCELED states, the response will be 400 (Bad Request).
+
+| Method  | Path                            | Description           |
+| :------ | :------------------------------ | :-------------------- |
+| POST     | ../workitems/{workitem}?{transaction-uid}	| Update Workitem Transaction	|
+
+The `Content-Type` header is required, and must have the value `application/dicom+json`.
+
+The request payload contains a dataset with the changes to be applied to the target Workitem. When modifying a sequence, the request must include all Items in the sequence, not just the Items to be modified.
+When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
+
+There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
+
+Notes on dataset attributes:
+- **Conditional requirement codes:** All the conditional requirement codes including 1C and 2C are treated as optional.
+
+The request cannot set the value of the Procedure Step State (0074,1000) Attribute. Procedure Step State is managed using the Change State transaction, or the Request Cancellation transaction.
+
+### Update Workitem Transaction Response Status Codes
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| The Target Workitem was updated.                                 |
+| 400 (Bad Request)            	| There was a problem with the request. For example: (1) the Target Workitem was in the COMPLETED or CANCELED state. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect. (4) the dataset did not conform to the requirements.
+| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
+| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
+| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+
+### Update Workitem Transaction Response Payload
+The origin server shall support header fields as required in [Table 11.6.3-2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#table_11.6.3-2).
+
+A success response shall have either no payload, or a payload containing a Status Report document.
+
+A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
+
+## Change Workitem State
+
+This transaction is used to change the state of a Workitem. It corresponds to the UPS DIMSE N-ACTION operation "Change UPS State". State changes are used to claim ownership, complete, or cancel a Workitem.
+
+Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7
+
+If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
+
+| Method  | Path                            | Description           |
+| :------ | :------------------------------ | :-------------------- |
+| PUT     | ../workitems/{workitem}/state	| Change Workitem State	|
+
+The `Accept` header is required, and must have the value `application/dicom+json`.
+
+The request payload shall contain the Change UPS State Data Elements. These data elements are:
+
+* **Transaction UID (0008,1195)**
+The request payload shall include a Transaction UID. The user agent creates the Transaction UID when requesting a transition to the IN PROGRESS state for a given Workitem. The user agent provides that Transaction UID in subsequent transactions with that Workitem.
+
+* **Procedure Step State (0074,1000)**
+The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELED".
+
+
+### Change Workitem State Response Status Codes
+
+| Code                         	| Description |
+| :---------------------------- | :---------- |
+| 200 (OK)               		| Workitem Instance was successfully retrieved.                                 |
+| 400 (Bad Request)            	| The request cannot be performed for one of the following reasons: (1) the request is invalid given the current state of the Target Workitem. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect
+| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
+| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
+| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
+
+### Change Workitem State Response Payload
+
+* Responses will include the header fields specified in [section 11.7.3.2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7.3.2)
+* A success response shall have no payload.
+* A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
 
 ## Search
 
@@ -621,155 +782,3 @@ The query API will return one of the following status codes in the response:
 - Matching is case insensitive and accent sensitive for other string VR types.
 - If there is a scenario where canceling a Workitem and querying the same happens at the same time, then the query will most likely exclude the Workitem that is getting updated and the response code will be 206 (Partial Content).
 
-## Request Cancellation
-
-This transaction enables the user to request cancellation of a non-owned Workitem.
-
-There are
-[four valid Workitem states](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.1.1-1):
-- `SCHEDULED`
-- `IN PROGRESS`
-- `CANCELED`
-- `COMPLETED`
-
-This transaction will only succeed against Workitems in the `SCHEDULED` state. Any user can claim ownership of a Workitem by
-setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
-the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
-forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
-return failure. An owned Workitem can be canceled via the Change Workitem State transaction.
-
-| Method  | Path                                            | Description                                      |
-| :------ | :---------------------------------------------- | :----------------------------------------------- |
-| POST    | ../workitems/{workitem}/cancelrequest           | Request the cancellation of a scheduled Workitem |
-
-The `Content-Type` headers is required, and must have the value `application/dicom+json`.
-
-The request payload may include Action Information as [defined in the DICOM Standard](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.2-1).
-
-### Request Cancellation Response Status Codes
-
-| Code                         | Description |
-| :--------------------------- | :---------- |
-| 202 (Accepted)               | The request was accepted by the server, but the Target Workitem state has not necessarily changed yet. |
-| 400 (Bad Request)            | There was a problem with the syntax of the request. |
-| 401 (Unauthorized)           | The client is not authenticated. |
-| 404 (Not Found)              | The Target Workitem was not found. |
-| 409 (Conflict)               | The request is inconsistent with the current state of the Target Workitem. For example, the Target Workitem is in the SCHEDULED or COMPLETED state. |
-| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
-
-### Request Cancellation Response Payload
-
-A success response will have no payload, and a failure response payload will contain a message describing the failure.
-If the Workitem Instance is already in a canceled state, the response will include the following HTTP Warning header:
-`299: The UPS is already in the requested state of CANCELED.`
-
-
-## Retrieve Workitem Transaction
-
-This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
-
-Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.5
-
-If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
-
-| Method  | Path                    | Description   |
-| :------ | :---------------------- | :------------ |
-| GET     | ../workitems/{workitem}	| Request to retrieve a Workitem	|
-
-The `Accept` header is required, and must have the value `application/dicom+json`.
-
-### Retrieve Workitem Response Status Codes
-
-| Code                         	| Description |
-| :---------------------------- | :---------- |
-| 200 (OK)               		| Workitem Instance was successfully retrieved. |
-| 400 (Bad Request)            	| There was a problem with the request.			|
-| 401 (Unauthorized)           	| The client is not authenticated. 				|
-| 404 (Not Found)              	| The Target Workitem was not found. 			|
-
-### Retrieve Workitem Response Payload
-
-* A success response has a single part payload containing the requested Workitem in the Selected Media Type.
-* The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute of the Workitem, since that should only be known to the Owner.
-
-## Change Workitem State
-
-This transaction is used to change the state of a Workitem. It corresponds to the UPS DIMSE N-ACTION operation "Change UPS State". State changes are used to claim ownership, complete, or cancel a Workitem.
-
-Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7
-
-If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
-
-| Method  | Path                            | Description           |
-| :------ | :------------------------------ | :-------------------- |
-| PUT     | ../workitems/{workitem}/state	| Change Workitem State	|
-
-The `Accept` header is required, and must have the value `application/dicom+json`.
-
-The request payload shall contain the Change UPS State Data Elements. These data elements are:
-
-* **Transaction UID (0008,1195)**
-The request payload shall include a Transaction UID. The user agent creates the Transaction UID when requesting a transition to the IN PROGRESS state for a given Workitem. The user agent provides that Transaction UID in subsequent transactions with that Workitem.
-
-* **Procedure Step State (0074,1000)**
-The legal values correspond to the requested state transition. They are: "IN PROGRESS", "COMPLETED", or "CANCELED".
-
-
-### Change Workitem State Response Status Codes
-
-| Code                         	| Description |
-| :---------------------------- | :---------- |
-| 200 (OK)               		| Workitem Instance was successfully retrieved.                                 |
-| 400 (Bad Request)            	| The request cannot be performed for one of the following reasons: (1) the request is invalid given the current state of the Target Workitem. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect
-| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
-| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
-| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
-
-### Change Workitem State Response Payload
-
-* Responses will include the header fields specified in [section 11.7.3.2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7.3.2)
-* A success response shall have no payload.
-* A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
-
-## Update Workitem Transaction
-
-This transaction modifies attributes of an existing Workitem. It corresponds to the UPS DIMSE N-SET operation.
-
-Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.6
-
-To update a Workitem currently in the SCHEDULED state, the Transaction UID Attribute shall not be present. For a Workitem in the IN PROGRESS state, the request must include the current Transaction UID as a query parameter. If the Workitem is already in the COMPLETED or CANCELED states, the response will be 400 (Bad Request).
-
-| Method  | Path                            | Description           |
-| :------ | :------------------------------ | :-------------------- |
-| POST     | ../workitems/{workitem}?{transaction-uid}	| Update Workitem Transaction	|
-
-The `Content-Type` header is required, and must have the value `application/dicom+json`.
-
-The request payload contains a dataset with the changes to be applied to the target Workitem. When modifying a sequence, the request must include all Items in the sequence, not just the Items to be modified.
-When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
-
-There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
-required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
-found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
-
-Notes on dataset attributes:
-- **Conditional requirement codes:** All the conditional requirement codes including 1C and 2C are treated as optional.
-
-The request cannot set the value of the Procedure Step State (0074,1000) Attribute. Procedure Step State is managed using the Change State transaction, or the Request Cancellation transaction.
-
-### Update Workitem Transaction Response Status Codes
-| Code                         	| Description |
-| :---------------------------- | :---------- |
-| 200 (OK)               		| The Target Workitem was updated.                                 |
-| 400 (Bad Request)            	| There was a problem with the request. For example: (1) the Target Workitem was in the COMPLETED or CANCELED state. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect. (4) the dataset did not conform to the requirements.
-| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
-| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
-| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
-| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
-
-### Update Workitem Transaction Response Payload
-The origin server shall support header fields as required in [Table 11.6.3-2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#table_11.6.3-2).
-
-A success response shall have either no payload, or a payload containing a Status Report document.
-
-A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
