@@ -10,10 +10,10 @@ The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade
   - [Search (QIDO-RS)](#search-qido-rs)
   - [Delete (Non-standard)](#delete)
 - [Worklist Service (UPS Push and Pull SOPs)](#worklist-service)
-  - [Create](#create)
-  - [Retrieve](#retrieve)
-  - [Update](#update)
-  - [Change State](#change-state)
+  - [Create Workitem](#create-workitem)
+  - [Retrieve Workitem](#retrieve-workitem)
+  - [Update Workitem](#update-workitem)
+  - [Change Workitem State](#change-workitem-state)
   - [Request Cancellation](#request-cancellation)
   - [Search](#search)
 
@@ -494,7 +494,7 @@ The DICOM service supports the Push and Pull SOPs of the [Worklist Service (UPS-
 
 Throughout, the variable `{workitem}` in a URI template stands for a Workitem UID.
 
-## Create
+## Create Workitem
 
 This transaction uses the POST method to create a new Workitem.
 
@@ -550,7 +550,7 @@ This transaction will only succeed against Workitems in the `SCHEDULED` state. A
 setting its Transaction UID and changing its state to `IN PROGRESS`. From then on, a user can only modify the Workitem by providing
 the correct Transaction UID. While UPS defines Watch and Event SOP classes that allow cancellation requests and other events to be
 forwarded, this DICOM service does not implement these classes, and so cancellation requests on workitems that are `IN PROGRESS` will
-return failure. An owned Workitem can be canceled via the Change Workitem State transaction.
+return failure. An owned Workitem can be canceled via the [Change Workitem State](#change-workitem-state) transaction.
 
 | Method  | Path                                            | Description                                      |
 | :------ | :---------------------------------------------- | :----------------------------------------------- |
@@ -578,7 +578,7 @@ If the Workitem Instance is already in a canceled state, the response will inclu
 `299: The UPS is already in the requested state of CANCELED.`
 
 
-## Retrieve Workitem Transaction
+## Retrieve Workitem
 
 This transaction retrieves a Workitem. It corresponds to the UPS DIMSE N-GET operation.
 
@@ -606,7 +606,7 @@ The `Accept` header is required, and must have the value `application/dicom+json
 * A success response has a single part payload containing the requested Workitem in the Selected Media Type.
 * The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute of the Workitem, since that should only be known to the Owner.
 
-## Update Workitem Transaction
+## Update Workitem
 
 This transaction modifies attributes of an existing Workitem. It corresponds to the UPS DIMSE N-SET operation.
 
@@ -655,7 +655,7 @@ This transaction is used to change the state of a Workitem. It corresponds to th
 
 Refer: https://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_11.7
 
-If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock.
+If the Workitem exists on the origin server, the Workitem shall be returned in an Acceptable Media Type. The returned Workitem shall not contain the Transaction UID (0008,1195) Attribute. This is necessary to preserve this Attribute's role as an access lock as described [here.](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#sect_CC.1.1)
 
 | Method  | Path                            | Description           |
 | :------ | :------------------------------ | :-------------------- |
@@ -688,7 +688,7 @@ The legal values correspond to the requested state transition. They are: "IN PRO
 * A success response shall have no payload.
 * A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
 
-## Search
+## Search 
 
 This transaction enables you to search for Workitems by attributes.
 
