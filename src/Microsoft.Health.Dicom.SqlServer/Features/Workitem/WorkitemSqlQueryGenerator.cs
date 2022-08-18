@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -69,13 +69,10 @@ internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
             .Append(VLatest.Workitem.WorkitemUid, WorkitemTableAlias).AppendLine(",")
             .Append(VLatest.Workitem.WorkitemKey, WorkitemTableAlias).AppendLine();
 
-        if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
-        {
-            StringBuilder
-                .Append(",")
-                .Append(VLatest.Workitem.Watermark, WorkitemTableAlias)
-                .AppendLine();
-        }
+        StringBuilder
+            .Append(",")
+            .Append(VLatest.Workitem.Watermark, WorkitemTableAlias)
+            .AppendLine();
 
         StringBuilder.AppendLine($"FROM {VLatest.Workitem.TableName} {WorkitemTableAlias}");
 
@@ -130,13 +127,10 @@ internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
             .Append(VLatest.Workitem.WorkitemKey, tableAlias).AppendLine(",")
             .Append(VLatest.Workitem.WorkitemUid, tableAlias).AppendLine();
 
-        if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsWatermarkSchemaVersion)
-        {
-            StringBuilder
-                .Append(",")
-                .Append(VLatest.Workitem.Watermark, tableAlias)
-                .AppendLine();
-        }
+        StringBuilder
+            .Append(",")
+            .Append(VLatest.Workitem.Watermark, tableAlias)
+            .AppendLine();
 
         StringBuilder.AppendLine("FROM");
     }
