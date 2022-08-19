@@ -9,13 +9,13 @@ The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade
   - [Retrieve (WADO-RS)](#retrieve-wado-rs)
   - [Search (QIDO-RS)](#search-qido-rs)
   - [Delete (Non-standard)](#delete)
-- [Worklist Service (UPS Push and Pull SOPs)](#worklist-service)
+- [Worklist Service (UPS Push and Pull SOPs)](#worklist-service-ups-rs)
   - [Create Workitem](#create-workitem)
   - [Retrieve Workitem](#retrieve-workitem)
   - [Update Workitem](#update-workitem)
   - [Change Workitem State](#change-workitem-state)
   - [Request Cancellation](#request-cancellation)
-  - [Search](#search)
+  - [Search Workitems](#search-workitems)
 
 Additionally, the following non-standard API(s) are supported:
 - [Change Feed](../concepts/change-feed.md)
@@ -688,7 +688,7 @@ The legal values correspond to the requested state transition. They are: "IN PRO
 * A success response shall have no payload.
 * A failure response payload may contain a Status Report describing any failures, warnings, or other useful information.
 
-## Search 
+## Search Workitems
 
 This transaction enables you to search for Workitems by attributes.
 
