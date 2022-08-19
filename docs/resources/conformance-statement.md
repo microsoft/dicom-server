@@ -9,7 +9,7 @@ The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade
   - [Retrieve (WADO-RS)](#retrieve-wado-rs)
   - [Search (QIDO-RS)](#search-qido-rs)
   - [Delete (Non-standard)](#delete)
-- [Worklist Service (UPS Push and Pull SOPs)](#worklist-service)
+- [Worklist Service (UPS Push and Pull SOPs)](#worklist-service-ups-rs)
   - [Create Workitem](#create-workitem)
   - [Retrieve Workitem](#retrieve-workitem)
   - [Update Workitem](#update-workitem)
