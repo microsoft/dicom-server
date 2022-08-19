@@ -13,7 +13,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HealthcareSharedPackageVersion>6.1.88</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
-    <Hl7FhirPackageVersion>4.2.0</Hl7FhirPackageVersion>
+    <Hl7FhirPackageVersion>4.2.1</Hl7FhirPackageVersion>
     <IdentityModelTokenPackageVersion>6.22.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
