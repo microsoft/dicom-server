@@ -17,7 +17,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [ApiVersion("1")]
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-[ServiceFilter(typeof(UpsRsFeatureFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Arguments are validated by RequiredAttribute")]
 public partial class WorkitemController : ControllerBase

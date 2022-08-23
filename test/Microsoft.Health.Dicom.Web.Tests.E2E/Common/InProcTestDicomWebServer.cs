@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ public class InProcTestDicomWebServer : TestDicomWebServer
     {
         var enableDataPartitions = (featureSettingType & TestServerFeatureSettingType.DataPartition) == TestServerFeatureSettingType.DataPartition;
         var enableDualWrite = (featureSettingType & TestServerFeatureSettingType.DualWrite) == TestServerFeatureSettingType.DualWrite;
-        var enableUpsRs = (featureSettingType & TestServerFeatureSettingType.UpsRs) == TestServerFeatureSettingType.UpsRs;
 
         string contentRoot = GetProjectPath("src", startupType);
 
@@ -50,7 +49,6 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         {
             { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
-            { "DicomServer:Features:EnableUpsRs", enableUpsRs.ToString() }
         };
 
 
