@@ -2067,7 +2067,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2164,7 +2163,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2267,7 +2265,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2321,7 +2318,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2380,7 +2376,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2412,7 +2407,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2474,7 +2468,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:
@@ -2528,7 +2521,6 @@ paths:
         content:
           application/dicom+json:
             schema:
-              maxItems: 1
               minItems: 1
               type: array
               items:

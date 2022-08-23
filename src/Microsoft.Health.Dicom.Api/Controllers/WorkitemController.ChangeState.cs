@@ -36,7 +36,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionChangeStateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.ChangeStateWorkitemInstancesRoute, Name = KnownRouteNames.ChangeStateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.ChangeStateWorkitem)]
-    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> ChangeStateAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
         _logger.LogInformation("DICOM Web ChangeState Workitem Transaction request received with file size of {FileSize} bytes.", Request.ContentLength);
 

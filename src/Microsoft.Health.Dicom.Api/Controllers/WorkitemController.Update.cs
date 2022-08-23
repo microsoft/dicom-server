@@ -42,7 +42,7 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedUpdateWorkitemInstance)]
     [VersionedRoute(KnownRoutes.UpdateWorkitemInstancesRoute, Name = KnownRouteNames.UpdateWorkitemInstance)]
     [AuditEventType(AuditEventSubType.UpdateWorkitem)]
-    public async Task<IActionResult> UpdateAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)][MaxLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
+    public async Task<IActionResult> UpdateAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
         // The Transaction UID is passed as the first query parameter 
         string transactionUid = HttpContext.Request.Query.Keys.FirstOrDefault();
