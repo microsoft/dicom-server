@@ -399,6 +399,8 @@
                     "restartPolicy": { "value": "[parameters('dicomCastRestartPolicy')]" },
                     "dicomWebEndpoint": { "value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]" },
                     "fhirEndpoint": { "value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]" },
+                    "patientSystemId": { "value": "[parameters('patientSystemId')]" },
+                    "isIssuerIdUsed": { "value": "[parameters('isIssuerIdUsed')]" },
                     "enforceValidationOfTagValues": { "value": "[parameters('enforceValidationOfTagValues')]" }
                 }
             }

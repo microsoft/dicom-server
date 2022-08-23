@@ -11,6 +11,8 @@ services:
       DicomWeb__endpoint: "http://dicomserver:8080"
       DicomCastWorker__PollInterval: "00:00:05"
       Logging__Console__IncludeScopes: "true"
+      PatientSystemId: "patientId"
+      IsIssuerIdUsed: false
     restart: always
     depends_on:
       - azurite

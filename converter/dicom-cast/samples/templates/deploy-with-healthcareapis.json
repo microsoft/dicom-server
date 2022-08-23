@@ -43,6 +43,18 @@
         "description": "Name of the workspace DICOM service."
       }
     },
+    "patientSystemId": {
+      "type": "string",
+      "metadata": {
+        "description": "Patient SystemId configured by the user"
+      }
+    },
+    "isIssuerIdUsed": {
+      "type": "bool",
+      "metadata": {
+        "description": "Issuer Id or Patient SystemId used based on this boolean value"
+      }
+    },
     "serviceName": {
       "minLength": 3,
       "maxLength": 24,
@@ -138,6 +150,8 @@
     "dicomServiceName": "[concat(parameters('workspaceName'), '/', parameters('dicomServiceName'))]",
     "fhirEndpoint": "[concat('https://', parameters('workspaceName'), '-', parameters('fhirServiceName'), '.fhir.azurehealthcareapis.com')]",
     "dicomWebEndpoint": "[concat('https://', parameters('workspaceName'), '-', parameters('dicomServiceName'), '.dicom.azurehealthcareapis.com')]",
+    "patientSystemId": "[parameters('patientSystemId')]",
+    "isIssuerIdUsed": "[parameters('isIssuerIdUsed')]",
     "authenticationArray": [
       {
         "name": "DicomWeb__Authentication__AuthenticationType",
@@ -162,6 +176,14 @@
       {
         "name": "Fhir__Authentication__ManagedIdentityCredential__Resource",
         "value": "[variables('fhirEndpoint')]"
+      },
+      {
+        "name": "PatientSystemId",
+        "value": "[variables('patientSystemId')]"
+      },
+      {
+        "name": "IsIssuerIdUsed",
+        "value": "[variables('isIssuerIdUsed')]"
       }
     ]
   },
@@ -248,6 +270,12 @@
           },
           "additionalEnvironmentVariables": {
             "value": "[variables('authenticationArray')]"
+          },
+          "patientSystemId": {
+            "value": "[variables('patientSystemId')]"
+          },
+          "isIssuerIdUsed": {
+            "value": "[variables('isIssuerIdUsed')]"
           }
         }
       }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,6 +11,8 @@ using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
@@ -24,18 +26,25 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
 {
     private readonly IFhirService _fhirService;
     private readonly IPatientSynchronizer _patientSynchronizer;
+    private readonly string _patientSystemId;
+    private readonly bool _isIssuerIdUsed;
+
 
     public PatientPipelineStep(
         IFhirService fhirService,
         IPatientSynchronizer patientSynchronizer,
+        IOptions<PatientConfiguration> patientConfiguration,
         ILogger<PatientPipelineStep> logger)
         : base(logger)
     {
         EnsureArg.IsNotNull(fhirService, nameof(fhirService));
         EnsureArg.IsNotNull(patientSynchronizer, nameof(patientSynchronizer));
+        EnsureArg.IsNotNull(patientConfiguration?.Value, nameof(patientConfiguration));
 
         _fhirService = fhirService;
         _patientSynchronizer = patientSynchronizer;
+        _patientSystemId = patientConfiguration.Value.PatientSystemId;
+        _isIssuerIdUsed = patientConfiguration.Value.IsIssuerIdUsed;
     }
 
     /// <inheritdoc/>
@@ -55,7 +64,20 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
             throw new MissingRequiredDicomTagException(nameof(DicomTag.PatientID));
         }
 
-        var patientIdentifier = new Identifier(string.Empty, patientId);
+        string patientSystemId = string.Empty;
+        if (_isIssuerIdUsed)
+        {
+            if (dataset.TryGetSingleValue(DicomTag.IssuerOfPatientID, out string systemId))
+            {
+                patientSystemId = systemId;
+            }
+        }
+        else
+        {
+            patientSystemId = _patientSystemId;
+        }
+
+        var patientIdentifier = new Identifier(patientSystemId, patientId);
 
         FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
 
