@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -23,6 +23,11 @@ public class BlobMigrationConfiguration
     /// Gets or sets flag to start delete old format blobs
     /// </summary>
     public bool StartDelete { get; set; }
+
+    /// <summary>
+    /// Gets or sets a flag to log usage of the old blob format
+    /// </summary>
+    public bool LogOldFormatUsage { get; set; }
 
     /// <summary>
     /// Gets or sets the copy files operation id

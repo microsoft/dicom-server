@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
+    private readonly bool _logOldFormatUsage;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
@@ -69,6 +70,7 @@ public class BlobMetadataStore : IMetadataStore
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
+        _logOldFormatUsage = blobMigrationFormatConfiguration.Value.LogOldFormatUsage;
     }
 
     /// <inheritdoc />
@@ -248,6 +250,7 @@ public class BlobMetadataStore : IMetadataStore
         }
         else
         {
+            LogOldFormatUsage();
             blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
         }
 
@@ -268,6 +271,8 @@ public class BlobMetadataStore : IMetadataStore
         }
         else if (_blobMigrationFormatType == BlobMigrationFormatType.Dual)
         {
+            LogOldFormatUsage();
+
             blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
 
@@ -276,6 +281,8 @@ public class BlobMetadataStore : IMetadataStore
         }
         else
         {
+            LogOldFormatUsage();
+
             blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
         }
@@ -296,6 +303,14 @@ public class BlobMetadataStore : IMetadataStore
         catch (Exception ex)
         {
             throw new DataStoreException(ex);
+        }
+    }
+
+    private void LogOldFormatUsage()
+    {
+        if (_logOldFormatUsage)
+        {
+            _logger.LogInformation("Using old blob format.");
         }
     }
 }
