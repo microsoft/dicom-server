@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ public class BlobFileStore : IFileStore
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
     private readonly BlobMigrationFormatType _blobMigrationFormatType;
+    private readonly bool _logOldFormatUsage;
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobFileStore> _logger;
@@ -59,6 +60,7 @@ public class BlobFileStore : IFileStore
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
         _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
+        _logOldFormatUsage = blobMigrationFormatConfiguration.Value.LogOldFormatUsage;
     }
 
     /// <inheritdoc />
@@ -258,6 +260,7 @@ public class BlobFileStore : IFileStore
         }
         else
         {
+            LogOldFormatUsage();
             blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
         }
 
@@ -278,6 +281,8 @@ public class BlobFileStore : IFileStore
         }
         else if (_blobMigrationFormatType == BlobMigrationFormatType.Dual)
         {
+            LogOldFormatUsage();
+
             blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
 
@@ -286,6 +291,8 @@ public class BlobFileStore : IFileStore
         }
         else
         {
+            LogOldFormatUsage();
+
             blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
             clients.Add(_container.GetBlockBlobClient(blobName));
         }
@@ -306,6 +313,14 @@ public class BlobFileStore : IFileStore
         catch (Exception ex)
         {
             throw new DataStoreException(ex);
+        }
+    }
+
+    private void LogOldFormatUsage()
+    {
+        if (_logOldFormatUsage)
+        {
+            _logger.LogInformation("Using old blob format.");
         }
     }
 }
