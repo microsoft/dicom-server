@@ -5,10 +5,10 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Functions.Export;
+namespace Microsoft.Health.Dicom.Client.Models;
 
 /// <summary>
-/// Represents the current state of the export operation to end-users.
+/// Represents the current state of the export operation.
 /// </summary>
 public sealed class ExportResults
 {
@@ -18,7 +18,7 @@ public sealed class ExportResults
     /// <value>
     /// The <see cref="Uri"/> for the resource containg export errors.
     /// </value>
-    public Uri ErrorHref { get; }
+    public Uri ErrorHref { get; set; }
 
     /// <summary>
     /// Gets the number of DICOM files that were successfully exported.
@@ -27,20 +27,8 @@ public sealed class ExportResults
     public long Exported { get; }
 
     /// <summary>
-    /// Gets the number of DICOM resources that were skipped because they failed to be exported.
+    /// Gets the number of DICOM files that were skipped because they failed to be exported.
     /// </summary>
-    /// <value>The non-negative number of DICOM resources that failed to be exported.</value>
+    /// <value>The non-negative number of DICOM files that failed to be exported.</value>
     public long Skipped { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ExportResults"/> structure based given progress.
-    /// </summary>
-    /// <param name="progress">The progress made by the export operation so far.</param>
-    /// <param name="errorHref">The URI for the error log.</param>
-    public ExportResults(ExportProgress progress, Uri errorHref)
-    {
-        Exported = progress.Exported;
-        Skipped = progress.Skipped;
-        ErrorHref = errorHref;
-    }
 }

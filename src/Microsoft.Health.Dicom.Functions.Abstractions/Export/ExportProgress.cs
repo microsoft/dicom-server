@@ -20,18 +20,10 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
     public long Exported { get; }
 
     /// <summary>
-    /// Gets the number of DICOM files that have failed to be exported so far.
+    /// Gets the number of DICOM resources that have failed to be exported so far.
     /// </summary>
-    /// <value>The non-negative number of DICOM files that failed to be exported.</value>
+    /// <value>The non-negative number of DICOM resources that failed to be exported.</value>
     public long Skipped { get; }
-
-    /// <summary>
-    /// Gets the total number of DICOM files that have been processed by the export operation.
-    /// </summary>
-    /// <value>The non-negative number of processed DICOM files.</value>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    public long Total => Exported + Skipped;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportProgress"/> structure based on the specified number of

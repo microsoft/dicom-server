@@ -50,11 +50,11 @@ internal class DicomTagsManager : IAsyncDisposable
         DicomWebResponse<DicomOperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
         DicomOperationReference operation = await response.GetValueAsync();
 
-        OperationState<DicomOperation> result = await _dicomWebClient.WaitForCompletionAsync(operation.Id);
+        OperationState<OperationType> result = await _dicomWebClient.WaitForCompletionAsync(operation.Id);
 
         // Check reference
-        DicomWebResponse<OperationState<DicomOperation>> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
-        OperationState<DicomOperation> actual = await actualResponse.GetValueAsync();
+        DicomWebResponse<OperationState<OperationType>> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
+        OperationState<OperationType> actual = await actualResponse.GetValueAsync();
         Assert.Equal(result.OperationId, actual.OperationId);
         Assert.Equal(result.Status, actual.Status);
 

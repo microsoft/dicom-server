@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -262,6 +262,7 @@ public partial class DicomWebClient : IDicomWebClient
 
         options.Converters.Add(new DicomIdentifierJsonConverter());
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
+        options.Converters.Add(new DicomOperationStateConverter());
         options.Converters.Add(new ExportDataOptionsJsonConverter());
         options.Converters.Add(new JsonStringEnumConverter());
 
