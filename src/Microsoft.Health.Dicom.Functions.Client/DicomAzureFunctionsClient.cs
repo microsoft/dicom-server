@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -19,11 +19,12 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Export;
-using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
+using Microsoft.Health.Dicom.Functions.Export;
+using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -73,13 +74,21 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             async (operation, state, checkpoint, token) =>
             {
                 OperationStatus status = state.RuntimeStatus.ToOperationStatus();
+
+                // TODO: After v1, we can use Succeeded instead of Completed
+#pragma warning disable CS0618
+                if (status == OperationStatus.Succeeded)
+                    status = OperationStatus.Completed;
+#pragma warning restore CS0618
+
                 return new OperationState<DicomOperation>
                 {
                     CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
                     LastUpdatedTime = state.LastUpdatedTime,
                     OperationId = operationId,
-                    PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Completed ? 100 : checkpoint.PercentComplete,
+                    PercentComplete = checkpoint.PercentComplete.HasValue && status == OperationStatus.Succeeded ? 100 : checkpoint.PercentComplete,
                     Resources = await GetResourceUrlsAsync(operation, checkpoint.ResourceIds, cancellationToken),
+                    Results = checkpoint.GetResults(state.Output),
                     Status = status,
                     Type = operation,
                 };
@@ -207,7 +216,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
-        Func<DicomOperation, DurableOrchestrationStatus, IOperationCheckpoint, CancellationToken, Task<T>> factory,
+        Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,
         CancellationToken cancellationToken)
         where T : class
     {
@@ -264,13 +273,13 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     // Note that the Durable Task Framework does not preserve the original CreatedTime
     // when an orchestration is restarted via ContinueAsNew, so we may store the original
     // in the checkpoint
-    private static IOperationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
+    private static IOrchestrationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
             DicomOperation.Copy or DicomOperation.MigrationDeletion => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
-            _ => NullOperationCheckpoint.Value,
+            _ => NullOrchestrationCheckpoint.Value,
         };
 
     private static IEnumerable<Guid> GetValidOperationIds(IEnumerable<DurableOrchestrationStatus> statuses)

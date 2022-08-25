@@ -3,12 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.ComponentModel.DataAnnotations;
-
-namespace Microsoft.Health.Dicom.Functions.Client;
-
-internal class FanOutFunctionOptions : FunctionOptions
-{
-    [Required]
-    public BatchingOptions Batching { get; set; }
-}
+using System;
+using System.Resources;
+[assembly: NeutralResourcesLanguage("en-us")]
+[assembly: CLSCompliant(false)]

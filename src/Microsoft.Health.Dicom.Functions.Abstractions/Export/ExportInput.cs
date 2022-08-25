@@ -1,12 +1,12 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Models.Export;
 
-namespace Microsoft.Health.Dicom.Core.Models.Export;
+namespace Microsoft.Health.Dicom.Functions.Export;
 
 /// <summary>
 /// Represents input to the export operation.

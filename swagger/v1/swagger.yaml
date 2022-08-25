@@ -2703,10 +2703,7 @@ components:
             type: string
             format: uri
           nullable: true
-        additionalProperties:
-          type: object
-          additionalProperties:
-            type: string
+        results:
           nullable: true
       additionalProperties: false
     DicomPrivateCreator:
@@ -2900,6 +2897,7 @@ components:
         - completed
         - failed
         - canceled
+        - succeeded
       type: string
     PartitionEntry:
       type: object

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -121,7 +121,9 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             // Wait for the operation to complete
             DicomOperationReference operation = await response.GetValueAsync();
             OperationState<DicomOperation> result = await _client.WaitForCompletionAsync(operation.Id);
+#pragma warning disable CS0618
             Assert.Equal(OperationStatus.Completed, result.Status);
+#pragma warning restore CS0618
 
             // Validate the export by querying the blob container
             List<BlobItem> actual = await _containerClient

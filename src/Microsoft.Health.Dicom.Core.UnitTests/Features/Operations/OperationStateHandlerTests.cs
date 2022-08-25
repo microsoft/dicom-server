@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -52,6 +52,7 @@ public class OperationStateHandlerTests
         var handler = new OperationStateHandler(auth, client);
 
         Guid id = Guid.NewGuid();
+#pragma warning disable CS0618
         var expected = new OperationState<DicomOperation>
         {
             CreatedTime = DateTime.UtcNow.AddMinutes(-5),
@@ -62,6 +63,7 @@ public class OperationStateHandlerTests
             Status = OperationStatus.Completed,
             Type = DicomOperation.Reindex,
         };
+#pragma warning restore CS0618
 
         auth.CheckAccess(DataActions.Read, source.Token).Returns(DataActions.Read);
         client.GetStateAsync(id, source.Token).Returns(expected);

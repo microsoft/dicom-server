@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -115,7 +115,7 @@ public class OperationsControllerTests
 
     [Theory]
     [InlineData(OperationStatus.Unknown)]
-    [InlineData(OperationStatus.Completed)]
+    [InlineData(OperationStatus.Succeeded)]
     [InlineData(OperationStatus.Failed)]
     [InlineData(OperationStatus.Canceled)]
     public async Task GivenDoneState_WhenGettingState_ThenReturnOk(OperationStatus doneStatus)
@@ -131,7 +131,7 @@ public class OperationsControllerTests
             CreatedTime = DateTime.UtcNow.AddMinutes(-5),
             LastUpdatedTime = DateTime.UtcNow,
             OperationId = id,
-            PercentComplete = doneStatus == OperationStatus.Completed ? 100 : 71,
+            PercentComplete = doneStatus == OperationStatus.Succeeded ? 100 : 71,
             Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
             Status = doneStatus,
             Type = DicomOperation.Reindex,

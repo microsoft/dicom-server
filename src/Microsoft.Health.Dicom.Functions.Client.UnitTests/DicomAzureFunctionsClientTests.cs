@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -19,10 +19,11 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Export;
-using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Export;
+using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -326,7 +327,13 @@ public class DicomAzureFunctionsClientTests
                 x.CreatedTimeTo == end &&
                 x.InstanceIdPrefix == null &&
                 x.ShowInput &&
-                x.RuntimeStatus.SequenceEqual(new OrchestrationRuntimeStatus[] { OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running }) &&
+                x.RuntimeStatus.SequenceEqual(
+                    new OrchestrationRuntimeStatus[]
+                    {
+                        OrchestrationRuntimeStatus.Pending,
+                        OrchestrationRuntimeStatus.Running,
+                        OrchestrationRuntimeStatus.ContinuedAsNew
+                    }) &&
                 x.TaskHubNames == null;
     }
 

@@ -48,4 +48,8 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\Indexing\" />
+  </ItemGroup>
+
 </Project>

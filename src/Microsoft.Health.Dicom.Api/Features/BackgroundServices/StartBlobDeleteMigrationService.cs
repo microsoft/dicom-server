@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,8 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
@@ -72,7 +72,7 @@ public class StartBlobDeleteMigrationService : BackgroundService
                     OperationCheckpointState<DicomOperation> copyOperation = await operationsClient.GetLastCheckpointAsync(_blobMigrationFormatConfiguration.CopyOperationId, stoppingToken);
 
                     // Make sure copy operation is completed before starting delete operation
-                    if (copyOperation?.Status == OperationStatus.Completed)
+                    if (copyOperation?.Status == OperationStatus.Succeeded)
                     {
                         var checkpoint = existingInstance?.Checkpoint as BlobMigrationCheckpoint;
 
@@ -83,7 +83,7 @@ public class StartBlobDeleteMigrationService : BackgroundService
                         _logger.LogDebug("Copy operation not exists or not in completed status. '{Status}'. Failed to start delete operation.", copyOperation?.Status);
                     }
                 }
-                else if (existingInstance.Status == OperationStatus.Completed)
+                else if (existingInstance.Status == OperationStatus.Succeeded)
                 {
                     _logger.LogInformation("Delete operation with ID '{InstanceId}' has already completed successfully.", _blobMigrationFormatConfiguration.DeleteOperationId);
                 }
