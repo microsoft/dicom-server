@@ -287,6 +287,12 @@ __pycache__/
 
 # IdentityServer workspace
 tempkey.rsa
+tempkey.jwk
 
 # docker .env file
 **/.env
+
+# Azurite files
+__azurite_db*.json
+__blobstorage__
+__queuestorage__
