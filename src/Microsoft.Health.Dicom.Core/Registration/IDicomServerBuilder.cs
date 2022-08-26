@@ -15,5 +15,5 @@ public interface IDicomServerBuilder
 {
     IServiceCollection Services { get; }
 
-    DicomServerConfiguration DicomServerConfiguration { get; }
+    CoreConfiguration CoreConfiguration { get; }
 }

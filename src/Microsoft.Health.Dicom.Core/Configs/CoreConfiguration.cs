@@ -7,7 +7,7 @@ using Microsoft.Health.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Core.Configs;
 
-public class DicomServerConfiguration
+public class CoreConfiguration
 {
     public AuditConfiguration Audit { get; } = new AuditConfiguration("X-MS-AZUREDICOM-AUDIT-");
 

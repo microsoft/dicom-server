@@ -14,7 +14,7 @@ public class SecurityModuleTests
     [Fact]
     public void GivenASecurityConfigurationWithAudience_WhenGettingValidAudiences_ThenCorrectAudienceShouldBeReturned()
     {
-        var dicomServerConfiguration = new DicomServerConfiguration
+        var coreConfiguration = new CoreConfiguration
         {
             Security =
             {
@@ -25,7 +25,7 @@ public class SecurityModuleTests
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
+        var securityModule = new SecurityModule(coreConfiguration);
 
         Assert.Equal(new[] { "initialAudience" }, securityModule.GetValidAudiences());
     }
@@ -33,7 +33,7 @@ public class SecurityModuleTests
     [Fact]
     public void GivenASecurityConfigurationWithAudienceAndAudiences_WhenGettingValidAudiences_ThenCorrectAudienceShouldBeReturned()
     {
-        var dicomServerConfiguration = new DicomServerConfiguration
+        var coreConfiguration = new CoreConfiguration
         {
             Security =
             {
@@ -45,7 +45,7 @@ public class SecurityModuleTests
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
+        var securityModule = new SecurityModule(coreConfiguration);
 
         Assert.Equal(new[] { "audience1", "audience2" }, securityModule.GetValidAudiences());
     }
@@ -53,7 +53,7 @@ public class SecurityModuleTests
     [Fact]
     public void GivenASecurityConfigurationWithAudiences_WhenGettingValidAudiences_ThenCorrectAudienceShouldBeReturned()
     {
-        var dicomServerConfiguration = new DicomServerConfiguration
+        var coreConfiguration = new CoreConfiguration
         {
             Security =
             {
@@ -64,7 +64,7 @@ public class SecurityModuleTests
             },
         };
 
-        var securityModule = new SecurityModule(dicomServerConfiguration);
+        var securityModule = new SecurityModule(coreConfiguration);
 
         Assert.Equal(new[] { "audience1", "audience2" }, securityModule.GetValidAudiences());
     }
@@ -72,7 +72,7 @@ public class SecurityModuleTests
     [Fact]
     public void GivenASecurityConfigurationWithNoAudienceSpecified_WhenGettingValidAudiences_ThenNullShouldBeReturned()
     {
-        var dicomServerConfiguration = new DicomServerConfiguration
+        var dicomServerConfiguration = new CoreConfiguration
         {
             Security =
             {

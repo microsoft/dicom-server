@@ -25,10 +25,10 @@ public class SecurityModule : IStartupModule
 {
     private readonly SecurityConfiguration _securityConfiguration;
 
-    public SecurityModule(DicomServerConfiguration dicomServerConfiguration)
+    public SecurityModule(CoreConfiguration coreConfiguration)
     {
-        EnsureArg.IsNotNull(dicomServerConfiguration, nameof(dicomServerConfiguration));
-        _securityConfiguration = dicomServerConfiguration.Security;
+        EnsureArg.IsNotNull(coreConfiguration, nameof(coreConfiguration));
+        _securityConfiguration = coreConfiguration.Security;
     }
 
     public void Load(IServiceCollection services)

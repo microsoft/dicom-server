@@ -22,44 +22,45 @@ public static class DicomServerApplicationBuilderExtensions
 
     public static IDicomServerBuilder AddDicomServer(this IServiceCollection services,
         IConfiguration configurationRoot,
-        Action<DicomServerConfiguration> configureAction = null)
+        Action<CoreConfiguration> configureAction = null)
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        var dicomServerConfiguration = new DicomServerConfiguration();
+        var coreConfiguration = new CoreConfiguration();
 
-        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
-        configureAction?.Invoke(dicomServerConfiguration);
+        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(coreConfiguration);
+        configureAction?.Invoke(coreConfiguration);
 
-        services.AddSingleton(Options.Create(dicomServerConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DataPartition));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
+        services.AddSingleton(Options.Create(coreConfiguration));
+        services.AddSingleton(Options.Create(coreConfiguration.Security));
+        services.AddSingleton(Options.Create(coreConfiguration.Features));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.DeletedInstanceCleanup));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.StoreServiceSettings));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.ExtendedQueryTag));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.DataPartition));
+        services.AddSingleton(Options.Create(coreConfiguration.Audit));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.RetrieveConfiguration));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.BlobMigration));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.InstanceMetadataCacheConfiguration));
+        services.AddSingleton(Options.Create(coreConfiguration.Services.FramesRangeCacheConfiguration));
 
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
-        services.RegisterAssemblyModules(typeof(MediationModule).Assembly, dicomServerConfiguration, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
+        services.RegisterAssemblyModules(typeof(MediationModule).Assembly, coreConfiguration, coreConfiguration.Features, coreConfiguration.Services);
 
-        return new DicomServerBuilder(services, dicomServerConfiguration);
+        return new DicomServerBuilder(services, coreConfiguration);
     }
 
     private class DicomServerBuilder : IDicomServerBuilder
     {
-        public DicomServerBuilder(IServiceCollection services, DicomServerConfiguration configuration)
+        public DicomServerBuilder(IServiceCollection services, CoreConfiguration configuration)
         {
             Services = EnsureArg.IsNotNull(services, nameof(services));
-            DicomServerConfiguration = EnsureArg.IsNotNull(configuration, nameof(configuration));
+            CoreConfiguration = EnsureArg.IsNotNull(configuration, nameof(configuration));
         }
 
         public IServiceCollection Services { get; }
-        public DicomServerConfiguration DicomServerConfiguration { get; }
+
+        public CoreConfiguration CoreConfiguration { get; }
     }
 }

@@ -78,19 +78,19 @@ public static class DicomServerServiceCollectionExtensions
     {
         EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
 
-        var dicomApiConfiguration = new ApiConfiguration();
+        var apiConfiguration = new ApiConfiguration();
 
-        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomApiConfiguration);
-        configureAction?.Invoke(dicomApiConfiguration);
+        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(apiConfiguration);
+        configureAction?.Invoke(apiConfiguration);
 
-        dicomServerBuilder.Services.AddSingleton(Options.Create(dicomApiConfiguration));
-        dicomServerBuilder.Services.AddSingleton(Options.Create(dicomApiConfiguration.Swagger));
+        dicomServerBuilder.Services.AddSingleton(Options.Create(apiConfiguration));
+        dicomServerBuilder.Services.AddSingleton(Options.Create(apiConfiguration.Swagger));
 
         // Register modules in Microsoft.Health.Dicom.Api
-        dicomServerBuilder.Services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerBuilder.DicomServerConfiguration);
+        dicomServerBuilder.Services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerBuilder.CoreConfiguration);
 
         // Register modules in Microsoft.Health.Api
-        dicomServerBuilder.Services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerBuilder.DicomServerConfiguration, dicomApiConfiguration);
+        dicomServerBuilder.Services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerBuilder.CoreConfiguration, apiConfiguration);
         dicomServerBuilder.Services.AddApplicationInsightsTelemetry();
 
         dicomServerBuilder.Services.AddOptions();
