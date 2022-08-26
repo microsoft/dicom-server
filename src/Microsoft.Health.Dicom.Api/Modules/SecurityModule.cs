@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Core.Features.Security.Authorization;
-using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Security;

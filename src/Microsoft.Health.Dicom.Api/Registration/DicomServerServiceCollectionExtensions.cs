@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
@@ -30,7 +29,6 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Microsoft.AspNetCore.Builder;
@@ -69,44 +67,35 @@ public static class DicomServerServiceCollectionExtensions
     /// <summary>
     /// Adds services for enabling a DICOM server.
     /// </summary>
-    /// <param name="services">The services collection.</param>
+    /// <param name="dicomServerBuilder">The services collection.</param>
     /// <param name="configurationRoot">An optional configuration root object. This method uses the "DicomServer" section.</param>
-    /// <param name="configureAction">An optional delegate to set <see cref="DicomServerConfiguration"/> properties after values have been loaded from configuration.</param>
+    /// <param name="configureAction">An optional delegate to set <see cref="DicomApiConfiguration"/> properties after values have been loaded from configuration.</param>
     /// <returns>A <see cref="IDicomServerBuilder"/> object.</returns>
-    public static IDicomServerBuilder AddDicomServer(
-        this IServiceCollection services,
+    public static IDicomServerBuilder AddMvc(
+        this IDicomServerBuilder dicomServerBuilder,
         IConfiguration configurationRoot,
-        Action<DicomServerConfiguration> configureAction = null)
+        Action<DicomApiConfiguration> configureAction = null)
     {
-        EnsureArg.IsNotNull(services, nameof(services));
+        EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
 
-        var dicomServerConfiguration = new DicomServerConfiguration();
+        var dicomApiConfiguration = new DicomApiConfiguration();
 
-        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
-        configureAction?.Invoke(dicomServerConfiguration);
+        configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomApiConfiguration);
+        configureAction?.Invoke(dicomApiConfiguration);
 
-        services.AddSingleton(Options.Create(dicomServerConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DataPartition));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.RetrieveConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
+        dicomServerBuilder.Services.AddSingleton(Options.Create(dicomApiConfiguration));
+        dicomServerBuilder.Services.AddSingleton(Options.Create(dicomApiConfiguration.Swagger));
 
+        // Register modules in Microsoft.Health.Dicom.Api
+        dicomServerBuilder.Services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerBuilder.DicomServerConfiguration);
 
-        services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
-        services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
-        services.AddApplicationInsightsTelemetry();
+        // Register modules in Microsoft.Health.Api
+        dicomServerBuilder.Services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerBuilder.DicomServerConfiguration, dicomApiConfiguration);
+        dicomServerBuilder.Services.AddApplicationInsightsTelemetry();
 
-        services.AddOptions();
+        dicomServerBuilder.Services.AddOptions();
 
-        services
+        dicomServerBuilder.Services
             .AddMvc(options =>
             {
                 options.EnableEndpointRouting = false;
@@ -114,7 +103,7 @@ public static class DicomServerServiceCollectionExtensions
             })
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
 
-        services.AddApiVersioning(c =>
+        dicomServerBuilder.Services.AddApiVersioning(c =>
         {
             c.ApiVersionReader = new UrlSegmentApiVersionReader();
             c.AssumeDefaultVersionWhenUnspecified = true;
@@ -122,15 +111,15 @@ public static class DicomServerServiceCollectionExtensions
             c.UseApiBehavior = false;
         });
 
-        services.AddVersionedApiExplorer(options =>
+        dicomServerBuilder.Services.AddVersionedApiExplorer(options =>
         {
             // The format for this is 'v'major[.minor][-status] ex. v1.0-prerelease
             options.GroupNameFormat = "'v'VVV";
             options.SubstituteApiVersionInUrl = true;
         });
 
-        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-        services.AddSwaggerGen(options =>
+        dicomServerBuilder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+        dicomServerBuilder.Services.AddSwaggerGen(options =>
         {
             options.OperationFilter<SwaggerDefaultValues>();
             options.OperationFilter<ErrorCodeOperationFilter>();
@@ -138,25 +127,11 @@ public static class DicomServerServiceCollectionExtensions
             options.DocumentFilter<ReflectionTypeFilter>();
         });
 
-        services.AddSingleton<IUrlResolver, UrlResolver>();
+        dicomServerBuilder.Services.AddSingleton<IUrlResolver, UrlResolver>();
 
-        services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
-        services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
+        dicomServerBuilder.Services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
-        services.TryAddSingleton<RecyclableMemoryStreamManager>();
-
-        return new DicomServerBuilder(services);
-    }
-
-    private class DicomServerBuilder : IDicomServerBuilder
-    {
-        public DicomServerBuilder(IServiceCollection services)
-        {
-            EnsureArg.IsNotNull(services, nameof(services));
-            Services = services;
-        }
-
-        public IServiceCollection Services { get; }
+        return dicomServerBuilder;
     }
 
     /// <summary>

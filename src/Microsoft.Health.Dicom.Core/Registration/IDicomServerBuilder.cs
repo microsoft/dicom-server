@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Core.Registration;
 
@@ -13,4 +14,6 @@ namespace Microsoft.Health.Dicom.Core.Registration;
 public interface IDicomServerBuilder
 {
     IServiceCollection Services { get; }
+
+    DicomServerConfiguration DicomServerConfiguration { get; }
 }

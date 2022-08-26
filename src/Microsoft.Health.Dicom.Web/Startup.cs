@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Client;
 
 namespace Microsoft.Health.Dicom.Web;
@@ -33,6 +34,7 @@ public class Startup
         // The execution of IHostedServices depends on the order they are added to the dependency injection container, so we
         // need to ensure that the schema is initialized before the background workers are started.
         services.AddDicomServer(Configuration)
+            .AddMvc(Configuration)
             .AddBlobDataStores(Configuration)
             .AddSqlServer(Configuration)
             .AddKeyVaultClient(Configuration)
