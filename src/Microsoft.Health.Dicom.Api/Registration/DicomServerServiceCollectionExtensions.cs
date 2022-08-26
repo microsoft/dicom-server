@@ -65,13 +65,13 @@ public static class DicomServerServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds services for enabling a DICOM server.
+    /// Adds services for enabling a DICOMWeb API.
     /// </summary>
     /// <param name="dicomServerBuilder">The services collection.</param>
     /// <param name="configurationRoot">An optional configuration root object. This method uses the "DicomServer" section.</param>
     /// <param name="configureAction">An optional delegate to set <see cref="DicomApiConfiguration"/> properties after values have been loaded from configuration.</param>
     /// <returns>A <see cref="IDicomServerBuilder"/> object.</returns>
-    public static IDicomServerBuilder AddMvc(
+    public static IDicomServerBuilder AddWebApi(
         this IDicomServerBuilder dicomServerBuilder,
         IConfiguration configurationRoot,
         Action<DicomApiConfiguration> configureAction = null)
