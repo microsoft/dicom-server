@@ -8,7 +8,7 @@ using Microsoft.Health.Api.Features.Cors;
 
 namespace Microsoft.Health.Dicom.Api.Configs;
 
-public class DicomApiConfiguration : IApiConfiguration
+public class ApiConfiguration : IApiConfiguration
 {
     public CorsConfiguration Cors { get; } = new CorsConfiguration();
 
