@@ -115,7 +115,6 @@ public class OperationsControllerTests
 
     [Theory]
     [InlineData(OperationStatus.Unknown)]
-    [InlineData(OperationStatus.Succeeded)]
     [InlineData(OperationStatus.Failed)]
     [InlineData(OperationStatus.Canceled)]
     public async Task GivenDoneState_WhenGettingState_ThenReturnOk(OperationStatus doneStatus)
@@ -150,6 +149,59 @@ public class OperationsControllerTests
         var actual = response as ObjectResult;
         Assert.Equal((int)HttpStatusCode.OK, actual.StatusCode);
         Assert.Same(expected, actual.Value);
+
+        await mediator.Received(1).Send(
+            Arg.Is<OperationStateRequest>(x => x.OperationId == id),
+            Arg.Is(controller.HttpContext.RequestAborted));
+        urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
+    }
+
+    [Fact]
+    public async Task GivenSucceededState_WhenGettingState_ThenReturnCompleted()
+    {
+        Guid id = Guid.NewGuid();
+        DateTime utcNow = DateTime.UtcNow;
+        IMediator mediator = Substitute.For<IMediator>();
+        IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
+        var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
+        controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+        var expected = new OperationState<DicomOperation, object>
+        {
+            CreatedTime = utcNow.AddMinutes(-5),
+            LastUpdatedTime = utcNow,
+            OperationId = id,
+            PercentComplete = 100,
+            Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
+            Results = new object(),
+            Status = OperationStatus.Succeeded,
+            Type = DicomOperation.Reindex,
+        };
+
+        mediator
+            .Send(
+                Arg.Is<OperationStateRequest>(x => x.OperationId == id),
+                Arg.Is(controller.HttpContext.RequestAborted))
+            .Returns(new OperationStateResponse(expected));
+
+        IActionResult response = await controller.GetStateAsync(id);
+        Assert.IsType<ObjectResult>(response);
+        Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
+
+        var objectResult = response as ObjectResult;
+        Assert.Equal((int)HttpStatusCode.OK, objectResult.StatusCode);
+
+        var actual = objectResult.Value as IOperationState<DicomOperation>;
+        Assert.Equal(expected.CreatedTime, actual.CreatedTime);
+        Assert.Equal(expected.LastUpdatedTime, actual.LastUpdatedTime);
+        Assert.Equal(expected.OperationId, actual.OperationId);
+        Assert.Equal(expected.PercentComplete, actual.PercentComplete);
+        Assert.Same(expected.Resources, actual.Resources);
+        Assert.Same(expected.Results, actual.Results);
+#pragma warning disable CS0618
+        Assert.Equal(OperationStatus.Completed, actual.Status);
+#pragma warning restore CS0618
+        Assert.Equal(expected.Type, actual.Type);
 
         await mediator.Received(1).Send(
             Arg.Is<OperationStateRequest>(x => x.OperationId == id),
