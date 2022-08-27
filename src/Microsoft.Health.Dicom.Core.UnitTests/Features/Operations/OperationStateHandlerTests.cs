@@ -52,7 +52,6 @@ public class OperationStateHandlerTests
         var handler = new OperationStateHandler(auth, client);
 
         Guid id = Guid.NewGuid();
-#pragma warning disable CS0618
         var expected = new OperationState<DicomOperation>
         {
             CreatedTime = DateTime.UtcNow.AddMinutes(-5),
@@ -60,10 +59,9 @@ public class OperationStateHandlerTests
             OperationId = id,
             PercentComplete = 100,
             Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
-            Status = OperationStatus.Completed,
+            Status = OperationStatus.Succeeded,
             Type = DicomOperation.Reindex,
         };
-#pragma warning restore CS0618
 
         auth.CheckAccess(DataActions.Read, source.Token).Returns(DataActions.Read);
         client.GetStateAsync(id, source.Token).Returns(expected);

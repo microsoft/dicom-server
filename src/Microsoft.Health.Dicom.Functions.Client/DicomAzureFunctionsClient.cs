@@ -74,13 +74,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             async (operation, state, checkpoint, token) =>
             {
                 OperationStatus status = state.RuntimeStatus.ToOperationStatus();
-
-                // TODO: After v1, we can use Succeeded instead of Completed
-#pragma warning disable CS0618
-                if (status == OperationStatus.Succeeded)
-                    status = OperationStatus.Completed;
-#pragma warning restore CS0618
-
                 return new OperationState<DicomOperation, object>
                 {
                     CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
