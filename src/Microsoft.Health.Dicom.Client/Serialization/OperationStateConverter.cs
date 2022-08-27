@@ -13,23 +13,23 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Client.Serialization;
 
-internal sealed class DicomOperationStateConverter : JsonConverter<OperationState<DicomOperation>>
+internal sealed class OperationStateConverter : JsonConverter<IOperationState<DicomOperation>>
 {
-    public override OperationState<DicomOperation> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IOperationState<DicomOperation> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         JsonObject obj = JsonSerializer.Deserialize<JsonObject>(ref reader, options);
 
-        if (!obj.TryGetPropertyValue(nameof(OperationState<DicomOperation>.Type), out JsonNode value))
+        if (!obj.TryGetPropertyValue(nameof(IOperationState<DicomOperation>.Type), out JsonNode value))
             throw new JsonException();
 
         return value.Deserialize<DicomOperation>(options) switch
         {
-            DicomOperation.Export => obj.Deserialize<GenericOperationState<ExportResults>>(),
+            DicomOperation.Export => obj.Deserialize<OperationState<DicomOperation, ExportResults>>(),
             _ => obj.Deserialize<OperationState<DicomOperation>>(),
         };
     }
 
-    public override void Write(Utf8JsonWriter writer, OperationState<DicomOperation> value, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, IOperationState<DicomOperation> value, JsonSerializerOptions options)
         => throw new NotSupportedException(
             string.Format(CultureInfo.CurrentCulture, DicomClientResource.JsonWriteNotSupported, nameof(DicomIdentifier)));
 }

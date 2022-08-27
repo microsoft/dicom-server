@@ -262,9 +262,9 @@ public partial class DicomWebClient : IDicomWebClient
 
         options.Converters.Add(new DicomIdentifierJsonConverter());
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
-        options.Converters.Add(new DicomOperationStateConverter());
         options.Converters.Add(new ExportDataOptionsJsonConverter());
         options.Converters.Add(new JsonStringEnumConverter());
+        options.Converters.Add(new OperationStateConverter());
 
         return options;
     }

@@ -206,13 +206,14 @@ public class DicomAzureFunctionsClientTests
             _urlResolver.ResolveQueryTagUri(tagPaths[i]).Returns(expectedResourceUrls[i]);
         }
 
-        OperationState<DicomOperation> actual = await _client.GetStateAsync(operationId, source.Token);
+        IOperationState<DicomOperation> actual = await _client.GetStateAsync(operationId, source.Token);
         Assert.NotNull(actual);
         Assert.Equal(overrideCreatedTime ? createdTime.AddHours(-1) : createdTime, actual.CreatedTime);
         Assert.Equal(createdTime.AddMinutes(15), actual.LastUpdatedTime);
         Assert.Equal(operationId, actual.OperationId);
         Assert.Equal(populateInput ? 80 : 0, actual.PercentComplete);
         Assert.True(actual.Resources.SequenceEqual(populateInput ? expectedResourceUrls : Array.Empty<Uri>()));
+        Assert.Null(actual.Results);
         Assert.Equal(OperationStatus.Running, actual.Status);
         Assert.Equal(DicomOperation.Reindex, actual.Type);
 
@@ -231,6 +232,54 @@ public class DicomAzureFunctionsClientTests
                 _urlResolver.Received(1).ResolveQueryTagUri(path);
             }
         }
+    }
+
+    [Fact]
+    public async Task GivenExportOperation_WhenGettingState_ThenReturnStatusWithResults()
+    {
+        string instanceId = OperationId.Generate();
+        Guid operationId = Guid.Parse(instanceId);
+        var createdTime = new DateTime(2022, 08, 26, 1, 2, 3, DateTimeKind.Utc);
+
+        using var source = new CancellationTokenSource();
+
+        _durableClient
+            .GetStatusAsync(instanceId, showInput: true)
+            .Returns(new DurableOrchestrationStatus
+            {
+                CreatedTime = createdTime,
+                CustomStatus = null,
+                History = null,
+                Input = JObject.FromObject(
+                    new ExportCheckpoint
+                    {
+                        ErrorHref = new Uri($"https://unit-test.blob.core.windows.net/export/{instanceId}/Errors.log"),
+                        Progress = new ExportProgress(1000, 2),
+                    }),
+                InstanceId = instanceId,
+                LastUpdatedTime = createdTime.AddMinutes(5),
+                Name = FunctionNames.ExportDicomFiles,
+                Output = null,
+                RuntimeStatus = OrchestrationRuntimeStatus.Running,
+            });
+
+        IOperationState<DicomOperation> actual = await _client.GetStateAsync(operationId, source.Token);
+        Assert.NotNull(actual);
+        Assert.Equal(createdTime, actual.CreatedTime);
+        Assert.Equal(createdTime.AddMinutes(5), actual.LastUpdatedTime);
+        Assert.Equal(operationId, actual.OperationId);
+        Assert.Null(actual.PercentComplete);
+        Assert.Null(actual.Resources);
+        Assert.Equal(OperationStatus.Running, actual.Status);
+        Assert.Equal(DicomOperation.Export, actual.Type);
+
+        var results = actual.Results as ExportResults;
+        Assert.NotNull(results);
+        Assert.Equal(new Uri($"https://unit-test.blob.core.windows.net/export/{instanceId}/Errors.log"), results.ErrorHref);
+        Assert.Equal(1000L, results.Exported);
+        Assert.Equal(2L, results.Skipped);
+
+        await _durableClient.Received(1).GetStatusAsync(instanceId, showInput: true);
     }
 
     [Fact]

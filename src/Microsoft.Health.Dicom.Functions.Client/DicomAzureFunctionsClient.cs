@@ -68,8 +68,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
-        => GetStateAsync(
+    public Task<IOperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default)
+        => GetStateAsync<IOperationState<DicomOperation>>(
             operationId,
             async (operation, state, checkpoint, token) =>
             {
@@ -81,7 +81,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                     status = OperationStatus.Completed;
 #pragma warning restore CS0618
 
-                return new OperationState<DicomOperation>
+                return new OperationState<DicomOperation, object>
                 {
                     CreatedTime = checkpoint.CreatedTime ?? state.CreatedTime,
                     LastUpdatedTime = state.LastUpdatedTime,

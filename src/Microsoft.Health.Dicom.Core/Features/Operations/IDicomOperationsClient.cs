@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ public interface IDicomOperationsClient
     /// with the specified <paramref name="operationId"/>, if found; otherwise <see langword="null"/>.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
+    Task<IOperationState<DicomOperation>> GetStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously searches for long-running operations based on the given <paramref name="query"/>.

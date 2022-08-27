@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Client.Models;
-using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Client;
 

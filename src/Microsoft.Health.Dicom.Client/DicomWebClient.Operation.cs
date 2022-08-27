@@ -5,8 +5,6 @@
 
 using System;
 using System.Net.Http;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Client.Models;
@@ -16,12 +14,12 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial class DicomWebClient : IDicomWebClient
 {
-    public async Task<DicomWebResponse<OperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<IOperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
         var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseOperationUri}/{operationId.ToString(OperationId.FormatSpecifier)}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
-        return new DicomWebResponse<OperationState<DicomOperation>>(response, ValueFactory<OperationState<DicomOperation>>);
+        return new DicomWebResponse<IOperationState<DicomOperation>>(response, ValueFactory<IOperationState<DicomOperation>>);
     }
 }

@@ -13,5 +13,5 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
-    Task<DicomWebResponse<OperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<IOperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 }

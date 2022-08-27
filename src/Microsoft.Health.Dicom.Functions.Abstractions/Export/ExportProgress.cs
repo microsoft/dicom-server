@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.Json.Serialization;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.Export;
@@ -30,16 +31,17 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
     /// DICOM files processed by an export operation.
     /// </summary>
     /// <param name="exported">The number of files that were successfully exported.</param>
-    /// <param name="failed">The number of files that failed to be exported.</param>
+    /// <param name="skipped">The number of files that failed to be exported.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <para><paramref name="exported"/> is less than <c>0</c>.</para>
     /// <para>-or-</para>
-    /// <para><paramref name="failed"/> is less than <c>0</c>.</para>
+    /// <para><paramref name="skipped"/> is less than <c>0</c>.</para>
     /// </exception>
-    public ExportProgress(long exported, long failed)
+    [JsonConstructor]
+    public ExportProgress(long exported, long skipped)
     {
         Exported = EnsureArg.IsGte(exported, 0, nameof(exported));
-        Skipped = EnsureArg.IsGte(failed, 0, nameof(failed));
+        Skipped = EnsureArg.IsGte(skipped, 0, nameof(skipped));
     }
 
     /// <summary>
