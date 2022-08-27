@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Description>Common abstractions used by DICOM functions.</Description>
     <RootNamespace>Microsoft.Health.Dicom.Functions</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>

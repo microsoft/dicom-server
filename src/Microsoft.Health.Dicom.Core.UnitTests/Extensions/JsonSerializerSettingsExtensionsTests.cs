@@ -78,7 +78,7 @@ public class JsonSerializerSettingsExtensionsTests
   },
   ""href"": ""https://www.bing.com""
 }",
-        actual);
+            actual);
 
         checkpoint = JsonConvert.DeserializeObject<Checkpoint>(actual, _settings);
         AssertCheckpoint(checkpoint);
