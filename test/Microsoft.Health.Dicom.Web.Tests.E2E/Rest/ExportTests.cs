@@ -126,14 +126,14 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/Errors.log";
             var results = state.Results as ExportResults;
             Assert.NotNull(results);
-            Assert.Equal(new Uri(containerClient.Uri + "/" + expectedErrorLog), results.ErrorHref);
+            Assert.EndsWith(expectedErrorLog, results.ErrorHref.AbsoluteUri, StringComparison.Ordinal);
             Assert.Equal(instances.Count, results.Exported);
             Assert.Equal(3, results.Skipped);
 
             // Validate the export by querying the blob container
             List<BlobItem> actual = await containerClient
-                .GetBlobsAsync()
-                .Where(x => x.Name.StartsWith(operation.Id.ToString(OperationId.FormatSpecifier)) && x.Name.EndsWith(".dcm"))
+                .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
+                .Where(x => x.Name.EndsWith(".dcm"))
                 .ToListAsync();
 
             Assert.Equal(instances.Count, actual.Count);
