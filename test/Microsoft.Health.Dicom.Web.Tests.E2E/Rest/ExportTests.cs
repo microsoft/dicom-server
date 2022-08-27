@@ -126,7 +126,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/Errors.log";
             var results = state.Results as ExportResults;
             Assert.NotNull(results);
-            Assert.Equal(new Uri(containerClient.Uri + expectedErrorLog), results.ErrorHref);
+            Assert.Equal(new Uri(containerClient.Uri + "/" + expectedErrorLog), results.ErrorHref);
             Assert.Equal(instances.Count, results.Exported);
             Assert.Equal(3, results.Skipped);
 

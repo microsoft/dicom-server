@@ -24,11 +24,11 @@ public sealed class ExportResults
     /// Gets the number of DICOM files that were successfully exported.
     /// </summary>
     /// <value>The non-negative number of exported DICOM files.</value>
-    public long Exported { get; }
+    public long Exported { get; set; }
 
     /// <summary>
     /// Gets the number of DICOM files that were skipped because they failed to be exported.
     /// </summary>
     /// <value>The non-negative number of DICOM files that failed to be exported.</value>
-    public long Skipped { get; }
+    public long Skipped { get; set; }
 }

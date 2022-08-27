@@ -18,10 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 internal static class DicomWebClientExtensions
 {
     private static readonly AsyncRetryPolicy<IOperationState<DicomOperation>> OperationPolicy = Policy
-       .HandleResult<IOperationState<DicomOperation>>(x =>
-       {
-           return x.Status.IsInProgress();
-       })
+       .HandleResult<IOperationState<DicomOperation>>(x => x.Status.IsInProgress())
        .WaitAndRetryAsync(100, x => TimeSpan.FromSeconds(3)); // Retry 100 times and wait for 3 seconds after each retry
 
     public static Task<IOperationState<DicomOperation>> WaitForCompletionAsync(this IDicomWebClient client, Guid operationId, CancellationToken cancellationToken = default)
