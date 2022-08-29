@@ -1,13 +1,13 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.Indexing;
 using Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -46,69 +46,71 @@ public class JsonSerializerSettingsExtensionsTests
     {
         const string json =
 @"{
-  ""Completed"": {
-    ""Start"": 1,
-    ""End"": 6
+  ""Timestamp"": ""2022-05-09T16:56:48.3050668Z"",
+  ""Options"": {
+    ""Enabled"": true,
+    ""Number"": 42,
+    ""Words"": [
+      ""foo"",
+      ""bar"",
+      ""baz""
+    ],
+    ""Extra"": null,
   },
-  ""CreatedTime"": ""2022-05-09T16:56:48.3050668Z"",
-  ""PercentComplete"": 100,
-  ""ResourceIds"": [
-    ""15"",
-    ""16""
-  ],
-  ""AdditionalProperties"": null,
-  ""QueryTagKeys"": [
-    15,
-    16
-  ],
-  ""Batching"": {
-    ""Size"": 100,
-    ""MaxParallelCount"": 1,
-    ""MaxParallelElements"": 100
-  }
+  ""Href"": ""https://www.bing.com""
 }";
 
-        ReindexCheckpoint checkpoint = JsonConvert.DeserializeObject<ReindexCheckpoint>(json, _settings);
+        Checkpoint checkpoint = JsonConvert.DeserializeObject<Checkpoint>(json, _settings);
         AssertCheckpoint(checkpoint);
 
         string actual = JsonConvert.SerializeObject(checkpoint, Formatting.Indented, _settings);
         Assert.Equal(
 @"{
-  ""completed"": {
-    ""start"": 1,
-    ""end"": 6
+  ""timestamp"": ""2022-05-09T16:56:48.3050668Z"",
+  ""options"": {
+    ""enabled"": true,
+    ""number"": 42,
+    ""words"": [
+      ""foo"",
+      ""bar"",
+      ""baz""
+    ]
   },
-  ""createdTime"": ""2022-05-09T16:56:48.3050668Z"",
-  ""queryTagKeys"": [
-    15,
-    16
-  ],
-  ""batching"": {
-    ""size"": 100,
-    ""maxParallelCount"": 1
-  }
+  ""href"": ""https://www.bing.com""
 }",
             actual);
 
-        checkpoint = JsonConvert.DeserializeObject<ReindexCheckpoint>(actual, _settings);
+        checkpoint = JsonConvert.DeserializeObject<Checkpoint>(actual, _settings);
         AssertCheckpoint(checkpoint);
     }
 
-    private static void AssertCheckpoint(ReindexCheckpoint checkpoint)
+    private static void AssertCheckpoint(Checkpoint checkpoint)
     {
-        var createdTime = DateTime.Parse("2022-05-09T16:56:48.3050668Z", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
-        Assert.Null(checkpoint.AdditionalProperties);
-        Assert.Equal(100, checkpoint.Batching.Size);
-        Assert.Equal(1, checkpoint.Batching.MaxParallelCount);
-        Assert.Equal(100, checkpoint.Batching.MaxParallelElements);
-        Assert.Equal(new WatermarkRange(1, 6), checkpoint.Completed);
-        Assert.Equal(createdTime, checkpoint.CreatedTime);
-        Assert.Equal(100, checkpoint.PercentComplete);
-        Assert.Equal(2, checkpoint.QueryTagKeys.Count);
-        Assert.Contains(15, checkpoint.QueryTagKeys);
-        Assert.Contains(16, checkpoint.QueryTagKeys);
-        Assert.Equal(2, checkpoint.ResourceIds.Count);
-        Assert.Contains("15", checkpoint.ResourceIds);
-        Assert.Contains("16", checkpoint.ResourceIds);
+        var timestamp = DateTime.Parse("2022-05-09T16:56:48.3050668Z", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+        Assert.Equal(timestamp, checkpoint.Timestamp);
+        Assert.Equal(new Uri("https://www.bing.com"), checkpoint.Href);
+        Assert.True(checkpoint.Options.Enabled);
+        Assert.Equal(42, checkpoint.Options.Number);
+        Assert.True(checkpoint.Options.Words.SequenceEqual(new string[] { "foo", "bar", "baz" }));
+    }
+
+    private sealed class Checkpoint
+    {
+        public DateTime Timestamp { get; set; }
+
+        public Options Options { get; set; }
+
+        public Uri Href { get; set; }
+    }
+
+    private sealed class Options
+    {
+        public bool Enabled { get; set; }
+
+        public int Number { get; set; }
+
+        public IReadOnlyList<string> Words { get; set; }
+
+        public object Extra { get; set; }
     }
 }

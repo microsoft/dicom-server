@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ public class OperationStateHandlerTests
             OperationId = id,
             PercentComplete = 100,
             Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
-            Status = OperationStatus.Completed,
+            Status = OperationStatus.Succeeded,
             Type = DicomOperation.Reindex,
         };
 

@@ -838,25 +838,25 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/DicomOperationOperationState'
+                $ref: '#/components/schemas/DicomOperationIOperationState'
             application/json:
               schema:
-                $ref: '#/components/schemas/DicomOperationOperationState'
+                $ref: '#/components/schemas/DicomOperationIOperationState'
             text/json:
               schema:
-                $ref: '#/components/schemas/DicomOperationOperationState'
+                $ref: '#/components/schemas/DicomOperationIOperationState'
         '200':
           description: Success
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/DicomOperationOperationState'
+                $ref: '#/components/schemas/DicomOperationIOperationState'
             application/json:
               schema:
-                $ref: '#/components/schemas/DicomOperationOperationState'
+                $ref: '#/components/schemas/DicomOperationIOperationState'
             text/json:
               schema:
-                $ref: '#/components/schemas/DicomOperationOperationState'
+                $ref: '#/components/schemas/DicomOperationIOperationState'
   /v1-prerelease/partitions:
     get:
       tags:
@@ -2670,37 +2670,40 @@ components:
         - copy
         - migrationDeletion
       type: string
-    DicomOperationOperationState:
+    DicomOperationIOperationState:
       type: object
       properties:
         operationId:
           type: string
           format: uuid
+          readOnly: true
         type:
           $ref: '#/components/schemas/DicomOperation'
         createdTime:
           type: string
           format: date-time
+          readOnly: true
         lastUpdatedTime:
           type: string
           format: date-time
+          readOnly: true
         status:
           $ref: '#/components/schemas/OperationStatus'
         percentComplete:
           type: integer
           format: int32
           nullable: true
+          readOnly: true
         resources:
           type: array
           items:
             type: string
             format: uri
           nullable: true
-        additionalProperties:
-          type: object
-          additionalProperties:
-            type: string
+          readOnly: true
+        results:
           nullable: true
+          readOnly: true
       additionalProperties: false
     DicomPrivateCreator:
       type: object
@@ -2860,6 +2863,7 @@ components:
         - completed
         - failed
         - canceled
+        - succeeded
       type: string
     PartitionEntry:
       type: object

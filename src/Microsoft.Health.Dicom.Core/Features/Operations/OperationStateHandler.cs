@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ public class OperationStateHandler : BaseHandler, IRequestHandler<OperationState
             throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        OperationState<DicomOperation> state = await _client.GetStateAsync(request.OperationId, cancellationToken);
+        IOperationState<DicomOperation> state = await _client.GetStateAsync(request.OperationId, cancellationToken);
         return state != null ? new OperationStateResponse(state) : null;
     }
 }

@@ -1,14 +1,13 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Dicom.Functions.Export;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Models.Export;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Export;
 
 public class ExportCheckpointTests
 {
@@ -21,10 +20,10 @@ public class ExportCheckpointTests
             Progress = new ExportProgress(1234, 5),
         };
 
-        IReadOnlyDictionary<string, string> properties = checkpoint.AdditionalProperties;
-        Assert.Equal(3, properties.Count);
-        Assert.Equal("http://storage-acccount/errors.json", properties[nameof(ExportCheckpoint.ErrorHref)]);
-        Assert.Equal("1234", properties[nameof(ExportProgress.Exported)]);
-        Assert.Equal("5", properties[nameof(ExportProgress.Failed)]);
+        ExportResults results = checkpoint.GetResults(null) as ExportResults;
+        Assert.NotNull(results);
+        Assert.Equal(1234, results.Exported);
+        Assert.Equal(5, results.Skipped);
+        Assert.Equal(new Uri("http://storage-acccount/errors.json"), results.ErrorHref);
     }
 }

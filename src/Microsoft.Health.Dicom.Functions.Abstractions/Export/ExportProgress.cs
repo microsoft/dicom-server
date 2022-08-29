@@ -1,12 +1,13 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Text.Json.Serialization;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Core.Models.Export;
+namespace Microsoft.Health.Dicom.Functions.Export;
 
 /// <summary>
 /// Represents the progress made so far much an export operation.
@@ -20,34 +21,27 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
     public long Exported { get; }
 
     /// <summary>
-    /// Gets the number of DICOM files that have failed to be exported so far.
+    /// Gets the number of DICOM resources that have failed to be exported so far.
     /// </summary>
-    /// <value>The non-negative number of DICOM files that failed to be exported.</value>
-    public long Failed { get; }
-
-    /// <summary>
-    /// Gets the total number of DICOM files that have been processed by the export operation.
-    /// </summary>
-    /// <value>The non-negative number of processed DICOM files.</value>
-    [Newtonsoft.Json.JsonIgnore]
-    [System.Text.Json.Serialization.JsonIgnore]
-    public long Total => Exported + Failed;
+    /// <value>The non-negative number of DICOM resources that failed to be exported.</value>
+    public long Skipped { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportProgress"/> structure based on the specified number of
     /// DICOM files processed by an export operation.
     /// </summary>
     /// <param name="exported">The number of files that were successfully exported.</param>
-    /// <param name="failed">The number of files that failed to be exported.</param>
+    /// <param name="skipped">The number of files that failed to be exported.</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <para><paramref name="exported"/> is less than <c>0</c>.</para>
     /// <para>-or-</para>
-    /// <para><paramref name="failed"/> is less than <c>0</c>.</para>
+    /// <para><paramref name="skipped"/> is less than <c>0</c>.</para>
     /// </exception>
-    public ExportProgress(long exported, long failed)
+    [JsonConstructor]
+    public ExportProgress(long exported, long skipped)
     {
         Exported = EnsureArg.IsGte(exported, 0, nameof(exported));
-        Failed = EnsureArg.IsGte(failed, 0, nameof(failed));
+        Skipped = EnsureArg.IsGte(skipped, 0, nameof(skipped));
     }
 
     /// <summary>
@@ -56,11 +50,11 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
     /// </summary>
     /// <param name="other">Another instance of the <see cref="ExportProgress"/> structure.</param>
     /// <returns>
-    /// An object whose values are the sums of the <see cref="Exported"/> and <see cref="Failed"/> properties
+    /// An object whose values are the sums of the <see cref="Exported"/> and <see cref="Skipped"/> properties
     /// represented by this instance and <paramref name="other"/>.
     /// </returns>
     public ExportProgress Add(ExportProgress other)
-        => new ExportProgress(Exported + other.Exported, Failed + other.Failed);
+        => new ExportProgress(Exported + other.Exported, Skipped + other.Skipped);
 
     /// <summary>
     /// Returns a value indicating whether this instance is equal to a specified object.
@@ -83,14 +77,14 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
     /// value of this instance; otherwise, <see langword="false"/>.
     /// </returns>
     public bool Equals(ExportProgress other)
-        => Exported == other.Exported && Failed == other.Failed;
+        => Exported == other.Exported && Skipped == other.Skipped;
 
     /// <summary>
     /// Returns the hash code for this instance.
     /// </summary>
     /// <returns>A 32-bit signed integer hash code.</returns>
     public override int GetHashCode()
-        => HashCode.Combine(Exported, Failed);
+        => HashCode.Combine(Exported, Skipped);
 
     /// <summary>
     /// Returns a new <see cref="ExportProgress"/> that adds the value of the specified <see cref="ExportProgress"/> values.
@@ -98,7 +92,7 @@ public readonly struct ExportProgress : IEquatable<ExportProgress>
     /// <param name="x">An instance of the <see cref="ExportProgress"/> structure.</param>
     /// <param name="y">Another instance of the <see cref="ExportProgress"/> structure.</param>
     /// <returns>
-    /// An object whose values are the sums of the <see cref="Exported"/> and <see cref="Failed"/> properties
+    /// An object whose values are the sums of the <see cref="Exported"/> and <see cref="Skipped"/> properties
     /// represented by the two parameters.
     /// </returns>
     public static ExportProgress operator +(ExportProgress x, ExportProgress y)

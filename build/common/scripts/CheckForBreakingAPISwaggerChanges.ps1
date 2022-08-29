@@ -15,7 +15,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$container="openapitools/openapi-diff:latest@sha256:5da8291d3947414491e4c62de74f8fc1ee573a88461fb2fb09979ecb5ea5eb02"
+$container="openapitools/openapi-diff:latest@sha256:442d61387d4d3c5bff282f1eb30decffa87c8c4acae77e6ac3f815b1f63672ea"
 
 if (Test-Path "$SwaggerDir/FromMain") { Remove-Item -Recurse -Force "$SwaggerDir/FromMain" }
 mkdir "$SwaggerDir/FromMain"
@@ -27,7 +27,6 @@ foreach ($Version in $Versions)
 
     $SwaggerOnMain="https://raw.githubusercontent.com/microsoft/dicom-server/main/swagger/$Version/swagger.yaml"
     Invoke-WebRequest -Uri $SwaggerOnMain -OutFile $old
-
 
     write-host "Running comparison with baseline for version $Version"
     Write-Host "old: $old"
