@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ internal static class WorkitemRequestValidatorExtensions
     internal static void Validate(this AddWorkitemRequest request)
     {
         EnsureArg.IsNotNull(request, nameof(request));
-        if (request.RequestBody == null)
+        if (request.DicomDataset == null)
         {
             throw new BadRequestException(DicomCoreResource.MissingRequestBody);
         }
@@ -38,7 +38,7 @@ internal static class WorkitemRequestValidatorExtensions
     internal static void Validate(this UpdateWorkitemRequest request)
     {
         EnsureArg.IsNotNull(request, nameof(request));
-        if (request.RequestBody == null)
+        if (request.DicomDataset == null)
         {
             throw new BadRequestException(DicomCoreResource.MissingRequestBody);
         }
@@ -53,7 +53,7 @@ internal static class WorkitemRequestValidatorExtensions
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        if (request.RequestBody == null)
+        if (request.DicomDataset == null)
         {
             throw new BadRequestException(DicomCoreResource.MissingRequestBody);
         }
@@ -65,7 +65,7 @@ internal static class WorkitemRequestValidatorExtensions
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        if (request.RequestBody == null)
+        if (request.DicomDataset == null)
         {
             throw new BadRequestException(DicomCoreResource.MissingRequestBody);
         }

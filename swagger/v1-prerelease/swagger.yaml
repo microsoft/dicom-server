@@ -2063,6 +2063,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '200':
           description: Success
@@ -2148,6 +2159,17 @@ paths:
       tags:
         - Workitem
       operationId: AddWorkitemInstance
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '200':
           description: Success
@@ -2239,6 +2261,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '202':
           description: Accepted
@@ -2281,6 +2314,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '202':
           description: Accepted
@@ -2328,6 +2372,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '200':
           description: Success
@@ -2348,6 +2403,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '200':
           description: Success
@@ -2398,6 +2464,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '200':
           description: Success
@@ -2440,6 +2517,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          application/dicom+json:
+            schema:
+              minItems: 1
+              type: array
+              items:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
+        required: true
       responses:
         '200':
           description: Success
