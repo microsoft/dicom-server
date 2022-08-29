@@ -1,8 +1,7 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -28,7 +27,7 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
     private readonly IPatientSynchronizer _patientSynchronizer;
     private readonly string _patientSystemId;
     private readonly bool _isIssuerIdUsed;
-
+    private readonly ILogger<PatientPipelineStep> _logger;
 
     public PatientPipelineStep(
         IFhirService fhirService,
@@ -45,6 +44,7 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
         _patientSynchronizer = patientSynchronizer;
         _patientSystemId = patientConfiguration.Value.PatientSystemId;
         _isIssuerIdUsed = patientConfiguration.Value.IsIssuerIdUsed;
+        _logger = logger;
     }
 
     /// <inheritdoc/>
@@ -64,6 +64,9 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
             throw new MissingRequiredDicomTagException(nameof(DicomTag.PatientID));
         }
 
+        //Patient system id is determined based on issuer id boolean
+        //If issuer id boolean is set to true, patient system id would be set to issuer of patient id (0010,0021)
+        //Other wise we will be using the patient system id configured during user provisioning
         string patientSystemId = string.Empty;
         if (_isIssuerIdUsed)
         {
@@ -76,7 +79,7 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
         {
             patientSystemId = _patientSystemId;
         }
-
+        _logger.LogInformation("Patient system id :{PatientSystemId}", patientSystemId);
         var patientIdentifier = new Identifier(patientSystemId, patientId);
 
         FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
