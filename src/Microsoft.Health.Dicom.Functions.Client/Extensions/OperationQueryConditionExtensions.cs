@@ -16,10 +16,10 @@ internal static class OperationQueryConditionExtensions
 {
     public static OrchestrationStatusQueryCondition ForDurableFunctions<T>(this OperationQueryCondition<T> query, string continuationToken = null)
     {
-        // TODO: Modify page size?
+        // TODO #73705: Modify page size when we add /operations endpoint
         EnsureArg.IsNotNull(query, nameof(query));
 
-        // Aggressively resolve
+        // Aggressively resolve to validate input
         var statuses = query
             .Statuses
             .SelectMany(s => s.ToOrchestrationRuntimeStatuses())

@@ -235,7 +235,7 @@ public class DicomAzureFunctionsClientTests
     }
 
     [Fact]
-    public async Task GivenExportOperation_WhenGettingState_ThenReturnStatusWithResults()
+    public async Task GivenExportOperation_WhenGettingState_ThenSuccessfullyParseCheckpointWithResults()
     {
         string instanceId = OperationId.Generate();
         Guid operationId = Guid.Parse(instanceId);
