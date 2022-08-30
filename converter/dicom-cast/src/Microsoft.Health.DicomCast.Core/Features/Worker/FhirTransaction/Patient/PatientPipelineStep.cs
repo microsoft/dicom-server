@@ -64,24 +64,24 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
             throw new MissingRequiredDicomTagException(nameof(DicomTag.PatientID));
         }
 
-        //Patient system id is determined based on issuer id boolean
-        //If issuer id boolean is set to true, patient system id would be set to issuer of patient id (0010,0021)
-        //Other wise we will be using the patient system id configured during user provisioning
+        // Patient system id is determined based on issuer id boolean
+        // If issuer id boolean is set to true, patient system id would be set to issuer of patient id (0010,0021)
+        // Otherwise we will be using the patient system id configured during user provisioning
         string patientSystemId = string.Empty;
         if (_isIssuerIdUsed)
         {
             if (dataset.TryGetSingleValue(DicomTag.IssuerOfPatientID, out string systemId))
             {
                 patientSystemId = systemId;
+                _logger.LogInformation("Using Issuer of patient id as Patient system id");
             }
         }
         else
         {
             patientSystemId = _patientSystemId;
+            _logger.LogInformation("Using configured patient system id");
         }
-        _logger.LogInformation("Patient system id :{PatientSystemId}", patientSystemId);
         var patientIdentifier = new Identifier(patientSystemId, patientId);
-
         FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
 
         Patient existingPatient = await _fhirService.RetrievePatientAsync(patientIdentifier, cancellationToken);

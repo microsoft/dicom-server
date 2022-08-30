@@ -151,11 +151,11 @@
                 "value": "[parameters('enforceValidationOfTagValues')]"
             },
             {
-              "name": "PatientSystemId",
+              "name": "Patient__PatientSystemId",
               "value": "[parameters('patientSystemId')]"
             },
             {
-              "name": "IsIssuerIdUsed",
+              "name": "Patient__IsIssuerIdUsed",
               "value": "[parameters('isIssuerIdUsed')]"
             }
         ]

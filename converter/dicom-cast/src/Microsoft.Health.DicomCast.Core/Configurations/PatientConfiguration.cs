@@ -5,6 +5,9 @@
 
 namespace Microsoft.Health.DicomCast.Core.Configurations;
 
+/// <summary>
+/// Configuration for Patient system Id
+/// </summary>
 public class PatientConfiguration
 {
     /// <summary>
