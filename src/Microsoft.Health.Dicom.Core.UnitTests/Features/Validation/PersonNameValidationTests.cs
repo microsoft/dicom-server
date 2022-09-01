@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,10 +13,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation;
 public class PersonNameValidationTests
 {
 
-    [Fact]
-    public void GivenValidatePersonName_WhenValidating_ThenShouldPass()
+    [Theory]
+    [InlineData("")]
+    [InlineData("abc^xyz")]
+    [InlineData("abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz")]
+    public void GivenValidatePersonName_WhenValidating_ThenShouldPass(string data)
     {
-        DicomElement element = new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz");
+        DicomElement element = new DicomPersonName(DicomTag.PatientName, data);
         new PersonNameValidation().Validate(element);
     }
 

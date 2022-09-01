@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ internal class PersonNameValidation : IElementValidation
                 throw new ElementValidationException(name, DicomVR.PN, ValidationErrorCode.PersonNameGroupExceedMaxLength);
             }
 
-            if (ValidationUtils.ContainsControlExceptEsc(group))
+            if (!ValidationUtils.ContainsValidStringCharacters(group))
             {
                 throw new ElementValidationException(name, vr, ValidationErrorCode.InvalidCharacters);
             }

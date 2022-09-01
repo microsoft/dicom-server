@@ -1,9 +1,8 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -31,7 +30,7 @@ internal class LongStringValidation : IElementValidation
 
         ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
-        if (value.Contains('\\', StringComparison.OrdinalIgnoreCase) || ValidationUtils.ContainsControlExceptEsc(value))
+        if (!ValidationUtils.ContainsValidStringCharacters(value))
         {
             throw new ElementValidationException(name, DicomVR.LO, ValidationErrorCode.InvalidCharacters);
         }
