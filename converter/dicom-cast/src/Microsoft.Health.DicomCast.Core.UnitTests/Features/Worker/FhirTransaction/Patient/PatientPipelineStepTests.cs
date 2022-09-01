@@ -32,8 +32,8 @@ public class PatientPipelineStepTests
 
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
     private readonly IPatientSynchronizer _patientSynchronizer = Substitute.For<IPatientSynchronizer>();
-    private readonly PatientConfiguration _patientConfiguration;
-    private readonly PatientPipelineStep _patientPipeline;
+    private PatientPipelineStep _patientPipeline;
+    private PatientConfiguration _patientConfiguration;
 
     public PatientPipelineStepTests()
     {
@@ -97,6 +97,9 @@ public class PatientPipelineStepTests
     public async Task GivenExistingPatientAndHasChange_WhenRequestIsPrepared_ThenCorrectEntryComponentShouldBeCreated()
     {
         FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId", IsIssuerIdUsed = true };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
 
         var patient = new Patient()
         {
@@ -196,6 +199,30 @@ public class PatientPipelineStepTests
         context.Response.Patient = new FhirTransactionResponseEntry(response, new Patient());
 
         _patientPipeline.ProcessResponse(context);
+    }
+
+    [Fact]
+    public async Task GivenIssuerIdFlagEnabled_WhenResponseisOK_ThenPatientSystemIdShouldBeEmpty()
+    {
+        FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId", IsIssuerIdUsed = true };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
+
+        Patient creatingPatient = null;
+
+        _patientSynchronizer.When(async synchronizer => await synchronizer.SynchronizeAsync(context, Arg.Any<Patient>(), isNewPatient: true, DefaultCancellationToken)).Do(callback =>
+        {
+            creatingPatient = callback.ArgAt<Patient>(1);
+        });
+
+        await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+
+        FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
+
+        Assert.Equal("identifier=|p1", actualPatientEntry.Request.IfNoneExist);
     }
 
     private static FhirTransactionContext CreateFhirTransactionContext()
