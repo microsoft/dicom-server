@@ -211,12 +211,39 @@ public class PatientPipelineStepTests
 
         _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
 
-        Patient creatingPatient = null;
+        await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
 
-        _patientSynchronizer.When(async synchronizer => await synchronizer.SynchronizeAsync(context, Arg.Any<Patient>(), isNewPatient: true, DefaultCancellationToken)).Do(callback =>
-        {
-            creatingPatient = callback.ArgAt<Patient>(1);
-        });
+        FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
+
+        Assert.Equal("identifier=|p1", actualPatientEntry.Request.IfNoneExist);
+    }
+
+    [Fact]
+    public async Task GivenIssuerIdFlagNotPresent_WhenResponseisOK_ThenPatientSystemIdShouldBePopulatedWithConfiguredValue()
+    {
+        FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId" };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
+
+        await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+
+        FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
+
+        Assert.Equal("identifier=patientSystemId|p1", actualPatientEntry.Request.IfNoneExist);
+    }
+
+    [Fact]
+    public async Task GivenIssuerIdFlagDisabledAndPatientSystemIdNotConfigured_WhenResponseisOK_ThenPatientSystemIdShouldBeEmpty()
+    {
+        FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { IsIssuerIdUsed = false };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
 
         await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
 
