@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -73,13 +74,11 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
             if (dataset.TryGetSingleValue(DicomTag.IssuerOfPatientID, out string systemId))
             {
                 patientSystemId = systemId;
-                _logger.LogInformation("Using Issuer of patient id as Patient system id");
             }
         }
         else
         {
             patientSystemId = _patientSystemId;
-            _logger.LogInformation("Using configured patient system id");
         }
         var patientIdentifier = new Identifier(patientSystemId, patientId);
         FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
