@@ -43,18 +43,6 @@
         "description": "Name of the workspace DICOM service."
       }
     },
-    "patientSystemId": {
-      "type": "string",
-      "metadata": {
-        "description": "Patient SystemId configured by the user"
-      }
-    },
-    "isIssuerIdUsed": {
-      "type": "bool",
-      "metadata": {
-        "description": "Issuer Id or Patient SystemId used based on this boolean value"
-      }
-    },
     "serviceName": {
       "minLength": 3,
       "maxLength": 24,
