@@ -290,6 +290,20 @@
             "metadata": {
                 "description": "Enforce validation of all tag values when syncing from Dicom to FHIR using dicom-cast and do not store to FHIR even if only non-required tags are invalid"
             }
+        },
+        "patientSystemId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Patient SystemId configured by the user"
+            }
+        },
+        "isIssuerIdUsed": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Issuer id or patient system id used based on this boolean value"
+            }
         }
     },
     "variables": {

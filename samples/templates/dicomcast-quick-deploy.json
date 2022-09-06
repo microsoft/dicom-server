@@ -15,6 +15,20 @@
             "metadata": {
                 "description": "Set a password for the sql admin for DICOM and FHIR."
             }
+        },
+        "patientSystemId": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Patient SystemId configured by the user"
+            }
+        },
+        "isIssuerIdUsed": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Issuer id or patient system id used based on this boolean value"
+            }
         }
     },
     "variables": {
