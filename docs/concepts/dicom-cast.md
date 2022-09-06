@@ -35,7 +35,7 @@ The current implementation of DICOM Cast has the following mappings:
 
 | Property | Tag Id | Tag Name | Required Tag?| Note |
 | :------- | :----- | :------- | :----- | :----- |
-| Patient.identifier.where(system = '') | (0010,0020) | PatientID | Yes | For now, the system will be empty string. We will add support later for allowing the system to be specified. |
+| Patient.identifier.where(system = 'system') | (0010,0020) | PatientID | Yes | Patient system id will set to the value of patientSystemId environment variable or Issuer of Patient Id dicom tag (0010, 0021) based on the isIssuerIdUsed boolean env variable. An empty string will be set by default if the variables are not defined. |
 | Patient.name.where(use = 'usual') | (0010,0010) | PatientName | No | PatientName will be split into components and added as HumanName to the Patient resource. |
 | Patient.gender | (0010,0040) | PatientSex | No | |
 | Patient.birthDate | (0010,0030) | PatientBirthDate | No | PatientBirthDate only contains the date. This implementation assumes that the FHIR and DICOM servers have data from the same time zone. |
