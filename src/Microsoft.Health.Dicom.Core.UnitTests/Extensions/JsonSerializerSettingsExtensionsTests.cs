@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Serialization.Newtonsoft;
 using Newtonsoft.Json;
@@ -82,6 +83,93 @@ public class JsonSerializerSettingsExtensionsTests
 
         checkpoint = JsonConvert.DeserializeObject<Checkpoint>(actual, _settings);
         AssertCheckpoint(checkpoint);
+    }
+
+
+    [Fact]
+    public void DeserializeDSWithInvalidValueAsStringThrowsException()
+    {
+        // in DICOM Standard PS3.18 F.2.3.1 now VRs DS, IS SV and UV may be either number or string
+        var json = @"
+            {
+                ""00101030"": {
+                    ""vr"":""DS"",
+                    ""Value"":[84.5]
+                },
+                ""00101020"": {
+                    ""vr"":""DS"",
+                    ""Value"":[""af""]
+                }
+
+            }";
+
+        var dataset = JsonConvert.DeserializeObject<DicomDataset>(json, _settings);
+        Assert.NotNull(dataset);
+    }
+
+    [Fact]
+    public void DeserializeISWithInvalidValueAsStringThrowsException()
+    {
+        var json = @"
+            {
+                ""00201206"": {
+                    ""vr"":""IS"",
+                    ""Value"":[311]
+                },
+                ""00201209"": {
+                    ""vr"":""IS"",
+                    ""Value"":[""af""]
+                },
+                ""00201204"": {
+                    ""vr"":""IS"",
+                    ""Value"":[]
+                }
+            }";
+
+        var dataset = JsonConvert.DeserializeObject<DicomDataset>(json, _settings);
+        Assert.NotNull(dataset);
+    }
+
+
+    [Fact]
+    public void DeserializeSVWithInvalidValueAsStringThrowsException()
+    {
+        var json = @"
+            {
+                ""00101030"": {
+                    ""vr"":""SV"",
+                    ""Value"":[84.5]
+                },
+                ""00101020"": {
+                    ""vr"":""SV"",
+                    ""Value"":[""af""]
+                }
+
+            }";
+
+        var dataset = JsonConvert.DeserializeObject<DicomDataset>(json, _settings);
+        Assert.NotNull(dataset);
+    }
+
+
+    [Fact]
+    public void DeserializeUVWithInvalidValueAsStringThrowsException()
+    {
+        var json = @"
+            {
+                ""00101030"": {
+                    ""vr"":""UV"",
+                    ""Value"":[84.5]
+                },
+                ""00101020"": {
+                    ""vr"":""UV"",
+                    ""Value"":[""af""]
+                }
+
+            }";
+
+        var dataset = JsonConvert.DeserializeObject<DicomDataset>(json, _settings);
+        Assert.NotNull(dataset);
     }
 
     private static void AssertCheckpoint(Checkpoint checkpoint)
