@@ -14,7 +14,7 @@
     <HealthcareSharedPackageVersion>6.1.105</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.2.1</Hl7FhirPackageVersion>
-    <IdentityModelTokenPackageVersion>6.22.1</IdentityModelTokenPackageVersion>
+    <IdentityModelTokenPackageVersion>6.23.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
