@@ -97,6 +97,15 @@ namespace Microsoft.Health.Dicom.Client {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Write is not supported for the type &apos;{0}&apos;..
+        /// </summary>
+        internal static string JsonWriteNotSupported {
+            get {
+                return ResourceManager.GetString("JsonWriteNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected value &apos;{0}&apos; to be one of the following values: [{1}].
         /// </summary>
         internal static string UnexpectedValue {

@@ -133,6 +133,10 @@
     <value>Read is not supported for the type '{0}'.</value>
     <comment>{0} Type Name</comment>
   </data>
+  <data name="JsonWriteNotSupported" xml:space="preserve">
+    <value>Write is not supported for the type '{0}'.</value>
+    <comment>{0} Type Name</comment>
+  </data>
   <data name="UnexpectedValue" xml:space="preserve">
     <value>Expected value '{0}' to be one of the following values: [{1}]</value>
     <comment>{0} Actual value. {1} Comma-separated list of expected values.</comment>

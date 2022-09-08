@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,8 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
@@ -73,7 +73,7 @@ public class StartBlobMigrationService : BackgroundService
 
                         await operationsClient.StartBlobCopyAsync(_operationId, checkpoint?.Completed, stoppingToken);
                     }
-                    else if (existingInstance.Status == OperationStatus.Completed)
+                    else if (existingInstance.Status == OperationStatus.Succeeded)
                     {
                         _logger.LogInformation("Copy operation with ID '{InstanceId}' has already completed successfully.", _operationId);
                     }

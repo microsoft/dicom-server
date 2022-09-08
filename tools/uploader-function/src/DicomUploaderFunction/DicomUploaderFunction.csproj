@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" PrivateAssets="All" />
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="fo-dicom" />
     <PackageReference Include="Microsoft.AspNetCore.Http" PrivateAssets="All" />

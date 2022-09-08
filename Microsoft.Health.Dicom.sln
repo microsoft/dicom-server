@@ -30,6 +30,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Abstractions", "src\Microsoft.Health.Dicom.Functions.Abstractions\Microsoft.Health.Dicom.Functions.Abstractions.csproj", "{CFAD96C4-1AA3-442D-BADE-A93E4E936742}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Abstractions.UnitTests", "src\Microsoft.Health.Dicom.Functions.Abstractions.UnitTests\Microsoft.Health.Dicom.Functions.Abstractions.UnitTests.csproj", "{2D442B4F-C40A-4102-A332-8048A0655FDC}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.App", "src\Microsoft.Health.Dicom.Functions.App\Microsoft.Health.Dicom.Functions.App.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
@@ -104,6 +108,14 @@ Global
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|x64.Build.0 = Debug|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.ActiveCfg = Release|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.Build.0 = Release|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Debug|x64.ActiveCfg = Debug|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Debug|x64.Build.0 = Debug|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Release|x64.ActiveCfg = Release|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Release|x64.Build.0 = Release|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Debug|x64.ActiveCfg = Debug|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Debug|x64.Build.0 = Debug|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Release|x64.ActiveCfg = Release|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Release|x64.Build.0 = Release|x64
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.ActiveCfg = Debug|x64
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.Build.0 = Debug|x64
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.ActiveCfg = Release|x64
@@ -180,6 +192,8 @@ Global
 		{E15123F6-5A28-4D86-A28D-30FCB699B9EE} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{2D442B4F-C40A-4102-A332-8048A0655FDC} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{BB88616C-6208-43D0-B9EF-79FC0652A151} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{3D5D7F69-C766-450A-AA3D-00A50E115E9C} = {176641B3-297C-4E04-A83D-8F80F80485E8}

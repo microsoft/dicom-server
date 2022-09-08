@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Client.Models;
 /// <summary>
 /// Represents a reference to an existing DICOM long-running operation.
 /// </summary>
-public class DicomOperationReference : OperationReference, IResourceReference<OperationState<DicomOperation>>
+public class DicomOperationReference : OperationReference, IResourceReference<IOperationState<DicomOperation>>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="DicomOperationReference"/> class.

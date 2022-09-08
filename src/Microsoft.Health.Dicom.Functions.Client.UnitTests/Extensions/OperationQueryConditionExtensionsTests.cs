@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -25,14 +25,17 @@ public class OperationQueryConditionExtensionsTests
     }
 
     [Theory]
-    [InlineData(OperationStatus.Canceled, OrchestrationRuntimeStatus.Canceled)]
+    [InlineData(OperationStatus.Canceled, OrchestrationRuntimeStatus.Canceled, OrchestrationRuntimeStatus.Terminated)]
+#pragma warning disable CS0618
     [InlineData(OperationStatus.Completed, OrchestrationRuntimeStatus.Completed)]
+#pragma warning restore CS0618
     [InlineData(OperationStatus.Failed, OrchestrationRuntimeStatus.Failed)]
     [InlineData(OperationStatus.NotStarted, OrchestrationRuntimeStatus.Pending)]
-    [InlineData(OperationStatus.Running, OrchestrationRuntimeStatus.Running)]
-    public void GivenOperationStatus_WhenGettingRuntimeStatus_ThenMapCorrectly(OperationStatus status, OrchestrationRuntimeStatus expected)
+    [InlineData(OperationStatus.Running, OrchestrationRuntimeStatus.Running, OrchestrationRuntimeStatus.ContinuedAsNew)]
+    [InlineData(OperationStatus.Succeeded, OrchestrationRuntimeStatus.Completed)]
+    public void GivenOperationStatus_WhenGettingRuntimeStatus_ThenMapCorrectly(OperationStatus status, params OrchestrationRuntimeStatus[] expected)
     {
         var query = new OperationQueryCondition<DicomOperation> { Statuses = new OperationStatus[] { status } };
-        Assert.Equal(expected, query.ForDurableFunctions().RuntimeStatus.Single());
+        Assert.True(expected.SequenceEqual(query.ForDurableFunctions().RuntimeStatus));
     }
 }

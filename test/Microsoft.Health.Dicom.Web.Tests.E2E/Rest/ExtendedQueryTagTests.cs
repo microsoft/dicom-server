@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -65,11 +65,13 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
 
         // Add extended query tag
+#pragma warning disable CS0618
         Assert.Equal(
             OperationStatus.Completed,
             await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
+#pragma warning restore CS0618
 
         // Check specific tag
         DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
@@ -130,10 +132,11 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         await _instanceManager.StoreAsync(new DicomFile(instance3));
 
         // Add extended query tags
+#pragma warning disable CS0618
         Assert.Equal(
             OperationStatus.Completed,
-            await _tagManager.AddTagsAsync(
-                new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance }));
+            await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance }));
+#pragma warning restore CS0618
 
         // Check specific tag
         GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
@@ -228,10 +231,11 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
 
         // add extended query tag
+#pragma warning disable CS0618
         Assert.Equal(
             OperationStatus.Completed,
-            await _tagManager.AddTagsAsync(
-                new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
+            await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
+#pragma warning restore CS0618
 
         // validate
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
