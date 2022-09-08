@@ -108,7 +108,7 @@ Content-Type: application/json
     "lastUpdatedTime": "2022-09-08T16:41:01.2776644Z",
     "status": "completed",
     "results": {
-        "errorHref": "<blob uri>/export/4853cda8c05c44e497d2bc071f8e92c4/Errors.log",
+        "errorHref": "<container uri>/4853cda8c05c44e497d2bc071f8e92c4/Errors.log",
         "exported": 1000,
         "skipped": 3
     }
