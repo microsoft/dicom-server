@@ -102,7 +102,16 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 
 {
-    
+    "operationId": "df1ff476b83a4a3eaf11b1eac2e5ac56",
+    "type": "export",
+    "createdTime": "2022-09-08T16:40:36.2627618Z",
+    "lastUpdatedTime": "2022-09-08T16:41:01.2776644Z",
+    "status": "completed",
+    "results": {
+        "errorHref": "<blob uri>/export/4853cda8c05c44e497d2bc071f8e92c4/Errors.log",
+        "exported": 1000,
+        "skipped": 3
+    }
 }
 ```
 
