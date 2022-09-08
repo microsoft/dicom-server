@@ -34,8 +34,7 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.0.1" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.8.0" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.12" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.7.0" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="4.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.4.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(SdkPackageVersion)" />
@@ -82,7 +81,7 @@
     <PackageVersion Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="$(IdentityModelTokenPackageVersion)" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.1" />
-    <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.1.1" />
+    <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.1.3" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.4.1" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
