@@ -12,7 +12,9 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Core.Internal;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Functions.Client.HealthChecks;
+using Microsoft.Health.Operations;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -21,6 +23,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.HealthChecks;
 
 public class DurableTaskHealthCheckTests
 {
+    private static readonly Guid HealthCheckOperationId = Guid.NewGuid();
+
     private readonly IDurableClient _durableClient;
     private readonly DurableTaskHealthCheck _healthCheck;
 
@@ -29,51 +33,61 @@ public class DurableTaskHealthCheckTests
         IDurableClientFactory durableClientFactory = Substitute.For<IDurableClientFactory>();
         _durableClient = Substitute.For<IDurableClient>();
         durableClientFactory.CreateClient().Returns(_durableClient);
-        _healthCheck = new DurableTaskHealthCheck(durableClientFactory, NullLogger<DurableTaskHealthCheck>.Instance);
+
+        IGuidFactory guidFactory = Substitute.For<IGuidFactory>();
+        guidFactory.Create().Returns(HealthCheckOperationId);
+
+        _healthCheck = new DurableTaskHealthCheck(durableClientFactory, guidFactory, NullLogger<DurableTaskHealthCheck>.Instance);
     }
 
     [Fact]
-    public async Task GivenHealthCheck_WhenStorageIsUnavailable_ThenThrowException()
+    public async Task GivenHealthCheck_WhenCannotConnectToTaskHub_ThenThrowException()
     {
-        DateTime now = DateTime.UtcNow;
-        ClockResolver.UtcNowFunc = () => now;
         using var tokenSource = new CancellationTokenSource();
 
         _durableClient
-            .ListInstancesAsync(
-                Arg.Is<OrchestrationStatusQueryCondition>(x => x.CreatedTimeFrom == now && x.CreatedTimeTo == now.AddMinutes(1) && x.PageSize == 1),
-                tokenSource.Token)
+            .GetStatusAsync(
+                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
+                showHistory: false,
+                showHistoryOutput: false,
+                showInput: false)
             .Throws<IOException>();
 
         await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
 
         await _durableClient
             .Received(1)
-            .ListInstancesAsync(
-                Arg.Is<OrchestrationStatusQueryCondition>(x => x.CreatedTimeFrom == now && x.CreatedTimeTo == now.AddMinutes(1) && x.PageSize == 1),
-                tokenSource.Token);
+            .GetStatusAsync(
+                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
+                showHistory: false,
+                showHistoryOutput: false,
+                showInput: false);
     }
 
     [Fact]
-    public async Task GivenHealthCheck_WhenStorageIsAvailable_ThenReturnHealthy()
+    public async Task GivenHealthCheck_WhenCanConnectToTaskHub_ThenReturnHealthy()
     {
         DateTime now = DateTime.UtcNow;
         ClockResolver.UtcNowFunc = () => now;
         using var tokenSource = new CancellationTokenSource();
 
         _durableClient
-            .ListInstancesAsync(
-                Arg.Is<OrchestrationStatusQueryCondition>(x => x.CreatedTimeFrom == now && x.CreatedTimeTo == now.AddMinutes(1) && x.PageSize == 1),
-                tokenSource.Token)
-            .Returns(new OrchestrationStatusQueryResult { DurableOrchestrationState = new DurableOrchestrationStatus[] { new DurableOrchestrationStatus() } });
+            .GetStatusAsync(
+                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
+                showHistory: false,
+                showHistoryOutput: false,
+                showInput: false)
+            .Returns(new DurableOrchestrationStatus());
 
         HealthCheckResult actual = await _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token);
 
         await _durableClient
             .Received(1)
-            .ListInstancesAsync(
-                Arg.Is<OrchestrationStatusQueryCondition>(x => x.CreatedTimeFrom == now && x.CreatedTimeTo == now.AddMinutes(1) && x.PageSize == 1),
-                tokenSource.Token);
+            .GetStatusAsync(
+                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
+                showHistory: false,
+                showHistoryOutput: false,
+                showInput: false);
 
         Assert.Equal(HealthStatus.Healthy, actual.Status);
     }
