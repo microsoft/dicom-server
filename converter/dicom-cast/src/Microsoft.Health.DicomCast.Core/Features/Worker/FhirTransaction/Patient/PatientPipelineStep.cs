@@ -40,6 +40,7 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
         EnsureArg.IsNotNull(fhirService, nameof(fhirService));
         EnsureArg.IsNotNull(patientSynchronizer, nameof(patientSynchronizer));
         EnsureArg.IsNotNull(patientConfiguration?.Value, nameof(patientConfiguration));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
         _fhirService = fhirService;
         _patientSynchronizer = patientSynchronizer;
