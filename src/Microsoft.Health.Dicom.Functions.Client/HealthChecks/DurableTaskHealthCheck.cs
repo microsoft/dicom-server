@@ -40,10 +40,10 @@ internal sealed class DurableTaskHealthCheck : IHealthCheck
 
     private Task AssertTaskHubConnectionAsync(CancellationToken cancellationToken)
     {
-        // Attempt to query the state the orchestrations. The results of the query do not matter.
-        // We simply want to run a relatively "cheap" query against the table storage to ensure we can connect successfully.
         cancellationToken.ThrowIfCancellationRequested();
 
+        // It does not matter whether GetStatusAsync finds an orchestration. We simply want to run
+        // a relatively "cheap" query against the table storage to ensure that we can connect successfully.
         return _client.GetStatusAsync(
             _guidFactory.Create().ToString(OperationId.FormatSpecifier),
             showHistory: false,
