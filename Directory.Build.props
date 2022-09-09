@@ -11,7 +11,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.1.105</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>6.1.107</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.2.1</Hl7FhirPackageVersion>
     <IdentityModelTokenPackageVersion>6.23.1</IdentityModelTokenPackageVersion>
