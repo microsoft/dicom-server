@@ -80,6 +80,7 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
         {
             patientSystemId = _patientSystemId;
         }
+        
         var patientIdentifier = new Identifier(patientSystemId, patientId);
         FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
 
