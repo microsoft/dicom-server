@@ -141,7 +141,7 @@ internal sealed class AzureBlobExportSink : IExportSink
             while (buffer.Position < BlockSize && _errors.TryDequeue(out ExportErrorLogEntry entry))
             {
                 await JsonSerializer.SerializeAsync(buffer, entry, _jsonOptions, cancellationToken);
-                buffer.WriteByte((byte)'\n'); // '\n' in UTF-8 for normalized line endings across platforms
+                buffer.WriteByte(10); // '\n' in UTF-8 for normalized line endings across platforms
             }
 
             // Append the block

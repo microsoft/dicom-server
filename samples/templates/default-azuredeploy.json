@@ -229,7 +229,7 @@
             "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1",
             "AzureFunctionsJobHost__KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
             "AzureFunctionsJobHost__KeyVault__Credential": "managedidentity",
-            "BlobStore__Migration__FormatType": "[parameters('blobFormat')]",
+            "BlobStore__Migration__FormatType": "[parameters('blobFormat')]"
         },
         "combinedDicomServerConfigProperties": "[union(variables('staticDicomServerConfigProperties'), parameters('additionalDicomServerConfigProperties'))]",
         "combinedDicomFunctionAppConfigProperties": "[union(variables('staticDicomFunctionAppConfigProperties'), parameters('additionalDicomFunctionAppConfigProperties'))]",
