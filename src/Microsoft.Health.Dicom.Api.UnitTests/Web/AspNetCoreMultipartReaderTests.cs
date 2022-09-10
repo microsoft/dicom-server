@@ -27,7 +27,6 @@ public class AspNetCoreMultipartReaderTests
     private const string DefaultContentType = "multipart/related; boundary=+b+";
     private const string DefaultBodyPartSeparator = "--+b+";
     private const string DefaultBodyPartFinalSeparator = "--+b+--";
-    private const string InvalidBodyPartFinalSeparator = "more content";
 
     private readonly ISeekableStreamConverter _seekableStreamConverter;
 

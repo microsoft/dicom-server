@@ -110,11 +110,8 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         {
             throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
         }
-        catch (InvalidDataException ex)
-        {
-            throw new InvalidMultipartRequestException(ex.Message);
-        }
-        catch (IOException ex)
+        catch (Exception ex) when (ex is InvalidDataException ||
+                                   ex is IOException)
         {
             throw new InvalidMultipartRequestException(ex.Message);
         }
