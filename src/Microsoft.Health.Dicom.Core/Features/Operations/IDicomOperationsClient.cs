@@ -85,6 +85,7 @@ public interface IDicomOperationsClient
     /// <param name="operationId">The desired ID for the long-running export operation.</param>
     /// <param name="specification">The specification that details the source and destination for the export.</param>
     /// <param name="partition">The partition containing the data to export.</param>
+    /// <param name="errorHref">The <see cref="Uri"/> for the export error log.</param>
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
@@ -94,10 +95,10 @@ public interface IDicomOperationsClient
     /// to the newly started operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="specification"/> or <paramref name="partition"/> is <see langword="null"/>.
+    /// <paramref name="specification"/>, <paramref name="errorHref"/> or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously begins the instance blob copy.

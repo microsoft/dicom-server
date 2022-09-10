@@ -26,15 +26,6 @@ public class ExportCheckpoint : ExportInput, IOrchestrationCheckpoint
     /// <inheritdoc cref="IOperationCheckpoint.CreatedTime"/>
     public DateTime? CreatedTime { get; set; }
 
-    /// <summary>
-    /// Gets or sets the URI for containing the errors for this operation, if any.
-    /// </summary>
-    /// <value>
-    /// The <see cref="Uri"/> for the resource containg export errors if it has been resolved yet;
-    /// otherwise <see langword="null"/>.
-    /// </value>
-    public Uri ErrorHref { get; set; }
-
     /// <inheritdoc cref="IOperationCheckpoint.PercentComplete"/>
     [JsonIgnore]
     public int? PercentComplete => null;

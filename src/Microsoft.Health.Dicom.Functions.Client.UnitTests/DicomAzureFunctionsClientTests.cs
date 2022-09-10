@@ -440,8 +440,9 @@ public class DicomAzureFunctionsClientTests
     [Fact]
     public async Task GivenNullArgs_WhenStartingExport_ThenThrowArgumentNullException()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), null, PartitionEntry.Default));
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), null));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), null, new Uri("https://errors.log"), PartitionEntry.Default));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), null, PartitionEntry.Default));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), new Uri("https://errors.log"), null));
     }
 
     [Fact]
@@ -453,6 +454,7 @@ public class DicomAzureFunctionsClientTests
             Destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
             Source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers),
         };
+        var errorHref = new Uri($"https://test.blob.core.windows.net/export/{operationId:N}/Errors.log");
         var partition = new PartitionEntry(17, "test");
         var url = new Uri("http://foo.com/bar/operations/" + operationId.ToString(OperationId.FormatSpecifier));
 
@@ -462,6 +464,7 @@ public class DicomAzureFunctionsClientTests
                 operationId.ToString(OperationId.FormatSpecifier),
                 Arg.Is<ExportInput>(x => ReferenceEquals(_options.Export.Batching, x.Batching)
                     && ReferenceEquals(spec.Destination, x.Destination)
+                    && ReferenceEquals(errorHref, x.ErrorHref)
                     && ReferenceEquals(partition, x.Partition)
                     && ReferenceEquals(spec.Source, x.Source)))
             .Returns(operationId.ToString(OperationId.FormatSpecifier));
@@ -470,7 +473,7 @@ public class DicomAzureFunctionsClientTests
             .Returns(url);
 
         using var tokenSource = new CancellationTokenSource();
-        OperationReference actual = await _client.StartExportAsync(operationId, spec, partition, tokenSource.Token);
+        OperationReference actual = await _client.StartExportAsync(operationId, spec, errorHref, partition, tokenSource.Token);
 
         await _durableClient
             .Received(1)
@@ -479,6 +482,7 @@ public class DicomAzureFunctionsClientTests
                 operationId.ToString(OperationId.FormatSpecifier),
                 Arg.Is<ExportInput>(x => ReferenceEquals(_options.Export.Batching, x.Batching)
                     && ReferenceEquals(spec.Destination, x.Destination)
+                    && ReferenceEquals(errorHref, x.ErrorHref)
                     && ReferenceEquals(partition, x.Partition)
                     && ReferenceEquals(spec.Source, x.Source)));
         _urlResolver

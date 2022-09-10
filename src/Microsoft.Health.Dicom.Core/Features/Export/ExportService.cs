@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -60,6 +60,6 @@ internal sealed class ExportService : IExportService
 
         // Start the operation
         PartitionEntry partition = _accessor.RequestContext.DataPartitionEntry;
-        return await _client.StartExportAsync(operationId, specification, partition, cancellationToken);
+        return await _client.StartExportAsync(operationId, specification, sink.ErrorHref, partition, cancellationToken);
     }
 }

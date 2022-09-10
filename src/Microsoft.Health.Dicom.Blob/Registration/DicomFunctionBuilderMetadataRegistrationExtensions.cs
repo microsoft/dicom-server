@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,6 +11,7 @@ using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
@@ -44,6 +45,10 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddOptions<DicomBlobContainerOptions>()
             .Bind(blobConfig.GetSection(DicomBlobContainerOptions.SectionName))
             .ValidateDataAnnotations();
+
+        functionsBuilder.Services
+            .AddOptions<BlobMigrationConfiguration>()
+            .Bind(blobConfig.GetSection("Migration"));
 
         // Metadata
         functionsBuilder.Services

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -101,8 +101,10 @@ internal sealed class AzureBlobExportSink : IExportSink
         try
         {
             if (!await _dest.ExistsAsync(cancellationToken))
+            {
                 throw new SinkInitializationFailureException(
                     string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name, _dest.AccountName));
+            }
 
             AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
             await client.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
@@ -139,7 +141,7 @@ internal sealed class AzureBlobExportSink : IExportSink
             while (buffer.Position < BlockSize && _errors.TryDequeue(out ExportErrorLogEntry entry))
             {
                 await JsonSerializer.SerializeAsync(buffer, entry, _jsonOptions, cancellationToken);
-                buffer.WriteByte(10); // '\n' in UTF-8 for normalized line endings across platforms
+                buffer.WriteByte((byte)'\n'); // '\n' in UTF-8 for normalized line endings across platforms
             }
 
             // Append the block

@@ -33,6 +33,7 @@ public partial class ExportDurableFunctionTests
                 Size = 3,
                 MaxParallelCount = 2,
             },
+            // An old version didn't include error href in the input
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             Partition = PartitionEntry.Default,
             Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
