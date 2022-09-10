@@ -11,7 +11,7 @@
       "Timeout": "00:06:00"
     },
     "Migration": {
-      "FormatType": "Old"
+      "FormatType": "New"
     },
     "Operations": {
       "Download": {
