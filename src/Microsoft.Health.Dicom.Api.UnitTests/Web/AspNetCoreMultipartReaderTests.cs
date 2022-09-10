@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ public class AspNetCoreMultipartReaderTests
     private const string DefaultContentType = "multipart/related; boundary=+b+";
     private const string DefaultBodyPartSeparator = "--+b+";
     private const string DefaultBodyPartFinalSeparator = "--+b+--";
+    private const string InvalidBodyPartFinalSeparator = "more content";
 
     private readonly ISeekableStreamConverter _seekableStreamConverter;
 
@@ -230,6 +231,25 @@ public class AspNetCoreMultipartReaderTests
             async bodyPart => await ValidateMultipartBodyPartAsync("application/dicom", "content", bodyPart)));
     }
 
+    [Fact]
+    public async Task GivenStreamMissingEndingBoundary_WhenReading_ThenInvalidMultipartRequestExceptionShouldBeThrown()
+    {
+        ISeekableStreamConverter seekableStreamConverter = Substitute.For<ISeekableStreamConverter>();
+        seekableStreamConverter.ConvertAsync(Arg.Any<Stream>(), Arg.Any<CancellationToken>()).Returns(Stream.Null);
+
+        string invalidBody = GenerateBody(
+            DefaultBodyPartSeparator,
+            $"Content-Type: application/dicom",
+            string.Empty,
+            "content");
+
+        await Assert.ThrowsAsync<InvalidMultipartRequestException>(
+            () => ExecuteAndValidateAsync(
+            invalidBody,
+            DefaultContentType,
+            seekableStreamConverter,
+            bodyPart => Task.CompletedTask));
+    }
 
     private AspNetCoreMultipartReader Create(string contentType, Stream body = null, ISeekableStreamConverter seekableStreamConverter = null)
     {
