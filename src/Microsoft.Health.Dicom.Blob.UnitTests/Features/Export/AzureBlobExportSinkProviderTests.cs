@@ -98,7 +98,7 @@ public class AzureBlobExportSinkProviderTests
     public async Task GivenNoSecretStore_WhenCreatingSinkWithSecret_ThenThrow()
     {
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
-        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{Guid.NewGuid()}/Errors.log", UriKind.Absolute);
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{Guid.NewGuid()}/errors.log", UriKind.Absolute);
         var options = new AzureBlobExportOptions
         {
             Secret = new SecretKey { Name = "foo", Version = "bar" },
@@ -116,7 +116,7 @@ public class AzureBlobExportSinkProviderTests
         const string version = "1";
         var operationId = Guid.NewGuid();
         var containerUri = new Uri("https://unit-test.blob.core.windows.net/mycontainer?sv=2020-08-04&ss=b", UriKind.Absolute);
-        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/Errors.log", UriKind.Absolute);
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/errors.log", UriKind.Absolute);
         var options = new AzureBlobExportOptions
         {
             Secret = new SecretKey
@@ -156,7 +156,7 @@ public class AzureBlobExportSinkProviderTests
         const string version = "1";
         var operationId = Guid.NewGuid();
         var connectionString = "BlobEndpoint=https://unit-test.blob.core.windows.net/;SharedAccessSignature=sastoken";
-        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/Errors.log", UriKind.Absolute);
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{operationId.ToString(OperationId.FormatSpecifier)}/errors.log", UriKind.Absolute);
         var options = new AzureBlobExportOptions
         {
             BlobContainerName = "mycontainer",

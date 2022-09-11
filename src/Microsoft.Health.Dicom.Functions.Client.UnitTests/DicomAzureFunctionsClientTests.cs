@@ -253,7 +253,7 @@ public class DicomAzureFunctionsClientTests
                 Input = JObject.FromObject(
                     new ExportCheckpoint
                     {
-                        ErrorHref = new Uri($"https://unit-test.blob.core.windows.net/export/{instanceId}/Errors.log"),
+                        ErrorHref = new Uri($"https://unit-test.blob.core.windows.net/export/{instanceId}/errors.log"),
                         Progress = new ExportProgress(1000, 2),
                     }),
                 InstanceId = instanceId,
@@ -275,7 +275,7 @@ public class DicomAzureFunctionsClientTests
 
         var results = actual.Results as ExportResults;
         Assert.NotNull(results);
-        Assert.Equal(new Uri($"https://unit-test.blob.core.windows.net/export/{instanceId}/Errors.log"), results.ErrorHref);
+        Assert.Equal(new Uri($"https://unit-test.blob.core.windows.net/export/{instanceId}/errors.log"), results.ErrorHref);
         Assert.Equal(1000L, results.Exported);
         Assert.Equal(2L, results.Skipped);
 
@@ -454,7 +454,7 @@ public class DicomAzureFunctionsClientTests
             Destination = new ExportDataOptions<ExportDestinationType>(ExportDestinationType.AzureBlob),
             Source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers),
         };
-        var errorHref = new Uri($"https://test.blob.core.windows.net/export/{operationId:N}/Errors.log");
+        var errorHref = new Uri($"https://test.blob.core.windows.net/export/{operationId:N}/errors.log");
         var partition = new PartitionEntry(17, "test");
         var url = new Uri("http://foo.com/bar/operations/" + operationId.ToString(OperationId.FormatSpecifier));
 

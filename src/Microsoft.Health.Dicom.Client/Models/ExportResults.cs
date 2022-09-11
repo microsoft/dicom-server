@@ -28,5 +28,5 @@ public sealed class ExportResults
     /// Gets or sets the URI for containing the errors for this operation.
     /// </summary>
     /// <value>The <see cref="Uri"/> for the resource containg export errors.</value>
-    public Uri ErrorHref { get; }
+    public Uri ErrorHref { get; set; }
 }

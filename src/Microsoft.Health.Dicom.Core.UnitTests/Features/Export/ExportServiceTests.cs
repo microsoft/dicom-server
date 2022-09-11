@@ -81,7 +81,7 @@ public class ExportServiceTests
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, originalDestinationSettings),
             Source = new ExportDataOptions<ExportSourceType>(SourceType, sourceSettings),
         };
-        var errorHref = new Uri($"https://somewhere/{operationId:N}/Errors.log");
+        var errorHref = new Uri($"https://somewhere/{operationId:N}/errors.log");
         var expected = new OperationReference(operationId, new Uri("http://test/export"));
 
         _guidFactory.Create().Returns(operationId);
