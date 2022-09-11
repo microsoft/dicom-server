@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
             studyInstanceUid: TestUidGenerator.Generate(),
             seriesInstanceUid: TestUidGenerator.Generate(),
             sopInstanceUid: TestUidGenerator.Generate(),
-            version: 0);
+            version: 1);
 
     private async Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {

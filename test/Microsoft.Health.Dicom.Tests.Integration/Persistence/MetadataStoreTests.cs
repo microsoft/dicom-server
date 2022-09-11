@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -29,10 +29,10 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
     public async Task GivenAValidInstanceMetadata_WhenStored_ThenItCanBeRetrievedAndDeleted()
     {
         DicomDataset dicomDataset = CreateValidMetadataDataset();
-        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
+        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 2);
 
         // Store the metadata.
-        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 2);
 
         // Should be able to retrieve.
         DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(instanceIdentifier);
@@ -52,16 +52,16 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
         DicomDataset dicomDataset = CreateValidMetadataDataset();
         dicomDataset.Add(DicomTag.SOPClassUID, "1");
 
-        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 4);
 
         // Update SOPClassUID but keep the identifiers the same.
         dicomDataset.AddOrUpdate(DicomTag.SOPClassUID, "2");
 
-        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, 0);
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 4);
 
         // Should be able to retrieve.
         DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(
-            dicomDataset.ToVersionedInstanceIdentifier(0));
+            dicomDataset.ToVersionedInstanceIdentifier(version: 4));
 
         ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
 
@@ -75,7 +75,7 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
             studyInstanceUid: TestUidGenerator.Generate(),
             seriesInstanceUid: TestUidGenerator.Generate(),
             sopInstanceUid: TestUidGenerator.Generate(),
-            version: 0);
+            version: 6);
 
         await Assert.ThrowsAsync<ItemNotFoundException>(
             () => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
@@ -85,9 +85,9 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
     public async Task GivenANonExistenMetadata_WhenDeleting_ThenItShouldNotThrowException()
     {
         DicomDataset dicomDataset = CreateValidMetadataDataset();
-        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 0);
+        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version: 8);
 
-        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 0);
+        await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version: 8);
 
         await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
 
