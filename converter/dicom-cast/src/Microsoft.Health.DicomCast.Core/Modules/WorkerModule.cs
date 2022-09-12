@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ public class WorkerModule : IStartupModule
     private const string DicomCastWorkerConfigurationSectionName = "DicomCastWorker";
     private const string DicomValidationConfigurationSectionName = "DicomCast";
     private const string RetryConfigurationSectionName = "RetryConfiguration";
+    private const string PatientConfigurationSectionName = "Patient";
 
     private readonly IConfiguration _configuration;
 
@@ -46,6 +47,10 @@ public class WorkerModule : IStartupModule
         RetryConfiguration retryConfiguration = services.Configure<RetryConfiguration>(
             _configuration,
             RetryConfigurationSectionName);
+
+        PatientConfiguration patientConfiguration = services.Configure<PatientConfiguration>(
+            _configuration,
+            PatientConfigurationSectionName);
 
         services.Add<DicomCastWorker>()
             .Singleton()

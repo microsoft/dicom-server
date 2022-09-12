@@ -95,6 +95,19 @@
                 "description": "The endpoint of the FHIR server."
             }
         },
+        "patientSystemId": {
+          "type": "string",
+          "metadata": {
+            "description": "Patient SystemId configured by the user"
+          }
+        },
+        "isIssuerIdUsed": {
+          "defaultValue":  false,
+          "type": "Bool",
+          "metadata": {
+            "description": "Issuer id or patient system id used based on this boolean value"
+          }
+        },
         "enforceValidationOfTagValues": {
             "defaultValue": false,
             "type": "Bool",
@@ -136,6 +149,14 @@
             {
                 "name": "DicomCast__Features__EnforceValidationOfTagValues",
                 "value": "[parameters('enforceValidationOfTagValues')]"
+            },
+            {
+              "name": "Patient__PatientSystemId",
+              "value": "[parameters('patientSystemId')]"
+            },
+            {
+              "name": "Patient__IsIssuerIdUsed",
+              "value": "[parameters('isIssuerIdUsed')]"
             }
         ]
     },
