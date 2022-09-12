@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -8,6 +8,8 @@ using System.Threading;
 using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
@@ -22,6 +24,7 @@ public class PatientPipelineStepTests
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
     private const string DefaultPatientId = "p1";
+    private const string DefaultPatientSystemId = "patientSystemId";
     private static readonly DicomDataset DefaultDicomDataset = new DicomDataset()
     {
         { DicomTag.PatientID, DefaultPatientId },
@@ -29,11 +32,15 @@ public class PatientPipelineStepTests
 
     private readonly IFhirService _fhirService = Substitute.For<IFhirService>();
     private readonly IPatientSynchronizer _patientSynchronizer = Substitute.For<IPatientSynchronizer>();
-    private readonly PatientPipelineStep _patientPipeline;
+    private PatientPipelineStep _patientPipeline;
+    private PatientConfiguration _patientConfiguration;
 
     public PatientPipelineStepTests()
     {
-        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, NullLogger<PatientPipelineStep>.Instance);
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId", IsIssuerIdUsed = false };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
     }
 
     [Fact]
@@ -75,13 +82,13 @@ public class PatientPipelineStepTests
 
         ValidationUtility.ValidateRequestEntryMinimumRequirementForWithChange(FhirTransactionRequestMode.Create, "Patient", Bundle.HTTPVerb.POST, actualPatientEntry);
 
-        Assert.Equal("identifier=|p1", actualPatientEntry.Request.IfNoneExist);
+        Assert.Equal("identifier=patientSystemId|p1", actualPatientEntry.Request.IfNoneExist);
 
         Patient actualPatient = Assert.IsType<Patient>(actualPatientEntry.Resource);
 
         Assert.Collection(
             actualPatient.Identifier,
-            identifier => ValidationUtility.ValidateIdentifier(string.Empty, DefaultPatientId, identifier));
+            identifier => ValidationUtility.ValidateIdentifier(DefaultPatientSystemId, DefaultPatientId, identifier));
 
         Assert.Equal(creatingPatient.BirthDate, actualPatient.BirthDate);
     }
@@ -90,6 +97,9 @@ public class PatientPipelineStepTests
     public async Task GivenExistingPatientAndHasChange_WhenRequestIsPrepared_ThenCorrectEntryComponentShouldBeCreated()
     {
         FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId", IsIssuerIdUsed = true };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
 
         var patient = new Patient()
         {
@@ -100,7 +110,7 @@ public class PatientPipelineStepTests
             },
         };
 
-        _fhirService.RetrievePatientAsync(Arg.Is(TestUtility.BuildIdentifierPredicate(string.Empty, DefaultPatientId)), DefaultCancellationToken)
+        _fhirService.RetrievePatientAsync(Arg.Is(TestUtility.BuildIdentifierPredicate(DefaultPatientSystemId, DefaultPatientId)), DefaultCancellationToken)
             .Returns(patient);
 
         Patient updatingPatient = null;
@@ -137,7 +147,7 @@ public class PatientPipelineStepTests
             },
         };
 
-        _fhirService.RetrievePatientAsync(Arg.Is(TestUtility.BuildIdentifierPredicate(string.Empty, DefaultPatientId)), DefaultCancellationToken)
+        _fhirService.RetrievePatientAsync(Arg.Is(TestUtility.BuildIdentifierPredicate(DefaultPatientSystemId, DefaultPatientId)), DefaultCancellationToken)
             .Returns(patient);
 
         await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
@@ -189,6 +199,59 @@ public class PatientPipelineStepTests
         context.Response.Patient = new FhirTransactionResponseEntry(response, new Patient());
 
         _patientPipeline.ProcessResponse(context);
+    }
+
+    [Fact]
+    public async Task GivenIssuerIdFlagNotPresent_WhenResponseisOK_ThenPatientSystemIdShouldBePopulatedWithConfiguredValue()
+    {
+        FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId" };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
+
+        await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+
+        FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
+
+        Assert.Equal("identifier=patientSystemId|p1", actualPatientEntry.Request.IfNoneExist);
+    }
+
+    [Fact]
+    public async Task GivenIssuerIdFlagDisabledAndPatientSystemIdNotConfigured_WhenResponseisOK_ThenPatientSystemIdShouldBeEmpty()
+    {
+        FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { IsIssuerIdUsed = false };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
+
+        await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+
+        FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
+
+        Assert.Equal("identifier=|p1", actualPatientEntry.Request.IfNoneExist);
+    }
+
+    [Fact]
+    public async Task GivenIssuerIdFlagEnabledAndTagPresent_WhenResponseisOK_ThenPatientSystemIdShouldBeIssuerId()
+    {
+        FhirTransactionContext context = CreateFhirTransactionContext();
+
+        _patientConfiguration = new PatientConfiguration() { PatientSystemId = "patientSystemId", IsIssuerIdUsed = true };
+        IOptions<PatientConfiguration> optionsConfiguration = Options.Create(_patientConfiguration);
+
+        _patientPipeline = new PatientPipelineStep(_fhirService, _patientSynchronizer, optionsConfiguration, NullLogger<PatientPipelineStep>.Instance);
+
+        context.ChangeFeedEntry.Metadata.Add(DicomTag.IssuerOfPatientID, "IssuerId");
+
+        await _patientPipeline.PrepareRequestAsync(context, DefaultCancellationToken);
+
+        FhirTransactionRequestEntry actualPatientEntry = context.Request.Patient;
+
+        Assert.Equal("identifier=IssuerId|p1", actualPatientEntry.Request.IfNoneExist);
     }
 
     private static FhirTransactionContext CreateFhirTransactionContext()
