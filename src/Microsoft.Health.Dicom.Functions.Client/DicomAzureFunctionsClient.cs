@@ -153,6 +153,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     public async Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
+        EnsureArg.IsNotNull(errorHref, nameof(errorHref));
         EnsureArg.IsNotNull(partition, nameof(partition));
 
         cancellationToken.ThrowIfCancellationRequested();

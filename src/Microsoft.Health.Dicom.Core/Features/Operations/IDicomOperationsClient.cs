@@ -95,7 +95,7 @@ public interface IDicomOperationsClient
     /// to the newly started operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="specification"/>, <paramref name="errorHref"/> or <paramref name="partition"/> is <see langword="null"/>.
+    /// <paramref name="specification"/>, <paramref name="errorHref"/>, or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
