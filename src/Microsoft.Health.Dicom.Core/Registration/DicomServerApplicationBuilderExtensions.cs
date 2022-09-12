@@ -20,7 +20,7 @@ public static class DicomServerApplicationBuilderExtensions
 {
     private const string DicomServerConfigurationSectionName = "DicomServer";
 
-    public static IDicomServerBuilder AddDicomServer(this IServiceCollection services,
+    public static IDicomServerBuilder AddDicomCore(this IServiceCollection services,
         IConfiguration configurationRoot,
         Action<CoreConfiguration> configureAction = null)
     {
