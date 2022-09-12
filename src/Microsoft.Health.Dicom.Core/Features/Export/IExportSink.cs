@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,12 +21,6 @@ public interface IExportSink : IAsyncDisposable
     event EventHandler<CopyFailureEventArgs> CopyFailure;
 
     /// <summary>
-    /// Gets the URI for the resource in which export errors are recorded.
-    /// </summary>
-    /// <value>A URI for the list of errors.</value>
-    Uri ErrorHref { get; }
-
-    /// <summary>
     /// Asychronously initializes the sink for copying.
     /// </summary>
     /// <remarks>
@@ -36,10 +30,13 @@ public interface IExportSink : IAsyncDisposable
     /// <param name="cancellationToken">
     /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
     /// </param>
-    /// <returns>A task representing the <see cref="InitializeAsync"/> operation.</returns>
+    /// <returns>
+    /// A task representing the <see cref="InitializeAsync"/> operation. The value of the
+    /// <see cref="Task{TResult}.Result"/> property contains the <see cref="Uri"/> for the error log.
+    /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     /// <exception cref="SinkInitializationFailureException">The sink failed to initialize.</exception>
-    Task InitializeAsync(CancellationToken cancellationToken = default);
+    Task<Uri> InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously copies the given <paramref name="value"/> into the destination.

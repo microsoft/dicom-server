@@ -192,7 +192,7 @@ public partial class ReindexDurableFunction
             },
             async (id, token) =>
             {
-                // Record any failed re-indexing
+                // Record any missing instances when re-indexing
                 try
                 {
                     await _instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id, token);
@@ -206,15 +206,21 @@ public partial class ReindexDurableFunction
         // If there are any missing, re-query the batch and ensure they were deleted
         if (!missing.IsEmpty)
         {
-            logger.LogWarning("Could not find {Count} instances to re-index", arguments.WatermarkRange, missing.Count);
-            instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
+            logger.LogWarning(
+                "Could not find {Count} instances to re-index including watermark {Watermark}",
+                missing.Count,
+                missing.Keys.First().Version);
 
+            instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
             foreach (VersionedInstanceIdentifier identifier in instanceIdentifiers)
             {
                 // If the identifier is still present, then throw!
                 if (missing.TryGetValue(identifier, out ItemNotFoundException exception))
                 {
-                    logger.LogError("Cannot find metadata for watermark {Watermark}", identifier.Version);
+                    logger.LogError(
+                        "Metadata is missing for {Count} instances including watermark {Watermark}",
+                        instanceIdentifiers.Count(x => missing.ContainsKey(x)),
+                        identifier.Version);
                     throw exception;
                 }
             }

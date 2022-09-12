@@ -83,32 +83,6 @@ public partial class ExportDurableFunctionTests
     }
 
     [Fact]
-    public async Task GivenSink_WhenFetchingErrorHref_ThenShouldFetchUri()
-    {
-        var operationId = Guid.NewGuid();
-        var expectedUri = new Uri($"http://storage/errors/{operationId}.json");
-        var expectedInput = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions());
-
-        // Arrange input
-        IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
-        context.GetInput<ExportDataOptions<ExportDestinationType>>().Returns(expectedInput);
-
-        IExportSink sink = Substitute.For<IExportSink>();
-        sink.ErrorHref.Returns(expectedUri);
-        _sinkProvider.CreateAsync(expectedInput.Settings, operationId).Returns(sink);
-
-        // Call the activity
-        Uri actual = await _function.GetErrorHrefAsync(context);
-
-        // Assert behavior
-        Assert.Equal(expectedUri, actual);
-
-        context.Received(1).GetInput<ExportDataOptions<ExportDestinationType>>();
-        await _sinkProvider.Received(1).CreateAsync(expectedInput.Settings, operationId);
-    }
-
-    [Fact]
     public async Task GivenDestination_WhenComplete_ThenInvokeCorrectMethod()
     {
         var expected = new AzureBlobExportOptions();

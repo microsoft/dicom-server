@@ -87,7 +87,7 @@ public class ExportServiceTests
         _guidFactory.Create().Returns(operationId);
         _sinkProvider.CreateAsync(originalDestinationSettings, operationId, tokenSource.Token).Returns(_sink);
         _sinkProvider.SecureSensitiveInfoAsync(originalDestinationSettings, operationId, tokenSource.Token).Returns(securedDestinationSettings);
-        _sink.ErrorHref.Returns(errorHref);
+        _sink.InitializeAsync(tokenSource.Token).Returns(errorHref);
         _client
             .StartExportAsync(
                 operationId,
@@ -102,8 +102,10 @@ public class ExportServiceTests
 
         _guidFactory.Received(1).Create();
         await _sourceProvider.Received(1).ValidateAsync(sourceSettings, tokenSource.Token);
-        await _sinkProvider.Received(1).CreateAsync(originalDestinationSettings, operationId, tokenSource.Token);
         await _sinkProvider.Received(1).ValidateAsync(originalDestinationSettings, tokenSource.Token);
+        await _sinkProvider.Received(1).CreateAsync(originalDestinationSettings, operationId, tokenSource.Token);
+        await _sinkProvider.Received(1).SecureSensitiveInfoAsync(originalDestinationSettings, operationId, tokenSource.Token);
+        await _sink.Received(1).InitializeAsync(tokenSource.Token);
         await _client
             .Received(1)
             .StartExportAsync(
@@ -113,5 +115,14 @@ public class ExportServiceTests
                 errorHref,
                 _partition,
                 tokenSource.Token);
+
+        // Ensure that validation was called before creation
+        Received.InOrder(
+            () =>
+            {
+                _sourceProvider.ValidateAsync(sourceSettings, tokenSource.Token);
+                _sinkProvider.ValidateAsync(originalDestinationSettings, tokenSource.Token);
+                _sinkProvider.CreateAsync(originalDestinationSettings, operationId, tokenSource.Token);
+            });
     }
 }

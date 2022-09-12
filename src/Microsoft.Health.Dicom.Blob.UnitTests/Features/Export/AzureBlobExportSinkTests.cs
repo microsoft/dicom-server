@@ -83,12 +83,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     }
 
     [Fact]
-    public void GivenSink_WhenGettingErrorHref_ContainValuesProperly()
-    {
-        Assert.Equal($"https://unit-test.blob.core.windows.net/mycontainer/{_output.OperationId:N}/errors.log", _sink.ErrorHref.AbsoluteUri);
-    }
-
-    [Fact]
     public async Task GivenValidReadResult_WhenCopying_ThenCopyToDestination()
     {
         var identifier = new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1);
@@ -214,14 +208,18 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     {
         using var tokenSource = new CancellationTokenSource();
 
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{_output.OperationId:N}/errors.log");
         Response<bool> response = Substitute.For<Response<bool>>();
         response.Value.Returns(true);
         _destClient.ExistsAsync(tokenSource.Token).Returns(Task.FromResult(response));
         _errorBlob
             .CreateIfNotExistsAsync(default, default, tokenSource.Token)
             .Returns(Substitute.For<Response<BlobContentInfo>>());
+        _errorBlob
+            .Uri
+            .Returns(errorHref);
 
-        await _sink.InitializeAsync(tokenSource.Token);
+        Assert.Equal(errorHref, await _sink.InitializeAsync(tokenSource.Token));
 
         await _destClient.Received(1).ExistsAsync(tokenSource.Token);
         await _errorBlob.Received(1).CreateIfNotExistsAsync(default, default, tokenSource.Token);

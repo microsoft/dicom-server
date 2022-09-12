@@ -220,10 +220,21 @@ public partial class ReindexDurableFunctionTests
         }
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(bool deleted)
+    [Fact]
+    public async Task GivenDeletedInstanceInBatch_WhenReindexing_ThenSkip()
+        => await GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(
+            (source, missing) => source.Where((x, i) => i != missing),
+            t => t);
+
+    [Fact]
+    public async Task GivenMissingInstanceInBatch_WhenReindexing_ThenThrow()
+        => await GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(
+            (source, skipped) => source,
+            t => Assert.ThrowsAsync<ItemNotFoundException>(() => t));
+
+    private async Task GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(
+        Func<IEnumerable<VersionedInstanceIdentifier>, int, IEnumerable<VersionedInstanceIdentifier>> getRequeryIdentifiers,
+        Func<Task, Task> assertReindexBatch)
     {
         var args = new ReindexBatchArguments(
             new List<ExtendedQueryTagStoreEntry>
@@ -239,25 +250,20 @@ public partial class ReindexDurableFunctionTests
             new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 8),
         };
 
-        var requery = identifiers.Where((id, i) => i != 1 || !deleted).ToList();
-
         // Arrange input
         // Note: Parallel.ForEachAsync uses its own CancellationTokenSource
         _instanceStore
             .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, Arg.Any<CancellationToken>())
             .Returns(
                 Task.FromResult<IReadOnlyList<VersionedInstanceIdentifier>>(identifiers),
-                Task.FromResult<IReadOnlyList<VersionedInstanceIdentifier>>(requery));
+                Task.FromResult<IReadOnlyList<VersionedInstanceIdentifier>>(getRequeryIdentifiers(identifiers, 1).ToList()));
 
         _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifiers[0], Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifiers[1], Arg.Any<CancellationToken>()).Returns(Task.FromException<ItemNotFoundException>(new ItemNotFoundException(new RequestFailedException("Blob not found"))));
         _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifiers[2], Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         // Call the activity
-        if (deleted)
-            await _reindexDurableFunction.ReindexBatchV2Async(args, NullLogger.Instance);
-        else
-            await Assert.ThrowsAsync<ItemNotFoundException>(() => _reindexDurableFunction.ReindexBatchV2Async(args, NullLogger.Instance));
+        await assertReindexBatch(_reindexDurableFunction.ReindexBatchV2Async(args, NullLogger.Instance));
 
         // Assert behavior
         await _instanceStore

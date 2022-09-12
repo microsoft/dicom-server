@@ -50,7 +50,7 @@ internal sealed class ExportService : IExportService
 
         // Initialize the sink before running the operation to ensure we can connect
         await using IExportSink sink = await _sinkFactory.CreateAsync(specification.Destination, operationId, cancellationToken);
-        await sink.InitializeAsync(cancellationToken);
+        Uri errorHref = await sink.InitializeAsync(cancellationToken);
 
         specification = new ExportSpecification
         {
@@ -60,6 +60,6 @@ internal sealed class ExportService : IExportService
 
         // Start the operation
         PartitionEntry partition = _accessor.RequestContext.DataPartitionEntry;
-        return await _client.StartExportAsync(operationId, specification, sink.ErrorHref, partition, cancellationToken);
+        return await _client.StartExportAsync(operationId, specification, errorHref, partition, cancellationToken);
     }
 }

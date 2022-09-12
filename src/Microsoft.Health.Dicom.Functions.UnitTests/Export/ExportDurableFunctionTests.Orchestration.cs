@@ -33,8 +33,8 @@ public partial class ExportDurableFunctionTests
                 Size = 3,
                 MaxParallelCount = 2,
             },
-            // An old version didn't include error href in the input
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
+            ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
             Partition = PartitionEntry.Default,
             Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
@@ -49,7 +49,6 @@ public partial class ExportDurableFunctionTests
             new ExportProgress(3, 0),
         };
         var nextSource = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions());
-        var errorHref = new Uri($"http://storage/errors/{operationId}.json");
 
         // Arrange the input
         IDurableOrchestrationContext context = CreateContext(operationId);
@@ -84,12 +83,6 @@ public partial class ExportDurableFunctionTests
                 _options.RetryOptions,
                 Arg.Any<GetInstanceStatusOptions>())
             .Returns(new DurableOrchestrationStatus { CreatedTime = createdTime });
-        context
-            .CallActivityWithRetryAsync<Uri>(
-                nameof(ExportDurableFunction.GetErrorHrefAsync),
-                _options.RetryOptions,
-                input.Destination)
-            .Returns(errorHref);
 
         // Invoke the orchestration
         await _function.ExportDicomFilesAsync(context, NullLogger.Instance);
@@ -121,12 +114,6 @@ public partial class ExportDurableFunctionTests
                 _options.RetryOptions,
                 Arg.Any<GetInstanceStatusOptions>());
         await context
-            .Received(1)
-            .CallActivityWithRetryAsync<Uri>(
-                nameof(ExportDurableFunction.GetErrorHrefAsync),
-                _options.RetryOptions,
-                input.Destination);
-        await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
                 nameof(ExportDurableFunction.CompleteCopyAsync),
@@ -136,7 +123,7 @@ public partial class ExportDurableFunctionTests
             .Received(1)
             .ContinueAsNew(
                 Arg.Is<ExportCheckpoint>(x => ReferenceEquals(x.Source, nextSource)
-                    && x.ErrorHref == errorHref
+                    && x.ErrorHref == input.ErrorHref
                     && x.CreatedTime == createdTime
                     && x.Progress == new ExportProgress(5, 1)),
                 false);
@@ -210,12 +197,6 @@ public partial class ExportDurableFunctionTests
                 Arg.Any<object>());
         await context
             .DidNotReceive()
-            .CallActivityWithRetryAsync<Uri>(
-                nameof(ExportDurableFunction.GetErrorHrefAsync),
-                Arg.Any<RetryOptions>(),
-                Arg.Any<object>());
-        await context
-            .DidNotReceive()
             .CallActivityWithRetryAsync(
                 nameof(ExportDurableFunction.CompleteCopyAsync),
                 _options.RetryOptions,
@@ -271,12 +252,6 @@ public partial class ExportDurableFunctionTests
             .DidNotReceive()
             .CallActivityWithRetryAsync<DurableOrchestrationStatus>(
                 nameof(DurableOrchestrationClientActivity.GetInstanceStatusAsync),
-                Arg.Any<RetryOptions>(),
-                Arg.Any<object>());
-        await context
-            .DidNotReceive()
-            .CallActivityWithRetryAsync<Uri>(
-                nameof(ExportDurableFunction.GetErrorHrefAsync),
                 Arg.Any<RetryOptions>(),
                 Arg.Any<object>());
         await context
