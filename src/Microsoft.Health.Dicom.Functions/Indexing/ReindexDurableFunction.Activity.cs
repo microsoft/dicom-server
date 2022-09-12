@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -179,6 +181,8 @@ public partial class ReindexDurableFunction
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
             await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
 
+        var missing = new ConcurrentDictionary<VersionedInstanceIdentifier, ItemNotFoundException>();
+
         await Parallel.ForEachAsync(
             instanceIdentifiers,
             new ParallelOptions
@@ -186,7 +190,35 @@ public partial class ReindexDurableFunction
                 CancellationToken = default,
                 MaxDegreeOfParallelism = _options.MaxParallelThreads,
             },
-            (id, token) => new ValueTask(_instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id, token)));
+            async (id, token) =>
+            {
+                // Record any failed re-indexing
+                try
+                {
+                    await _instanceReindexer.ReindexInstanceAsync(arguments.QueryTags, id, token);
+                }
+                catch (ItemNotFoundException ex)
+                {
+                    missing[id] = ex;
+                }
+            });
+
+        // If there are any missing, re-query the batch and ensure they were deleted
+        if (!missing.IsEmpty)
+        {
+            logger.LogWarning("Could not find {Count} instances to re-index", arguments.WatermarkRange, missing.Count);
+            instanceIdentifiers = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
+
+            foreach (VersionedInstanceIdentifier identifier in instanceIdentifiers)
+            {
+                // If the identifier is still present, then throw!
+                if (missing.TryGetValue(identifier, out ItemNotFoundException exception))
+                {
+                    logger.LogError("Cannot find metadata for watermark {Watermark}", identifier.Version);
+                    throw exception;
+                }
+            }
+        }
 
         logger.LogInformation("Completed re-indexing instances in the range {Range} for the {TagCount} query tags {{{Tags}}}",
             arguments.WatermarkRange,
