@@ -1,0 +1,6 @@
+testName: GET DICOM File (KV enabled) _ 50reqs_perfile_sequential
+testPlan: GET DICOM File (KV enabled) _ 50reqs_perfile_sequential.jmx
+description: GET DICOM File (KV enabled) _ 50reqs_perfile_sequential
+engineInstances: 1
+splitAllCSVs: False
+failureCriteria: []
