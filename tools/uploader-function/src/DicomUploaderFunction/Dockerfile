@@ -2,6 +2,7 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0.400-alpine3.16@sha256:11f89ab92f24af26b732
 
 COPY Directory.Build.props Directory.Packages.props global.json nuget.config .editorconfig .globalconfig ./
 COPY ./src/Microsoft.Health.Dicom.Client /src/Microsoft.Health.Dicom.Client
+COPY ./forks/Microsoft.Health.FellowOakDicom /forks/Microsoft.Health.FellowOakDicom
 COPY ./tools/uploader-function/src/DicomUploaderFunction /tools/uploader-function/src/DicomUploaderFunction
 RUN cd /tools/uploader-function/src/DicomUploaderFunction && \
     mkdir -p /home/site/wwwroot && \
