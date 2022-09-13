@@ -126,7 +126,7 @@
                 "Old",
                 "Dual"
             ],
-            "defaultValue": "New",
+            "defaultValue": "Old",
             "metadata": {
                 "description": "The path structure for representing DICOM data in Azure Blob Storage."
             }
