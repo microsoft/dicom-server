@@ -140,4 +140,29 @@ public class JsonDicomConverterExtendedTests
         DicomDataset tagValue = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
         Assert.NotNull(tagValue.GetDicomItem<DicomFloatingPointSingle>(DicomTag.SelectorFLValue));
     }
+
+    [Fact]
+    public static void GivenDicomJsonDatasetWithInvalidPrivateCreatorDataElement_WhenDeserialized_IsSuccessful()
+    {
+        // allowing deserializer to handle bad data more gracefully
+        const string json = @"
+            {
+                ""00090010"": {
+                    ""vr"": ""US"",
+                     ""Value"": [
+                        1234,
+                        3333
+                    ]
+                 },
+                ""00091001"": {
+                    ""vr"": ""CS"",
+                    ""Value"": [
+                        ""00""
+                    ]
+                }
+            } ";
+
+        // make sure below serialization does not throw
+        DicomDataset tagValue = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+    }
 }
