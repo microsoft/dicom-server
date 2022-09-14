@@ -10,9 +10,6 @@
       "RetryDelay": "00:00:15",
       "Timeout": "00:06:00"
     },
-    "Migration": {
-      "FormatType": "New"
-    },
     "Operations": {
       "Download": {
         "MaximumConcurrency": 5
