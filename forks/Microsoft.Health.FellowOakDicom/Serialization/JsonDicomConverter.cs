@@ -234,10 +234,10 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                     if (dataset.Contains(privateCreatorTag))
                     {
                         var privateCreatorItem = dataset.GetDicomItem<DicomItem>(privateCreatorTag);
-                        // Based on standard private creator data item should be VM = 1, but there are buggy dcms
-                        // To allow serialization to continue to work instead of throwing checking valid single value before calling GetSingleValue
-                        if (privateCreatorItem is DicomLongString element
-                            && element.Count == 1)
+                        // Based on standard https://dicom.nema.org/dicom/2013/output/chtml/part05/sect_7.8.html private creator data item should be VM = 1, but there are buggy dcms
+                        bool isValidPrivateCreatorItem = privateCreatorItem is DicomLongString element && element.Count == 1;
+                        // Allow de-serialization to continue if autoValidate was set to false
+                        if (isValidPrivateCreatorItem || _autoValidate)
                         {
                             item.Tag.PrivateCreator = new DicomPrivateCreator(dataset.GetSingleValue<string>(privateCreatorTag));
                         }

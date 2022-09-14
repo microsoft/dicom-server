@@ -18,7 +18,7 @@ public class JsonDicomConverterExtendedTests
 
     static JsonDicomConverterExtendedTests()
     {
-        SerializerOptions.Converters.Add(new DicomJsonConverter());
+        SerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
     }
 
     [Fact]
