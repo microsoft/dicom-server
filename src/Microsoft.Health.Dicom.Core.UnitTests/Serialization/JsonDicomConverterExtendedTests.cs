@@ -163,6 +163,7 @@ public class JsonDicomConverterExtendedTests
             } ";
 
         // make sure below serialization does not throw
-        DicomDataset tagValue = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+        DicomDataset ds = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+        Assert.NotNull(ds);
     }
 }
