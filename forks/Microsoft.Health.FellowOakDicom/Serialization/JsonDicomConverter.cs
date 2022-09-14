@@ -14,6 +14,8 @@ using FellowOakDicom;
 using FellowOakDicom.IO;
 using FellowOakDicom.IO.Buffer;
 
+using DicomDecimalString = Microsoft.Health.FellowOakDicom.Core.DicomDecimalString;
+using DicomIntegerString = Microsoft.Health.FellowOakDicom.Core.DicomIntegerString;
 using DicomSignedVeryLong = Microsoft.Health.FellowOakDicom.Core.DicomSignedVeryLong;
 using DicomUnsignedVeryLong = Microsoft.Health.FellowOakDicom.Core.DicomUnsignedVeryLong;
 
