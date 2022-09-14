@@ -1,10 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
     private readonly BlobContainerConfiguration _metadataContainerConfiguration;
     private BlobServiceClient _blobClient;
 
+    private int _watermark = 0;
+
     public DataStoreTestsFixture()
     {
         IConfiguration environment = new ConfigurationBuilder()
@@ -45,11 +48,13 @@ public class DataStoreTestsFixture : IAsyncLifetime
         RecyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
     }
 
-    public IFileStore FileStore { get; private set; }
+    public IFileStore FileStore { get; set; }
 
-    public IMetadataStore MetadataStore { get; private set; }
+    public IMetadataStore MetadataStore { get; set; }
 
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
+
+    public int NextWatermark => Interlocked.Increment(ref _watermark);
 
     public async Task InitializeAsync()
     {
@@ -66,11 +71,11 @@ public class DataStoreTestsFixture : IAsyncLifetime
         var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
         var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
 
-        await blobClientInitializer.InitializeDataStoreAsync(
-                                        new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
+        await blobClientInitializer.InitializeDataStoreAsync(new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-        FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), Options.Create(Substitute.For<BlobMigrationConfiguration>()), NullLogger<BlobFileStore>.Instance);
-        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobMigrationConfiguration>()), optionsMonitor, Options.Create(AppSerializerOptions.Json), NullLogger<BlobMetadataStore>.Instance);
+        var migrationConfig = new BlobMigrationConfiguration { FormatType = BlobMigrationFormatType.New };
+        FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), Options.Create(migrationConfig), NullLogger<BlobFileStore>.Instance);
+        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(migrationConfig), optionsMonitor, Options.Create(AppSerializerOptions.Json), NullLogger<BlobMetadataStore>.Instance);
     }
 
     public async Task DisposeAsync()

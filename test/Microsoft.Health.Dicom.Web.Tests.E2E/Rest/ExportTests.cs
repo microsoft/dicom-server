@@ -35,7 +35,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instanceManager;
 
-    private const string ExpectedPathPattern = "{0}/Results/{1}/{2}/{3}.dcm";
+    private const string ExpectedPathPattern = "{0}/results/{1}/{2}/{3}.dcm";
 
     public ExportTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
@@ -123,7 +123,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             Assert.Equal(OperationStatus.Completed, state.Status);
 #pragma warning restore CS0618
 
-            string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/Errors.log";
+            string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/errors.log";
             var results = state.Results as ExportResults;
             Assert.NotNull(results);
             Assert.EndsWith(expectedErrorLog, results.ErrorHref.AbsoluteUri, StringComparison.Ordinal);

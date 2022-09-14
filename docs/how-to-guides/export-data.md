@@ -84,6 +84,8 @@ If the storage account requires authentication, a [SAS token](https://docs.micro
 
 Upon successfully starting an export operation, the export API returns a `202` status code. The body of the response contains a reference to the operation, while the value of the `Location` header is the URL for the export operation's status (the same as `href` in the body).
 
+Inside of the destination container, the DCM files can be found with the following path format: `<operation id>/results/<study>/<series>/<sop instance>.dcm`
+
 ```http
 HTTP/1.1 202 Accepted
 Content-Type: application/json
@@ -108,7 +110,7 @@ Content-Type: application/json
     "lastUpdatedTime": "2022-09-08T16:41:01.2776644Z",
     "status": "completed",
     "results": {
-        "errorHref": "<container uri>/4853cda8c05c44e497d2bc071f8e92c4/Errors.log",
+        "errorHref": "<container uri>/4853cda8c05c44e497d2bc071f8e92c4/errors.log",
         "exported": 1000,
         "skipped": 3
     }
@@ -117,7 +119,7 @@ Content-Type: application/json
 
 ## Errors
 
-If there are any errors when exporting a DICOM file (that was determined not to be a problem with the client), then the file is skipped and its corresponding error is logged. This error log is also exported alongside the DICOM files and can be reviewed by the caller. The error log can be found at `<export blob container uri>/<operation ID>/Errors.log`.
+If there are any errors when exporting a DICOM file (that was determined not to be a problem with the client), then the file is skipped and its corresponding error is logged. This error log is also exported alongside the DICOM files and can be reviewed by the caller. The error log can be found at `<export blob container uri>/<operation ID>/errors.log`.
 
 ### Format
 

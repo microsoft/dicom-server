@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -20,12 +20,14 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 {
     private readonly IFileStore _blobDataStore;
+    private readonly Func<int> _getNextWatermark;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
     public FileStoreTests(DataStoreTestsFixture fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _blobDataStore = fixture.FileStore;
+        _getNextWatermark = () => fixture.NextWatermark;
         _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
     }
 
@@ -106,12 +108,12 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
     }
 
-    private static VersionedInstanceIdentifier GenerateIdentifier()
+    private VersionedInstanceIdentifier GenerateIdentifier()
         => new VersionedInstanceIdentifier(
             studyInstanceUid: TestUidGenerator.Generate(),
             seriesInstanceUid: TestUidGenerator.Generate(),
             sopInstanceUid: TestUidGenerator.Generate(),
-            version: 0);
+            _getNextWatermark());
 
     private async Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
