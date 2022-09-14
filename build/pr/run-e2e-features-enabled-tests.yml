@@ -9,7 +9,7 @@ jobs:
     inputs:
       useGlobalJson: true
 
-  - script: BlobFormat=New docker-compose -p healthcare -f docker-compose.yml -f docker-compose.features.yml up --build -d
+  - script: docker-compose -p healthcare -f docker-compose.yml -f docker-compose.features.yml up --build -d
     displayName: 'Run docker-compose'
     workingDirectory: 'docker'
 
