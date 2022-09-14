@@ -119,6 +119,18 @@
                 "description": "Deploy Application Insights for the DICOM server."
             }
         },
+        "blobFormat": {
+            "type": "string",
+             "allowedValues": [
+                "New",
+                "Old",
+                "Dual"
+            ],
+            "defaultValue": "Old",
+            "metadata": {
+                "description": "The path structure for representing DICOM data in Azure Blob Storage."
+            }
+        },
         "additionalDicomServerConfigProperties": {
             "type": "object",
             "defaultValue": {},
@@ -204,6 +216,7 @@
             "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
             "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]",
+            "DicomServer__Services__BlobMigration__FormatType": "[parameters('blobFormat')]",
             "KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
             "KeyVault__Credential": "managedidentity"
         },
@@ -214,6 +227,7 @@
             "FUNCTIONS_EXTENSION_VERSION": "~4",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "1",
+            "AzureFunctionsJobHost__BlobStore__Migration__FormatType": "[parameters('blobFormat')]",
             "AzureFunctionsJobHost__KeyVault__VaultUri": "[variables('keyVaultEndpoint')]",
             "AzureFunctionsJobHost__KeyVault__Credential": "managedidentity"
         },

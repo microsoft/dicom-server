@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -23,9 +23,6 @@ public interface IInstanceReindexer
     /// <param name="entries">Extended query tag store entries.</param>
     /// <param name="versionedInstanceId">The versioned instance id.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// A <see cref="Task{TResult}"/> representing the asynchronous operation. The value of the
-    /// <see cref="Task{TResult}.Result"/> indicates whether the reindexing was successful.
-    /// </returns>
-    Task<bool> ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
+    /// <returns>A <see cref="Task{TResult}"/> representing the asynchronous operation.</returns>
+    Task ReindexInstanceAsync(IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries, VersionedInstanceIdentifier versionedInstanceId, CancellationToken cancellationToken = default);
 }

@@ -85,7 +85,7 @@ public partial class ExportDurableFunction
                 Batching = input.Batching,
                 CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 Destination = input.Destination,
-                ErrorHref = input.ErrorHref ?? await context.CallActivityWithRetryAsync<Uri>(nameof(GetErrorHrefAsync), _options.RetryOptions, input.Destination),
+                ErrorHref = input.ErrorHref,
                 Progress = input.Progress + iterationProgress,
                 Source = source.Description,
             });

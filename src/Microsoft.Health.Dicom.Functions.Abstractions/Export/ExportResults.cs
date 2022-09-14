@@ -13,14 +13,6 @@ namespace Microsoft.Health.Dicom.Functions.Export;
 public sealed class ExportResults
 {
     /// <summary>
-    /// Gets or sets the URI for containing the errors for this operation, if any.
-    /// </summary>
-    /// <value>
-    /// The <see cref="Uri"/> for the resource containg export errors.
-    /// </value>
-    public Uri ErrorHref { get; }
-
-    /// <summary>
     /// Gets the number of DICOM files that were successfully exported.
     /// </summary>
     /// <value>The non-negative number of exported DICOM files.</value>
@@ -31,6 +23,12 @@ public sealed class ExportResults
     /// </summary>
     /// <value>The non-negative number of DICOM resources that failed to be exported.</value>
     public long Skipped { get; }
+
+    /// <summary>
+    /// Gets the URI for containing the errors for this operation, if any.
+    /// </summary>
+    /// <value>The <see cref="Uri"/> for the resource containg export errors.</value>
+    public Uri ErrorHref { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportResults"/> structure based given progress.
