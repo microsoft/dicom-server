@@ -112,7 +112,7 @@ public class JsonDicomConverterExtendedTests
         Assert.Throws<NotSupportedException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
     }
 
-    [Fact]
+    [Fact(Skip = "93875")]
     public static void GivenDicomJsonDatasetWithInvalidNumberVR_WhenDeserialized_NotSupportedExceptionIsThrown()
     {
         const string json = @"
