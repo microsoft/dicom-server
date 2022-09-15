@@ -112,8 +112,8 @@ public class JsonDicomConverterExtendedTests
         Assert.Throws<NotSupportedException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
     }
 
-    [Fact(Skip = "93875")]
-    public static void GivenDicomJsonDatasetWithInvalidNumberVR_WhenDeserialized_NotSupportedExceptionIsThrown()
+    [Fact]
+    public static void GivenDicomJsonDatasetWithInvalidNumberVR_WhenDeserializedWithAutoValidateTrue_NumberExpectedJsonExceptionIsThrown()
     {
         const string json = @"
             {
@@ -123,7 +123,13 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+
+        var serializerOptions = new JsonSerializerOptions
+        {
+            Converters = { new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: true) }
+        };
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
     }
 
     [Fact]
