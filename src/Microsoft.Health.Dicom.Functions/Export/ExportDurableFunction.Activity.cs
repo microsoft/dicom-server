@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -70,25 +70,6 @@ public partial class ExportDurableFunction
             logger.LogWarning("Failed to export {Files} DCM files.", failures);
 
         return new ExportProgress(successes, failures);
-    }
-
-    /// <summary>
-    /// Asynchronously retrieves the URI for the error resource in the user-specified sink.
-    /// </summary>
-    /// <param name="context">The context for the activity.</param>
-    /// <returns>
-    /// A task representing the <see cref="GetErrorHrefAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property contains the URI.
-    /// </returns>
-    /// <exception cref="ArgumentNullException"><paramref name="context"/> is <see langword="null"/>.</exception>
-    [FunctionName(nameof(GetErrorHrefAsync))]
-    public async Task<Uri> GetErrorHrefAsync([ActivityTrigger] IDurableActivityContext context)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-
-        ExportDataOptions<ExportDestinationType> destination = context.GetInput<ExportDataOptions<ExportDestinationType>>();
-        await using IExportSink sink = await _sinkFactory.CreateAsync(destination, context.GetOperationId());
-        return sink.ErrorHref;
     }
 
     /// <summary>

@@ -11,7 +11,14 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using FellowOakDicom;
+using FellowOakDicom.IO;
 using FellowOakDicom.IO.Buffer;
+
+using DicomDecimalString = Microsoft.Health.FellowOakDicom.Core.DicomDecimalString;
+using DicomIntegerString = Microsoft.Health.FellowOakDicom.Core.DicomIntegerString;
+using DicomSignedVeryLong = Microsoft.Health.FellowOakDicom.Core.DicomSignedVeryLong;
+using DicomUnsignedVeryLong = Microsoft.Health.FellowOakDicom.Core.DicomUnsignedVeryLong;
+
 
 namespace Microsoft.Health.FellowOakDicom.Serialization
 {
@@ -870,7 +877,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             }
         }
 
-        private static T[] ReadJsonMultiNumberOrStringValue<T>(ref Utf8JsonReader reader, GetValue<T> getValue, TryParse<T> tryParse)
+        private object ReadJsonMultiNumberOrStringValue<T>(ref Utf8JsonReader reader, GetValue<T> getValue, TryParse<T> tryParse)
         {
             if (reader.TokenType == JsonTokenType.Null)
             {
@@ -879,7 +886,8 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             }
             reader.AssumeAndSkip(JsonTokenType.StartArray);
 
-            var childValues = new List<T>();
+            var hasNonNumericString = false;
+            var childValues = new List<object>();
             while (reader.TokenType != JsonTokenType.EndArray)
             {
                 if (reader.TokenType == JsonTokenType.Number)
@@ -894,6 +902,11 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 {
                     childValues.Add(parsed);
                 }
+                else if (reader.TokenType == JsonTokenType.String && !_autoValidate)
+                {
+                    hasNonNumericString = true;
+                    childValues.Add(reader.GetString());
+                }
                 else
                 {
                     throw new JsonException("Malformed DICOM json, number expected");
@@ -902,8 +915,13 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             }
             reader.AssumeAndSkip(JsonTokenType.EndArray);
 
-            var data = childValues.ToArray();
-            return data;
+            if (hasNonNumericString)
+            {
+                var valArray = childValues.Select(x => x.ToString()).ToArray();
+                return ByteConverter.ToByteBuffer(string.Join("\\", valArray));
+            }
+
+            return childValues.Select(x => x).Cast<T>().ToArray();
         }
 
         private object ReadJsonMultiNumber<T>(ref Utf8JsonReader reader, GetValue<T> getValue)

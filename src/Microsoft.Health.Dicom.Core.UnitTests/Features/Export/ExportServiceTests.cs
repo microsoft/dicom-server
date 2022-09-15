@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ public class ExportServiceTests
     private const ExportDestinationType DestinationType = ExportDestinationType.AzureBlob;
 
     private readonly PartitionEntry _partition = new PartitionEntry(123, "export-partition");
+    private readonly IExportSink _sink;
     private readonly IExportSourceProvider _sourceProvider;
     private readonly IExportSinkProvider _sinkProvider;
     private readonly IGuidFactory _guidFactory;
@@ -36,6 +37,7 @@ public class ExportServiceTests
     {
         _sourceProvider = Substitute.For<IExportSourceProvider>();
         _sourceProvider.Type.Returns(SourceType);
+        _sink = Substitute.For<IExportSink>();
         _sinkProvider = Substitute.For<IExportSinkProvider>();
         _sinkProvider.Type.Returns(DestinationType);
         _client = Substitute.For<IDicomOperationsClient>();
@@ -71,23 +73,27 @@ public class ExportServiceTests
         using var tokenSource = new CancellationTokenSource();
 
         var operationId = Guid.NewGuid();
-        var originalSource = new object();
-        var originalDestination = new object();
-        var newDestination = new object();
+        var sourceSettings = new object();
+        var originalDestinationSettings = new object();
+        var securedDestinationSettings = new object();
         var spec = new ExportSpecification
         {
-            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, originalDestination),
-            Source = new ExportDataOptions<ExportSourceType>(SourceType, originalSource),
+            Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, originalDestinationSettings),
+            Source = new ExportDataOptions<ExportSourceType>(SourceType, sourceSettings),
         };
+        var errorHref = new Uri($"https://somewhere/{operationId:N}/errors.log");
         var expected = new OperationReference(operationId, new Uri("http://test/export"));
 
         _guidFactory.Create().Returns(operationId);
-        _sinkProvider.SecureSensitiveInfoAsync(originalDestination, operationId, tokenSource.Token).Returns(newDestination);
+        _sinkProvider.CreateAsync(originalDestinationSettings, operationId, tokenSource.Token).Returns(_sink);
+        _sinkProvider.SecureSensitiveInfoAsync(originalDestinationSettings, operationId, tokenSource.Token).Returns(securedDestinationSettings);
+        _sink.InitializeAsync(tokenSource.Token).Returns(errorHref);
         _client
             .StartExportAsync(
                 operationId,
-                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Settings)
-                    && ReferenceEquals(newDestination, x.Destination.Settings)),
+                Arg.Is<ExportSpecification>(x => ReferenceEquals(sourceSettings, x.Source.Settings)
+                    && ReferenceEquals(securedDestinationSettings, x.Destination.Settings)),
+                errorHref,
                 _partition,
                 tokenSource.Token)
             .Returns(expected);
@@ -95,15 +101,28 @@ public class ExportServiceTests
         Assert.Same(expected, await _service.StartExportAsync(spec, tokenSource.Token));
 
         _guidFactory.Received(1).Create();
-        await _sourceProvider.Received(1).ValidateAsync(originalSource, tokenSource.Token);
-        await _sinkProvider.Received(1).ValidateAsync(originalDestination, tokenSource.Token);
+        await _sourceProvider.Received(1).ValidateAsync(sourceSettings, tokenSource.Token);
+        await _sinkProvider.Received(1).ValidateAsync(originalDestinationSettings, tokenSource.Token);
+        await _sinkProvider.Received(1).CreateAsync(originalDestinationSettings, operationId, tokenSource.Token);
+        await _sinkProvider.Received(1).SecureSensitiveInfoAsync(originalDestinationSettings, operationId, tokenSource.Token);
+        await _sink.Received(1).InitializeAsync(tokenSource.Token);
         await _client
             .Received(1)
             .StartExportAsync(
                 operationId,
-                Arg.Is<ExportSpecification>(x => ReferenceEquals(originalSource, x.Source.Settings)
-                    && ReferenceEquals(newDestination, x.Destination.Settings)),
+                Arg.Is<ExportSpecification>(x => ReferenceEquals(sourceSettings, x.Source.Settings)
+                    && ReferenceEquals(securedDestinationSettings, x.Destination.Settings)),
+                errorHref,
                 _partition,
                 tokenSource.Token);
+
+        // Ensure that validation was called before creation
+        Received.InOrder(
+            () =>
+            {
+                _sourceProvider.ValidateAsync(sourceSettings, tokenSource.Token);
+                _sinkProvider.ValidateAsync(originalDestinationSettings, tokenSource.Token);
+                _sinkProvider.CreateAsync(originalDestinationSettings, operationId, tokenSource.Token);
+            });
     }
 }

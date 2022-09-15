@@ -1,8 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -29,9 +30,8 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Features;
 
 public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 {
-    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
-
     private readonly RetrieveMetadataService _retrieveMetadataService;
+    private readonly Func<int> _getNextWatermark;
     private readonly IInstanceStore _instanceStore;
     private readonly IMetadataStore _metadataStore;
     private readonly IETagGenerator _eTagGenerator;
@@ -43,6 +43,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
     {
         EnsureArg.IsNotNull(storagefixture, nameof(storagefixture));
+        _getNextWatermark = () => storagefixture.NextWatermark;
         _instanceStore = Substitute.For<IInstanceStore>();
         _metadataStore = storagefixture.MetadataStore;
         _eTagGenerator = Substitute.For<IETagGenerator>();
@@ -56,108 +57,136 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     [Fact]
     public async Task GivenRetrieveMetadataRequestForStudy_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
     {
-        List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Study);
+        using var tokenSource = new CancellationTokenSource();
+
+        (_, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
         // Add metadata for only one instance in the given list
-        await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 0);
+        await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token));
     }
 
     [Fact]
     public async Task GivenRetrieveMetadataRequestForStudy_WhenFailsToRetrieveAny_ThenNotFoundIsThrown()
     {
-        SetupDatasetList(ResourceType.Study);
+        using var tokenSource = new CancellationTokenSource();
+
+        SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token));
     }
 
     [Fact]
     public async Task GivenRetrieveMetadataRequestForStudy_WhenIsSuccessful_ThenInstanceMetadataIsRetrievedSuccessfully()
     {
-        List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Study);
+        using var tokenSource = new CancellationTokenSource();
+
+        (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
         // Add metadata for all instances in the given list
-        await _metadataStore.StoreInstanceMetadataAsync(datasetList.First(), version: 0);
-        await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
+        await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.Version);
+        await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
 
-        ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
-        ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
+        var actual = response.ResponseMetadata.ToList();
+        Assert.Equal(2, actual.Count);
+        ValidateResponseMetadataDataset(first.Dataset, actual[0]);
+        ValidateResponseMetadataDataset(second.Dataset, actual[1]);
     }
 
     [Fact]
     public async Task GivenRetrieveMetadataRequestForSeries_WhenFailsToRetrieveAll_ThenNotFoundIsThrown()
     {
-        List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Series);
+        using var tokenSource = new CancellationTokenSource();
+
+        (_, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Series, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
         // Add metadata for only one instance in the given list
-        await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
+        await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token));
     }
 
     [Fact]
     public async Task GivenRetrieveMetadataRequestForSeries_WhenFailsToRetrieveAny_ThenNotFoundIsThrown()
     {
-        SetupDatasetList(ResourceType.Series);
+        using var tokenSource = new CancellationTokenSource();
+
+        SetupDatasetList(ResourceType.Series, cancellationToken: tokenSource.Token);
 
         string ifNoneMatch = null;
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token));
     }
 
     [Fact]
     public async Task GivenRetrieveMetadataRequestForSeries_WhenIsSuccessful_ThenInstanceMetadataIsRetrievedSuccessfully()
     {
-        List<DicomDataset> datasetList = SetupDatasetList(ResourceType.Series);
+        using var tokenSource = new CancellationTokenSource();
+
+        (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Series, cancellationToken: tokenSource.Token);
 
         // Add metadata for all instances in the given list
-        await _metadataStore.StoreInstanceMetadataAsync(datasetList.First(), version: 0);
-        await _metadataStore.StoreInstanceMetadataAsync(datasetList.Last(), version: 1);
+        await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.Version);
+        await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
         string ifNoneMatch = null;
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
 
-        ValidateResponseMetadataDataset(datasetList.First(), response.ResponseMetadata.First());
-        ValidateResponseMetadataDataset(datasetList.Last(), response.ResponseMetadata.Last());
+        var actual = response.ResponseMetadata.ToList();
+        Assert.Equal(2, actual.Count);
+        ValidateResponseMetadataDataset(first.Dataset, actual[0]);
+        ValidateResponseMetadataDataset(second.Dataset, actual[1]);
     }
 
-    private List<DicomDataset> SetupDatasetList(ResourceType resourceType, int partitionKey = DefaultPartition.Key)
+    // Note that tests must use unique watermarks to ensure their metadata files do not collide with each other
+    private (VersionedDicomDataset First, VersionedDicomDataset Second) SetupDatasetList(
+        ResourceType resourceType,
+        int partitionKey = DefaultPartition.Key,
+        CancellationToken cancellationToken = default)
     {
-        DicomDataset dicomDataset1 = new DicomDataset();
-        DicomDataset dicomDataset2 = new DicomDataset();
-
-        switch (resourceType)
+        var seriesInstanceUid = resourceType == ResourceType.Study ? TestUidGenerator.Generate() : _seriesInstanceUid;
+        var result1 = new VersionedDicomDataset
         {
-            case ResourceType.Study:
-                dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
-                dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate());
+            Dataset = CreateValidMetadataDataset(_studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()),
+            Version = _getNextWatermark(),
+        };
 
-                _instanceStore.GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
-                {
-                    dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
-                    dicomDataset2.ToVersionedInstanceIdentifier(version: 1),
-                });
-                break;
+        var result2 = new VersionedDicomDataset
+        {
+            Dataset = CreateValidMetadataDataset(_studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()),
+            Version = _getNextWatermark(),
+        };
 
-            case ResourceType.Series:
-                dicomDataset1 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
-                dicomDataset2 = CreateValidMetadataDataset(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate());
-
-                _instanceStore.GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, _seriesInstanceUid, DefaultCancellationToken).Returns(new List<VersionedInstanceIdentifier>()
-                {
-                    dicomDataset1.ToVersionedInstanceIdentifier(version: 0),
-                    dicomDataset2.ToVersionedInstanceIdentifier(version: 1),
-                });
-                break;
+        if (resourceType == ResourceType.Study)
+        {
+            _instanceStore
+                .GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, cancellationToken)
+                .Returns(
+                    new List<VersionedInstanceIdentifier>
+                    {
+                        result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version),
+                        result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version),
+                    });
+        }
+        else
+        {
+            _instanceStore
+                .GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken)
+                .Returns(
+                    new List<VersionedInstanceIdentifier>
+                    {
+                        result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version),
+                        result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version),
+                    });
         }
 
-        return new List<DicomDataset> { dicomDataset1, dicomDataset2 };
+        return (result1, result2);
     }
 
     private static DicomDataset CreateValidMetadataDataset(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
@@ -176,5 +205,12 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         Assert.Equal(
             JsonSerializer.Serialize(storedDataset, AppSerializerOptions.Json),
             JsonSerializer.Serialize(retrievedDataset, AppSerializerOptions.Json));
+    }
+
+    private readonly struct VersionedDicomDataset
+    {
+        public DicomDataset Dataset { get; init; }
+
+        public int Version { get; init; }
     }
 }

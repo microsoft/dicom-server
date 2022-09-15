@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ internal sealed class AzureBlobExportOptions
     internal SecretKey Secret { get; set; }
 
     // TODO: Make public upon request. Perhaps a boolean flag instead?
-    internal const string DicomFilePattern = "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm";
+    internal const string DicomFilePattern = "%Operation%/results/%Study%/%Series%/%SopInstance%.dcm";
 
-    internal const string ErrorLogPattern = "%Operation%/Errors.log";
+    internal const string ErrorLogPattern = "%Operation%/errors.log";
 }

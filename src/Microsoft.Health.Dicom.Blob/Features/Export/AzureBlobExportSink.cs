@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -54,19 +54,6 @@ internal sealed class AzureBlobExportSink : IExportSink
         _errors = new ConcurrentQueue<ExportErrorLogEntry>();
     }
 
-    public Uri ErrorHref
-    {
-        get
-        {
-            // Add trailing '/' before concatenating to preserve the container
-            string container = _dest.Uri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.Unescaped);
-            if (container[^1] != '/')
-                container += '/';
-
-            return new Uri(new Uri(container, UriKind.Absolute), _output.ErrorFile);
-        }
-    }
-
     public async Task<bool> CopyAsync(ReadResult value, CancellationToken cancellationToken = default)
     {
         // TODO: Use new blob SDK for copying block blobs when available
@@ -95,17 +82,20 @@ internal sealed class AzureBlobExportSink : IExportSink
     public ValueTask DisposeAsync()
         => new ValueTask(FlushAsync());
 
-    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+    public async Task<Uri> InitializeAsync(CancellationToken cancellationToken = default)
     {
         // TODO: Should we create the container if it's not present?
         try
         {
             if (!await _dest.ExistsAsync(cancellationToken))
+            {
                 throw new SinkInitializationFailureException(
                     string.Format(CultureInfo.CurrentCulture, DicomBlobResource.ContainerDoesNotExist, _dest.Name, _dest.AccountName));
+            }
 
             AppendBlobClient client = _dest.GetAppendBlobClient(_output.ErrorFile);
             await client.CreateIfNotExistsAsync(cancellationToken: cancellationToken);
+            return new Uri(client.Uri.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.Unescaped), UriKind.Absolute);
         }
         catch (AggregateException ae) when (ae.InnerException is RequestFailedException)
         {

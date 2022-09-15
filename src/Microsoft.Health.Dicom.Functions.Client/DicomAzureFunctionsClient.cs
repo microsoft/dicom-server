@@ -150,9 +150,10 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, PartitionEntry partition, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(specification, nameof(specification));
+        EnsureArg.IsNotNull(errorHref, nameof(errorHref));
         EnsureArg.IsNotNull(partition, nameof(partition));
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -165,6 +166,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             {
                 Batching = _options.Export.Batching,
                 Destination = specification.Destination,
+                ErrorHref = errorHref,
                 Partition = partition,
                 Source = specification.Source,
             });

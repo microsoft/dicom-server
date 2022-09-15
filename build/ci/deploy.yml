@@ -41,6 +41,7 @@ jobs:
             functionAppName = "$(deploymentName)-functions"
             appServicePlanResourceGroup = "$(appServicePlanResourceGroup)"
             appServicePlanName = "$(appServicePlanName)"
+            blobFormat = "New"
             additionalDicomServerConfigProperties = $additionalProperties
             sqlAdminPassword = $sqlAdminPassword
             securityAuthenticationAuthority = "https://login.microsoftonline.com/$(tenant-id)"
