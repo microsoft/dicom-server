@@ -18,7 +18,7 @@ public class JsonDicomConverterExtendedTests
 
     static JsonDicomConverterExtendedTests()
     {
-        SerializerOptions.Converters.Add(new DicomJsonConverter());
+        SerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class JsonDicomConverterExtendedTests
     }
 
     [Fact]
-    public static void GivenDicomJsonDatasetWithInvalidNumberVR_WhenDeserialized_NotSupportedExceptionIsThrown()
+    public static void GivenDicomJsonDatasetWithInvalidNumberVR_WhenDeserializedWithAutoValidateTrue_NumberExpectedJsonExceptionIsThrown()
     {
         const string json = @"
             {
@@ -123,7 +123,13 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+
+        var serializerOptions = new JsonSerializerOptions
+        {
+            Converters = { new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: true) }
+        };
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
     }
 
     [Fact]
@@ -269,5 +275,31 @@ public class JsonDicomConverterExtendedTests
         Assert.NotNull(dataset);
         Assert.Equal(84ul, dataset.GetSingleValue<ulong>(DicomTag.PatientWeight));
         Assert.Equal(@"asd", dataset.GetString(DicomTag.PatientSize));
+    }
+
+    [Fact]
+    public static void GivenDicomJsonDatasetWithInvalidPrivateCreatorDataElement_WhenDeserialized_IsSuccessful()
+    {
+        // allowing deserializer to handle bad data more gracefully
+        const string json = @"
+            {
+                ""00090010"": {
+                    ""vr"": ""US"",
+                     ""Value"": [
+                        1234,
+                        3333
+                    ]
+                 },
+                ""00091001"": {
+                    ""vr"": ""CS"",
+                    ""Value"": [
+                        ""00""
+                    ]
+                }
+            } ";
+
+        // make sure below serialization does not throw
+        DicomDataset ds = JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions);
+        Assert.NotNull(ds);
     }
 }
