@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -56,7 +57,7 @@ public sealed class WorkitemControllerAddTests
                 Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Failure, new Uri("https://www.microsoft.com")));
 
-        ObjectResult result = await _controller.AddAsync() as ObjectResult;
+        ObjectResult result = await _controller.AddAsync(new DicomDataset[1]) as ObjectResult;
 
         Assert.IsType<ObjectResult>(result);
         Assert.Equal(HttpStatusCode.BadRequest, (HttpStatusCode)result.StatusCode);
@@ -72,7 +73,7 @@ public sealed class WorkitemControllerAddTests
                 Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Conflict, new Uri("https://www.microsoft.com")));
 
-        ObjectResult result = await _controller.AddAsync() as ObjectResult;
+        ObjectResult result = await _controller.AddAsync(new DicomDataset[1]) as ObjectResult;
 
         Assert.IsType<ObjectResult>(result);
         Assert.Equal(HttpStatusCode.Conflict, (HttpStatusCode)result.StatusCode);
@@ -90,7 +91,7 @@ public sealed class WorkitemControllerAddTests
                 Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new AddWorkitemResponse(WorkitemResponseStatus.Success, new Uri(url)));
 
-        ObjectResult result = await _controller.AddAsync() as ObjectResult;
+        ObjectResult result = await _controller.AddAsync(new DicomDataset[1]) as ObjectResult;
 
         Assert.IsType<ObjectResult>(result);
         Assert.Equal(HttpStatusCode.Created, (HttpStatusCode)result.StatusCode);

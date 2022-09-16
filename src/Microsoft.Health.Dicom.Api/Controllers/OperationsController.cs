@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -78,8 +78,8 @@ public class OperationsController : ControllerBase
     [VersionedRoute(KnownRoutes.OperationInstanceRoute, Name = KnownRouteNames.OperationStatus)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType(typeof(OperationState<DicomOperation>), (int)HttpStatusCode.Accepted)]
-    [ProducesResponseType(typeof(OperationState<DicomOperation>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(IOperationState<DicomOperation>), (int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(IOperationState<DicomOperation>), (int)HttpStatusCode.OK)]
     [AuditEventType(AuditEventSubType.Operation)]
     public async Task<IActionResult> GetStateAsync(Guid operationId)
     {
@@ -93,7 +93,7 @@ public class OperationsController : ControllerBase
         }
 
         HttpStatusCode statusCode;
-        OperationState<DicomOperation> state = response.OperationState;
+        IOperationState<DicomOperation> state = response.OperationState;
         if (state.Status == OperationStatus.NotStarted || state.Status == OperationStatus.Running)
         {
             Response.AddLocationHeader(_urlResolver.ResolveOperationStatusUri(operationId));
@@ -104,6 +104,24 @@ public class OperationsController : ControllerBase
             statusCode = HttpStatusCode.OK;
         }
 
-        return StatusCode((int)statusCode, state);
+        return StatusCode((int)statusCode, GetV1State(state));
     }
+
+    // TODO #94762: After v1, we can use Succeeded instead of Completed
+    private static IOperationState<DicomOperation> GetV1State(IOperationState<DicomOperation> operationState)
+#pragma warning disable CS0618
+        => operationState.Status == OperationStatus.Succeeded
+            ? new OperationState<DicomOperation, object>
+            {
+                CreatedTime = operationState.CreatedTime,
+                LastUpdatedTime = operationState.LastUpdatedTime,
+                OperationId = operationState.OperationId,
+                PercentComplete = operationState.PercentComplete,
+                Resources = operationState.Resources,
+                Results = operationState.Results,
+                Status = OperationStatus.Completed,
+                Type = operationState.Type,
+            }
+            : operationState;
+#pragma warning restore CS0618
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
 using Microsoft.Health.Operations;
 using NSubstitute;
@@ -79,32 +80,6 @@ public partial class ExportDurableFunctionTests
         await sink.Received(1).CopyAsync(expectedData[3], Arg.Any<CancellationToken>());
         await sink.Received(1).CopyAsync(expectedData[4], Arg.Any<CancellationToken>());
         await sink.Received(1).FlushAsync(default);
-    }
-
-    [Fact]
-    public async Task GivenSink_WhenFetchingErrorHref_ThenShouldFetchUri()
-    {
-        var operationId = Guid.NewGuid();
-        var expectedUri = new Uri($"http://storage/errors/{operationId}.json");
-        var expectedInput = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions());
-
-        // Arrange input
-        IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.InstanceId.Returns(operationId.ToString(OperationId.FormatSpecifier));
-        context.GetInput<ExportDataOptions<ExportDestinationType>>().Returns(expectedInput);
-
-        IExportSink sink = Substitute.For<IExportSink>();
-        sink.ErrorHref.Returns(expectedUri);
-        _sinkProvider.CreateAsync(expectedInput.Settings, operationId).Returns(sink);
-
-        // Call the activity
-        Uri actual = await _function.GetErrorHrefAsync(context);
-
-        // Assert behavior
-        Assert.Equal(expectedUri, actual);
-
-        context.Received(1).GetInput<ExportDataOptions<ExportDestinationType>>();
-        await _sinkProvider.Received(1).CreateAsync(expectedInput.Settings, operationId);
     }
 
     [Fact]

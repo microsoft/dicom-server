@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -27,14 +27,14 @@ public sealed class OperationQueryCondition<T>
     public IEnumerable<OperationStatus> Statuses { get; init; }
 
     /// <summary>
-    /// Gets the optional minimum value for the <see cref="OperationState{T}.CreatedTime"/> property
+    /// Gets the optional minimum value for the <see cref="IOperationState{T}.CreatedTime"/> property
     /// to include in the search results.
     /// </summary>
     /// <value>The minimum operation created time if specified; otherwise <see cref="DateTime.MinValue"/>.</value>
     public DateTime CreatedTimeFrom { get; init; } = DateTime.MinValue;
 
     /// <summary>
-    /// Gets the optional maximum value for the <see cref="OperationState{T}.CreatedTime"/> property
+    /// Gets the optional maximum value for the <see cref="IOperationState{T}.CreatedTime"/> property
     /// to include in the search results.
     /// </summary>
     /// <value>The maximum operation created time if specified; otherwise <see cref="DateTime.MaxValue"/>.</value>

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Dicom.Functions.Client.HealthChecks;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Newtonsoft.Json;
 
@@ -50,14 +51,17 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
         services.AddOptions<DicomFunctionOptions>()
             .Bind(configuration.GetSection(DicomFunctionOptions.SectionName))
             .ValidateDataAnnotations();
-        services.AddDurableClientFactory(x => configuration
-            .GetSection(DicomFunctionOptions.SectionName)
-            .GetSection(nameof(DicomFunctionOptions.DurableTask))
-            .Bind(x));
+        services.AddDurableClientFactory(
+            x => configuration
+                .GetSection(DicomFunctionOptions.SectionName)
+                .GetSection(nameof(DicomFunctionOptions.DurableTask))
+                .Bind(x));
 
         services.Configure<JsonSerializerSettings>(o => o.ConfigureDefaultDicomSettings());
         services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
         services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
+
+        services.AddHealthChecks().AddCheck<DurableTaskHealthCheck>("DurableTask");
 
         return dicomServerBuilder;
     }

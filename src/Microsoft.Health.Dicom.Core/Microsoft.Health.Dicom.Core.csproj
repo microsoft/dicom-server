@@ -51,6 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="DicomCoreResource.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

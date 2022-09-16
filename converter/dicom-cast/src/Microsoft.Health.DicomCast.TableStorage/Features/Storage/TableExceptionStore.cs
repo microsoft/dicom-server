@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using EnsureThat;
-using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
@@ -60,10 +59,9 @@ public class TableExceptionStore : IExceptionStore
             return;
         }
 
-        DicomDataset dataset = changeFeedEntry.Metadata;
-        string studyInstanceUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-        string seriesInstanceUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-        string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+        string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
+        string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
+        string sopInstanceUid = changeFeedEntry.SopInstanceUid;
         long changeFeedSequence = changeFeedEntry.Sequence;
 
         var tableClient = _tableServiceClient.GetTableClient(tableName);
@@ -86,10 +84,9 @@ public class TableExceptionStore : IExceptionStore
     {
         EnsureArg.IsNotNull(changeFeedEntry, nameof(changeFeedEntry));
 
-        DicomDataset dataset = changeFeedEntry.Metadata;
-        string studyInstanceUid = dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-        string seriesInstanceUid = dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-        string sopInstanceUid = dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+        string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
+        string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
+        string sopInstanceUid = changeFeedEntry.SopInstanceUid;
         long changeFeedSequence = changeFeedEntry.Sequence;
 
         var tableClient = _tableServiceClient.GetTableClient(_tableList[Constants.TransientRetryTableName]);

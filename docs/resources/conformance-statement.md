@@ -31,6 +31,12 @@ For more information on how to specify the version when making requests, visit t
 
 You can find example requests for supported transactions in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json).
 
+## Preamble Sanitization
+
+The service ignores the 128-byte File Preamble, and replaces its contents with null characters. This ensures that no files passed through the service are
+vulnerable to the [malicious preamble vulnerability](https://dicom.nema.org/medical/dicom/current/output/chtml/part10/sect_7.5.html). However, this also means
+that [preambles used to encode dual format content](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6489422/) such as TIFF cannot be used with the service.
+
 # Studies Service
 
 The [Studies Service](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#chapter_10) allows users to store, retrieve, and search for DICOM Studies, Series, and Instances. We have added the non-standard Delete transaction to enable a full resource lifecycle.

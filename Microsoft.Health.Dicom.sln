@@ -31,6 +31,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Core
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions", "src\Microsoft.Health.Dicom.Functions\Microsoft.Health.Dicom.Functions.csproj", "{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Abstractions", "src\Microsoft.Health.Dicom.Functions.Abstractions\Microsoft.Health.Dicom.Functions.Abstractions.csproj", "{CFAD96C4-1AA3-442D-BADE-A93E4E936742}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Abstractions.UnitTests", "src\Microsoft.Health.Dicom.Functions.Abstractions.UnitTests\Microsoft.Health.Dicom.Functions.Abstractions.UnitTests.csproj", "{2D442B4F-C40A-4102-A332-8048A0655FDC}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.App", "src\Microsoft.Health.Dicom.Functions.App\Microsoft.Health.Dicom.Functions.App.csproj", "{BB88616C-6208-43D0-B9EF-79FC0652A151}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Functions.Client", "src\Microsoft.Health.Dicom.Functions.Client\Microsoft.Health.Dicom.Functions.Client.csproj", "{F896C916-144F-412E-B3DE-C9D0D9B8EDD1}"
@@ -66,6 +70,13 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.UnitTests", "src\Microsoft.Health.Dicom.SchemaManager.UnitTests\Microsoft.Health.Dicom.SchemaManager.UnitTests.csproj", "{C8BB8AF3-DCD1-49A4-A082-9152686AD222}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.Console", "src\Microsoft.Health.Dicom.SchemaManager.Console\Microsoft.Health.Dicom.SchemaManager.Console.csproj", "{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forks", "forks", "{AEDC6C96-15FF-4AFB-BD49-3549211AACCF}"
+	ProjectSection(SolutionItems) = preProject
+		forks\.globalconfig = forks\.globalconfig
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{ADD2B971-3C5C-429A-B954-A55FA0FA987D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +116,14 @@ Global
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Debug|x64.Build.0 = Debug|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.ActiveCfg = Release|x64
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941}.Release|x64.Build.0 = Release|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Debug|x64.ActiveCfg = Debug|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Debug|x64.Build.0 = Debug|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Release|x64.ActiveCfg = Release|x64
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742}.Release|x64.Build.0 = Release|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Debug|x64.ActiveCfg = Debug|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Debug|x64.Build.0 = Debug|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Release|x64.ActiveCfg = Release|x64
+		{2D442B4F-C40A-4102-A332-8048A0655FDC}.Release|x64.Build.0 = Release|x64
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.ActiveCfg = Debug|x64
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Debug|x64.Build.0 = Debug|x64
 		{BB88616C-6208-43D0-B9EF-79FC0652A151}.Release|x64.ActiveCfg = Release|x64
@@ -169,6 +188,10 @@ Global
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Debug|x64.Build.0 = Debug|x64
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.ActiveCfg = Release|x64
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}.Release|x64.Build.0 = Release|x64
+		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Debug|x64.ActiveCfg = Debug|x64
+		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Debug|x64.Build.0 = Debug|x64
+		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Release|x64.ActiveCfg = Release|x64
+		{ADD2B971-3C5C-429A-B954-A55FA0FA987D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -181,6 +204,8 @@ Global
 		{E15123F6-5A28-4D86-A28D-30FCB699B9EE} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{FA0484A7-AA0C-4CC6-A75F-1D6B23DD847D} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{CFAD96C4-1AA3-442D-BADE-A93E4E936742} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{2D442B4F-C40A-4102-A332-8048A0655FDC} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{BB88616C-6208-43D0-B9EF-79FC0652A151} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{F896C916-144F-412E-B3DE-C9D0D9B8EDD1} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{3D5D7F69-C766-450A-AA3D-00A50E115E9C} = {176641B3-297C-4E04-A83D-8F80F80485E8}
@@ -197,9 +222,10 @@ Global
 		{5A517D8F-9DBB-4123-99C6-01686BCA4AC7} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{C8BB8AF3-DCD1-49A4-A082-9152686AD222} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 		{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88} = {176641B3-297C-4E04-A83D-8F80F80485E8}
+		{ADD2B971-3C5C-429A-B954-A55FA0FA987D} = {AEDC6C96-15FF-4AFB-BD49-3549211AACCF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal

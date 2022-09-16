@@ -1,10 +1,13 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
@@ -35,6 +38,7 @@ public partial class WorkitemController
     /// 
     /// </remarks>
     /// <param name="workitemInstanceUid">The workitem Uid</param>
+    /// <param name="dicomDatasets">The DICOM dataset payload in the body.</param>
     /// <returns>Returns a string status report.</returns>
     [HttpPost]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
@@ -47,13 +51,12 @@ public partial class WorkitemController
     [VersionedPartitionRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.PartitionedCancelWorkitemInstance)]
     [VersionedRoute(KnownRoutes.CancelWorkitemInstancesRoute, Name = KnownRouteNames.CancelWorkitemInstance)]
     [AuditEventType(AuditEventSubType.CancelWorkitem)]
-    public async Task<IActionResult> CancelAsync(string workitemInstanceUid)
+    public async Task<IActionResult> CancelAsync(string workitemInstanceUid, [FromBody][Required][MinLength(1)] IReadOnlyList<DicomDataset> dicomDatasets)
     {
-        _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received, with Workitem instance UID {WorkitemInstanceUid}",
-            workitemInstanceUid ?? string.Empty);
+        _logger.LogInformation("DICOM Web Cancel Workitem Transaction request received with file size of {FileSize} bytes.", Request.ContentLength);
 
         var response = await _mediator.CancelWorkitemAsync(
-                Request.Body,
+                dicomDatasets[0],
                 Request.ContentType,
                 workitemInstanceUid,
                 HttpContext.RequestAborted)

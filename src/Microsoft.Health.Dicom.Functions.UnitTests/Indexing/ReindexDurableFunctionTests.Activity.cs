@@ -1,14 +1,17 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -200,7 +203,7 @@ public partial class ReindexDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier).Returns(true);
+            _instanceReindexer.ReindexInstanceAsync(batch.QueryTags, identifier).Returns(Task.CompletedTask);
         }
 
         // Call the activity
@@ -215,6 +218,61 @@ public partial class ReindexDurableFunctionTests
         {
             await _instanceReindexer.Received(1).ReindexInstanceAsync(batch.QueryTags, identifier, Arg.Any<CancellationToken>());
         }
+    }
+
+    [Fact]
+    public async Task GivenDeletedInstanceInBatch_WhenReindexing_ThenSkip()
+        => await GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(
+            (source, missing) => source.Where((x, i) => i != missing),
+            t => t);
+
+    [Fact]
+    public async Task GivenMissingInstanceInBatch_WhenReindexing_ThenThrow()
+        => await GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(
+            (source, skipped) => source,
+            t => Assert.ThrowsAsync<ItemNotFoundException>(() => t));
+
+    private async Task GivenMissingInstanceInBatch_WhenReindexing_ThenShouldDoubleCheck(
+        Func<IEnumerable<VersionedInstanceIdentifier>, int, IEnumerable<VersionedInstanceIdentifier>> getRequeryIdentifiers,
+        Func<Task, Task> assertReindexBatch)
+    {
+        var args = new ReindexBatchArguments(
+            new List<ExtendedQueryTagStoreEntry>
+            {
+                new ExtendedQueryTagStoreEntry(1, "01", "DT", "foo", QueryTagLevel.Instance, ExtendedQueryTagStatus.Adding, QueryStatus.Enabled, 0),
+            },
+            new WatermarkRange(6, 8));
+
+        var identifiers = new List<VersionedInstanceIdentifier>
+        {
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 6),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 7),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 8),
+        };
+
+        // Arrange input
+        // Note: Parallel.ForEachAsync uses its own CancellationTokenSource
+        _instanceStore
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, Arg.Any<CancellationToken>())
+            .Returns(
+                Task.FromResult<IReadOnlyList<VersionedInstanceIdentifier>>(identifiers),
+                Task.FromResult<IReadOnlyList<VersionedInstanceIdentifier>>(getRequeryIdentifiers(identifiers, 1).ToList()));
+
+        _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifiers[0], Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifiers[1], Arg.Any<CancellationToken>()).Returns(Task.FromException<ItemNotFoundException>(new ItemNotFoundException(new RequestFailedException("Blob not found"))));
+        _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifiers[2], Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        // Call the activity
+        await assertReindexBatch(_reindexDurableFunction.ReindexBatchV2Async(args, NullLogger.Instance));
+
+        // Assert behavior
+        await _instanceStore
+            .Received(2)
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None);
+
+        await _instanceReindexer.Received(1).ReindexInstanceAsync(args.QueryTags, identifiers[0], Arg.Any<CancellationToken>());
+        await _instanceReindexer.Received(1).ReindexInstanceAsync(args.QueryTags, identifiers[1], Arg.Any<CancellationToken>());
+        await _instanceReindexer.Received(1).ReindexInstanceAsync(args.QueryTags, identifiers[2], Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -248,7 +306,7 @@ public partial class ReindexDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifier).Returns(true);
+            _instanceReindexer.ReindexInstanceAsync(args.QueryTags, identifier).Returns(Task.CompletedTask);
         }
 
         // Call the activity

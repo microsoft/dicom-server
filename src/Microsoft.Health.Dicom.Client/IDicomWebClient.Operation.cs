@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,5 +13,5 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
-    Task<DicomWebResponse<OperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<IOperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default);
 }

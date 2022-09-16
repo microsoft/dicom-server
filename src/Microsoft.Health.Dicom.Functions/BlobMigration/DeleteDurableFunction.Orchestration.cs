@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,8 +11,8 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Models.BlobMigration;
 using Microsoft.Health.Dicom.Functions.Indexing.Models;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
 namespace Microsoft.Health.Dicom.Functions.BlobMigration;

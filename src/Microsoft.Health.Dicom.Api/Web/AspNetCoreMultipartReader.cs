@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -106,13 +106,14 @@ internal class AspNetCoreMultipartReader : IMultipartReader
         {
             section = await _multipartReader.ReadNextSectionAsync(cancellationToken);
         }
-        catch (InvalidDataException ex)
-        {
-            throw new InvalidMultipartRequestException(ex.Message);
-        }
         catch (BadHttpRequestException ex) when (ex.Message.StartsWith(BodyTooLargeExceptionMessage, StringComparison.OrdinalIgnoreCase))
         {
             throw new PayloadTooLargeException(_storeConfiguration.Value.MaxAllowedDicomFileSize);
+        }
+        catch (Exception ex) when (ex is InvalidDataException ||
+                                   ex is IOException)
+        {
+            throw new InvalidMultipartRequestException(ex.Message);
         }
 
         if (section == null)

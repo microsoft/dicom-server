@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,6 +11,8 @@ using FellowOakDicom;
 using Hl7.Fhir.Model;
 using Hl7.Fhir.Utility;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Extensions;
 using Microsoft.Health.DicomCast.Core.Features.Fhir;
 using Task = System.Threading.Tasks.Task;
@@ -24,18 +26,27 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
 {
     private readonly IFhirService _fhirService;
     private readonly IPatientSynchronizer _patientSynchronizer;
+    private readonly string _patientSystemId;
+    private readonly bool _isIssuerIdUsed;
+    private readonly ILogger<PatientPipelineStep> _logger;
 
     public PatientPipelineStep(
         IFhirService fhirService,
         IPatientSynchronizer patientSynchronizer,
+        IOptions<PatientConfiguration> patientConfiguration,
         ILogger<PatientPipelineStep> logger)
         : base(logger)
     {
         EnsureArg.IsNotNull(fhirService, nameof(fhirService));
         EnsureArg.IsNotNull(patientSynchronizer, nameof(patientSynchronizer));
+        EnsureArg.IsNotNull(patientConfiguration?.Value, nameof(patientConfiguration));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
         _fhirService = fhirService;
         _patientSynchronizer = patientSynchronizer;
+        _patientSystemId = patientConfiguration.Value.PatientSystemId;
+        _isIssuerIdUsed = patientConfiguration.Value.IsIssuerIdUsed;
+        _logger = logger;
     }
 
     /// <inheritdoc/>
@@ -55,8 +66,23 @@ public class PatientPipelineStep : FhirTransactionPipelineStepBase
             throw new MissingRequiredDicomTagException(nameof(DicomTag.PatientID));
         }
 
-        var patientIdentifier = new Identifier(string.Empty, patientId);
+        // Patient system id is determined based on issuer id boolean
+        // If issuer id boolean is set to true, patient system id would be set to issuer of patient id (0010,0021)
+        // Otherwise we will be using the patient system id configured during user provisioning
+        string patientSystemId = string.Empty;
+        if (_isIssuerIdUsed)
+        {
+            if (dataset.TryGetSingleValue(DicomTag.IssuerOfPatientID, out string systemId))
+            {
+                patientSystemId = systemId;
+            }
+        }
+        else
+        {
+            patientSystemId = _patientSystemId;
+        }
 
+        var patientIdentifier = new Identifier(patientSystemId, patientId);
         FhirTransactionRequestMode requestMode = FhirTransactionRequestMode.None;
 
         Patient existingPatient = await _fhirService.RetrievePatientAsync(patientIdentifier, cancellationToken);

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -18,10 +18,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.Serialization;
+using Microsoft.Health.FellowOakDicom.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Health.Dicom.Client.Serialization;
 using Microsoft.Net.Http.Headers;
+
 using MediaTypeHeaderValue = Microsoft.Net.Http.Headers.MediaTypeHeaderValue;
 using NameValueHeaderValue = System.Net.Http.Headers.NameValueHeaderValue;
 
@@ -264,6 +265,7 @@ public partial class DicomWebClient : IDicomWebClient
         options.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         options.Converters.Add(new ExportDataOptionsJsonConverter());
         options.Converters.Add(new JsonStringEnumConverter());
+        options.Converters.Add(new OperationStateConverter());
 
         return options;
     }

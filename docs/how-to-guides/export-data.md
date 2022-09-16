@@ -11,7 +11,11 @@ The below example requests the export of the following DICOM resources to the bl
 - All instances within the series whose Study Instance UID is `12.3` and Series Instance UID is `4.5.678`
 - The instance whose Study Instance UID is `123.456`, Series Instance UID is `7.8`, and SOP Instance UID is `9.1011.12`
 
-```json
+```http
+POST /export HTTP/1.1
+Accept: */*
+Content-Type: application/json
+
 {
     "sources": {
         "type": "identifiers",
@@ -80,16 +84,42 @@ If the storage account requires authentication, a [SAS token](https://docs.micro
 
 Upon successfully starting an export operation, the export API returns a `202` status code. The body of the response contains a reference to the operation, while the value of the `Location` header is the URL for the export operation's status (the same as `href` in the body).
 
-```json
+Inside of the destination container, the DCM files can be found with the following path format: `<operation id>/results/<study>/<series>/<sop instance>.dcm`
+
+```http
+HTTP/1.1 202 Accepted
+Content-Type: application/json
+
 {
     "id": "df1ff476b83a4a3eaf11b1eac2e5ac56",
     "href": "<base url>/<version>/operations/df1ff476b83a4a3eaf11b1eac2e5ac56"
 }
 ```
 
+### Operation Status
+The above `href` URL can be polled for the current status of the export operation until completion. A terminal state is signified by a `200` status instead of `202`.
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{
+    "operationId": "df1ff476b83a4a3eaf11b1eac2e5ac56",
+    "type": "export",
+    "createdTime": "2022-09-08T16:40:36.2627618Z",
+    "lastUpdatedTime": "2022-09-08T16:41:01.2776644Z",
+    "status": "completed",
+    "results": {
+        "errorHref": "<container uri>/4853cda8c05c44e497d2bc071f8e92c4/errors.log",
+        "exported": 1000,
+        "skipped": 3
+    }
+}
+```
+
 ## Errors
 
-If there are any errors when exporting a DICOM file (that was determined not to be a problem with the client), then the file is skipped and its corresponding error is logged. This error log is also exported alongside the DICOM files and can be reviewed by the caller. The error log can be found at `<export blob container uri>/<operation ID>/Errors.log`.
+If there are any errors when exporting a DICOM file (that was determined not to be a problem with the client), then the file is skipped and its corresponding error is logged. This error log is also exported alongside the DICOM files and can be reviewed by the caller. The error log can be found at `<export blob container uri>/<operation ID>/errors.log`.
 
 ### Format
 

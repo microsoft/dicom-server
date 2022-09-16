@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -65,10 +65,10 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
             });
         _output = new AzureBlobExportFormatOptions(
             operationId,
-            "%Operation%/Results/%Study%/%Series%/%SopInstance%.dcm",
-            "%Operation%/Errors.log");
+            "%Operation%/results/%Study%/%Series%/%SopInstance%.dcm",
+            "%Operation%/errors.log");
         _destClient
-            .GetAppendBlobClient($"{_output.OperationId:N}/Errors.log")
+            .GetAppendBlobClient($"{_output.OperationId:N}/errors.log")
             .Returns(_errorBlob);
         _blobOptions = new BlobOperationOptions
         {
@@ -83,12 +83,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     }
 
     [Fact]
-    public void GivenSink_WhenGettingErrorHref_ContainValuesProperly()
-    {
-        Assert.Equal($"https://unit-test.blob.core.windows.net/mycontainer/{_output.OperationId:N}/Errors.log", _sink.ErrorHref.AbsoluteUri);
-    }
-
-    [Fact]
     public async Task GivenValidReadResult_WhenCopying_ThenCopyToDestination()
     {
         var identifier = new VersionedInstanceIdentifier("1.2", "3.4.5", "6.7.8.9.10", 1);
@@ -96,7 +90,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         using var tokenSource = new CancellationTokenSource();
 
         _fileStore.GetStreamingFileAsync(identifier, tokenSource.Token).Returns(fileStream);
-        _destClient.GetBlobClient($"{_output.OperationId:N}/Results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
+        _destClient.GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
             .Returns(Task.FromResult(Substitute.For<Response<BlobContentInfo>>()));
@@ -104,7 +98,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         Assert.True(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
         await _fileStore.Received(1).GetStreamingFileAsync(identifier, tokenSource.Token);
-        _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/Results/1.2/3.4.5/6.7.8.9.10.dcm");
+        _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm");
         await _destBlob
             .Received(1)
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token);
@@ -142,7 +136,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         using var tokenSource = new CancellationTokenSource();
 
         _fileStore.GetStreamingFileAsync(identifier, tokenSource.Token).Returns(fileStream);
-        _destClient.GetBlobClient($"{_output.OperationId:N}/Results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
+        _destClient.GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
             .Returns(Task.FromException<Response<BlobContentInfo>>(new IOException("Unable to copy.")));
@@ -150,7 +144,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         Assert.False(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
         await _fileStore.Received(1).GetStreamingFileAsync(identifier, tokenSource.Token);
-        _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/Results/1.2/3.4.5/6.7.8.9.10.dcm");
+        _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm");
         await _destBlob
             .Received(1)
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token);
@@ -214,14 +208,18 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     {
         using var tokenSource = new CancellationTokenSource();
 
+        var errorHref = new Uri($"https://unit-test.blob.core.windows.net/mycontainer/{_output.OperationId:N}/errors.log");
         Response<bool> response = Substitute.For<Response<bool>>();
         response.Value.Returns(true);
         _destClient.ExistsAsync(tokenSource.Token).Returns(Task.FromResult(response));
         _errorBlob
             .CreateIfNotExistsAsync(default, default, tokenSource.Token)
             .Returns(Substitute.For<Response<BlobContentInfo>>());
+        _errorBlob
+            .Uri
+            .Returns(errorHref);
 
-        await _sink.InitializeAsync(tokenSource.Token);
+        Assert.Equal(errorHref, await _sink.InitializeAsync(tokenSource.Token));
 
         await _destClient.Received(1).ExistsAsync(tokenSource.Token);
         await _errorBlob.Received(1).CreateIfNotExistsAsync(default, default, tokenSource.Token);

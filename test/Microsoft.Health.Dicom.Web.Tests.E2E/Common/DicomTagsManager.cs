@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -50,11 +50,11 @@ internal class DicomTagsManager : IAsyncDisposable
         DicomWebResponse<DicomOperationReference> response = await _dicomWebClient.AddExtendedQueryTagAsync(entries, cancellationToken);
         DicomOperationReference operation = await response.GetValueAsync();
 
-        OperationState<DicomOperation> result = await _dicomWebClient.WaitForCompletionAsync(operation.Id);
+        IOperationState<DicomOperation> result = await _dicomWebClient.WaitForCompletionAsync(operation.Id);
 
         // Check reference
-        DicomWebResponse<OperationState<DicomOperation>> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
-        OperationState<DicomOperation> actual = await actualResponse.GetValueAsync();
+        DicomWebResponse<IOperationState<DicomOperation>> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
+        IOperationState<DicomOperation> actual = await actualResponse.GetValueAsync();
         Assert.Equal(result.OperationId, actual.OperationId);
         Assert.Equal(result.Status, actual.Status);
 

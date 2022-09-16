@@ -2,6 +2,7 @@
 # For details: https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-files
 # For rules: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
 is_global = true
+global_level = 1
 
 # Language code styles
 # Most use "options_name = false|true : none|silent|suggestion|warning|error"

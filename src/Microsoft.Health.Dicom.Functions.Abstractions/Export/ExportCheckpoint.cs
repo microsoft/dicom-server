@@ -1,20 +1,21 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using Microsoft.Health.Operations;
+using Microsoft.Health.Operations.Functions.DurableTask;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace Microsoft.Health.Dicom.Core.Models.Export;
+namespace Microsoft.Health.Dicom.Functions.Export;
 
 /// <summary>
 /// Represents a checkpoint for the export operation which includes metadata such as the progress.
 /// </summary>
-public class ExportCheckpoint : ExportInput, IOperationCheckpoint
+public class ExportCheckpoint : ExportInput, IOrchestrationCheckpoint
 {
     /// <summary>
     /// Gets or sets the optional progress made by the operation so far.
@@ -25,15 +26,6 @@ public class ExportCheckpoint : ExportInput, IOperationCheckpoint
     /// <inheritdoc cref="IOperationCheckpoint.CreatedTime"/>
     public DateTime? CreatedTime { get; set; }
 
-    /// <summary>
-    /// Gets or sets the URI for containing the errors for this operation, if any.
-    /// </summary>
-    /// <value>
-    /// The <see cref="Uri"/> for the resource containg export errors if it has been resolved yet;
-    /// otherwise <see langword="null"/>.
-    /// </value>
-    public Uri ErrorHref { get; set; }
-
     /// <inheritdoc cref="IOperationCheckpoint.PercentComplete"/>
     [JsonIgnore]
     public int? PercentComplete => null;
@@ -42,13 +34,11 @@ public class ExportCheckpoint : ExportInput, IOperationCheckpoint
     [JsonIgnore]
     public IReadOnlyCollection<string> ResourceIds => null;
 
-    /// <inheritdoc cref="IOperationCheckpoint.AdditionalProperties"/>
-    [JsonIgnore]
-    public IReadOnlyDictionary<string, string> AdditionalProperties =>
-        new Dictionary<string, string>
-        {
-            { nameof(ExportProgress.Exported), Progress.Exported.ToString(CultureInfo.InvariantCulture) },
-            { nameof(ExportProgress.Failed), Progress.Failed.ToString(CultureInfo.InvariantCulture) },
-            { nameof(ErrorHref), ErrorHref?.AbsoluteUri.ToString(CultureInfo.InvariantCulture) },
-        };
+    /// <summary>
+    /// Gets the <see cref="ExportResults"/> for the orchestration.
+    /// </summary>
+    /// <param name="output">The unused orchestration output.</param>
+    /// <returns>The current state of the orchestration.</returns>
+    public object GetResults(JToken output)
+        => new ExportResults(Progress, ErrorHref);
 }

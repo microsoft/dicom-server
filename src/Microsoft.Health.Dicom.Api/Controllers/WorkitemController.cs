@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
+[SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Arguments are validated by RequiredAttribute")]
 public partial class WorkitemController : ControllerBase
 {
     private readonly IMediator _mediator;

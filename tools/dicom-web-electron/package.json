@@ -27,7 +27,7 @@
   "author": "Microsoft",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^20.0.3",
+    "electron": "^20.1.4",
     "electron-builder": "^23.3.3",
     "ansi-regex": ">=6.0.1",
     "async": ">=3.2.4"
@@ -35,6 +35,6 @@
   "dependencies": {
     "node-fetch": "^2.6.7",
     "form-data": "^4.0.0",
-    "jquery": "^3.6.0"
+    "jquery": "^3.6.1"
   }
 }

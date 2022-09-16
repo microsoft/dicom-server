@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -40,7 +39,7 @@ public class InstanceReindexer : IInstanceReindexer
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public async Task<bool> ReindexInstanceAsync(
+    public async Task ReindexInstanceAsync(
         IReadOnlyCollection<ExtendedQueryTagStoreEntry> entries,
         VersionedInstanceIdentifier versionedInstanceId,
         CancellationToken cancellationToken)
@@ -48,16 +47,7 @@ public class InstanceReindexer : IInstanceReindexer
         EnsureArg.IsNotNull(entries, nameof(entries));
         EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
 
-        DicomDataset dataset;
-        try
-        {
-            dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
-        }
-        catch (ItemNotFoundException)
-        {
-            _logger.LogWarning("Could not find metadata for instance with {Identifier}", versionedInstanceId);
-            return false;
-        }
+        DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
 
         // Only reindex on valid query tags
         IReadOnlyCollection<QueryTag> validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(
@@ -66,6 +56,5 @@ public class InstanceReindexer : IInstanceReindexer
             entries.Select(x => new QueryTag(x)).ToList(),
             cancellationToken);
         await _indexDataStore.ReindexInstanceAsync(dataset, versionedInstanceId.Version, validQueryTags, cancellationToken);
-        return true;
     }
 }
