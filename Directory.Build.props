@@ -37,6 +37,11 @@
     <Platforms>x64</Platforms>
   </PropertyGroup>
 
+  <!-- Include the following source files for .NET Standard 2.0 projects -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)\lang\*" Visible="false" />
+  </ItemGroup>
+
   <Choose>
     <When Condition="$(MSBuildProjectName.Contains('Test'))">
       <PropertyGroup>

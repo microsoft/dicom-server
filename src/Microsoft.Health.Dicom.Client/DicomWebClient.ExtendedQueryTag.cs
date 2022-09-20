@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -101,7 +101,13 @@ public partial class DicomWebClient : IDicomWebClient
         string jsonString = JsonSerializer.Serialize(newValue, JsonSerializerOptions);
         var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
 
-        using var request = new HttpRequestMessage(HttpMethod.Patch, uri);
+        using var request = new HttpRequestMessage(
+#if NETSTANDARD2_0
+            new HttpMethod("PATCH"),
+#else
+            HttpMethod.Patch,
+#endif
+            uri);
         {
             request.Content = new StringContent(jsonString);
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType) { CharSet = Encoding.UTF8.WebName };
