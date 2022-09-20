@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -48,7 +48,11 @@ public partial class DicomWebClient : IDicomWebClient
         {
             foreach (Stream stream in postContent)
             {
+#if NETSTANDARD2_0
+                stream.Dispose();
+#else
                 await stream.DisposeAsync().ConfigureAwait(false);
+#endif
             }
         }
     }
@@ -93,7 +97,11 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
+#if NETSTANDARD2_0
+        using MemoryStream stream = GetMemoryStream();
+#else
         await using MemoryStream stream = GetMemoryStream();
+#endif
         await dicomFile.SaveAsync(stream).ConfigureAwait(false);
         stream.Seek(0, SeekOrigin.Begin);
 

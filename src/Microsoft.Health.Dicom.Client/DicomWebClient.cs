@@ -163,7 +163,11 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNull(httpContent, nameof(httpContent));
 
         using Stream stream = await httpContent
+#if NETSTANDARD2_0
+            .ReadAsStreamAsync()
+#else
             .ReadAsStreamAsync(cancellationToken)
+#endif
             .ConfigureAwait(false);
         stream.Seek(0, SeekOrigin.Begin);
         MultipartSection part;
@@ -174,7 +178,14 @@ public partial class DicomWebClient : IDicomWebClient
         while ((part = await multipartReader.ReadNextSectionAsync(cancellationToken).ConfigureAwait(false)) != null)
         {
             MemoryStream memoryStream = GetMemoryStream();
-            await part.Body.CopyToAsync(memoryStream, cancellationToken).ConfigureAwait(false);
+            await part.Body
+#if NETSTANDARD2_0
+                .CopyToAsync(memoryStream)
+#else
+                .CopyToAsync(memoryStream, cancellationToken)
+#endif
+                .ConfigureAwait(false);
+
             memoryStream.Seek(0, SeekOrigin.Begin);
 
             yield return memoryStream;
