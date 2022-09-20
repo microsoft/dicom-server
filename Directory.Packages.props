@@ -5,7 +5,7 @@
     <PackageVersion Include="Azure.Data.Tables" Version="12.6.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Identity" Version="1.7.0" />
-    <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.3.0" />
+    <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.4.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.13.1" />
     <PackageVersion Include="Azure.Storage.Common" Version="12.12.0" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
@@ -34,7 +34,7 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.33" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.0.1" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.8.0" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.8.1" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="4.1.0" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.5.0" />
