@@ -35,7 +35,7 @@ steps:
     condition: succeededOrFailed()
     inputs:
       artifactName: 'CodeCoverage.UnitTests'
-      path: '$(Agent.TempDirectory)/coverage/coverage.cobertura.xml'
+      path: '$(Agent.TempDirectory)/coverage/Cobertura.xml'
 
   - task: ComponentGovernanceComponentDetection@0
     inputs:
