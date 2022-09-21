@@ -120,4 +120,4 @@ stages:
   - RunE2EFeaturesEnabledTests
   condition: succeededOrFailed()
   jobs:
-  - template: common/coverge.yml
+  - template: common/coverage.yml
