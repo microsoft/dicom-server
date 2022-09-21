@@ -71,14 +71,11 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SOPClassUID
 - PatientID
 
-> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: '.', '-'.
+> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`.
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
 > DICOM File Size Limit: there is a size limit of 2GB for a DICOM file by default.
-
-> Only transfer syntaxes with explicit Value Representations are accepted.
-
 
 ### Store Response Status Codes
 
@@ -216,8 +213,8 @@ The following `Accept` header(s) are supported for retrieving a specific instanc
 
 - `application/dicom; transfer-syntax=*`
 - `multipart/related; type="application/dicom"; transfer-syntax=*`
-- `application/dicom;` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
-- `multipart/related; type="application/dicom"` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `application/dicom;` (when transfer-syntax is not specified, `1.2.840.10008.1.2.1` is used as default)
+- `multipart/related; type="application/dicom"` (when transfer-syntax is not specified, `1.2.840.10008.1.2.1` is used as default)
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.1`
 - `multipart/related; type="application/dicom"; transfer-syntax=1.2.840.10008.1.2.1`
 - `application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90`
@@ -227,9 +224,9 @@ The following `Accept` header(s) are supported for retrieving a specific instanc
 
 The following `Accept` headers are supported for retrieving frames:
 - `multipart/related; type="application/octet-stream"; transfer-syntax=*`
-- `multipart/related; type="application/octet-stream";` (when transfer-syntax is not specified, 1.2.840.10008.1.2.1 is used as default)
+- `multipart/related; type="application/octet-stream";` (when transfer-syntax is not specified, `1.2.840.10008.1.2.1` is used as default)
 - `multipart/related; type="application/octet-stream"; transfer-syntax=1.2.840.10008.1.2.1`
-- `multipart/related; type="image/jp2";` (when transfer-syntax is not specified, 1.2.840.10008.1.2.4.90 is used as default)
+- `multipart/related; type="image/jp2";` (when transfer-syntax is not specified, `1.2.840.10008.1.2.4.90` is used as default)
 - `multipart/related; type="image/jp2";transfer-syntax=1.2.840.10008.1.2.4.90`
 - `application/octet-stream; transfer-syntax=*` for single frame retrieval
 
@@ -280,6 +277,7 @@ Cache validation is supported using the `ETag` mechanism. In the response of a m
 | 304 (Not Modified)           | The requested data has not modified since the last request. Content is not added to the response body in such case. Please see [Retrieve Metadata Cache Validation (for Study, Series, or Instance)](###Retrieve-Metadata-Cache-Validation-(for-Study,-Series,-or-Instance)) for more information. |
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
+| 403 (Forbidden)              | The user isn't authorized. |
 | 404 (Not Found)              | The specified DICOM resource could not be found. |
 | 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
@@ -355,7 +353,8 @@ Tags can be encoded in a number of ways for the query parameter. We have partial
 | {group}{element} | 0020000D         |
 | {dicomKeyword}   | StudyInstanceUID |
 
-Example query searching for instances: **../instances?Modality=CT&00280011=512&includefield=00280010&limit=5&offset=0**
+Example query searching for instances:
+`../instances?Modality=CT&00280011=512&includefield=00280010&limit=5&offset=0`
 
 ### Search Response
 
@@ -407,7 +406,7 @@ The response will be an array of DICOM datasets. Depending on the resource, by *
 | (0028, 0100) | BitsAllocated |
 | (0028, 0008) | NumberOfFrames |
 
-If includefield=all, below attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
+If `includefield=all`, below attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
 
 #### Additional Study tags
 
@@ -434,13 +433,13 @@ If includefield=all, below attributes are included along with default attributes
 | (0008, 0021) | SeriesDate |
 | (0008, 0031) | SeriesTime |
 
-Along with those below attributes are returned:
+The following attributes are returned:
 
 - All the match query parameters and UIDs in the resource url.
-- IncludeField attributes supported at that resource level.
-- If the target resource is All Series, then Study level attributes are also returned.
-- If the target resource is All Instances, then Study and Series level attributes are also returned.
-- If the target resource is Study's Instances, then Series level attributes are also returned.
+- `IncludeField` attributes supported at that resource level.
+- If the target resource is `All Series`, then `Study` level attributes are also returned.
+- If the target resource is `All Instances`, then `Study` and `Series` level attributes are also returned.
+- If the target resource is `Study's Instances`, then `Series` level attributes are also returned.
 
 ### Search Response Codes
 
@@ -452,6 +451,7 @@ The query API will return one of the following status codes in the response:
 | 204 (No Content)          | The search completed successfully but returned no results. |
 | 400 (Bad Request)         | The server was unable to perform the query because the query component was invalid. Response body contains details of the failure. |
 | 401 (Unauthorized)        | The client is not authenticated. |
+| 403 (Forbidden)           | The user isn't authorized. |
 | 503 (Service Unavailable) | The service is unavailable or busy. Please try again later. |
 
 ### Additional Notes
@@ -487,6 +487,8 @@ There are no restrictions on the request's `Accept` header, `Content-Type` heade
 | 204 (No Content)             | When all the SOP instances have been deleted. |
 | 400 (Bad Request)            | The request was badly formatted. |
 | 401 (Unauthorized)           | The client is not authenticated. |
+| 401 (Unauthorized)           | The client isn't authenticated. |
+| 403 (Forbidden)              | The user isn't authorized. |
 | 404 (Not Found)              | When the specified series was not found within a study, or the specified instance was not found within the series. |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
@@ -530,6 +532,7 @@ handled diferently in DICOMWeb&trade;. SOP Instance UID **should be present** in
 | 201 (Created)                | The target Workitem was successfully created. |
 | 400 (Bad Request)            | There was a problem with the request. For example, the request payload did not satisfy the requirements above. |
 | 401 (Unauthorized)           | The client is not authenticated. |
+| 403 (Forbidden)              | The user isn't authorized. |
 | 409 (Conflict)               | The Workitem already exists. |
 | 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
@@ -573,9 +576,11 @@ The request payload may include Action Information as [defined in the DICOM Stan
 | 202 (Accepted)               | The request was accepted by the server, but the Target Workitem state has not necessarily changed yet. |
 | 400 (Bad Request)            | There was a problem with the syntax of the request. |
 | 401 (Unauthorized)           | The client is not authenticated. |
+| 403 (Forbidden)              | The user isn't authorized. |
 | 404 (Not Found)              | The Target Workitem was not found. |
 | 409 (Conflict)               | The request is inconsistent with the current state of the Target Workitem. For example, the Target Workitem is in the SCHEDULED or COMPLETED state. |
 | 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ### Request Cancellation Response Payload
 
@@ -603,9 +608,11 @@ The `Accept` header is required, and must have the value `application/dicom+json
 | Code                         	| Description |
 | :---------------------------- | :---------- |
 | 200 (OK)               		| Workitem Instance was successfully retrieved. |
-| 400 (Bad Request)            	| There was a problem with the request.			|
-| 401 (Unauthorized)           	| The client is not authenticated. 				|
-| 404 (Not Found)              	| The Target Workitem was not found. 			|
+| 400 (Bad Request)            	| There was a problem with the request.	|
+| 401 (Unauthorized)           	| The client is not authenticated. |
+| 403 (Forbidden)               | The user isn't authorized. |
+| 404 (Not Found)              	| The Target Workitem was not found. |
+| 503 (Service Unavailable)     | The service is unavailable or busy. Please try again later. |
 
 ### Retrieve Workitem Response Payload
 
@@ -641,12 +648,14 @@ The request cannot set the value of the Procedure Step State (0074,1000) Attribu
 ### Update Workitem Transaction Response Status Codes
 | Code                         	| Description |
 | :---------------------------- | :---------- |
-| 200 (OK)               		| The Target Workitem was updated.                                 |
+| 200 (OK)               		| The Target Workitem was updated. |
 | 400 (Bad Request)            	| There was a problem with the request. For example: (1) the Target Workitem was in the COMPLETED or CANCELED state. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect. (4) the dataset did not conform to the requirements.
-| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
-| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
-| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
+| 401 (Unauthorized)           	| The client is not authenticated. |
+| 403 (Forbidden)              | The user isn't authorized. |
+| 404 (Not Found)              	| The Target Workitem was not found. |
+| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem. |
 | 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
+| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ### Update Workitem Transaction Response Payload
 The origin server shall support header fields as required in [Table 11.6.3-2](https://dicom.nema.org/medical/dicom/current/output/html/part18.html#table_11.6.3-2).
@@ -682,11 +691,13 @@ The legal values correspond to the requested state transition. They are: "IN PRO
 
 | Code                         	| Description |
 | :---------------------------- | :---------- |
-| 200 (OK)               		| Workitem Instance was successfully retrieved.                                 |
+| 200 (OK)               		| Workitem Instance was successfully retrieved. |
 | 400 (Bad Request)            	| The request cannot be performed for one of the following reasons: (1) the request is invalid given the current state of the Target Workitem. (2) the Transaction UID is missing. (3) the Transaction UID is incorrect
-| 401 (Unauthorized)           	| The client is not authenticated. 				                                |
-| 404 (Not Found)              	| The Target Workitem was not found. 			                                |
-| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem.    |
+| 401 (Unauthorized)           	| The client is not authenticated. |
+| 403 (Forbidden)               | The user isn't authorized. |
+| 404 (Not Found)              	| The Target Workitem was not found. |
+| 409 (Conflict)              	| The request is inconsistent with the current state of the Target Workitem. |
+| 503 (Service Unavailable)     | The service is unavailable or busy. Please try again later. |
 
 ### Change Workitem State Response Payload
 
@@ -778,6 +789,7 @@ The query API will return one of the following status codes in the response:
 | 204 (No Content)          | The search completed successfully but returned no results. |
 | 400 (Bad Request)         | The was a problem with the request. For example, invalid Query Parameter syntax. Response body contains details of the failure. |
 | 401 (Unauthorized)        | The client is not authenticated. |
+| 403 (Forbidden)              | The user isn't authorized. |
 | 503 (Service Unavailable) | The service is unavailable or busy. Please try again later. |
 
 ### Additional Notes
@@ -787,4 +799,3 @@ The query API will return one of the following status codes in the response:
 - Matching is case insensitive and accent insensitive for PN VR types.
 - Matching is case insensitive and accent sensitive for other string VR types.
 - If there is a scenario where canceling a Workitem and querying the same happens at the same time, then the query will most likely exclude the Workitem that is getting updated and the response code will be 206 (Partial Content).
-
