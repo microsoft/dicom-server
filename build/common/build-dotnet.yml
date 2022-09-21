@@ -20,7 +20,22 @@ steps:
     inputs:
       command: test
       projects: '**/*UnitTests/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --no-build'
+      arguments: '--configuration $(buildConfiguration) -p:ContinuousIntegrationBuild=true --no-build --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal'
+
+  - task: reportgenerator@5
+    displayName: 'Aggregate Code Coverage'
+    condition: succeededOrFailed()
+    inputs:
+      reports: '$(Agent.TempDirectory)/*/coverage.cobertura.xml'
+      reporttypes: 'Cobertura'
+      targetdir: '$(Agent.TempDirectory)/coverage'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Output Code Coverage'
+    condition: succeededOrFailed()
+    inputs:
+      artifactName: 'CodeCoverage.UnitTests'
+      path: '$(Agent.TempDirectory)/coverage/coverage.cobertura.xml'
 
   - task: ComponentGovernanceComponentDetection@0
     inputs:

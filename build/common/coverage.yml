@@ -1,0 +1,44 @@
+jobs:
+- job: CodeCoverageAggregation
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Unit Test Coverage'
+    inputs:
+      artifact: 'CodeCoverage.UnitTests'
+      path: '$(Agent.TempDirectory)/coverage/artifacts'
+
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Integration Test Coverage'
+    inputs:
+      artifact: 'CodeCoverage.IntegrationTests'
+      path: '$(Agent.TempDirectory)/coverage/artifacts'
+
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download E2E Test Coverage'
+    inputs:
+      artifact: 'CodeCoverage.E2ETests'
+      path: '$(Agent.TempDirectory)/coverage/artifacts'
+
+  - task: DownloadPipelineArtifact@2
+    displayName: 'Download Feature-Enabled Test Coverage'
+    inputs:
+      artifact: 'CodeCoverage.FeatureEnabledTests'
+      path: '$(Agent.TempDirectory)/coverage/artifacts'
+
+  - task: reportgenerator@5
+    displayName: 'Aggregate Code Coverage'
+    condition: succeededOrFailed()
+    inputs:
+      reports: '$(Agent.TempDirectory)/coverage/artifacts/*/coverage.cobertura.xml'
+      reporttypes: 'Cobertura'
+      targetdir: '$(Agent.TempDirectory)/coverage'
+
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish Code Coverage'
+    condition: succeededOrFailed()
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      failIfCoverageEmpty: true
+      summaryFileLocation: '$(Agent.TempDirectory)/coverage/Cobertura.xml'

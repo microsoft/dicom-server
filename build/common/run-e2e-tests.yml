@@ -6,7 +6,7 @@ steps:
     downloadPath: '$(System.ArtifactsDirectory)'
     artifactName: 'IntegrationTests'
 
-- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter Category!=bvt-dp --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter Category!=bvt-dp -l trx -r "$(Agent.TempDirectory)/TestResults --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal"
   displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 
@@ -19,3 +19,10 @@ steps:
     searchFolder: '$(Agent.TempDirectory)/TestResults'
     testRunTitle: 'E2E Tests'
     buildConfiguration: '$(buildConfiguration)'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Output Code Coverage'
+  condition: succeededOrFailed()
+  inputs:
+    artifactName: 'CodeCoverage.E2ETests'
+    path: '$(Agent.TempDirectory)/TestResults/coverage.cobertura.xml'

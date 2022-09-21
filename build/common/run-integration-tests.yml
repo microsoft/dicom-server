@@ -6,7 +6,7 @@ steps:
     downloadPath: '$(System.ArtifactsDirectory)'
     artifactName: 'IntegrationTests'
 
-- script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+- script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" -l trx -r "$(Agent.TempDirectory)/TestResults --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal"
   displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration'
 
@@ -18,3 +18,10 @@ steps:
     testResultsFiles: '*.trx'
     searchFolder: '$(Agent.TempDirectory)/TestResults'
     buildConfiguration: '$(buildConfiguration)'
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Output Code Coverage'
+  condition: succeededOrFailed()
+  inputs:
+    artifactName: 'CodeCoverage.IntegrationTests'
+    path: '$(Agent.TempDirectory)/TestResults/coverage.cobertura.xml'

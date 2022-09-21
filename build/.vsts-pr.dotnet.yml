@@ -110,3 +110,14 @@ stages:
   - BuildDotNet
   jobs:
   - template: pr/run-e2e-features-enabled-tests.yml
+
+- stage: CodeCoverage
+  displayName: 'Code Coverage'
+  dependsOn:
+  - BuildDotNet
+  - RunIntegrationTests
+  - RunE2ETests
+  - RunE2EFeaturesEnabledTests
+  condition: succeededOrFailed()
+  jobs:
+  - template: common/coverge.yml

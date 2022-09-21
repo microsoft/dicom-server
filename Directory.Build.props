@@ -20,6 +20,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RunSettingsFilePath>$(MSBuildThisFileDirectory)CodeCoverage.runsettings</RunSettingsFilePath>
     <SdkPackageVersion>6.0.0</SdkPackageVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -39,15 +40,18 @@
 
   <!-- Include the following source files for .NET Standard 2.0 projects -->
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)\lang\*" Visible="false" />
+    <Compile Include="$(MSBuildThisFileDirectory)lang\*" Visible="false" />
   </ItemGroup>
 
   <Choose>
-    <When Condition="$(MSBuildProjectName.Contains('Test'))">
+    <When Condition="$(MSBuildProjectName.Contains('Tests'))">
       <PropertyGroup>
         <IsPackable>false</IsPackable>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
       </PropertyGroup>
+      <ItemGroup>
+        <PackageReference Include="coverlet.collector" PrivateAssets="All" />
+      </ItemGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
