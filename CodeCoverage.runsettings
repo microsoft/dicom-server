@@ -9,7 +9,7 @@
           <Include>[Microsoft.Health.Dicom*]*</Include>
           <ExcludeByAttribute>ExcludeFromCodeCoverage</ExcludeByAttribute>
           <!-- Remove ExcludeByFile for generated files once coverlet-coverage/coverlet#1198 is resolved -->
-          <ExcludeByFile>**/*.g.cs</ExcludeByFile>
+          <ExcludeByFile>**/*.g.cs,**/*.Generated.cs</ExcludeByFile>
           <SingleHit>false</SingleHit>
           <UseSourceLink>true</UseSourceLink>
           <IncludeTestAssembly>false</IncludeTestAssembly>

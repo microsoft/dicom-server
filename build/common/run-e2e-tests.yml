@@ -6,7 +6,21 @@ steps:
     downloadPath: '$(System.ArtifactsDirectory)'
     artifactName: 'IntegrationTests'
 
-- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter Category!=bvt-dp -l trx -r "$(Agent.TempDirectory)/TestResults" --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal
+- script: dotnet tool restore
+  displayName: 'dotnet tool restore'
+
+# Use the coverlet.console dotnet tool to generate code coverage and execute the test runner
+# because we cannot leverage build-time dependencies like coverlet.collector without using dotnet test
+# with a .csproj instead of a DLL
+- script: dotnet coverlet "Microsoft.Health.Dicom.Web.Tests.E2E.dll" \
+    -f "cobertura" \
+    -o "$(Agent.TempDirectory)/TestResults/" \
+    -t "dotnet" \
+    -a "test Microsoft.Health.Dicom.Web.Tests.E2E.dll --filter Category!=bvt-dp -l trx --results-directory $(Agent.TempDirectory)/TestResults -v normal" \
+    --include "[Microsoft.Health.Dicom*]*" \
+    --exclude "[*Tests*]*" \
+    --exclude-by-file "**/*.g.cs,**/*.Generated.cs" \
+    --use-source-link
   displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 
