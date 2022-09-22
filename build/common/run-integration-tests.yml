@@ -1,3 +1,7 @@
+variables:
+- name: testAssembly
+  value: $(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration/Microsoft.Health.Dicom.Tests.Integration.dll
+
 steps:
 - task: DownloadBuildArtifacts@0
   inputs:
@@ -12,17 +16,17 @@ steps:
 # Use the coverlet.console dotnet tool to generate code coverage and execute the test runner
 # because we cannot leverage build-time dependencies like coverlet.collector without using dotnet test
 # with a .csproj instead of a DLL
-- script: dotnet coverlet "Microsoft.Health.Dicom.Tests.Integration.dll" \
+- script: |
+    dotnet coverlet $(testAssembly) \
     -f "cobertura" \
     -o "$(Agent.TempDirectory)/TestResults/" \
     -t "dotnet" \
-    -a "test Microsoft.Health.Dicom.Tests.Integration.dll -l trx --results-directory $(Agent.TempDirectory)/TestResults -v normal" \
+    -a "test $(testAssembly) -l trx --results-directory $(Agent.TempDirectory)/TestResults -v normal" \
     --include "[Microsoft.Health.Dicom*]*" \
     --exclude "[*Tests*]*" \
     --exclude-by-file "**/*.g.cs,**/*.Generated.cs" \
     --use-source-link
   displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
-  workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration'
 
 - script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" -l trx -r "$(Agent.TempDirectory)/TestResults" --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal
   displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
