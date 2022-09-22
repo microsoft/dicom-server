@@ -24,10 +24,6 @@ steps:
     --use-source-link
   displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
 
-- script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" -l trx -r "$(Agent.TempDirectory)/TestResults" --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal
-  displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
-  workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration'
-
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   condition: succeededOrFailed()
