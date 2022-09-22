@@ -6,7 +6,7 @@ steps:
     downloadPath: '$(System.ArtifactsDirectory)'
     artifactName: 'IntegrationTests'
 
-- script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" -l trx -r "$(Agent.TempDirectory)/TestResults --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal"
+- script: dotnet test "Microsoft.Health.Dicom.Tests.Integration.dll" -l trx -r "$(Agent.TempDirectory)/TestResults" --collect "XPlat Code Coverage" -s "$(build.sourcesDirectory)/CodeCoverage.runsettings" -v normal
   displayName: 'dotnet test Microsoft.Health.Dicom.Tests.Integration.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration'
 

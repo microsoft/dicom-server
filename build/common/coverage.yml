@@ -29,7 +29,6 @@ jobs:
 
   - task: reportgenerator@5
     displayName: 'Aggregate Code Coverage'
-    condition: succeededOrFailed()
     inputs:
       reports: '$(Agent.TempDirectory)/coverage/artifacts/*/coverage.cobertura.xml'
       reporttypes: 'Cobertura'
@@ -37,7 +36,6 @@ jobs:
 
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish Code Coverage'
-    condition: succeededOrFailed()
     inputs:
       codeCoverageTool: 'Cobertura'
       failIfCoverageEmpty: true
