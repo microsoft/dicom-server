@@ -3,6 +3,9 @@ jobs:
   displayName: 'E2E Tests'
   pool:
     vmImage: 'ubuntu-latest'
+  variables:
+  - name: testAssembly
+    value: $(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E/Microsoft.Health.Dicom.Web.Tests.E2E.dll
   steps:
   - task: UseDotNet@2
     displayName: 'Use .Net Core sdk'

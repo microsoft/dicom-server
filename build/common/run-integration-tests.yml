@@ -1,7 +1,3 @@
-variables:
-- name: testAssembly
-  value: $(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Tests.Integration/Microsoft.Health.Dicom.Tests.Integration.dll
-
 steps:
 - task: DownloadBuildArtifacts@0
   inputs:
