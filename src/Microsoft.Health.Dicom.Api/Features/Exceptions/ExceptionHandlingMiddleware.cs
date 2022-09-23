@@ -75,6 +75,7 @@ public class ExceptionHandlingMiddleware
                 message = DicomApiResource.InvalidSyntax;
                 statusCode = HttpStatusCode.BadRequest;
                 break;
+            case ArgumentException:
             case FormatException:
             case InvalidOperationException:
             case ValidationException:
