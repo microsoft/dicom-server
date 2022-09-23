@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ public class ExceptionHandlingMiddlewareTests
     public static IEnumerable<object[]> GetExceptionToStatusCodeMapping()
     {
         yield return new object[] { new CustomValidationException(), HttpStatusCode.BadRequest };
+        yield return new object[] { new ArgumentException(), HttpStatusCode.BadRequest };
         yield return new object[] { new System.ComponentModel.DataAnnotations.ValidationException(), HttpStatusCode.BadRequest };
         yield return new object[] { new NotSupportedException("Not supported."), HttpStatusCode.BadRequest };
         yield return new object[] { new AuditHeaderCountExceededException(AuditConstants.MaximumNumberOfCustomHeaders + 1), HttpStatusCode.BadRequest };
