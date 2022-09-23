@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -84,6 +84,7 @@ public class ExceptionHandlingMiddleware
             case AuditHeaderTooLargeException:
             case ConnectionResetException:
             case OperationCanceledException:
+            case DataStoreException e when e.InnerException is TaskCanceledException:
             case BadHttpRequestException:
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;
