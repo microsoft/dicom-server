@@ -1,11 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>library</OutputType>
+    <Description>A fork of Fellow Oak's Dicom library with changes included in the next release.</Description>
     <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
-    <Nullable>disable</Nullable>
-    <AnalysisLevel></AnalysisLevel>
-    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
