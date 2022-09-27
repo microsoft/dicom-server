@@ -145,13 +145,13 @@ public class ParallelEnumerableTests
         Assert.True(actual.Add(results.Current));
 
         // Beginning the enumerable should have triggered the producer, but only up to the buffered max of 3.
-        // Therefore the values 2, 3, and 4 are have been resolved, while 5 and 6 and still waiting.
+        // Therefore the values 2, 3, and 4 have been resolved, while 5 and 6 and still waiting.
         bufferFullEvent.Wait();
 
         Assert.True(buffer.TryRemove(1, out _)); // We know 1 must have passed through the buffer
         Assert.Equal(MaxBuffered, buffer.Count);
 
-        // Wait a bit longer -- nothing more is going to get added
+        // Wait a bit longer -- nothing more is going to be added
         await Task.Delay(1000);
 
         Assert.Equal(MaxBuffered, buffer.Count);

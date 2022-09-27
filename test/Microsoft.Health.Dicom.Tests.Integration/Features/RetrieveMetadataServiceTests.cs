@@ -73,7 +73,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
-        await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
@@ -84,7 +84,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
-        await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
@@ -127,7 +128,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
-        await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
