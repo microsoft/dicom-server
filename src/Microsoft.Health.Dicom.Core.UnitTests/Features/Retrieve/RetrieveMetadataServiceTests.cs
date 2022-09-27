@@ -124,11 +124,12 @@ public class RetrieveMetadataServiceTests
     {
         List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
 
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), DefaultCancellationToken).Throws(new InstanceNotFoundException());
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), Arg.Any<CancellationToken>()).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
-        InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
+        InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
         Assert.Equal("The specified instance cannot be found.", exception.Message);
     }
 
@@ -152,11 +153,12 @@ public class RetrieveMetadataServiceTests
     {
         List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
 
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), DefaultCancellationToken).Throws(new InstanceNotFoundException());
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), Arg.Any<CancellationToken>()).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
-        InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
+        InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
         Assert.Equal("The specified instance cannot be found.", exception.Message);
     }
 
@@ -180,10 +182,11 @@ public class RetrieveMetadataServiceTests
     {
         VersionedInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
 
-        _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, DefaultCancellationToken).Throws(new InstanceNotFoundException());
+        _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
 
         string ifNoneMatch = null;
-        InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, ifNoneMatch, DefaultCancellationToken));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, ifNoneMatch, DefaultCancellationToken);
+        InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
         Assert.Equal("The specified instance cannot be found.", exception.Message);
     }
 
