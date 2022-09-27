@@ -1,8 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public static class InstanceStoreExtensions
 {
-    public static async Task<IEnumerable<VersionedInstanceIdentifier>> GetInstancesToRetrieve(
+    public static async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstancesToRetrieve(
             this IInstanceStore instanceStore,
             ResourceType resourceType,
             int partitionKey,
@@ -28,7 +29,7 @@ public static class InstanceStoreExtensions
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
 
-        IEnumerable<VersionedInstanceIdentifier> instancesToRetrieve = Enumerable.Empty<VersionedInstanceIdentifier>();
+        IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve = Array.Empty<VersionedInstanceIdentifier>();
 
         switch (resourceType)
         {
@@ -59,7 +60,7 @@ public static class InstanceStoreExtensions
                 break;
         }
 
-        if (!instancesToRetrieve.Any())
+        if (instancesToRetrieve.Count == 0)
         {
             ThrowNotFoundException(resourceType);
         }

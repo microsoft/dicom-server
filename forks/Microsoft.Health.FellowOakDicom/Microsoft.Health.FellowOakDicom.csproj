@@ -9,4 +9,9 @@
     <PackageReference Include="fo-dicom" Version="$(FoDicomVersion)" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.Text.Json" />
+  </ItemGroup>
+
 </Project>

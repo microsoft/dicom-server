@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 public class RetrieveMetadataResponse
 {
-    public RetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
+    public RetrieveMetadataResponse(IAsyncEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
     {
         EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
         ResponseMetadata = responseMetadata;
@@ -19,7 +19,7 @@ public class RetrieveMetadataResponse
         ETag = eTag;
     }
 
-    public IEnumerable<DicomDataset> ResponseMetadata { get; }
+    public IAsyncEnumerable<DicomDataset> ResponseMetadata { get; }
 
     public bool IsCacheValid { get; }
 

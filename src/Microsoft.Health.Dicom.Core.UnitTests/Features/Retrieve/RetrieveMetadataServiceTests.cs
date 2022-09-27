@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -45,7 +47,12 @@ public class RetrieveMetadataServiceTests
 
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
-        _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator, _dicomRequestContextAccessor);
+        _retrieveMetadataService = new RetrieveMetadataService(
+            _instanceStore,
+            _metadataStore,
+            _eTagGenerator,
+            _dicomRequestContextAccessor,
+            Options.Create(new RetrieveConfiguration()));
     }
 
     [Fact]
@@ -136,8 +143,8 @@ public class RetrieveMetadataServiceTests
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
-        Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count);
-        Assert.Equal(response.ResponseMetadata.Count(), _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(await response.ResponseMetadata.CountAsync(), versionedInstanceIdentifiers.Count);
+        Assert.Equal(await response.ResponseMetadata.CountAsync(), _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -164,8 +171,8 @@ public class RetrieveMetadataServiceTests
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
-        Assert.Equal(response.ResponseMetadata.Count(), versionedInstanceIdentifiers.Count);
-        Assert.Equal(response.ResponseMetadata.Count(), _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(await response.ResponseMetadata.CountAsync(), versionedInstanceIdentifiers.Count);
+        Assert.Equal(await response.ResponseMetadata.CountAsync(), _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
     [Fact]
@@ -190,7 +197,7 @@ public class RetrieveMetadataServiceTests
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, ifNoneMatch, DefaultCancellationToken);
 
-        Assert.Single(response.ResponseMetadata);
+        Assert.Equal(1, await response.ResponseMetadata.CountAsync());
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 

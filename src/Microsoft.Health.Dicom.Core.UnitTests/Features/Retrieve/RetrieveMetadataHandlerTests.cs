@@ -1,9 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -243,8 +244,7 @@ public class RetrieveMetadataHandlerTests
 
     private static RetrieveMetadataResponse SetupRetrieveMetadataResponse()
     {
-        return new RetrieveMetadataResponse(
-            new List<DicomDataset> { new DicomDataset() });
+        return new RetrieveMetadataResponse(new List<DicomDataset> { new DicomDataset() }.ToAsyncEnumerable());
     }
 
     private static RetrieveMetadataResponse SetupRetrieveMetadataResponseForValidatingCache(bool isCacheValid, string eTag)
@@ -257,7 +257,7 @@ public class RetrieveMetadataHandlerTests
         }
 
         return new RetrieveMetadataResponse(
-            responseMetadata,
+            responseMetadata.ToAsyncEnumerable(),
             isCacheValid: isCacheValid,
             eTag: eTag);
     }

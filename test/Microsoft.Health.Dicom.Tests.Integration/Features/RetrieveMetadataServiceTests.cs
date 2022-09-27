@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -51,7 +53,12 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
-        _retrieveMetadataService = new RetrieveMetadataService(_instanceStore, _metadataStore, _eTagGenerator, _dicomRequestContextAccessor);
+        _retrieveMetadataService = new RetrieveMetadataService(
+            _instanceStore,
+            _metadataStore,
+            _eTagGenerator,
+            _dicomRequestContextAccessor,
+            Options.Create(new RetrieveConfiguration()));
     }
 
     [Fact]
@@ -93,7 +100,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
 
-        var actual = response.ResponseMetadata.ToList();
+        var actual = await response.ResponseMetadata.ToListAsync();
         Assert.Equal(2, actual.Count);
         ValidateResponseMetadataDataset(first.Dataset, actual[0]);
         ValidateResponseMetadataDataset(second.Dataset, actual[1]);
@@ -138,7 +145,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
 
-        var actual = response.ResponseMetadata.ToList();
+        var actual = await response.ResponseMetadata.ToListAsync();
         Assert.Equal(2, actual.Count);
         ValidateResponseMetadataDataset(first.Dataset, actual[0]);
         ValidateResponseMetadataDataset(second.Dataset, actual[1]);
