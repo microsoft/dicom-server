@@ -72,7 +72,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         // Add metadata for only one instance in the given list
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
@@ -99,11 +100,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
-
-        var actual = await response.ResponseMetadata.ToListAsync();
-        Assert.Equal(2, actual.Count);
-        ValidateResponseMetadataDataset(first.Dataset, actual[0]);
-        ValidateResponseMetadataDataset(second.Dataset, actual[1]);
+        await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 
     [Fact]
@@ -117,7 +114,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         // Add metadata for only one instance in the given list
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
@@ -128,7 +126,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         SetupDatasetList(ResourceType.Series, cancellationToken: tokenSource.Token);
 
         string ifNoneMatch = null;
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token));
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
     [Fact]
@@ -144,11 +143,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
-
-        var actual = await response.ResponseMetadata.ToListAsync();
-        Assert.Equal(2, actual.Count);
-        ValidateResponseMetadataDataset(first.Dataset, actual[0]);
-        ValidateResponseMetadataDataset(second.Dataset, actual[1]);
+        await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 
     // Note that tests must use unique watermarks to ensure their metadata files do not collide with each other
@@ -206,12 +201,16 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         };
     }
 
-    private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)
+    private static async Task ValidateResponseMetadataAsync(IAsyncEnumerable<DicomDataset> actual, params VersionedDicomDataset[] expected)
     {
         // Compare result datasets by serializing.
-        Assert.Equal(
-            JsonSerializer.Serialize(storedDataset, AppSerializerOptions.Json),
-            JsonSerializer.Serialize(retrievedDataset, AppSerializerOptions.Json));
+        var set = await actual.Select(x => JsonSerializer.Serialize(x, AppSerializerOptions.Json)).ToHashSetAsync();
+
+        Assert.Equal(expected.Length, set.Count);
+        foreach (string e in expected.Select(x => JsonSerializer.Serialize(x.Dataset, AppSerializerOptions.Json)))
+        {
+            Assert.True(set.Remove(e));
+        }
     }
 
     private readonly struct VersionedDicomDataset
