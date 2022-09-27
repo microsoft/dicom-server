@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -14,11 +13,9 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common;
 
-internal sealed class ParallelEnumerationOptions
+internal sealed class ParallelEnumerationOptions : ParallelOptions
 {
     public int MaxBufferedItems { get; init; } = -1;
-
-    public int MaxDegreeOfParallelism { get; init; } = -1;
 }
 
 internal static class ParallelEnumerable
@@ -27,13 +24,13 @@ internal static class ParallelEnumerable
     public static async IAsyncEnumerable<TResult> SelectParallel<TSource, TResult>(
         this IEnumerable<TSource> source,
         Func<TSource, CancellationToken, ValueTask<TResult>> selector,
-        ParallelEnumerationOptions options,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        ParallelEnumerationOptions options)
     {
-        var state = new State<TSource, TResult>(source, selector, options, cancellationToken);
+        // TODO: Support proper enumerator cancellation. Perhaps do not re-use ParallelOptions
+        var state = new State<TSource, TResult>(source, selector, options);
         ValueTask producer = ProduceAsync(state);
 
-        await foreach (TResult item in state.Items.Reader.ReadAllAsync(cancellationToken))
+        await foreach (TResult item in state.Items.Reader.ReadAllAsync(options.CancellationToken))
         {
             yield return item;
         }
@@ -44,8 +41,21 @@ internal static class ParallelEnumerable
         {
             ChannelWriter<TResult> writer = state.Items.Writer;
 
-            // Note that the order is not guaranteed to be deterministic. Items will be queued in the order they are found!
-            await Parallel.ForEachAsync(state.Source, state.Options, (item, token) => ProduceItemAsync(item, state.Selector, writer, token));
+            try
+            {
+                // Note: The order is not deterministic.
+                // Items will be produced in the order that they are returned by the selector.
+                await Parallel.ForEachAsync(
+                    state.Source,
+                    state.Options,
+                    (item, token) => ProduceItemAsync(item, state.Selector, writer, token));
+            }
+            catch (Exception e)
+            {
+                writer.Complete(e);
+                return;
+            }
+
             writer.Complete();
         }
 
@@ -55,15 +65,8 @@ internal static class ParallelEnumerable
             ChannelWriter<TResult> writer,
             CancellationToken cancellationToken)
         {
-            try
-            {
-                TResult result = await selector(item, cancellationToken);
-                await writer.WriteAsync(result, cancellationToken);
-            }
-            catch (Exception e)
-            {
-                writer.Complete(e);
-            }
+            TResult result = await selector(item, cancellationToken);
+            await writer.WriteAsync(result, cancellationToken);
         }
     }
 
@@ -72,21 +75,35 @@ internal static class ParallelEnumerable
         public State(
             IEnumerable<TSource> source,
             Func<TSource, CancellationToken, ValueTask<TResult>> selector,
-            ParallelEnumerationOptions options,
-            CancellationToken cancellationToken)
+            ParallelEnumerationOptions options)
         {
-            EnsureArg.IsNotNull(options, nameof(options));
-
-            Items = options.MaxBufferedItems == -1
-                ? Channel.CreateUnbounded<TResult>(new UnboundedChannelOptions { SingleReader = true })
-                : Channel.CreateBounded<TResult>(new BoundedChannelOptions(options.MaxBufferedItems) { FullMode = BoundedChannelFullMode.Wait, SingleReader = true });
-            Options = new ParallelOptions
-            {
-                CancellationToken = cancellationToken,
-                MaxDegreeOfParallelism = options.MaxDegreeOfParallelism,
-            };
+            Options = EnsureArg.IsNotNull(options, nameof(options));
             Selector = EnsureArg.IsNotNull(selector, nameof(selector));
             Source = EnsureArg.IsNotNull(source, nameof(source));
+
+            // TODO: Enable buffering with unbounded parallelism if ChannelWriter supports a factory argument.
+            // We have to modify the channel capacity as we will still resolve the selector before blocking
+            // on the channel write. So if the maximum parallelism is 'p', there will be at most 'p' additional
+            // threads blocked after the channel has reached capacity.
+            if (options.MaxBufferedItems != -1)
+            {
+                if (options.MaxDegreeOfParallelism == -1)
+                    throw new ArgumentException(DicomCoreResource.UnsupportedBuffering, nameof(options));
+
+                if (options.MaxBufferedItems <= options.MaxDegreeOfParallelism)
+                    throw new ArgumentException(DicomCoreResource.InvalidItemBuffering, nameof(options));
+
+                Items = Channel.CreateBounded<TResult>(
+                    new BoundedChannelOptions(options.MaxBufferedItems - options.MaxDegreeOfParallelism)
+                    {
+                        FullMode = BoundedChannelFullMode.Wait,
+                        SingleReader = true,
+                    });
+            }
+            else
+            {
+                Items = Channel.CreateUnbounded<TResult>(new UnboundedChannelOptions { SingleReader = true });
+            }
         }
 
         public Channel<TResult> Items { get; }

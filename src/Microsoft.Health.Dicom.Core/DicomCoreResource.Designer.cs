@@ -622,6 +622,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MaxBufferedItems must be greater than MaxDegreeOfParallelism if not unbounded..
+        /// </summary>
+        internal static string InvalidItemBuffering {
+            get {
+                return ResourceManager.GetString("InvalidItemBuffering", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Read invalid JSON token type &apos;{0}&apos;..
         /// </summary>
         internal static string InvalidJsonToken {
@@ -1152,6 +1161,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string UnknownQueryParameter {
             get {
                 return ResourceManager.GetString("UnknownQueryParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot buffer items if parallelism is unbounded..
+        /// </summary>
+        internal static string UnsupportedBuffering {
+            get {
+                return ResourceManager.GetString("UnsupportedBuffering", resourceCulture);
             }
         }
         
