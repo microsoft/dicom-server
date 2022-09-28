@@ -99,10 +99,10 @@ public class RetrieveMetadataService : IRetrieveMetadataService
                 (x, t) => new ValueTask<DicomDataset>(_metadataStore.GetInstanceMetadataAsync(x, t)),
                 new ParallelEnumerationOptions
                 {
-                    CancellationToken = cancellationToken,
                     MaxBufferedItems = _options.MaxBufferedDataSets,
                     MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism,
-                });
+                },
+                cancellationToken);
 
         return new RetrieveMetadataResponse(instanceMetadata, isCacheValid, eTag);
     }

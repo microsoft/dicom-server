@@ -102,11 +102,8 @@ public class ParallelEnumerableTests
 
                         return ParseAsync(x, t);
                     },
-                    new ParallelEnumerationOptions
-                    {
-                        CancellationToken = tokenSource.Token,
-                        MaxDegreeOfParallelism = 2
-                    })
+                    new ParallelEnumerationOptions { MaxDegreeOfParallelism = 2 },
+                    tokenSource.Token)
                 .ToListAsync()
                 .AsTask());
     }
@@ -147,6 +144,7 @@ public class ParallelEnumerableTests
         // Beginning the enumerable should have triggered the producer, but only up to the buffered max of 3.
         // Therefore the values 2, 3, and 4 have been resolved, while 5 and 6 and still waiting.
         bufferFullEvent.Wait();
+        Assert.All(buffer.Keys, x => Assert.InRange(x, 1, 4));
 
         Assert.True(buffer.TryRemove(1, out _)); // We know 1 must have passed through the buffer
         Assert.Equal(MaxBuffered, buffer.Count);
