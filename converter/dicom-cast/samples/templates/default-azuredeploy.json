@@ -102,7 +102,7 @@
           }
         },
         "isIssuerIdUsed": {
-          "defaultValue":  false,
+          "defaultValue": false,
           "type": "Bool",
           "metadata": {
             "description": "Issuer id or patient system id used based on this boolean value"

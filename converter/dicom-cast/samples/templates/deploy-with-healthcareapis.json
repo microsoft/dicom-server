@@ -124,6 +124,20 @@
         "description": "The behavior of Azure runtime if container has stopped."
       }
     },
+    "patientSystemId": {
+      "defaultValue": "",
+      "type": "string",
+      "metadata": {
+        "description": "Patient SystemId configured by the user"
+      }
+    },
+    "isIssuerIdUsed": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Issuer id or patient system id used based on this boolean value"
+      }
+    },
     "enforceValidationOfTagValues": {
       "defaultValue": false,
       "type": "bool",
@@ -248,6 +262,12 @@
           },
           "additionalEnvironmentVariables": {
             "value": "[variables('authenticationArray')]"
+          },
+          "patientSystemId": {
+            "value": "[parameters('patientSystemId')]"
+          },
+          "isIssuerIdUsed": {
+            "value": "[parameters('isIssuerIdUsed')]"
           }
         }
       }
