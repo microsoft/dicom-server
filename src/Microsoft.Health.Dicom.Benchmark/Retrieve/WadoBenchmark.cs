@@ -33,7 +33,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Health.Dicom.Benchmark.Retrieve;
 
-[SimpleJob(RunStrategy.Monitoring, targetCount: 10)]
+[SimpleJob(RunStrategy.Monitoring, targetCount: 25)]
 [MinColumn, Q1Column, Q3Column, MaxColumn]
 [MemoryDiagnoser]
 [ThreadingDiagnoser]
@@ -110,8 +110,16 @@ public class WadoBenchmark : DicomBenchmark
         => NewWado(100);
 
     [Benchmark]
-    public Task NewWado999()
-        => NewWado(999);
+    public Task NewWado200()
+        => NewWado(200);
+
+    [Benchmark]
+    public Task NewWado500()
+        => NewWado(500);
+
+    [Benchmark]
+    public Task NewWado1000()
+        => NewWado(1000);
 
     private async Task NewWado(int parallelism)
     {

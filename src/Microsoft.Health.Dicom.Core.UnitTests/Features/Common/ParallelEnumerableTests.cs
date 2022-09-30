@@ -24,12 +24,6 @@ public class ParallelEnumerableTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => ((List<string>)null).SelectParallel(ParseAsync, new ParallelEnumerationOptions()).ToListAsync().AsTask());
         await Assert.ThrowsAsync<ArgumentNullException>(() => input.SelectParallel((Func<string, CancellationToken, ValueTask<int>>)null, new ParallelEnumerationOptions()).ToListAsync().AsTask());
         await Assert.ThrowsAsync<ArgumentNullException>(() => input.SelectParallel(ParseAsync, null).ToListAsync().AsTask());
-
-        var options = new ParallelEnumerationOptions { MaxBufferedItems = 1, MaxDegreeOfParallelism = -1 };
-        await Assert.ThrowsAsync<ArgumentException>(() => input.SelectParallel(ParseAsync, options).ToListAsync().AsTask());
-
-        options = new ParallelEnumerationOptions { MaxBufferedItems = 5, MaxDegreeOfParallelism = 6 };
-        await Assert.ThrowsAsync<ArgumentException>(() => input.SelectParallel(ParseAsync, options).ToListAsync().AsTask());
     }
 
     [Fact]
