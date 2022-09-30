@@ -25,8 +25,8 @@ public class RetrieveConfiguration
     /// Gets or sets the maximum number of tasks that should be concurrently scheduled to read for a single metadata request.
     /// </summary>
     /// <value>A positive number or <c>-1</c> for unbounded parallelism.</value>
-    [Range(1, int.MaxValue)]
-    public int MaxDegreeOfParallelism { get; set; } = Environment.ProcessorCount * 4;
+    [Range(-1, int.MaxValue)]
+    public int MaxDegreeOfParallelism { get; set; } = -1;
 
     /// <summary>
     /// Gets or sets the maximum number of Dicom Data Sets to buffer in memory before pausing.

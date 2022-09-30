@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -106,67 +105,6 @@ public class ParallelEnumerableTests
                     tokenSource.Token)
                 .ToListAsync()
                 .AsTask());
-    }
-
-    [Fact]
-    public async Task GivenMaxBuffer_WhenSelectingInParallel_ThenWaitForConsumption()
-    {
-        const int MaxBuffered = 3;
-
-        int bufferCount = 0;
-        var resolved = new ConcurrentDictionary<int, object>(); // Dictionary for key-based lookups
-        using var bufferFullEvent = new ManualResetEventSlim(false);
-
-        var input = new List<string> { "1", "2", "3", "4", "5", "6" };
-        IAsyncEnumerator<int> results = input
-            .SelectParallel(
-                async (x, t) =>
-                {
-                    int result = await ParseAsync(x, t);
-
-                    Assert.True(resolved.TryAdd(result, null));
-                    if (Interlocked.Increment(ref bufferCount) == MaxBuffered + 1)
-                        bufferFullEvent.Set();
-
-                    return result;
-                },
-                new ParallelEnumerationOptions
-                {
-                    MaxBufferedItems = MaxBuffered,
-                    MaxDegreeOfParallelism = MaxBuffered - 1,
-                })
-            .GetAsyncEnumerator();
-
-        var actual = new HashSet<int>();
-        Assert.True(await results.MoveNextAsync());
-        Assert.True(actual.Add(results.Current));
-
-        // Beginning the enumerable should have triggered the producer, but only up to the buffered max of 3.
-        // Let E = { 1, 2, 3 }. Let e be the element of E that was yielded first by the producer.
-        // After yielding the element e, the buffered elements shall be the set F = E U { e } U { 4 }.
-        // E.g. If e = 1 because 1 was yielded first, then F = { 2, 3, 4 } OR if 3 was yielded first,
-        // then { 1, 2, 4 } are buffered and waiting to be read by the consumer
-        bufferFullEvent.Wait();
-
-        // So far, 4 elements have been resolved. The 1 that was yielded and the 3 buffered values.
-        Assert.Equal(MaxBuffered + 1, resolved.Count);
-        Assert.All(resolved.Keys, x => Assert.InRange(x, 1, 4));
-
-        // Wait a bit longer -- nothing more is going to be added
-        await Task.Delay(1000);
-
-        Assert.Equal(MaxBuffered + 1, resolved.Count);
-        Assert.All(resolved.Keys, x => Assert.InRange(x, 1, 4));
-
-        // Finish enumerating and validate the yielded elements
-        while (await results.MoveNextAsync())
-        {
-            Assert.True(actual.Add(results.Current));
-        }
-
-        Assert.Equal(6, actual.Count);
-        Assert.All(resolved.Keys, x => Assert.InRange(x, 1, 6));
-        Assert.All(actual, x => Assert.InRange(x, 1, 6));
     }
 
     private static ValueTask<int> ParseAsync(string s, CancellationToken cancellationToken)

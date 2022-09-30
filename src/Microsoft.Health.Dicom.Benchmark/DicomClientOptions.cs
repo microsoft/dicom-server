@@ -4,11 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
+using System.Diagnostics.CodeAnalysis;
 
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Benchmark")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Tests.Integration")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.UnitTests")]
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+namespace Microsoft.Health.Dicom.Benchmark;
+
+[SuppressMessage("Microsoft.Performance", "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is deserialized.")]
+internal class DicomClientOptions
+{
+    public Uri BaseAddress { get; set; }
+}

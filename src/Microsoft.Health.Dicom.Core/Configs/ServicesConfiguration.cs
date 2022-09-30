@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ public class ServicesConfiguration
 
     public DataPartitionConfiguration DataPartition { get; } = new DataPartitionConfiguration();
 
-    public RetrieveConfiguration RetrieveConfiguration { get; } = new RetrieveConfiguration();
+    public RetrieveConfiguration Retrieve { get; } = new RetrieveConfiguration();
 
     public BlobMigrationConfiguration BlobMigration { get; } = new BlobMigrationConfiguration();
 
