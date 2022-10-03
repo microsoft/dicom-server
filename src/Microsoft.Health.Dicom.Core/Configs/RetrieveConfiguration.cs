@@ -27,14 +27,4 @@ public class RetrieveConfiguration
     /// <value>A positive number or <c>-1</c> for unbounded parallelism.</value>
     [Range(-1, int.MaxValue)]
     public int MaxDegreeOfParallelism { get; set; } = -1;
-
-    /// <summary>
-    /// Gets or sets the maximum number of Dicom Data Sets to buffer in memory before pausing.
-    /// </summary>
-    /// <remarks>
-    /// Once Dicom Data Sets are read by the caller, new Data Sets will begin buffering again.
-    /// </remarks>
-    /// <value>A positive number.</value>
-    [Range(1, int.MaxValue)]
-    public int MaxBufferedDataSets { get; set; } = 100;
 }

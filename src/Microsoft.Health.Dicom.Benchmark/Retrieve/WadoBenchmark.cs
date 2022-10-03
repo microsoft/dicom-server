@@ -123,7 +123,7 @@ public class WadoBenchmark : DicomBenchmark
 
     private async Task NewWado(int parallelism)
     {
-        var options = new RetrieveConfiguration { MaxBufferedDataSets = StudySize, MaxDegreeOfParallelism = parallelism };
+        var options = new RetrieveConfiguration { MaxDegreeOfParallelism = parallelism };
 
         using IServiceScope scope = _services.CreateScope();
         var service = new RetrieveMetadataService(

@@ -97,11 +97,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
             ? AsyncEnumerable.Empty<DicomDataset>()
             : instancesToRetrieve.SelectParallel(
                 (x, t) => new ValueTask<DicomDataset>(_metadataStore.GetInstanceMetadataAsync(x, t)),
-                new ParallelEnumerationOptions
-                {
-                    MaxBufferedItems = _options.MaxBufferedDataSets,
-                    MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism,
-                },
+                new ParallelEnumerationOptions { MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism },
                 cancellationToken);
 
         return new RetrieveMetadataResponse(instanceMetadata, isCacheValid, eTag);

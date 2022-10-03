@@ -44,9 +44,11 @@ internal static class ParallelEnumerable
                     state.Options,
                     async (item, token) =>
                     {
-                        await writer.WaitToWriteAsync(token);
-                        TResult result = await state.Selector(item, token);
-                        await writer.WriteAsync(result, token);
+                        if (await writer.WaitToWriteAsync(token))
+                        {
+                            TResult result = await state.Selector(item, token);
+                            await writer.WriteAsync(result, token);
+                        }
                     });
             }
             finally
@@ -66,23 +68,15 @@ internal static class ParallelEnumerable
         {
             EnsureArg.IsNotNull(options, nameof(options));
 
-            Selector = EnsureArg.IsNotNull(selector, nameof(selector));
             Source = EnsureArg.IsNotNull(source, nameof(source));
+            Selector = EnsureArg.IsNotNull(selector, nameof(selector));
             Options = new ParallelOptions
             {
                 CancellationToken = cancellationToken,
                 MaxDegreeOfParallelism = options.MaxDegreeOfParallelism,
                 TaskScheduler = options.TaskScheduler,
             };
-
-            // Note: The WaitToWriteAsync/WaitAsync pattern is a best-effort, and some results
-            // may be resolved that cannot be immediately written to the channel
-            Results = Channel.CreateBounded<TResult>(
-                new BoundedChannelOptions(options.MaxBufferedItems)
-                {
-                    FullMode = BoundedChannelFullMode.Wait,
-                    SingleReader = true,
-                });
+            Results = Channel.CreateUnbounded<TResult>(new UnboundedChannelOptions { SingleReader = true });
         }
 
         public Channel<TResult> Results { get; }

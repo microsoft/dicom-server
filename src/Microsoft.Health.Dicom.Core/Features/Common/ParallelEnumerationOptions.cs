@@ -9,8 +9,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Common;
 
 internal sealed class ParallelEnumerationOptions
 {
-    public int MaxBufferedItems { get; init; } = 100;
-
     public int MaxDegreeOfParallelism { get; init; } = -1;
 
     public TaskScheduler TaskScheduler { get; init; }
