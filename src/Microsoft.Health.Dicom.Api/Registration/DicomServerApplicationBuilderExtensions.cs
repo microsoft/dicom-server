@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -27,6 +27,18 @@ public static class DicomServerApplicationBuilderExtensions
     public static IApplicationBuilder UseDicomServer(this IApplicationBuilder app)
     {
         EnsureArg.IsNotNull(app, nameof(app));
+
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Add("X-Frame-Options", "SAMEORIGIN");
+            await next();
+        });
+
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Add("Content-Security-Policy", "frame-src 'self';");
+            await next();
+        });
 
         app.UseQueryStringValidator();
 
