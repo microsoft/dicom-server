@@ -53,6 +53,7 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new IOException("The request stream was aborted."), HttpStatusCode.BadRequest };
         yield return new object[] { new ConnectionResetException(string.Empty), HttpStatusCode.BadRequest };
         yield return new object[] { new OperationCanceledException(), HttpStatusCode.BadRequest };
+        yield return new object[] { new TaskCanceledException(), HttpStatusCode.BadRequest };
         yield return new object[] { new InvalidOperationException(), HttpStatusCode.BadRequest };
         yield return new object[] { new PayloadTooLargeException(1), HttpStatusCode.RequestEntityTooLarge };
     }

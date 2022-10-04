@@ -7,11 +7,11 @@ using System.Collections.Generic;
 using EnsureThat;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
+namespace Microsoft.Health.Dicom.Benchmark.Retrieve;
 
-public class RetrieveMetadataResponse
+public class LegacyRetrieveMetadataResponse
 {
-    public RetrieveMetadataResponse(IAsyncEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
+    public LegacyRetrieveMetadataResponse(IEnumerable<DicomDataset> responseMetadata, bool isCacheValid = false, string eTag = null)
     {
         EnsureArg.IsNotNull(responseMetadata, nameof(responseMetadata));
         ResponseMetadata = responseMetadata;
@@ -19,7 +19,7 @@ public class RetrieveMetadataResponse
         ETag = eTag;
     }
 
-    public IAsyncEnumerable<DicomDataset> ResponseMetadata { get; }
+    public IEnumerable<DicomDataset> ResponseMetadata { get; }
 
     public bool IsCacheValid { get; }
 

@@ -621,4 +621,10 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="SinglePartSupportedForSingleFrame" xml:space="preserve">
     <value>The accept header is supported for single frame retrieval, use multi-part accept header instead.</value>
   </data>
+  <data name="InvalidItemBuffering" xml:space="preserve">
+    <value>MaxBufferedItems must be greater than MaxDegreeOfParallelism if not unbounded.</value>
+  </data>
+  <data name="UnsupportedBuffering" xml:space="preserve">
+    <value>Cannot buffer items if parallelism is unbounded.</value>
+  </data>
 </root>
