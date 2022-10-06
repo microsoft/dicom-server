@@ -88,6 +88,7 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
+            _logger.LogInformation("Storing dicom instance entries, count of instances: '{InstancesToStoreCount}'.", instanceEntries.Count);
 
             for (int index = 0; index < instanceEntries.Count; index++)
             {
@@ -124,7 +125,7 @@ public class StoreService : IStoreService
             ValidationWarnings warnings = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
             // We have different ways to handle with warnings.
-            // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag 
+            // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag
             if ((warnings & ValidationWarnings.DatasetDoesNotMatchSOPClass) == ValidationWarnings.DatasetDoesNotMatchSOPClass)
             {
                 warningReasonCode = WarningReasonCodes.DatasetDoesNotMatchSOPClass;

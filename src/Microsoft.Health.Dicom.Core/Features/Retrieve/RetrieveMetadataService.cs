@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -28,19 +29,22 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly RetrieveConfiguration _options;
+    private readonly ILogger<RetrieveMetadataService> _logger;
 
     public RetrieveMetadataService(
         IInstanceStore instanceStore,
         IMetadataStore metadataStore,
         IETagGenerator eTagGenerator,
         IDicomRequestContextAccessor contextAccessor,
-        IOptions<RetrieveConfiguration> options)
+        IOptions<RetrieveConfiguration> options,
+        ILogger<RetrieveMetadataService> logger)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _eTagGenerator = EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
@@ -91,6 +95,8 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private RetrieveMetadataResponse RetrieveMetadata(IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve, bool isCacheValid, string eTag, CancellationToken cancellationToken)
     {
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
+
+        _logger.LogInformation("Retrieving metadata for this count of instances: 'InstancesToRetrieveCount}'", instancesToRetrieve.Count);
 
         // Retrieve metadata instances only if cache is not valid.
         IAsyncEnumerable<DicomDataset> instanceMetadata = isCacheValid
