@@ -1,15 +1,15 @@
-﻿// --------------------------------------------------------------------------
-// <copyright file="DicomTelemetryInitializer.cs" company="Microsoft Corporation">
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
 
+using System;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
-namespace Microsoft.Health.Cloud.Dicom.Logging.Initializers;
+namespace Microsoft.Health.Dicom.Core.Logging;
 
 public class DicomTelemetryInitializer : ITelemetryInitializer
 {
@@ -17,7 +17,7 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
 
     public DicomTelemetryInitializer(IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
-        this._dicomRequestContextAccessor = dicomRequestContextAccessor;
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
     }
 
     public void Initialize(ITelemetry telemetry)
@@ -33,7 +33,9 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
             AddProperty(
                 requestTelemetry,
                 "InstanceCount",
+#pragma warning disable CA1305
                 _dicomRequestContextAccessor.RequestContext.PartCount.ToString());
+#pragma warning restore CA1305
             AddProperty(
                 requestTelemetry,
                 "RouteNameTestValue",
@@ -57,10 +59,11 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
         else
         {
             string existingValue = telemetry.Properties[key];
-            if (!string.Equals(existingValue, value, System.StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(existingValue, value, StringComparison.OrdinalIgnoreCase))
             {
                 telemetry.Properties[key] = value;
-                System.Console.WriteLine($"The telemetry already contains the property of {key} with value {existingValue}. The new value is: {value}");
+                // ReSharper disable once LocalizableElement
+                Console.WriteLine($"The telemetry already contains the property of {key} with value {existingValue}. The new value is: {value}");
             }
         }
     }
