@@ -100,7 +100,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     {
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
 
-        _logger.LogInformation("Retrieving metadata for this count of instances: 'InstancesToRetrieveCount}'", instancesToRetrieve.Count);
+        _logger.LogInformation("Retrieving metadata for this count of instances: {InstancesToRetrieveCount}", instancesToRetrieve.Count);
         _telemetryClient.GetMetric("Count-Retrieve-Instances").TrackValue(instancesToRetrieve.Count);
 
         // Retrieve metadata instances only if cache is not valid.
