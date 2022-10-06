@@ -8,6 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -32,6 +36,7 @@ public class RetrieveMetadataServiceTests
     private readonly IETagGenerator _eTagGenerator;
     private readonly RetrieveMetadataService _retrieveMetadataService;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly TelemetryClient _telemetryClient;
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -46,13 +51,18 @@ public class RetrieveMetadataServiceTests
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
 
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
-
+        _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
         _retrieveMetadataService = new RetrieveMetadataService(
             _instanceStore,
             _metadataStore,
             _eTagGenerator,
             _dicomRequestContextAccessor,
-            Options.Create(new RetrieveConfiguration()));
+            Options.Create(new RetrieveConfiguration()),
+            NullLogger<RetrieveMetadataService>.Instance,
+            _telemetryClient);
     }
 
     [Fact]

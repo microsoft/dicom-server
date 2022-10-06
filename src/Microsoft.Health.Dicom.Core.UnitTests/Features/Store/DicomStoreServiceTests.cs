@@ -8,6 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -45,6 +48,7 @@ public class DicomStoreServiceTests
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
+    private readonly TelemetryClient _telemetryClient;
 
     private readonly StoreService _storeService;
 
@@ -52,13 +56,19 @@ public class DicomStoreServiceTests
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
+        _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
+
 
         _storeService = new StoreService(
             _storeResponseBuilder,
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            NullLogger<StoreService>.Instance);
+            NullLogger<StoreService>.Instance,
+            _telemetryClient);
     }
 
     [Fact]

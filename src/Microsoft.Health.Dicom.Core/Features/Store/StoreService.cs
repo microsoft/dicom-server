@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -59,6 +60,7 @@ public class StoreService : IStoreService
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly ILogger _logger;
+    private readonly TelemetryClient _telemetryClient;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
@@ -68,13 +70,15 @@ public class StoreService : IStoreService
         IStoreDatasetValidator dicomDatasetValidator,
         IStoreOrchestrator storeOrchestrator,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
-        ILogger<StoreService> logger)
+        ILogger<StoreService> logger,
+        TelemetryClient telemetryClient)
     {
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc />
@@ -88,7 +92,7 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
-            _logger.LogInformation("Storing dicom instance entries, count of instances: '{InstancesToStoreCount}'.", instanceEntries.Count);
+            _telemetryClient.GetMetric("Count-Store-Instances").TrackValue(instanceEntries.Count);
 
             for (int index = 0; index < instanceEntries.Count; index++)
             {

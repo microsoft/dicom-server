@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -30,6 +31,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly RetrieveConfiguration _options;
     private readonly ILogger<RetrieveMetadataService> _logger;
+    private readonly TelemetryClient _telemetryClient;
 
     public RetrieveMetadataService(
         IInstanceStore instanceStore,
@@ -37,7 +39,8 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IETagGenerator eTagGenerator,
         IDicomRequestContextAccessor contextAccessor,
         IOptions<RetrieveConfiguration> options,
-        ILogger<RetrieveMetadataService> logger)
+        ILogger<RetrieveMetadataService> logger,
+        TelemetryClient telemetryClient)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
@@ -45,6 +48,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
@@ -97,6 +101,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
 
         _logger.LogInformation("Retrieving metadata for this count of instances: 'InstancesToRetrieveCount}'", instancesToRetrieve.Count);
+        _telemetryClient.GetMetric("Count-Retrieve-Instances").TrackValue(instancesToRetrieve.Count);
 
         // Retrieve metadata instances only if cache is not valid.
         IAsyncEnumerable<DicomDataset> instanceMetadata = isCacheValid
