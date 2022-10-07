@@ -10,14 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -29,26 +28,23 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private readonly IMetadataStore _metadataStore;
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _contextAccessor;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IDicomTelemetryClient _telemetryClient;
     private readonly RetrieveConfiguration _options;
-    private readonly TelemetryClient _telemetryClient;
 
     public RetrieveMetadataService(
         IInstanceStore instanceStore,
         IMetadataStore metadataStore,
         IETagGenerator eTagGenerator,
         IDicomRequestContextAccessor contextAccessor,
-        IHttpContextAccessor httpContextAccessor,
-        IOptions<RetrieveConfiguration> options,
-        TelemetryClient telemetryClient)
+        IDicomTelemetryClient telemetryClient,
+        IOptions<RetrieveConfiguration> options)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _eTagGenerator = EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
-        _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
-        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
     }
 
     public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
@@ -99,9 +95,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private RetrieveMetadataResponse RetrieveMetadata(IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve, bool isCacheValid, string eTag, CancellationToken cancellationToken)
     {
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
-        _httpContextAccessor.HttpContext.Items["GetMetadataInstancesCount"] = instancesToRetrieve.Count;
-
-        _telemetryClient.GetMetric("GetMetadataInstancesCount").TrackValue(instancesToRetrieve.Count);
+        _telemetryClient.TrackMetric("GetMetadataInstancesCount", instancesToRetrieve.Count);
 
         // Retrieve metadata instances only if cache is not valid.
         IAsyncEnumerable<DicomDataset> instanceMetadata = isCacheValid

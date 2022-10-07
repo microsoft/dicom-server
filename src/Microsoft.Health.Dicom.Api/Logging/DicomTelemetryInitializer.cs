@@ -1,15 +1,16 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-using System.Collections.Generic;
+
 using System.Linq;
+using EnsureThat;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Health.Dicom.Core.Logging;
+namespace Microsoft.Health.Dicom.Api.Logging;
 
 public class DicomTelemetryInitializer : ITelemetryInitializer
 {
@@ -17,31 +18,27 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
 
     public DicomTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
     {
-        _httpContextAccessor = httpContextAccessor;
+        _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
     }
 
     public void Initialize(ITelemetry telemetry)
     {
-        RequestTelemetry requestTelemetry = telemetry as RequestTelemetry;
-        AddPropertiesFromHttpContextItems(requestTelemetry);
+        if (telemetry is RequestTelemetry requestTelemetry)
+            AddPropertiesFromHttpContextItems(requestTelemetry);
     }
 
     private void AddPropertiesFromHttpContextItems(RequestTelemetry requestTelemetry)
     {
-        if (requestTelemetry == null || _httpContextAccessor.HttpContext == null)
+        if (_httpContextAccessor.HttpContext == null)
         {
             return;
         }
 
-        Dictionary<string, string> items = _httpContextAccessor.HttpContext.Items.ToDictionary(
-            k => k.Key.ToString(),
-            k => k.Value.ToString());
-
-        foreach (KeyValuePair<string, string> entry in items)
+        foreach ((string key, string value) in _httpContextAccessor.HttpContext.Items.Select(x => (x.Key.ToString(), x.Value.ToString())))
         {
-            if (!requestTelemetry.Properties.ContainsKey(entry.Key))
+            if (!requestTelemetry.Properties.ContainsKey(key))
             {
-                requestTelemetry.Properties[entry.Key] = entry.Value;
+                requestTelemetry.Properties[key] = value;
             }
         }
     }

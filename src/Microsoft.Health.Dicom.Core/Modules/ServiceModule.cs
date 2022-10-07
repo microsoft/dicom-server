@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
@@ -23,7 +22,6 @@ using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
-using Microsoft.Health.Dicom.Core.Logging;
 using Microsoft.Health.Extensions.DependencyInjection;
 
 namespace Microsoft.Health.Dicom.Core.Modules;
@@ -164,8 +162,6 @@ public class ServiceModule : IStartupModule
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
-
-        services.AddSingleton<ITelemetryInitializer, DicomTelemetryInitializer>();
 
         AddExtendedQueryTagServices(services);
 

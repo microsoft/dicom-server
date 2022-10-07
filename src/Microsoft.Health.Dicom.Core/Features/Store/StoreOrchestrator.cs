@@ -1,10 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -20,11 +21,9 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.ApplicationInsights;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -39,9 +38,8 @@ public class StoreOrchestrator : IStoreOrchestrator
     private readonly IIndexDataStore _indexDataStore;
     private readonly IDeleteService _deleteService;
     private readonly IQueryTagService _queryTagService;
+    private readonly IDicomTelemetryClient _telemetryClient;
     private readonly ILogger<StoreOrchestrator> _logger;
-    private readonly TelemetryClient _telemetryClient;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public StoreOrchestrator(
         IDicomRequestContextAccessor contextAccessor,
@@ -50,9 +48,8 @@ public class StoreOrchestrator : IStoreOrchestrator
         IIndexDataStore indexDataStore,
         IDeleteService deleteService,
         IQueryTagService queryTagService,
-        ILogger<StoreOrchestrator> logger,
-        TelemetryClient telemetryClient,
-        IHttpContextAccessor httpContextAccessor)
+        IDicomTelemetryClient telemetryClient,
+        ILogger<StoreOrchestrator> logger)
     {
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
@@ -60,9 +57,8 @@ public class StoreOrchestrator : IStoreOrchestrator
         _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
-        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc />
@@ -117,9 +113,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         CancellationToken cancellationToken)
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
-
-        _httpContextAccessor.HttpContext.Items["StoreInstanceFileSizeBytes"] = stream?.Length ?? 0;
-        _telemetryClient.GetMetric("StoreInstanceFileSizeBytes").TrackValue(stream.Length);
+        _telemetryClient.TrackMetric("StoreInstanceFileSizeBytes", stream.Length);
 
         await _fileStore.StoreFileAsync(
             versionedInstanceIdentifier,

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -9,10 +9,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -22,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -48,8 +45,8 @@ public class StoreOrchestratorTests
     private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
     private readonly IQueryTagService _queryTagService = Substitute.For<IQueryTagService>();
     private readonly IDicomRequestContextAccessor _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
     private readonly StoreOrchestrator _storeOrchestrator;
-    private readonly TelemetryClient _telemetryClient;
 
     private readonly DicomDataset _dicomDataset;
     private readonly Stream _stream = new MemoryStream();
@@ -80,11 +77,6 @@ public class StoreOrchestratorTests
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
             .Returns(_queryTags);
 
-        _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
-        {
-            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-        });
-
         _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
         var logger = NullLogger<StoreOrchestrator>.Instance;
         _storeOrchestrator = new StoreOrchestrator(
@@ -94,10 +86,8 @@ public class StoreOrchestratorTests
             _indexDataStore,
             _deleteService,
             _queryTagService,
-            logger,
             _telemetryClient,
-            Substitute.For<IHttpContextAccessor>()
-        );
+            logger);
     }
 
     [Fact]

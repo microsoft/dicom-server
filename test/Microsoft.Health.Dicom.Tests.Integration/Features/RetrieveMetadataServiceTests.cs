@@ -11,10 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -24,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -42,7 +39,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     private readonly IMetadataStore _metadataStore;
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly TelemetryClient _telemetryClient;
+    private readonly IDicomTelemetryClient _telemetryClient;
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -55,21 +52,17 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _metadataStore = storagefixture.MetadataStore;
         _eTagGenerator = Substitute.For<IETagGenerator>();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+        _telemetryClient = Substitute.For<IDicomTelemetryClient>();
 
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
-        _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
-        {
-            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-        });
 
         _retrieveMetadataService = new RetrieveMetadataService(
             _instanceStore,
             _metadataStore,
             _eTagGenerator,
             _dicomRequestContextAccessor,
-            Substitute.For<IHttpContextAccessor>(),
-            Options.Create(new RetrieveConfiguration()),
-            _telemetryClient);
+            _telemetryClient,
+            Options.Create(new RetrieveConfiguration()));
     }
 
     [Fact]
