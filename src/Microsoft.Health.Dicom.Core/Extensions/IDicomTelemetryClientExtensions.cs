@@ -13,24 +13,24 @@ internal static class IDicomTelemetryClientExtensions
     public static void TrackInstanceCount(this IDicomTelemetryClient telemetryClient, int count)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("InstanceCount", count);
+        telemetryClient.TrackMetric("Dicom_InstanceCount", count);
     }
 
     public static void TrackTotalInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("TotalInstanceBytes", bytes);
+        telemetryClient.TrackMetric("Dicom_TotalInstanceBytes", bytes);
     }
 
     public static void TrackMinInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("MinInstanceBytes", bytes);
+        telemetryClient.TrackMetric("Dicom_MinInstanceBytes", bytes);
     }
 
     public static void TrackMaxInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("MaxInstanceBytes", bytes);
+        telemetryClient.TrackMetric("Dicom_MaxInstanceBytes", bytes);
     }
 }

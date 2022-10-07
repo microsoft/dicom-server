@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Channel;
@@ -15,6 +17,8 @@ namespace Microsoft.Health.Dicom.Api.Logging;
 public class DicomTelemetryInitializer : ITelemetryInitializer
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+
+    private const string DicomPrefix = "Dicom_";
 
     public DicomTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
     {
@@ -34,12 +38,17 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
             return;
         }
 
-        foreach ((string key, string value) in _httpContextAccessor.HttpContext.Items.Select(x => (x.Key.ToString(), x.Value?.ToString())))
+        IEnumerable<(string Key, string Value)> properties = _httpContextAccessor.HttpContext
+            .Items
+            .Where(x => x.ToString().StartsWith(DicomPrefix, StringComparison.Ordinal))
+            .Select(x => (x.Key.ToString().Substring(DicomPrefix.Length), x.Value?.ToString()));
+
+        foreach ((string key, string value) in properties)
         {
-            if (!requestTelemetry.Properties.ContainsKey(key))
-            {
-                requestTelemetry.Properties[key] = value;
-            }
+            if (requestTelemetry.Properties.ContainsKey(key))
+                requestTelemetry.Properties["DuplicateDimension"] = bool.TrueString;
+
+            requestTelemetry.Properties[key] = value;
         }
     }
 }
