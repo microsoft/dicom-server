@@ -39,7 +39,10 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
 
         foreach (KeyValuePair<string, string> entry in items)
         {
-            requestTelemetry.Properties[entry.Key] = entry.Value;
+            if (!requestTelemetry.Properties.ContainsKey(entry.Key))
+            {
+                requestTelemetry.Properties[entry.Key] = entry.Value;
+            }
         }
     }
 }
