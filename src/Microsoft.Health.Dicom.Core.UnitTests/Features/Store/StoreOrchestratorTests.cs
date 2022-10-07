@@ -12,6 +12,7 @@ using FellowOakDicom;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -94,7 +95,8 @@ public class StoreOrchestratorTests
             _deleteService,
             _queryTagService,
             logger,
-            _telemetryClient
+            _telemetryClient,
+            Substitute.For<IHttpContextAccessor>()
         );
     }
 

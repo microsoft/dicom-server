@@ -29,6 +29,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using BenchmarkDotNet.Engines;
 using System.Collections.Generic;
+using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Health.Dicom.Benchmark.Retrieve;
@@ -60,6 +62,7 @@ public class WadoBenchmark : DicomBenchmark
             .Configure<LoggerFilterOptions>(Configuration.GetSection("Logging"))
             .AddBlobServiceClient(Configuration.GetSection(BlobServiceClientOptions.DefaultSectionName))
             .AddSqlServerConnection()
+            .AddHttpContextAccessor()
             .AddScoped<IDicomRequestContext>(s => new DicomRequestContext(HttpMethod.Get.Method, new Uri("http://localhost/benchmark"), new Uri("http://localhost"), Guid.NewGuid().ToString(), new Dictionary<string, StringValues>(), new Dictionary<string, StringValues>()))
             .AddScoped<IDicomRequestContextAccessor>(s => new DicomRequestContextAccessor { RequestContext = s.GetRequiredService<IDicomRequestContext>() })
             .AddSingleton<RecyclableMemoryStreamManager>()
@@ -131,7 +134,9 @@ public class WadoBenchmark : DicomBenchmark
             scope.ServiceProvider.GetRequiredService<IMetadataStore>(),
             scope.ServiceProvider.GetRequiredService<IETagGenerator>(),
             scope.ServiceProvider.GetRequiredService<IDicomRequestContextAccessor>(),
-            Options.Create(options));
+            scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>(),
+            Options.Create(options),
+            scope.ServiceProvider.GetRequiredService<TelemetryClient>());
 
         RetrieveMetadataResponse response = await service.RetrieveStudyInstanceMetadataAsync(StudyUid);
         int count = await response.ResponseMetadata.CountAsync();

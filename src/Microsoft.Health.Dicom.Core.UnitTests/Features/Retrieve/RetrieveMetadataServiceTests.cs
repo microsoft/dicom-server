@@ -11,7 +11,7 @@ using FellowOakDicom;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -60,8 +60,8 @@ public class RetrieveMetadataServiceTests
             _metadataStore,
             _eTagGenerator,
             _dicomRequestContextAccessor,
+            Substitute.For<IHttpContextAccessor>(),
             Options.Create(new RetrieveConfiguration()),
-            NullLogger<RetrieveMetadataService>.Instance,
             _telemetryClient);
     }
 

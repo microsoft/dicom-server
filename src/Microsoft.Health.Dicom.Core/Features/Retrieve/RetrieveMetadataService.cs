@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Extensions.Logging;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -32,7 +31,6 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly RetrieveConfiguration _options;
-    private readonly ILogger<RetrieveMetadataService> _logger;
     private readonly TelemetryClient _telemetryClient;
 
     public RetrieveMetadataService(
@@ -42,7 +40,6 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IDicomRequestContextAccessor contextAccessor,
         IHttpContextAccessor httpContextAccessor,
         IOptions<RetrieveConfiguration> options,
-        ILogger<RetrieveMetadataService> logger,
         TelemetryClient telemetryClient)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -51,7 +48,6 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
-        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
