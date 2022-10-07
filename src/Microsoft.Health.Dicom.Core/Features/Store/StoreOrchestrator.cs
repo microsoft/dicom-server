@@ -24,6 +24,7 @@ using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.ApplicationInsights;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -40,6 +41,7 @@ public class StoreOrchestrator : IStoreOrchestrator
     private readonly IQueryTagService _queryTagService;
     private readonly ILogger<StoreOrchestrator> _logger;
     private readonly TelemetryClient _telemetryClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public StoreOrchestrator(
         IDicomRequestContextAccessor contextAccessor,
@@ -49,7 +51,8 @@ public class StoreOrchestrator : IStoreOrchestrator
         IDeleteService deleteService,
         IQueryTagService queryTagService,
         ILogger<StoreOrchestrator> logger,
-        TelemetryClient telemetryClient)
+        TelemetryClient telemetryClient,
+        IHttpContextAccessor httpContextAccessor)
     {
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
@@ -59,6 +62,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
     }
 
     /// <inheritdoc />
@@ -114,8 +118,8 @@ public class StoreOrchestrator : IStoreOrchestrator
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-        _logger.LogInformation("Storing an DICOM instance of {FileSize} bytes", stream.Length);
-        _telemetryClient.GetMetric("Store-Instance-File-Size").TrackValue(stream.Length);
+        _httpContextAccessor.HttpContext.Items["StoreInstanceFileSizeBytes"] = stream?.Length ?? 0;
+        _telemetryClient.GetMetric("StoreInstanceFileSizeBytes").TrackValue(stream.Length);
 
         await _fileStore.StoreFileAsync(
             versionedInstanceIdentifier,
