@@ -35,7 +35,7 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
 
         Dictionary<string, string> items = _httpContextAccessor.HttpContext.Items.ToDictionary(
             k => k.Key.ToString(),
-            k =>k.Value.ToString());
+            k => k.Value.ToString());
 
         foreach (KeyValuePair<string, string> entry in items)
         {
