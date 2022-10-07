@@ -9,5 +9,5 @@ public interface IDicomTelemetryClient
 {
     void TrackMetric(string name, int value);
 
-    void TrackMetric(string name, double value);
+    void TrackMetric(string name, long value);
 }

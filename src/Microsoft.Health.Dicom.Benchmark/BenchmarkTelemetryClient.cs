@@ -20,6 +20,6 @@ internal sealed class BenchmarkTelemetryClient : IDicomTelemetryClient
     public void TrackMetric(string name, int value)
         => _telemetryClient.GetMetric(name).TrackValue(value);
 
-    public void TrackMetric(string name, double value)
+    public void TrackMetric(string name, long value)
         => _telemetryClient.GetMetric(name).TrackValue(value);
 }

@@ -62,7 +62,7 @@ public class StoreOrchestrator : IStoreOrchestrator
     }
 
     /// <inheritdoc />
-    public async Task StoreDicomInstanceEntryAsync(
+    public async Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
@@ -85,9 +85,10 @@ public class StoreOrchestrator : IStoreOrchestrator
         try
         {
             // We have successfully created the index, store the files.
+            Task<long> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
             Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, watermark, cancellationToken);
             await Task.WhenAll(
-                StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
+                storeFileTask,
                 StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken),
                 frameRangeTask);
 
@@ -96,6 +97,7 @@ public class StoreOrchestrator : IStoreOrchestrator
             await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata: hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
+            return await storeFileTask;
         }
         catch (Exception)
         {
@@ -107,18 +109,19 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
     }
 
-    private async Task StoreFileAsync(
+    private async Task<long> StoreFileAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
-        _telemetryClient.TrackMetric("StoreInstanceFileSizeBytes", stream.Length);
 
         await _fileStore.StoreFileAsync(
             versionedInstanceIdentifier,
             stream,
             cancellationToken);
+
+        return stream.Length;
     }
 
     private Task StoreInstanceMetadataAsync(

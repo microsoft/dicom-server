@@ -27,7 +27,7 @@ internal class HttpDicomTelemetryClient : IDicomTelemetryClient
         _telemetryClient.GetMetric(name).TrackValue(value);
     }
 
-    public void TrackMetric(string name, double value)
+    public void TrackMetric(string name, long value)
     {
         _httpContextAccessor.HttpContext.Items[name] = value;
         _telemetryClient.GetMetric(name).TrackValue(value);
