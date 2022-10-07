@@ -34,7 +34,7 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
             return;
         }
 
-        foreach ((string key, string value) in _httpContextAccessor.HttpContext.Items.Select(x => (x.Key.ToString(), x.Value.ToString())))
+        foreach ((string key, string value) in _httpContextAccessor.HttpContext.Items.Select(x => (x.Key.ToString(), x.Value?.ToString())))
         {
             if (!requestTelemetry.Properties.ContainsKey(key))
             {
