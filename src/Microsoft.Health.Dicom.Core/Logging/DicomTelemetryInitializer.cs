@@ -2,69 +2,44 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
-
-using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.Health.Dicom.Core.Logging;
 
 public class DicomTelemetryInitializer : ITelemetryInitializer
 {
-    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public DicomTelemetryInitializer(IDicomRequestContextAccessor dicomRequestContextAccessor)
+    public DicomTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
     {
-        _dicomRequestContextAccessor = dicomRequestContextAccessor;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public void Initialize(ITelemetry telemetry)
     {
-        var requestTelemetry = telemetry as RequestTelemetry;
-        if (requestTelemetry == null)
+        RequestTelemetry requestTelemetry = telemetry as RequestTelemetry;
+        AddPropertiesFromHttpContextItems(requestTelemetry);
+    }
+
+    private void AddPropertiesFromHttpContextItems(RequestTelemetry requestTelemetry)
+    {
+        if (requestTelemetry == null || _httpContextAccessor.HttpContext == null)
         {
             return;
         }
 
-        if (_dicomRequestContextAccessor.RequestContext != null)
-        {
-            AddProperty(
-                requestTelemetry,
-                "InstanceCount",
-#pragma warning disable CA1305
-                _dicomRequestContextAccessor.RequestContext.PartCount.ToString());
-#pragma warning restore CA1305
-            AddProperty(
-                requestTelemetry,
-                "RouteNameTestValue",
-                _dicomRequestContextAccessor.RequestContext.RouteName);
-        }
-        else
-        {
-            AddProperty(
-                requestTelemetry,
-                "RequestContextIsNull",
-                true.ToString());
-        }
-    }
+        Dictionary<string, string> items = _httpContextAccessor.HttpContext.Items.ToDictionary(
+            k => k.Key.ToString(),
+            k =>k.Value.ToString());
 
-    private static void AddProperty(ISupportProperties telemetry, string key, string value)
-    {
-        if (!telemetry.Properties.ContainsKey(key))
+        foreach (KeyValuePair<string, string> entry in items)
         {
-            telemetry.Properties[key] = value;
-        }
-        else
-        {
-            string existingValue = telemetry.Properties[key];
-            if (!string.Equals(existingValue, value, StringComparison.OrdinalIgnoreCase))
-            {
-                telemetry.Properties[key] = value;
-                // ReSharper disable once LocalizableElement
-                Console.WriteLine($"The telemetry already contains the property of {key} with value {existingValue}. The new value is: {value}");
-            }
+            requestTelemetry.Properties[entry.Key] = entry.Value;
         }
     }
 }
