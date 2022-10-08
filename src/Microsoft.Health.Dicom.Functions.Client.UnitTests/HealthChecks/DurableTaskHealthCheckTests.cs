@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Functions.Client.HealthChecks;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
-using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 using NSubstitute;
 using Xunit;
@@ -37,15 +37,15 @@ public class DurableTaskHealthCheckTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromException<ServiceProperties>(new IOException()));
-        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
-        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _blobClient.ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromException<ContainerResultSegment>(new IOException()));
+        _queueClient.ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<QueueResultSegment>(null));
+        _tableClient.ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<TableResultSegment>(null));
 
         await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
 
-        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _queueClient.Received(0).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _tableClient.Received(0).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _blobClient.Received(1).ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _queueClient.Received(0).ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _tableClient.Received(0).ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token);
     }
 
     [Fact]
@@ -53,16 +53,15 @@ public class DurableTaskHealthCheckTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-
-        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
-        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromException<ServiceProperties>(new IOException()));
-        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _blobClient.ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<ContainerResultSegment>(null));
+        _queueClient.ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromException<QueueResultSegment>(new IOException()));
+        _tableClient.ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<TableResultSegment>(null));
 
         await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
 
-        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _queueClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _tableClient.Received(0).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _blobClient.Received(1).ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _queueClient.Received(1).ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _tableClient.Received(0).ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token);
     }
 
     [Fact]
@@ -70,15 +69,15 @@ public class DurableTaskHealthCheckTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
-        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
-        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromException<ServiceProperties>(new IOException()));
+        _blobClient.ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<ContainerResultSegment>(null));
+        _queueClient.ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<QueueResultSegment>(null));
+        _tableClient.ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token).Returns(Task.FromException<TableResultSegment>(new IOException()));
 
         await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
 
-        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _queueClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _tableClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _blobClient.Received(1).ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _queueClient.Received(1).ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _tableClient.Received(1).ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token);
     }
 
     [Fact]
@@ -86,15 +85,15 @@ public class DurableTaskHealthCheckTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
-        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
-        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _blobClient.ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<ContainerResultSegment>(null));
+        _queueClient.ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<QueueResultSegment>(null));
+        _tableClient.ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token).Returns(Task.FromResult<TableResultSegment>(null));
 
         HealthCheckResult actual = await _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token);
 
-        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _queueClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
-        await _tableClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _blobClient.Received(1).ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _queueClient.Received(1).ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, tokenSource.Token);
+        await _tableClient.Received(1).ListTablesSegmentedAsync(null, 1, null, null, null, tokenSource.Token);
 
         Assert.Equal(HealthStatus.Healthy, actual.Status);
     }

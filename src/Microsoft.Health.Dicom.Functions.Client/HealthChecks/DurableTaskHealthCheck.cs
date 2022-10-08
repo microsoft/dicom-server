@@ -17,6 +17,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.WindowsAzure.Storage.Queue.Protocol;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Microsoft.Health.Dicom.Functions.Client.HealthChecks;
@@ -60,14 +61,14 @@ internal sealed class DurableTaskHealthCheck : IHealthCheck
         await AssertTaskHubConnectionAsync(cancellationToken);
 
         _logger.LogInformation("Successfully connected to the Durable TaskHub '{Name}.'", _taskHubName);
-        return HealthCheckResult.Healthy();
+        return HealthCheckResult.Healthy("Successfully connected.");
     }
 
     private async Task AssertTaskHubConnectionAsync(CancellationToken cancellationToken)
     {
-        await _blobClient.GetServicePropertiesAsync(null, null, cancellationToken: cancellationToken);
-        await _queueClient.GetServicePropertiesAsync(null, null, cancellationToken: cancellationToken);
-        await _tableClient.GetServicePropertiesAsync(null, null, cancellationToken: cancellationToken);
+        await _blobClient.ListContainersSegmentedAsync(null, ContainerListingDetails.None, 1, null, null, null, cancellationToken);
+        await _queueClient.ListQueuesSegmentedAsync(null, QueueListingDetails.None, 1, null, null, null, cancellationToken);
+        await _tableClient.ListTablesSegmentedAsync(null, 1, null, null, null, cancellationToken);
     }
 
     private static Func<IDurableClient, CloudBlobClient> GetBodyClientAccessor()
@@ -105,17 +106,24 @@ internal sealed class DurableTaskHealthCheck : IHealthCheck
 
     private static Expression GetAzureStorageClientExpression(ParameterExpression param)
     {
-        Type clientType = typeof(IDurableClient).Assembly.GetType("Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableClient");
-        FieldInfo clientField = clientType.GetField("client", BindingFlags.NonPublic | BindingFlags.Instance);
-        PropertyInfo propertyInfo = typeof(TaskHubClient).GetProperty(nameof(TaskHubClient.ServiceClient));
+        Assembly durableFunctionsAssembly = typeof(IDurableClient).Assembly;
+
+        Type durableClientType = durableFunctionsAssembly.GetType("Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableClient");
+        Type azureStorageDurabilityProviderType = durableFunctionsAssembly.GetType("Microsoft.Azure.WebJobs.Extensions.DurableTask.AzureStorageDurabilityProvider");
+
+        FieldInfo clientField = durableClientType.GetField("client", BindingFlags.NonPublic | BindingFlags.Instance);
+        PropertyInfo serviceClientProperty = typeof(TaskHubClient).GetProperty(nameof(TaskHubClient.ServiceClient));
+        FieldInfo serviceClientField = azureStorageDurabilityProviderType.GetField("serviceClient", BindingFlags.NonPublic | BindingFlags.Instance);
         FieldInfo storageClientField = typeof(AzureStorageOrchestrationService).GetField("azureStorageClient", BindingFlags.NonPublic | BindingFlags.Instance);
 
         return Expression.MakeMemberAccess(
-            Expression.Convert(
-                Expression.MakeMemberAccess(
-                Expression.MakeMemberAccess(Expression.Convert(param, clientType), clientField),
-                propertyInfo),
-                typeof(AzureStorageOrchestrationService)),
+            Expression.MakeMemberAccess(
+                Expression.Convert(
+                    Expression.MakeMemberAccess(
+                        Expression.MakeMemberAccess(Expression.Convert(param, durableClientType), clientField),
+                        serviceClientProperty),
+                    azureStorageDurabilityProviderType),
+                serviceClientField),
             storageClientField);
     }
 }
