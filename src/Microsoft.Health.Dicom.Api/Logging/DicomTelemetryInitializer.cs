@@ -40,8 +40,9 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
 
         IEnumerable<(string Key, string Value)> properties = _httpContextAccessor.HttpContext
             .Items
-            .Where(x => x.ToString().StartsWith(DicomPrefix, StringComparison.Ordinal))
-            .Select(x => (x.Key.ToString().Substring(DicomPrefix.Length), x.Value?.ToString()));
+            .Select(x => (Key: x.Key.ToString(), x.Value))
+            .Where(x => x.Key.StartsWith(DicomPrefix, StringComparison.Ordinal))
+            .Select(x => (x.Key[DicomPrefix.Length..], x.Value?.ToString()));
 
         foreach ((string key, string value) in properties)
         {
