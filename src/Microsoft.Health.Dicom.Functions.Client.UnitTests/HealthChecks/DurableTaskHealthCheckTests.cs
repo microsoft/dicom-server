@@ -7,87 +7,94 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Health.Core.Internal;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Functions.Client.HealthChecks;
-using Microsoft.Health.Operations;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.WindowsAzure.Storage.Shared.Protocol;
+using Microsoft.WindowsAzure.Storage.Table;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.HealthChecks;
 
 public class DurableTaskHealthCheckTests
 {
-    private static readonly Guid HealthCheckOperationId = Guid.NewGuid();
-
-    private readonly IDurableClient _durableClient;
+    private readonly CloudBlobClient _blobClient = Substitute.For<CloudBlobClient>(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
+    private readonly CloudQueueClient _queueClient = Substitute.For<CloudQueueClient>(new Uri("http://127.0.0.1:10001/devstoreaccount1"), new StorageCredentials());
+    private readonly CloudTableClient _tableClient = Substitute.For<CloudTableClient>(new Uri("http://127.0.0.1:10002/devstoreaccount1"), new StorageCredentials());
     private readonly DurableTaskHealthCheck _healthCheck;
 
     public DurableTaskHealthCheckTests()
     {
-        IDurableClientFactory durableClientFactory = Substitute.For<IDurableClientFactory>();
-        _durableClient = Substitute.For<IDurableClient>();
-        durableClientFactory.CreateClient().Returns(_durableClient);
-
-        IGuidFactory guidFactory = Substitute.For<IGuidFactory>();
-        guidFactory.Create().Returns(HealthCheckOperationId);
-
-        _healthCheck = new DurableTaskHealthCheck(durableClientFactory, guidFactory, NullLogger<DurableTaskHealthCheck>.Instance);
+        _healthCheck = new DurableTaskHealthCheck("TestHub", _blobClient, _queueClient, _tableClient, NullLogger<DurableTaskHealthCheck>.Instance);
     }
 
     [Fact]
-    public async Task GivenHealthCheck_WhenCannotConnectToTaskHub_ThenThrowException()
+    public async Task GivenHealthCheck_WhenCannotConnectToTaskHubBlob_ThenThrowException()
     {
         using var tokenSource = new CancellationTokenSource();
 
-        _durableClient
-            .GetStatusAsync(
-                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
-                showHistory: false,
-                showHistoryOutput: false,
-                showInput: false)
-            .Throws<IOException>();
+        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromException<ServiceProperties>(new IOException()));
+        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
 
         await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
 
-        await _durableClient
-            .Received(1)
-            .GetStatusAsync(
-                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
-                showHistory: false,
-                showHistoryOutput: false,
-                showInput: false);
+        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _queueClient.Received(0).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _tableClient.Received(0).GetServicePropertiesAsync(null, null, tokenSource.Token);
+    }
+
+    [Fact]
+    public async Task GivenHealthCheck_WhenCannotConnectToTaskHubQueue_ThenThrowException()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+
+        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromException<ServiceProperties>(new IOException()));
+        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+
+        await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
+
+        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _queueClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _tableClient.Received(0).GetServicePropertiesAsync(null, null, tokenSource.Token);
+    }
+
+    [Fact]
+    public async Task GivenHealthCheck_WhenCannotConnectToTaskHubTable_ThenThrowException()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromException<ServiceProperties>(new IOException()));
+
+        await Assert.ThrowsAsync<IOException>(() => _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token));
+
+        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _queueClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _tableClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
     }
 
     [Fact]
     public async Task GivenHealthCheck_WhenCanConnectToTaskHub_ThenReturnHealthy()
     {
-        DateTime now = DateTime.UtcNow;
-        ClockResolver.UtcNowFunc = () => now;
         using var tokenSource = new CancellationTokenSource();
 
-        _durableClient
-            .GetStatusAsync(
-                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
-                showHistory: false,
-                showHistoryOutput: false,
-                showInput: false)
-            .Returns(new DurableOrchestrationStatus());
+        _blobClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _queueClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
+        _tableClient.GetServicePropertiesAsync(null, null, tokenSource.Token).Returns(Task.FromResult(new ServiceProperties()));
 
         HealthCheckResult actual = await _healthCheck.CheckHealthAsync(new HealthCheckContext(), tokenSource.Token);
 
-        await _durableClient
-            .Received(1)
-            .GetStatusAsync(
-                HealthCheckOperationId.ToString(OperationId.FormatSpecifier),
-                showHistory: false,
-                showHistoryOutput: false,
-                showInput: false);
+        await _blobClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _queueClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
+        await _tableClient.Received(1).GetServicePropertiesAsync(null, null, tokenSource.Token);
 
         Assert.Equal(HealthStatus.Healthy, actual.Status);
     }
