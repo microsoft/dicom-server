@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -27,6 +28,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private readonly IMetadataStore _metadataStore;
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly IDicomTelemetryClient _telemetryClient;
     private readonly RetrieveConfiguration _options;
 
     public RetrieveMetadataService(
@@ -34,12 +36,14 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IMetadataStore metadataStore,
         IETagGenerator eTagGenerator,
         IDicomRequestContextAccessor contextAccessor,
+        IDicomTelemetryClient telemetryClient,
         IOptions<RetrieveConfiguration> options)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _eTagGenerator = EnsureArg.IsNotNull(eTagGenerator, nameof(eTagGenerator));
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
     }
 
@@ -91,6 +95,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private RetrieveMetadataResponse RetrieveMetadata(IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve, bool isCacheValid, string eTag, CancellationToken cancellationToken)
     {
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
+        _telemetryClient.TrackInstanceCount(instancesToRetrieve.Count);
 
         // Retrieve metadata instances only if cache is not valid.
         IAsyncEnumerable<DicomDataset> instanceMetadata = isCacheValid

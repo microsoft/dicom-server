@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -45,6 +46,7 @@ public class DicomStoreServiceTests
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
+    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
 
     private readonly StoreService _storeService;
 
@@ -58,6 +60,7 @@ public class DicomStoreServiceTests
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
+            _telemetryClient,
             NullLogger<StoreService>.Instance);
     }
 

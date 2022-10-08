@@ -1,10 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -20,9 +21,9 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using System.Diagnostics.CodeAnalysis;
+using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -37,6 +38,7 @@ public class StoreOrchestrator : IStoreOrchestrator
     private readonly IIndexDataStore _indexDataStore;
     private readonly IDeleteService _deleteService;
     private readonly IQueryTagService _queryTagService;
+    private readonly IDicomTelemetryClient _telemetryClient;
     private readonly ILogger<StoreOrchestrator> _logger;
 
     public StoreOrchestrator(
@@ -46,6 +48,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         IIndexDataStore indexDataStore,
         IDeleteService deleteService,
         IQueryTagService queryTagService,
+        IDicomTelemetryClient telemetryClient,
         ILogger<StoreOrchestrator> logger)
     {
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
@@ -54,11 +57,12 @@ public class StoreOrchestrator : IStoreOrchestrator
         _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc />
-    public async Task StoreDicomInstanceEntryAsync(
+    public async Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
@@ -81,9 +85,10 @@ public class StoreOrchestrator : IStoreOrchestrator
         try
         {
             // We have successfully created the index, store the files.
+            Task<long> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
             Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, watermark, cancellationToken);
             await Task.WhenAll(
-                StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken),
+                storeFileTask,
                 StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken),
                 frameRangeTask);
 
@@ -92,6 +97,7 @@ public class StoreOrchestrator : IStoreOrchestrator
             await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata: hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
+            return await storeFileTask;
         }
         catch (Exception)
         {
@@ -103,19 +109,19 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
     }
 
-    private async Task StoreFileAsync(
+    private async Task<long> StoreFileAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-        _logger.LogInformation("Storing an DICOM instance of {FileSize} bytes", stream.Length);
-
         await _fileStore.StoreFileAsync(
             versionedInstanceIdentifier,
             stream,
             cancellationToken);
+
+        return stream.Length;
     }
 
     private Task StoreInstanceMetadataAsync(

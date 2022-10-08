@@ -4,32 +4,36 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob;
+using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
+using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.SqlServer.Configs;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.SqlServer.Registration;
-using Microsoft.Health.Blob.Configs;
 using Microsoft.IO;
-using Microsoft.Health.Dicom.Core.Configs;
-using System.Text.Json;
-using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Blob;
-using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Client;
-using System.Net.Http;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Messages.Retrieve;
-using BenchmarkDotNet.Engines;
-using System.Collections.Generic;
-using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Health.Dicom.Benchmark.Retrieve;
 
@@ -58,8 +62,20 @@ public class WadoBenchmark : DicomBenchmark
             .Configure<JsonSerializerOptions>(o => o.ConfigureDefaultDicomSettings())
             .Configure<RetrieveConfiguration>(Configuration.GetSection("DicomServer:Services:Retrieve"))
             .Configure<LoggerFilterOptions>(Configuration.GetSection("Logging"))
+            .AddSingleton(sp =>
+            {
+                var config = TelemetryConfiguration.CreateDefault();
+                IConfigurationSection section = sp.GetRequiredService<IConfiguration>().GetSection("ApplicationInsights");
+#pragma warning disable CS0618 // Type or member is obsolete
+                config.InstrumentationKey = section[nameof(TelemetryConfiguration.InstrumentationKey)];
+#pragma warning restore CS0618 // Type or member is obsolete
+                config.ConnectionString = section[nameof(TelemetryConfiguration.ConnectionString)];
+                return config;
+            })
+            .AddSingleton<TelemetryClient>()
             .AddBlobServiceClient(Configuration.GetSection(BlobServiceClientOptions.DefaultSectionName))
             .AddSqlServerConnection()
+            .AddSingleton<IDicomTelemetryClient, BenchmarkTelemetryClient>()
             .AddScoped<IDicomRequestContext>(s => new DicomRequestContext(HttpMethod.Get.Method, new Uri("http://localhost/benchmark"), new Uri("http://localhost"), Guid.NewGuid().ToString(), new Dictionary<string, StringValues>(), new Dictionary<string, StringValues>()))
             .AddScoped<IDicomRequestContextAccessor>(s => new DicomRequestContextAccessor { RequestContext = s.GetRequiredService<IDicomRequestContext>() })
             .AddSingleton<RecyclableMemoryStreamManager>()
@@ -102,28 +118,9 @@ public class WadoBenchmark : DicomBenchmark
     }
 
     [Benchmark]
-    public Task NewWado10()
-        => NewWado(10);
-
-    [Benchmark]
-    public Task NewWado100()
-        => NewWado(100);
-
-    [Benchmark]
-    public Task NewWado200()
-        => NewWado(200);
-
-    [Benchmark]
-    public Task NewWado500()
-        => NewWado(500);
-
-    [Benchmark]
-    public Task NewWado1000()
-        => NewWado(1000);
-
-    private async Task NewWado(int parallelism)
+    public async Task NewWado()
     {
-        var options = new RetrieveConfiguration { MaxDegreeOfParallelism = parallelism };
+        var options = new RetrieveConfiguration { MaxDegreeOfParallelism = 250 };
 
         using IServiceScope scope = _services.CreateScope();
         var service = new RetrieveMetadataService(
@@ -131,6 +128,7 @@ public class WadoBenchmark : DicomBenchmark
             scope.ServiceProvider.GetRequiredService<IMetadataStore>(),
             scope.ServiceProvider.GetRequiredService<IETagGenerator>(),
             scope.ServiceProvider.GetRequiredService<IDicomRequestContextAccessor>(),
+            scope.ServiceProvider.GetRequiredService<IDicomTelemetryClient>(),
             Options.Create(options));
 
         RetrieveMetadataResponse response = await service.RetrieveStudyInstanceMetadataAsync(StudyUid);
