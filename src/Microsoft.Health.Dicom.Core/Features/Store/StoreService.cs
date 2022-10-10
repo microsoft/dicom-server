@@ -95,7 +95,7 @@ public class StoreService : IStoreService
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
             _telemetryClient.TrackInstanceCount(instanceEntries.Count);
 
-            long totalLength = 0, minLength = 0, maxLength = 0;
+            InstanceByteMetrics? metrics = null;
             for (int index = 0; index < instanceEntries.Count; index++)
             {
                 try
@@ -104,17 +104,19 @@ public class StoreService : IStoreService
                     if (length != null)
                     {
                         long len = length.GetValueOrDefault();
-                        totalLength += len;
-                        minLength = Math.Min(minLength, len);
-                        maxLength = Math.Max(maxLength, len);
+                        metrics = metrics == null ? new InstanceByteMetrics(len) : metrics.GetValueOrDefault().Aggregate(len);
                     }
                 }
                 finally
                 {
                     // Update Telemetry
-                    _telemetryClient.TrackTotalInstanceBytes(totalLength);
-                    _telemetryClient.TrackMinInstanceBytes(minLength);
-                    _telemetryClient.TrackMaxInstanceBytes(maxLength);
+                    if (metrics != null)
+                    {
+                        (long totalLength, long minLength, long maxLength) = metrics.GetValueOrDefault();
+                        _telemetryClient.TrackTotalInstanceBytes(totalLength);
+                        _telemetryClient.TrackMinInstanceBytes(minLength);
+                        _telemetryClient.TrackMaxInstanceBytes(maxLength);
+                    }
 
                     // Fire and forget.
                     int capturedIndex = index;
@@ -226,6 +228,36 @@ public class StoreService : IStoreService
         catch (Exception ex)
         {
             LogFailedToDisposeDelegate(_logger, index, ex);
+        }
+    }
+
+    private readonly struct InstanceByteMetrics
+    {
+        private readonly long _total;
+        private readonly long _min;
+        private readonly long _max;
+
+        public InstanceByteMetrics(long bytes)
+            : this(bytes, bytes, bytes)
+        { }
+
+        private InstanceByteMetrics(long total, long min, long max)
+        {
+            _total = total;
+            _min = min;
+            _max = max;
+        }
+
+        public InstanceByteMetrics Aggregate(long length)
+        {
+            return new InstanceByteMetrics(_total + length, Math.Min(_min, length), Math.Max(_max, length));
+        }
+
+        public void Deconstruct(out long total, out long min, out long max)
+        {
+            total = _total;
+            min = _min;
+            max = _max;
         }
     }
 }
