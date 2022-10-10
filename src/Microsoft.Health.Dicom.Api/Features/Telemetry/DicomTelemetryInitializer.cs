@@ -12,13 +12,11 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Health.Dicom.Api.Logging;
+namespace Microsoft.Health.Dicom.Api.Features.Telemetry;
 
-public class DicomTelemetryInitializer : ITelemetryInitializer
+internal sealed class DicomTelemetryInitializer : ITelemetryInitializer
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
-
-    private const string DicomPrefix = "Dicom_";
 
     public DicomTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
     {
@@ -41,8 +39,8 @@ public class DicomTelemetryInitializer : ITelemetryInitializer
         IEnumerable<(string Key, string Value)> properties = _httpContextAccessor.HttpContext
             .Items
             .Select(x => (Key: x.Key.ToString(), x.Value))
-            .Where(x => x.Key.StartsWith(DicomPrefix, StringComparison.Ordinal))
-            .Select(x => (x.Key[DicomPrefix.Length..], x.Value?.ToString()));
+            .Where(x => x.Key.StartsWith(DicomTelemetry.ContextItemPrefix, StringComparison.Ordinal))
+            .Select(x => (x.Key[DicomTelemetry.ContextItemPrefix.Length..], x.Value?.ToString()));
 
         foreach ((string key, string value) in properties)
         {
