@@ -186,6 +186,7 @@ dotnet_code_quality.enum_values_prefix_trigger            = AllEnumValues
 dotnet_code_quality.exclude_indirect_base_types           = false
 
 dotnet_code_quality.CA1802 = static # Use Literals Where Appropriate
+dotnet_code_quality.CA1815.api_surface = public, internal # CA1815: Override equals and operator equals on value types
 
 dotnet_diagnostic.CA1031.severity = error      # Do not catch general exception types
 dotnet_diagnostic.CA1032.severity = suggestion # Implement standard exception constructors
