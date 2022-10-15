@@ -627,4 +627,8 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="UnsupportedBuffering" xml:space="preserve">
     <value>Cannot buffer items if parallelism is unbounded.</value>
   </data>
+  <data name="InvalidTagValueWithFuzzyMatch" xml:space="preserve">
+    <value>Invalid query: specified tag '{0}' value '{1}' contains unsupported character '{2}'. Character is not supported with Fuzzy match, try exact match or removing the invalid character. </value>
+    <comment>{0} Dicom Tag name, {1} Tag value to search. {2} Unsupported character.</comment>
+  </data>
 </root>
