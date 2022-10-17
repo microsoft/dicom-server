@@ -283,12 +283,13 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
             Stream stream = await _blobDataStore.GetStreamingFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,
                     GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
-                    stream.Length);
+                    fileProperties.ContentLength);
         }
     }
 

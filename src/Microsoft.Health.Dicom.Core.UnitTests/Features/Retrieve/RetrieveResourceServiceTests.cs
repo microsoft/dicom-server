@@ -104,6 +104,7 @@ public class RetrieveResourceServiceTests
     public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
     {
         List<InstanceMetadata> instances = SetupInstanceIdentifiersList(ResourceType.Study);
+        _fileStore.GetFilePropertiesAsync(Arg.Any<VersionedInstanceIdentifier>(), DefaultCancellationToken).Returns(new FileProperties() { ContentLength = 1000 });
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
@@ -134,6 +135,7 @@ public class RetrieveResourceServiceTests
         var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
             x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier)).Result).ToList();
 
+        _fileStore.GetFilePropertiesAsync(Arg.Any<VersionedInstanceIdentifier>(), DefaultCancellationToken).Returns(new FileProperties() { ContentLength = 1000 });
         streamsAndStoredFiles.ForEach(x => _fileStore.GetStreamingFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -197,6 +199,7 @@ public class RetrieveResourceServiceTests
     public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
+        _fileStore.GetFilePropertiesAsync(Arg.Any<VersionedInstanceIdentifier>(), DefaultCancellationToken).Returns(new FileProperties() { ContentLength = 1000 });
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
         for (int i = 0; i < versionedInstanceIdentifiers.Count - 1; i++)
@@ -227,6 +230,7 @@ public class RetrieveResourceServiceTests
             .Select(x => StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier)).Result)
             .ToList();
 
+        _fileStore.GetFilePropertiesAsync(Arg.Any<VersionedInstanceIdentifier>(), DefaultCancellationToken).Returns(new FileProperties() { ContentLength = 1000 });
         streamsAndStoredFiles.ForEach(x => _fileStore.GetStreamingFileAsync(x.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(x.Value));
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -282,6 +286,7 @@ public class RetrieveResourceServiceTests
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
+        _fileStore.GetFilePropertiesAsync(Arg.Any<VersionedInstanceIdentifier>(), DefaultCancellationToken).Returns(new FileProperties() { ContentLength = 1000 });
         // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier)).Result;
         _fileStore.GetStreamingFileAsync(streamAndStoredFile.Key.Dataset.ToVersionedInstanceIdentifier(0), DefaultCancellationToken).Returns(streamAndStoredFile.Value);
