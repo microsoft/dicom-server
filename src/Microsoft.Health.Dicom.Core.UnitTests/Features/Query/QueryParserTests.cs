@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -91,6 +91,15 @@ public class QueryParserTests
         Assert.Throws<QueryParseException>(() => _queryParser
             .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
     }
+
+    [Theory]
+    [InlineData("PatientName", "joe\"s")]
+    public void GivenFilterCondition_InvalidFuzzyMatchTagValue_Throws(string key, string value)
+    {
+        Assert.Throws<QueryParseException>(() => _queryParser
+            .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies, null, null, true), QueryTagService.CoreQueryTags));
+    }
+
 
     [Theory]
     [InlineData("00100010", "joe")]

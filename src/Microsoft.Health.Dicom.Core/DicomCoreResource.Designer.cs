@@ -714,6 +714,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid query: specified tag &apos;{0}&apos; value &apos;{1}&apos; contains unsupported character &apos;{2}&apos;. Character is not supported with Fuzzy match, try exact match or removing the invalid character. .
+        /// </summary>
+        internal static string InvalidTagValueWithFuzzyMatch {
+            get {
+                return ResourceManager.GetString("InvalidTagValueWithFuzzyMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: specified date range &apos;{0}&apos; is invalid.
         ///The first part time {1} should be lesser than or equal to the second part time {2}..
         /// </summary>

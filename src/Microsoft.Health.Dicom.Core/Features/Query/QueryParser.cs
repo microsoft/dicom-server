@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -129,18 +129,12 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
             throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.QueryEmptyAttributeValue, queryParameter.Key));
         }
 
-        if (!ValueParsers.TryGetValue(queryTag.VR, out Func<QueryTag, string, QueryFilterCondition> valueParser))
+        if (!TryGetValueParser(queryTag, fuzzyMatching, out Func<QueryTag, string, QueryFilterCondition> valueParser))
         {
             return false;
         }
 
         condition = valueParser(queryTag, queryParameter.Value);
-        if (fuzzyMatching && QueryLimit.IsValidFuzzyMatchingQueryTag(queryTag))
-        {
-            var s = condition as StringSingleValueMatchCondition;
-            condition = new PersonNameFuzzyMatchCondition(s.QueryTag, s.Value);
-        }
-
         return true;
     }
 

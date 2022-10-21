@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -22,7 +23,7 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
 {
     protected const string IncludeFieldValueAll = "all";
 
-    protected readonly static Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> ValueParsers = new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>
+    private readonly static Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>> ValueParsers = new Dictionary<DicomVR, Func<QueryTag, string, QueryFilterCondition>>
     {
         { DicomVR.DA, ParseDateOrTimeTagValue },
         { DicomVR.DT, ParseDateOrTimeTagValue },
@@ -73,6 +74,39 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
     };
 
     public abstract TQueryExpression Parse(TQueryParameters parameters, IReadOnlyCollection<QueryTag> queryTags);
+
+    protected static bool TryGetValueParser(QueryTag tag, bool fuzzyMatching, out Func<QueryTag, string, QueryFilterCondition> valueParseFunc)
+    {
+        EnsureArg.IsNotNull(tag, nameof(tag));
+        valueParseFunc = null;
+        if (ValueParsers.TryGetValue(tag.VR, out Func<QueryTag, string, QueryFilterCondition> valueParser))
+        {
+            valueParseFunc = valueParser;
+            if (fuzzyMatching && QueryLimit.IsValidFuzzyMatchingQueryTag(tag))
+            {
+                valueParseFunc = ParseFuzzyMatchingTagValue;
+            }
+        }
+        return valueParseFunc != null;
+    }
+
+    private static QueryFilterCondition ParseFuzzyMatchingTagValue(QueryTag queryTag, string value)
+    {
+        // quotes is not supported in fuzzy matching because of limitation in underlaying implementation
+        char unspportedChar = '"';
+        if (value.Contains(unspportedChar, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new QueryParseException(string.Format(
+                            CultureInfo.CurrentCulture,
+                            DicomCoreResource.InvalidTagValueWithFuzzyMatch,
+                            queryTag.GetName(),
+                            value,
+                            unspportedChar
+                            ));
+        }
+
+        return new PersonNameFuzzyMatchCondition(queryTag, value);
+    }
 
     private static QueryFilterCondition ParseDateOrTimeTagValue(QueryTag queryTag, string value)
     {
