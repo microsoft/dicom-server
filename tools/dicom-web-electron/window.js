@@ -39,12 +39,12 @@ $(() => {
     }
 
     let baseUrl = () => {
-        var version = $("[name='version']:checked").val()
-        return serverAddressInput.val() + "/" + version
+        var version = stripSpecialCharacters($("[name='version']:checked").val())
+        return stripSpecialCharacters(serverAddressInput.val()) + "/" + version
     }
 
     let partitionUrl = () => {
-        return 'partitions/' + $('#partition-name-input').val()
+        return 'partitions/' + stripSpecialCharacters($('#partition-name-input').val())
     }
 
     let getPostUrl = () => {
@@ -53,6 +53,14 @@ $(() => {
         } else {
             return baseUrl() + "/studies"
         }
+    }
+
+    let stripSpecialCharacters = (str) => {
+        return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/'/g, '&#39;')
+            .replace(/"/g, '&#34;')
     }
 
     serverAddressDisplay.html(getPostUrl())
