@@ -149,6 +149,31 @@ public class JsonDicomConverterExtendedTests
 
 
     [Fact]
+    public void DeserializeFLWhenArrayValueNotNaNStringOrNumericThrowException()
+    {
+        // Some Dicom values are meant to be numeric arrays, such as FL. You can represent a null value with
+        // "NaN" string in the array, but otherwise only numerical values are accepted
+        var json = @"
+            {
+                ""00101030"": {
+                    ""vr"":""FL"",
+                    ""Value"":[84.5, ""NaN"", ""BADVALUE""]
+                }
+            }";
+
+        var serializerOptions = new JsonSerializerOptions
+        {
+            Converters =
+            {
+                new DicomJsonConverter(autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber)
+            }
+        };
+
+        var exception = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
+        Assert.Equal("Malformed DICOM json, number expected", exception.Message);
+    }
+
+    [Fact]
     public void DeserializeDSWithNonNumericValueAsStringDoesNotThrowException()
     {
         // in DICOM Standard PS3.18 F.2.3.1 now VRs DS, IS SV and UV may be either number or string
