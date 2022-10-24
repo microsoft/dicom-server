@@ -169,7 +169,36 @@ public class JsonDicomConverterExtendedTests
             }
         };
 
-        var exception = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
+        var exception =
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
+        Assert.Equal("Malformed DICOM json, number expected", exception.Message);
+    }
+
+    [Fact]
+    public void GivenDicomJsonDatasetWithFloatingVRContainsEmptyString_WhenDeserialized_ThrowsException()
+    {
+        // Some Dicom values are meant to be numeric such as FL. You can represent a null value with
+        // "NaN" string, but otherwise only numerical values are accepted. It is possible that we have some data
+        // come through as empty string and we would save this, but on deserialization this would fail.
+        var json = @"
+            {
+                ""00101030"": {
+                    ""vr"":""FL"",
+                    ""Value"":["" ""]
+                }
+            }";
+
+        var serializerOptions = new JsonSerializerOptions
+        {
+            Converters =
+            {
+                new DicomJsonConverter(autoValidate: false,
+                    numberSerializationMode: NumberSerializationMode.PreferablyAsNumber)
+            }
+        };
+
+        var exception =
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
         Assert.Equal("Malformed DICOM json, number expected", exception.Message);
     }
 
