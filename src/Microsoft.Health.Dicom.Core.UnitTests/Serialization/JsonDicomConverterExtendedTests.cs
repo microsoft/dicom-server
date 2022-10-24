@@ -149,17 +149,15 @@ public class JsonDicomConverterExtendedTests
 
 
     [Fact]
-    public void GivenDicomJsonDatasetWithDSVRContainsNotNANOrNumericValue_WhenDeserialized_ThrowsException()
+    public void GivenDicomJsonDatasetWithFloatingVRContainsNotNANOrNumericValue_WhenDeserialized_ThrowsException()
     {
         // Some Dicom values are meant to be numeric such as FL. You can represent a null value with
         // "NaN" string, but otherwise only numerical values are accepted
-        // 00200032 is Image Position (Patient) Attribute, the x, y, and z coordinates of the upper left hand corner
-        // of the image
         var json = @"
             {
-                ""00200032"": {
-                    ""vr"":""DS"",
-                    ""Value"":[265.000, ""NaN"", ""BADVALUE""]
+                ""00101030"": {
+                    ""vr"":""FL"",
+                    ""Value"":[""BADVALUE""]
                 }
             }";
 
