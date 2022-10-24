@@ -149,15 +149,15 @@ public class JsonDicomConverterExtendedTests
 
 
     [Fact]
-    public void DeserializeFLWhenArrayValueNotNaNStringOrNumericThrowException()
+    public void GivenDicomJsonDatasetWithFloatingVRContainsNotNANOrNumericValue_WhenDeserialized_ThrowsException()
     {
-        // Some Dicom values are meant to be numeric arrays, such as FL. You can represent a null value with
-        // "NaN" string in the array, but otherwise only numerical values are accepted
+        // Some Dicom values are meant to be numeric such as FL. You can represent a null value with
+        // "NaN" string, but otherwise only numerical values are accepted
         var json = @"
             {
                 ""00101030"": {
                     ""vr"":""FL"",
-                    ""Value"":[84.5, ""NaN"", ""BADVALUE""]
+                    ""Value"":[""BADVALUE""]
                 }
             }";
 
