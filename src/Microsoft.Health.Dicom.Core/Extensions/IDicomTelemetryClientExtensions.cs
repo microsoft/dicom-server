@@ -15,6 +15,11 @@ internal static class IDicomTelemetryClientExtensions
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         telemetryClient.TrackMetric("InstanceCount", count);
     }
+    public static void TrackTotalResponseBytes(this IDicomTelemetryClient telemetryClient, long bytes)
+    {
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        telemetryClient.TrackMetric("TotalResponseBytes", bytes);
+    }
 
     public static void TrackTotalInstanceBytes(this IDicomTelemetryClient telemetryClient, long bytes)
     {
