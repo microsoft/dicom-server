@@ -7,18 +7,22 @@ using System.IO;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Api.Features.Telemetry;
 
 public class ResponseHandlingMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly IDicomTelemetryClient _telemetryClient;
 
 
-    public ResponseHandlingMiddleware(RequestDelegate next)
+    public ResponseHandlingMiddleware(
+        RequestDelegate next,
+        IDicomTelemetryClient telemetryClient)
     {
-        EnsureArg.IsNotNull(next, nameof(next));
-        _next = next;
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _next = EnsureArg.IsNotNull(next, nameof(next));
     }
 
     public async Task Invoke(HttpContext context)
@@ -38,7 +42,7 @@ public class ResponseHandlingMiddleware
                 await _next(context);
 
                 var responseSizeBytes = newBody.Length;
-                context.Items["ResponseSizeBytes"] = responseSizeBytes;
+                _telemetryClient.TrackMetric("ResponseSizeBytes", responseSizeBytes);
 
                 newBody.Position = 0; // rewind stream before we write to original steam body
                 await newBody.CopyToAsync(originalBody);
