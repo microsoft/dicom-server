@@ -190,6 +190,8 @@ public static class DicomServerServiceCollectionExtensions
                     app.UseDeveloperExceptionPage();
                 }
 
+                app.UseResponseTelemetryHandling();
+
                 app.UseAudit();
 
                 app.UseExceptionHandling();

@@ -36,6 +36,9 @@ internal sealed class DicomTelemetryInitializer : ITelemetryInitializer
             return;
         }
 
+        requestTelemetry.Properties["ResponseSizeBytes"] = _httpContextAccessor.HttpContext.Items["ResponseSizeBytes"]?.ToString();
+
+
         IEnumerable<(string Key, string Value)> properties = _httpContextAccessor.HttpContext
             .Items
             .Select(x => (Key: x.Key.ToString(), x.Value))
