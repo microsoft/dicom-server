@@ -41,12 +41,12 @@ steps:
       # If a deleted keyvault exists, remove it
       if (Get-AzKeyVault -VaultName "$(deploymentName)-ts" -Location "$(resourceGroupRegion)" -InRemovedState)
       {
-          Write-Host "'$(deploymentName)-ts' found in '$(resourceGroupRegion)'. Attempting to remove."
+          Write-Host "A deleted keyvault '$(deploymentName)-ts' found in '$(resourceGroupRegion)'. Attempting to remove."
           Remove-AzKeyVault -VaultName "$(deploymentName)-ts" -InRemovedState -Location "$(resourceGroupRegion)" -Force
       }
       else
       {
-          Write-Host "'$(deploymentName)-ts' not found in '$(resourceGroupRegion)'"
+          Write-Host "A deleted keyvault '$(deploymentName)-ts' not found in '$(resourceGroupRegion)' - this is normal"
       }
 
       $response = Invoke-RestMethod -Method 'Post' -Uri $adTokenUrl -ContentType "application/x-www-form-urlencoded" -Body $body
