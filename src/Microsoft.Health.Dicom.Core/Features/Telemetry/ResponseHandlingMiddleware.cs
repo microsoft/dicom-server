@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
-namespace Microsoft.Health.Dicom.Api.Features.Telemetry;
+namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 public class ResponseHandlingMiddleware
 {

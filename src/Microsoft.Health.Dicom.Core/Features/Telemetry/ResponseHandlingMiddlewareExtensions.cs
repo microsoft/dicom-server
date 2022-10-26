@@ -6,7 +6,7 @@
 using EnsureThat;
 using Microsoft.AspNetCore.Builder;
 
-namespace Microsoft.Health.Dicom.Api.Features.Telemetry;
+namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 public static class ResponseTelemetryHandlingMiddlewareExtension
 {
