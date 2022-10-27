@@ -18,6 +18,7 @@
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" />
+    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

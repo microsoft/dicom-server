@@ -24,6 +24,7 @@
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

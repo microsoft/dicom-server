@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.CommandLine.NamingConventionBinder" />
+    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
