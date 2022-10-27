@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.Health.Blob" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
