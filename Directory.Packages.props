@@ -12,7 +12,7 @@
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.0.3" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.1.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.21.8" />
+    <PackageVersion Include="Google.Protobuf" Version="3.21.9" />
     <PackageVersion Include="HashDepot" Version="2.0.3" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
