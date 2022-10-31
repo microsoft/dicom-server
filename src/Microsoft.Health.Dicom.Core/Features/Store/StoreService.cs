@@ -142,11 +142,17 @@ public class StoreService : IStoreService
             // Open and validate the DICOM instance.
             dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            ValidationWarnings warnings = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+            var validationResultBuilder = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+
+            // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
+            if (null != validationResultBuilder.FirstException)
+            {
+                throw validationResultBuilder.FirstException;
+            }
 
             // We have different ways to handle with warnings.
             // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag
-            if ((warnings & ValidationWarnings.DatasetDoesNotMatchSOPClass) == ValidationWarnings.DatasetDoesNotMatchSOPClass)
+            if ((validationResultBuilder.WarningCodes & ValidationWarnings.DatasetDoesNotMatchSOPClass) == ValidationWarnings.DatasetDoesNotMatchSOPClass)
             {
                 warningReasonCode = WarningReasonCodes.DatasetDoesNotMatchSOPClass;
 
@@ -154,7 +160,7 @@ public class StoreService : IStoreService
             }
 
             // IndexedDicomTagHasMultipleValues is our warning, put into http Warning header.
-            if ((warnings & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
+            if ((validationResultBuilder.WarningCodes & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
             {
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }

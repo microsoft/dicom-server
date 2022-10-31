@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -33,6 +34,10 @@ public class ServiceModule : IStartupModule
         EnsureArg.IsNotNull(services, nameof(services));
 
         services.AddFellowOakDicomServices(skipValidation: true);
+
+        services.AddTransient<IValidationResultBuilder, ValidationResultBuilder>();
+        services.AddTransient<IValidationResultBuilderFactory, ValidationResultBuilderFactory>();
+        services.AddSingleton(provider => new Func<IValidationResultBuilder>(() => provider.GetService<IValidationResultBuilder>()));
 
         services.Add<DicomInstanceEntryReaderManager>()
             .Singleton()

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,6 +12,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -26,26 +27,37 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly bool _enableFullDicomItemValidation;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
+    private readonly IValidationResultBuilderFactory _validationResultBuilderFactory;
 
-    public StoreDatasetValidator(IOptions<FeatureConfiguration> featureConfiguration, IElementMinimumValidator minimumValidator, IQueryTagService queryTagService)
+
+    public StoreDatasetValidator(
+        IOptions<FeatureConfiguration> featureConfiguration,
+        IElementMinimumValidator minimumValidator,
+        IQueryTagService queryTagService,
+        IValidationResultBuilderFactory validationResultBuilderFactory)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+        EnsureArg.IsNotNull(validationResultBuilderFactory, nameof(validationResultBuilderFactory));
 
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
+        _validationResultBuilderFactory = validationResultBuilderFactory;
     }
 
     /// <inheritdoc/>
-    public async Task<ValidationWarnings> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken)
+    public async Task<IValidationResultBuilder> ValidateAsync(
+        DicomDataset dicomDataset,
+        string requiredStudyInstanceUid,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-        ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+        IValidationResultBuilder validationResultBuilder = _validationResultBuilderFactory.Create();
 
-        ValidationWarnings warnings = ValidationWarnings.None;
+        ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
 
         // validate input data elements
         if (_enableFullDicomItemValidation)
@@ -54,16 +66,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
         else
         {
-            warnings |= await ValidateIndexedItemsAsync(dicomDataset, cancellationToken);
+            await ValidateIndexedItemsAsync(dicomDataset, validationResultBuilder, cancellationToken);
         }
 
         // Validate for Implicit VR at the end
         if (ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset))
         {
-            warnings |= ValidationWarnings.DatasetDoesNotMatchSOPClass;
+            validationResultBuilder.AddWarning(ValidationWarnings.DatasetDoesNotMatchSOPClass);
         }
 
-        return warnings;
+        return validationResultBuilder;
     }
 
     private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
@@ -112,16 +124,26 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private async Task<ValidationWarnings> ValidateIndexedItemsAsync(DicomDataset dicomDataset, CancellationToken cancellationToken)
+    private async Task ValidateIndexedItemsAsync(
+        DicomDataset dicomDataset,
+        IValidationResultBuilder validationResultBuilder,
+        CancellationToken cancellationToken)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
 
-        ValidationWarnings warning = ValidationWarnings.None;
         foreach (QueryTag queryTag in queryTags)
         {
-            warning |= dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+            try
+            {
+                var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
+
+                validationResultBuilder.AddWarning(validationWarning, queryTag);
+            }
+            catch (ElementValidationException ex)
+            {
+                validationResultBuilder.AddError(ex, queryTag);
+            }
         }
-        return warning;
     }
 
     private static void ValidateAllItems(DicomDataset dicomDataset)
