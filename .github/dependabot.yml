@@ -73,3 +73,27 @@ updates:
       time: "09:00"
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 30
+
+  - package-ecosystem: "nuget"
+    directory: "/converter/dicom-cast"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
+
+  - package-ecosystem: "nuget"
+    directory: "/tools/dicom-auth-test/Microsoft.Health.Web.Dicom.Tool"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
+
+  - package-ecosystem: "nuget"
+    directory: "/tools/uploader-function"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 30
