@@ -109,7 +109,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
     }
 
-    [Fact(Skip = "Fix getting stream")]
+    [Fact]
     public async Task GivenStoredInstances_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreRetrievedSuccesfully()
     {
         var datasets = new List<DicomDataset>();
@@ -144,7 +144,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.GetStreamsAsync());
     }
 
-    [Fact(Skip = "Fix getting stream")]
+    [Fact]
     public async Task GivenStoredInstances_WhenRetrieveRequestForSeries_ThenInstancesInSeriesAreRetrievedSuccesfully()
     {
         var datasets = new List<DicomDataset>();
@@ -215,6 +215,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         {
             MemoryStream memoryStream = _recyclableMemoryStreamManager.GetStream();
             responseStream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
             realizedStreams.Add(memoryStream);
         }
 
