@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -283,12 +283,13 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
-            Stream stream = await _blobDataStore.GetFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,
                     GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
-                    stream.Length);
+                    fileProperties.ContentLength);
         }
     }
 
