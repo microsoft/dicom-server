@@ -4,51 +4,39 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-internal sealed class ValidationResultBuilder : IValidationResultBuilder
+internal sealed class StoreValidatorResultBuilder : IStoreValidatorResultBuilder
 {
-    private readonly IList<string> _errorMessages;
-    private readonly IList<string> _warningMessages;
-
-    public ValidationResultBuilder()
+    public StoreValidatorResultBuilder()
     {
-        _errorMessages = new List<string>();
-        _warningMessages = new List<string>();
+        ErrorMessages = new Collection<string>();
+        WarningMessages = new Collection<string>();
         WarningCodes = ValidationWarnings.None;
+        FirstException = null;
     }
 
-    public bool HasWarnings
-    {
-        get { return _warningMessages.Count > 0; }
-    }
+    private Collection<string> ErrorMessages { get; }
 
-    public bool HasErrors
-    {
-        get { return _errorMessages.Count > 0; }
-    }
+    private Collection<string> WarningMessages { get; }
 
-    public IEnumerable<string> Errors
-    {
-        get { return _errorMessages; }
-    }
-
-    public IEnumerable<string> Warnings
-    {
-        get { return _warningMessages; }
-    }
-
-    public ValidationWarnings WarningCodes
-    {
-        get; private set;
-    }
+    private ValidationWarnings WarningCodes { get; set; }
 
     // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-    public Exception FirstException { get; private set; }
+    private Exception FirstException { get; set; }
+
+    public StoreValidatorResult Build()
+    {
+        return new StoreValidatorResult(
+            ErrorMessages,
+            WarningMessages,
+            WarningCodes,
+            FirstException);
+    }
 
     public void AddError(Exception ex, QueryTag queryTag = null)
     {
@@ -58,7 +46,7 @@ internal sealed class ValidationResultBuilder : IValidationResultBuilder
             FirstException = ex;
         }
 
-        _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
+        ErrorMessages.Add(GetFormattedText(ex?.Message, queryTag));
     }
 
     public void AddError(string message, QueryTag queryTag = null)
@@ -66,7 +54,7 @@ internal sealed class ValidationResultBuilder : IValidationResultBuilder
         if (queryTag == null || string.IsNullOrWhiteSpace(message))
             return;
 
-        _errorMessages.Add(GetFormattedText(message, queryTag));
+        ErrorMessages.Add(GetFormattedText(message, queryTag));
     }
 
     public void AddWarning(ValidationWarnings warningCode, QueryTag queryTag = null)
@@ -76,7 +64,7 @@ internal sealed class ValidationResultBuilder : IValidationResultBuilder
 
         WarningCodes |= warningCode;
 
-        _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
+        WarningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
     }
 
     private static string GetFormattedText(string message, QueryTag queryTag = null)

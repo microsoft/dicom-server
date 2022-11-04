@@ -4,25 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-public interface IValidationResultBuilder
+public interface IStoreValidatorResultBuilder
 {
-    bool HasWarnings { get; }
-
-    bool HasErrors { get; }
-
-    public IEnumerable<string> Errors { get; }
-
-    public IEnumerable<string> Warnings { get; }
-
-    public ValidationWarnings WarningCodes { get; }
-
-    // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-    public Exception FirstException { get; }
+    StoreValidatorResult Build();
 
     void AddError(Exception ex, QueryTag queryTag = null);
 

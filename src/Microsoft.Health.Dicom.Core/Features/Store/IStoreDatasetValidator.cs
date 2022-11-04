@@ -26,5 +26,5 @@ public interface IStoreDatasetValidator
     /// <returns>
     /// ValidationWarnings.
     /// </returns>
-    Task<IValidationResultBuilder> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
+    Task<StoreValidatorResult> ValidateAsync(DicomDataset dicomDataset, string requiredStudyInstanceUid, CancellationToken cancellationToken = default);
 }

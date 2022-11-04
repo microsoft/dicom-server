@@ -27,35 +27,31 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly bool _enableFullDicomItemValidation;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
-    private readonly IValidationResultBuilderFactory _validationResultBuilderFactory;
 
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
-        IQueryTagService queryTagService,
-        IValidationResultBuilderFactory validationResultBuilderFactory)
+        IQueryTagService queryTagService)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
-        EnsureArg.IsNotNull(validationResultBuilderFactory, nameof(validationResultBuilderFactory));
 
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
-        _validationResultBuilderFactory = validationResultBuilderFactory;
     }
 
     /// <inheritdoc/>
-    public async Task<IValidationResultBuilder> ValidateAsync(
+    public async Task<StoreValidatorResult> ValidateAsync(
         DicomDataset dicomDataset,
         string requiredStudyInstanceUid,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-        IValidationResultBuilder validationResultBuilder = _validationResultBuilderFactory.Create();
+        IStoreValidatorResultBuilder validationResultBuilder = new StoreValidatorResultBuilder();
 
         ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
 
@@ -75,7 +71,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             validationResultBuilder.AddWarning(ValidationWarnings.DatasetDoesNotMatchSOPClass);
         }
 
-        return validationResultBuilder;
+        return validationResultBuilder.Build();
     }
 
     private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
@@ -126,7 +122,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private async Task ValidateIndexedItemsAsync(
         DicomDataset dicomDataset,
-        IValidationResultBuilder validationResultBuilder,
+        IStoreValidatorResultBuilder validationResultBuilder,
         CancellationToken cancellationToken)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
