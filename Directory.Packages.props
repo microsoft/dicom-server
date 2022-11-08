@@ -89,7 +89,7 @@
     <PackageVersion Include="Microsoft.OpenApi" Version="1.4.3" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="161.6319.0-preview" />
-    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.3.2" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.4.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageVersion Include="NSubstitute" Version="4.4.0" />
     <PackageVersion Include="Polly" Version="7.2.3" />
