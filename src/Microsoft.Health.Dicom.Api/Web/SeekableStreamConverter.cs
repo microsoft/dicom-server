@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Api.Web;
 /// </summary>
 internal class SeekableStreamConverter : ISeekableStreamConverter
 {
-    private const int DefaultBufferThreshold = 1024 * 30000; // 30MB
+    private const int DefaultBufferThreshold = 1024 * 1024; // 1MB
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<SeekableStreamConverter> _logger;
 
@@ -37,15 +37,27 @@ internal class SeekableStreamConverter : ISeekableStreamConverter
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        int bufferThreshold = DefaultBufferThreshold;
-        long? bufferLimit = null;
         Stream seekableStream = null;
 
         if (!stream.CanSeek)
         {
-            seekableStream = new FileBufferingReadStream(stream, bufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
+            long? bufferLimit = null;
+            // https://github.com/dotnet/aspnetcore/blob/main/src/Http/WebUtilities/src/FileBufferingReadStream.cs
+            // FileBufferingReadStream uses memory buffer of shared byte array pool if memoryThreshold is <= 1MB. Otherwise it is using MemoryStream
+            // which is not efficient memory reuse.
+            // Current logic works like below
+            // If dcm file is > 1MB, drain it to file and return filestream since memoryBufferThreshold is set to 0
+            // else use the memory buffer of <= 1MB created with bytePool.Rent(memoryThreshold) to create the seekable stream
+            int memoryBufferThreshold = DefaultBufferThreshold;
+            if (_httpContextAccessor.HttpContext?.Request.ContentLength > DefaultBufferThreshold)
+            {
+                memoryBufferThreshold = 0;
+            }
+            _logger.LogInformation("Request content length {requestContentLength}", _httpContextAccessor.HttpContext?.Request.ContentLength);
+            seekableStream = new FileBufferingReadStream(stream, memoryBufferThreshold, bufferLimit, AspNetCoreTempDirectory.TempDirectoryFactory);
             _httpContextAccessor.HttpContext?.Response.RegisterForDisposeAsync(seekableStream);
             await seekableStream.DrainAsync(cancellationToken);
+            _logger.LogInformation("Finished draining request body");
         }
         else
         {
