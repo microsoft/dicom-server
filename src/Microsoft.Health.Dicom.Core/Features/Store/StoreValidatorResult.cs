@@ -19,7 +19,7 @@ public sealed class StoreValidatorResult
         Errors = errors;
         Warnings = warnings;
         WarningCodes = validationWarnings;
-        FirstException = null;
+        FirstException = firstException;
     }
 
     public IReadOnlyCollection<string> Errors { get; }

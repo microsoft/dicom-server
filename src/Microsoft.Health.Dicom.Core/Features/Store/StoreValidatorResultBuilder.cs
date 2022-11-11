@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-internal sealed class StoreValidatorResultBuilder : IStoreValidatorResultBuilder
+internal sealed class StoreValidatorResultBuilder
 {
     public StoreValidatorResultBuilder()
     {
@@ -79,14 +79,11 @@ internal sealed class StoreValidatorResultBuilder : IStoreValidatorResultBuilder
 
     private static string GetWarningMessage(ValidationWarnings warningCode)
     {
-        switch (warningCode)
+        return warningCode switch
         {
-            case ValidationWarnings.IndexedDicomTagHasMultipleValues:
-                return DicomCoreResource.ErrorMessageMultiValues;
-            case ValidationWarnings.DatasetDoesNotMatchSOPClass:
-                return DicomCoreResource.DatasetDoesNotMatchSOPClass;
-        }
-
-        return string.Empty;
+            ValidationWarnings.IndexedDicomTagHasMultipleValues => DicomCoreResource.ErrorMessageMultiValues,
+            ValidationWarnings.DatasetDoesNotMatchSOPClass => DicomCoreResource.DatasetDoesNotMatchSOPClass,
+            _ => string.Empty,
+        };
     }
 }

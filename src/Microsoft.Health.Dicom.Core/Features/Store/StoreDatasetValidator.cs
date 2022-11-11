@@ -51,7 +51,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-        IStoreValidatorResultBuilder validationResultBuilder = new StoreValidatorResultBuilder();
+        var validationResultBuilder = new StoreValidatorResultBuilder();
 
         ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
 
@@ -122,7 +122,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private async Task ValidateIndexedItemsAsync(
         DicomDataset dicomDataset,
-        IStoreValidatorResultBuilder validationResultBuilder,
+        StoreValidatorResultBuilder validationResultBuilder,
         CancellationToken cancellationToken)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
