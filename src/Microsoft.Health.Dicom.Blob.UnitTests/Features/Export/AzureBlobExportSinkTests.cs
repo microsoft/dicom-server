@@ -55,7 +55,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         _errorStream = new MemoryStream();
         _errorBlob = Substitute.For<AppendBlobClient>();
         _errorBlob
-            .AppendBlockAsync(Arg.Any<Stream>(), Arg.Any<byte[]>(), Arg.Any<AppendBlobRequestConditions>(), Arg.Any<IProgress<long>>(), Arg.Any<CancellationToken>())
+            .AppendBlockAsync(Arg.Any<Stream>(), Arg.Any<AppendBlobAppendBlockOptions>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Substitute.For<Response<BlobAppendInfo>>()))
             .AndDoes(c =>
             {
@@ -261,9 +261,13 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     {
         await _sink.FlushAsync(cancellationToken);
 
+        // await _errorBlob
+        //     .Received(1)
+        //     .AppendBlockAsync(Arg.Any<Stream>(), null, null, null, cancellationToken);
+
         await _errorBlob
             .Received(1)
-            .AppendBlockAsync(Arg.Any<Stream>(), null, null, null, cancellationToken);
+            .AppendBlockAsync(Arg.Any<Stream>(), Arg.Any<AppendBlobAppendBlockOptions>(), cancellationToken);
 
         _errorStream.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(_errorStream, Encoding.UTF8);
