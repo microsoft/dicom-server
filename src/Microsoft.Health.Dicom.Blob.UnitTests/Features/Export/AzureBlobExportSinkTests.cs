@@ -261,10 +261,6 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
     {
         await _sink.FlushAsync(cancellationToken);
 
-        // await _errorBlob
-        //     .Received(1)
-        //     .AppendBlockAsync(Arg.Any<Stream>(), null, null, null, cancellationToken);
-
         await _errorBlob
             .Received(1)
             .AppendBlockAsync(Arg.Any<Stream>(), Arg.Any<AppendBlobAppendBlockOptions>(), cancellationToken);
