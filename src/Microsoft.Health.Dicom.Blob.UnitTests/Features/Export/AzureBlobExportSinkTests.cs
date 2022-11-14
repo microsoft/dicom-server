@@ -104,7 +104,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token);
         await _errorBlob
             .DidNotReceiveWithAnyArgs()
-            .AppendBlockAsync(default, default, default, default, default);
+            .AppendBlockAsync(default, default, default);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         await _destClient.Received(1).ExistsAsync(tokenSource.Token);
         await _errorBlob
             .DidNotReceiveWithAnyArgs()
-            .AppendBlockAsync(default, default, default, default, default);
+            .AppendBlockAsync(default, default, default);
     }
 
     [Theory]
@@ -200,7 +200,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         await _destClient.Received(1).ExistsAsync(tokenSource.Token);
         await _errorBlob
             .DidNotReceiveWithAnyArgs()
-            .AppendBlockAsync(default, default, default, default, default);
+            .AppendBlockAsync(default, default, default);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         await _errorBlob
             .Received(1)
-            .AppendBlockAsync(Arg.Any<Stream>(), Arg.Any<AppendBlobAppendBlockOptions>(), cancellationToken);
+            .AppendBlockAsync(Arg.Any<Stream>(), null, cancellationToken);
 
         _errorStream.Seek(0, SeekOrigin.Begin);
         using var reader = new StreamReader(_errorStream, Encoding.UTF8);
