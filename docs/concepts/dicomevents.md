@@ -22,7 +22,7 @@ DicomImageDeleted - The event emitted after a DICOM image gets deleted successfu
 | data.imageSeriesInstanceUid	| string	| Yes	| The image's Series Instance UID
 | data.imageSopInstanceUid	| string	| Yes	| The image's SOP Instance UID
 | data.serviceHostName	| string	| Yes	| The hostname of the dicom service where the change occurred. 
-| data.sequenceNumber	| int	| Yes	| The sequence number of the change in the DICOM service. Every image creation and deletion will have a unique sequence within the service.
+| data.sequenceNumber	| int	| Yes	| The sequence number of the change in the DICOM service. Every image creation and deletion will have a unique sequence within the service. This number correlates to the sequence number of the DICOM service's Change Feed. Querying the DICOM Service Change Feed with this sequence number will give you the change that created this event.
 | dataVersion	| string	| No	| The data version of the DICOM image
 | metadataVersion	| string	| No	| The schema version of the event metadata. This is defined by Azure Event Grid and should be constant most of the time.
 
@@ -127,7 +127,7 @@ DicomImageCreated - The event emitted after a DICOM image gets created successfu
 DicomImageDeleted - The event emitted after a DICOM image gets deleted successfully.
 
 ### What is the payload of an Events message?
-For a detailed description of the Events message structure and both required and non-required elements, see Events troubleshooting guide.
+For a detailed description of the Events message structure and both required and non-required elements, see the `Event message structure` section.
 
 ### What is the throughput for the Events messages?
 The throughput of DICOM events is governed by the throughput of the DICOM service and the Event Grid. When a request made to the DICOM service is successful, it will return a 2xx HTTP status code. It will also generate a DICOM image changing event. The current limitation is 5,000 events/second per a workspace for all DICOM service instances in it.
