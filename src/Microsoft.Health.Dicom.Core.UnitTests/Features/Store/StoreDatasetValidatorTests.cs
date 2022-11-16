@@ -233,7 +233,7 @@ public class StoreDatasetValidatorTests
         // CS VR, > 16 characters is not allowed
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
-        await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public class StoreDatasetValidatorTests
 
         QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
         _queryTags.Add(indextag);
-        await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
     [Fact]
@@ -270,10 +270,22 @@ public class StoreDatasetValidatorTests
         _queryTags.Clear();
         _queryTags.Add(indextag);
 
-        await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
     private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+        where T : Exception
+    {
+        var exception = await Assert.ThrowsAsync<T>(() => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid));
+
+        if (exception is DatasetValidationException)
+        {
+            var datasetValidationException = exception as DatasetValidationException;
+            Assert.Equal(failureCode, datasetValidationException.FailureCode);
+        }
+    }
+
+    private async Task ExecuteAndValidateTagEntriesException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
         where T : Exception
     {
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid);
