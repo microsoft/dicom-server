@@ -56,8 +56,11 @@ public class StoreDatasetValidatorTests
         _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
         IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
         _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService);
-        await Assert.ThrowsAsync<ElementValidationException>(
-            () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
+
+        Assert.IsType<ElementValidationException>(result.FirstException);
+
         validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
@@ -229,6 +232,7 @@ public class StoreDatasetValidatorTests
     {
         // CS VR, > 16 characters is not allowed
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
+
         await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
@@ -272,12 +276,11 @@ public class StoreDatasetValidatorTests
     private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
         where T : Exception
     {
-        var exception = await Assert.ThrowsAsync<T>(
-            () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid));
+        var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid);
 
-        if (exception is DatasetValidationException)
+        if (result.FirstException is DatasetValidationException)
         {
-            var datasetValidationException = exception as DatasetValidationException;
+            var datasetValidationException = result.FirstException as DatasetValidationException;
             Assert.Equal(failureCode, datasetValidationException.FailureCode);
         }
     }

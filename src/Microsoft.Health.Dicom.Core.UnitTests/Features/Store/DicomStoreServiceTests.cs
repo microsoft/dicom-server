@@ -55,6 +55,10 @@ public class DicomStoreServiceTests
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
 
+        _dicomDatasetValidator
+            .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new StoreValidatorResult(Array.Empty<string>(), Array.Empty<string>(), ValidationWarnings.None, null)));
+
         _storeService = new StoreService(
             _storeResponseBuilder,
             _dicomDatasetValidator,

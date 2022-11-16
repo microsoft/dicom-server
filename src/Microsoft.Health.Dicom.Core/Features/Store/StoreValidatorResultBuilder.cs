@@ -51,7 +51,7 @@ internal sealed class StoreValidatorResultBuilder
 
     public void AddError(string message, QueryTag queryTag = null)
     {
-        if (queryTag == null || string.IsNullOrWhiteSpace(message))
+        if (string.IsNullOrWhiteSpace(message))
             return;
 
         ErrorMessages.Add(GetFormattedText(message, queryTag));
@@ -59,7 +59,7 @@ internal sealed class StoreValidatorResultBuilder
 
     public void AddWarning(ValidationWarnings warningCode, QueryTag queryTag = null)
     {
-        if (queryTag == null || warningCode == ValidationWarnings.None)
+        if (warningCode == ValidationWarnings.None)
             return;
 
         WarningCodes |= warningCode;
