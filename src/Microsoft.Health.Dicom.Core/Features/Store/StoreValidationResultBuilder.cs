@@ -10,43 +10,39 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-internal sealed class StoreValidatorResultBuilder
+internal sealed class StoreValidationResultBuilder
 {
-    public StoreValidatorResultBuilder()
+    private readonly Collection<string> _errorMessages;
+    private readonly Collection<string> _warningMessages;
+    private ValidationWarnings _warningCodes;
+
+    // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
+    private Exception _firstException;
+
+    public StoreValidationResultBuilder()
     {
-        ErrorMessages = new Collection<string>();
-        WarningMessages = new Collection<string>();
-        WarningCodes = ValidationWarnings.None;
-        FirstException = null;
+        _errorMessages = new Collection<string>();
+        _warningMessages = new Collection<string>();
+        _warningCodes = ValidationWarnings.None;
+        _firstException = null;
     }
 
-    private Collection<string> ErrorMessages { get; }
-
-    private Collection<string> WarningMessages { get; }
-
-    private ValidationWarnings WarningCodes { get; set; }
-
-    // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-    private Exception FirstException { get; set; }
-
-    public StoreValidatorResult Build()
+    public StoreValidationResult Build()
     {
-        return new StoreValidatorResult(
-            ErrorMessages,
-            WarningMessages,
-            WarningCodes,
-            FirstException);
+        return new StoreValidationResult(
+            _errorMessages,
+            _warningMessages,
+            _warningCodes,
+            _firstException);
     }
 
     public void AddError(Exception ex, QueryTag queryTag = null)
     {
-        // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-        if (null == FirstException)
-        {
-            FirstException = ex;
-        }
+        // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
+        if (_firstException == null)
+            _firstException = ex;
 
-        ErrorMessages.Add(GetFormattedText(ex?.Message, queryTag));
+        _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
     }
 
     public void AddError(string message, QueryTag queryTag = null)
@@ -54,7 +50,7 @@ internal sealed class StoreValidatorResultBuilder
         if (string.IsNullOrWhiteSpace(message))
             return;
 
-        ErrorMessages.Add(GetFormattedText(message, queryTag));
+        _errorMessages.Add(GetFormattedText(message, queryTag));
     }
 
     public void AddWarning(ValidationWarnings warningCode, QueryTag queryTag = null)
@@ -62,9 +58,9 @@ internal sealed class StoreValidatorResultBuilder
         if (warningCode == ValidationWarnings.None)
             return;
 
-        WarningCodes |= warningCode;
+        _warningCodes |= warningCode;
 
-        WarningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
+        _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
     }
 
     private static string GetFormattedText(string message, QueryTag queryTag = null)

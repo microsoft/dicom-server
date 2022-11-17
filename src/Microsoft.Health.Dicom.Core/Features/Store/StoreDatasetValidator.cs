@@ -44,14 +44,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     }
 
     /// <inheritdoc/>
-    public async Task<StoreValidatorResult> ValidateAsync(
+    public async Task<StoreValidationResult> ValidateAsync(
         DicomDataset dicomDataset,
         string requiredStudyInstanceUid,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-        var validationResultBuilder = new StoreValidatorResultBuilder();
+        var validationResultBuilder = new StoreValidationResultBuilder();
 
         ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
 
@@ -122,7 +122,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private async Task ValidateIndexedItemsAsync(
         DicomDataset dicomDataset,
-        StoreValidatorResultBuilder validationResultBuilder,
+        StoreValidationResultBuilder validationResultBuilder,
         CancellationToken cancellationToken)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);

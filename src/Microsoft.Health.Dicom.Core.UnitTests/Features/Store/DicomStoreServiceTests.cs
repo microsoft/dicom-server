@@ -57,7 +57,7 @@ public class DicomStoreServiceTests
 
         _dicomDatasetValidator
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new StoreValidatorResult(Array.Empty<string>(), Array.Empty<string>(), ValidationWarnings.None, null)));
+            .Returns(Task.FromResult(new StoreValidationResult(Array.Empty<string>(), Array.Empty<string>(), ValidationWarnings.None, null)));
 
         _storeService = new StoreService(
             _storeResponseBuilder,

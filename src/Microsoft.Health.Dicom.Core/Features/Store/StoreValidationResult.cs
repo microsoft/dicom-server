@@ -8,9 +8,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-public sealed class StoreValidatorResult
+public sealed class StoreValidationResult
 {
-    public StoreValidatorResult(
+    public StoreValidationResult(
         IReadOnlyCollection<string> errors,
         IReadOnlyCollection<string> warnings,
         ValidationWarnings validationWarnings,
