@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Defines a RESTful client for interacting with DICOMweb APIs.</Description>
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net7.0;netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
   <Choose>
