@@ -25,7 +25,7 @@
     <PackageVersion Include="Microsoft.ApplicationInsights" Version="$(ApplicationInsightsPackageVersion)" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="$(ApplicationInsightsPackageVersion)" />
     <PackageVersion Include="Microsoft.ApplicationInsights.WorkerService" Version="$(ApplicationInsightsPackageVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
@@ -56,7 +56,7 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="6.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Polly" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="$(ApplicationInsightsPackageVersion)" />
@@ -105,7 +105,7 @@
     <PackageVersion Include="xunit" Version="2.4.2" />
     <PackageVersion Include="xunit.assert" Version="2.4.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
-    <PackageVersion Include="System.Drawing.Common" Version="6.0.0"/>
+    <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)"/>
   </ItemGroup>
 
 </Project>
