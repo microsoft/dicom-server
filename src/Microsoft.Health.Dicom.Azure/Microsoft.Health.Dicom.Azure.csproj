@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <Description>Implementation of Azure dependencies used in DICOM core library</Description>
-    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

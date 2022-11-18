@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <Description>Defines a client for interacting with the DICOM Azure Functions.</Description>
-    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

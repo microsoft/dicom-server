@@ -17,10 +17,13 @@
     <IdentityModelTokenPackageVersion>6.25.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <NetStandardVersion>netstandard2.0</NetStandardVersion>
+    <NetVersion>net7.0</NetVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SdkPackageVersion>7.0.0</SdkPackageVersion>
+    <TargetFramework>$(NetVersion)</TargetFramework>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
