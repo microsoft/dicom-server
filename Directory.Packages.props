@@ -20,7 +20,7 @@
     <PackageVersion Include="IdentityServer4" Version="4.1.2" />
     <PackageVersion Include="IdentityServer4.Storage" Version="4.1.2" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.3.0" />
-    <PackageVersion Include="MediatR" Version="11.0.0" />
+    <PackageVersion Include="MediatR" Version="11.1.0" />
     <PackageVersion Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights" Version="$(ApplicationInsightsPackageVersion)" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="$(ApplicationInsightsPackageVersion)" />
