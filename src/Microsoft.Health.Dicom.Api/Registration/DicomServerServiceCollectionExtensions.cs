@@ -54,6 +54,7 @@ public static class DicomServerServiceCollectionExtensions
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
         serverBuilder.Services.AddHostedService<StartBlobMigrationService>();
         serverBuilder.Services.AddHostedService<StartBlobDeleteMigrationService>();
+        serverBuilder.Services.AddHostedService<StartCleanupDeletedBlobService>();
         return serverBuilder;
     }
 

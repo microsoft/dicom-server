@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ public partial class DeleteDurableFunction
                 CancellationToken = default,
                 MaxDegreeOfParallelism = _options.MaxParallelThreads,
             },
-            (id, token) => new ValueTask(_blobMigrationService.DeleteInstanceAsync(id, token)));
+            (id, token) => new ValueTask(_blobMigrationService.DeleteInstanceAsync(id, false, token)));
         logger.LogInformation("Completed deleting old format instances in the range {Range}.", range);
     }
 }

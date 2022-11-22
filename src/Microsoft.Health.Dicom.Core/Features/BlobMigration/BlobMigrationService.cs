@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,12 +34,12 @@ public class BlobMigrationService : IBlobMigrationService
               _metadataStore.CopyInstanceMetadataAsync(versionedInstanceIdentifier, cancellationToken));
     }
 
-    public Task DeleteInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    public Task DeleteInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, bool forceDelete = false, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
         return Task.WhenAll(
-              _fileStore.DeleteOldFileIfExistsAsync(versionedInstanceIdentifier, cancellationToken),
-              _metadataStore.DeleteOldInstanceMetadataIfExistsAsync(versionedInstanceIdentifier, cancellationToken));
+              _fileStore.DeleteOldFileIfExistsAsync(versionedInstanceIdentifier, forceDelete, cancellationToken),
+              _metadataStore.DeleteOldInstanceMetadataIfExistsAsync(versionedInstanceIdentifier, forceDelete, cancellationToken));
     }
 }

@@ -17,6 +17,8 @@ public class BlobMigrationCheckpoint : BlobMigrationInput, IOrchestrationCheckpo
 
     public DateTime? CreatedTime { get; set; }
 
+    public long? MaxWatermark { get; set; }
+
     public int? PercentComplete
     {
         get

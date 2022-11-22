@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,4 +34,9 @@ public enum DicomOperation
     /// Specifies an delete operation that deletes DICOM instance and metadata file in the same container.
     /// </summary>
     MigrationDeletion,
+
+    /// <summary>
+    /// Specifies an cleanup deleted operation that deletes DICOM instance and metadata file in the same container.
+    /// </summary>
+    CleanupDeleted,
 }
