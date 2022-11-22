@@ -58,13 +58,14 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
     }
 
     [Fact]
-    public async Task GivenInstance_WhenAddedAndDeletedAndAdded_DeletedChangeFeedEntryAvailable()
+    public async Task GivenInstance_WhenAddedAndDeleted_DeletedChangeFeedEntryReturnedByTimeStamp()
     {
         var timeStamp = DateTime.UtcNow;
-        // create and validate
+
+        // create
         var dicomInstanceIdentifier = await CreateInstance();
 
-        // delete and validate
+        // delete
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
 
         IReadOnlyCollection<ChangeFeedEntry> result = await _fixture.DicomChangeFeedStore.GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
@@ -75,19 +76,43 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             CancellationToken.None);
 
         Assert.NotNull(result);
-
         Assert.Equal(1, result.Count);
     }
 
     [Fact]
-    public async Task GivenInstance_WhenAddedAndDeletedAndAdded_MaxWatermarkIsReturned()
+    public async Task GivenInstance_WhenAddedAndDeleted_DeletedChangeFeedEntryReturnedByWatermark()
+    {
+        int batchSize = 100;
+
+        // create instance
+        var dicomInstanceIdentifier = await CreateInstance();
+
+        // delete
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+
+        var changeFeedEntry = await _fixture.DicomChangeFeedStore.GetChangeFeedLatestAsync();
+
+        IReadOnlyCollection<ChangeFeedEntry> result = await _fixture.DicomChangeFeedStore.GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
+            batchSize,
+            null,
+            changeFeedEntry.Sequence,
+            changeFeedEntry.Sequence + batchSize,
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.Equal(1, result.Count);
+        Assert.Equal(changeFeedEntry.Sequence, result.First().Sequence);
+    }
+
+    [Fact]
+    public async Task GivenInstance_WhenAddedAndDeleted_MaxWatermarkIsReturned()
     {
         var timeStamp = DateTime.UtcNow;
 
-        // create and validate
+        // create
         var dicomInstanceIdentifier = await CreateInstance();
 
-        // delete and validate
+        // delete
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
 
         long maxWatermark = await _fixture.DicomChangeFeedStore.GetMaxDeletedChangeFeedWatermarkAsync(
