@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -55,6 +55,46 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         // delete and validate
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateNoChangeFeed(dicomInstanceIdentifier);
+    }
+
+    [Fact]
+    public async Task GivenInstance_WhenAddedAndDeletedAndAdded_DeletedChangeFeedEntryAvailable()
+    {
+        var timeStamp = DateTime.UtcNow;
+        // create and validate
+        var dicomInstanceIdentifier = await CreateInstance();
+
+        // delete and validate
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+
+        IReadOnlyCollection<ChangeFeedEntry> result = await _fixture.DicomChangeFeedStore.GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
+            2,
+            timeStamp,
+            0,
+            0,
+            CancellationToken.None);
+
+        Assert.NotNull(result);
+
+        Assert.Equal(1, result.Count);
+    }
+
+    [Fact]
+    public async Task GivenInstance_WhenAddedAndDeletedAndAdded_MaxWatermarkIsReturned()
+    {
+        var timeStamp = DateTime.UtcNow;
+
+        // create and validate
+        var dicomInstanceIdentifier = await CreateInstance();
+
+        // delete and validate
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+
+        long maxWatermark = await _fixture.DicomChangeFeedStore.GetMaxDeletedChangeFeedWatermarkAsync(
+            timeStamp,
+            CancellationToken.None);
+
+        Assert.True(maxWatermark > 0);
     }
 
     private async Task ValidateInsertFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
