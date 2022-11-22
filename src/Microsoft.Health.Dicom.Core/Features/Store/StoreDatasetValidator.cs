@@ -68,7 +68,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         // Validate for Implicit VR at the end
         if (ImplicitValueRepresentationValidator.IsImplicitVR(dicomDataset))
         {
-            validationResultBuilder.AddWarning(ValidationWarnings.DatasetDoesNotMatchSOPClass);
+            validationResultBuilder.Add(ValidationWarnings.DatasetDoesNotMatchSOPClass);
         }
 
         return validationResultBuilder.Build();
@@ -133,11 +133,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
 
-                validationResultBuilder.AddWarning(validationWarning, queryTag);
+                validationResultBuilder.Add(validationWarning, queryTag);
             }
             catch (ElementValidationException ex)
             {
-                validationResultBuilder.AddError(ex, queryTag);
+                validationResultBuilder.Add(ex, queryTag);
             }
         }
     }

@@ -14,6 +14,8 @@ internal sealed class StoreValidationResultBuilder
 {
     private readonly Collection<string> _errorMessages;
     private readonly Collection<string> _warningMessages;
+
+    // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
@@ -23,6 +25,8 @@ internal sealed class StoreValidationResultBuilder
     {
         _errorMessages = new Collection<string>();
         _warningMessages = new Collection<string>();
+
+        // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
         _firstException = null;
     }
@@ -36,7 +40,7 @@ internal sealed class StoreValidationResultBuilder
             _firstException);
     }
 
-    public void AddError(Exception ex, QueryTag queryTag = null)
+    public void Add(Exception ex, QueryTag queryTag = null)
     {
         // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
         if (_firstException == null)
@@ -45,22 +49,15 @@ internal sealed class StoreValidationResultBuilder
         _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
     }
 
-    public void AddError(string message, QueryTag queryTag = null)
+    public void Add(ValidationWarnings warningCode, QueryTag queryTag = null)
     {
-        if (string.IsNullOrWhiteSpace(message))
-            return;
-
-        _errorMessages.Add(GetFormattedText(message, queryTag));
-    }
-
-    public void AddWarning(ValidationWarnings warningCode, QueryTag queryTag = null)
-    {
-        if (warningCode == ValidationWarnings.None)
-            return;
-
+        // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
         _warningCodes |= warningCode;
 
-        _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
+        if (warningCode != ValidationWarnings.None)
+        {
+            _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
+        }
     }
 
     private static string GetFormattedText(string message, QueryTag queryTag = null)
