@@ -196,6 +196,7 @@ dotnet_diagnostic.CA1716.severity = error      # Identifiers should not match ke
 dotnet_diagnostic.CA1822.severity = error      # Mark members as static
 dotnet_diagnostic.CA1848.severity = none       # Do not encourage LoggerMessage delegates in every instance
 dotnet_diagnostic.CA2007.severity = none       # Do not directly await a Task
+dotnet_diagnostic.CA1002.severity = none       # Do not expose generic lists
 
 # C# Compiler Rules
 dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member

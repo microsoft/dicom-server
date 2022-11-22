@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
@@ -12,8 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 
 internal sealed class StoreValidationResultBuilder
 {
-    private readonly Collection<string> _errorMessages;
-    private readonly Collection<string> _warningMessages;
+    private readonly List<string> _errorMessages;
+    private readonly List<string> _warningMessages;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
@@ -23,8 +23,8 @@ internal sealed class StoreValidationResultBuilder
 
     public StoreValidationResultBuilder()
     {
-        _errorMessages = new Collection<string>();
-        _warningMessages = new Collection<string>();
+        _errorMessages = new List<string>();
+        _warningMessages = new List<string>();
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
@@ -43,8 +43,7 @@ internal sealed class StoreValidationResultBuilder
     public void Add(Exception ex, QueryTag queryTag = null)
     {
         // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
-        if (_firstException == null)
-            _firstException = ex;
+        _firstException ??= ex;
 
         _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
     }
