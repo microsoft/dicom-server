@@ -169,6 +169,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dataset does not match SOP Class..
+        /// </summary>
+        internal static string DatasetDoesNotMatchSOPClass {
+            get {
+                return ResourceManager.GetString("DatasetDoesNotMatchSOPClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The data store operation failed..
         /// </summary>
         internal static string DataStoreOperationFailed {

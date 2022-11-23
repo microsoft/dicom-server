@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -56,15 +56,20 @@ public class StoreDatasetValidatorTests
         _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
         IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
         _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService);
-        await Assert.ThrowsAsync<ElementValidationException>(
-            () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
+
+        Assert.IsType<ElementValidationException>(result.FirstException);
+
         validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]
     public async Task GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
     {
-        Assert.Equal(ValidationWarnings.None, await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null));
+        var actual = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
+
+        Assert.Equal(ValidationWarnings.None, actual.WarningCodes);
     }
 
     [Fact]
@@ -74,7 +79,9 @@ public class StoreDatasetValidatorTests
         var dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
         dicomDataset.AddOrUpdate(element);
 
-        Assert.Equal(ValidationWarnings.IndexedDicomTagHasMultipleValues, await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
+        var actual = await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null);
+
+        Assert.Equal(ValidationWarnings.IndexedDicomTagHasMultipleValues, actual.WarningCodes);
     }
 
     [Theory]
@@ -87,7 +94,7 @@ public class StoreDatasetValidatorTests
 
         var actual = await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null);
 
-        Assert.Equal(ValidationWarnings.DatasetDoesNotMatchSOPClass, actual);
+        Assert.Equal(ValidationWarnings.DatasetDoesNotMatchSOPClass, actual.WarningCodes);
     }
 
     [Fact]
@@ -97,8 +104,10 @@ public class StoreDatasetValidatorTests
         var dicomDataset = Samples.CreateRandomInstanceDataset(dicomTransferSyntax: DicomTransferSyntax.ImplicitVRBigEndian).NotValidated();
         dicomDataset.AddOrUpdate(element);
 
+        var actual = await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null);
+
         Assert.Equal(ValidationWarnings.IndexedDicomTagHasMultipleValues | ValidationWarnings.DatasetDoesNotMatchSOPClass,
-            await _dicomDatasetValidator.ValidateAsync(dicomDataset, requiredStudyInstanceUid: null));
+            actual.WarningCodes);
     }
 
     [Fact]
@@ -223,7 +232,8 @@ public class StoreDatasetValidatorTests
     {
         // CS VR, > 16 characters is not allowed
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
-        await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
+
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
     [Fact]
@@ -243,7 +253,7 @@ public class StoreDatasetValidatorTests
 
         QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
         _queryTags.Add(indextag);
-        await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
     [Fact]
@@ -260,18 +270,29 @@ public class StoreDatasetValidatorTests
         _queryTags.Clear();
         _queryTags.Add(indextag);
 
-        await ExecuteAndValidateException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
     private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
         where T : Exception
     {
-        var exception = await Assert.ThrowsAsync<T>(
-            () => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid));
+        var exception = await Assert.ThrowsAsync<T>(() => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid));
 
         if (exception is DatasetValidationException)
         {
             var datasetValidationException = exception as DatasetValidationException;
+            Assert.Equal(failureCode, datasetValidationException.FailureCode);
+        }
+    }
+
+    private async Task ExecuteAndValidateTagEntriesException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
+        where T : Exception
+    {
+        var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid);
+
+        if (result.FirstException is DatasetValidationException)
+        {
+            var datasetValidationException = result.FirstException as DatasetValidationException;
             Assert.Equal(failureCode, datasetValidationException.FailureCode);
         }
     }
