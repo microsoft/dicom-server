@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
 

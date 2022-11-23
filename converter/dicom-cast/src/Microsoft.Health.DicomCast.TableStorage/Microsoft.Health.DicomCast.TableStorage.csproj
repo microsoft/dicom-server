@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Azure Cosmos DB table storage utilities for Microsoft's DICOM Cast APIs.</Description>
-    
+    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

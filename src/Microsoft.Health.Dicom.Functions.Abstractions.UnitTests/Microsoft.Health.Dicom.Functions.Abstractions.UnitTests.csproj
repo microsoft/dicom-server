@@ -3,6 +3,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <RootNamespace>Microsoft.Health.Dicom.Functions.UnitTests</RootNamespace>
+    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

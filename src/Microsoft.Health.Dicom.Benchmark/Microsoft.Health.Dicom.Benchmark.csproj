@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
