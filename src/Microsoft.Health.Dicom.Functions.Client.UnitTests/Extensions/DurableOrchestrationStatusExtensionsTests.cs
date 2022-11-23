@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ public class DurableOrchestrationStatusExtensionsTests
     [InlineData(FunctionNames.ExportDicomFiles, DicomOperation.Export)]
     [InlineData(FunctionNames.CopyFiles, DicomOperation.Copy)]
     [InlineData(FunctionNames.DeleteMigratedFiles, DicomOperation.MigrationDeletion)]
+    [InlineData(FunctionNames.CleanupDeletedFiles, DicomOperation.CleanupDeleted)]
     [InlineData("reindexINSTANCESasync", DicomOperation.Reindex)]
     public void GivenOrchestrationStatus_WhenGettingDicomOperation_ThenConvertNameToType(string name, DicomOperation expected)
     {

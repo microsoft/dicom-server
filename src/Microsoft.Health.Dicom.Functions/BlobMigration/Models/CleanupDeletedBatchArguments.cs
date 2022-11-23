@@ -15,12 +15,12 @@ public class CleanupDeletedBatchArguments
     /// <summary>
     /// Gets or sets the optional inclusive start watermark.
     /// </summary>
-    public long? StartWatermark { get; set; }
+    public long StartWatermark { get; set; }
 
     /// <summary>
     /// Gets or sets the optional inclusive end watermark.
     /// </summary>
-    public long? EndWatermark { get; set; }
+    public long EndWatermark { get; set; }
 
     /// <summary>
     /// Gets or sets the number of DICOM instances processed by a single activity.
