@@ -20,6 +20,10 @@ pool:
 
 steps:
   - template: common/build-electron.yml
+  # Task is needed to bypass Guardian issue until Guardian team has fixed their script to get sdk for linux platforms
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk'
+    version: '3.1.201'
   - template: common/analyze.yml
     parameters:
       analyzeARMTemplates: false
