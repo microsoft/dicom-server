@@ -36,7 +36,7 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.33" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.0.1" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.8.1" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.9.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.0.1" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.6.0" />
@@ -90,7 +90,7 @@
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="161.6374.0" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.4.0" />
-    <PackageVersion Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="NSubstitute" Version="4.4.0" />
     <PackageVersion Include="Polly" Version="7.2.3" />
     <PackageVersion Include="Polly.Extensions.Http" Version="3.0.0" />
