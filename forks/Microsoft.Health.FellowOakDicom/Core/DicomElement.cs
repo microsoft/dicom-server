@@ -262,13 +262,26 @@ public abstract class DicomMultiStringOrNumberElement<TType> : DicomMultiStringE
             if (item == -1) item = 0;
             if (item < 0 || item >= Count) throw new ArgumentOutOfRangeException(nameof(item), "Index is outside the range of available value items");
 
-            // If nullable, need to apply conversions on underlying type (#212)
-            var t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-
-            return (T)Convert.ChangeType(_values[item], t);
+            return GetValue<T>(_values[item]);
         }
 
         return base.Get<T>(item);
+    }
+
+    #endregion
+
+    #region Private Members
+
+    private T GetValue<T>(TType val)
+    {
+        // If nullable, need to apply conversions on underlying type (#212)
+        var t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
+        if (!t.IsEnum) return (T)Convert.ChangeType(val, t);
+
+        if (Enum.IsDefined(typeof(T), val)) return (T)Enum.ToObject(t, val);
+
+        return (T)Enum.Parse(t, val.ToString());
     }
 
     #endregion
