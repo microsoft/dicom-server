@@ -2830,6 +2830,7 @@ components:
         - export
         - copy
         - migrationDeletion
+        - cleanupDeleted
       type: string
     DicomOperationIOperationState:
       type: object
