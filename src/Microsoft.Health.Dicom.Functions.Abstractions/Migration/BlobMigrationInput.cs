@@ -11,5 +11,5 @@ public class BlobMigrationInput
 {
     public BatchingOptions Batching { get; set; }
 
-    public DateTime FilterTimeStamp { get; set; }
+    public DateTime? FilterTimeStamp { get; set; }
 }

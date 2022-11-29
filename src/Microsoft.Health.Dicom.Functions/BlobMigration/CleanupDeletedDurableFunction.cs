@@ -21,12 +21,11 @@ public partial class CleanupDeletedDurableFunction
 
     public CleanupDeletedDurableFunction(
         IChangeFeedStore changeFeedStore,
-       BlobMigrationService blobMigrationService,
+        BlobMigrationService blobMigrationService,
         IOptions<BlobMigrationOptions> configOptions)
     {
         _changeFeedStore = EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         _blobMigrationService = EnsureArg.IsNotNull(blobMigrationService, nameof(blobMigrationService));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
-        EnsureArg.IsNotNull(_options.RetryOptions, nameof(_options.RetryOptions));
     }
 }

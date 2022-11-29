@@ -43,7 +43,7 @@ public partial class CleanupDeletedDurableFunction
     }
 
     /// <summary>
-    /// Asynchronously retrieves max watermark in all changefeed deleted entries.
+    /// Retrieves max watermark in all changefeed deleted entries.
     /// </summary>
     /// <param name="arguments">The options for configuring the batches.</param>
     /// <param name="logger">A diagnostic logger.</param>
@@ -51,7 +51,7 @@ public partial class CleanupDeletedDurableFunction
     /// A task representing the asynchronous get operation. The value of its <see cref="Task{TResult}.Result"/>
     /// </returns>
     [FunctionName(nameof(GetMaxDeletedChangeFeedWatermarkAsync))]
-    public async Task<long> GetMaxDeletedChangeFeedWatermarkAsync(
+    public Task<long> GetMaxDeletedChangeFeedWatermarkAsync(
         [ActivityTrigger] CleanupDeletedBatchArguments arguments,
         ILogger logger)
     {
@@ -59,7 +59,7 @@ public partial class CleanupDeletedDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsTrue(arguments.FilterTimeStamp.HasValue, nameof(arguments.FilterTimeStamp));
 
-        return await _changeFeedStore.GetMaxDeletedChangeFeedWatermarkAsync(arguments.FilterTimeStamp.Value, CancellationToken.None);
+        return _changeFeedStore.GetMaxDeletedChangeFeedWatermarkAsync(arguments.FilterTimeStamp.Value, CancellationToken.None);
     }
 
     /// <summary>

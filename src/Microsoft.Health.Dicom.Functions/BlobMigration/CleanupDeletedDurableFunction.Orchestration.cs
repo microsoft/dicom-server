@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,12 +42,12 @@ public partial class CleanupDeletedDurableFunction
 
         // Get the max watermark of all deleted instances for the exit scenario
         long maxWatermark = input.MaxWatermark ?? await context.CallActivityWithRetryAsync<long>(
-                 nameof(GetMaxDeletedChangeFeedWatermarkAsync),
-                 _options.RetryOptions,
-                 new CleanupDeletedBatchArguments
-                 {
-                     FilterTimeStamp = input.FilterTimeStamp
-                 });
+            nameof(GetMaxDeletedChangeFeedWatermarkAsync),
+            _options.RetryOptions,
+            new CleanupDeletedBatchArguments
+            {
+                FilterTimeStamp = input.FilterTimeStamp
+            });
 
         IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await context.CallActivityWithRetryAsync<IReadOnlyList<ChangeFeedEntry>>(
             nameof(GetDeletedChangeFeedInstanceBatchesAsync),
@@ -58,7 +57,7 @@ public partial class CleanupDeletedDurableFunction
                 StartWatermark = input.Completed.HasValue ? input.Completed.Value.Start : default,
                 EndWatermark = input.Completed.HasValue ? input.Completed.Value.End : default,
                 BatchSize = input.Batching.Size,
-                FilterTimeStamp = input.FilterTimeStamp == DateTime.MinValue ? null : input.FilterTimeStamp,
+                FilterTimeStamp = input.FilterTimeStamp,
             });
 
         bool hasReachedToEnd = input.Completed.HasValue && input.Completed.Value.End >= maxWatermark;
@@ -86,6 +85,7 @@ public partial class CleanupDeletedDurableFunction
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                     Batching = input.Batching,
                     MaxWatermark = maxWatermark,
+                    FilterTimeStamp = null, // For next batch, ensure the timestamp is null so that we can use the watermark to fetch next batch
                 });
         }
         else if (!hasReachedToEnd && input.Completed.HasValue)
@@ -100,6 +100,7 @@ public partial class CleanupDeletedDurableFunction
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                     Batching = input.Batching,
                     MaxWatermark = maxWatermark,
+                    FilterTimeStamp = null, // For next batch, ensure the timestamp is null so that we can use the watermark to fetch next batch
                 });
         }
         else
