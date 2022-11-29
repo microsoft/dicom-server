@@ -279,8 +279,6 @@ public abstract class DicomMultiStringOrNumberElement<TType> : DicomMultiStringE
 
         if (!t.IsEnum) return (T)Convert.ChangeType(val, t);
 
-        if (Enum.IsDefined(typeof(T), val)) return (T)Enum.ToObject(t, val);
-
         return (T)Enum.Parse(t, val.ToString());
     }
 
