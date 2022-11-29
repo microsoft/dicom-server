@@ -38,5 +38,6 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an cleanup deleted operation that deletes DICOM instance and metadata file in the same container.
     /// </summary>
+    [IgnoreEnum]
     CleanupDeleted,
 }

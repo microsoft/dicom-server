@@ -139,6 +139,7 @@ public static class DicomServerServiceCollectionExtensions
             options.OperationFilter<ErrorCodeOperationFilter>();
             options.OperationFilter<RetrieveOperationFilter>();
             options.DocumentFilter<ReflectionTypeFilter>();
+            options.SchemaFilter<IgnoreEnumSchemaFilter>();
         });
 
         services.AddSingleton<IUrlResolver, UrlResolver>();
