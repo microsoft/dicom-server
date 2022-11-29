@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.globalconfig = .globalconfig
 		Directory.Build.props = Directory.Build.props
 		Directory.Packages.props = Directory.Packages.props
+		.config\dotnet-tools.json = .config\dotnet-tools.json
 		GitVersion.yml = GitVersion.yml
 		global.json = global.json
 		nuget.config = nuget.config
@@ -77,7 +78,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forks", "forks", "{AEDC6C96
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{ADD2B971-3C5C-429A-B954-A55FA0FA987D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Benchmark", "src\Microsoft.Health.Dicom.Benchmark\Microsoft.Health.Dicom.Benchmark.csproj", "{756A3876-6DD1-49CF-A05D-F5C81218039A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Benchmark", "src\Microsoft.Health.Dicom.Benchmark\Microsoft.Health.Dicom.Benchmark.csproj", "{756A3876-6DD1-49CF-A05D-F5C81218039A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -231,7 +232,7 @@ Global
 		{756A3876-6DD1-49CF-A05D-F5C81218039A} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 		RESX_SortFileContentOnSave = True
+		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
 	EndGlobalSection
 EndGlobal
