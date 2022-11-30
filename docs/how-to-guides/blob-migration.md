@@ -1,7 +1,7 @@
 # Blob migration
 
 Currently DICOM files are stored with DICOM UIDs as blob names in blob storage, using the template `{account}/{container}/{studyUid}/{seriesUid}/{sopInstanceUid}_{watermark}.dcm`. 
-Since UIDs are private content, it is recommended to avoid storing the files with UIDs in the blob name. So, in the next sections we have detailed steps for each scenario to migrate your existing blobs from old format to new format.
+Since UIDs may include personal information about the context of their creation, such as patient information or identifiers. So we made the decision to change the way that we store DICOM files. In the next sections we have detailed steps for each scenario to migrate your existing blobs from old format to new format.
 
 ## Blob migration configuration
 Below is the appsettings configuration for blob migration. Few properties needs to be updated to trigger migration.
@@ -46,5 +46,5 @@ Below is the appsettings configuration for blob migration. Few properties needs 
         3.2.2 Follow steps 3.1.1 to 3.1.4 to complete the copy and delete operation.
 
 
-**Note: If in case there is any issues during migration, you can post your questions or issues in the [DICOM Server GitHub Discussions](https://github.com/microsoft/dicom-server/discussions/1561) page.**`
+**Note: If in case there is any issues or questions during migration, you can post your questions or issues in the [DICOM Server GitHub Discussions](https://github.com/microsoft/dicom-server/discussions/1561) page.**`
 
