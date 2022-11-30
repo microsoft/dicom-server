@@ -1,6 +1,6 @@
 # Blob migration
 
-Currently DICOM files are stored with DICOM UIDs as blob names in blob storage, using the template <account>/<container>/<studyUid>/<seriesUid>/<sopInstanceUid>_<watermark>.dcm. 
+Currently DICOM files are stored with DICOM UIDs as blob names in blob storage, using the template `{account}/{container}/{studyUid}/{seriesUid}/{sopInstanceUid}_{watermark}.dcm`. 
 Since UIDs are private content, it is recommended to avoid storing the files with UIDs in the blob name. So, in the next sections we have detailed steps for each scenario to migrate your existing blobs from old format to new format.
 
 ## Blob migration configuration
