@@ -45,3 +45,6 @@ Below is the appsettings configuration for blob migration. Few properties needs 
         
         3.2.2 Follow steps 3.1.1 to 3.1.4 to complete the copy and delete operation.
 
+
+**Note: If in case there is any issues during migration, you can post your questions or issues in the [DICOM Server GitHub Discussions](https://github.com/microsoft/dicom-server/discussions/1561) page.**`
+
