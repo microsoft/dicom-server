@@ -83,7 +83,7 @@
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
     "Statuses": [ "Completed" ],
-    "ExcludeFunctions": [ "CopyFilesAsync", "DeleteMigratedFilesAsync" ]
+    "ExcludeFunctions": [ "CopyFilesAsync", "DeleteMigratedFilesAsync", "CleanupDeletedFilesAsync" ]
   },
   "SqlServer": {
     "Retry": {

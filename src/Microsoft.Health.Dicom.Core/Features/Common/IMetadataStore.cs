@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -92,9 +92,11 @@ public interface IMetadataStore
     /// Asynchronously deletes a old DICOM instance metadata.
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="forceDelete">Deletes the old instance without checking the new format exists.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteOldInstanceMetadataIfExistsAsync
         (VersionedInstanceIdentifier versionedInstanceIdentifier,
+        bool forceDelete = false,
         CancellationToken cancellationToken = default);
 }

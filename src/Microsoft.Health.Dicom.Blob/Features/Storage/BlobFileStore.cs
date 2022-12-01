@@ -209,7 +209,8 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc/>
     public async Task DeleteOldFileIfExistsAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken)
+        bool forceDelete = false,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
@@ -217,7 +218,7 @@ public class BlobFileStore : IFileStore
         var newBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
 
         // Delete the old file only if the new file exists
-        if (await newBlobClient.ExistsAsync(cancellationToken))
+        if (forceDelete || await newBlobClient.ExistsAsync(cancellationToken))
         {
             await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
         }
