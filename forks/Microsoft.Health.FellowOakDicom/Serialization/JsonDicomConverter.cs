@@ -291,73 +291,87 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             return DicomDictionary.Default[tagstr];
         }
 
-        private static DicomItem CreateDicomItem(DicomTag tag, string vr, object data)
+        private DicomItem CreateDicomItem(DicomTag tag, string vr, object data)
         {
-            DicomItem item = vr switch
+            DicomItem item;
+            if (_autoValidate)
             {
-                "AE" => new DicomApplicationEntity(tag, (string[])data),
-                "AS" => new DicomAgeString(tag, (string[])data),
-                "AT" => new DicomAttributeTag(tag, ((string[])data).Select(ParseTag).ToArray()),
-                "CS" => new DicomCodeString(tag, (string[])data),
-                "DA" => new DicomDate(tag, (string[])data),
-                "DS" => data is IByteBuffer dataBufferDS
-                            ? new DicomDecimalString(tag, dataBufferDS)
-                            : new DicomDecimalString(tag, (decimal[])data),
-                "DT" => new DicomDateTime(tag, (string[])data),
-                "FD" => data is IByteBuffer dataBufferFD
-                            ? new DicomFloatingPointDouble(tag, dataBufferFD)
-                            : new DicomFloatingPointDouble(tag, (double[])data),
-                "FL" => data is IByteBuffer dataBufferFL
-                            ? new DicomFloatingPointSingle(tag, dataBufferFL)
-                            : new DicomFloatingPointSingle(tag, (float[])data),
-                "IS" => data is IByteBuffer dataBufferIS
-                            ? new DicomIntegerString(tag, dataBufferIS)
-                            : new DicomIntegerString(tag, (int[])data),
-                "LO" => new DicomLongString(tag, (string[])data),
-                "LT" => data is IByteBuffer dataBufferLT
-                            ? new DicomLongText(tag, _jsonTextEncodings, dataBufferLT)
-                            : new DicomLongText(tag, data.GetAsStringArray().GetSingleOrEmpty()),
-                "OB" => new DicomOtherByte(tag, (IByteBuffer)data),
-                "OD" => new DicomOtherDouble(tag, (IByteBuffer)data),
-                "OF" => new DicomOtherFloat(tag, (IByteBuffer)data),
-                "OL" => new DicomOtherLong(tag, (IByteBuffer)data),
-                "OW" => new DicomOtherWord(tag, (IByteBuffer)data),
-                "OV" => new DicomOtherVeryLong(tag, (IByteBuffer)data),
-                "PN" => new DicomPersonName(tag, (string[])data),
-                "SH" => new DicomShortString(tag, (string[])data),
-                "SL" => data is IByteBuffer dataBufferSL
-                            ? new DicomSignedLong(tag, dataBufferSL)
-                            : new DicomSignedLong(tag, (int[])data),
+                item = vr switch
+                {
+                    "AE" => new DicomApplicationEntity(tag, (string[])data),
+                    "AS" => new DicomAgeString(tag, (string[])data),
+                    "AT" => new DicomAttributeTag(tag, ((string[])data).Select(ParseTag).ToArray()),
+                    "CS" => new DicomCodeString(tag, (string[])data),
+                    "DA" => new DicomDate(tag, (string[])data),
+                    "DS" => data is IByteBuffer dataBufferDS
+                        ? new DicomDecimalString(tag, dataBufferDS)
+                        : new DicomDecimalString(tag, (decimal[])data),
+                    "DT" => new DicomDateTime(tag, (string[])data),
+                    "FD" => data is IByteBuffer dataBufferFD
+                        ? new DicomFloatingPointDouble(tag, dataBufferFD)
+                        : new DicomFloatingPointDouble(tag, (double[])data),
+                    "FL" => data is IByteBuffer dataBufferFL
+                        ? new DicomFloatingPointSingle(tag, dataBufferFL)
+                        : new DicomFloatingPointSingle(tag, (float[])data),
+                    "IS" => data is IByteBuffer dataBufferIS
+                        ? new DicomIntegerString(tag, dataBufferIS)
+                        : new DicomIntegerString(tag, (int[])data),
+                    "LO" => new DicomLongString(tag, (string[])data),
+                    "LT" => data is IByteBuffer dataBufferLT
+                        ? new DicomLongText(tag, _jsonTextEncodings, dataBufferLT)
+                        : new DicomLongText(tag, data.GetAsStringArray().GetSingleOrEmpty()),
+                    "OB" => new DicomOtherByte(tag, (IByteBuffer)data),
+                    "OD" => new DicomOtherDouble(tag, (IByteBuffer)data),
+                    "OF" => new DicomOtherFloat(tag, (IByteBuffer)data),
+                    "OL" => new DicomOtherLong(tag, (IByteBuffer)data),
+                    "OW" => new DicomOtherWord(tag, (IByteBuffer)data),
+                    "OV" => new DicomOtherVeryLong(tag, (IByteBuffer)data),
+                    "PN" => new DicomPersonName(tag, (string[])data),
+                    "SH" => new DicomShortString(tag, (string[])data),
+                    "SL" => data is IByteBuffer dataBufferSL
+                        ? new DicomSignedLong(tag, dataBufferSL)
+                        : new DicomSignedLong(tag, (int[])data),
+                    "SQ" => new DicomSequence(tag, ((DicomDataset[])data)),
+                    "SS" => data is IByteBuffer dataBufferSS
+                        ? new DicomSignedShort(tag, dataBufferSS)
+                        : new DicomSignedShort(tag, (short[])data),
+                    "ST" => data is IByteBuffer dataBufferST
+                        ? new DicomShortText(tag, _jsonTextEncodings, dataBufferST)
+                        : new DicomShortText(tag, data.GetAsStringArray().GetFirstOrEmpty()),
+                    "SV" => data is IByteBuffer dataBufferSV
+                        ? new DicomSignedVeryLong(tag, dataBufferSV)
+                        : new DicomSignedVeryLong(tag, (long[])data),
+                    "TM" => new DicomTime(tag, (string[])data),
+                    "UC" => data is IByteBuffer dataBufferUC
+                        ? new DicomUnlimitedCharacters(tag, _jsonTextEncodings, dataBufferUC)
+                        : new DicomUnlimitedCharacters(tag, data.GetAsStringArray().SingleOrDefault()),
+                    "UI" => new DicomUniqueIdentifier(tag, (string[])data),
+                    "UL" => data is IByteBuffer dataBufferUL
+                        ? new DicomUnsignedLong(tag, dataBufferUL)
+                        : new DicomUnsignedLong(tag, (uint[])data),
+                    "UN" => new DicomUnknown(tag, (IByteBuffer)data),
+                    "UR" => new DicomUniversalResource(tag, data.GetAsStringArray().GetSingleOrEmpty()),
+                    "US" => data is IByteBuffer dataBufferUS
+                        ? new DicomUnsignedShort(tag, dataBufferUS)
+                        : new DicomUnsignedShort(tag, (ushort[])data),
+                    "UT" => data is IByteBuffer dataBufferUT
+                        ? new DicomUnlimitedText(tag, _jsonTextEncodings, dataBufferUT)
+                        : new DicomUnlimitedText(tag, data.GetAsStringArray().GetSingleOrEmpty()),
+                    "UV" => data is IByteBuffer dataBufferUV
+                        ? new DicomUnsignedVeryLong(tag, dataBufferUV)
+                        : new DicomUnsignedVeryLong(tag, (ulong[])data),
+                    _ => throw new NotSupportedException("Unsupported value representation"),
+                };
+                return item;
+            }
+
+            item = vr switch
+            {
+
                 "SQ" => new DicomSequence(tag, ((DicomDataset[])data)),
-                "SS" => data is IByteBuffer dataBufferSS
-                            ? new DicomSignedShort(tag, dataBufferSS)
-                            : new DicomSignedShort(tag, (short[])data),
-                "ST" => data is IByteBuffer dataBufferST
-                            ? new DicomShortText(tag, _jsonTextEncodings, dataBufferST)
-                            : new DicomShortText(tag, data.GetAsStringArray().GetFirstOrEmpty()),
-                "SV" => data is IByteBuffer dataBufferSV
-                                ? new DicomSignedVeryLong(tag, dataBufferSV)
-                                : new DicomSignedVeryLong(tag, (long[])data),
-                "TM" => new DicomTime(tag, (string[])data),
-                "UC" => data is IByteBuffer dataBufferUC
-                            ? new DicomUnlimitedCharacters(tag, _jsonTextEncodings, dataBufferUC)
-                            : new DicomUnlimitedCharacters(tag, data.GetAsStringArray().SingleOrDefault()),
-                "UI" => new DicomUniqueIdentifier(tag, (string[])data),
-                "UL" => data is IByteBuffer dataBufferUL
-                            ? new DicomUnsignedLong(tag, dataBufferUL)
-                            : new DicomUnsignedLong(tag, (uint[])data),
                 "UN" => new DicomUnknown(tag, (IByteBuffer)data),
-                "UR" => new DicomUniversalResource(tag, data.GetAsStringArray().GetSingleOrEmpty()),
-                "US" => data is IByteBuffer dataBufferUS
-                            ? new DicomUnsignedShort(tag, dataBufferUS)
-                            : new DicomUnsignedShort(tag, (ushort[])data),
-                "UT" => data is IByteBuffer dataBufferUT
-                            ? new DicomUnlimitedText(tag, _jsonTextEncodings, dataBufferUT)
-                            : new DicomUnlimitedText(tag, data.GetAsStringArray().GetSingleOrEmpty()),
-                "UV" => data is IByteBuffer dataBufferUV
-                            ? new DicomUnsignedVeryLong(tag, dataBufferUV)
-                            : new DicomUnsignedVeryLong(tag, (ulong[])data),
-                _ => throw new NotSupportedException("Unsupported value representation"),
+                "PN" => new DicomPersonName(tag, (string[])data),
+                _ => new DicomLongString(tag, (string[])data),
             };
             return item;
         }
@@ -725,56 +739,78 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
 
             object data;
 
-            switch (vr)
+            if (_autoValidate)
             {
-                case "OB":
-                case "OD":
-                case "OF":
-                case "OL":
-                case "OW":
-                case "OV":
-                case "UN":
-                    data = ReadJsonOX(ref reader);
-                    break;
-                case "SQ":
-                    data = ReadJsonSequence(ref reader);
-                    break;
-                case "PN":
-                    data = ReadJsonPersonName(ref reader);
-                    break;
-                case "FL":
-                    data = ReadJsonMultiNumber(ref reader, r => r.GetSingle());
-                    break;
-                case "FD":
-                    data = ReadJsonMultiNumber(ref reader, r => r.GetDouble());
-                    break;
-                case "IS":
-                    data = ReadJsonMultiNumberOrString(ref reader, r => r.GetInt32(), TryParseInt);
-                    break;
-                case "SL":
-                    data = ReadJsonMultiNumber(ref reader, r => r.GetInt32());
-                    break;
-                case "SS":
-                    data = ReadJsonMultiNumber(ref reader, r => r.GetInt16());
-                    break;
-                case "SV":
-                    data = ReadJsonMultiNumberOrString(ref reader, r => r.GetInt64(), TryParseLong);
-                    break;
-                case "UL":
-                    data = ReadJsonMultiNumber(ref reader, r => r.GetUInt32());
-                    break;
-                case "US":
-                    data = ReadJsonMultiNumber(ref reader, r => r.GetUInt16());
-                    break;
-                case "UV":
-                    data = ReadJsonMultiNumberOrString(ref reader, r => r.GetUInt64(), TryParseULong);
-                    break;
-                case "DS":
-                    data = ReadJsonMultiNumberOrString(ref reader, r => r.GetDecimal(), TryParseDecimal);
-                    break;
-                default:
-                    data = ReadJsonMultiString(ref reader);
-                    break;
+                switch (vr)
+                {
+                    case "OB":
+                    case "OD":
+                    case "OF":
+                    case "OL":
+                    case "OW":
+                    case "OV":
+                    case "UN":
+                        data = ReadJsonOX(ref reader);
+                        break;
+                    case "SQ":
+                        data = ReadJsonSequence(ref reader);
+                        break;
+                    case "PN":
+                        data = ReadJsonPersonName(ref reader);
+                        break;
+                    case "FL":
+                        data = ReadJsonMultiNumber(ref reader, r => r.GetSingle());
+                        break;
+                    case "FD":
+                        data = ReadJsonMultiNumber(ref reader, r => r.GetDouble());
+                        break;
+                    case "IS":
+                        data = ReadJsonMultiNumberOrString(ref reader, r => r.GetInt32(), TryParseInt);
+                        break;
+                    case "SL":
+                        data = ReadJsonMultiNumber(ref reader, r => r.GetInt32());
+                        break;
+                    case "SS":
+                        data = ReadJsonMultiNumber(ref reader, r => r.GetInt16());
+                        break;
+                    case "SV":
+                        data = ReadJsonMultiNumberOrString(ref reader, r => r.GetInt64(), TryParseLong);
+                        break;
+                    case "UL":
+                        data = ReadJsonMultiNumber(ref reader, r => r.GetUInt32());
+                        break;
+                    case "US":
+                        data = ReadJsonMultiNumber(ref reader, r => r.GetUInt16());
+                        break;
+                    case "UV":
+                        data = ReadJsonMultiNumberOrString(ref reader, r => r.GetUInt64(), TryParseULong);
+                        break;
+                    case "DS":
+                        data = ReadJsonMultiNumberOrString(ref reader, r => r.GetDecimal(), TryParseDecimal);
+                        break;
+                    default:
+                        data = ReadJsonMultiString(ref reader);
+                        break;
+                }
+            }
+            else
+            {
+                switch (vr)
+                {
+                    case "UN":
+                        data = ReadJsonOX(ref reader);
+                        break;
+                    case "SQ":
+                        data = ReadJsonSequence(ref reader);
+                        break;
+                    case "PN":
+                        // data = CustomReadKVSequence(ref reader); // this is just a single KV pair we need to extract but otherwise shouldn't care
+                        data = ReadJsonPersonName(ref reader); // this is just a single KV pair we need to extract but otherwise shouldn't care
+                        break;
+                    default:
+                        data = ReadJsonMultiString(ref reader);
+                        break;
+                }
             }
 
             // move to the end of the object
