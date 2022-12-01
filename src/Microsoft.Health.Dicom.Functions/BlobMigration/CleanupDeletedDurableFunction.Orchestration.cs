@@ -24,6 +24,12 @@ public partial class CleanupDeletedDurableFunction
     /// Asynchronously deletes dangling DICOM deleted instances.
     /// It goes through DICOM instances in the past, deletes old format blob.
     /// </summary>
+    /// <remarks>
+    /// The orchestration calls an activity by timestamp first and for subsequent calls
+    /// data is fetched using watermark. Since the sproc returns entries between start and end watermark,
+    /// there will be scenario where there will be no entries in a batch. In that case it looks for max watermark
+    /// to see if it reaches the end, if so it ends the operation else it queues.
+    /// </remarks>
     /// <param name="context">The context for the orchestration instance.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>A task representing the <see cref="CleanupDeletedFilesAsync"/> operation.</returns>
