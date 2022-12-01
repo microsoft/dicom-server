@@ -93,6 +93,7 @@ public partial class CleanupDeletedDurableFunction
                     FilterTimeStamp = null, // For next batch, ensure the timestamp is null so that we can use the watermark to fetch next batch
                 });
         }
+        // If the watermark is less than the max watermark, then continue the operation with next batch size
         else if (!hasReachedToEnd && input.Completed.HasValue)
         {
             logger.LogInformation("No change feed deleted entries in this batch {MaxWatermark} - {CurrentWatermark}. Queuing for next batch.", maxWatermark, input.Completed.Value.End);
