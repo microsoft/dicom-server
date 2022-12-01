@@ -16,7 +16,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Microsoft.Health.Dicom.Api.Features.Swagger;
 
-public class IgnoreEnumSchemaFilter : ISchemaFilter
+internal class IgnoreEnumSchemaFilter : ISchemaFilter
 {
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {

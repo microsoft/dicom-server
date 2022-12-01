@@ -37,8 +37,7 @@ public partial class CleanupDeletedDurableFunction
         return await _changeFeedStore.GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
             arguments.BatchSize,
             arguments.FilterTimeStamp,
-            arguments.StartWatermark,
-            arguments.EndWatermark,
+            arguments.BatchRange,
             CancellationToken.None);
     }
 

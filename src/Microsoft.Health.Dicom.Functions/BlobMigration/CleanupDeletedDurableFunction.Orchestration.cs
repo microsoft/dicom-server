@@ -54,8 +54,7 @@ public partial class CleanupDeletedDurableFunction
             _options.RetryOptions,
             new CleanupDeletedBatchArguments
             {
-                StartWatermark = input.Completed.HasValue ? input.Completed.Value.Start : default,
-                EndWatermark = input.Completed.HasValue ? input.Completed.Value.End : default,
+                BatchRange = input.Completed,
                 BatchSize = input.Batching.Size,
                 FilterTimeStamp = input.FilterTimeStamp,
             });
@@ -73,7 +72,7 @@ public partial class CleanupDeletedDurableFunction
 
             // Create a new orchestration with the same instance ID to process the remaining data
             logger.LogInformation("Completed deleting the range {Range}. Total files deleted in range: '{NumFiles}'. " +
-                "Continuing with new execution...", batchRange, batchRange.End - batchRange.Start + 1);
+                "Continuing with new execution...", changeFeedEntries.Count);
 
             WatermarkRange nextRange = new WatermarkRange(batchRange.End + 1, batchRange.End + input.Batching.Size);
 

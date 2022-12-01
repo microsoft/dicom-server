@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Functions.BlobMigration.Models;
 
@@ -13,14 +14,9 @@ namespace Microsoft.Health.Dicom.Functions.BlobMigration.Models;
 public class CleanupDeletedBatchArguments
 {
     /// <summary>
-    /// Gets or sets the optional inclusive start watermark.
+    /// Gets or sets the inclusive start and end watermark
     /// </summary>
-    public long StartWatermark { get; set; }
-
-    /// <summary>
-    /// Gets or sets the optional inclusive end watermark.
-    /// </summary>
-    public long EndWatermark { get; set; }
+    public WatermarkRange? BatchRange { get; set; }
 
     /// <summary>
     /// Gets or sets the number of DICOM instances processed by a single activity.

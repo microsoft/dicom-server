@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -29,14 +30,16 @@ internal class SqlChangeFeedStoreV24 : SqlChangeFeedStoreV6
     public override async Task<IReadOnlyCollection<ChangeFeedEntry>> GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
         int batchCount,
         DateTime? timeStamp,
-        long startWatermark = default,
-        long endWatermark = default,
+        WatermarkRange? watermarkRange,
         CancellationToken cancellationToken = default)
     {
         var results = new List<ChangeFeedEntry>();
 
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+
+        var startWatermark = watermarkRange.HasValue ? watermarkRange.Value.Start : default;
+        var endWatermark = watermarkRange.HasValue ? watermarkRange.Value.End : default;
 
         VLatest.GetDeletedChangeFeedByWatermarkOrTimeStamp.PopulateCommand(sqlCommandWrapper, batchCount, timeStamp, startWatermark, endWatermark);
 

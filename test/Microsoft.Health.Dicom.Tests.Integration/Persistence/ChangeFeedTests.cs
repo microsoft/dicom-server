@@ -71,8 +71,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         IReadOnlyCollection<ChangeFeedEntry> result = await _fixture.DicomChangeFeedStore.GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
             2,
             timeStamp,
-            0,
-            0,
+            null,
             CancellationToken.None);
 
         Assert.NotNull(result);
@@ -91,12 +90,13 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
 
         var changeFeedEntry = await _fixture.DicomChangeFeedStore.GetChangeFeedLatestAsync();
+        WatermarkRange watermarkRange = new WatermarkRange(changeFeedEntry.Sequence, changeFeedEntry.Sequence + batchSize);
+
 
         IReadOnlyCollection<ChangeFeedEntry> result = await _fixture.DicomChangeFeedStore.GetDeletedChangeFeedByWatermarkOrTimeStampAsync(
             batchSize,
             null,
-            changeFeedEntry.Sequence,
-            changeFeedEntry.Sequence + batchSize,
+            watermarkRange,
             CancellationToken.None);
 
         Assert.NotNull(result);

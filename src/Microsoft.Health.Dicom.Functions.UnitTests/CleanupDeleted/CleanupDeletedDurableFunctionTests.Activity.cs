@@ -31,7 +31,7 @@ public partial class CleanupDeletedDurableFunctionTests
         };
 
         _changeFeedStore
-            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, timeStamp)
+            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, timeStamp, null)
             .Returns(expected);
 
         IReadOnlyCollection<ChangeFeedEntry> actual = await _function.GetDeletedChangeFeedInstanceBatchesAsync(
@@ -46,13 +46,14 @@ public partial class CleanupDeletedDurableFunctionTests
 
         await _changeFeedStore
             .Received(1)
-            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, timeStamp);
+            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, timeStamp, null);
     }
 
     [Fact]
     public async Task GivenWatermark_WhenGettingDeletedChangeFeedInstanceBatches_ThenShouldInvokeCorrectMethod()
     {
         const int batchSize = 100;
+        WatermarkRange watermarkRange = new WatermarkRange(1, 2);
 
         IReadOnlyCollection<ChangeFeedEntry> expected = new List<ChangeFeedEntry> {
             new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Delete, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, 1, ChangeFeedState.Current),
@@ -60,15 +61,14 @@ public partial class CleanupDeletedDurableFunctionTests
         };
 
         _changeFeedStore
-            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, null, 1, 2)
+            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, null, new WatermarkRange(1, 2))
             .Returns(expected);
 
         IReadOnlyCollection<ChangeFeedEntry> actual = await _function.GetDeletedChangeFeedInstanceBatchesAsync(
             new CleanupDeletedBatchArguments
             {
                 BatchSize = batchSize,
-                StartWatermark = 1,
-                EndWatermark = 2,
+                BatchRange = watermarkRange
             },
             NullLogger.Instance);
 
@@ -76,7 +76,7 @@ public partial class CleanupDeletedDurableFunctionTests
 
         await _changeFeedStore
             .Received(1)
-            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, null, 1, 2);
+            .GetDeletedChangeFeedByWatermarkOrTimeStampAsync(batchSize, null, watermarkRange);
     }
 
     [Fact]
