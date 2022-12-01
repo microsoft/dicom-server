@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,6 +14,9 @@ internal class DicomFunctionOptions
 
     [Required]
     public FanOutFunctionOptions Copy { get; set; }
+
+    [Required]
+    public FanOutFunctionOptions CleanupDeleted { get; set; }
 
     [Required]
     public DurableClientOptions DurableTask { get; set; }

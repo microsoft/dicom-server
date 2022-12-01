@@ -209,6 +209,23 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         _logger.LogInformation("Successfully started delete operation with ID '{InstanceId}'.", instanceId);
     }
 
+    public async Task StartBlobCleanupDeletedAsync(Guid operationId, DateTime filterTimeStamp, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.CleanupDeleted.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new BlobMigrationCheckpoint
+            {
+                Batching = _options.CleanupDeleted.Batching,
+                Completed = previousCheckpoint,
+                FilterTimeStamp = filterTimeStamp,
+            });
+
+        _logger.LogInformation("Successfully started cleanup deleted operation with ID '{InstanceId}'.", instanceId);
+    }
+
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
         Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,

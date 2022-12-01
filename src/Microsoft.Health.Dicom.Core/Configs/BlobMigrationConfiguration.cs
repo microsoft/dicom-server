@@ -38,4 +38,14 @@ public class BlobMigrationConfiguration
     /// Gets or sets the delete files operation id
     /// </summary>
     public Guid DeleteOperationId { get; set; } = Guid.Parse("ce38a27e-b194-4645-b47a-fe91c38c330f");
+
+    /// <summary>
+    /// Gets or sets the clean up delete files operation id
+    /// </summary>
+    public Guid CleanupDeletedOperationId { get; set; } = Guid.Parse("d32a0469-9c27-4df3-a1e8-12f7f8fecbc8");
+
+    /// <summary>
+    /// Timestamp to filter change feed deleted instances
+    /// </summary>
+    public DateTime CleanupFilterTimeStamp { get; set; }
 }

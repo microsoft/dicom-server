@@ -5,11 +5,9 @@
 
 using System;
 
-namespace Microsoft.Health.Dicom.Functions.Migration;
+namespace Microsoft.Health.Dicom.Core.Models;
 
-public class BlobMigrationInput
+[AttributeUsage(AttributeTargets.All)]
+public sealed class IgnoreEnumAttribute : Attribute
 {
-    public BatchingOptions Batching { get; set; }
-
-    public DateTime? FilterTimeStamp { get; set; }
 }
