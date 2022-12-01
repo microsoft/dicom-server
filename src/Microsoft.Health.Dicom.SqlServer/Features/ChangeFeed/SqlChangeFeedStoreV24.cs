@@ -38,10 +38,9 @@ internal class SqlChangeFeedStoreV24 : SqlChangeFeedStoreV6
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        var startWatermark = watermarkRange.HasValue ? watermarkRange.Value.Start : default;
-        var endWatermark = watermarkRange.HasValue ? watermarkRange.Value.End : default;
+        (long start, long end) = watermarkRange.GetValueOrDefault();
 
-        VLatest.GetDeletedChangeFeedByWatermarkOrTimeStamp.PopulateCommand(sqlCommandWrapper, batchCount, timeStamp, startWatermark, endWatermark);
+        VLatest.GetDeletedChangeFeedByWatermarkOrTimeStamp.PopulateCommand(sqlCommandWrapper, batchCount, timeStamp, start, end);
 
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))

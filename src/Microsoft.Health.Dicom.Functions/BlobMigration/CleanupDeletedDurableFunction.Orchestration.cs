@@ -78,7 +78,7 @@ public partial class CleanupDeletedDurableFunction
 
             // Create a new orchestration with the same instance ID to process the remaining data
             logger.LogInformation("Completed deleting the range {Range}. Total files deleted in range: '{NumFiles}'. " +
-                "Continuing with new execution...", changeFeedEntries.Count);
+                "Continuing with new execution...", batchRange, changeFeedEntries.Count);
 
             WatermarkRange nextRange = new WatermarkRange(batchRange.End + 1, batchRange.End + input.Batching.Size);
 
