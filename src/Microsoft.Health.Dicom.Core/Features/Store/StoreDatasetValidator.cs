@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -27,12 +28,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly bool _enableFullDicomItemValidation;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
+    private readonly IDicomTelemetryClient _telemetryClient;
 
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
-        IQueryTagService queryTagService)
+        IQueryTagService queryTagService,
+        IDicomTelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -41,6 +44,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc/>
@@ -134,6 +138,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
 
                 validationResultBuilder.Add(validationWarning, queryTag);
+                _telemetryClient.TrackIndexingTagsValidationErrorByVr(ex, queryTag.VR.Code);
             }
             catch (ElementValidationException ex)
             {

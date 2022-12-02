@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Api.Features.Telemetry;
@@ -33,5 +34,15 @@ internal class HttpDicomTelemetryClient : IDicomTelemetryClient
     {
         _httpContextAccessor.HttpContext.Items[DicomTelemetry.ContextItemPrefix + name] = value;
         _telemetryClient.GetMetric(name).TrackValue(value);
+    }
+
+    public void TrackMetric(string name, ElementValidationException ex, string vrCode)
+    {
+        const int value = 1;
+        _httpContextAccessor.HttpContext.Items[DicomTelemetry.ContextItemPrefix + name] = value;
+        _telemetryClient.GetMetric(name).TrackValue(
+            value,
+            vrCode,
+            ex.ErrorCode.ToString());
     }
 }
