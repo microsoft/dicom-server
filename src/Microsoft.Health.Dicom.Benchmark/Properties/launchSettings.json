@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Microsoft.Health.Dicom.Benchmark": {
+      "commandName": "Project"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    }
+  }
+}
