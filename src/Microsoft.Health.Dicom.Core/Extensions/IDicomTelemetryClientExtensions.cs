@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
@@ -32,5 +33,15 @@ internal static class IDicomTelemetryClientExtensions
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         telemetryClient.TrackMetric("MaxInstanceBytes", bytes);
+    }
+
+    public static void TrackIndexingTagsValidationErrorByVr(
+        this IDicomTelemetryClient telemetryClient,
+        ElementValidationException ex,
+        string vrCode
+        )
+    {
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        telemetryClient.TrackMetric("IndexingTagValidationErrorByVrCode", ex, vrCode);
     }
 }
