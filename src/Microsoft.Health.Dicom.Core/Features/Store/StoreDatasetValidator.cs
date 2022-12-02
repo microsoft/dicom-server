@@ -138,11 +138,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
 
                 validationResultBuilder.Add(validationWarning, queryTag);
-                _telemetryClient.TrackIndexingTagsValidationErrorByVr(ex, queryTag.VR.Code);
             }
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag);
+                _telemetryClient.TrackIndexingTagsValidationErrorByVr(ex, queryTag.VR.Code);
             }
         }
     }
