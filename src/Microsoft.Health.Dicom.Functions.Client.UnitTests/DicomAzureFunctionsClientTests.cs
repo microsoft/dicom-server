@@ -76,6 +76,15 @@ public class DicomAzureFunctionsClientTests
                     Size = 50,
                 },
             },
+            CleanupDeleted = new FanOutFunctionOptions
+            {
+                Name = FunctionNames.CleanupDeletedFiles,
+                Batching = new BatchingOptions
+                {
+                    MaxParallelCount = 2,
+                    Size = 50,
+                },
+            },
             MigrationDeletion = new FanOutFunctionOptions
             {
                 Name = FunctionNames.DeleteMigratedFiles,
@@ -521,5 +530,22 @@ public class DicomAzureFunctionsClientTests
                 FunctionNames.DeleteMigratedFiles,
                 operationId.ToString(OperationId.FormatSpecifier),
                 Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.MigrationDeletion.Batching, x.Batching)));
+    }
+
+
+
+    [Fact]
+    public async Task GivenValidArgs_WhenStartingCleanupDelete_ThenStartOrchestration()
+    {
+        var operationId = Guid.Parse("d32a0469-9c27-4df3-a1e8-12f7f8fecbc8");
+        using var tokenSource = new CancellationTokenSource();
+        await _client.StartBlobCleanupDeletedAsync(operationId, DateTime.UtcNow, null, tokenSource.Token);
+
+        await _durableClient
+            .Received(1)
+            .StartNewAsync(
+                FunctionNames.CleanupDeletedFiles,
+                operationId.ToString(OperationId.FormatSpecifier),
+                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.CleanupDeleted.Batching, x.Batching)));
     }
 }

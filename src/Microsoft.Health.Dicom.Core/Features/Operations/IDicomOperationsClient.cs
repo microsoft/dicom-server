@@ -124,4 +124,17 @@ public interface IDicomOperationsClient
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task StartBlobDeleteAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously begins the dangling old blobs.
+    /// </summary>
+    /// <param name="operationId">The desired ID for the clenup operation.</param>
+    /// <param name="filterTimeStamp">Timestamp to filter change feed deleted instances.</param>
+    /// <param name="previousCheckpoint">Optional checkpoint from a previous execution.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>
+    /// A task representing the <see cref="StartBlobCleanupDeletedAsync"/> operation.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task StartBlobCleanupDeletedAsync(Guid operationId, DateTime filterTimeStamp, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default);
 }

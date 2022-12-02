@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -25,5 +25,6 @@ public class BlobMigrationOptions
     /// <summary>
     /// Gets or sets the <see cref="ActivityRetryOptions"/> for copy activities.
     /// </summary>
+    [Required]
     public ActivityRetryOptions RetryOptions { get; set; }
 }

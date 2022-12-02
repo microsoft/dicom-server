@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,11 +13,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
+using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 using Microsoft.Health.Dicom.SqlServer.Features.Partition;
@@ -167,6 +169,15 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlWorkitemStoreV14(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV14>.Instance)
             }));
 
+        ChangeFeedStore = new SqlChangeFeedStore(new VersionedCache<ISqlChangeFeedStore>(
+            schemaResolver,
+            new[]
+            {
+                new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
+                new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
+                new SqlChangeFeedStoreV24(SqlConnectionWrapperFactory)
+            }));
+
         IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
         ExtendedQueryTagErrorStoreTestHelper = new ExtendedQueryTagErrorStoreTestHelper(TestConnectionString);
@@ -195,6 +206,8 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
     public IExtendedQueryTagErrorStore ExtendedQueryTagErrorStore { get; }
 
     public IIndexWorkitemStore IndexWorkitemStore { get; }
+
+    public IChangeFeedStore ChangeFeedStore { get; }
 
     public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
     public string TestConnectionString { get; }

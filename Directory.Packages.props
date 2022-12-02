@@ -44,7 +44,7 @@
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="5.1.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="5.2.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.CommandLine" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(SdkPackageVersion)" />
