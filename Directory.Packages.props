@@ -12,7 +12,7 @@
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.0.3" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.1.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.21.9" />
+    <PackageVersion Include="Google.Protobuf" Version="3.21.10" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
@@ -98,7 +98,7 @@
     <PackageVersion Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.4.0" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
-    <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)"/>
+    <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="$(IdentityModelTokenPackageVersion)" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
