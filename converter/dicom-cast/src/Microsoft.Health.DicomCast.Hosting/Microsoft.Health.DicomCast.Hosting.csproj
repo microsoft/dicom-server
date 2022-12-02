@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
+    <TargetFramework>$(LatestVersion)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
