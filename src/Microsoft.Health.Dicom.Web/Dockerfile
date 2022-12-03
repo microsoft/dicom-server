@@ -4,6 +4,7 @@
 FROM mcr.microsoft.com/dotnet/aspnet:7.0.0-alpine3.16@sha256:68c4e7e7a8720eff089658930af0a3b57ebf4d1bc2e5340e908f837733a30ef9 AS runtime
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
+    apk update && \
     apk add --no-cache icu-libs && \
     addgroup nonroot && \
     adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
@@ -21,7 +22,10 @@ ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 
 # TODO: Remove once Swashbuckle has been updated for .NET 7
-RUN apt-get update && sudo apt-get install -y dotnet-sdk-6.0
+RUN set -x && \
+    apk update && \
+    apk add --no-cache bash && \
+    curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 6.0 -InstallDir /usr/share/dotnet
 
 WORKDIR /dicom-server
 COPY . .
