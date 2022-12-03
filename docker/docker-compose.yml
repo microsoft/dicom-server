@@ -5,6 +5,9 @@ services:
     build:
       context: ./..
       dockerfile: src/Microsoft.Health.Dicom.Web/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+        CONTINUOUS_INTEGRATION_BUILD: ${ContinuousIntegrationBuild:-false}
     platform: linux/amd64
     environment:
       AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
@@ -30,6 +33,9 @@ services:
       # for Docker Compose, so the Dockerfile cannot be in the same folder as the csproj
       context: ./..
       dockerfile: docker/functions/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+        CONTINUOUS_INTEGRATION_BUILD: ${ContinuousIntegrationBuild:-false}
     platform: linux/amd64
     environment:
       AzureFunctionsJobHost__BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"

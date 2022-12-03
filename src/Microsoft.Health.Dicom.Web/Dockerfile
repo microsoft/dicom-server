@@ -19,6 +19,10 @@ USER nonroot
 FROM mcr.microsoft.com/dotnet/sdk:7.0.100-alpine3.16@sha256:7608d66e56af46b09033b269fef6f048a4b58d50aa54b857471ec0d0194c59f9 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
+
+# TODO: Remove once Swashbuckle has been updated for .NET 7
+RUN apt-get update && sudo apt-get install -y dotnet-sdk-6.0
+
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Web
