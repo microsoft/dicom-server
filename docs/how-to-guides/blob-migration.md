@@ -36,7 +36,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
 
         3.1.2. To ensure Copy has been completed, you can check Azure Monitor logs for `"Completed copying files."` message. This will indicate that the copy has been completed.
 
-        3.1.3. Once the copy is completed, you can change the BlobMigration.FormatType to "New" and BlobMigration.StartDelete to "True" and restart the service. This will trigger Delete background service which will delete all the old format blobs only if the corresponding new format blobs exist and set the format to New. This is a safe operation and doesn't delete any blobs without checking for the existence of new format blobs.
+        3.1.3. Once the copy is completed, you can change `BlobMigration.FormatType` to `"New"` and `BlobMigration.StartDelete` to `true` and restart the service. This will trigger a Durable Function which will delete all the old format blobs only if corresponding new format blobs exist. This is a safe operation and doesn't delete any blobs without checking for the existence of new format blobs.
 
         3.1.4. To ensure Delete has been completed, you can check Azure Monitor logs for `"Completed deleting files."` message. This will indicate that the delete has been completed.
 
