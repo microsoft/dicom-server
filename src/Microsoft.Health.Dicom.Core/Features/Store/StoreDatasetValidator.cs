@@ -142,7 +142,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag);
-                _telemetryClient.TrackIndexingTagsValidationErrorByVr(ex, queryTag.VR.Code);
+                _telemetryClient.TrackIndexingTagsValidationErrorByVr(ex.ErrorCode.ToString(), ex.Name, queryTag.VR.Code);
             }
         }
     }

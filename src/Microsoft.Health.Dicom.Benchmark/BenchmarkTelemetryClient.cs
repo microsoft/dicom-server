@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.ApplicationInsights;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Benchmark;
@@ -24,12 +23,17 @@ internal sealed class BenchmarkTelemetryClient : IDicomTelemetryClient
     public void TrackMetric(string name, long value)
         => _telemetryClient.GetMetric(name).TrackValue(value);
 
-    public void TrackMetric(string name, ElementValidationException ex, string vrCode)
+    public void TrackMetric(
+        string name,
+        string exceptionErrorCode,
+        string tagName,
+        string vrCode)
     {
         const int value = 1;
         _telemetryClient.GetMetric(name).TrackValue(
             value,
             vrCode,
-            ex.ErrorCode.ToString());
+            exceptionErrorCode,
+            tagName);
     }
 }

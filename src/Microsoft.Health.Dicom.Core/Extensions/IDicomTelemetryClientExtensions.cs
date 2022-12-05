@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
@@ -37,11 +36,12 @@ internal static class IDicomTelemetryClientExtensions
 
     public static void TrackIndexingTagsValidationErrorByVr(
         this IDicomTelemetryClient telemetryClient,
-        ElementValidationException ex,
+        string exceptionErrorCode,
+        string tagName,
         string vrCode
     )
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("IndexingTagValidationErrorByVrCode", ex, vrCode);
+        telemetryClient.TrackMetric("IndexingTagValidationErrorByVrCode", exceptionErrorCode, tagName, vrCode);
     }
 }

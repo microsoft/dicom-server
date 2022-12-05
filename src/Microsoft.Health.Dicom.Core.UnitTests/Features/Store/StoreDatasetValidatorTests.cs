@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -33,6 +34,7 @@ public class StoreDatasetValidatorTests
     private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
     private readonly IQueryTagService _queryTagService;
     private readonly List<QueryTag> _queryTags;
+    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
 
     public StoreDatasetValidatorTests()
     {
@@ -41,7 +43,7 @@ public class StoreDatasetValidatorTests
         _queryTagService = Substitute.For<IQueryTagService>();
         _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
         _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _telemetryClient);
     }
 
     [Fact]
@@ -55,7 +57,7 @@ public class StoreDatasetValidatorTests
         _queryTags.Clear();
         _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
         IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _telemetryClient);
 
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
 
@@ -219,7 +221,7 @@ public class StoreDatasetValidatorTests
         });
         var minValidator = new ElementMinimumValidator();
 
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _telemetryClient);
 
         // LO VR, invalid characters
         _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
@@ -234,6 +236,21 @@ public class StoreDatasetValidatorTests
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
         await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
+    }
+
+
+    [Fact]
+    public async Task GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionMetricsShouldBeTracked()
+    {
+        // CS VR, > 16 characters is not allowed
+        _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
+
+        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
+        _telemetryClient.Received(1).TrackMetric(
+            "IndexingTagValidationErrorByVrCode",
+            "ExceedMaxLength",
+            "Modality",
+            "CS");
     }
 
     [Fact]
