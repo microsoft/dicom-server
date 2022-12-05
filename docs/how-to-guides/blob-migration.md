@@ -28,7 +28,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
 
 2. If you have already uploaded DICOM files but do not care about migrating the data, you can use the [Delete API](../resources/conformance-statement.md#delete) to delete all existing studies. You can then upgrade to the latest version of the service.
 
-3. If you have already uploaded DICOM files and want to keep the previous data, you need to execute the below steps to copy the files first. This scenario has two options depending on whether if you want interruption to the service or not. Make sure Azure monitor is configured to monitor the service before starting the migration, for more info on how to configure Azure monitor, please refer to [Azure Monitor](../how-to-guides/configure-dicom-server-settings.md#azure-monitor).
+3. If you have already uploaded DICOM files and want to migrate the data, you will need to execute the following steps before upgrading. This scenario has two options depending on whether if you want interruption to the service or not. Make sure Azure Monitor is configured to monitor the service before starting the migration (for more info on how to configure Azure monitor, please refer to [the Azure Monitor guide](../how-to-guides/configure-dicom-server-settings.md#azure-monitor)).
 
     3.1. If you are ok with interruption to the service, you can follow the steps below:
 
