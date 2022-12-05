@@ -32,7 +32,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
 
     3.1. If you are ok with interruption to the service, you can follow the steps below:
 
-        3.1.1. Change the BlobMigration.StartCopy to "True" and restart the service. This will start the copy background service which will trigger the CopyFiles Azure Durable Function which will copy the old format DICOM files to new format.
+        3.1.1. Set `BlobMigration.StartCopy` to `true` and restart the service. This will trigger the `CopyFiles` Durable Function which will copy the old format DICOM files to the new format.
 
         3.1.2. To ensure Copy has been completed, you can check Azure Monitor logs for `"Completed copying files."` message. This will indicate that the copy has been completed.
 
