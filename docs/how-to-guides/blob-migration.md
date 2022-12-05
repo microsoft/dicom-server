@@ -24,7 +24,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
 
 ## Migration steps
 
-1. If you are a new service and have not created any files, you can upgrade to the latest version of the service and skip the migration steps. That means you will see the BlobMigration.FormatType as "New" in appsettings configuration file. 
+1. If you are a new service and have not created any files, you can upgrade to the latest version of the service and skip the migration steps. The configuration section above will not be present.
 
 2. If you have already uploaded DICOM files but does not care about previous data. You can use the [Delete API](../resources/conformance-statement.md#delete) to delete all the data which can free up space and then upgrade to the latest version of the service or you can upgrade to the latest version of the service and then use the [Delete API](../resources/conformance-statement.md#delete) to delete all the data.
 
