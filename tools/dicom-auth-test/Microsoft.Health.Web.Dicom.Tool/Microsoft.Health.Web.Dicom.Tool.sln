@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Web.Dicom.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{F534A1AD-5181-41B0-A89C-B28B46E77641}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "..\..\..\forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{BB9ABA00-A591-49E0-A2CE-CEED514B3FB1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,10 @@ Global
 		{F534A1AD-5181-41B0-A89C-B28B46E77641}.Debug|x64.Build.0 = Debug|x64
 		{F534A1AD-5181-41B0-A89C-B28B46E77641}.Release|x64.ActiveCfg = Release|x64
 		{F534A1AD-5181-41B0-A89C-B28B46E77641}.Release|x64.Build.0 = Release|x64
+		{BB9ABA00-A591-49E0-A2CE-CEED514B3FB1}.Debug|x64.ActiveCfg = Debug|x64
+		{BB9ABA00-A591-49E0-A2CE-CEED514B3FB1}.Debug|x64.Build.0 = Debug|x64
+		{BB9ABA00-A591-49E0-A2CE-CEED514B3FB1}.Release|x64.ActiveCfg = Release|x64
+		{BB9ABA00-A591-49E0-A2CE-CEED514B3FB1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

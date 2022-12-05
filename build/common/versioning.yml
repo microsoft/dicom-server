@@ -9,6 +9,11 @@ jobs:
     inputs:
       useGlobalJson: true
 
+  - task: UseDotNet@2
+    displayName: 'Use .NET 6 sdk'
+    inputs:
+      version: 6.x
+
   - task: DownloadBuildArtifacts@0
     inputs:
       buildType: 'current'

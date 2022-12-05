@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

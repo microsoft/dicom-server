@@ -17,9 +17,16 @@ USER nonroot
 EXPOSE 8080
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:6.0.403-alpine3.16@sha256:69890b0aba2aff41ebd69e5f5e09a9e21e00ca6488b38e0487ad4a8a7b2385a0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-alpine3.16@sha256:7608d66e56af46b09033b269fef6f048a4b58d50aa54b857471ec0d0194c59f9 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
+
+# Azure Functions v4 targets .NET 6
+RUN set -x && \
+    apk update && \
+    apk add --no-cache bash && \
+    curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 6.0 -InstallDir /usr/share/dotnet
+
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions.App
