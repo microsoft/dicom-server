@@ -18,6 +18,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
         "CleanupDeletedFileOperationId": "d32a0469-9c27-4df3-a1e8-12f7f8fecbc8",
         "CleanupFilterTimeStamp": "2022-08-01"
       }
+    }
 }
 ```
 
