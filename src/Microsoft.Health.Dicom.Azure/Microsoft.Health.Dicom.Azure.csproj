@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Implementation of Azure dependencies used in DICOM core library</Description>
-    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

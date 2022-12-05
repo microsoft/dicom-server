@@ -24,12 +24,14 @@
     <StsVersion>net7.0</StsVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TrimMode>partial</TrimMode>
     <WarningsAsErrors />
   </PropertyGroup>
 
   <!-- Currently the latest version is .NET 7 -->
   <PropertyGroup>
     <LatestVersion>$(StsVersion)</LatestVersion>
+    <LibraryFrameworks>$(LtsVersion);$(StsVersion)</LibraryFrameworks>
   </PropertyGroup>
 
   <!-- SDK Packages -->

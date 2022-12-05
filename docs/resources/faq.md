@@ -51,3 +51,7 @@ DICOM (Digital Imaging and Communications in Medicine) is the international stan
 Query, Retrieve, and store are standard DICOMweb&trade; verbs. Query (QIDO) searches for DICOM objects. QIDO enables you to search for studies, series and instances by patient ID. Retrieve (WADO) enables you to retrieve specific studies, series and instances by reference. Store (STOW-RS) enables you to store specific instances to a DICOM server.
 
 You can learn more about the specifics of QIDO, WADO and STOW from [DICOMweb&trade;](https://www.dicomstandard.org/dicomweb).
+
+## What versions of .NET are Supported?
+
+The web server always supports the latest .NET version, whether it is a short-term service (STS) or long-term service (LTS) version. The Azure Functions on the other hand, used to execute long-running operations, support the latest LTS version of .NET as per the support provided the Azure Functions framework. The Medical Imaging Server for DICOM docker images always include necessary runtime components.

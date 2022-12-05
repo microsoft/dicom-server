@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

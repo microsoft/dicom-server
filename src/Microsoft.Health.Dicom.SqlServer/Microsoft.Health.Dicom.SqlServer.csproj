@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>SQL Server extensions and utilities used by Microsoft's DICOMweb APIs.</Description>
-    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <!-- Properties used by sql task to generate full script-->

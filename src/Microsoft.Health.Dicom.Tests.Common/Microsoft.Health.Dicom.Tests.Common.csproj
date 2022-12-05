@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Azure blob storage utilities for Microsoft's DICOMweb APIs.</Description>
-    <TargetFrameworks>$(LtsVersion);$(StsVersion)</TargetFrameworks>
+    <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
