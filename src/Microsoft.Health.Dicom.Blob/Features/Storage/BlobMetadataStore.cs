@@ -25,8 +25,10 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
+using NotSupportedException = System.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -45,6 +47,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
+    private readonly IDicomTelemetryClient _telemetryClient;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -54,7 +57,8 @@ public class BlobMetadataStore : IMetadataStore
         IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
-        ILogger<BlobMetadataStore> logger)
+        ILogger<BlobMetadataStore> logger,
+        IDicomTelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
@@ -64,6 +68,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -106,6 +111,10 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
+            if (ex is NotSupportedException)
+            {
+                _telemetryClient.GetMetric("JsonSerializationException").TrackValue(1, typeof(ex));
+            }
             throw new DataStoreException(ex);
         }
     }
@@ -138,9 +147,17 @@ public class BlobMetadataStore : IMetadataStore
                 return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
             }, cancellationToken);
         }
-        catch (ItemNotFoundException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+            if (ex is ItemNotFoundException)
+            {
+                _logger.LogWarning(ex,
+                    "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.",
+                    versionedInstanceIdentifier);
+            }else if (ex is JsonException or NotSupportedException)
+            {
+                _telemetryClient.GetMetric("JsonDeserializationException").TrackValue(1, typeof(ex));
+            }
 
             throw;
         }
