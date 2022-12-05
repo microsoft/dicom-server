@@ -54,4 +54,4 @@ You can learn more about the specifics of QIDO, WADO and STOW from [DICOMweb&tra
 
 ## What versions of .NET are Supported?
 
-The web server always supports the latest .NET version, whether it is a short-term service (STS) or long-term service (LTS) version. The Azure Functions on the other hand, used to execute long-running operations, support the latest LTS version of .NET as per the support provided the Azure Functions framework. The Medical Imaging Server for DICOM docker images always include necessary runtime components.
+The web server always supports the latest .NET version, whether it is a Standard Term Support (STS) or Long Term Support (LTS) version. The Azure Functions on the other hand, used to execute long-running operations, support the latest LTS version of .NET as per the support provided the Azure Functions framework. The Medical Imaging Server for DICOM docker images always include the necessary runtime components.
