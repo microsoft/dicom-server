@@ -42,7 +42,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
 
     3.2. If you are not ok with interruption to the service, you can follow the steps below:
 
-        3.2.1. Change the BlobMigration.FormatType to "Dual" and restart the service. This will duplicate any new DICOM files uploaded to both old and new format. 
+        3.2.1. Change `BlobMigration.FormatType` to `"Dual"` and restart the service. This will duplicate any new DICOM files uploaded to both old and new format.
         
         3.2.2 Follow steps 3.1.1 to 3.1.4 to complete the copy and delete operation.
 
