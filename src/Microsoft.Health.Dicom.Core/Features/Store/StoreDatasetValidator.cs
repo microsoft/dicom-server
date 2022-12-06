@@ -142,16 +142,17 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag);
-                const int value = 1;
-                _telemetryClient.GetMetric(
-                    "IndexTagValidationError",
-                    "ExceptionErrorCode",
-                    "ExceptionName",
-                    "VrCode").TrackValue(
-                    value,
-                    ex.ErrorCode.ToString(),
-                    ex.Name,
-                    queryTag.VR.Code);
+                _telemetryClient
+                    .GetMetric(
+                        "IndexTagValidationError",
+                        "ExceptionErrorCode",
+                        "ExceptionName",
+                        "VrCode")
+                    .TrackValue(
+                        1,
+                        ex.ErrorCode.ToString(),
+                        ex.Name,
+                        queryTag.VR.Code);
             }
         }
     }
