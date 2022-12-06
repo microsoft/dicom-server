@@ -13,21 +13,18 @@ paths:
       parameters:
         - name: offset
           in: query
-          style: form
           schema:
             type: integer
             format: int64
             default: 0
         - name: limit
           in: query
-          style: form
           schema:
             type: integer
             format: int32
             default: 10
         - name: includeMetadata
           in: query
-          style: form
           schema:
             type: boolean
             default: true
@@ -55,7 +52,6 @@ paths:
       parameters:
         - name: includeMetadata
           in: query
-          style: form
           schema:
             type: boolean
             default: true
@@ -82,13 +78,11 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -114,13 +108,11 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -154,13 +146,11 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -216,7 +206,6 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -242,7 +231,6 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -276,7 +264,6 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -332,19 +319,16 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -370,19 +354,16 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -416,13 +397,11 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -448,13 +427,11 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -488,25 +465,21 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -532,25 +505,21 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -585,19 +554,16 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -623,19 +589,16 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -689,7 +652,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -734,7 +696,6 @@ paths:
       parameters:
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -742,7 +703,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -777,7 +737,6 @@ paths:
         - name: tagPath
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -795,7 +754,6 @@ paths:
         - name: tagPath
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -824,7 +782,6 @@ paths:
         - name: tagPath
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -866,12 +823,10 @@ paths:
         - name: tagPath
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -879,7 +834,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -915,7 +869,6 @@ paths:
         - name: operationId
           in: path
           required: true
-          style: simple
           schema:
             type: string
             format: uuid
@@ -976,19 +929,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -996,7 +946,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1005,7 +954,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1035,7 +983,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1090,19 +1037,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1110,7 +1054,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1191,19 +1134,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1211,7 +1151,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1220,7 +1159,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1249,19 +1187,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1269,7 +1204,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1302,24 +1236,20 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1327,7 +1257,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1336,7 +1265,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1366,24 +1294,20 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1391,7 +1315,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1423,19 +1346,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1443,7 +1363,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1452,7 +1371,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1481,19 +1399,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1501,7 +1416,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1534,24 +1448,20 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1559,7 +1469,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1568,7 +1477,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1598,24 +1506,20 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1623,7 +1527,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1656,30 +1559,25 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1687,7 +1585,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1696,7 +1593,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1726,30 +1622,25 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -1757,7 +1648,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -1789,19 +1679,16 @@ paths:
       parameters:
         - name: If-None-Match
           in: header
-          style: simple
           schema:
             type: string
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1842,13 +1729,11 @@ paths:
       parameters:
         - name: If-None-Match
           in: header
-          style: simple
           schema:
             type: string
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1889,25 +1774,21 @@ paths:
       parameters:
         - name: If-None-Match
           in: header
-          style: simple
           schema:
             type: string
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -1948,19 +1829,16 @@ paths:
       parameters:
         - name: If-None-Match
           in: header
-          style: simple
           schema:
             type: string
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2001,31 +1879,26 @@ paths:
       parameters:
         - name: If-None-Match
           in: header
-          style: simple
           schema:
             type: string
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2066,25 +1939,21 @@ paths:
       parameters:
         - name: If-None-Match
           in: header
-          style: simple
           schema:
             type: string
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2127,25 +1996,21 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: frames
           in: path
           required: true
-          style: simple
           schema:
             type: array
             items:
@@ -2154,7 +2019,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2189,25 +2053,21 @@ paths:
         - name: studyInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: seriesInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: sopInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: frames
           in: path
           required: true
-          style: simple
           schema:
             type: array
             items:
@@ -2259,7 +2119,6 @@ paths:
         - name: id
           in: path
           required: true
-          style: simple
           schema:
             type: integer
             format: int32
@@ -2275,7 +2134,6 @@ paths:
         - name: id
           in: path
           required: true
-          style: simple
           schema:
             type: integer
             format: int32
@@ -2298,7 +2156,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -2346,19 +2203,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -2366,7 +2220,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -2375,7 +2228,6 @@ paths:
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2447,19 +2299,16 @@ paths:
       parameters:
         - name: FuzzyMatching
           in: query
-          style: form
           schema:
             type: boolean
         - name: IncludeField
           in: query
-          style: form
           schema:
             type: array
             items:
               type: string
         - name: Offset
           in: query
-          style: form
           schema:
             maximum: 2147483647
             minimum: 0
@@ -2467,7 +2316,6 @@ paths:
             format: int32
         - name: Limit
           in: query
-          style: form
           schema:
             maximum: 200
             minimum: 1
@@ -2501,13 +2349,11 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -2561,7 +2407,6 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -2615,13 +2460,11 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -2653,7 +2496,6 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -2685,13 +2527,11 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2712,13 +2552,11 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
         - name: partitionName
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
@@ -2752,7 +2590,6 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       responses:
@@ -2773,7 +2610,6 @@ paths:
         - name: workitemInstanceUid
           in: path
           required: true
-          style: simple
           schema:
             type: string
       requestBody:
