@@ -243,7 +243,6 @@ public class StoreDatasetValidatorTests
         await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
     }
 
-
     [Fact]
     public async Task GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionMetricsShouldBeTracked()
     {
@@ -263,7 +262,6 @@ public class StoreDatasetValidatorTests
         Assert.Contains("ExceedMaxLength", metric.GetAllSeries()[1].Key);
         Assert.Contains("Modality", metric.GetAllSeries()[1].Key);
         Assert.Contains("CS", metric.GetAllSeries()[1].Key);
-
     }
 
     [Fact]
