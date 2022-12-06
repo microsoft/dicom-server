@@ -33,15 +33,4 @@ internal static class IDicomTelemetryClientExtensions
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         telemetryClient.TrackMetric("MaxInstanceBytes", bytes);
     }
-
-    public static void TrackIndexingTagsValidationErrorByVr(
-        this IDicomTelemetryClient telemetryClient,
-        string exceptionErrorCode,
-        string tagName,
-        string vrCode
-    )
-    {
-        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        telemetryClient.TrackMetric("IndexingTagValidationErrorByVrCode", exceptionErrorCode, tagName, vrCode);
-    }
 }

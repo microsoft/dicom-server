@@ -22,18 +22,4 @@ internal sealed class BenchmarkTelemetryClient : IDicomTelemetryClient
 
     public void TrackMetric(string name, long value)
         => _telemetryClient.GetMetric(name).TrackValue(value);
-
-    public void TrackMetric(
-        string name,
-        string exceptionErrorCode,
-        string tagName,
-        string vrCode)
-    {
-        const int value = 1;
-        _telemetryClient.GetMetric(name).TrackValue(
-            value,
-            vrCode,
-            exceptionErrorCode,
-            tagName);
-    }
 }

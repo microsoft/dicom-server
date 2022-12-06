@@ -12,5 +12,4 @@ public interface IDicomTelemetryClient
 
     void TrackMetric(string name, long value);
 
-    public void TrackMetric(string name, string exceptionErrorCode, string tagName, string vrCode);
 }

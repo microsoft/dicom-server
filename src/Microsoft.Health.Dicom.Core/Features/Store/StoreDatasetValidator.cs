@@ -10,12 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -28,14 +28,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly bool _enableFullDicomItemValidation;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
-    private readonly IDicomTelemetryClient _telemetryClient;
+    private readonly TelemetryClient _telemetryClient;
 
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
-        IDicomTelemetryClient telemetryClient)
+        TelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -142,7 +142,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag);
-                _telemetryClient.TrackIndexingTagsValidationErrorByVr(ex.ErrorCode.ToString(), ex.Name, queryTag.VR.Code);
+                const int value = 1;
+                _telemetryClient.GetMetric(
+                    "IndexTagValidationError",
+                    "ExceptionErrorCode",
+                    "ExceptionName",
+                    "VrCode").TrackValue(
+                    value,
+                    ex.ErrorCode.ToString(),
+                    ex.Name,
+                    queryTag.VR.Code);
             }
         }
     }

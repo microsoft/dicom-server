@@ -35,18 +35,4 @@ internal class HttpDicomTelemetryClient : IDicomTelemetryClient
         _telemetryClient.GetMetric(name).TrackValue(value);
     }
 
-    public void TrackMetric(
-        string name,
-        string exceptionErrorCode,
-        string tagName,
-        string vrCode)
-    {
-        const int value = 1;
-        _httpContextAccessor.HttpContext.Items[DicomTelemetry.ContextItemPrefix + name] = value;
-        _telemetryClient.GetMetric(name).TrackValue(
-            value,
-            vrCode,
-            exceptionErrorCode,
-            tagName);
-    }
 }

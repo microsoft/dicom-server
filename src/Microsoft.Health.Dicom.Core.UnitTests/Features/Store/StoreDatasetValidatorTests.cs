@@ -8,12 +8,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -34,7 +36,10 @@ public class StoreDatasetValidatorTests
     private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
     private readonly IQueryTagService _queryTagService;
     private readonly List<QueryTag> _queryTags;
-    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
+    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     public StoreDatasetValidatorTests()
     {
@@ -246,11 +251,15 @@ public class StoreDatasetValidatorTests
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
         await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
-        _telemetryClient.Received(1).TrackMetric(
-            "IndexingTagValidationErrorByVrCode",
-            "ExceedMaxLength",
-            "Modality",
-            "CS");
+
+        Metric metric = _telemetryClient.GetMetric(
+            "IndexTagValidationError",
+            "ExceptionErrorCode",
+            "ExceptionName",
+            "VrCode");
+
+        Assert.Equal(2, metric.SeriesCount);
+
     }
 
     [Fact]
