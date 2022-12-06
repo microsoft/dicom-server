@@ -256,7 +256,7 @@ public class StoreDatasetValidatorTests
             "IndexTagValidationError",
             "ExceptionErrorCode",
             "ExceptionName",
-            "VrCode");
+            "VR");
 
         Assert.Equal(2, metric.SeriesCount);
 

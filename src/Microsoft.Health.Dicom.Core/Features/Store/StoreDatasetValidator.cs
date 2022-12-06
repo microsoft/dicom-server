@@ -147,7 +147,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         "IndexTagValidationError",
                         "ExceptionErrorCode",
                         "ExceptionName",
-                        "VrCode")
+                        "VR")
                     .TrackValue(
                         1,
                         ex.ErrorCode.ToString(),
