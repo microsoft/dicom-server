@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -62,6 +65,12 @@ public class DataStoreTestsFixture : IAsyncLifetime
         optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
         optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
+
+        private readonly TelemetryClient _appInsightsTelemetryClient = new TelemetryClient(new TelemetryConfiguration()
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
+
         IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
 
         _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
@@ -75,7 +84,15 @@ public class DataStoreTestsFixture : IAsyncLifetime
 
         var migrationConfig = new BlobMigrationConfiguration { FormatType = BlobMigrationFormatType.New };
         FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), Options.Create(migrationConfig), NullLogger<BlobFileStore>.Instance);
-        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(migrationConfig), optionsMonitor, Options.Create(AppSerializerOptions.Json), NullLogger<BlobMetadataStore>.Instance);
+        MetadataStore = new BlobMetadataStore(
+            _blobClient,
+            RecyclableMemoryStreamManager,
+            Substitute.For<DicomFileNameWithUid>(),
+            Substitute.For<DicomFileNameWithPrefix>(),
+            Options.Create(migrationConfig), optionsMonitor,
+            Options.Create(AppSerializerOptions.Json),
+            NullLogger<BlobMetadataStore>.Instance, _appInsightsTelemetryClient,
+            _appInsightsTelemetryClient);
     }
 
     public async Task DisposeAsync()

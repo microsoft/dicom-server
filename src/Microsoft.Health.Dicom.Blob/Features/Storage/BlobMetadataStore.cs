@@ -16,6 +16,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -25,7 +26,6 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using NotSupportedException = System.NotSupportedException;
@@ -47,7 +47,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
-    private readonly IDicomTelemetryClient _telemetryClient;
+    private readonly TelemetryClient _telemetryClient;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -58,7 +58,7 @@ public class BlobMetadataStore : IMetadataStore
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
         ILogger<BlobMetadataStore> logger,
-        IDicomTelemetryClient telemetryClient)
+        TelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
@@ -113,7 +113,7 @@ public class BlobMetadataStore : IMetadataStore
         {
             if (ex is NotSupportedException)
             {
-                _telemetryClient.GetMetric("JsonSerializationException").TrackValue(1, typeof(ex));
+                _telemetryClient.GetMetric("JsonSerializationException", "ExceptionType").TrackValue(1, typeof(ex));
             }
             throw new DataStoreException(ex);
         }
@@ -156,7 +156,7 @@ public class BlobMetadataStore : IMetadataStore
                     versionedInstanceIdentifier);
             }else if (ex is JsonException or NotSupportedException)
             {
-                _telemetryClient.GetMetric("JsonDeserializationException").TrackValue(1, typeof(ex));
+                _telemetryClient.GetMetric("JsonDeserializationException", "ExceptionType").TrackValue(1, typeof(ex));
             }
 
             throw;
