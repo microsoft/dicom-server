@@ -113,7 +113,9 @@ public class BlobMetadataStore : IMetadataStore
         {
             if (ex is NotSupportedException)
             {
-                _telemetryClient.GetMetric("JsonSerializationException", "ExceptionType").TrackValue(1, typeof(ex));
+                _telemetryClient
+                    .GetMetric("JsonSerializationException", "ExceptionType")
+                    .TrackValue(1, typeof(ex));
             }
             throw new DataStoreException(ex);
         }
@@ -156,7 +158,9 @@ public class BlobMetadataStore : IMetadataStore
                     versionedInstanceIdentifier);
             }else if (ex is JsonException or NotSupportedException)
             {
-                _telemetryClient.GetMetric("JsonDeserializationException", "ExceptionType").TrackValue(1, typeof(ex));
+                _telemetryClient
+                    .GetMetric("JsonDeserializationException", "ExceptionType")
+                    .TrackValue(1, typeof(ex));
             }
 
             throw;
