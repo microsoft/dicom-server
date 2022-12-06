@@ -115,7 +115,7 @@ public class BlobMetadataStore : IMetadataStore
             {
                 _telemetryClient
                     .GetMetric("JsonSerializationException", "ExceptionType")
-                    .TrackValue(1, typeof(ex));
+                    .TrackValue(1, ex.GetType().FullName);
             }
             throw new DataStoreException(ex);
         }
@@ -151,16 +151,19 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
-            if (ex is ItemNotFoundException)
+            switch (ex)
             {
-                _logger.LogWarning(ex,
-                    "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.",
-                    versionedInstanceIdentifier);
-            }else if (ex is JsonException or NotSupportedException)
-            {
-                _telemetryClient
-                    .GetMetric("JsonDeserializationException", "ExceptionType")
-                    .TrackValue(1, typeof(ex));
+                case ItemNotFoundException:
+                    _logger.LogWarning(
+                        ex,
+                        "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.",
+                        versionedInstanceIdentifier);
+                    break;
+                case JsonException or NotSupportedException:
+                    _telemetryClient
+                        .GetMetric("JsonDeserializationException", "ExceptionType")
+                        .TrackValue(1, ex.GetType().FullName);
+                    break;
             }
 
             throw;
