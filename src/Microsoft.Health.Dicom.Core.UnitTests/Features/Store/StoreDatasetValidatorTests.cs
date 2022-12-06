@@ -260,6 +260,10 @@ public class StoreDatasetValidatorTests
 
         Assert.Equal(2, metric.SeriesCount);
 
+        Assert.Contains("ExceedMaxLength", metric.GetAllSeries()[1].Key);
+        Assert.Contains("Modality", metric.GetAllSeries()[1].Key);
+        Assert.Contains("CS", metric.GetAllSeries()[1].Key);
+
     }
 
     [Fact]

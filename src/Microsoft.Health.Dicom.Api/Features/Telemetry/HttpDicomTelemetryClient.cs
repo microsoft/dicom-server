@@ -34,5 +34,4 @@ internal class HttpDicomTelemetryClient : IDicomTelemetryClient
         _httpContextAccessor.HttpContext.Items[DicomTelemetry.ContextItemPrefix + name] = value;
         _telemetryClient.GetMetric(name).TrackValue(value);
     }
-
 }
