@@ -58,19 +58,16 @@ public class DataStoreTestsFixture : IAsyncLifetime
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
     public int NextWatermark => Interlocked.Increment(ref _watermark);
+    private readonly TelemetryClient _appInsightsTelemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     public async Task InitializeAsync()
     {
         IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
         optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
         optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
-
-
-        private readonly TelemetryClient _appInsightsTelemetryClient = new TelemetryClient(new TelemetryConfiguration()
-        {
-            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-        });
-
         IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
 
         _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
@@ -91,7 +88,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
             Substitute.For<DicomFileNameWithPrefix>(),
             Options.Create(migrationConfig), optionsMonitor,
             Options.Create(AppSerializerOptions.Json),
-            NullLogger<BlobMetadataStore>.Instance, _appInsightsTelemetryClient,
+            NullLogger<BlobMetadataStore>.Instance,
             _appInsightsTelemetryClient);
     }
 
