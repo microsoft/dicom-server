@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>23</LatestSchemaVersion>
+    <LatestSchemaVersion>24</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" />
     <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" />
+    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -66,6 +67,7 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
+    <None Remove="Features\Schema\Migrations\24.diff.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 

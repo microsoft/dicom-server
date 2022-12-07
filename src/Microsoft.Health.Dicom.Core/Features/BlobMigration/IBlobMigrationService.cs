@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -29,10 +29,11 @@ public interface IBlobMigrationService
     /// Asynchronously deletes old DICOM instance with the <paramref name="versionedInstanceIdentifier"/>    
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The versioned instance id.</param>
+    /// <param name="forceDelete">Deletes the old instance without checking the new format exists.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>
     /// A <see cref="Task{TResult}"/> representing the asynchronous operation. The value of the
     /// <see cref="Task{TResult}.Result"/> indicates whether the the delete was successful.
     /// </returns>
-    Task DeleteInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+    Task DeleteInstanceAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, bool forceDelete = false, CancellationToken cancellationToken = default);
 }

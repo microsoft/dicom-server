@@ -218,14 +218,14 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteOldInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task DeleteOldInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, bool forceDelete = false, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
         var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
         var newBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
 
-        if (await newBlobClient.ExistsAsync(cancellationToken))
+        if (forceDelete || await newBlobClient.ExistsAsync(cancellationToken))
         {
             await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
         }
