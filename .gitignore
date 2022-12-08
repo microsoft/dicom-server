@@ -290,3 +290,4 @@ tempkey.rsa
 
 # docker .env file
 **/.env
+/tools/dicom-auth-test/Microsoft.Health.Web.Dicom.Tool/Properties/launchSettings.json
