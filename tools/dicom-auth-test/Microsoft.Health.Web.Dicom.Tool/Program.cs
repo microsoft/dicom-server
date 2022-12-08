@@ -4,10 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Net.Http;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.CommandLine;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Identity;
 using FellowOakDicom;
@@ -25,29 +28,40 @@ public static class Program
     private static void ParseArgumentsAndExecute(string[] args)
     {
         var dicomOption = new Option<Uri>(
-                    "--dicomServiceUrl",
-                    description: "DicomService Url ex: https://testdicomweb-testdicom.dicom.azurehealthcareapis.com");
+            "--dicomServiceUrl",
+            description: "Dicom service URL, for example: https://testdicomweb-testdicom.dicom.azurehealthcareapis.com",
+            getDefaultValue: () => new Uri("https://localhost:63838"));
+
+        var filePath = new Option<string>(
+            "--path",
+            description: "Path to a directory containing .dcm files to be stored."
+            );
 
         var rootCommand = new RootCommand("Execute Store Get and Delete of dicom image");
 
         rootCommand.AddOption(dicomOption);
+        rootCommand.AddOption(filePath);
 
-        rootCommand.SetHandler(StoreImageAsync, dicomOption);
+        rootCommand.SetHandler(StoreImageAsync, dicomOption, filePath);
         rootCommand.Invoke(args);
     }
 
-    private static async Task StoreImageAsync(Uri dicomServiceUrl)
+    private static async Task StoreImageAsync(Uri dicomServiceUrl, string filePath)
     {
-        var dicomFile = await DicomFile.OpenAsync(@"./Image/blue-circle.dcm");
+        var files = new List<string> { @"./Image/blue-circle.dcm" };
+
+        if (!string.IsNullOrWhiteSpace(filePath))
+        {
+            files = Directory.GetFiles(filePath, "*.dcm").ToList();
+        }
 
         using var httpClient = new HttpClient();
 
         httpClient.BaseAddress = dicomServiceUrl;
 
-        // Use VM assigned managed identity.
+        // Use locally present identity, which would be managed identity on a VM in Azure.
         var credential = new DefaultAzureCredential();
 
-        // Access token will expire after a certain period of time.
         var token = await credential.GetTokenAsync(new TokenRequestContext(new[] { "https://dicom.healthcareapis.azure.com/.default" }));
         var accessToken = token.Token;
 
@@ -55,21 +69,13 @@ public static class Program
 
         IDicomWebClient client = new DicomWebClient(httpClient);
 
-        var response = await client.StoreAsync(dicomFile);
+        foreach (string file in files)
+        {
+            var dicomFile = await DicomFile.OpenAsync(file);
 
-        string output = new string("Image saved with statuscode: ");
-        Console.WriteLine(output + response.StatusCode);
+            var response = await client.StoreAsync(dicomFile);
 
-        string studyInstanceUid = dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-
-        var responseGet = await client.RetrieveStudyAsync(studyInstanceUid);
-
-        output = new string("Image retrieved with statuscode: ");
-        Console.WriteLine(output + responseGet.StatusCode);
-
-        var responseDelete = await client.DeleteStudyAsync(studyInstanceUid);
-
-        output = new string("Image deleted with statuscode: ");
-        Console.WriteLine(output + responseDelete.StatusCode);
+            Console.WriteLine($"{dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID)}/{dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID)}/{dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID)} saved with status code: {response.StatusCode}");
+        }
     }
 }
