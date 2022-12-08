@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(LatestVersion)</TargetFramework>
+    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

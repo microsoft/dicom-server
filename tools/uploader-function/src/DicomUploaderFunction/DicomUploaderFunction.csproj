@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
-    <TargetFramework>$(LtsVersion)</TargetFramework>
+    <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
 

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <IncludeContentInPack>false</IncludeContentInPack>
     <IsPackable>true</IsPackable>
-    <TargetFramework>$(LatestVersion)</TargetFramework>
+    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

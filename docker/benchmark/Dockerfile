@@ -10,6 +10,6 @@ ENV LANG=en_US.UTF-8 \
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Benchmark
-RUN dotnet publish "Microsoft.Health.Dicom.Benchmark.csproj" -c Release -p:ContinuousIntegrationBuild=false -warnaserror -o /dicom-server/src/Microsoft.Health.Dicom.Benchmark/publish
+RUN dotnet publish "Microsoft.Health.Dicom.Benchmark.csproj" -c Release -p:ContinuousIntegrationBuild=false --framework net7.0 -warnaserror -o /dicom-server/src/Microsoft.Health.Dicom.Benchmark/publish
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Benchmark/publish
 ENTRYPOINT ["dotnet", "Microsoft.Health.Dicom.Benchmark.dll"]
