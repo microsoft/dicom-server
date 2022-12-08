@@ -4,10 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.CommandLine;
+using System.CommandLine.Parsing;
+using System.Text;
+using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
-using FellowOakDicom;
-using System.Text;
 
 namespace Microsoft.Health.Web.Dicom.Tool;
 
@@ -21,60 +22,110 @@ public static class Program
     private static void ParseArgumentsAndExecute(string[] args)
     {
         var filePath = new Option<string>(
-                    "--filePath",
-                    description: "Path to file, e.g.: \"C:\\dicomdir\"");
+            "--filePath",
+            description: "Path to file, e.g.: \"C:\\dicomdir\"");
 
         var largeFile = new Option<bool>(
-                    "--largeFile",
-                    description: "Create a file larger than 2GB");
+            "--largeFile",
+            description: "Create a file larger than 2GB");
 
         var invalidSS = new Option<bool>(
-                    "--invalidSS",
-                    description: "Add an invalid Signed Short attribute");
+            "--invalidSS",
+            description: "Add an invalid Signed Short attribute");
 
         var invalidDS = new Option<bool>(
-                    "--invalidDS",
-                    description: "Add an invalid Decimal String attribute");
+            "--invalidDS",
+            description: "Add an invalid Decimal String attribute");
 
-        var rootCommand = new RootCommand("Generate a DICOM file.");
+        var numberOfStudies = new Option<int>(
+            "--studies",
+            description: "Number of studies to create, default is 1",
+            getDefaultValue: () => 1);
+        numberOfStudies.AddValidator((OptionResult result) =>
+        {
+            if (result.GetValueForOption(numberOfStudies) < 0 || result.GetValueForOption(numberOfStudies) >= 50)
+            {
+                result.ErrorMessage = "The value of --studies must not be less than 1 or more than 50.";
+            }
+        });
+
+
+        var numberOfSeries = new Option<int>(
+            "--series",
+            description: "Number of series to create per study, default is 1",
+            getDefaultValue: () => 1);
+        numberOfSeries.AddValidator((OptionResult result) =>
+        {
+            if (result.GetValueForOption(numberOfSeries) < 0 || result.GetValueForOption(numberOfSeries) > 100)
+            {
+                result.ErrorMessage = "The value of --series must not be less than 1 or more than 100.";
+            }
+        });
+
+        var numberOfInstances = new Option<int>(
+            "--instances",
+            description: "Number of instances to create per series, default is 1",
+            getDefaultValue: () => 1);
+        numberOfInstances.AddValidator((OptionResult result) =>
+        {
+            if (result.GetValueForOption(numberOfInstances) < 0 || result.GetValueForOption(numberOfInstances) > 1000)
+            {
+                result.ErrorMessage = "The value of --instances must not be less than 1 or more than 1000.";
+            }
+        });
+
+        var rootCommand = new RootCommand("Generate one or optionally many DICOM file(s).");
 
         rootCommand.AddOption(filePath);
         rootCommand.AddOption(largeFile);
         rootCommand.AddOption(invalidSS);
         rootCommand.AddOption(invalidDS);
+        rootCommand.AddOption(numberOfStudies);
+        rootCommand.AddOption(numberOfSeries);
+        rootCommand.AddOption(numberOfInstances);
 
-        rootCommand.SetHandler(StoreImageAsync, filePath, largeFile, invalidSS, invalidDS);
+        rootCommand.SetHandler(StoreImageAsync, filePath, largeFile, invalidSS, invalidDS, numberOfStudies, numberOfSeries, numberOfInstances);
         rootCommand.Invoke(args);
     }
 
-    private static void StoreImageAsync(string filePath, bool largeFile, bool invalidSS, bool invalidDS)
+    private static void StoreImageAsync(string filePath, bool largeFile, bool invalidSS, bool invalidDS, int numberOfStudies = 1, int numberOfSeries = 1, int numberOfInstances = 1)
     {
         if (!string.IsNullOrWhiteSpace(filePath))
         {
             filePath += "\\";
         }
 
-        var instanceUid = DicomUIDGenerator.GenerateDerivedFromUUID();
+        var studyUids = Enumerable.Range(1, numberOfStudies).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
+        var seriesUids = Enumerable.Range(1, numberOfSeries).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
+        var instanceUids = Enumerable.Range(1, numberOfInstances).ToList();
 
-        var file = GenerateDicomFile(
-            DicomUIDGenerator.GenerateDerivedFromUUID(),
-            DicomUIDGenerator.GenerateDerivedFromUUID(),
-            instanceUid,
-            DicomUIDGenerator.GenerateDerivedFromUUID(),
-            largeFile);
+        studyUids.ForEach(
+            (studyUid) => seriesUids.ForEach(
+                (seriesUid) => instanceUids.ForEach(
+                    _ =>
+                    {
+                        var instanceUid = DicomUIDGenerator.GenerateDerivedFromUUID();
 
-        if (invalidDS)
-        {
-            file.Dataset.Add(DicomTag.PatientWeight, "asdf");
-        }
+                        var file = GenerateDicomFile(
+                            studyUid,
+                            seriesUid,
+                            instanceUid,
+                            DicomUIDGenerator.GenerateDerivedFromUUID(),
+                            largeFile);
 
-        if (invalidSS)
-        {
-            file.Dataset.Add(new DicomSignedShort(DicomTag.TagAngleSecondAxis, new MemoryByteBuffer(Encoding.UTF8.GetBytes("asdf"))));
-        }
+                        if (invalidDS)
+                        {
+                            file.Dataset.Add(DicomTag.PatientWeight, "asdf");
+                        }
 
-        file.Save($"{filePath}{instanceUid.UID}.dcm");
+                        if (invalidSS)
+                        {
+                            file.Dataset.Add(new DicomSignedShort(DicomTag.TagAngleSecondAxis, new MemoryByteBuffer(Encoding.UTF8.GetBytes("asdf"))));
+                        }
 
+                        file.Save($"{filePath}{instanceUid.UID}.dcm");
+                    }
+                    )));
     }
 
     private static DicomFile GenerateDicomFile(

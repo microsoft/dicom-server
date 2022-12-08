@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Microsoft.Health.Dicom.FileGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "--instances 5"
+    }
+  }
+}
