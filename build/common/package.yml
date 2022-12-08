@@ -7,7 +7,7 @@ steps:
     inputs:
       command: publish
       projects: '**/Microsoft.Health.Dicom.Web.csproj'
-      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/web --no-build'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/web --framework net7.0 --no-build'
       publishWebProjects: false
 
   - task: DotNetCoreCLI@2
@@ -15,7 +15,7 @@ steps:
     inputs:
       command: publish
       projects: '**/Microsoft.Health.Dicom.Functions.App.csproj'
-      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/functions --no-build'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/functions --framework net6.0 --no-build'
       publishWebProjects: false
 
   - task: DotNetCoreCLI@2
@@ -23,7 +23,7 @@ steps:
     inputs:
       command: publish
       projects: 'test/**/*.csproj'
-      arguments: '--configuration $(buildConfiguration) --output "$(build.binariesdirectory)/IntegrationTests" --no-build'
+      arguments: '--configuration $(buildConfiguration) --output "$(build.binariesdirectory)/IntegrationTests" --framework net7.0 --no-build'
       publishWebProjects: false
       zipAfterPublish: false
 
