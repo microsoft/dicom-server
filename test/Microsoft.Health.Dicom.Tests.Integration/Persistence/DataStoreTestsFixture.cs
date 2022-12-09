@@ -62,11 +62,9 @@ public class DataStoreTestsFixture : IAsyncLifetime
         optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
         optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
-        IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
-
         _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
 
-        var blobClientInitializer = new BlobInitializer(_blobClient, testProvider, NullLogger<BlobInitializer>.Instance);
+        var blobClientInitializer = new BlobInitializer(_blobClient, new BlobClientContainerGetTestProvider(), NullLogger<BlobInitializer>.Instance);
 
         var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
         var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);

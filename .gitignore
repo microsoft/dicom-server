@@ -290,4 +290,10 @@ tempkey.rsa
 
 # docker .env file
 **/.env
+
+# azurite files
+__azurite_db_*
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
 /tools/dicom-auth-test/Microsoft.Health.Web.Dicom.Tool/Properties/launchSettings.json

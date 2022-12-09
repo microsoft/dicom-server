@@ -121,13 +121,13 @@
                 {
                     "apiVersion": "2015-08-01",
                     "type": "siteextensions",
-                    "name": "AspNetCoreRuntime.6.0.x64",
+                    "name": "AspNetCoreRuntime.7.0.x64",
                     "dependsOn": [
                         "[variables('featuresEnabledAppServiceResourceId')]",
                         "[resourceId('Microsoft.Web/sites/config', variables('featuresEnabledServiceName'), 'appsettings')]" // Avoid restarts mid-installation
                     ],
                     "properties": {
-                        "version": "6.0.10"
+                        "version": "7.0.0"
                     }
                 }
             ]
