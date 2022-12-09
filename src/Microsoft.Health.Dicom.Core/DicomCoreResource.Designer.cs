@@ -133,6 +133,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data partition already exists..
+        /// </summary>
+        internal static string DataPartitionAlreadyExists {
+            get {
+                return ResourceManager.GetString("DataPartitionAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data partitions feature cannot be disabled while existing data has already been partitioned..
         /// </summary>
         internal static string DataPartitionFeatureCannotBeDisabled {
