@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0.100-alpine3.16@sha256:7608d66e56af46b09033b269fef6f048a4b58d50aa54b857471ec0d0194c59f9 AS installer-env
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-alpine3.16@sha256:ef015c0d8f353fbc463fec643ce08cc2a78d19952228e8e12b853ed300971506 AS installer-env
 
 RUN set -x && \
     apk update && \

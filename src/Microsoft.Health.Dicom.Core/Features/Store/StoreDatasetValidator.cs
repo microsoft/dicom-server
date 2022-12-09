@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -27,12 +28,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly bool _enableFullDicomItemValidation;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
+    private readonly TelemetryClient _telemetryClient;
 
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
-        IQueryTagService queryTagService)
+        IQueryTagService queryTagService,
+        TelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -41,6 +44,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc/>
@@ -138,6 +142,17 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag);
+                _telemetryClient
+                    .GetMetric(
+                        "IndexTagValidationError",
+                        "ExceptionErrorCode",
+                        "ExceptionName",
+                        "VR")
+                    .TrackValue(
+                        1,
+                        ex.ErrorCode.ToString(),
+                        ex.Name,
+                        queryTag.VR.Code);
             }
         }
     }
