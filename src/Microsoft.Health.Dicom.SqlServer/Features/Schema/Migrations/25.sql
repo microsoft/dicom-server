@@ -818,7 +818,7 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @partitionKey AS INT;
-    SELECT PartitionKey
+    SELECT @partitionKey = PartitionKey
     FROM   dbo.Partition
     WHERE  PartitionName = @partitionName;
     IF @@ROWCOUNT <> 0

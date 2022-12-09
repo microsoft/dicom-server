@@ -1,4 +1,8 @@
-﻿/*************************************************************
+﻿SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+GO
+/*************************************************************
     Stored procedure for adding a partition.
 **************************************************************/
 --
@@ -49,3 +53,7 @@ BEGIN
 
     COMMIT TRANSACTION
 END
+GO
+
+COMMIT TRANSACTION
+

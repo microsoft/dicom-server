@@ -7,7 +7,6 @@ using System;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Partition;
