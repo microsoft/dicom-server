@@ -3,17 +3,24 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.IO;
+using System.Linq;
 using System.Text;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
 
-namespace Microsoft.Health.Web.Dicom.Tool;
+namespace Microsoft.Health.Dicom.FileGenerator;
 
 public static class Program
 {
+    private static readonly int MaxStudies = 50;
+    private static readonly int MaxSeries = 100;
+    private static readonly int MaxInstances = 1000;
+
     public static void Main(string[] args)
     {
         ParseArgumentsAndExecute(args);
@@ -39,38 +46,40 @@ public static class Program
 
         var numberOfStudies = new Option<int>(
             "--studies",
-            description: "Number of studies to create, default is 1",
+            description: $"Number of studies to create. Must be between 1 (default) and {MaxStudies}",
             getDefaultValue: () => 1);
+
         numberOfStudies.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(numberOfStudies) < 0 || result.GetValueForOption(numberOfStudies) >= 50)
+            if (result.GetValueForOption(numberOfStudies) < 0 || result.GetValueForOption(numberOfStudies) >= MaxStudies)
             {
-                result.ErrorMessage = "The value of --studies must not be less than 1 or more than 50.";
+                result.ErrorMessage = $"The value of --studies must not be less than 1 or more than {MaxStudies}.";
             }
         });
 
-
         var numberOfSeries = new Option<int>(
             "--series",
-            description: "Number of series to create per study, default is 1",
+            description: $"Number of series to create per study. Must be between 1 (default) and {MaxSeries}",
             getDefaultValue: () => 1);
+
         numberOfSeries.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(numberOfSeries) < 0 || result.GetValueForOption(numberOfSeries) > 100)
+            if (result.GetValueForOption(numberOfSeries) < 0 || result.GetValueForOption(numberOfSeries) > MaxSeries)
             {
-                result.ErrorMessage = "The value of --series must not be less than 1 or more than 100.";
+                result.ErrorMessage = $"The value of --series must not be less than 1 or more than {MaxSeries}.";
             }
         });
 
         var numberOfInstances = new Option<int>(
             "--instances",
-            description: "Number of instances to create per series, default is 1",
+            description: $"Number of instances to create per series. Must be between 1 (default) and {MaxInstances}",
             getDefaultValue: () => 1);
+
         numberOfInstances.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(numberOfInstances) < 0 || result.GetValueForOption(numberOfInstances) > 1000)
+            if (result.GetValueForOption(numberOfInstances) < 0 || result.GetValueForOption(numberOfInstances) > MaxInstances)
             {
-                result.ErrorMessage = "The value of --instances must not be less than 1 or more than 1000.";
+                result.ErrorMessage = $"The value of --instances must not be less than 1 or more than {MaxInstances}.";
             }
         });
 
@@ -90,22 +99,20 @@ public static class Program
 
     private static void StoreImageAsync(string filePath, bool largeFile, bool invalidSS, bool invalidDS, int numberOfStudies = 1, int numberOfSeries = 1, int numberOfInstances = 1)
     {
-        if (!string.IsNullOrWhiteSpace(filePath))
+        if (!string.IsNullOrWhiteSpace(filePath) && !Path.EndsInDirectorySeparator(filePath))
         {
-            filePath += "\\";
+            filePath += Path.DirectorySeparatorChar;
         }
 
         var studyUids = Enumerable.Range(1, numberOfStudies).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
         var seriesUids = Enumerable.Range(1, numberOfSeries).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
-        var instanceUids = Enumerable.Range(1, numberOfInstances).ToList();
+        var instanceUids = Enumerable.Range(1, numberOfInstances).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
 
         studyUids.ForEach(
             (studyUid) => seriesUids.ForEach(
                 (seriesUid) => instanceUids.ForEach(
-                    _ =>
+                    (instanceUid) =>
                     {
-                        var instanceUid = DicomUIDGenerator.GenerateDerivedFromUUID();
-
                         var file = GenerateDicomFile(
                             studyUid,
                             seriesUid,
@@ -123,7 +130,10 @@ public static class Program
                             file.Dataset.Add(new DicomSignedShort(DicomTag.TagAngleSecondAxis, new MemoryByteBuffer(Encoding.UTF8.GetBytes("asdf"))));
                         }
 
-                        file.Save($"{filePath}{instanceUid.UID}.dcm");
+                        var fullPath = $"{filePath}{instanceUid.UID}.dcm";
+
+                        Console.WriteLine($"Writing {fullPath}");
+                        file.Save(fullPath);
                     }
                     )));
     }
@@ -140,9 +150,9 @@ public static class Program
         dataset.AutoValidate = false;
 #pragma warning restore CS0618
 
-        var rows = largeFile ? 10000 : 0;
-        var cols = largeFile ? 10000 : 0;
-        var frames = largeFile ? 500 : 0;
+        var rows = largeFile ? 10000 : 10;
+        var cols = largeFile ? 10000 : 10;
+        var frames = largeFile ? 500 : 1;
 
         var bitDepth = (ushort)16;
 

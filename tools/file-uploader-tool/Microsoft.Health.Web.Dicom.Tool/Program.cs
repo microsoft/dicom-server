@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ using Azure.Identity;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 
-namespace Microsoft.Health.Web.Dicom.Tool;
+namespace Microsoft.Health.Dicom.FileUploader;
 
 public static class Program
 {
@@ -34,10 +34,10 @@ public static class Program
 
         var filePath = new Option<string>(
             "--path",
-            description: "Path to a directory containing .dcm files to be stored."
-            );
+            description: "Path to a directory containing .dcm files to be uploaded.",
+            getDefaultValue: () => @"./Images");
 
-        var rootCommand = new RootCommand("Execute Store Get and Delete of dicom image");
+        var rootCommand = new RootCommand("Upload DICOM image(s)");
 
         rootCommand.AddOption(dicomOption);
         rootCommand.AddOption(filePath);

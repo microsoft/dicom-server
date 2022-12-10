@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32505.173
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Web.Dicom.Tool", "Microsoft.Health.Web.Dicom.Tool.csproj", "{FD5481F9-E9AE-498B-A3AD-901D17B44E02}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.FileUploader", "Microsoft.Health.Dicom.FileUploader.csproj", "{FD5481F9-E9AE-498B-A3AD-901D17B44E02}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Client", "..\..\..\src\Microsoft.Health.Dicom.Client\Microsoft.Health.Dicom.Client.csproj", "{F534A1AD-5181-41B0-A89C-B28B46E77641}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.FileGenerator", "..\..\dicom-file-generator\Microsoft.Health.Dicom.FileGenerator\Microsoft.Health.Dicom.FileGenerator.csproj", "{31397096-7ED3-4007-9BBF-E65BB4A5CA75}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "..\..\..\forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{79284575-17B9-4774-A4E9-753CCD0FFCA2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.FileGenerator", "..\..\file-generator-tool\Microsoft.Health.Dicom.FileGenerator\Microsoft.Health.Dicom.FileGenerator.csproj", "{A7F46F4E-9EC6-4BA9-8148-3DA4CA03ECC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,14 @@ Global
 		{F534A1AD-5181-41B0-A89C-B28B46E77641}.Debug|x64.Build.0 = Debug|x64
 		{F534A1AD-5181-41B0-A89C-B28B46E77641}.Release|x64.ActiveCfg = Release|x64
 		{F534A1AD-5181-41B0-A89C-B28B46E77641}.Release|x64.Build.0 = Release|x64
-		{31397096-7ED3-4007-9BBF-E65BB4A5CA75}.Debug|x64.ActiveCfg = Debug|x64
-		{31397096-7ED3-4007-9BBF-E65BB4A5CA75}.Debug|x64.Build.0 = Debug|x64
-		{31397096-7ED3-4007-9BBF-E65BB4A5CA75}.Release|x64.ActiveCfg = Release|x64
-		{31397096-7ED3-4007-9BBF-E65BB4A5CA75}.Release|x64.Build.0 = Release|x64
 		{79284575-17B9-4774-A4E9-753CCD0FFCA2}.Debug|x64.ActiveCfg = Debug|x64
 		{79284575-17B9-4774-A4E9-753CCD0FFCA2}.Debug|x64.Build.0 = Debug|x64
 		{79284575-17B9-4774-A4E9-753CCD0FFCA2}.Release|x64.ActiveCfg = Release|x64
 		{79284575-17B9-4774-A4E9-753CCD0FFCA2}.Release|x64.Build.0 = Release|x64
+		{A7F46F4E-9EC6-4BA9-8148-3DA4CA03ECC7}.Debug|x64.ActiveCfg = Debug|x64
+		{A7F46F4E-9EC6-4BA9-8148-3DA4CA03ECC7}.Debug|x64.Build.0 = Debug|x64
+		{A7F46F4E-9EC6-4BA9-8148-3DA4CA03ECC7}.Release|x64.ActiveCfg = Release|x64
+		{A7F46F4E-9EC6-4BA9-8148-3DA4CA03ECC7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
