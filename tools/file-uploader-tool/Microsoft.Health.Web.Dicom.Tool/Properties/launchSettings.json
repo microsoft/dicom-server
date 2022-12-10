@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Health.Web.Dicom.Tool": {
-      "commandName": "Project"
-    }
-  }
-}
