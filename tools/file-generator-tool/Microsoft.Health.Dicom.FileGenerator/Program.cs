@@ -51,7 +51,7 @@ public static class Program
 
         numberOfStudies.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(numberOfStudies) < 0 || result.GetValueForOption(numberOfStudies) >= MaxStudies)
+            if (result.GetValueForOption(numberOfStudies) < 1 || result.GetValueForOption(numberOfStudies) >= MaxStudies)
             {
                 result.ErrorMessage = $"The value of --studies must not be less than 1 or more than {MaxStudies}.";
             }
@@ -64,7 +64,7 @@ public static class Program
 
         numberOfSeries.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(numberOfSeries) < 0 || result.GetValueForOption(numberOfSeries) > MaxSeries)
+            if (result.GetValueForOption(numberOfSeries) < 1 || result.GetValueForOption(numberOfSeries) > MaxSeries)
             {
                 result.ErrorMessage = $"The value of --series must not be less than 1 or more than {MaxSeries}.";
             }
@@ -77,7 +77,7 @@ public static class Program
 
         numberOfInstances.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(numberOfInstances) < 0 || result.GetValueForOption(numberOfInstances) > MaxInstances)
+            if (result.GetValueForOption(numberOfInstances) < 1 || result.GetValueForOption(numberOfInstances) > MaxInstances)
             {
                 result.ErrorMessage = $"The value of --instances must not be less than 1 or more than {MaxInstances}.";
             }
