@@ -296,4 +296,6 @@ __azurite_db_*
 __blobstorage__/
 __queuestorage__/
 __tablestorage__/
-/tools/dicom-auth-test/Microsoft.Health.Web.Dicom.Tool/Properties/launchSettings.json
+
+# Console App Launch Settings
+/tools/**/launchSettings.json
