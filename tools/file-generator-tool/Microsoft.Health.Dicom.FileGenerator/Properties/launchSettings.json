@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Microsoft.Health.Dicom.FileGenerator": {
-      "commandName": "Project",
-      "commandLineArgs": "--filePath C:\\dicomdir --instances 1000"
-    }
-  }
-}
