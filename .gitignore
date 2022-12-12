@@ -296,3 +296,6 @@ __azurite_db_*
 __blobstorage__/
 __queuestorage__/
 __tablestorage__/
+
+# Console App Launch Settings
+/tools/**/launchSettings.json
