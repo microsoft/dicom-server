@@ -809,30 +809,6 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.AddPartitionV25
-@partitionName VARCHAR (64)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @partitionKey AS INT;
-    SELECT PartitionKey
-    FROM   dbo.Partition
-    WHERE  PartitionName = @partitionName;
-    IF @@ROWCOUNT <> 0
-        THROW 50409, 'Partition already exists', 1;
-    SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
-    INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
-    VALUES                    (@partitionKey, @partitionName, @createdDate);
-    SELECT @partitionKey,
-           @partitionName,
-           @createdDate;
-    COMMIT TRANSACTION;
-END
-
-GO
 CREATE OR ALTER PROCEDURE dbo.AddWorkitem
 @partitionKey INT, @workitemUid VARCHAR (64), @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT
 AS
