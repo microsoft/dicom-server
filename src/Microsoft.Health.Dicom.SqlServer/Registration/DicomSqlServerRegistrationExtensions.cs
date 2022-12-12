@@ -186,7 +186,6 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddScoped<VersionedCache<ISqlPartitionStore>>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV4>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV6>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlPartitionStore, SqlPartitionStoreV25>());
 
         return services;
     }

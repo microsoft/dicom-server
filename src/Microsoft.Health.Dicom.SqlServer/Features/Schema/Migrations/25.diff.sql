@@ -10,7 +10,7 @@ GO
 --     AddPartition
 --
 -- FIRST SCHEMA VERSION
---     25
+--     6
 --
 -- DESCRIPTION
 --     Adds a partition.
@@ -22,7 +22,7 @@ GO
 -- RETURN VALUE
 --     The partition.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddPartitionV25
+CREATE OR ALTER PROCEDURE dbo.AddPartition
     @partitionName  VARCHAR(64)
 AS
 BEGIN

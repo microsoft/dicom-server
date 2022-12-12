@@ -138,7 +138,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
            new[]
            {
                 new SqlPartitionStoreV6(SqlConnectionWrapperFactory),
-                new SqlPartitionStoreV25(SqlConnectionWrapperFactory),
            }));
 
         ExtendedQueryTagStore = new SqlExtendedQueryTagStore(new VersionedCache<ISqlExtendedQueryTagStore>(

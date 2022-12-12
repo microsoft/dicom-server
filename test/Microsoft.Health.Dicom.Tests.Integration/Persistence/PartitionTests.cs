@@ -32,7 +32,7 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
     }
 
     [Fact]
-    public async Task WhenTwoNewPartitionIsCreated_Then_ItThrowsException()
+    public async Task WhenTwoNewPartitionIsCreatedWithSame_Then_ItThrowsException()
     {
         string partitionName = "test";
 
@@ -41,7 +41,7 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
 
         Assert.NotNull(partition);
 
-        await Assert.ThrowsAsync<DataPartitionsAlreadyExistsException>(async () => await _fixture.PartitionStore.AddPartitionAsync(partitionName));
+        await Assert.ThrowsAsync<DataPartitionsAlreadyExistsException>(() => _fixture.PartitionStore.AddPartitionAsync(partitionName));
     }
 
     [Fact]

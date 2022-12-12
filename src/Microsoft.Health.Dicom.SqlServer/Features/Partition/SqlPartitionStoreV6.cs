@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -9,6 +9,8 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -35,22 +37,31 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
         {
             VLatest.AddPartition.PopulateCommand(sqlCommandWrapper, partitionName);
 
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            try
             {
-                if (await reader.ReadAsync(cancellationToken))
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
                 {
-                    (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
-                       VLatest.Partition.PartitionKey,
-                       VLatest.Partition.PartitionName,
-                       VLatest.Partition.CreatedDate);
+                    if (await reader.ReadAsync(cancellationToken))
+                    {
+                        (int rPartitionKey, string rPartitionName, DateTimeOffset rCreatedDate) = reader.ReadRow(
+                           VLatest.Partition.PartitionKey,
+                           VLatest.Partition.PartitionName,
+                           VLatest.Partition.CreatedDate);
 
-                    return new PartitionEntry(
-                        rPartitionKey,
-                        rPartitionName,
-                        rCreatedDate);
+                        return new PartitionEntry(
+                            rPartitionKey,
+                            rPartitionName,
+                            rCreatedDate);
+                    }
                 }
             }
-
+            catch (SqlException ex)
+            {
+                if (ex.Number == SqlErrorCodes.Conflict)
+                {
+                    throw new DataPartitionsAlreadyExistsException();
+                }
+            }
         }
 
         return null;

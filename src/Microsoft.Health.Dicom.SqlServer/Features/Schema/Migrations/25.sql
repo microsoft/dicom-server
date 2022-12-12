@@ -799,25 +799,6 @@ BEGIN
     BEGIN TRANSACTION;
     DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @partitionKey AS INT;
-    SET @partitionKey =  NEXT VALUE FOR dbo.PartitionKeySequence;
-    INSERT  INTO dbo.Partition (PartitionKey, PartitionName, CreatedDate)
-    VALUES                    (@partitionKey, @partitionName, @createdDate);
-    SELECT @partitionKey,
-           @partitionName,
-           @createdDate;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.AddPartitionV25
-@partitionName VARCHAR (64)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @partitionKey AS INT;
     SELECT @partitionKey = PartitionKey
     FROM   dbo.Partition
     WHERE  PartitionName = @partitionName;
