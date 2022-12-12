@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -34,7 +35,7 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
     [Fact]
     public async Task WhenTwoNewPartitionIsCreatedWithSame_Then_ItThrowsException()
     {
-        string partitionName = "test";
+        string partitionName = new Guid().ToString("N");
 
         await _fixture.PartitionStore.AddPartitionAsync(partitionName);
         PartitionEntry partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);

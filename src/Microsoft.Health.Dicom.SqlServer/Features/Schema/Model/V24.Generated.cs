@@ -33,7 +33,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static AddExtendedQueryTagsProcedure AddExtendedQueryTags = new AddExtendedQueryTagsProcedure();
         internal readonly static AddInstanceV6Procedure AddInstanceV6 = new AddInstanceV6Procedure();
         internal readonly static AddPartitionProcedure AddPartition = new AddPartitionProcedure();
-        internal readonly static AddPartitionV25Procedure AddPartitionV25 = new AddPartitionV25Procedure();
         internal readonly static AddWorkitemProcedure AddWorkitem = new AddWorkitemProcedure();
         internal readonly static AddWorkitemV11Procedure AddWorkitemV11 = new AddWorkitemV11Procedure();
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
@@ -575,22 +574,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.AddPartition";
-                _partitionName.AddParameter(command.Parameters, partitionName);
-            }
-        }
-
-        internal class AddPartitionV25Procedure : StoredProcedure
-        {
-            internal AddPartitionV25Procedure() : base("dbo.AddPartitionV25")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _partitionName = new ParameterDefinition<System.String>("@partitionName", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String partitionName)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.AddPartitionV25";
                 _partitionName.AddParameter(command.Parameters, partitionName);
             }
         }
