@@ -175,7 +175,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             {
                 new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
-                new SqlChangeFeedStoreV24(SqlConnectionWrapperFactory)
             }));
 
         IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
