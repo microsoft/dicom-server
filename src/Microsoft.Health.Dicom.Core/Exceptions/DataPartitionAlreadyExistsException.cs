@@ -10,9 +10,9 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// <summary>
 /// Exception that is thrown when partition name is not found
 /// </summary>
-public class DataPartitionsAlreadyExistsException : BadRequestException
+public class DataPartitionAlreadyExistsException : BadRequestException
 {
-    public DataPartitionsAlreadyExistsException()
+    public DataPartitionAlreadyExistsException()
         : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DataPartitionAlreadyExists))
     {
     }

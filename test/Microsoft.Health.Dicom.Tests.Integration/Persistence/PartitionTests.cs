@@ -42,7 +42,7 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
 
         Assert.NotNull(partition);
 
-        await Assert.ThrowsAsync<DataPartitionsAlreadyExistsException>(() => _fixture.PartitionStore.AddPartitionAsync(partitionName));
+        await Assert.ThrowsAsync<DataPartitionAlreadyExistsException>(() => _fixture.PartitionStore.AddPartitionAsync(partitionName));
     }
 
     [Fact]

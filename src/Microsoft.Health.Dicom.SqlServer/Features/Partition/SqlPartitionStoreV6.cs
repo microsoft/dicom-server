@@ -59,7 +59,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
             {
                 if (ex.Number == SqlErrorCodes.Conflict)
                 {
-                    throw new DataPartitionsAlreadyExistsException();
+                    throw new DataPartitionAlreadyExistsException();
                 }
             }
         }

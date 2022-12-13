@@ -82,7 +82,7 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
                     var response = await _mediator.AddPartitionAsync(partitionName);
                     dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
                 }
-                catch (DataPartitionsAlreadyExistsException)
+                catch (DataPartitionAlreadyExistsException)
                 {
                     partitionResponse = await _mediator.GetPartitionAsync(partitionName);
                     dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
