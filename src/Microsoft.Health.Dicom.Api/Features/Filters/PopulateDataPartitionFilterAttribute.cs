@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -77,8 +77,16 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
             // For all other requests, we validate whether it exists and process based on the result
             else if (_partitionCreationSupportedRouteNames.Contains(routeName))
             {
-                var response = await _mediator.AddPartitionAsync(partitionName);
-                dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
+                try
+                {
+                    var response = await _mediator.AddPartitionAsync(partitionName);
+                    dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
+                }
+                catch (DataPartitionAlreadyExistsException)
+                {
+                    partitionResponse = await _mediator.GetPartitionAsync(partitionName);
+                    dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                }
             }
             else
             {

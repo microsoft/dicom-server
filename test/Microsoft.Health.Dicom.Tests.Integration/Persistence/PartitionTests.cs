@@ -1,10 +1,12 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Xunit;
 
@@ -28,6 +30,19 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
         PartitionEntry partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);
 
         Assert.NotNull(partition);
+    }
+
+    [Fact]
+    public async Task WhenTwoNewPartitionIsCreatedWithSame_Then_ItThrowsException()
+    {
+        string partitionName = new Guid().ToString("N");
+
+        await _fixture.PartitionStore.AddPartitionAsync(partitionName);
+        PartitionEntry partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);
+
+        Assert.NotNull(partition);
+
+        await Assert.ThrowsAsync<DataPartitionAlreadyExistsException>(() => _fixture.PartitionStore.AddPartitionAsync(partitionName));
     }
 
     [Fact]
