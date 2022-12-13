@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,12 +18,10 @@ using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 
@@ -40,27 +37,20 @@ public class BlobMetadataStore : IMetadataStore
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly bool _logOldFormatUsage;
-    private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
 
     public BlobMetadataStore(
         BlobServiceClient client,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-        DicomFileNameWithUid fileNameWithUid,
         DicomFileNameWithPrefix nameWithPrefix,
-        IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
         ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-        _nameWithUid = EnsureArg.IsNotNull(fileNameWithUid, nameof(fileNameWithUid));
         _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
-        EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -69,8 +59,6 @@ public class BlobMetadataStore : IMetadataStore
             .Get(Constants.MetadataContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-        _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
-        _logOldFormatUsage = blobMigrationFormatConfiguration.Value.LogOldFormatUsage;
     }
 
     /// <inheritdoc />
@@ -84,25 +72,23 @@ public class BlobMetadataStore : IMetadataStore
         // Creates a copy of the dataset with bulk data removed.
         DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
 
         try
         {
             await using Stream stream = _recyclableMemoryStreamManager.GetStream(StoreInstanceMetadataStreamTagName);
             await JsonSerializer.SerializeAsync(stream, dicomDatasetWithoutBulkData, _jsonSerializerOptions, cancellationToken);
 
-            foreach (BlockBlobClient blob in blobClients)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                await blob.UploadAsync(
-                    stream,
-                    new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJsonUtf8 },
-                    metadata: null,
-                    conditions: null,
-                    accessTier: null,
-                    progressHandler: null,
-                    cancellationToken);
-            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+            await blobClient.UploadAsync(
+                stream,
+                new BlobHttpHeaders { ContentType = KnownContentTypes.ApplicationJsonUtf8 },
+                metadata: null,
+                conditions: null,
+                accessTier: null,
+                progressHandler: null,
+                cancellationToken);
         }
         catch (Exception ex)
         {
@@ -115,9 +101,9 @@ public class BlobMetadataStore : IMetadataStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
 
-        await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(t => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken)));
+        await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
     }
 
     /// <inheritdoc />
@@ -127,7 +113,7 @@ public class BlobMetadataStore : IMetadataStore
 
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
             return ExecuteAsync(async t =>
             {
                 // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
@@ -202,92 +188,17 @@ public class BlobMetadataStore : IMetadataStore
         }, cancellationToken);
     }
 
-    /// <inheritdoc />
-    public async Task CopyInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
-        var copyBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
-
-        if (!await copyBlobClient.ExistsAsync(cancellationToken))
-        {
-            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
-            await operation.WaitForCompletionAsync(cancellationToken);
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task DeleteOldInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, bool forceDelete = false, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
-        var newBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
-
-        if (forceDelete || await newBlobClient.ExistsAsync(cancellationToken))
-        {
-            await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
-        }
-        else
-        {
-            throw new DataStoreException("DICOM metadata does not exists with new format.", FailureReasonCodes.BlobNotFound);
-        }
-    }
-
     private BlockBlobClient GetInstanceFramesRangeBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
         var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
         return _container.GetBlockBlobClient(blobName);
     }
 
-    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)
+    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        string blobName;
-        if (formatType == BlobMigrationFormatType.New)
-        {
-            blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
-        }
-        else
-        {
-            LogOldFormatUsage();
-            blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
-        }
+        string blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
 
         return _container.GetBlockBlobClient(blobName);
-    }
-
-    // TODO: This should removed once we migrate everything and the global flag is turned on
-    private BlockBlobClient[] GetInstanceBlockBlobClients(VersionedInstanceIdentifier versionedInstanceIdentifier)
-    {
-        var clients = new List<BlockBlobClient>(2);
-
-        string blobName;
-
-        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
-        {
-            blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-        }
-        else if (_blobMigrationFormatType == BlobMigrationFormatType.Dual)
-        {
-            LogOldFormatUsage();
-
-            blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-
-            blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-        }
-        else
-        {
-            LogOldFormatUsage();
-
-            blobName = _nameWithUid.GetMetadataFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-        }
-
-        return clients.ToArray();
     }
 
     private static async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken)
@@ -303,14 +214,6 @@ public class BlobMetadataStore : IMetadataStore
         catch (Exception ex)
         {
             throw new DataStoreException(ex);
-        }
-    }
-
-    private void LogOldFormatUsage()
-    {
-        if (_logOldFormatUsage)
-        {
-            _logger.LogInformation("Using old blob format.");
         }
     }
 }
