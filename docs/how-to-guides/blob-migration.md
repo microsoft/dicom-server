@@ -50,11 +50,20 @@ If you have already uploaded DICOM files and want to migrate the data, you will 
 If you are ok with interruption to the service, you can follow the steps below. The interruption here is a self-managed one and using the service while the copying is occuring and before switching to the new format can corrupt the data path or retrieve wrong data.
 
 1. Set `BlobMigration.StartCopy` to `true` and restart the service.
-   1. This will trigger the `CopyFiles` Durable Function which will copy the old format DICOM files to the new format.
-   2. **Do not use the service at this time**. We want to make sure all files are copied over.
+   1. When restarting the service, ensure it is in such a way that it picks up the new application settings and this will vary by how your service is deployed.
+   2. This will trigger the `CopyFiles` Durable Function which will copy the old format DICOM files to the new format.
+   3**Do not use the service at this time**. We want to make sure all files are copied over.
 2. To ensure Copy has been completed, you can check Azure Monitor logs for `"Completed copying files."` message. This will indicate that the copy has been completed.
-3. Once the copy is completed, you can change `BlobMigration.FormatType` to `"New"` and `BlobMigration.StartDelete` to `true` and restart the service. This will trigger a Durable Function which will delete all the old format blobs only if corresponding new format blobs exist. This is a safe operation and doesn't delete any blobs without checking for the existence of new format blobs.
-   1. **Start using your service** to store and retrieve data, which will work with the `New` format.
+
+   ![dicomwebcontainer-bluecircle-copy-logs](../images/dicomwebcontainer-bluecircle-copy-logs.png)
+
+    At this time, you'll have both the new and old files
+
+    ![dicomwebcontainer-bluecircle-old-blob-format-dual](../images/dicomwebcontainer-bluecircle-old-blob-format-dual.png)
+
+3. Once the copy is completed, you can change `BlobMigration.FormatType` to `"New"` and `BlobMigration.StartDelete` to `true` and restart the service.
+   1. This will trigger a Durable Function which will delete all the old format blobs only if corresponding new format blobs exist. This is a safe operation and doesn't delete any blobs without checking for the existence of new format blobs.
+   2. **Start using your service** to store and retrieve data, which will work with the `New` format.
 4. To ensure Delete has been completed, you can check Azure Monitor logs for `"Completed deleting files."` message. This will indicate that the delete has been completed.
 
 #### Without Service Interruption
@@ -62,7 +71,7 @@ If you are not ok with interruption to the service, you can follow the steps bel
 
 1. Change `BlobMigration.FormatType` to `"Dual"`
    1. This will duplicate any new DICOM files uploaded to both old and new format as you continue to use your service during the copying operation.
-2. Follow steps in [With Service Interruption](#with-service-interruption).
+2. Follow steps in [With Service Interruption](#with-service-interruption), but feel free to continue using the service.
 
 **Note: If in case there are any issues or questions during migration, you can post your questions or issues in the [DICOM Server GitHub Discussions](https://github.com/microsoft/dicom-server/discussions/1561) page.**`
 
