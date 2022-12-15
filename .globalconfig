@@ -193,7 +193,6 @@ dotnet_code_quality.CA1815.api_surface = public, internal # Override equals and 
 dotnet_diagnostic.CA1031.severity = error      # Do not catch general exception types
 dotnet_diagnostic.CA1032.severity = suggestion # Implement standard exception constructors
 dotnet_diagnostic.CA1054.severity = error      # URI parameters should not be strings
-dotnet_diagnostic.CA1062.severity = none       # Validate arguments of public methods
 dotnet_diagnostic.CA1305.severity = error      # Specify IFormatProvider
 dotnet_diagnostic.CA1716.severity = error      # Identifiers should not match keywords
 dotnet_diagnostic.CA1822.severity = error      # Mark members as static
