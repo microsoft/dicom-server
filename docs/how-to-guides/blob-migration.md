@@ -35,7 +35,7 @@ These settings can be adjusted as part of the Azure App Service's configuration 
 ![app-service-settings-configuration](../images/app-service-settings-configuration.png)
 
 
-## Migration steps
+## Migration Steps
 
 ### If deployed new service and have not created any files yet
 1. [You can upgrade to the latest version of the service](../resources/dicom-server-maintaince-guide.md) and skip the migration steps. The configuration section `Blob Migration` will not be present when service is on the latest version.
