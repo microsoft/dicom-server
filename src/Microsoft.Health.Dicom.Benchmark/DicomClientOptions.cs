@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.Health.Dicom.Benchmark;
 
 [SuppressMessage("Microsoft.Performance", "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is deserialized.")]
-internal sealed class DicomClientOptions
+internal class DicomClientOptions
 {
     public Uri BaseAddress { get; set; }
 }
