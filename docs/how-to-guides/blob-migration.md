@@ -5,7 +5,7 @@
 If you're using Dicom OSS and hosting it yourself, read on.
 
 Currently DICOM files are stored with DICOM UIDs as blob names in blob storage, using the template `{account}/{container}/{studyUid}/{seriesUid}/{sopInstanceUid}_{watermark}.dcm`.
-You can see this naming scheme in your blob container if you've saved any files:
+You can see this naming scheme in your blob container if you've saved any files. Here's an example using the blue circle sample image:
 ![dicomwebcontainer-bluecircle-old-blob-format](../images/dicomwebcontainer-bluecircle-old-blob-format.png)
 
 Since UIDs may include personal information about the context of their creation, such as patient information or identifiers, we made the decision to change the way that we store DICOM files. In the next sections we list the steps to migrate your existing blobs from the old format to the new format.
