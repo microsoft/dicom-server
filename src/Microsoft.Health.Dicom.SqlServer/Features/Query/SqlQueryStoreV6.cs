@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer;
 using Microsoft.Health.SqlServer.Features.Client;
+using Microsoft.Health.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Query;
@@ -54,17 +55,38 @@ internal class SqlQueryStoreV6 : SqlQueryStoreV4
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
-               VLatest.Instance.StudyInstanceUid,
-               VLatest.Instance.SeriesInstanceUid,
-               VLatest.Instance.SopInstanceUid,
-               VLatest.Instance.Watermark);
+            if (query.HasModalitiesInStudyFilterCondition)
+            {
+                NullableNVarCharColumn modalitiesInStudyColumn = new NullableNVarCharColumn("ModalitiesInStudy", 64);
 
-            results.Add(new VersionedInstanceIdentifier(
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid,
-                    watermark));
+                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string modalitiesInStudy, long watermark) = reader.ReadRow(
+                   VLatest.Instance.StudyInstanceUid,
+                   VLatest.Instance.SeriesInstanceUid,
+                   VLatest.Instance.SopInstanceUid,
+                   modalitiesInStudyColumn,
+                   VLatest.Instance.Watermark);
+
+                results.Add(new VersionedInstanceIdentifier(
+                        studyInstanceUid,
+                        seriesInstanceUid,
+                        sopInstanceUid,
+                        modalitiesInStudy,
+                        watermark));
+            }
+            else
+            {
+                (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+                   VLatest.Instance.StudyInstanceUid,
+                   VLatest.Instance.SeriesInstanceUid,
+                   VLatest.Instance.SopInstanceUid,
+                   VLatest.Instance.Watermark);
+
+                results.Add(new VersionedInstanceIdentifier(
+                        studyInstanceUid,
+                        seriesInstanceUid,
+                        sopInstanceUid,
+                        watermark));
+            }
         }
 
         return new QueryResult(results);

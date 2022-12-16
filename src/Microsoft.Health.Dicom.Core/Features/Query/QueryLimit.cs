@@ -30,6 +30,11 @@ internal static class QueryLimit
         DicomTag.PatientBirthDate,
     };
 
+    private static readonly HashSet<DicomTag> StudyOnlyTags = new HashSet<DicomTag>()
+    {
+        DicomTag.ModalitiesInStudy
+    };
+
     private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
     {
         DicomTag.SeriesInstanceUID,
@@ -50,7 +55,7 @@ internal static class QueryLimit
     };
 
     public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
-        CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
+        CoreStudyTags.Union(StudyOnlyTags).Union(CoreSeriesTags).Union(CoreInstanceTags));
 
     public static readonly HashSet<DicomVR> ValidRangeQueryTags = new HashSet<DicomVR>()
     {
@@ -78,7 +83,7 @@ internal static class QueryLimit
     {
         EnsureArg.IsNotNull(coreTag, nameof(coreTag));
 
-        if (CoreStudyTags.Contains(coreTag))
+        if (CoreStudyTags.Contains(coreTag) || StudyOnlyTags.Contains(coreTag))
         {
             return QueryTagLevel.Study;
         }

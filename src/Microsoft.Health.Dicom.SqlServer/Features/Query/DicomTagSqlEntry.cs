@@ -28,6 +28,7 @@ internal class DicomTagSqlEntry
             { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.PerformedProcedureStepStartDate) },
             { DicomTag.ManufacturerModelName, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.ManufacturerModelName) },
             { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
+            { DicomTag.ModalitiesInStudy, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.Modality) },
     };
 
     private static readonly IReadOnlyDictionary<DicomVR, DicomTagSqlEntry> ExtendedQueryTagVRToSqlMapping = new Dictionary<DicomVR, DicomTagSqlEntry>()

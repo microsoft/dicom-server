@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
 
@@ -73,6 +74,18 @@ public class BaseQueryExpression
         {
             return Limit > 0 && Limit <= QueryLimit.MaxQueryResultCount ?
                 Limit : QueryLimit.DefaultQueryResultCount;
+        }
+    }
+
+    /// <summary>
+    /// Evaluate if filter conditions contain ModalitiesInStudy filter
+    /// </summary>
+    public bool HasModalitiesInStudyFilterCondition
+    {
+        get
+        {
+            return FilterConditions.Any(f => f.QueryTag.Tag.Equals(DicomTag.ModalitiesInStudy)) ||
+                IncludeFields.DicomTags.Contains(DicomTag.ModalitiesInStudy);
         }
     }
 }

@@ -67,6 +67,24 @@ public class QueryService : IQueryService
         IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
             queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
 
+        if (queryExpression.HasModalitiesInStudyFilterCondition)
+        {
+            foreach (DicomDataset instance in instanceMetadata)
+            {
+                var correspondingVersionedItemIdentifier
+                    = queryResult.DicomInstances.FirstOrDefault(i
+                    => i.StudyInstanceUid.Equals(instance.GetString(DicomTag.StudyInstanceUID), StringComparison.Ordinal)
+                    && i.SeriesInstanceUid.Equals(instance.GetString(DicomTag.SeriesInstanceUID), StringComparison.Ordinal)
+                    && i.SopInstanceUid.Equals(instance.GetString(DicomTag.SOPInstanceUID), StringComparison.Ordinal));
+
+                if (correspondingVersionedItemIdentifier != null)
+                {
+                    var splittedModalitiesInStudy = correspondingVersionedItemIdentifier.ModalitiesInStudy.Split(',');
+                    instance.Add(DicomTag.ModalitiesInStudy, splittedModalitiesInStudy);
+                }
+            }
+        }
+
         var responseBuilder = new QueryResponseBuilder(queryExpression);
         IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
 

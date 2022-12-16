@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -107,6 +108,18 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
         var tableAlias = GetTableAlias(dicomTagSqlEntry, GetKeyFromQueryTag(queryTag));
         StringBuilder
             .Append("AND ");
+
+        // TODO: Should be hanlded perhas in a separate visitor....
+        if (queryTag.Tag.Equals(DicomTag.ModalitiesInStudy))
+        {
+            AppendExtendedQueryTagKeyFilter(dicomTagSqlEntry, tableAlias, stringSingleValueMatchCondition);
+            StringBuilder
+                .Append("Modality ")
+                .Append("IN( ")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
+                .Append(" )");
+            return;
+        }
 
         AppendExtendedQueryTagKeyFilter(dicomTagSqlEntry, tableAlias, stringSingleValueMatchCondition);
 
@@ -246,7 +259,10 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
     {
         foreach (var filterCondition in QueryExpression.FilterConditions)
         {
-            filterCondition.Accept(this);
+            if (!filterCondition.QueryTag.Tag.Equals(DicomTag.ModalitiesInStudy))
+            {
+                filterCondition.Accept(this);
+            }
         }
     }
 

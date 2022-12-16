@@ -17,4 +17,5 @@ internal static class KnownActionParameterNames
     internal const string Frames = "frames";
     internal const string TagPath = "tagPath";
     internal const string OperationId = "operationId";
+    internal const string ModalitiesInStudy = "ModalitiesInStudy";
 }

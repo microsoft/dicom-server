@@ -18,6 +18,21 @@ public class VersionedInstanceIdentifier : InstanceIdentifier
         Version = version;
     }
 
+    public VersionedInstanceIdentifier(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        string modalitiesInStudy,
+        long version,
+        int partitionKey = default)
+        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionKey)
+    {
+        Version = version;
+        ModalitiesInStudy = modalitiesInStudy;
+    }
+
+    public string ModalitiesInStudy { get; }
+
     public long Version { get; }
 
     public override bool Equals(object obj)

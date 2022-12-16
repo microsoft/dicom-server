@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -45,6 +45,12 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
                 throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnknownQueryParameter, filter.Key));
             }
 
+            // ModalitiesInStudy is ONLY supported for AllStudies type of queries
+            if (condition.QueryTag.Tag.Equals(DicomTag.ModalitiesInStudy) && parameters.QueryResourceType != QueryResource.AllStudies)
+            {
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.UnsupportedSearchParameter, filter.Key));
+            }
+
             if (condition.QueryTag.IsExtendedQueryTag && condition.QueryTag.ExtendedQueryTagStoreEntry.ErrorCount > 0)
             {
                 erroneousTags.Add(filter.Key);
@@ -77,7 +83,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
 
         return new QueryExpression(
             parameters.QueryResourceType,
-            ParseIncludeFields(parameters.IncludeField),
+            ParseIncludeFields(parameters.IncludeField, parameters.QueryResourceType),
             parameters.FuzzyMatching,
             parameters.Limit,
             parameters.Offset,
@@ -171,7 +177,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
         return queryTag;
     }
 
-    private QueryIncludeField ParseIncludeFields(IReadOnlyList<string> includeFields)
+    private QueryIncludeField ParseIncludeFields(IReadOnlyList<string> includeFields, QueryResource queryResource)
     {
         // Check if "all" is present as one of the values in IncludeField parameter.
         if (includeFields.Any(val => IncludeFieldValueAll.Equals(val, StringComparison.OrdinalIgnoreCase)))
@@ -190,6 +196,12 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
             if (!TryParseDicomAttributeId(field, out DicomTag dicomTag))
             {
                 throw new QueryParseException(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.IncludeFieldUnknownAttribute, field));
+            }
+
+            // ModalitiesInStudy is ONLY supported for AllStudies type of queries
+            if (dicomTag.Equals(DicomTag.ModalitiesInStudy) && queryResource != QueryResource.AllStudies)
+            {
+                throw new QueryParseException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.IncludeFieldUnknownAttribute, field));
             }
 
             fields.Add(dicomTag);
