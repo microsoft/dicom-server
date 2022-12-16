@@ -54,7 +54,7 @@ If you are ok with interruption to the service, you can follow the steps below. 
    1. When restarting the service, ensure it is in such a way that it picks up the new application settings and this will vary by how your service is deployed.
    2. This will trigger the `CopyFiles` Durable Function which will copy the old format DICOM files to the new format.
    3**Do not use the service at this time**. We want to make sure all files are copied over.
-2. To ensure Copy has been completed, you can check Azure Monitor logs for `"Completed copying files."` message. This will indicate that the copy has been completed.
+2. To ensure the Copy operation has been completed, you can check Azure Monitor logs for a `"Completed copying files."` message. This will indicate that the operation has been completed:
 
    ![dicomwebcontainer-bluecircle-copy-logs](../images/dicomwebcontainer-bluecircle-copy-logs.png)
 
