@@ -58,7 +58,7 @@ If you are ok with interruption to the service, you can follow the steps below. 
 
    ![dicomwebcontainer-bluecircle-copy-logs](../images/dicomwebcontainer-bluecircle-copy-logs.png)
 
-    At this time, you'll have both the new and old files
+    At this time, you'll have both the new and old files:
 
     ![dicomwebcontainer-bluecircle-old-blob-format-dual](../images/dicomwebcontainer-bluecircle-old-blob-format-dual.png)
 
