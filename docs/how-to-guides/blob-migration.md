@@ -1,6 +1,6 @@
 # Blob Migration
 
-*NOTE:* We have performed this migration already for our PAAS users and our PAAS users do not need to take any action.
+> This documentation is only relevant to the Medical Imaging Server for DICOM open-source project. All data in Azure Health Data Services Dicom Services has already been migrated.
 
 If you're using Dicom OSS and hosting it yourself, read on.
 
