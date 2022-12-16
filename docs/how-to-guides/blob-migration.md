@@ -11,7 +11,7 @@ You can see this naming scheme in your blob container if you've saved any files.
 
 Since UIDs may include personal information about the context of their creation, such as patient information or identifiers, we made the decision to change the way that we store DICOM files. In the next sections we list the steps to migrate your existing blobs from the old format to the new format.
 
-## Blob migration configuration
+## Blob Migration Configuration
 Below is the `appsettings.json` configuration related to blob migration. Several properties need to be updated to trigger migration.
 
 ```json
