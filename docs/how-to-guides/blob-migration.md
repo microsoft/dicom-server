@@ -2,8 +2,6 @@
 
 > This documentation is only relevant to the Medical Imaging Server for DICOM open-source project. All data in Azure Health Data Services Dicom Services has already been migrated.
 
-If you're using Dicom OSS and hosting it yourself, read on.
-
 Currently DICOM files are stored with DICOM UIDs as blob names in blob storage, using the template `{account}/{container}/{studyUid}/{seriesUid}/{sopInstanceUid}_{watermark}.dcm`.
 You can see this naming scheme in your blob container if you've saved any files. Here's an example using the blue circle sample image:
 
@@ -70,8 +68,7 @@ If you are ok with interruption to the service, you can follow the steps below. 
 #### Without Service Interruption
 If you are not ok with interruption to the service, you can follow the steps below.
 
-1. Change `BlobMigration.FormatType` to `"Dual"`
-   1. This will duplicate any new DICOM files uploaded to both old and new format as you continue to use your service during the copying operation.
+1. Change `BlobMigration.FormatType` to `"Dual"`. This will duplicate any new DICOM files uploaded to both old and new format as you continue to use your service during the copying operation.
 2. Follow steps in [With Service Interruption](#with-service-interruption), but feel free to continue using the service.
 
 > **Please post any questions or issues encountered during migration in the related [GitHub Discussion](https://github.com/microsoft/dicom-server/discussions/1561).**
