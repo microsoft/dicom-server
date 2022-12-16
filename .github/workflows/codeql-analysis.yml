@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3.1.0
+      uses: actions/checkout@v3.2.0
 
     - name: Setup dotnet from global.json
       uses: actions/setup-dotnet@v3
@@ -47,6 +47,7 @@ jobs:
       run: |
         dotnet build Microsoft.Health.Dicom.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
         dotnet build converter/dicom-cast/Microsoft.Health.DicomCast.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
+        dotnet build tools/Microsoft.Health.Dicom.Tools.sln -c Release -p:ContinuousIntegrationBuild=true -warnaserror
       if: ${{ matrix.language == 'csharp' }}
 
     - name: Perform CodeQL Analysis

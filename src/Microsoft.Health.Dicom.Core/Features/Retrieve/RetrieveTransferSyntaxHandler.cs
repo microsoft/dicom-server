@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -45,14 +45,14 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
         _logger = logger;
     }
 
-    public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader)
+    public string GetTransferSyntax(ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
 
         _logger.LogInformation("Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
 
         // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
-        if (acceptHeaders.Count() > 1)
+        if (acceptHeaders.Count > 1)
         {
             throw new NotAcceptableException(DicomCoreResource.NotSupportMultipleAcceptHeaders);
         }
