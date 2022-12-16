@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -126,7 +127,7 @@ internal class SqlQueryGenerator : BaseSqlQueryGenerator
             // TODO: All other filter condition s should be considered here....
             //AppendFilterClause();
             QueryFilterCondition modalitiesInStudyQueryfilterCondition
-                = QueryExpression.FilterConditions.FirstOrDefault(fc => fc.QueryTag.Tag.Equals(FellowOakDicom.DicomTag.ModalitiesInStudy));
+                = QueryExpression.FilterConditions.FirstOrDefault(fc => fc.QueryTag.Tag.Equals(DicomTag.ModalitiesInStudy));
 
             if (modalitiesInStudyQueryfilterCondition != null)
             {
