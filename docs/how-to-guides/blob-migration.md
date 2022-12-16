@@ -30,7 +30,7 @@ Below is the `appsettings.json` configuration related to blob migration. Several
 }
 ```
 
-The same settings can be adjusted as part of the `App Service` Azure Service's Configuration settings if you used the [Deploy to Azure option from our README.](https://github.com/microsoft/dicom-server#deploy-to-azure) :
+These settings can be adjusted as part of the Azure App Service's configuration settings if you used the [deploy to Azure option](https://github.com/microsoft/dicom-server#deploy-to-azure) from our README:
 
 ![app-service-settings-configuration](../images/app-service-settings-configuration.png)
 
