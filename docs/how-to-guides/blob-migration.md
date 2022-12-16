@@ -74,5 +74,5 @@ If you are not ok with interruption to the service, you can follow the steps bel
    1. This will duplicate any new DICOM files uploaded to both old and new format as you continue to use your service during the copying operation.
 2. Follow steps in [With Service Interruption](#with-service-interruption), but feel free to continue using the service.
 
-**Note: If in case there are any issues or questions during migration, you can post your questions or issues in the [DICOM Server GitHub Discussions](https://github.com/microsoft/dicom-server/discussions/1561) page.**`
+> **Please post any questions or issues encountered during migration in the related [GitHub Discussion](https://github.com/microsoft/dicom-server/discussions/1561).**
 
