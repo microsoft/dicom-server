@@ -135,3 +135,12 @@ INCLUDE
     SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in computed columns response
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyKey_SeriesKey on dbo.Instance
+(
+    PartitionKey,
+    StudyKey,
+    SeriesKey
+)
+WITH (DATA_COMPRESSION = PAGE)

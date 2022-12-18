@@ -79,3 +79,19 @@ CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE
 (
     TagKey                     INT
 )
+
+/*************************************************************
+    Table value param to get query response at study level
+*************************************************************/
+CREATE TYPE dbo.StudyInstanceUidTableType AS TABLE
+(
+   StudyInstanceUid           VARCHAR(64)
+)
+
+/*************************************************************
+    Table value param to get query response at series level
+*************************************************************/
+CREATE TYPE dbo.SeriesInstanceUidTableType AS TABLE
+(
+   SeriesInstanceUid           VARCHAR(64)
+)
