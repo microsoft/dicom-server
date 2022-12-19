@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -26,5 +26,5 @@ public interface IETagGenerator
     /// <param name="resourceType">Resource Type.</param>
     /// <param name="retrieveInstances">Retrieve Instances.</param>
     /// <returns>ETag.</returns>
-    string GetETag(ResourceType resourceType, IReadOnlyCollection<VersionedInstanceIdentifier> retrieveInstances);
+    string GetETag(ResourceType resourceType, IEnumerable<VersionedInstanceIdentifier> retrieveInstances);
 }
