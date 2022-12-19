@@ -54,6 +54,7 @@ public static class DicomServerServiceCollectionExtensions
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
         serverBuilder.Services.AddHostedService<StartBlobMigrationService>();
         serverBuilder.Services.AddHostedService<StartBlobDeleteMigrationService>();
+        serverBuilder.Services.AddHostedService<StartCleanupDeletedBlobService>();
         return serverBuilder;
     }
 
@@ -138,6 +139,7 @@ public static class DicomServerServiceCollectionExtensions
             options.OperationFilter<ErrorCodeOperationFilter>();
             options.OperationFilter<RetrieveOperationFilter>();
             options.DocumentFilter<ReflectionTypeFilter>();
+            options.SchemaFilter<IgnoreEnumSchemaFilter>();
         });
 
         services.AddSingleton<IUrlResolver, UrlResolver>();

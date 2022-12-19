@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -134,13 +134,13 @@ public class TranscoderTests
         }
     }
 
-    private void VerifyFrames(DicomFile actual, TranscoderTestData testData)
+    private static void VerifyFrames(DicomFile actual, TranscoderTestData testData)
     {
         Assert.Equal(actual.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.OutputSyntaxUid);
         Assert.Equal(testData.MetaData.OutputFramesHashCode, GetFramesHashCode(actual));
     }
 
-    private string GetFramesHashCode(DicomFile dicomFile)
+    private static string GetFramesHashCode(DicomFile dicomFile)
     {
         DicomPixelData dicomPixelData = DicomPixelData.Create(dicomFile.Dataset);
         List<byte> frames = new List<byte>();
@@ -152,8 +152,8 @@ public class TranscoderTests
         return GetByteArrayHashCode(frames.ToArray());
     }
 
-    private string GetByteArrayHashCode(byte[] byteArray)
+    private static string GetByteArrayHashCode(byte[] byteArray)
     {
-        return Convert.ToBase64String(HashAlgorithm.Create(nameof(SHA1)).ComputeHash(byteArray));
+        return Convert.ToBase64String(SHA1.HashData(byteArray));
     }
 }

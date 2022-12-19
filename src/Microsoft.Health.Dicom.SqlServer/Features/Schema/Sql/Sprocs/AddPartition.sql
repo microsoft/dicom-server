@@ -30,6 +30,13 @@ BEGIN
     DECLARE @createdDate DATETIME2(7) = SYSUTCDATETIME()
     DECLARE @partitionKey INT
 
+    SELECT @partitionKey = PartitionKey
+    FROM dbo.Partition
+    WHERE PartitionName = @partitionName
+
+    IF @@ROWCOUNT <> 0
+        THROW 50409, 'Partition already exists', 1;
+
     -- Insert Partition
     SET @partitionKey = NEXT VALUE FOR dbo.PartitionKeySequence
 

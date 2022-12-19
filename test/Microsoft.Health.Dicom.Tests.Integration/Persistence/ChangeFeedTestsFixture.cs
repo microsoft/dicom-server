@@ -1,9 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Xunit;
 
@@ -19,6 +20,8 @@ public class ChangeFeedTestsFixture : IAsyncLifetime
     }
 
     public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
+
+    public IChangeFeedStore DicomChangeFeedStore => _sqlDataStoreTestsFixture.ChangeFeedStore;
 
     public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
 

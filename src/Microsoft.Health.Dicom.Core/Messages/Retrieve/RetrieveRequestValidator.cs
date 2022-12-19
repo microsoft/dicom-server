@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -68,20 +68,13 @@ public static class RetrieveRequestValidator
         }
     }
 
-    public static void ValidateFrames(IEnumerable<int> frames)
+    public static void ValidateFrames(IReadOnlyCollection<int> frames)
     {
-        if (frames == null || !frames.Any())
-        {
+        if (frames == null || frames.Count == 0)
             throw new BadRequestException(DicomCoreResource.InvalidFramesValue);
-        }
 
-        foreach (int x in frames)
-        {
-            if (x < 0)
-            {
-                throw new BadRequestException(DicomCoreResource.InvalidFramesValue);
-            }
-        }
+        if (frames.Any(x => x < 0))
+            throw new BadRequestException(DicomCoreResource.InvalidFramesValue);
     }
 
     public static void ValidateTransferSyntax(string requestedTransferSyntax, bool originalTransferSyntaxRequested = false)

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Common components, such as controllers, for Microsoft's DICOMweb APIs using ASP.NET Core.</Description>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +25,8 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Microsoft.OpenApi" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>

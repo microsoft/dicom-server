@@ -1,5 +1,5 @@
 # Copy the DICOM Server project and build the benchmark
-FROM mcr.microsoft.com/dotnet/sdk:6.0.401-alpine3.16@sha256:ed94db9b569b9315978fd54a7cb5f95f23229746493d91dc5c5d122d0fcfe368 AS sdk
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-alpine3.16@sha256:7608d66e56af46b09033b269fef6f048a4b58d50aa54b857471ec0d0194c59f9 AS sdk
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
     apk add --no-cache icu-libs && \

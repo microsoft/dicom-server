@@ -133,6 +133,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data partition already exists..
+        /// </summary>
+        internal static string DataPartitionAlreadyExists {
+            get {
+                return ResourceManager.GetString("DataPartitionAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data partitions feature cannot be disabled while existing data has already been partitioned..
         /// </summary>
         internal static string DataPartitionFeatureCannotBeDisabled {
@@ -165,6 +174,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string DataPartitionsMissingPartition {
             get {
                 return ResourceManager.GetString("DataPartitionsMissingPartition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dataset does not match SOP Class..
+        /// </summary>
+        internal static string DatasetDoesNotMatchSOPClass {
+            get {
+                return ResourceManager.GetString("DatasetDoesNotMatchSOPClass", resourceCulture);
             }
         }
         
