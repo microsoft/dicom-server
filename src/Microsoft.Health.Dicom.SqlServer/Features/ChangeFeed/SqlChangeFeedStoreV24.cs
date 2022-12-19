@@ -76,6 +76,8 @@ internal class SqlChangeFeedStoreV24 : SqlChangeFeedStoreV6
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
         VLatest.GetMaxDeletedChangeFeedWatermark.PopulateCommand(sqlCommandWrapper, timeStamp);
-        return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+        var maxSequence = await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+
+        return maxSequence != null && maxSequence != DBNull.Value ? (long)maxSequence : default;
     }
 }
