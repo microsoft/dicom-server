@@ -2762,8 +2762,6 @@ components:
         - unknown
         - reindex
         - export
-        - copy
-        - migrationDeletion
       type: string
     DicomOperationIOperationState:
       type: object

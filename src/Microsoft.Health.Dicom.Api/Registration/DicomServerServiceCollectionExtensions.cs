@@ -52,9 +52,6 @@ public static class DicomServerServiceCollectionExtensions
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
-        serverBuilder.Services.AddHostedService<StartBlobMigrationService>();
-        serverBuilder.Services.AddHostedService<StartBlobDeleteMigrationService>();
-        serverBuilder.Services.AddHostedService<StartCleanupDeletedBlobService>();
         return serverBuilder;
     }
 
@@ -99,7 +96,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Audit));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Swagger));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.Retrieve));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.BlobMigration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
 

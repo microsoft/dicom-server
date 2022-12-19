@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -69,7 +69,6 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<TStoreConfigurationSection>())
             .AddPersistence<TIStore, TStore>()
             .AddBlobServiceClient(blobConfig)
-            .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
             .AddBlobContainerInitialization(x => blobConfig
                 .GetSection(BlobInitializerOptions.DefaultSectionName)

@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V25
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -49,6 +49,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
+        internal readonly static GetDeletedChangeFeedByWatermarkOrTimeStampProcedure GetDeletedChangeFeedByWatermarkOrTimeStamp = new GetDeletedChangeFeedByWatermarkOrTimeStampProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
@@ -61,6 +62,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceWithPropertiesProcedure GetInstanceWithProperties = new GetInstanceWithPropertiesProcedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
+        internal readonly static GetMaxDeletedChangeFeedWatermarkProcedure GetMaxDeletedChangeFeedWatermark = new GetMaxDeletedChangeFeedWatermarkProcedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
@@ -1024,6 +1026,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetDeletedChangeFeedByWatermarkOrTimeStampProcedure : StoredProcedure
+        {
+            internal GetDeletedChangeFeedByWatermarkOrTimeStampProcedure() : base("dbo.GetDeletedChangeFeedByWatermarkOrTimeStamp")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _timeStamp = new ParameterDefinition<System.Nullable<System.DateTime>>("@timeStamp", global::System.Data.SqlDbType.DateTime, true);
+            private readonly ParameterDefinition<System.Nullable<System.Int64>> _startWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@startWatermark", global::System.Data.SqlDbType.BigInt, true);
+            private readonly ParameterDefinition<System.Nullable<System.Int64>> _endWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@endWatermark", global::System.Data.SqlDbType.BigInt, true);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchCount, System.Nullable<System.DateTime> timeStamp, System.Nullable<System.Int64> startWatermark, System.Nullable<System.Int64> endWatermark)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetDeletedChangeFeedByWatermarkOrTimeStamp";
+                _batchCount.AddParameter(command.Parameters, batchCount);
+                _timeStamp.AddParameter(command.Parameters, timeStamp);
+                _startWatermark.AddParameter(command.Parameters, startWatermark);
+                _endWatermark.AddParameter(command.Parameters, endWatermark);
+            }
+        }
+
         internal class GetExtendedQueryTagProcedure : StoredProcedure
         {
             internal GetExtendedQueryTagProcedure() : base("dbo.GetExtendedQueryTag")
@@ -1289,6 +1313,22 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _startWatermark.AddParameter(command.Parameters, startWatermark);
                 _endWatermark.AddParameter(command.Parameters, endWatermark);
                 _status.AddParameter(command.Parameters, status);
+            }
+        }
+
+        internal class GetMaxDeletedChangeFeedWatermarkProcedure : StoredProcedure
+        {
+            internal GetMaxDeletedChangeFeedWatermarkProcedure() : base("dbo.GetMaxDeletedChangeFeedWatermark")
+            {
+            }
+
+            private readonly ParameterDefinition<System.DateTime> _timeStamp = new ParameterDefinition<System.DateTime>("@timeStamp", global::System.Data.SqlDbType.DateTime, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.DateTime timeStamp)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetMaxDeletedChangeFeedWatermark";
+                _timeStamp.AddParameter(command.Parameters, timeStamp);
             }
         }
 

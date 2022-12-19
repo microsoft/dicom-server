@@ -18,8 +18,5 @@ public enum TestServerFeatureSettingType : byte
     None = 0,
 
     // Enable Data Partition
-    DataPartition = 1,
-
-    // Enable Dual Write
-    DualWrite = 2
+    DataPartition = 1
 }

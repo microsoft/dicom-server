@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -87,5 +87,7 @@ internal class StoredProcedureCompatibleValidator
             KeyValuePair.Create(nameof(V8.IIndexInstanceCore), 9),
             KeyValuePair.Create(nameof(V8.IndexInstance), 9),
             KeyValuePair.Create(nameof(V8.IndexInstanceV2), 9),
+            KeyValuePair.Create(nameof(V25.GetMaxDeletedChangeFeedWatermark), 26),
+            KeyValuePair.Create(nameof(V25.GetDeletedChangeFeedByWatermarkOrTimeStamp), 26),
         }.ToImmutableDictionary();
 }
