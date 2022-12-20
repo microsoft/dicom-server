@@ -33,7 +33,6 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         : base(new Uri("http://localhost/"))
     {
         var enableDataPartitions = (featureSettingType & TestServerFeatureSettingType.DataPartition) == TestServerFeatureSettingType.DataPartition;
-        var enableDualWrite = (featureSettingType & TestServerFeatureSettingType.DualWrite) == TestServerFeatureSettingType.DualWrite;
 
         string contentRoot = GetProjectPath("src", startupType);
 
@@ -52,11 +51,6 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         };
 
 
-        var serviceSettings = new Dictionary<string, string>
-        {
-            { "DicomServer:Services:BlobMigration:FormatType", "Dual" }
-        };
-
         string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
 
         // Overriding sqlserver connection string to provide different DB for data partition test
@@ -74,11 +68,6 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 config.AddInMemoryCollection(authSettings);
                 config.AddInMemoryCollection(featureSettings);
                 config.AddInMemoryCollection(sqlSettings);
-
-                if (enableDualWrite)
-                {
-                    config.AddInMemoryCollection(serviceSettings);
-                }
 
                 IConfigurationRoot existingConfig = config.Build();
 
