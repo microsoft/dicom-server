@@ -4,8 +4,8 @@
     "AzureFunctionsJobHost__DicomFunctions__Indexing__MaxParallelBatches": "1",
     "AzureFunctionsJobHost__Logging__Console__IsEnabled": "true",
     "AzureFunctionsJobHost__SqlServer__ConnectionString": "server=(local);Initial Catalog=Dicom;Integrated Security=true;TrustServerCertificate=true",
-    "AzureFunctionsJobHost__APPINSIGHTS_INSTRUMENTATIONKEY": "replace-me",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "FUNCTIONS_WORKER_RUNTIME": "dotnet"
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "APPINSIGHTS_INSTRUMENTATIONKEY": "replace-me"
   }
 }
