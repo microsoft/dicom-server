@@ -43,7 +43,7 @@ services:
       AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       AZURE_FUNCTIONS_ENVIRONMENT: "Development"
       WEBSITE_HOSTNAME: "localhost:8080"
-      APPINSIGHTS_INSTRUMENTATIONKEY: "00000000-0000-0000-0000-000000000000" # necessary dummy value to get host to configure telemetry client even when just running locally
+      APPINSIGHTS_INSTRUMENTATIONKEY: "00000000-0000-0000-0000-000000000000" # necessary value placeholder to get host to configure telemetry client even when just running locally
     ports:
       - "7072:8080"
     restart: on-failure
