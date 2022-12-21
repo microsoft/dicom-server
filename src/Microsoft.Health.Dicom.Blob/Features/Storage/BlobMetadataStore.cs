@@ -15,6 +15,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -24,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
+using NotSupportedException = System.NotSupportedException;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -34,11 +36,14 @@ public class BlobMetadataStore : IMetadataStore
 {
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
+    private const string JsonDeserializationException = "JsonDeserializationException";
+    private const string JsonDeserializationExceptionTypeDimension = "JsonDeserializationExceptionTypeDimension";
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
+    private readonly TelemetryClient _telemetryClient;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -46,7 +51,8 @@ public class BlobMetadataStore : IMetadataStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
-        ILogger<BlobMetadataStore> logger)
+        ILogger<BlobMetadataStore> logger,
+        TelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
@@ -54,6 +60,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -92,6 +99,12 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (Exception ex)
         {
+            if (ex is NotSupportedException)
+            {
+                _telemetryClient
+                    .GetMetric("JsonSerializationException", "ExceptionType")
+                    .TrackValue(1, ex.GetType().FullName);
+            }
             throw new DataStoreException(ex);
         }
     }
@@ -124,9 +137,26 @@ public class BlobMetadataStore : IMetadataStore
                 return await JsonSerializer.DeserializeAsync<DicomDataset>(result.Content.ToStream(), _jsonSerializerOptions, t);
             }, cancellationToken);
         }
-        catch (ItemNotFoundException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+            switch (ex)
+            {
+                case ItemNotFoundException:
+                    _logger.LogWarning(
+                        ex,
+                        "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.",
+                        versionedInstanceIdentifier);
+                    break;
+                case JsonException or NotSupportedException:
+                    _telemetryClient
+                        .GetMetric(
+                            JsonDeserializationException,
+                            JsonDeserializationExceptionTypeDimension)
+                        .TrackValue(
+                            1,
+                            ex.GetType().FullName);
+                    break;
+            }
 
             throw;
         }
