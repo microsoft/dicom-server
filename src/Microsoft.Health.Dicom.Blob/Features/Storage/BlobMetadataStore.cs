@@ -36,6 +36,8 @@ public class BlobMetadataStore : IMetadataStore
 {
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
+    private const string JsonDeserializationException = "JsonDeserializationException";
+    private const string JsonDeserializationExceptionTypeDimension = "JsonDeserializationExceptionTypeDimension";
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -147,8 +149,12 @@ public class BlobMetadataStore : IMetadataStore
                     break;
                 case JsonException or NotSupportedException:
                     _telemetryClient
-                        .GetMetric("JsonDeserializationException", "ExceptionType")
-                        .TrackValue(1, ex.GetType().FullName);
+                        .GetMetric(
+                            JsonDeserializationException,
+                            JsonDeserializationExceptionTypeDimension)
+                        .TrackValue(
+                            1,
+                            ex.GetType().FullName);
                     break;
             }
 
