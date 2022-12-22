@@ -66,7 +66,7 @@ public class StoreService : IStoreService
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
 #pragma warning disable CA1805
-    private readonly bool featureEnabled = false;
+    private readonly bool _featureEnabled = false;
 #pragma warning restore CA1805
 
     public StoreService(
@@ -149,7 +149,7 @@ public class StoreService : IStoreService
 
             // check for feature flag here. If enabled, we don't check for first exception. Instead, rely on
             // ValidateCoreTags to throw exception. The rest treat as warnings
-            if (featureEnabled)
+            if (_featureEnabled)
             {
                 throw new NotImplementedException("This API is not implemented yet");
             }
@@ -179,7 +179,7 @@ public class StoreService : IStoreService
         }
         catch (Exception ex)
         {
-            if (featureEnabled)
+            if (_featureEnabled)
             {
                 throw new NotImplementedException("This API is not implemented yet");
                 // Esma to make changes here to aggregate errors as validation warnings response base don spec
