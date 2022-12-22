@@ -151,7 +151,7 @@ public class StoreService : IStoreService
             // ValidateCoreTags to throw exception. The rest treat as warnings
             if (featureEnabled)
             {
-                throw NotImplementedException("This API is not implemented yet");
+                throw new NotImplementedException("This API is not implemented yet");
             }
             else
             {
@@ -181,7 +181,7 @@ public class StoreService : IStoreService
         {
             if (featureEnabled)
             {
-                throw NotImplementedException("This API is not implemented yet");
+                throw new NotImplementedException("This API is not implemented yet");
                 // Esma to make changes here to aggregate errors as validation warnings response base don spec
             }
             else
