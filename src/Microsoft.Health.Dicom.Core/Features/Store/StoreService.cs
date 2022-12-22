@@ -65,6 +65,9 @@ public class StoreService : IStoreService
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
+#pragma warning disable CA1805
+    private readonly bool featureEnabled = false;
+#pragma warning restore CA1805
 
     public StoreService(
         IStoreResponseBuilder storeResponseBuilder,
@@ -144,10 +147,19 @@ public class StoreService : IStoreService
 
             var storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
-            // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-            if (null != storeValidatorResult.FirstException)
+            // check for feature flag here. If enabled, we don't check for first exception. Instead, rely on
+            // ValidateCoreTags to throw exception. The rest treat as warnings
+            if (featureEnabled)
             {
-                throw storeValidatorResult.FirstException;
+                throw NotImplementedException("This API is not implemented yet");
+            }
+            else
+            {
+                // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
+                if (null != storeValidatorResult.FirstException)
+                {
+                    throw storeValidatorResult.FirstException;
+                }
             }
 
             // We have different ways to handle with warnings.
@@ -167,27 +179,35 @@ public class StoreService : IStoreService
         }
         catch (Exception ex)
         {
-            ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-            switch (ex)
+            if (featureEnabled)
             {
-                case DicomValidationException _:
-                    failureCode = FailureReasonCodes.ValidationFailure;
-                    break;
-
-                case DatasetValidationException dicomDatasetValidationException:
-                    failureCode = dicomDatasetValidationException.FailureCode;
-                    break;
-
-                case ValidationException _:
-                    failureCode = FailureReasonCodes.ValidationFailure;
-                    break;
+                throw NotImplementedException("This API is not implemented yet");
+                // Esma to make changes here to aggregate errors as validation warnings response base don spec
             }
+            else
+            {
+                // Kartkik to make changes here to aggregate all errors and generate response based on spec
+                ushort failureCode = FailureReasonCodes.ProcessingFailure;
 
-            LogValidationFailedDelegate(_logger, index, failureCode, ex);
+                switch (ex)
+                {
+                    case DicomValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
 
-            _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
-            return null;
+                    case DatasetValidationException dicomDatasetValidationException:
+                        failureCode = dicomDatasetValidationException.FailureCode;
+                        break;
+
+                    case ValidationException _:
+                        failureCode = FailureReasonCodes.ValidationFailure;
+                        break;
+                }
+                LogValidationFailedDelegate(_logger, index, failureCode, ex);
+
+                _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+                return null;
+            }
         }
 
         try
