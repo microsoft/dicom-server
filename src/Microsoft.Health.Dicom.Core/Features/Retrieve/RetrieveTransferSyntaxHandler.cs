@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -51,12 +51,6 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
 
         _logger.LogInformation("Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
 
-        // TODO: disable multiple accept headers, will fully implement it later (https://microsofthealth.visualstudio.com/Health/_workitems/edit/75782)
-        if (acceptHeaders.Count() > 1)
-        {
-            throw new NotAcceptableException(DicomCoreResource.NotSupportMultipleAcceptHeaders);
-        }
-
         AcceptHeaderDescriptors descriptors = _acceptableDescriptors[resourceType];
         acceptHeaderDescriptor = null;
 
@@ -70,25 +64,30 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
             }
         }
 
-        if (accepted.Count == 0)
+        if (!accepted.Any())
         {
             throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
         }
 
-        // Last elment has largest quality
-        acceptedHeader = accepted.Last().Key;
-        return accepted.Last().Value;
+        // support both image/jp2 and application/octet-stream, and image/jp2 has higher Q, we should choose image/jp2
+        var acceptedKvp = accepted
+            .FirstOrDefault(item => item.Key.MediaType == KnownContentTypes.ImageJpeg2000, accepted.Last());
+
+        acceptedHeader = acceptedKvp.Key;
+
+        return acceptedKvp.Value;
     }
 
     private static AcceptHeaderDescriptors DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
     {
         return new AcceptHeaderDescriptors(
                   new AcceptHeaderDescriptor(
-                  payloadType: payloadTypes,
-                  mediaType: KnownContentTypes.ApplicationDicom,
-                  isTransferSyntaxMandatory: false,
-                  transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID)));
+                      payloadType: payloadTypes,
+                      mediaType: KnownContentTypes.ApplicationDicom,
+                      isTransferSyntaxMandatory: false,
+                      transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                      acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID))
+                  );
     }
 
     private static AcceptHeaderDescriptors DescriptorsForGetFrame()

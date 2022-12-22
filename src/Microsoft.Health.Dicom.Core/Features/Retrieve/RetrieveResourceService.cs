@@ -84,7 +84,9 @@ public class RetrieveResourceService : IRetrieveResourceService
 
         try
         {
-            string requestedTransferSyntax = _retrieveTransferSyntaxHandler.GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader);
+            string requestedTransferSyntax = _retrieveTransferSyntaxHandler
+                .GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader);
+
             bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
 
             if (message.ResourceType == ResourceType.Frames)

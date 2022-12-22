@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -52,5 +52,30 @@ public class RetrieveTransferSyntaxHandlerTests
         AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: DicomTransferSyntaxUids.Original);
         AcceptHeaderDescriptor acceptHeaderDescriptor;
         Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader));
+    }
+
+    [Fact]
+    public void GivenMultipleAcceptHeaders_WhenGetTransferSyntax_ThenShouldNotThrowException()
+    {
+        // As standard, since we support both image/jp2 and application/octet-stream, and image/jp2 has higher Q, we should choose image/jp2 ,
+        // but we don’t support RLELossless, so we should return NotAcceptable.
+
+        // multipart/related;type="image/jls",multipart/related;type="image/jpeg"
+        // multipart/related;type=”image/jp2”;transfer-syntax=1.2.840.10008.1.2.5(RLELossless);q=0.7,multipart/related;type=”application/octet-stream”;transfer-syntax= 1.2.840.10008.1.2.1 (ExplicitVRLittleEndian);q=0.5
+
+        var acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, mediaType: KnownContentTypes.ApplicationOctetStream, transferSyntax: DicomTransferSyntaxUids.Original);
+        var acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries(quality: 0.7, mediaType: KnownContentTypes.ImageJpeg2000, transferSyntax: DicomTransferSyntaxUids.Original);
+        var acceptHeader3 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, mediaType: KnownContentTypes.ImageJpegLs, transferSyntax: DicomTransferSyntaxUids.Original);
+
+        AcceptHeaderDescriptor acceptHeaderDescriptor;
+        var transferSyntax = _handler
+            .GetTransferSyntax(ResourceType.Study, new[]
+                {
+                    acceptHeader1,
+                    acceptHeader2,
+                    acceptHeader3
+                }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader);
+
+        Assert.False(string.IsNullOrWhiteSpace(transferSyntax));
     }
 }
