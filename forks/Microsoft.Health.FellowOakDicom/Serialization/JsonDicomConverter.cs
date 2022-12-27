@@ -225,11 +225,40 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             while (reader.TokenType != JsonTokenType.EndObject)
             {
                 reader.Assume(JsonTokenType.PropertyName);
-                var tagstr = reader.GetString();
-                DicomTag tag = ParseTag(tagstr);
-                reader.Read(); // move to value
-                var item = ReadJsonDicomItem(tag, ref reader);
-                dataset.Add(item);
+                string tagstr = reader.GetString();
+                // try parse tag, drop attr if can't
+                DicomTag tag;
+                DicomItem item;
+                try
+                {
+                    tag = ParseTag(tagstr);
+                }catch (Exception)
+                {
+                    // telemetry
+                    continue;
+                }
+
+                // try read value, drop attr if can't
+                try
+                {
+                    reader.Read(); // move to value
+                    item = ReadJsonDicomItem(tag, ref reader);
+                }
+                catch (Exception)
+                {
+                    // telemetry
+                    continue;
+                }
+
+                try
+                {
+                    dataset.Add(item);
+                }
+                catch (Exception)
+                {
+                    // telemetry
+                    continue;
+                }
             }
 
             foreach (var item in dataset)
