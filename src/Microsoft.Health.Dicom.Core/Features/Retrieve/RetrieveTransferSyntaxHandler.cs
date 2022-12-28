@@ -54,7 +54,7 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
         AcceptHeaderDescriptors descriptors = _acceptableDescriptors[resourceType];
         acceptHeaderDescriptor = null;
 
-        // get all accceptable headers and sort by quality (ascendently)
+        // get all acceptable headers and sort by quality (in ascending order)
         var accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
         foreach (AcceptHeader header in acceptHeaders)
         {
@@ -69,25 +69,20 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
             throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
         }
 
-        // support both image/jp2 and application/octet-stream, and image/jp2 has higher Q, we should choose image/jp2
-        var acceptedKvp = accepted
-            .FirstOrDefault(item => item.Key.MediaType == KnownContentTypes.ImageJpeg2000, accepted.Last());
-
-        acceptedHeader = acceptedKvp.Key;
-
-        return acceptedKvp.Value;
+        // Last element has largest quality
+        acceptedHeader = accepted.Last().Key;
+        return accepted.Last().Value;
     }
 
     private static AcceptHeaderDescriptors DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
     {
         return new AcceptHeaderDescriptors(
                   new AcceptHeaderDescriptor(
-                      payloadType: payloadTypes,
-                      mediaType: KnownContentTypes.ApplicationDicom,
-                      isTransferSyntaxMandatory: false,
-                      transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                      acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID))
-                  );
+                  payloadType: payloadTypes,
+                  mediaType: KnownContentTypes.ApplicationDicom,
+                  isTransferSyntaxMandatory: false,
+                  transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
+                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID)));
     }
 
     private static AcceptHeaderDescriptors DescriptorsForGetFrame()
