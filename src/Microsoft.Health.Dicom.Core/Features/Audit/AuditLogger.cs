@@ -10,10 +10,10 @@ using System.Net;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Configs;
 
-namespace Microsoft.Health.Dicom.Api.Features.Audit;
+namespace Microsoft.Health.Dicom.Core.Features.Audit;
 
 /// <summary>
 /// Provides mechanism to log the audit event using default logger.

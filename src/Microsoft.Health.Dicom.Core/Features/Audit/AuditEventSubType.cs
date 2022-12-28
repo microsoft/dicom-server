@@ -53,4 +53,6 @@ public static class AuditEventSubType
     public const string GetExtendedQueryTagErrors = "get-extended-query-tag-errors";
 
     public const string UpdateExtendedQueryTag = "update-extended-query-tag";
+
+    public const string BulkImportStore = "bulk-import-store";
 }

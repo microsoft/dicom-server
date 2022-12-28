@@ -6,9 +6,9 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Core.Features.Audit;
 
-namespace Microsoft.Health.Dicom.Api.Features.Audit;
+namespace Microsoft.Health.Dicom.Core.Features.Audit;
 
 /// <summary>
 /// Provides mechanism to log audit event.
