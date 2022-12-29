@@ -77,15 +77,14 @@ public class RetrieveTransferSyntaxHandlerTests
             ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing
             );
 
-        string returnedTransferSyntax = _handler.GetTransferSyntax(
+        _handler.GetTransferSyntax(
             ResourceType.Study,
             new[] { requestedAcceptHeader },
             out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
             out AcceptHeader matchedAcceptHeader);
 
-        Assert.Equal(requestedAcceptHeader.TransferSyntax, returnedTransferSyntax);
-        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
         Assert.Equal(requestedAcceptHeader, matchedAcceptHeader);
+        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
 
     [Theory]
@@ -120,7 +119,7 @@ public class RetrieveTransferSyntaxHandlerTests
             quality: 0.9
         );
 
-        string returnedTransferSyntax = _handler.GetTransferSyntax(
+        _handler.GetTransferSyntax(
             ResourceType.Study,
             new[]
             {
@@ -130,7 +129,6 @@ public class RetrieveTransferSyntaxHandlerTests
             out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
             out AcceptHeader matchedAcceptHeader);
 
-        Assert.Equal(requestedAcceptHeader2.TransferSyntax, returnedTransferSyntax);
         Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
         Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
@@ -177,7 +175,7 @@ public class RetrieveTransferSyntaxHandlerTests
                 out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
                 out AcceptHeader matchedAcceptHeader);
 
-        Assert.Equal(requestedAcceptHeader2.TransferSyntax, transferSyntax);
-        Assert.Equal(requestedAcceptHeader2.Quality, matchedAcceptHeader.Quality);
+        Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
+        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
 }
