@@ -23,6 +23,7 @@ public class AcceptHeaderDescriptors
 
     public bool TryGetMatchedDescriptor(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderDescriptor, out string transferSyntax)
     {
+        // TODO - we reset the descriptor here on each header check when what we need to do is persist the matching header
         acceptableHeaderDescriptor = null;
         transferSyntax = string.Empty;
 
