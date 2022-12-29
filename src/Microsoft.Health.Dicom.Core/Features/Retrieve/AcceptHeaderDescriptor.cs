@@ -74,12 +74,14 @@ public class AcceptHeaderDescriptor
         return false;
     }
 
-    public void SetTransferSyntax(AcceptHeader acceptHeader)
+    public StringSegment GetTransferSyntax(AcceptHeader acceptHeader)
     {
-        // when transfer syntax is missed from accept header, use default one
+        // when transfer syntax not supplied and was not mandatory to be supplied, use default syntax
         if (!IsTransferSyntaxMandatory && StringSegment.IsNullOrEmpty(acceptHeader.TransferSyntax))
         {
-            acceptHeader.TransferSyntax = TransferSyntaxWhenMissing;
+            return TransferSyntaxWhenMissing;
         }
+
+        return acceptHeader.TransferSyntax;
     }
 }

@@ -19,7 +19,6 @@ public class RetrieveTransferSyntaxHandlerTests
     private readonly RetrieveTransferSyntaxHandler _handler;
     private static readonly AcceptHeaderDescriptor ValidStudyAcceptHeaderDescriptor = RetrieveTransferSyntaxHandler
         .AcceptableDescriptors[ResourceType.Study]
-        .Descriptors
         .First();
 
     public static IEnumerable<object[]> UnacceptableHeadersList()
@@ -79,7 +78,7 @@ public class RetrieveTransferSyntaxHandlerTests
 
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             ResourceType.Study,
-            new[] { requestedAcceptHeader }
+            new List<AcceptHeader>() { requestedAcceptHeader }
             );
 
         Assert.Equal(requestedAcceptHeader, matchedAcceptHeader);

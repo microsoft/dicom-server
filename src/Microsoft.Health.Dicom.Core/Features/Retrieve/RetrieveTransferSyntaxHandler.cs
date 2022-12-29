@@ -18,8 +18,8 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
 {
-    protected internal static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptableDescriptors =
-       new Dictionary<ResourceType, AcceptHeaderDescriptors>()
+    protected internal static readonly IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>> AcceptableDescriptors =
+       new Dictionary<ResourceType, List<AcceptHeaderDescriptor>>()
        {
             { ResourceType.Study, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },
             { ResourceType.Series, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },
@@ -27,7 +27,7 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
             { ResourceType.Frames, DescriptorsForGetFrame() },
        };
 
-    private readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> _acceptableDescriptors;
+    private readonly IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>> _acceptableDescriptors;
 
     private readonly ILogger<RetrieveTransferSyntaxHandler> _logger;
 
@@ -36,7 +36,7 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     {
     }
 
-    public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> acceptableDescriptors, ILogger<RetrieveTransferSyntaxHandler> logger)
+    public RetrieveTransferSyntaxHandler(IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>> acceptableDescriptors, ILogger<RetrieveTransferSyntaxHandler> logger)
     {
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(acceptableDescriptors, nameof(acceptableDescriptors));
@@ -45,48 +45,58 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
         _logger = logger;
     }
 
+   /// <summary>
+   /// Based on requested AcceptHeaders from users ordered by priority, create new AcceptHeader with valid TransferSyntax,
+   /// leaving user input unmodified.
+   /// </summary>
+   /// <param name="resourceType">Used to understand if header properties are valid.</param>
+   /// <param name="acceptHeaders">One or more headers as requested by user.</param>
+   /// <returns>New accept header based on highest priority valid header requested.</returns>
+   /// <exception cref="NotAcceptableException"></exception>
     public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
+        IEnumerable<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality);
 
         _logger.LogInformation("Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
 
-        AcceptHeaderDescriptors descriptors = _acceptableDescriptors[resourceType];
+        List<AcceptHeaderDescriptor> descriptors = _acceptableDescriptors[resourceType];
 
-        // get all acceptable headers, sorted by quality
-        List<AcceptHeader> accepted = new List<AcceptHeader>();
-        foreach (AcceptHeader header in acceptHeaders)
+        // since these are ordered by quality already, we can return the first acceptable header
+        foreach (AcceptHeader header in orderedHeaders)
         {
-            if (descriptors.IsValidAcceptHeader(header))
+            foreach (AcceptHeaderDescriptor descriptor in descriptors)
             {
-                accepted.Add(header);
+                if (descriptor.IsAcceptable(header))
+                {
+                    return new AcceptHeader(
+                        header.MediaType,
+                        header.PayloadType,
+                        descriptor.GetTransferSyntax(header),
+                        header.Quality);
+                }
             }
         }
 
-        if (!accepted.Any())
-        {
-            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
-        }
-
-        accepted.Sort();
-        // Last element has largest quality
-        return accepted.Last();
+        //  none were valid
+        throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
     }
 
-    private static AcceptHeaderDescriptors DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
+    private static List<AcceptHeaderDescriptor> DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
     {
-        return new AcceptHeaderDescriptors(
+        return new List<AcceptHeaderDescriptor>{
                   new AcceptHeaderDescriptor(
                   payloadType: payloadTypes,
                   mediaType: KnownContentTypes.ApplicationDicom,
                   isTransferSyntaxMandatory: false,
                   transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID)));
+                  acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID))
+                  };
     }
 
-    private static AcceptHeaderDescriptors DescriptorsForGetFrame()
+    private static List<AcceptHeaderDescriptor> DescriptorsForGetFrame()
     {
-        return new AcceptHeaderDescriptors(
+        return new List<AcceptHeaderDescriptor>{
          new AcceptHeaderDescriptor(
              payloadType: PayloadTypes.SinglePartOrMultipartRelated,
              mediaType: KnownContentTypes.ApplicationOctetStream,
@@ -98,7 +108,8 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
              mediaType: KnownContentTypes.ImageJpeg2000,
              isTransferSyntaxMandatory: false,
              transferSyntaxWhenMissing: DicomTransferSyntax.JPEG2000Lossless.UID.UID,
-             acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEG2000Lossless)));
+             acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntax.JPEG2000Lossless))
+         };
     }
 
     private static ISet<string> GetAcceptableTransferSyntaxSet(params DicomTransferSyntax[] transferSyntaxes)
