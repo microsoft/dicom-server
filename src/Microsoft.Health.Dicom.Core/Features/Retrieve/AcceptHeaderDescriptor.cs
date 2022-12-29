@@ -42,10 +42,9 @@ public class AcceptHeaderDescriptor
 
     public ISet<string> AcceptableTransferSyntaxes { get; }
 
-    public bool IsAcceptable(AcceptHeader acceptHeader, out string transferSyntax)
+    public bool IsAcceptable(AcceptHeader acceptHeader)
     {
         EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
-        transferSyntax = null;
 
         // Check if payload type match
         if ((PayloadType & acceptHeader.PayloadType) == PayloadTypes.None)
@@ -64,18 +63,23 @@ public class AcceptHeaderDescriptor
             {
                 return false;
             }
-
-            // when transfer syntax is missed from accept header, use default one
-            transferSyntax = TransferSyntaxWhenMissing;
             return true;
         }
 
         if (AcceptableTransferSyntaxes.Contains(acceptHeader.TransferSyntax.Value))
         {
-            transferSyntax = acceptHeader.TransferSyntax.Value;
             return true;
         }
 
         return false;
+    }
+
+    public void SetTransferSyntax(AcceptHeader acceptHeader)
+    {
+        // when transfer syntax is missed from accept header, use default one
+        if (!IsTransferSyntaxMandatory && StringSegment.IsNullOrEmpty(acceptHeader.TransferSyntax))
+        {
+            acceptHeader.TransferSyntax = TransferSyntaxWhenMissing;
+        }
     }
 }

@@ -53,10 +53,9 @@ public class AcceptHeaderDescriptorTests
     public void GivenPayloadType_WhenCheckIsAcceptable_ShouldSucceed(PayloadTypes descriptorPayloadType, PayloadTypes acceptHeaderPayloadType, bool isAcceptable)
     {
         (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForPayloadType(descriptorPayloadType, acceptHeaderPayloadType);
-        string transferSyntax;
         AcceptHeader acceptHeader = testData.Item1;
         AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
+        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader));
     }
 
     [Theory]
@@ -65,43 +64,54 @@ public class AcceptHeaderDescriptorTests
     public void GivenMediaType_WhenCheckIsAcceptable_ShouldSucceed(string descriptorMediaType, string acceptHeaderMediaType, bool isAcceptable)
     {
         (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForMediaType(descriptorMediaType, acceptHeaderMediaType);
-        string transferSyntax;
         AcceptHeader acceptHeader = testData.Item1;
         AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
+        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader));
     }
+
+    [Theory]
+    [InlineData(true, "", "", false)]
+    [InlineData(true, "", KnownContentTypes.ApplicationDicom, true)]
+    [InlineData(false, KnownContentTypes.ApplicationDicom, "", true)]
+    [InlineData(false, KnownContentTypes.ApplicationDicom, KnownContentTypes.ApplicationDicomJson, true)]
+    public void GivenTransferSyntaxMandatory_WhenCheckIsAcceptable_ShouldSucceed(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax, bool isAcceptable)
+    {
+        (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForTransferSyntaxMandatory(isTransferSyntaxMandatory, transferSyntaxWhenMissing, acceptHeaderTransferSyntax);
+        AcceptHeader acceptHeader = testData.Item1;
+        AcceptHeaderDescriptor descriptor = testData.Item2;
+        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader));
+    }
+
 
     [Theory]
     [InlineData(true, "", "", false, "")]
     [InlineData(true, "", KnownContentTypes.ApplicationDicom, true, KnownContentTypes.ApplicationDicom)]
     [InlineData(false, KnownContentTypes.ApplicationDicom, "", true, KnownContentTypes.ApplicationDicom)]
     [InlineData(false, KnownContentTypes.ApplicationDicom, KnownContentTypes.ApplicationDicomJson, true, KnownContentTypes.ApplicationDicomJson)]
-    public void GivenTransferSyntaxMandatory_WhenCheckIsAcceptable_ShouldSucceed(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax, bool isAcceptable, string expectedTransferSyntax)
+    public void GivenTransferSyntaxMandatory_ThenExpectedTransferSyntaxIsOnAcceptHeader(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax, bool isAcceptable, string expectedTransferSyntax)
     {
         (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForTransferSyntaxMandatory(isTransferSyntaxMandatory, transferSyntaxWhenMissing, acceptHeaderTransferSyntax);
-        string transferSyntax;
         AcceptHeader acceptHeader = testData.Item1;
         AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
+        descriptor.SetTransferSyntax(acceptHeader);
         if (isAcceptable)
         {
-            Assert.Equal(expectedTransferSyntax, transferSyntax);
+            Assert.Equal(expectedTransferSyntax, acceptHeader.TransferSyntax);
         }
     }
 
     [Theory]
     [InlineData(true, KnownContentTypes.ApplicationDicom, true, KnownContentTypes.ApplicationDicom)]
     [InlineData(false, KnownContentTypes.ApplicationDicom, false, "")]
-    public void GivenAcceptableTransferSyntaxes_WhenCheckIsAcceptable_ShouldSucceed(bool inSet, string acceptHeaderTransferSyntax, bool isAcceptable, string expectedTransferSyntax)
+    public void GivenAcceptableTransferSyntaxes_ThenExpectedTransferSyntaxIsOnAcceptHeader(bool inSet, string acceptHeaderTransferSyntax, bool isAcceptable, string expectedTransferSyntax)
     {
         (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForAcceptableSet(inSet, acceptHeaderTransferSyntax);
-        string transferSyntax;
         AcceptHeader acceptHeader = testData.Item1;
         AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
+        descriptor.SetTransferSyntax(acceptHeader);
         if (isAcceptable)
         {
-            Assert.Equal(expectedTransferSyntax, transferSyntax);
+            Assert.Equal(expectedTransferSyntax, acceptHeader.TransferSyntax);
         }
     }
 

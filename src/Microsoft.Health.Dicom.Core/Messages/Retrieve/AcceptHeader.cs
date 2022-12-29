@@ -24,7 +24,7 @@ public class AcceptHeader : IComparable<AcceptHeader>
 
     public PayloadTypes PayloadType { get; }
 
-    public StringSegment TransferSyntax { get; }
+    public StringSegment TransferSyntax { get; set; }
 
     public double Quality { get; }
 

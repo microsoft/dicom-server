@@ -25,8 +25,9 @@ public class AcceptHeaderDescriptors
     {
         foreach (AcceptHeaderDescriptor descriptor in _descriptors)
         {
-            if (descriptor.IsAcceptable(header, out _))
+            if (descriptor.IsAcceptable(header))
             {
+                descriptor.SetTransferSyntax(header);
                 return true;
             }
         }
