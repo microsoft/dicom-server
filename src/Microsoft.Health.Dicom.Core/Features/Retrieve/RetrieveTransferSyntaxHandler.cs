@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
 {
-    private static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptableDescriptors =
+    protected internal static readonly IReadOnlyDictionary<ResourceType, AcceptHeaderDescriptors> AcceptableDescriptors =
        new Dictionary<ResourceType, AcceptHeaderDescriptors>()
        {
             { ResourceType.Study, DescriptorsForGetNonFrameResource(PayloadTypes.MultipartRelated) },

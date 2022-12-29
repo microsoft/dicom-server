@@ -3,14 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FellowOakDicom;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
-using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
@@ -18,6 +17,51 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveTransferSyntaxHandlerTests
 {
     private readonly RetrieveTransferSyntaxHandler _handler;
+    private static readonly AcceptHeaderDescriptor ValidStudyAcceptHeaderDescriptor = RetrieveTransferSyntaxHandler
+        .AcceptableDescriptors[ResourceType.Study]
+        .Descriptors
+        .First();
+
+    public static IEnumerable<object[]> UnacceptableHeadersList()
+    {
+        yield return new object[]
+        {
+            new List<AcceptHeader>
+            {
+                new(
+                    "unsupportedMediaType",
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing)
+            },
+            ResourceType.Study
+        };
+        yield return new object[]
+        {
+            new List<AcceptHeader>
+            {
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    "unsupportedTransferSyntax")
+            },
+            ResourceType.Study
+        };
+        yield return new object[]
+        {
+            new List<AcceptHeader>
+            {
+                new(
+                    "unsupportedMediaType",
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing),
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    "unsupportedTransferSyntax")
+            },
+            ResourceType.Study
+        };
+    }
 
     public RetrieveTransferSyntaxHandlerTests()
     {
@@ -25,57 +69,115 @@ public class RetrieveTransferSyntaxHandlerTests
     }
 
     [Fact]
-    public void GivenNoMatchedAcceptHeaders_WhenGetTransferSyntax_ThenShouldThrowNotAcceptableException()
+    public void GivenASingleRequestedAcceptHeader_WhenRequestedMatchesHeadersWeAccept_ThenShouldReturnAcceptedHeaderWithTransferSyntaxAndDescriptorThatMatched()
     {
-        // Use content type that GetStudy doesn't support
-        AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(mediaType: KnownContentTypes.ImageJpeg);
-        AcceptHeaderDescriptor acceptHeaderDescriptor;
-        Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(ResourceType.Study, new[] { acceptHeader }, out acceptHeaderDescriptor, out AcceptHeader acceptedHeader));
+        AcceptHeader requestedAcceptHeader = new AcceptHeader(
+            ValidStudyAcceptHeaderDescriptor.MediaType,
+            ValidStudyAcceptHeaderDescriptor.PayloadType,
+            ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing
+            );
+
+        string returnedTransferSyntax = _handler.GetTransferSyntax(
+            ResourceType.Study,
+            new[] { requestedAcceptHeader },
+            out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
+            out AcceptHeader matchedAcceptHeader);
+
+        Assert.Equal(requestedAcceptHeader.TransferSyntax, returnedTransferSyntax);
+        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
+        Assert.Equal(requestedAcceptHeader, matchedAcceptHeader);
+    }
+
+    [Theory]
+    [MemberData(nameof(UnacceptableHeadersList))]
+    public void GivenNoMatchedAcceptHeaders_WhenGetTransferSyntax_ThenShouldThrowNotAcceptableException(
+        List<AcceptHeader> requestedAcceptHeaders,
+        ResourceType requestedResourceType)
+    {
+        Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(
+            requestedResourceType,
+            requestedAcceptHeaders,
+            out AcceptHeaderDescriptor selectedAcceptHeaderDescriptor,
+            out AcceptHeader selectedAcceptedHeader));
     }
 
     [Fact]
-    public void GivenMultipleAcceptHeaders_WhenGetTransferSyntax_ThenShouldNotThrowNotAcceptableException()
+    public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenHeadersRequestedAreAllSupported_ThenShouldReturnHighestQuality()
     {
-        AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
-        AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: DicomTransferSyntaxUids.Original);
-        AcceptHeaderDescriptor acceptHeaderDescriptor;
-        string transferSyntax = _handler.GetTransferSyntax(ResourceType.Frames, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader);
-        Assert.NotEmpty(transferSyntax);
+        Assert.True(ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.Count > 1);
+
+        AcceptHeader requestedAcceptHeader1 = new AcceptHeader(
+            ValidStudyAcceptHeaderDescriptor.MediaType,
+            ValidStudyAcceptHeaderDescriptor.PayloadType,
+            ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.First(),
+            quality: 0.5
+        );
+
+        AcceptHeader requestedAcceptHeader2 = new AcceptHeader(
+            ValidStudyAcceptHeaderDescriptor.MediaType,
+            ValidStudyAcceptHeaderDescriptor.PayloadType,
+            ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.Last(),
+            quality: 0.9
+        );
+
+        string returnedTransferSyntax = _handler.GetTransferSyntax(
+            ResourceType.Study,
+            new[]
+            {
+                requestedAcceptHeader1,
+                requestedAcceptHeader2
+            },
+            out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
+            out AcceptHeader matchedAcceptHeader);
+
+        Assert.Equal(requestedAcceptHeader2.TransferSyntax, returnedTransferSyntax);
+        Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
+        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
 
     [Fact]
-    public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenBothTransferSyntaxRequestedSupported_ThenShouldReturnLargestQuality()
-    {
-        AcceptHeader acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
-        AcceptHeader acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.9, transferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
-        AcceptHeaderDescriptor acceptHeaderDescriptor;
-        string transferSyntax = _handler.GetTransferSyntax(ResourceType.Frames, new[] { acceptHeader1, acceptHeader2 }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader);
-        Assert.Equal(acceptHeader2.TransferSyntax, transferSyntax);
-        Assert.Equal(acceptHeader2.Quality, acceptHeader.Quality);
-    }
-
-    [Fact]
-    public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenTransferSyntaxRequestedOfHigherQualityNotSupported_ThenShouldReturnNextLargestQuality()
+    public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenTransferSyntaxRequestedOfHigherQualityNotSupported_ThenShouldReturnNextHighestQuality()
     {
         // When we multiple headers requested, but the one with highest quality "preference"
         // is requested with a TransferSyntax that we do not support,
         // we should use the next highest quality requested with a supported TransferSyntax.
 
-        var acceptHeader1 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.5, transferSyntax: DicomTransferSyntaxUids.Original);
-        const string rleLosslessTransferSyntax = "1.2.840.10008.1.2.5";
-        var acceptHeader2 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.7, transferSyntax: rleLosslessTransferSyntax);
-        var acceptHeader3 = AcceptHeaderHelpers.CreateAcceptHeaderForGetFrame(quality: 0.3, transferSyntax: DicomTransferSyntaxUids.Original);
+        Assert.True(ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.Count > 1);
 
-        AcceptHeaderDescriptor acceptHeaderDescriptor;
-        var transferSyntax = _handler
-            .GetTransferSyntax(ResourceType.Frames, new[]
+        AcceptHeader requestedAcceptHeader1 = new AcceptHeader(
+            ValidStudyAcceptHeaderDescriptor.MediaType,
+            ValidStudyAcceptHeaderDescriptor.PayloadType,
+            ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.First(),
+            quality: 0.3
+        );
+
+        AcceptHeader requestedAcceptHeader2 = new AcceptHeader(
+            ValidStudyAcceptHeaderDescriptor.MediaType,
+            ValidStudyAcceptHeaderDescriptor.PayloadType,
+            ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.Last(),
+            quality: 0.5
+        );
+
+        AcceptHeader requestedAcceptHeader3 = new AcceptHeader(
+            ValidStudyAcceptHeaderDescriptor.MediaType,
+            ValidStudyAcceptHeaderDescriptor.PayloadType,
+            "unsupportedTransferSyntax",
+            quality: 0.7
+        );
+
+        string transferSyntax = _handler
+            .GetTransferSyntax(
+                ResourceType.Study,
+                new[]
                 {
-                    acceptHeader1,
-                    acceptHeader2,
-                    acceptHeader3
-                }, out acceptHeaderDescriptor, out AcceptHeader acceptHeader);
+                    requestedAcceptHeader1,
+                    requestedAcceptHeader2,
+                    requestedAcceptHeader3
+                },
+                out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
+                out AcceptHeader matchedAcceptHeader);
 
-        Assert.Equal(acceptHeader1.TransferSyntax, transferSyntax);
-        Assert.Equal(acceptHeader1.Quality, acceptHeader.Quality);
+        Assert.Equal(requestedAcceptHeader2.TransferSyntax, transferSyntax);
+        Assert.Equal(requestedAcceptHeader2.Quality, matchedAcceptHeader.Quality);
     }
 }
