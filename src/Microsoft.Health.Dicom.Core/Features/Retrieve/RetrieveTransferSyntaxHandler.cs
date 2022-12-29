@@ -46,8 +46,8 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     }
 
    /// <summary>
-   /// Based on requested AcceptHeaders from users ordered by priority, create new AcceptHeader with valid TransferSyntax,
-   /// leaving user input unmodified.
+   /// Based on requested AcceptHeaders from users ordered by priority, create new AcceptHeader with valid
+   /// TransferSyntax, leaving user input unmodified.
    /// </summary>
    /// <param name="resourceType">Used to understand if header properties are valid.</param>
    /// <param name="acceptHeaders">One or more headers as requested by user.</param>
@@ -56,9 +56,12 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
     public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
-        IEnumerable<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality);
+        List<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality).ToList();
 
-        _logger.LogInformation("Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
+        _logger.LogInformation(
+            "Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.",
+            resourceType,
+            string.Join(";", orderedHeaders));
 
         List<AcceptHeaderDescriptor> descriptors = _acceptableDescriptors[resourceType];
 
