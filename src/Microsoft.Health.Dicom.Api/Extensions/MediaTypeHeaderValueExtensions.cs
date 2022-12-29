@@ -41,6 +41,6 @@ public static class MediaTypeHeaderValueExtensions
         }
 
         StringSegment transferSyntax = headerValue.GetParameter(AcceptHeaderParameterNames.TransferSyntax);
-        return new AcceptHeader(mediaType, isMultipartRelated ? PayloadTypes.MultipartRelated : PayloadTypes.SinglePart, transferSyntax, headerValue.Quality);
+        return new AcceptHeader(mediaType, isMultipartRelated ? PayloadTypes.MultipartRelated : PayloadTypes.SinglePart, transferSyntax, headerValue.Quality.GetValueOrDefault(AcceptHeader.DefaultQuality));
     }
 }
