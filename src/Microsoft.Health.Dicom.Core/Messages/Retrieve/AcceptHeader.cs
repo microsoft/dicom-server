@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
-public class AcceptHeader : IComparable<AcceptHeader>
+public class AcceptHeader
 {
     public const double DefaultQuality = 1.0;
     public AcceptHeader(StringSegment mediaType, PayloadTypes payloadType, StringSegment transferSyntax = default, double quality = DefaultQuality)
@@ -31,16 +31,6 @@ public class AcceptHeader : IComparable<AcceptHeader>
     public bool IsSinglePart
     {
         get { return PayloadType == PayloadTypes.SinglePart; }
-    }
-
-    public int CompareTo(AcceptHeader compareHeader)
-    {
-        // A null value means that this object is greater.
-        if (compareHeader == null)
-            return 1;
-
-        else
-            return Quality.CompareTo(compareHeader.Quality);
     }
 
     public override string ToString()
