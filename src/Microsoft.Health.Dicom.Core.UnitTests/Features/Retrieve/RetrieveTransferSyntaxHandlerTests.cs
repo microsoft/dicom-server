@@ -17,6 +17,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveTransferSyntaxHandlerTests
 {
     private readonly RetrieveTransferSyntaxHandler _handler;
+
     private static readonly AcceptHeaderDescriptor ValidStudyAcceptHeaderDescriptor = RetrieveTransferSyntaxHandler
         .AcceptableDescriptors[ResourceType.Study]
         .First();
@@ -68,20 +69,21 @@ public class RetrieveTransferSyntaxHandlerTests
     }
 
     [Fact]
-    public void GivenASingleRequestedAcceptHeader_WhenRequestedMatchesHeadersWeAccept_ThenShouldReturnAcceptedHeaderWithTransferSyntaxAndDescriptorThatMatched()
+    public void
+        GivenASingleRequestedAcceptHeader_WhenRequestedMatchesHeadersWeAccept_ThenShouldReturnAcceptedHeaderWithTransferSyntaxAndDescriptorThatMatched()
     {
         AcceptHeader requestedAcceptHeader = new AcceptHeader(
             ValidStudyAcceptHeaderDescriptor.MediaType,
             ValidStudyAcceptHeaderDescriptor.PayloadType,
             ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing
-            );
+        );
 
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             ResourceType.Study,
             new List<AcceptHeader>() { requestedAcceptHeader }
-            );
+        );
 
-        Assert.Equal(requestedAcceptHeader, matchedAcceptHeader);
+        Assert.Equivalent(requestedAcceptHeader, matchedAcceptHeader, strict: true);
     }
 
     [Theory]
@@ -93,11 +95,12 @@ public class RetrieveTransferSyntaxHandlerTests
         Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetValidAcceptHeader(
             requestedResourceType,
             requestedAcceptHeaders
-            ));
+        ));
     }
 
     [Fact]
-    public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenHeadersRequestedAreAllSupported_ThenShouldReturnHighestQuality()
+    public void
+        GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenHeadersRequestedAreAllSupported_ThenShouldReturnHighestQuality()
     {
         Assert.True(ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.Count > 1);
 
@@ -117,18 +120,15 @@ public class RetrieveTransferSyntaxHandlerTests
 
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             ResourceType.Study,
-            new[]
-            {
-                requestedAcceptHeader1,
-                requestedAcceptHeader2
-            }
-            );
+            new[] { requestedAcceptHeader1, requestedAcceptHeader2 }
+        );
 
-        Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
+        Assert.Equivalent(requestedAcceptHeader2, matchedAcceptHeader, strict: true);
     }
 
     [Fact]
-    public void GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenTransferSyntaxRequestedOfHigherQualityNotSupported_ThenShouldReturnNextHighestQuality()
+    public void
+        GivenMultipleMatchedAcceptHeadersWithDifferentQuality_WhenTransferSyntaxRequestedOfHigherQualityNotSupported_ThenShouldReturnNextHighestQuality()
     {
         // When we multiple headers requested, but the one with highest quality "preference"
         // is requested with a TransferSyntax that we do not support,
@@ -158,15 +158,10 @@ public class RetrieveTransferSyntaxHandlerTests
         );
 
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
-                ResourceType.Study,
-                new[]
-                {
-                    requestedAcceptHeader1,
-                    requestedAcceptHeader2,
-                    requestedAcceptHeader3
-                }
-                );
+            ResourceType.Study,
+            new[] { requestedAcceptHeader1, requestedAcceptHeader2, requestedAcceptHeader3 }
+        );
 
-        Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
+        Assert.Equivalent(requestedAcceptHeader2, matchedAcceptHeader, strict: true);
     }
 }
