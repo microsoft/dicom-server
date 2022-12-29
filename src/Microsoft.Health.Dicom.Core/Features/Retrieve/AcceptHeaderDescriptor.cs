@@ -76,6 +76,8 @@ public class AcceptHeaderDescriptor
 
     public StringSegment GetTransferSyntax(AcceptHeader acceptHeader)
     {
+        EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
+
         // when transfer syntax not supplied and was not mandatory to be supplied, use default syntax
         if (!IsTransferSyntaxMandatory && StringSegment.IsNullOrEmpty(acceptHeader.TransferSyntax))
         {
