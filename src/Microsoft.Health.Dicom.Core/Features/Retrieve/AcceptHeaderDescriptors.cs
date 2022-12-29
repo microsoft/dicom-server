@@ -21,21 +21,15 @@ public class AcceptHeaderDescriptors
 
     public IEnumerable<AcceptHeaderDescriptor> Descriptors { get => _descriptors; }
 
-    public bool TryGetMatchedDescriptor(AcceptHeader header, out AcceptHeaderDescriptor acceptableHeaderDescriptor, out string transferSyntax)
+    public bool IsValidAcceptHeader(AcceptHeader header)
     {
-        // TODO - we reset the descriptor here on each header check when what we need to do is persist the matching header
-        acceptableHeaderDescriptor = null;
-        transferSyntax = string.Empty;
-
         foreach (AcceptHeaderDescriptor descriptor in _descriptors)
         {
-            if (descriptor.IsAcceptable(header, out transferSyntax))
+            if (descriptor.IsAcceptable(header, out _))
             {
-                acceptableHeaderDescriptor = descriptor;
                 return true;
             }
         }
-
         return false;
     }
 }

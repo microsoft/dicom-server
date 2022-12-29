@@ -24,8 +24,8 @@ public class AcceptHeaderQualityComparer : IComparer<AcceptHeader>
             return x != null ? 1 : -1;
         }
 
-        double xQuality = x.Quality.GetValueOrDefault(DefaultQuality);
-        double yQuality = y.Quality.GetValueOrDefault(DefaultQuality);
+        double xQuality = x.Quality;
+        double yQuality = y.Quality;
         if (xQuality == yQuality)
         {
             return 0;

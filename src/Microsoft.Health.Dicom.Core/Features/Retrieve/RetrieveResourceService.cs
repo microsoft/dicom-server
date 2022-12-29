@@ -84,20 +84,21 @@ public class RetrieveResourceService : IRetrieveResourceService
 
         try
         {
-            string requestedTransferSyntax = _retrieveTransferSyntaxHandler
-                .GetTransferSyntax(message.ResourceType, message.AcceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader);
+            AcceptHeader validAcceptHeader = _retrieveTransferSyntaxHandler.GetValidAcceptHeader(
+                message.ResourceType,
+                message.AcceptHeaders);
 
-            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
+            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(validAcceptHeader.TransferSyntax.Value);
 
             if (message.ResourceType == ResourceType.Frames)
             {
                 return await GetFrameResourceAsync(
                     message,
                     partitionKey,
-                    requestedTransferSyntax,
+                    validAcceptHeader.TransferSyntax.Value,
                     isOriginalTransferSyntaxRequested,
-                    acceptHeaderDescriptor.MediaType,
-                    acceptedHeader.IsSinglePart,
+                    validAcceptHeader.MediaType.ToString(),
+                    validAcceptHeader.IsSinglePart,
                     cancellationToken);
             }
 
@@ -105,7 +106,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
-            bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+            bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, validAcceptHeader.TransferSyntax.Value, instance);
 
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
 
@@ -113,7 +114,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (retrieveInstances.Count() > 1 && !isOriginalTransferSyntaxRequested)
             {
                 throw new NotAcceptableException(
-                    string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
+                    string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, validAcceptHeader.TransferSyntax.Value));
             }
 
             // transcoding of single instance
@@ -129,18 +130,18 @@ public class RetrieveResourceService : IRetrieveResourceService
                     isOriginalTransferSyntaxRequested,
                     stream,
                     instance,
-                    requestedTransferSyntax);
+                    validAcceptHeader.TransferSyntax.Value);
 
                 return new RetrieveResourceResponse(
                     transcodedStream,
-                    acceptHeaderDescriptor.MediaType,
-                    acceptedHeader.IsSinglePart);
+                    validAcceptHeader.MediaType.ToString(),
+                    validAcceptHeader.IsSinglePart);
 
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, cancellationToken);
-            return new RetrieveResourceResponse(responses, acceptHeaderDescriptor.MediaType, acceptedHeader.IsSinglePart);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, validAcceptHeader.TransferSyntax.Value, cancellationToken);
+            return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
         {
@@ -257,7 +258,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     }
 
     /// <summary>
-    /// Existing dicom files(as of Feb 2022) do not have transferSyntax stored. 
+    /// Existing dicom files(as of Feb 2022) do not have transferSyntax stored.
     /// Untill we backfill those files, we need this existing buggy fall back code: requestedTransferSyntax can be "*" which is the wrong content-type to return
     /// </summary>
     /// <param name="requestedTransferSyntax"></param>

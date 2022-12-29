@@ -45,22 +45,21 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
         _logger = logger;
     }
 
-    public string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader)
+    public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
 
         _logger.LogInformation("Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.", resourceType, string.Join(";", acceptHeaders));
 
         AcceptHeaderDescriptors descriptors = _acceptableDescriptors[resourceType];
-        acceptHeaderDescriptor = null;
 
-        // get all acceptable headers and sort by quality (in ascending order)
-        var accepted = new SortedDictionary<AcceptHeader, string>(new AcceptHeaderQualityComparer());
+        // get all acceptable headers, sorted by quality
+        List<AcceptHeader> accepted = new List<AcceptHeader>();
         foreach (AcceptHeader header in acceptHeaders)
         {
-            if (descriptors.TryGetMatchedDescriptor(header, out acceptHeaderDescriptor, out string transfersyntax))
+            if (descriptors.IsValidAcceptHeader(header))
             {
-                accepted.Add(header, transfersyntax);
+                accepted.Add(header);
             }
         }
 
@@ -69,9 +68,9 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
             throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
         }
 
+        accepted.Sort();
         // Last element has largest quality
-        acceptedHeader = accepted.Last().Key;
-        return accepted.Last().Value;
+        return accepted.Last();
     }
 
     private static AcceptHeaderDescriptors DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)

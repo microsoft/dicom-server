@@ -24,33 +24,31 @@ public class AcceptHeaderDescriptorsTests
     }
 
     [Fact]
-    public void GivenAcceptHeaders_WhenSeveralMatchAndOthersNot_ThenShouldReturnFirstMatched()
+    public void GivenAcceptHeaders_WhenSeveralMatchAndOthersNot_ThenHeaderIsValid()
     {
         AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader();
         AcceptHeaderDescriptor matchDescriptor1 = AcceptHeaderDescriptorHelpers.CreateAcceptHeaderDescriptor(acceptHeader, match: true);
         AcceptHeaderDescriptor matchDescriptor2 = AcceptHeaderDescriptorHelpers.CreateAcceptHeaderDescriptor(acceptHeader, match: true);
         AcceptHeaderDescriptor notMatchDescriptor = AcceptHeaderDescriptorHelpers.CreateAcceptHeaderDescriptor(acceptHeader, match: false);
         AcceptHeaderDescriptors acceptHeaderDescriptors = new AcceptHeaderDescriptors(matchDescriptor1, matchDescriptor2, notMatchDescriptor);
-        AcceptHeaderDescriptor result;
-        string transferSyntax;
-        Assert.True(acceptHeaderDescriptors.TryGetMatchedDescriptor(acceptHeader, out result, out transferSyntax));
-        Assert.Same(result, matchDescriptor1);
+
+        Assert.True(acceptHeaderDescriptors.IsValidAcceptHeader(acceptHeader));
 
         // Actual transferSyntax should be from matchDescriptor1
-        string expectedTransferSyntax;
-        matchDescriptor1.IsAcceptable(acceptHeader, out expectedTransferSyntax);
-        Assert.Equal(transferSyntax, expectedTransferSyntax);
+        //todo make a separate test for this part
+        // string expectedTransferSyntax;
+        // matchDescriptor1.IsAcceptable(acceptHeader, out expectedTransferSyntax);
+        // Assert.Equal(transferSyntax, expectedTransferSyntax);
     }
 
     [Fact]
-    public void GivenAcceptHeaders_WhenNoMatch_ThenShouldReturnFalse()
+    public void GivenAcceptHeaders_WhenNoMatch_ThenHeaderIsNotValid()
     {
         AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader();
         AcceptHeaderDescriptor notMatchDescriptor1 = AcceptHeaderDescriptorHelpers.CreateAcceptHeaderDescriptor(acceptHeader, match: false);
         AcceptHeaderDescriptor notMatchDescriptor2 = AcceptHeaderDescriptorHelpers.CreateAcceptHeaderDescriptor(acceptHeader, match: false);
         AcceptHeaderDescriptors acceptHeaderDescriptors = new AcceptHeaderDescriptors(notMatchDescriptor1, notMatchDescriptor2);
-        AcceptHeaderDescriptor result;
-        string transferSyntax;
-        Assert.False(acceptHeaderDescriptors.TryGetMatchedDescriptor(acceptHeader, out result, out transferSyntax));
+
+        Assert.False(acceptHeaderDescriptors.IsValidAcceptHeader(acceptHeader));
     }
 }

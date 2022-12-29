@@ -77,14 +77,12 @@ public class RetrieveTransferSyntaxHandlerTests
             ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing
             );
 
-        _handler.GetTransferSyntax(
+        AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             ResourceType.Study,
-            new[] { requestedAcceptHeader },
-            out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
-            out AcceptHeader matchedAcceptHeader);
+            new[] { requestedAcceptHeader }
+            );
 
         Assert.Equal(requestedAcceptHeader, matchedAcceptHeader);
-        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
 
     [Theory]
@@ -93,11 +91,10 @@ public class RetrieveTransferSyntaxHandlerTests
         List<AcceptHeader> requestedAcceptHeaders,
         ResourceType requestedResourceType)
     {
-        Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetTransferSyntax(
+        Assert.ThrowsAny<NotAcceptableException>(() => _handler.GetValidAcceptHeader(
             requestedResourceType,
-            requestedAcceptHeaders,
-            out AcceptHeaderDescriptor selectedAcceptHeaderDescriptor,
-            out AcceptHeader selectedAcceptedHeader));
+            requestedAcceptHeaders
+            ));
     }
 
     [Fact]
@@ -119,18 +116,16 @@ public class RetrieveTransferSyntaxHandlerTests
             quality: 0.9
         );
 
-        _handler.GetTransferSyntax(
+        AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             ResourceType.Study,
             new[]
             {
                 requestedAcceptHeader1,
                 requestedAcceptHeader2
-            },
-            out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
-            out AcceptHeader matchedAcceptHeader);
+            }
+            );
 
         Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
-        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
 
     [Fact]
@@ -163,19 +158,16 @@ public class RetrieveTransferSyntaxHandlerTests
             quality: 0.7
         );
 
-        string transferSyntax = _handler
-            .GetTransferSyntax(
+        AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
                 ResourceType.Study,
                 new[]
                 {
                     requestedAcceptHeader1,
                     requestedAcceptHeader2,
                     requestedAcceptHeader3
-                },
-                out AcceptHeaderDescriptor matchedAcceptHeaderDescriptor,
-                out AcceptHeader matchedAcceptHeader);
+                }
+                );
 
         Assert.Equal(requestedAcceptHeader2, matchedAcceptHeader);
-        Assert.Equal(ValidStudyAcceptHeaderDescriptor, matchedAcceptHeaderDescriptor);
     }
 }
