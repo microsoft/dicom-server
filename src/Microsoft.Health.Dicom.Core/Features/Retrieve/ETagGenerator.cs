@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,14 +14,15 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public class ETagGenerator : IETagGenerator
 {
-    public string GetETag(ResourceType resourceType, IReadOnlyCollection<VersionedInstanceIdentifier> retrieveInstances)
+    public string GetETag(ResourceType resourceType, IEnumerable<VersionedInstanceIdentifier> retrieveInstances)
     {
         EnsureArg.IsTrue(
             resourceType == ResourceType.Study ||
             resourceType == ResourceType.Series ||
             resourceType == ResourceType.Instance,
             nameof(resourceType));
-        EnsureArg.HasItems(retrieveInstances);
+        EnsureArg.IsNotNull(retrieveInstances);
+        EnsureArg.IsTrue(retrieveInstances.Any());
 
         string eTag = string.Empty;
         long maxWatermark = retrieveInstances.Max(ri => ri.Version);
@@ -30,7 +31,7 @@ public class ETagGenerator : IETagGenerator
         {
             case ResourceType.Study:
             case ResourceType.Series:
-                int countInstances = retrieveInstances.Count;
+                int countInstances = retrieveInstances.Count();
                 eTag = $"{maxWatermark}-{countInstances}";
                 break;
             case ResourceType.Instance:
