@@ -17,9 +17,9 @@ namespace Microsoft.Health.Dicom.FileGenerator;
 
 public static class Program
 {
-    private const int MaxStudies = 50;
-    private const int MaxSeries = 100;
-    private const int MaxInstances = 1000;
+    private static readonly int MaxStudies = 50;
+    private static readonly int MaxSeries = 100;
+    private static readonly int MaxInstances = 1000;
 
     public static void Main(string[] args)
     {
