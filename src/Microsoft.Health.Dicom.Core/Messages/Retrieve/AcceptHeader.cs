@@ -23,7 +23,7 @@ public class AcceptHeader
 
     public PayloadTypes PayloadType { get; }
 
-    public StringSegment TransferSyntax { get; set; }
+    public StringSegment TransferSyntax { get; }
 
     public double Quality { get; }
 
