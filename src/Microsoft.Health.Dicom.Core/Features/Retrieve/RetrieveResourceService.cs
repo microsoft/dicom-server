@@ -30,7 +30,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     private readonly IInstanceStore _instanceStore;
     private readonly ITranscoder _transcoder;
     private readonly IFrameHandler _frameHandler;
-    private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+    private readonly IAcceptHeaderHandler _acceptHeaderHandler;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly IMetadataStore _metadataStore;
     private readonly RetrieveConfiguration _retrieveConfiguration;
@@ -43,7 +43,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IFileStore blobDataStore,
         ITranscoder transcoder,
         IFrameHandler frameHandler,
-        IRetrieveTransferSyntaxHandler retrieveTransferSyntaxHandler,
+        IAcceptHeaderHandler acceptHeaderHandler,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         IMetadataStore metadataStore,
         IInstanceMetadataCache instanceMetadataCache,
@@ -56,7 +56,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
         EnsureArg.IsNotNull(transcoder, nameof(transcoder));
         EnsureArg.IsNotNull(frameHandler, nameof(frameHandler));
-        EnsureArg.IsNotNull(retrieveTransferSyntaxHandler, nameof(retrieveTransferSyntaxHandler));
+        EnsureArg.IsNotNull(acceptHeaderHandler, nameof(acceptHeaderHandler));
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         EnsureArg.IsNotNull(instanceMetadataCache, nameof(instanceMetadataCache));
@@ -68,7 +68,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         _blobDataStore = blobDataStore;
         _transcoder = transcoder;
         _frameHandler = frameHandler;
-        _retrieveTransferSyntaxHandler = retrieveTransferSyntaxHandler;
+        _acceptHeaderHandler = acceptHeaderHandler;
         _dicomRequestContextAccessor = dicomRequestContextAccessor;
         _metadataStore = metadataStore;
         _retrieveConfiguration = retrieveConfiguration?.Value;
@@ -84,18 +84,19 @@ public class RetrieveResourceService : IRetrieveResourceService
 
         try
         {
-            AcceptHeader validAcceptHeader = _retrieveTransferSyntaxHandler.GetValidAcceptHeader(
+            AcceptHeader validAcceptHeader = _acceptHeaderHandler.GetValidAcceptHeader(
                 message.ResourceType,
                 message.AcceptHeaders);
 
-            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(validAcceptHeader.TransferSyntax.Value);
+            string requestedTransferSyntax = validAcceptHeader.TransferSyntax.Value;
+            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
 
             if (message.ResourceType == ResourceType.Frames)
             {
                 return await GetFrameResourceAsync(
                     message,
                     partitionKey,
-                    validAcceptHeader.TransferSyntax.Value,
+                    requestedTransferSyntax,
                     isOriginalTransferSyntaxRequested,
                     validAcceptHeader.MediaType.ToString(),
                     validAcceptHeader.IsSinglePart,
@@ -106,7 +107,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
-            bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, validAcceptHeader.TransferSyntax.Value, instance);
+            bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
 
@@ -114,7 +115,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (retrieveInstances.Count() > 1 && !isOriginalTransferSyntaxRequested)
             {
                 throw new NotAcceptableException(
-                    string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, validAcceptHeader.TransferSyntax.Value));
+                    string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
             }
 
             // transcoding of single instance
@@ -130,7 +131,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                     isOriginalTransferSyntaxRequested,
                     stream,
                     instance,
-                    validAcceptHeader.TransferSyntax.Value);
+                    requestedTransferSyntax);
 
                 return new RetrieveResourceResponse(
                     transcodedStream,
@@ -140,7 +141,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, validAcceptHeader.TransferSyntax.Value, cancellationToken);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, cancellationToken);
             return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
