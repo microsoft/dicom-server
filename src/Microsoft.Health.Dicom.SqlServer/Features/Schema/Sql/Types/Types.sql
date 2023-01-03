@@ -93,5 +93,6 @@ CREATE TYPE dbo.StudyInstanceUidTableType AS TABLE
 *************************************************************/
 CREATE TYPE dbo.SeriesInstanceUidTableType AS TABLE
 (
-   SeriesInstanceUid           VARCHAR(64)
+   StudyInstanceUid           VARCHAR(64),
+   SeriesInstanceUid          VARCHAR(64)
 )

@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>26</LatestSchemaVersion>
+    <LatestSchemaVersion>27</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -61,6 +61,7 @@
     <SqlScript Include="Features\Schema\Sql\Scripts\DatabaseSettings.sql" />
     <SqlScript Include="Features\Schema\Sql\Scripts\FullText.sql" />
     <SqlScript Include="Features\Schema\Sql\Sprocs\*.sql" />
+    <SqlScript Include="Features\Schema\Sql\Views\*.sql" />
   </ItemGroup>
 
   <ItemGroup>

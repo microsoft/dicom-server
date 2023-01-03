@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -62,6 +62,11 @@ public class QueryService : IQueryService
         if (!queryResult.DicomInstances.Any())
         {
             return new QueryResourceResponse(Array.Empty<DicomDataset>(), queryExpression.ErroneousTags);
+        }
+
+        if (QueryLimit.IsComputedTag(queryExpression.IELevel, queryExpression.IncludeFields.DicomTags))
+        {
+            // todo create a task to get response from SQL 
         }
 
         IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
