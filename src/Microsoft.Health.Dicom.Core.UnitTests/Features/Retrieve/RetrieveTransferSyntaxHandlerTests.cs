@@ -16,9 +16,9 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 
 public class RetrieveTransferSyntaxHandlerTests
 {
-    private readonly RetrieveTransferSyntaxHandler _handler;
+    private readonly AcceptHeaderHandler _handler;
 
-    private static readonly AcceptHeaderDescriptor ValidStudyAcceptHeaderDescriptor = RetrieveTransferSyntaxHandler
+    private static readonly AcceptHeaderDescriptor ValidStudyAcceptHeaderDescriptor = AcceptHeaderHandler
         .AcceptableDescriptors[ResourceType.Study]
         .First();
 
@@ -65,7 +65,7 @@ public class RetrieveTransferSyntaxHandlerTests
 
     public RetrieveTransferSyntaxHandlerTests()
     {
-        _handler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
+        _handler = new AcceptHeaderHandler(NullLogger<AcceptHeaderHandler>.Instance);
     }
 
     [Fact]

@@ -16,7 +16,7 @@ using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
+public class AcceptHeaderHandler : IAcceptHeaderHandler
 {
     protected internal static readonly IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>>
         AcceptableDescriptors =
@@ -30,16 +30,16 @@ public class RetrieveTransferSyntaxHandler : IRetrieveTransferSyntaxHandler
 
     private readonly IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>> _acceptableDescriptors;
 
-    private readonly ILogger<RetrieveTransferSyntaxHandler> _logger;
+    private readonly ILogger<AcceptHeaderHandler> _logger;
 
-    public RetrieveTransferSyntaxHandler(ILogger<RetrieveTransferSyntaxHandler> logger)
+    public AcceptHeaderHandler(ILogger<AcceptHeaderHandler> logger)
         : this(AcceptableDescriptors, logger)
     {
     }
 
-    public RetrieveTransferSyntaxHandler(
+    public AcceptHeaderHandler(
         IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>> acceptableDescriptors,
-        ILogger<RetrieveTransferSyntaxHandler> logger)
+        ILogger<AcceptHeaderHandler> logger)
     {
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(acceptableDescriptors, nameof(acceptableDescriptors));
