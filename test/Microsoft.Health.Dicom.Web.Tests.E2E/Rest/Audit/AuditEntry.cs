@@ -5,7 +5,7 @@
 
 using System;
 using System.Net;
-using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Core.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 

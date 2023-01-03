@@ -37,7 +37,7 @@ using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Benchmark.Retrieve;
 
-[SimpleJob(RunStrategy.Monitoring, targetCount: 25)]
+[SimpleJob(RunStrategy.Monitoring, iterationCount: 25)]
 [MinColumn, Q1Column, Q3Column, MaxColumn]
 [MemoryDiagnoser]
 [ThreadingDiagnoser]

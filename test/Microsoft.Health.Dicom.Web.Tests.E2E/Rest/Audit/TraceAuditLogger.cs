@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Dicom.Api.Features.Audit;
+using Microsoft.Health.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 
