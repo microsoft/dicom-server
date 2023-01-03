@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -49,14 +49,6 @@ public interface IMetadataStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously copies a DICOM metadata file in the same container
-    /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous copy operation.</returns>
-    Task CopyInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Async store Frames range metadata
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
@@ -86,15 +78,5 @@ public interface IMetadataStore
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteInstanceFramesRangeAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously deletes a old DICOM instance metadata.
-    /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteOldInstanceMetadataIfExistsAsync
-        (VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 }

@@ -7,6 +7,7 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Extensions.DependencyInjection;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -22,7 +23,7 @@ public class AuditModule : IStartupModule
             .Singleton()
             .AsSelf();
 
-        services.AddSingleton<DicomAudit.IAuditLogger, DicomAudit.AuditLogger>();
+        services.AddSingleton<IAuditLogger, AuditLogger>();
 
         services.AddSingleton<IAuditHeaderReader, AuditHeaderReader>();
 

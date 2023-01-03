@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,11 +13,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.BlobMigration;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
-using Microsoft.Health.Dicom.Functions.BlobMigration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Registration;
@@ -54,10 +52,8 @@ public static class ServiceCollectionExtensions
         services.RegisterModule<ServiceModule>();
 
         return new DicomFunctionsBuilder(services
-            .AddInstanceCopier()
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
-            .AddFunctionsOptions<BlobMigrationOptions>(configuration, BlobMigrationOptions.SectionName)
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
@@ -94,13 +90,6 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         return builder.AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c));
-    }
-
-    private static IServiceCollection AddInstanceCopier(this IServiceCollection services)
-    {
-        EnsureArg.IsNotNull(services, nameof(services));
-        services.AddScoped<BlobMigrationService, BlobMigrationService>();
-        return services;
     }
 
     private static IServiceCollection AddRecyclableMemoryStreamManager(this IServiceCollection services, Func<RecyclableMemoryStreamManager> factory = null)

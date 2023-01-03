@@ -5,7 +5,7 @@
 
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/dotnet:4.0-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:4.14.0.3-slim@sha256:33fa3d08ee9b2d2cc0189080a6d41b611ed21a9f7150c078976e073c8b2d609e AS az-func-runtime
+FROM mcr.microsoft.com/azure-functions/dotnet:4-slim@sha256:9afb7c76d9e01574e06f0490035d2537a0bcbaa5346509a9cdc8d3551379a5bd AS az-func-runtime
 ENV ASPNETCORE_URLS=http://+:8080 \
     AzureWebJobsScriptRoot=/home/site/wwwroot \
     LANG=en_US.UTF-8 \
@@ -17,9 +17,16 @@ USER nonroot
 EXPOSE 8080
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:6.0.403-alpine3.16@sha256:69890b0aba2aff41ebd69e5f5e09a9e21e00ca6488b38e0487ad4a8a7b2385a0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-alpine3.16@sha256:ef015c0d8f353fbc463fec643ce08cc2a78d19952228e8e12b853ed300971506 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
+
+# Azure Functions v4 targets .NET 6
+RUN set -x && \
+    apk update && \
+    apk add --no-cache bash && \
+    curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 6.0 -InstallDir /usr/share/dotnet
+
 WORKDIR /dicom-server
 COPY . .
 WORKDIR /dicom-server/src/Microsoft.Health.Dicom.Functions.App

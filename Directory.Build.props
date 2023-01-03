@@ -11,20 +11,42 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.1.145</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>6.2.13</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.3.0</Hl7FhirPackageVersion>
-    <IdentityModelTokenPackageVersion>6.25.0</IdentityModelTokenPackageVersion>
+    <IdentityModelTokenPackageVersion>6.25.1</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
+    <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <SdkPackageVersion>6.0.0</SdkPackageVersion>
+    <StsVersion>net7.0</StsVersion>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TrimMode>partial</TrimMode>
     <WarningsAsErrors />
   </PropertyGroup>
+
+  <!-- Currently the latest version is .NET 7 -->
+  <PropertyGroup>
+    <LatestVersion>$(StsVersion)</LatestVersion>
+    <LibraryFrameworks>$(LtsVersion);$(StsVersion)</LibraryFrameworks>
+  </PropertyGroup>
+
+  <!-- SDK Packages -->
+  <Choose>
+    <When Condition="'$(TargetFramework)' == '$(LtsVersion)'">
+      <PropertyGroup>
+        <SdkPackageVersion>6.0.0</SdkPackageVersion>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SdkPackageVersion>7.0.0</SdkPackageVersion>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <!--
     The fo-dicom.Codecs package relies on native assemblies for

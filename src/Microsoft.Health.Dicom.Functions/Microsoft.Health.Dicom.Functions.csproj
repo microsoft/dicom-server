@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,12 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="BlobMigration\CopyDurableFunction.*.cs">
-      <DependentUpon>CopyDurableFunction.cs</DependentUpon>
-    </None>
-    <None Include="BlobMigration\DeleteDurableFunction.*.cs">
-      <DependentUpon>DeleteDurableFunction.cs</DependentUpon>
-    </None>
     <None Include="Export\ExportDurableFunction.*.cs">
       <DependentUpon>ExportDurableFunction.cs</DependentUpon>
     </None>

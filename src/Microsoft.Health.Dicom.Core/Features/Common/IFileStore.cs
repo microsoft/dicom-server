@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -52,14 +52,6 @@ public interface IFileStore
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously copies file from the same container
-    /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous copy operation.</returns>
-    Task CopyFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Asynchronously get a specific range of bytes from the blob
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
@@ -69,16 +61,6 @@ public interface IFileStore
     Task<Stream> GetFileFrameAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         FrameRange range,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously deletes a old DICOM file from the file store if the file exists.
-    /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM identifier.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteOldFileIfExistsAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
         CancellationToken cancellationToken = default);
 
     /// <summary>

@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -15,7 +18,6 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Microsoft.IO;
@@ -55,6 +57,10 @@ public class DataStoreTestsFixture : IAsyncLifetime
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
     public int NextWatermark => Interlocked.Increment(ref _watermark);
+    private readonly TelemetryClient _appInsightsTelemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     public async Task InitializeAsync()
     {
@@ -62,20 +68,17 @@ public class DataStoreTestsFixture : IAsyncLifetime
         optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
         optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
-        IBlobClientTestProvider testProvider = new BlobClientReadWriteTestProvider(RecyclableMemoryStreamManager, NullLogger<BlobClientReadWriteTestProvider>.Instance);
-
         _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
 
-        var blobClientInitializer = new BlobInitializer(_blobClient, testProvider, NullLogger<BlobInitializer>.Instance);
+        var blobClientInitializer = new BlobInitializer(_blobClient, new BlobClientContainerGetTestProvider(), NullLogger<BlobInitializer>.Instance);
 
         var blobContainerInitializer = new BlobContainerInitializer(_blobContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
         var metadataContainerInitializer = new BlobContainerInitializer(_metadataContainerConfiguration.ContainerName, NullLogger<BlobContainerInitializer>.Instance);
 
         await blobClientInitializer.InitializeDataStoreAsync(new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-        var migrationConfig = new BlobMigrationConfiguration { FormatType = BlobMigrationFormatType.New };
-        FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), Options.Create(migrationConfig), NullLogger<BlobFileStore>.Instance);
-        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, Substitute.For<DicomFileNameWithUid>(), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(migrationConfig), optionsMonitor, Options.Create(AppSerializerOptions.Json), NullLogger<BlobMetadataStore>.Instance);
+        FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), NullLogger<BlobFileStore>.Instance);
+        MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(AppSerializerOptions.Json), NullLogger<BlobMetadataStore>.Instance, _appInsightsTelemetryClient);
     }
 
     public async Task DisposeAsync()

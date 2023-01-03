@@ -7,8 +7,10 @@ using System.Net;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Core.Features.Audit;
 using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Api.Features.Audit;

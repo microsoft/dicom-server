@@ -5,6 +5,9 @@ services:
     build:
       context: ./..
       dockerfile: src/Microsoft.Health.Dicom.Web/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+        CONTINUOUS_INTEGRATION_BUILD: ${ContinuousIntegrationBuild:-false}
     platform: linux/amd64
     environment:
       AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
@@ -13,7 +16,6 @@ services:
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       DicomFunctions__DurableTask__ConnectionName: "AzureWebJobsStorage"
       DicomFunctions__Indexing__Batching__MaxParallelCount: "1"
-      DicomServer__Services__BlobMigration__FormatType: "${BlobFormat:-Old}"
       SqlServer__AllowDatabaseCreation: "true"
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true"
       SqlServer__Initialize: "true"
@@ -30,15 +32,18 @@ services:
       # for Docker Compose, so the Dockerfile cannot be in the same folder as the csproj
       context: ./..
       dockerfile: docker/functions/Dockerfile
+      args:
+        BUILD_CONFIGURATION: Release
+        CONTINUOUS_INTEGRATION_BUILD: ${ContinuousIntegrationBuild:-false}
     platform: linux/amd64
     environment:
       AzureFunctionsJobHost__BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
-      AzureFunctionsJobHost__BlobStore__Migration__FormatType: "${BlobFormat:-Old}"
       AzureFunctionsJobHost__Logging__Console__IsEnabled: "true"
       AzureFunctionsJobHost__SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true"
       AzureWebJobsStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
       AZURE_FUNCTIONS_ENVIRONMENT: "Development"
       WEBSITE_HOSTNAME: "localhost:8080"
+      APPINSIGHTS_INSTRUMENTATIONKEY: "00000000-0000-0000-0000-000000000000" # required to configure telemetry client even when running locally
     ports:
       - "7072:8080"
     restart: on-failure

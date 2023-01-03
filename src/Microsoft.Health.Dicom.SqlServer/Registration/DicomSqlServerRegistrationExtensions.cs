@@ -111,6 +111,7 @@ public static class DicomSqlServerRegistrationExtensions
     {
         services.Add<SqlSchemaVersionResolver>()
             .Scoped()
+            .AsSelf()
             .AsImplementedInterfaces();
 
         return services;

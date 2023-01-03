@@ -23,7 +23,6 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations;
 using Newtonsoft.Json.Linq;
 using NSubstitute;
@@ -65,24 +64,6 @@ public class DicomAzureFunctionsClientTests
                 {
                     MaxParallelCount = 1,
                     Size = 100,
-                },
-            },
-            Copy = new FanOutFunctionOptions
-            {
-                Name = FunctionNames.CopyFiles,
-                Batching = new BatchingOptions
-                {
-                    MaxParallelCount = 2,
-                    Size = 50,
-                },
-            },
-            MigrationDeletion = new FanOutFunctionOptions
-            {
-                Name = FunctionNames.DeleteMigratedFiles,
-                Batching = new BatchingOptions
-                {
-                    MaxParallelCount = 2,
-                    Size = 50,
                 },
             },
         };
@@ -491,35 +472,5 @@ public class DicomAzureFunctionsClientTests
 
         Assert.Equal(operationId, actual.Id);
         Assert.Equal(url, actual.Href);
-    }
-
-    [Fact]
-    public async Task GivenValidArgs_WhenStartingCopy_ThenStartOrchestration()
-    {
-        var operationId = Guid.Parse("1d4689daca3b4659b0c77bf6c9ff25e1");
-        using var tokenSource = new CancellationTokenSource();
-        await _client.StartBlobCopyAsync(operationId, null, tokenSource.Token);
-
-        await _durableClient
-            .Received(1)
-            .StartNewAsync(
-                FunctionNames.CopyFiles,
-                operationId.ToString(OperationId.FormatSpecifier),
-                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.Copy.Batching, x.Batching)));
-    }
-
-    [Fact]
-    public async Task GivenValidArgs_WhenStartingDelete_ThenStartOrchestration()
-    {
-        var operationId = Guid.Parse("ce38a27e-b194-4645-b47a-fe91c38c330f");
-        using var tokenSource = new CancellationTokenSource();
-        await _client.StartBlobDeleteAsync(operationId, null, tokenSource.Token);
-
-        await _durableClient
-            .Received(1)
-            .StartNewAsync(
-                FunctionNames.DeleteMigratedFiles,
-                operationId.ToString(OperationId.FormatSpecifier),
-                Arg.Is<BlobMigrationInput>(x => ReferenceEquals(_options.MigrationDeletion.Batching, x.Batching)));
     }
 }

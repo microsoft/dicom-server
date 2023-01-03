@@ -1,8 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,12 +34,6 @@
     </None>
     <None Include="Indexing\ReindexDurableFunctionTests.*.cs">
       <DependentUpon>ReindexDurableFunctionTests.cs</DependentUpon>
-    </None>
-    <None Include="Copy\CopyDurableFunctionTests.*.cs">
-      <DependentUpon>CopyDurableFunctionTests.cs</DependentUpon>
-    </None>
-    <None Include="Delete\DeleteDurableFunctionTests.*.cs">
-      <DependentUpon>DeleteDurableFunctionTests.cs</DependentUpon>
     </None>
   </ItemGroup>
 

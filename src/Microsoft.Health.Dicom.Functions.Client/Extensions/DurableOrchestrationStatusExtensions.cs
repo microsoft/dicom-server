@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -18,12 +18,6 @@ internal static class DurableOrchestrationStatusExtensions
 
         if (status?.Name != null)
         {
-            if (status.Name.StartsWith(FunctionNames.CopyFiles, StringComparison.OrdinalIgnoreCase))
-                return DicomOperation.Copy;
-
-            if (status.Name.StartsWith(FunctionNames.DeleteMigratedFiles, StringComparison.OrdinalIgnoreCase))
-                return DicomOperation.MigrationDeletion;
-
             if (status.Name.StartsWith(FunctionNames.ExportDicomFiles, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Export;
 

@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.DicomCast.TableStorage", "src\Microsoft.Health.DicomCast.TableStorage\Microsoft.Health.DicomCast.TableStorage.csproj", "{0DFB24D5-5E2F-435D-A435-F70CD1824F08}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "..\..\forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{972888D8-AFAE-4F88-9405-2B66CE70C41F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -57,6 +59,10 @@ Global
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08}.Debug|x64.Build.0 = Debug|x64
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08}.Release|x64.ActiveCfg = Release|x64
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08}.Release|x64.Build.0 = Release|x64
+		{972888D8-AFAE-4F88-9405-2B66CE70C41F}.Debug|x64.ActiveCfg = Debug|x64
+		{972888D8-AFAE-4F88-9405-2B66CE70C41F}.Debug|x64.Build.0 = Debug|x64
+		{972888D8-AFAE-4F88-9405-2B66CE70C41F}.Release|x64.ActiveCfg = Release|x64
+		{972888D8-AFAE-4F88-9405-2B66CE70C41F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +74,7 @@ Global
 		{3CCE3438-139A-420A-8A60-1144CADA95A1} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{1444027E-07DA-412E-8E74-F077F5520530} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 		{0DFB24D5-5E2F-435D-A435-F70CD1824F08} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
+		{972888D8-AFAE-4F88-9405-2B66CE70C41F} = {E15E21A1-0707-4D98-AEDD-ACC7F59C5681}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4EF00533-B2AE-4B1B-B4AF-9799AD9F69E2}
