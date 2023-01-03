@@ -90,7 +90,7 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Add<RetrieveTransferSyntaxHandler>()
+        services.Add<AcceptHeaderHandler>()
             .Transient()
             .AsSelf()
             .AsImplementedInterfaces();
