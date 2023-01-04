@@ -27,6 +27,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
     public class DicomArrayJsonConverter : JsonConverter<DicomDataset[]>
     {
         private readonly bool _writeTagsAsKeywords;
+        private readonly bool _dropDataWhenInvalid;
 
         /// <summary>
         /// Initialize the JsonDicomConverter.
@@ -41,9 +42,11 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
         /// Initialize the JsonDicomConverter.
         /// </summary>
         /// <param name="writeTagsAsKeywords">Whether to write the json keys as DICOM keywords instead of tags. This makes the json non-compliant to DICOM JSON.</param>
-        public DicomArrayJsonConverter(bool writeTagsAsKeywords)
+        /// <param name="_dropDataWhenInvalid">Whether to drop an attribute when tag or value is not valid or parsable.</param>
+        public DicomArrayJsonConverter(bool writeTagsAsKeywords, bool dropDataWhenInvalid=false)
         {
             _writeTagsAsKeywords = writeTagsAsKeywords;
+            _dropDataWhenInvalid = dropDataWhenInvalid;
         }
 
         public override DicomDataset[] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -54,7 +57,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 return datasetList.ToArray();
             }
             reader.Read();
-            var conv = new DicomJsonConverter(writeTagsAsKeywords: _writeTagsAsKeywords);
+            var conv = new DicomJsonConverter(writeTagsAsKeywords: _writeTagsAsKeywords, dropDataWhenInvalid: _dropDataWhenInvalid);
             while (reader.TokenType != JsonTokenType.EndArray)
             {
                 DicomDataset ds;
@@ -126,6 +129,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
 
         private readonly bool _writeTagsAsKeywords;
         private readonly bool _autoValidate;
+        private readonly bool _dropDataWhenInvalid;
         private readonly NumberSerializationMode _numberSerializationMode;
         private readonly static Encoding[] _jsonTextEncodings = { Encoding.UTF8 };
         private readonly static char _personNameComponentGroupDelimiter = '=';
@@ -142,11 +146,16 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
         /// <param name="writeTagsAsKeywords">Whether to write the json keys as DICOM keywords instead of tags. This makes the json non-compliant to DICOM JSON.</param>
         /// <param name="autoValidate">Whether the content of DicomItems shall be validated when deserializing.</param>
         /// <param name="numberSerializationMode">Defines how numbers should be serialized. Default 'AsNumber', will throw errors when a number is not parsable.</param>
-        public DicomJsonConverter(bool writeTagsAsKeywords = false, bool autoValidate = true, NumberSerializationMode numberSerializationMode = NumberSerializationMode.AsNumber)
+        public DicomJsonConverter(
+            bool writeTagsAsKeywords = false,
+            bool autoValidate = true,
+            NumberSerializationMode numberSerializationMode = NumberSerializationMode.AsNumber,
+            bool dropDataWhenInvalid = false)
         {
             _writeTagsAsKeywords = writeTagsAsKeywords;
             _autoValidate = autoValidate;
             _numberSerializationMode = numberSerializationMode;
+            _dropDataWhenInvalid = dropDataWhenInvalid;
         }
 
         #region JsonConverter overrides
@@ -220,44 +229,48 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             {
                 throw new JsonException($"Expected the start of an object but found '{reader.TokenType}'.");
             }
+
+            var originalDepth = reader.CurrentDepth;
+
             reader.Read();
 
             while (reader.TokenType != JsonTokenType.EndObject)
             {
                 reader.Assume(JsonTokenType.PropertyName);
                 string tagstr = reader.GetString();
-                // try parse tag, drop attr if can't
                 DicomTag tag;
                 DicomItem item;
                 try
                 {
                     tag = ParseTag(tagstr);
-                }catch (Exception)
-                {
-                    // telemetry
-                    continue;
-                }
 
-                // try read value, drop attr if can't
-                try
-                {
-                    reader.Read(); // move to value
+                    reader.Read(); // move to start of value json obj to get VR and value
                     item = ReadJsonDicomItem(tag, ref reader);
-                }
-                catch (Exception)
-                {
-                    // telemetry
-                    continue;
-                }
 
-                try
-                {
                     dataset.Add(item);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    // telemetry
-                    continue;
+                    //todo add telemetry
+                    e.ToString();
+                    if (_dropDataWhenInvalid)
+                    {
+                        // forward reader until we're reached a property or EndObject
+                        // todo can we use skip instead?
+                        while (!(
+                                   (reader.TokenType == JsonTokenType.EndObject &&
+                                    reader.CurrentDepth == originalDepth) ||
+                                   reader.TokenType == JsonTokenType.PropertyName)
+                              )
+                        {
+                            reader.Read();
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
 
@@ -742,8 +755,8 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             if (property == "vr")
             {
                 reader.Read();
-                vr = reader.GetString();
-                reader.Read();
+                vr = reader.GetString(); // get vr
+                reader.Read(); //forward to value
             }
             else
             {
@@ -824,7 +837,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             {
                 return Array.Empty<string>();
             }
-            string propertyname = ReadPropertyName(ref reader);
+            string propertyname = ReadPropertyName(ref reader); // reads PropertyName "Value" and forwards to actual value
 
             if (propertyname == "Value")
             {
@@ -1122,7 +1135,11 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                     }
                     else if (reader.TokenType == JsonTokenType.StartObject)
                     {
-                        childItems.Add(ReadJsonDataset(ref reader));
+                        DicomDataset ds = ReadJsonDataset(ref reader);
+                        if (ds.Any()) // allows us to skip children that are invalid
+                        {
+                            childItems.Add(ds);
+                        }
                         reader.AssumeAndSkip(JsonTokenType.EndObject);
                     }
                     else
@@ -1132,6 +1149,10 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 }
                 reader.AssumeAndSkip(JsonTokenType.EndArray);
                 var data = childItems.ToArray();
+                if (!data.Any())
+                {
+                    throw new JsonException("Malformed DICOM json, no valid JSON objects parsed from within whole sequence");
+                }
                 return data;
             }
             else

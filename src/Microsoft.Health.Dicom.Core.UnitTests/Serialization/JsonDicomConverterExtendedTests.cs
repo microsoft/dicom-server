@@ -84,9 +84,375 @@ public class JsonDicomConverterExtendedTests
         Assert.Equal(pixelData, recoveredPixelData);
     }
 
+
     [Fact]
-    public static void GivenInvalidDicomJsonDataset_WhenDeserialized_JsonReaderExceptionIsThrown()
+    public static void GivenDropDataWhenInvalidAndFLIsInvalid_WhenDeserialized_ThenDataIsDropped()
     {
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        // FL vr type needs to be able to parse into a number. FoDicom Json converter checks for this
+        // 00081196 is WarningReason
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        ""NotANumber""
+                    ]
+                }
+            }";
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+        DicomDataException thrownException = Assert.Throws<DicomDataException>(() => dataset.GetString(DicomTag.WarningReason));
+        Assert.Equal("Tag: (0008,1196) not found in dataset", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenDropDataWhenInvalidAndFLIsInvalidButAnotherFLIsValid_WhenDeserialized_ThenValidFLDataIsRetained()
+    {
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        ""NotANumber""
+                    ]
+                },
+                ""00080051"": {
+                    ""vr"": ""SQ"",
+                    ""Value"": [
+                        {
+                            ""00100020"":{
+                                ""vr"": ""LO"",
+                                ""Value"": [ ""Hospital A"" ]
+                            }
+                        },
+                        {
+                            ""00100020"":{
+                                ""vr"": ""LO"",
+                                ""Value"": [ ""Hospital B"" ]
+                            }
+                        }
+                    ]
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        333,
+                        ""NotANumber""
+                    ]
+                },
+                ""00080040"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        444
+                    ]
+                }
+            }";
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+
+        //invalid
+        DicomDataException warningReasonException = Assert.Throws<DicomDataException>(() => dataset.GetString(DicomTag.WarningReason));
+        Assert.Equal("Tag: (0008,1196) not found in dataset", warningReasonException.Message);
+
+        //valid, we can handle grabbing a valid sequence after an invalid value occurs
+        DicomSequence sq = dataset.GetSequence(DicomTag.IssuerOfAccessionNumberSequence);
+        Assert.Equal("Hospital A", sq.Items[0].GetString(DicomTag.PatientID));
+        Assert.Equal("Hospital B", sq.Items[1].GetString(DicomTag.PatientID));
+
+        // invalid
+        DicomDataException privateGroupReferenceException = Assert.Throws<DicomDataException>(() => dataset.GetString(DicomTag.PrivateGroupReference));
+        Assert.Equal("Tag: (0008,0301) not found in dataset", privateGroupReferenceException.Message);
+
+        // valid
+        Assert.Equal("444", dataset.GetString(DicomTag.DataSetTypeRETIRED));
+    }
+
+    [Fact]
+    public static void GivenDropDataWhenInvalid_WhenInvalidValueInSQ_WeCanStillParseValidValuesFromAttrsBeforeAndAfterAsWellAsValidValuesWithinSq()
+    {
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        111
+                    ]
+                },
+                ""00080051"": {
+                    ""vr"": ""SQ"",
+                    ""Value"": [
+                        {
+                            ""00100020"":{
+                                ""vr"": ""LO"",
+                                ""Value"": [ ""Hospital A"" ]
+                            }
+                        },
+                        {
+                            ""00100020"":{
+                                ""vr"": ""US"",
+                                ""Value"": [
+                                    ""NotANumber""
+                                ]
+                            }
+                        }
+                    ]
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        222
+                    ]
+                }
+            }";
+
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+
+        //valid
+        Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
+
+        //partially invalid, we can handle skipping children in a sequence
+        DicomSequence sq = dataset.GetSequence(DicomTag.IssuerOfAccessionNumberSequence);
+        Assert.Equal(1, sq.Items.Count); // only the first was valid, the second was dropped
+        Assert.Equal("Hospital A", sq.Items[0].GetString(DicomTag.PatientID));
+
+        // valid
+        Assert.Equal("222", dataset.GetString(DicomTag.PrivateGroupReference));
+    }
+
+    [Fact]
+    public static void GivenDropDataWhenInvalid_WhenAllValuesInSQInvalid_WeCanStillParseValidValuesFromAttrsBeforeAndAfter()
+    {
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        111
+                    ]
+                },
+                ""00080051"": {
+                    ""vr"": ""SQ"",
+                    ""Value"": [
+                        {
+                            ""00100020"":{
+                                ""vr"": ""US"",
+                                ""Value"": [
+                                    ""NotANumber""
+                                ]
+                            }
+                        },
+                        {
+                            ""00100020"":{
+                                ""vr"": ""US"",
+                                ""Value"": [
+                                    ""NotANumber""
+                                ]
+                            }
+                        }
+                    ]
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        222
+                    ]
+                }
+            }";
+
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+
+        //valid
+        Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
+
+        //no valid data in whole sequence, we can handle skipping the whole sequence
+        DicomDataException issuerOfAccessionNumberSequenceException = Assert.Throws<DicomDataException>(() => dataset.GetString(DicomTag.IssuerOfAccessionNumberSequence));
+        Assert.Equal("Tag: (0008,0051) not found in dataset", issuerOfAccessionNumberSequenceException.Message);
+
+        // valid
+        Assert.Equal("222", dataset.GetString(DicomTag.PrivateGroupReference));
+    }
+
+
+    [Fact]
+    public static void GivenDropDataWhenInvalid_WhenInvalidValuesInSQAreNested_WeCanStillParseValidValuesFromAttrsBeforeAndAfter()
+    {
+        // test sequence of sequences
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        111
+                    ]
+                },
+                ""00080051"": {
+                    ""vr"": ""SQ"",
+                    ""Value"": [
+                        {
+                            ""00100020"":{
+                                ""vr"": ""SQ"",
+                                ""Value"": [
+                                    {
+                                        ""00100020"":{
+                                            ""vr"": ""SQ"",
+                                            ""Value"": [
+                                                {
+                                                    ""00100020"":{
+                                                        ""vr"": ""SQ"",
+                                                        ""Value"": [
+                                                            ""NotANumber""
+                                                        ]
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            ""00100020"":{
+                                ""vr"": ""LO"",
+                                ""Value"": [ ""Hospital A"" ]
+                            }
+                        }
+                    ]
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        222
+                    ]
+                }
+            }";
+
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+
+        //valid
+        Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
+
+        //partially invalid, we can handle skipping children in a sequence
+        DicomSequence sq = dataset.GetSequence(DicomTag.IssuerOfAccessionNumberSequence);
+        Assert.Equal(1, sq.Items.Count); // only the first was valid, the second was dropped
+        Assert.Equal("Hospital A", sq.Items[0].GetString(DicomTag.PatientID));
+
+        // valid
+        Assert.Equal("222", dataset.GetString(DicomTag.PrivateGroupReference));
+    }
+
+    [Fact]
+    public static void GivenDropDataWhenInvalidAndAValueWithInvalidJson_WhenDeserialized_ThenJsonReaderExceptionIsThrown()
+    {
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        // This is not valid DICOM JSON format and the format that the serializer expects
+        // \T is unexpected and invalid JSON here. The Utf8JsonReader used throws the exception deep
+        // in its Read code, so we'd have to create our own Reader and override Read to not do that if we
+        // wanted to skip invalid JSON on reads
+        const string json = @"
+            {
+                ""00101010"": {
+                    ""vr"": ""AS"",
+                    ""Value"": [
+                        ""Y49\T""
+                    ]
+                }
+
+            }";
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Contains("'T' is an invalid escapable character within a JSON string. The string should be correctly escaped.", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenDropDataWhenInvalidAndJsonIsInvalid_WhenDeserialized_ThenJsonReaderExceptionIsThrown()
+    {
+        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
+        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
+
+        // This is not valid DICOM JSON format and the format that the serializer expects
+        const string json = @"
+            {
+              ""00081030"": ""vr:LO, Value: Study1""
+            }
+            ";
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Contains("invalid: StartObject expected at position", thrownException.Message);
+        Assert.Contains("instead found String", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenInvalidJSON_WhenDeserialized_JsonReaderExceptionIsThrown()
+    {
+        // \T is unexpected and invalid JSON here
+        const string json = @"
+            {
+              ""00081030"": {
+                ""vr"": ""LO"",
+                ""Value"": [ ""Study1\T"" ]
+              }
+            }
+            ";
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Contains("'T' is an invalid escapable character within a JSON string. The string should be correctly escaped.", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenInvalidDicomJSON_WhenDeserialized_JsonReaderExceptionIsThrown()
+    {
+        // This is not valid DICOM JSON format and the format that the serializer expects
+        const string json = @"
+            {
+              ""00081030"": ""vr:LO, Value: Study1""
+            }
+            ";
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Contains("invalid: StartObject expected at position", thrownException.Message);
+        Assert.Contains("instead found String", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenVRKeyNotInExpectedCase_WhenDeserialized_JsonReaderExceptionIsThrown()
+    {
+        //serializer looks for vr, but "vr" is case sensitive, so this needed to have "vr" instead of "VR" to pass
         const string json = @"
             {
               ""00081030"": {
@@ -95,7 +461,36 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Equal("Malformed DICOM json. vr value missing", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenMissingVR_WhenDeserialized_JsonReaderExceptionIsThrown()
+    {
+        const string json = @"
+            {
+              ""00081030"": {
+                ""Value"": [ ""Study1"" ]
+              }
+            }
+            ";
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Equal("Malformed DICOM json. vr value missing", thrownException.Message);
+    }
+
+    [Fact]
+    public static void GivenMissingValue_WhenDeserialized_JsonReaderExceptionIsThrown()
+    {
+        const string json = @"
+            {
+              ""00081030"": {
+                ""VR"": ""LO""
+              }
+            }
+            ";
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Equal("Malformed DICOM json. vr value missing", thrownException.Message);
     }
 
     [Fact]
@@ -109,7 +504,8 @@ public class JsonDicomConverterExtendedTests
                 }
             }
             ";
-        Assert.Throws<NotSupportedException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        NotSupportedException thrownException = Assert.Throws<NotSupportedException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        Assert.Contains("Unsupported value representation", thrownException.Message);
     }
 
     [Fact]
