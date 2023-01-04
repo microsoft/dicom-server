@@ -135,3 +135,11 @@ INCLUDE
     SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in computed columns response
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
+(
+    PartitionKey,
+    Watermark
+)
+WITH (DATA_COMPRESSION = PAGE)
