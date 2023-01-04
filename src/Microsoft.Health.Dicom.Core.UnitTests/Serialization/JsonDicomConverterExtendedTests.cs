@@ -86,7 +86,7 @@ public class JsonDicomConverterExtendedTests
 
 
     [Fact]
-    public static void GivenDropDataWhenInvalidAndFLIsInvalid_WhenDeserialized_ThenDataIsDropped()
+    public static void GivenDropDataWhenInvalid_WhenAttrHasInvalidValue_ThenDataIsDropped()
     {
         JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
         dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
@@ -111,7 +111,7 @@ public class JsonDicomConverterExtendedTests
     }
 
     [Fact]
-    public static void GivenDropDataWhenInvalidAndFLIsInvalidButAnotherFLIsValid_WhenDeserialized_ThenValidFLDataIsRetained()
+    public static void GivenDropDataWhenInvalid_WhenMixValidAndInvalidData_ThenValidDataIsRetained()
     {
         JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
         dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
@@ -385,6 +385,7 @@ public class JsonDicomConverterExtendedTests
         // \T is unexpected and invalid JSON here. The Utf8JsonReader used throws the exception deep
         // in its Read code, so we'd have to create our own Reader and override Read to not do that if we
         // wanted to skip invalid JSON on reads
+        // TODO add custom reader that lets us skip data
         const string json = @"
             {
                 ""00101010"": {
