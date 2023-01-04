@@ -68,7 +68,8 @@ public class QueryService : IQueryService
         var responseBuilder = new QueryResponseBuilder(queryExpression);
         IEnumerable<DicomDataset> responseMetadata;
 
-        if (queryExpression.IELevel == Messages.ResourceType.Study)
+        if (QueryLimit.IsComputedTag(queryExpression.IELevel, queryExpression.IncludeFields.DicomTags)
+            && queryExpression.IELevel == Messages.ResourceType.Study)
         {
             var versions = queryResult.DicomInstances.Select(i => i.Version).ToList();
             var studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
