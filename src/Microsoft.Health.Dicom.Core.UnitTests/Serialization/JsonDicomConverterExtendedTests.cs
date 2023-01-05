@@ -94,8 +94,8 @@ public class JsonDicomConverterExtendedTests
             writeTagsAsKeywords: false,
             autoValidate: false));
 
-        // FL vr type needs to be able to parse into a number. FoDicom Json converter checks for this
         // 00081196 is WarningReason
+        // US VR Type is number only
         const string json = @"
             {
                 ""00081196"": {
@@ -119,6 +119,12 @@ public class JsonDicomConverterExtendedTests
             writeTagsAsKeywords: false,
             autoValidate: false));
 
+        // 00081196 is WarningReason
+        // 00080051 is IssuerOfAccessionNumberSequence
+        // 00100020 is PatientID
+        // 00080301 is PrivateGroupReference
+        // 00080040 is DataSetTypeRETIRED
+        // US VR Type is number only
         const string json = @"
             {
                 ""00081196"": {
@@ -187,6 +193,11 @@ public class JsonDicomConverterExtendedTests
             writeTagsAsKeywords: false,
             autoValidate: false));
 
+        // 00081196 is WarningReason
+        // 00080051 is IssuerOfAccessionNumberSequence
+        // 00100020 is PatientID
+        // 00080301 is PrivateGroupReference
+        // US VR Type is number only
         const string json = @"
             {
                 ""00081196"": {
@@ -246,6 +257,11 @@ public class JsonDicomConverterExtendedTests
             writeTagsAsKeywords: false,
             autoValidate: false));
 
+        // 00081196 is WarningReason
+        // 00080051 is IssuerOfAccessionNumberSequence
+        // 00100020 is PatientID
+        // 00080301 is PrivateGroupReference
+        // US VR Type is number only
         const string json = @"
             {
                 ""00081196"": {
@@ -308,6 +324,11 @@ public class JsonDicomConverterExtendedTests
             writeTagsAsKeywords: false,
             autoValidate: false));
 
+        // 00081196 is WarningReason
+        // 00080051 is IssuerOfAccessionNumberSequence
+        // 00100020 is PatientID
+        // 00080301 is PrivateGroupReference
+        // US VR Type is number only
         const string json = @"
             {
                 ""00081196"": {
