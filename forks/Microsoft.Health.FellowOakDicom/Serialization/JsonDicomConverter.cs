@@ -249,10 +249,17 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
 
                     dataset.Add(item);
                 }
-                catch (Exception e)
+                catch (JsonException e)
                 {
                     //todo add telemetry
-                    e.ToString();
+
+                    // When JSON is invalid, skip attempting to parse valid dicom JSON or even JSON and instead give a splat in future iterations
+                    if (e.Message.Contains("invalid")) // will catch both invalid escape chars as well as anything lower than space
+                    {
+                        throw;
+                    }
+
+
                     if (_dropDataWhenInvalid)
                     {
                         // forward reader until we're reached a property or EndObject

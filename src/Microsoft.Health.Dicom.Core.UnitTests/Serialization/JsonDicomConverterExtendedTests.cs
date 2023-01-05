@@ -381,11 +381,9 @@ public class JsonDicomConverterExtendedTests
             writeTagsAsKeywords: false,
             autoValidate: false));
 
-        // This is not valid DICOM JSON format and the format that the serializer expects
-        // \T is unexpected and invalid JSON here. The Utf8JsonReader used throws the exception deep
-        // in its Read code, so we'd have to create our own Reader and override Read to not do that if we
-        // wanted to skip invalid JSON on reads
-        // TODO add custom reader that lets us skip data
+        // This is not valid JSON
+        // \T is unexpected. The Utf8JsonReader used throws the exception deep
+        // in its Read code, with even Skip checking for valid JSON
         const string json = @"
             {
                 ""00101010"": {
