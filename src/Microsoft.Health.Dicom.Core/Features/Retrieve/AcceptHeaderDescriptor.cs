@@ -13,7 +13,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public class AcceptHeaderDescriptor
 {
-    public AcceptHeaderDescriptor(PayloadTypes payloadType, string mediaType, bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, ISet<string> acceptableTransferSyntaxes)
+    public AcceptHeaderDescriptor(
+        PayloadTypes payloadType,
+        string mediaType,
+        bool isTransferSyntaxMandatory,
+        string transferSyntaxWhenMissing,
+        ISet<string> acceptableTransferSyntaxes
+        )
     {
         EnsureArg.IsNotEmptyOrWhiteSpace(mediaType, nameof(mediaType));
 
@@ -42,10 +48,9 @@ public class AcceptHeaderDescriptor
 
     public ISet<string> AcceptableTransferSyntaxes { get; }
 
-    public bool IsAcceptable(AcceptHeader acceptHeader, out string transferSyntax)
+    public bool IsAcceptable(AcceptHeader acceptHeader)
     {
         EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
-        transferSyntax = null;
 
         // Check if payload type match
         if ((PayloadType & acceptHeader.PayloadType) == PayloadTypes.None)
@@ -64,18 +69,27 @@ public class AcceptHeaderDescriptor
             {
                 return false;
             }
-
-            // when transfer syntax is missed from accept header, use default one
-            transferSyntax = TransferSyntaxWhenMissing;
             return true;
         }
 
         if (AcceptableTransferSyntaxes.Contains(acceptHeader.TransferSyntax.Value))
         {
-            transferSyntax = acceptHeader.TransferSyntax.Value;
             return true;
         }
 
         return false;
+    }
+
+    public StringSegment GetTransferSyntax(AcceptHeader acceptHeader)
+    {
+        EnsureArg.IsNotNull(acceptHeader, nameof(acceptHeader));
+
+        // when transfer syntax not supplied and was not mandatory to be supplied, use default syntax
+        if (!IsTransferSyntaxMandatory && StringSegment.IsNullOrEmpty(acceptHeader.TransferSyntax))
+        {
+            return TransferSyntaxWhenMissing;
+        }
+
+        return acceptHeader.TransferSyntax;
     }
 }

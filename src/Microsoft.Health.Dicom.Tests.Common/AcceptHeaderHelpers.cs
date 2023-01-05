@@ -49,6 +49,6 @@ public static class AcceptHeaderHelpers
 
     public static AcceptHeader CreateAcceptHeader(string transferSyntax = "*", PayloadTypes payloadType = PayloadTypes.MultipartRelated, string mediaType = KnownContentTypes.ApplicationOctetStream, double? quality = null)
     {
-        return new AcceptHeader(mediaType, payloadType, transferSyntax, quality);
+        return new AcceptHeader(mediaType, payloadType, transferSyntax, quality.GetValueOrDefault(AcceptHeader.DefaultQuality));
     }
 }
