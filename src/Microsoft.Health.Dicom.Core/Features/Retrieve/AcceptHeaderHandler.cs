@@ -37,7 +37,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     {
     }
 
-    public AcceptHeaderHandler(
+    private AcceptHeaderHandler(
         IReadOnlyDictionary<ResourceType, List<AcceptHeaderDescriptor>> acceptableDescriptors,
         ILogger<AcceptHeaderHandler> logger)
     {
