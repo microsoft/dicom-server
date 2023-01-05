@@ -263,8 +263,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
 
                     if (_dropDataWhenInvalid)
                     {
-                        // forward reader until we're reached a property or EndObject
-                        // todo can we use skip instead?
+                        // forward reader until we've reached a property or EndObject
                         while (!(
                                    (reader.TokenType == JsonTokenType.EndObject &&
                                     reader.CurrentDepth == originalDepth) ||
