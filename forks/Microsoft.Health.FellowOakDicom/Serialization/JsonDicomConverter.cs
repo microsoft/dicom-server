@@ -42,7 +42,8 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
         /// Initialize the JsonDicomConverter.
         /// </summary>
         /// <param name="writeTagsAsKeywords">Whether to write the json keys as DICOM keywords instead of tags. This makes the json non-compliant to DICOM JSON.</param>
-        /// <param name="_dropDataWhenInvalid">Whether to drop an attribute when tag or value is not valid or parsable.</param>
+        /// <param name="dropDataWhenInvalid">Whether to drop attribute from JSON when an invalid Dicom JSON attribute is found.
+        ///     Default "false" will produce errors instead of dropping. Does not handle invalid JSON, just invalid Dicom JSON. </param>
         public DicomArrayJsonConverter(bool writeTagsAsKeywords, bool dropDataWhenInvalid=false)
         {
             _writeTagsAsKeywords = writeTagsAsKeywords;
@@ -146,6 +147,8 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
         /// <param name="writeTagsAsKeywords">Whether to write the json keys as DICOM keywords instead of tags. This makes the json non-compliant to DICOM JSON.</param>
         /// <param name="autoValidate">Whether the content of DicomItems shall be validated when deserializing.</param>
         /// <param name="numberSerializationMode">Defines how numbers should be serialized. Default 'AsNumber', will throw errors when a number is not parsable.</param>
+        /// <param name="dropDataWhenInvalid">Whether to drop attribute from JSON when an invalid Dicom JSON attribute is found.
+        ///     Default "false" will produce errors instead of dropping. Does not handle invalid JSON, just invalid Dicom JSON. </param>
         public DicomJsonConverter(
             bool writeTagsAsKeywords = false,
             bool autoValidate = true,
