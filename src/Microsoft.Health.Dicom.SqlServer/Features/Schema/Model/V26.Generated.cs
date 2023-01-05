@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V26
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -63,8 +63,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
-        internal readonly static GetSeriesAttributesProcedure GetSeriesAttributes = new GetSeriesAttributesProcedure();
-        internal readonly static GetStudyAttributesProcedure GetStudyAttributes = new GetStudyAttributesProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
@@ -292,7 +290,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_Watermark_Status = new Index("IX_Instance_Watermark_Status");
             internal readonly Index IX_Instance_SeriesKey_Status_Watermark = new Index("IX_Instance_SeriesKey_Status_Watermark");
             internal readonly Index IX_Instance_StudyKey_Status_Watermark = new Index("IX_Instance_StudyKey_Status_Watermark");
-            internal readonly Index IX_Instance_PartitionKey_Watermark = new Index("IX_Instance_PartitionKey_Watermark");
         }
 
         internal class PartitionTable : Table
@@ -1322,102 +1319,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetPartitions";
             }
-        }
-
-        internal class GetSeriesAttributesProcedure : StoredProcedure
-        {
-            internal GetSeriesAttributesProcedure() : base("dbo.GetSeriesAttributes")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly WatermarkTableTypeTableValuedParameterDefinition _watermarkTableType = new WatermarkTableTypeTableValuedParameterDefinition("@watermarkTableType");
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetSeriesAttributes";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetSeriesAttributesTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
-            }
-        }
-
-        internal class GetSeriesAttributesTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetSeriesAttributesTableValuedParameters>
-        {
-            public GetSeriesAttributesTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
-            {
-                this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
-
-            public GetSeriesAttributesTableValuedParameters Generate(TInput input)
-            {
-                return new GetSeriesAttributesTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct GetSeriesAttributesTableValuedParameters
-        {
-            internal GetSeriesAttributesTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
-            {
-                this.WatermarkTableType = WatermarkTableType;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
-        }
-
-        internal class GetStudyAttributesProcedure : StoredProcedure
-        {
-            internal GetStudyAttributesProcedure() : base("dbo.GetStudyAttributes")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly WatermarkTableTypeTableValuedParameterDefinition _watermarkTableType = new WatermarkTableTypeTableValuedParameterDefinition("@watermarkTableType");
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetStudyAttributes";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetStudyAttributesTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
-            }
-        }
-
-        internal class GetStudyAttributesTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetStudyAttributesTableValuedParameters>
-        {
-            public GetStudyAttributesTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
-            {
-                this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
-
-            public GetStudyAttributesTableValuedParameters Generate(TInput input)
-            {
-                return new GetStudyAttributesTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct GetStudyAttributesTableValuedParameters
-        {
-            internal GetStudyAttributesTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
-            {
-                this.WatermarkTableType = WatermarkTableType;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
         }
 
         internal class GetWorkitemMetadataProcedure : StoredProcedure

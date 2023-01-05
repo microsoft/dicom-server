@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -19,4 +19,6 @@ public abstract class QueryFilterConditionVisitor
     public abstract void Visit(LongRangeValueMatchCondition longRangeValueMatchCondition);
 
     public abstract void Visit(LongSingleValueMatchCondition longSingleValueMatchCondition);
+
+    public abstract void Visit(StudyToSeriesStringSingleValueMatchCondition stringSingleValueMatchCondition);
 }

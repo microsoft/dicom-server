@@ -196,6 +196,11 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
 
     private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
     {
+        // special casing for just one tag we support, we can expand it by abstract it into a func if needed later
+        if (queryTag.Tag == DicomTag.ModalitiesInStudy)
+        {
+            return new StudyToSeriesStringSingleValueMatchCondition(queryTag, value);
+        }
         return new StringSingleValueMatchCondition(queryTag, value);
     }
 

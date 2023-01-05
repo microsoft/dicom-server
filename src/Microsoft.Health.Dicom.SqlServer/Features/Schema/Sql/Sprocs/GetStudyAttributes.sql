@@ -12,11 +12,7 @@ BEGIN
     SET XACT_ABORT  ON
 
     SELECT  sv.*
-    FROM    dbo.StudyResponseView sv
-    JOIN    dbo.Instance i
-	ON      i.PartitionKey = sv.PartitionKey
-	AND     i.PartitionKey = @partitionKey
-    AND     i.StudyKey = sv.StudyKey
-	JOIN    @watermarkTableType input
-    ON      i.Watermark = input.Watermark
+    FROM    dbo.Instance i
+    JOIN    @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
+    JOIN    dbo.StudyResponseView sv  ON  i.StudyKey = sv.StudyKey AND i.PartitionKey = sv.PartitionKey
 END

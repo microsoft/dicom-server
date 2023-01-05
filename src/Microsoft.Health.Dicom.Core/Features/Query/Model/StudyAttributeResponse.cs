@@ -18,7 +18,7 @@ public class StudyAttributeResponse
     public string StudyDescription { get; init; }
     public string AccessionNumber { get; init; }
     public DateTime? PatientBirthDate { get; init; }
-    public string ModalitiesInStudy { get; init; }
+    public string[] ModalitiesInStudy { get; init; }
     public int NumberofStudyRelatedInstances { get; init; }
 
     private DicomDataset _dicomDataset;
@@ -37,7 +37,7 @@ public class StudyAttributeResponse
                     { DicomTag.ReferringPhysicianName, ReferringPhysicianName },
                     { DicomTag.StudyDescription, StudyDescription },
                     { DicomTag.AccessionNumber, AccessionNumber },
-                    { DicomTag.ModalitiesInStudy, ModalitiesInStudy},
+                    { DicomTag.ModalitiesInStudy, ModalitiesInStudy },
                     { DicomTag.NumberOfStudyRelatedInstances, NumberofStudyRelatedInstances},
                 };
                 if (StudyDate.HasValue)

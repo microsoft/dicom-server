@@ -13,7 +13,7 @@ SELECT  st.StudyInstanceUid,
 		st.StudyDescription,
 		st.AccessionNumber,
 		st.PatientBirthDate,
-		(SELECT CONCAT_WS(',', Modality, NULL) 
+		(SELECT STRING_AGG(Modality, ',')
 		FROM dbo.Series se 
 		WHERE st.StudyKey = se.StudyKey
 		AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,

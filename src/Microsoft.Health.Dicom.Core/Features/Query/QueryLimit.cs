@@ -29,6 +29,7 @@ internal static class QueryLimit
         DicomTag.PatientName,
         DicomTag.ReferringPhysicianName,
         DicomTag.PatientBirthDate,
+        DicomTag.ModalitiesInStudy,
     };
 
     private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
