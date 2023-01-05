@@ -9,7 +9,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
-public interface IRetrieveTransferSyntaxHandler
+public interface IAcceptHeaderHandler
 {
-    string GetTransferSyntax(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders, out AcceptHeaderDescriptor acceptHeaderDescriptor, out AcceptHeader acceptedHeader);
+    AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders);
 }
