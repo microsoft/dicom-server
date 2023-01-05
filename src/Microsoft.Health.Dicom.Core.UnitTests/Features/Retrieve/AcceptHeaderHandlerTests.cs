@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 
-public class RetrieveTransferSyntaxHandlerTests
+public class AcceptHeaderHandlerTests
 {
     private readonly AcceptHeaderHandler _handler;
 
@@ -63,7 +63,7 @@ public class RetrieveTransferSyntaxHandlerTests
         };
     }
 
-    public RetrieveTransferSyntaxHandlerTests()
+    public AcceptHeaderHandlerTests()
     {
         _handler = new AcceptHeaderHandler(NullLogger<AcceptHeaderHandler>.Instance);
     }

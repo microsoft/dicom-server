@@ -13,7 +13,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public class AcceptHeaderDescriptor
 {
-    public AcceptHeaderDescriptor(PayloadTypes payloadType, string mediaType, bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, ISet<string> acceptableTransferSyntaxes)
+    public AcceptHeaderDescriptor(
+        PayloadTypes payloadType,
+        string mediaType,
+        bool isTransferSyntaxMandatory,
+        string transferSyntaxWhenMissing,
+        ISet<string> acceptableTransferSyntaxes
+        )
     {
         EnsureArg.IsNotEmptyOrWhiteSpace(mediaType, nameof(mediaType));
 
