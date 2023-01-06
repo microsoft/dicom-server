@@ -179,33 +179,19 @@ public class JsonDicomConverterExtendedTests
     }
 
     [Fact]
-    public static void GivenDropDataWhenInvalid_WhenNoValueOnAnNonsequenceAttribute_ThenReturnAttrWithNoValue()
+    public static void GivenDropDataWhenInvalid_WhenNoValueOnAnAStringAttribute_ThenReturnAttrWithNoValue()
     {
         // 00081196 is WarningReason
         // 00100020 is PatientID
         // 00080301 is PrivateGroupReference
-        // US VR Type is number only
-        // const string json = @"
-        //     {
-        //         ""00100020"":{
-        //             ""vr"": ""LO"",
-        //         },
-        //         ""00081196"": {
-        //             ""vr"": ""US""
-        //         },
-        //         ""00080301"": {
-        //             ""vr"": ""US"",
-        //             ""Value"": [
-        //                 222
-        //             ]
-        //         }
-        //     }";
+        // Note that VRs like US which are numerical get defaulted to 0 when parsed from binary into DicomDataset, so
+        // we would never serialize the data into JSON with a missing Value for these types
 
 
         const string json = @"
             {
                 ""00100020"":{
-                    ""vr"": ""US"",
+                    ""vr"": ""LO"",
                 },
                 ""00080301"": {
                     ""vr"": ""US"",
@@ -217,7 +203,7 @@ public class JsonDicomConverterExtendedTests
 
         DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
 
-        // LO can be empty, but US can't??
+        // LO can be empty
         //valid
         Assert.Empty(dataset.GetString(DicomTag.PatientID));
 
