@@ -191,7 +191,7 @@ public class JsonDicomConverterExtendedTests
         const string json = @"
             {
                 ""00100020"":{
-                    ""vr"": ""LO"",
+                    ""vr"": ""LO""
                 },
                 ""00080301"": {
                     ""vr"": ""US"",
