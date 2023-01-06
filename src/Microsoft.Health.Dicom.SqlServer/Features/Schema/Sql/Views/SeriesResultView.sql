@@ -2,7 +2,7 @@
     Series View to be used for getting computed column response
 **************************************************************/
 
-CREATE VIEW dbo.SeriesResponseView
+CREATE VIEW dbo.SeriesResultView
 WITH SCHEMABINDING
 AS
 SELECT  se.SeriesInstanceUid,

@@ -1,9 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     Get Study level QIDO response
+--     Get Series level QIDO response
 --
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetStudyAttributes (
+CREATE OR ALTER PROCEDURE dbo.GetSeriesResult (
 	@partitionKey       INT,
 	@watermarkTableType dbo.WatermarkTableType READONLY
 ) AS
@@ -11,8 +11,9 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
-    SELECT  sv.*
+    SELECT  i.StudyInstanceUid,
+            sv.*
     FROM    dbo.Instance i
     JOIN    @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
-    JOIN    dbo.StudyResponseView sv  ON  i.StudyKey = sv.StudyKey AND i.PartitionKey = sv.PartitionKey
+    JOIN    dbo.SeriesResultView sv  ON  i.StudyKey = sv.StudyKey AND i.SeriesKey = sv.SeriesKey AND i.PartitionKey = sv.PartitionKey
 END

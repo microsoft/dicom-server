@@ -8,7 +8,7 @@ using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
 
-public class StudyAttributeResponse
+public class StudyResult
 {
     public string StudyInstanceUid { get; init; }
     public string PatientId { get; init; }

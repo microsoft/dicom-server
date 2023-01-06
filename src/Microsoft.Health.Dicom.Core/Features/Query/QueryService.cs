@@ -66,19 +66,28 @@ public class QueryService : IQueryService
         }
 
         var responseBuilder = new QueryResponseBuilder(queryExpression);
-        IEnumerable<DicomDataset> responseMetadata;
+        IEnumerable<DicomDataset> responseMetadata = null;
 
-        if (QueryLimit.IsComputedTag(queryExpression.IELevel, queryExpression.IncludeFields.DicomTags)
-            && queryExpression.IELevel == Messages.ResourceType.Study)
+        if (QueryLimit.ContainsComputedTag(queryExpression.IELevel, queryExpression.IncludeFields.DicomTags))
         {
             var versions = queryResult.DicomInstances.Select(i => i.Version).ToList();
-            var studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
-            var studyResultUidMap = studyComputedResults.ToDictionary<StudyAttributeResponse, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
-            // TODO version the API to change the default results to only include indexed columns and control the getFullMetadata param
-            responseMetadata = await Task.WhenAll(queryResult.DicomInstances.Select(x =>
-            GetStudyAttributes(x, studyResultUidMap[x.StudyInstanceUid].DicomDataset, responseBuilder, getFullMetadata: true, cancellationToken)));
+
+            if (queryExpression.IELevel == Messages.ResourceType.Study)
+            {
+                var studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
+                var studyResultUidMap = studyComputedResults.ToDictionary<StudyResult, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
+                responseMetadata = await Task.WhenAll(queryResult.DicomInstances.Select(x =>
+                GenerateQueryResult(x, studyResultUidMap[x.StudyInstanceUid].DicomDataset, responseBuilder, getFullMetadata: true, cancellationToken)));
+            }
+            else if (queryExpression.IELevel == Messages.ResourceType.Series)
+            {
+                var seriesComputedResults = await _queryStore.GetSeriesResultAsync(partitionKey, versions, cancellationToken);
+                var seriesResultMap = seriesComputedResults.ToDictionary<SeriesResult, string>(a => a.StudyInstanceUid + "-" + a.SeriesInstanceUid, StringComparer.OrdinalIgnoreCase);
+                responseMetadata = await Task.WhenAll(queryResult.DicomInstances.Select(x =>
+                GenerateQueryResult(x, seriesResultMap[x.StudyInstanceUid + "-" + x.SeriesInstanceUid].DicomDataset, responseBuilder, getFullMetadata: true, cancellationToken)));
+            }
         }
-        else
+        if (responseMetadata == null)
         {
             IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
                 queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
@@ -89,7 +98,8 @@ public class QueryService : IQueryService
         return new QueryResourceResponse(responseMetadata, queryExpression.ErroneousTags);
     }
 
-    private async Task<DicomDataset> GetStudyAttributes(
+    // TODO version the API to change the default results to only include indexed columns and control the getFullMetadata param
+    private async Task<DicomDataset> GenerateQueryResult(
         VersionedInstanceIdentifier versionedInstance,
         DicomDataset computedMetadata,
         QueryResponseBuilder queryResponseBuilder,

@@ -1,9 +1,9 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     Get Series level QIDO response
+--     Get Study level QIDO response
 --
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetSeriesAttributes (
+CREATE OR ALTER PROCEDURE dbo.GetStudyResult (
 	@partitionKey       INT,
 	@watermarkTableType dbo.WatermarkTableType READONLY
 ) AS
@@ -14,5 +14,5 @@ BEGIN
     SELECT  sv.*
     FROM    dbo.Instance i
     JOIN    @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
-    JOIN    dbo.SeriesResponseView sv  ON  i.StudyKey = sv.StudyKey AND i.SeriesKey = sv.SeriesKey AND i.PartitionKey = sv.PartitionKey
+    JOIN    dbo.StudyResultView sv  ON  i.StudyKey = sv.StudyKey AND i.PartitionKey = sv.PartitionKey
 END

@@ -79,6 +79,9 @@ internal class SqlQueryStoreV4 : ISqlQueryStore
         return new QueryResult(results);
     }
 
-    public virtual Task<IReadOnlyCollection<StudyAttributeResponse>> GetStudyResultAsync(int partitionKey, IReadOnlyCollection<long> version, CancellationToken cancellationToken)
+    public virtual Task<IReadOnlyCollection<StudyResult>> GetStudyResultAsync(int partitionKey, IReadOnlyCollection<long> version, CancellationToken cancellationToken)
         => throw new NotImplementedException();
+
+    public virtual Task<IReadOnlyCollection<SeriesResult>> GetSeriesResultAsync(int partitionKey, IReadOnlyCollection<long> version, CancellationToken cancellationToken)
+       => throw new NotImplementedException();
 }

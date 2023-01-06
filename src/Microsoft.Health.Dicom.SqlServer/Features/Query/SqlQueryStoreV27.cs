@@ -30,18 +30,18 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
     {
     }
 
-    public override async Task<System.Collections.Generic.IReadOnlyCollection<StudyAttributeResponse>> GetStudyResultAsync(
+    public override async Task<IReadOnlyCollection<StudyResult>> GetStudyResultAsync(
         int partitionKey,
         IReadOnlyCollection<long> versions,
         CancellationToken cancellationToken)
     {
-        var results = new List<StudyAttributeResponse>();
+        var results = new List<StudyResult>();
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
             List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
-            VLatest.GetStudyAttributes.PopulateCommand(
+            VLatest.GetStudyResult.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 versionRows);
@@ -72,7 +72,7 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
                        new NVarCharColumn("ModalitiesInStudy", 4000),
                        new IntColumn("NumberofStudyRelatedInstances"));
 
-                    results.Add(new StudyAttributeResponse()
+                    results.Add(new StudyResult()
                     {
                         StudyInstanceUid = rStudyInstanceUid,
                         PatientId = rPatientId,
@@ -84,6 +84,55 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
                         PatientBirthDate = rPatientBirthDate,
                         ModalitiesInStudy = rModalitiesInStudy.Split(',').Distinct().ToArray(),
                         NumberofStudyRelatedInstances = rNumberofStudyRelatedInstances
+                    });
+                }
+            }
+        }
+        return results;
+    }
+
+    public override async Task<IReadOnlyCollection<SeriesResult>> GetSeriesResultAsync(
+      int partitionKey,
+      IReadOnlyCollection<long> versions,
+      CancellationToken cancellationToken)
+    {
+        var results = new List<SeriesResult>();
+
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        {
+            List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
+            VLatest.GetSeriesResult.PopulateCommand(
+                sqlCommandWrapper,
+                partitionKey,
+                versionRows);
+
+            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            {
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    (string rStudyInstanceUid,
+                     string rSeriesInstanceUid,
+                     string rModality,
+                     DateTime? rPerformedProcedureStepStartDate,
+                     string rManufacturerModelName,
+                     int rNumberofSeriesRelatedInstances
+                     ) = reader.ReadRow(
+                       VLatest.Instance.StudyInstanceUid,
+                       VLatest.Series.SeriesInstanceUid,
+                       VLatest.Series.Modality,
+                       VLatest.Series.PerformedProcedureStepStartDate,
+                       VLatest.Series.ManufacturerModelName,
+                       new IntColumn("NumberofSeriesRelatedInstances"));
+
+                    results.Add(new SeriesResult()
+                    {
+                        StudyInstanceUid = rStudyInstanceUid,
+                        SeriesInstanceUid = rSeriesInstanceUid,
+                        Modality = rModality,
+                        PerformedProcedureStepStartDate = rPerformedProcedureStepStartDate,
+                        ManufacturerModelName = rManufacturerModelName,
+                        NumberofSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
                     });
                 }
             }

@@ -63,8 +63,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
-        internal readonly static GetSeriesAttributesProcedure GetSeriesAttributes = new GetSeriesAttributesProcedure();
-        internal readonly static GetStudyAttributesProcedure GetStudyAttributes = new GetStudyAttributesProcedure();
+        internal readonly static GetSeriesResultProcedure GetSeriesResult = new GetSeriesResultProcedure();
+        internal readonly static GetStudyResultProcedure GetStudyResult = new GetStudyResultProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
@@ -1324,9 +1324,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetSeriesAttributesProcedure : StoredProcedure
+        internal class GetSeriesResultProcedure : StoredProcedure
         {
-            internal GetSeriesAttributesProcedure() : base("dbo.GetSeriesAttributes")
+            internal GetSeriesResultProcedure() : base("dbo.GetSeriesResult")
             {
             }
 
@@ -1336,35 +1336,35 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetSeriesAttributes";
+                command.CommandText = "dbo.GetSeriesResult";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetSeriesAttributesTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetSeriesResultTableValuedParameters tableValuedParameters)
             {
                 PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
             }
         }
 
-        internal class GetSeriesAttributesTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetSeriesAttributesTableValuedParameters>
+        internal class GetSeriesResultTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetSeriesResultTableValuedParameters>
         {
-            public GetSeriesAttributesTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
+            public GetSeriesResultTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
             {
                 this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
             }
 
             private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
 
-            public GetSeriesAttributesTableValuedParameters Generate(TInput input)
+            public GetSeriesResultTableValuedParameters Generate(TInput input)
             {
-                return new GetSeriesAttributesTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
+                return new GetSeriesResultTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
             }
         }
 
-        internal struct GetSeriesAttributesTableValuedParameters
+        internal struct GetSeriesResultTableValuedParameters
         {
-            internal GetSeriesAttributesTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
+            internal GetSeriesResultTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
             {
                 this.WatermarkTableType = WatermarkTableType;
             }
@@ -1372,9 +1372,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
         }
 
-        internal class GetStudyAttributesProcedure : StoredProcedure
+        internal class GetStudyResultProcedure : StoredProcedure
         {
-            internal GetStudyAttributesProcedure() : base("dbo.GetStudyAttributes")
+            internal GetStudyResultProcedure() : base("dbo.GetStudyResult")
             {
             }
 
@@ -1384,35 +1384,35 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetStudyAttributes";
+                command.CommandText = "dbo.GetStudyResult";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetStudyAttributesTableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetStudyResultTableValuedParameters tableValuedParameters)
             {
                 PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
             }
         }
 
-        internal class GetStudyAttributesTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetStudyAttributesTableValuedParameters>
+        internal class GetStudyResultTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetStudyResultTableValuedParameters>
         {
-            public GetStudyAttributesTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
+            public GetStudyResultTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
             {
                 this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
             }
 
             private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
 
-            public GetStudyAttributesTableValuedParameters Generate(TInput input)
+            public GetStudyResultTableValuedParameters Generate(TInput input)
             {
-                return new GetStudyAttributesTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
+                return new GetStudyResultTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
             }
         }
 
-        internal struct GetStudyAttributesTableValuedParameters
+        internal struct GetStudyResultTableValuedParameters
         {
-            internal GetStudyAttributesTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
+            internal GetStudyResultTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
             {
                 this.WatermarkTableType = WatermarkTableType;
             }

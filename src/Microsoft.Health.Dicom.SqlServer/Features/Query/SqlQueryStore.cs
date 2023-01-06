@@ -29,9 +29,15 @@ internal class SqlQueryStore : IQueryStore
         return await store.QueryAsync(partitionKey, query, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<StudyAttributeResponse>> GetStudyResultAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<StudyResult>> GetStudyResultAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken)
     {
         ISqlQueryStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetStudyResultAsync(partitionKey, versions, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<SeriesResult>> GetSeriesResultAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken)
+    {
+        ISqlQueryStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetSeriesResultAsync(partitionKey, versions, cancellationToken);
     }
 }

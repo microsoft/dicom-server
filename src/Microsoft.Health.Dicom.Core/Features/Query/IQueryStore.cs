@@ -17,7 +17,12 @@ public interface IQueryStore
         QueryExpression query,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyCollection<StudyAttributeResponse>> GetStudyResultAsync(
+    Task<IReadOnlyCollection<StudyResult>> GetStudyResultAsync(
+        int partitionKey,
+        IReadOnlyCollection<long> version,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<SeriesResult>> GetSeriesResultAsync(
         int partitionKey,
         IReadOnlyCollection<long> version,
         CancellationToken cancellationToken = default);

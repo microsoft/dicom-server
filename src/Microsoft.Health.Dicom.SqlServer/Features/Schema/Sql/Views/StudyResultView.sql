@@ -2,7 +2,7 @@
     Study View to be used for getting computed column response
 **************************************************************/
 
-CREATE VIEW dbo.StudyResponseView
+CREATE VIEW dbo.StudyResultView
 WITH SCHEMABINDING
 AS
 SELECT  st.StudyInstanceUid,

@@ -1760,27 +1760,28 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetSeriesAttributes
+CREATE OR ALTER PROCEDURE dbo.GetSeriesResult
 @partitionKey INT, @watermarkTableType dbo.WatermarkTableType READONLY
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
-    SELECT sv.*
+    SELECT i.StudyInstanceUid,
+           sv.*
     FROM   dbo.Instance AS i
            INNER JOIN
            @watermarkTableType AS input
            ON i.Watermark = input.Watermark
               AND i.PartitionKey = @partitionKey
            INNER JOIN
-           dbo.SeriesResponseView AS sv
+           dbo.SeriesResultView AS sv
            ON i.StudyKey = sv.StudyKey
               AND i.SeriesKey = sv.SeriesKey
               AND i.PartitionKey = sv.PartitionKey;
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetStudyAttributes
+CREATE OR ALTER PROCEDURE dbo.GetStudyResult
 @partitionKey INT, @watermarkTableType dbo.WatermarkTableType READONLY
 AS
 BEGIN
@@ -1793,7 +1794,7 @@ BEGIN
            ON i.Watermark = input.Watermark
               AND i.PartitionKey = @partitionKey
            INNER JOIN
-           dbo.StudyResponseView AS sv
+           dbo.StudyResultView AS sv
            ON i.StudyKey = sv.StudyKey
               AND i.PartitionKey = sv.PartitionKey;
 END
@@ -2510,7 +2511,7 @@ BEGIN
 END
 
 GO
-CREATE VIEW dbo.SeriesResponseView
+CREATE VIEW dbo.SeriesResultView
 WITH SCHEMABINDING
 AS
 SELECT se.SeriesInstanceUid,
@@ -2528,7 +2529,7 @@ SELECT se.SeriesInstanceUid,
 FROM   dbo.Series AS se;
 
 GO
-CREATE VIEW dbo.StudyResponseView
+CREATE VIEW dbo.StudyResultView
 WITH SCHEMABINDING
 AS
 SELECT st.StudyInstanceUid,

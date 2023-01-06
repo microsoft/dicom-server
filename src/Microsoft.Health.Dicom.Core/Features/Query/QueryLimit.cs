@@ -124,7 +124,7 @@ internal static class QueryLimit
         return queryTag.VR == DicomVR.PN;
     }
 
-    public static bool IsComputedTag(ResourceType queryTagLevel, IReadOnlyCollection<DicomTag> tags)
+    public static bool ContainsComputedTag(ResourceType queryTagLevel, IReadOnlyCollection<DicomTag> tags)
     {
         return queryTagLevel switch
         {
@@ -132,5 +132,10 @@ internal static class QueryLimit
             ResourceType.Series => tags.Any(t => SeriesResponseComputedTags.Contains(t)),
             _ => throw new System.InvalidOperationException(),
         };
+    }
+
+    public static bool IsStudyToSeriesTag(DicomTag tag)
+    {
+        return tag == DicomTag.ModalitiesInStudy;
     }
 }
