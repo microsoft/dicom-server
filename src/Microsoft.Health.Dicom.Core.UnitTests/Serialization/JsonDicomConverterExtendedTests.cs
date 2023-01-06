@@ -90,6 +90,29 @@ public class JsonDicomConverterExtendedTests
         Assert.Equal(pixelData, recoveredPixelData);
     }
 
+    [Fact]
+    public static void GivenDropDataWhenInvalid_WhenTrailingComma_ThenCommaExceptionThrown()
+    {
+        const string json = @"
+            {
+                ""00100020"":{
+                    ""vr"": ""LO"",
+                }
+            }";
+
+        const string expectedMessage = @"The JSON object contains a trailing comma at the end which is not supported in this mode. Change the reader options.";
+
+        // When not dropping data, trailing commas throw an exception
+        // JsonException thrownException = Assert.Throws<JsonException>(
+        //     () => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        // Assert.Contains(expectedMessage, thrownException.Message);
+
+        // we need to throw the same exception even when we're trying to drop data as this is now invalid JSON
+        JsonException dropDataThrownException = Assert.Throws<JsonException>(
+            () => JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions));
+        Assert.Contains(expectedMessage, dropDataThrownException.Message);
+    }
+
 
     [Fact]
     public static void GivenDropDataWhenInvalid_WhenAttrHasInvalidValue_ThenDataIsDropped()
