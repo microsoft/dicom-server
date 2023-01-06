@@ -130,7 +130,7 @@ internal static class QueryLimit
         {
             ResourceType.Study => tags.Any(t => StudyResultComputedTags.Contains(t)),
             ResourceType.Series => tags.Any(t => SeriesResultComputedTags.Contains(t)),
-            _ => throw new System.InvalidOperationException(),
+            _ => false
         };
     }
 

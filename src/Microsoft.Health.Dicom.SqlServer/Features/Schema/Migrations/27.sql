@@ -2512,42 +2512,52 @@ BEGIN
 END
 
 GO
-CREATE VIEW dbo.SeriesResultView
-WITH SCHEMABINDING
-AS
-SELECT se.SeriesInstanceUid,
-       se.Modality,
-       se.PerformedProcedureStepStartDate,
-       se.ManufacturerModelName,
-       (SELECT SUM(1)
-        FROM   dbo.Instance AS i
-        WHERE  se.SeriesKey = i.SeriesKey) AS NumberofSeriesRelatedInstances,
-       se.PartitionKey,
-       se.StudyKey,
-       se.SeriesKey
-FROM   dbo.Series AS se;
+IF NOT EXISTS (SELECT *
+               FROM   sys.views
+               WHERE  Name = 'SeriesResultView')
+    BEGIN
+        EXECUTE ('CREATE VIEW dbo.SeriesResultView
+    WITH SCHEMABINDING
+    AS
+    SELECT  se.SeriesInstanceUid,
+            se.Modality,
+            se.PerformedProcedureStepStartDate,
+            se.ManufacturerModelName,
+            (SELECT SUM(1)
+            FROM dbo.Instance i 
+            WHERE se.SeriesKey = i.SeriesKey) AS NumberofSeriesRelatedInstances,
+            se.PartitionKey,
+            se.StudyKey,
+            se.SeriesKey
+    FROM dbo.Series se');
+    END
 
 GO
-CREATE VIEW dbo.StudyResultView
-WITH SCHEMABINDING
-AS
-SELECT st.StudyInstanceUid,
-       st.PatientId,
-       st.PatientName,
-       st.ReferringPhysicianName,
-       st.StudyDate,
-       st.StudyDescription,
-       st.AccessionNumber,
-       st.PatientBirthDate,
-       (SELECT STRING_AGG(Modality, ',')
-        FROM   dbo.Series AS se
-        WHERE  st.StudyKey = se.StudyKey
-               AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
-       (SELECT SUM(1)
-        FROM   dbo.Instance AS i
-        WHERE  st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
-       st.PartitionKey,
-       st.StudyKey
-FROM   dbo.Study AS st;
+IF NOT EXISTS (SELECT *
+               FROM   sys.views
+               WHERE  Name = 'StudyResultView')
+    BEGIN
+        EXECUTE ('CREATE VIEW dbo.StudyResultView
+    WITH SCHEMABINDING
+    AS
+    SELECT  st.StudyInstanceUid,
+            st.PatientId,
+            st.PatientName,
+            st.ReferringPhysicianName,
+            st.StudyDate,
+            st.StudyDescription,
+            st.AccessionNumber,
+            st.PatientBirthDate,
+            (SELECT STRING_AGG(Modality, '','')
+            FROM dbo.Series se 
+            WHERE st.StudyKey = se.StudyKey
+            AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
+            (SELECT SUM(1) 
+            FROM dbo.Instance i 
+            WHERE st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
+            st.PartitionKey,
+            st.StudyKey
+    FROM dbo.Study st');
+    END
 
 GO
