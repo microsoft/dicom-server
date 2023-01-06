@@ -15,10 +15,16 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Serialization;
 public class JsonDicomConverterExtendedTests
 {
     private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions();
+    private static readonly JsonSerializerOptions DropDataSerializerOptions = new JsonSerializerOptions();
 
     static JsonDicomConverterExtendedTests()
     {
         SerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: false));
+
+        DropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
+            dropDataWhenInvalid: true,
+            writeTagsAsKeywords: false,
+            autoValidate: false));
     }
 
     [Fact]
@@ -88,12 +94,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalid_WhenAttrHasInvalidValue_ThenDataIsDropped()
     {
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // 00081196 is WarningReason
         // US VR Type is number only
         const string json = @"
@@ -105,7 +105,7 @@ public class JsonDicomConverterExtendedTests
                     ]
                 }
             }";
-        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
         DicomDataException thrownException = Assert.Throws<DicomDataException>(() => dataset.GetString(DicomTag.WarningReason));
         Assert.Equal("Tag: (0008,1196) not found in dataset", thrownException.Message);
     }
@@ -113,12 +113,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalid_WhenMixValidAndInvalidData_ThenValidDataIsRetained()
     {
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // 00081196 is WarningReason
         // 00080051 is IssuerOfAccessionNumberSequence
         // 00100020 is PatientID
@@ -165,7 +159,7 @@ public class JsonDicomConverterExtendedTests
                 }
             }";
 
-        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
 
         //invalid
         DicomDataException warningReasonException = Assert.Throws<DicomDataException>(() => dataset.GetString(DicomTag.WarningReason));
@@ -187,12 +181,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalid_WhenInvalidValueInSQ_WeCanStillParseValidValuesFromAttrsBeforeAndAfterAsWellAsValidValuesWithinSq()
     {
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // 00081196 is WarningReason
         // 00080051 is IssuerOfAccessionNumberSequence
         // 00100020 is PatientID
@@ -234,7 +222,7 @@ public class JsonDicomConverterExtendedTests
             }";
 
 
-        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
 
         //valid
         Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
@@ -251,12 +239,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalid_WhenAllValuesInSQInvalid_WeCanStillParseValidValuesFromAttrsBeforeAndAfter()
     {
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // 00081196 is WarningReason
         // 00080051 is IssuerOfAccessionNumberSequence
         // 00100020 is PatientID
@@ -300,7 +282,7 @@ public class JsonDicomConverterExtendedTests
             }";
 
 
-        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
 
         //valid
         Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
@@ -317,13 +299,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalid_WhenInvalidValuesInSQAreNested_WeCanStillParseValidValuesFromAttrsBeforeAndAfter()
     {
-        // test sequence of sequences
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // 00081196 is WarningReason
         // 00080051 is IssuerOfAccessionNumberSequence
         // 00100020 is PatientID
@@ -379,7 +354,7 @@ public class JsonDicomConverterExtendedTests
             }";
 
 
-        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, dropDataSerializerOptions);
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
 
         //valid
         Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
@@ -396,12 +371,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalidAndAValueWithInvalidJson_WhenDeserialized_ThenJsonReaderExceptionIsThrown()
     {
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // This is not valid JSON
         // \T is unexpected. The Utf8JsonReader used throws the exception deep
         // in its Read code, with even Skip checking for valid JSON
@@ -422,12 +391,6 @@ public class JsonDicomConverterExtendedTests
     [Fact]
     public static void GivenDropDataWhenInvalidAndJsonIsInvalid_WhenDeserialized_ThenJsonReaderExceptionIsThrown()
     {
-        JsonSerializerOptions dropDataSerializerOptions = new JsonSerializerOptions();
-        dropDataSerializerOptions.Converters.Add(new DicomJsonConverter(
-            dropDataWhenInvalid: true,
-            writeTagsAsKeywords: false,
-            autoValidate: false));
-
         // This is not valid DICOM JSON format and the format that the serializer expects
         const string json = @"
             {
