@@ -179,11 +179,57 @@ public class JsonDicomConverterExtendedTests
     }
 
     [Fact]
+    public static void GivenDropDataWhenInvalid_WhenNoValueOnAnNonsequenceAttribute_ThenReturnAttrWithNoValue()
+    {
+        // 00081196 is WarningReason
+        // 00100020 is PatientID
+        // 00080301 is PrivateGroupReference
+        // US VR Type is number only
+        // const string json = @"
+        //     {
+        //         ""00100020"":{
+        //             ""vr"": ""LO"",
+        //         },
+        //         ""00081196"": {
+        //             ""vr"": ""US""
+        //         },
+        //         ""00080301"": {
+        //             ""vr"": ""US"",
+        //             ""Value"": [
+        //                 222
+        //             ]
+        //         }
+        //     }";
+
+
+        const string json = @"
+            {
+                ""00100020"":{
+                    ""vr"": ""US"",
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        222
+                    ]
+                }
+            }";
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
+
+        // LO can be empty, but US can't??
+        //valid
+        Assert.Empty(dataset.GetString(DicomTag.PatientID));
+
+        // valid and we know how to keep parsing to get next attr when previous had no value
+        Assert.Equal("222", dataset.GetString(DicomTag.PrivateGroupReference));
+    }
+
+    [Fact]
     public static void GivenDropDataWhenInvalid_WhenNoValueOnEmptySQ_WeCanStillParseValidValuesFromAttrsBeforeAndAfterAndReturnSqWithNoValue()
     {
         // 00081196 is WarningReason
         // 00080051 is IssuerOfAccessionNumberSequence
-        // 00100020 is PatientID
         // 00080301 is PrivateGroupReference
         // US VR Type is number only
         const string json = @"
