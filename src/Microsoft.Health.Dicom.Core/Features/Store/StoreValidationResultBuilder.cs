@@ -14,6 +14,7 @@ internal sealed class StoreValidationResultBuilder
 {
     private readonly List<string> _errorMessages;
     private readonly List<string> _warningMessages;
+    private readonly List<QueryTag> _invalidQueryTags;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
@@ -25,6 +26,7 @@ internal sealed class StoreValidationResultBuilder
     {
         _errorMessages = new List<string>();
         _warningMessages = new List<string>();
+        _invalidQueryTags = new List<QueryTag>();
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
@@ -37,7 +39,8 @@ internal sealed class StoreValidationResultBuilder
             _errorMessages,
             _warningMessages,
             _warningCodes,
-            _firstException);
+            _firstException,
+            _invalidQueryTags);
     }
 
     public void Add(Exception ex, QueryTag queryTag = null)
@@ -46,6 +49,7 @@ internal sealed class StoreValidationResultBuilder
         _firstException ??= ex;
 
         _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
+        _invalidQueryTags.Add(queryTag);
     }
 
     public void Add(ValidationWarnings warningCode, QueryTag queryTag = null)
