@@ -19,8 +19,7 @@ SELECT  st.StudyInstanceUid,
 		AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
 		(SELECT SUM(1) 
 		FROM dbo.Instance i 
-		WHERE st.StudyKey = i.StudyKey
-		AND st.PartitionKey = i.PartitionKey) AS NumberofStudyRelatedInstances,
+		WHERE st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
         st.PartitionKey,
         st.StudyKey
 FROM dbo.Study st

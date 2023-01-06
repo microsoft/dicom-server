@@ -325,7 +325,8 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status_Watermark
     INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark
-    ON dbo.Instance(PartitionKey, Watermark) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.Instance(PartitionKey, Watermark)
+    INCLUDE(StudyKey, SeriesKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
@@ -2520,9 +2521,7 @@ SELECT se.SeriesInstanceUid,
        se.ManufacturerModelName,
        (SELECT SUM(1)
         FROM   dbo.Instance AS i
-        WHERE  se.StudyKey = i.StudyKey
-               AND se.SeriesKey = i.SeriesKey
-               AND se.PartitionKey = i.PartitionKey) AS NumberofSeriesRelatedInstances,
+        WHERE  se.SeriesKey = i.SeriesKey) AS NumberofSeriesRelatedInstances,
        se.PartitionKey,
        se.StudyKey,
        se.SeriesKey
@@ -2546,8 +2545,7 @@ SELECT st.StudyInstanceUid,
                AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
        (SELECT SUM(1)
         FROM   dbo.Instance AS i
-        WHERE  st.StudyKey = i.StudyKey
-               AND st.PartitionKey = i.PartitionKey) AS NumberofStudyRelatedInstances,
+        WHERE  st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
        st.PartitionKey,
        st.StudyKey
 FROM   dbo.Study AS st;

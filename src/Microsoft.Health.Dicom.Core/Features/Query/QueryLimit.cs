@@ -51,13 +51,13 @@ internal static class QueryLimit
         DicomTag.CodeValue
     };
 
-    private static readonly HashSet<DicomTag> StudyResponseComputedTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> StudyResultComputedTags = new HashSet<DicomTag>()
     {
         DicomTag.ModalitiesInStudy,
         DicomTag.NumberOfStudyRelatedInstances
     };
 
-    private static readonly HashSet<DicomTag> SeriesResponseComputedTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> SeriesResultComputedTags = new HashSet<DicomTag>()
     {
         DicomTag.NumberOfSeriesRelatedInstances
     };
@@ -128,8 +128,8 @@ internal static class QueryLimit
     {
         return queryTagLevel switch
         {
-            ResourceType.Study => tags.Any(t => StudyResponseComputedTags.Contains(t)),
-            ResourceType.Series => tags.Any(t => SeriesResponseComputedTags.Contains(t)),
+            ResourceType.Study => tags.Any(t => StudyResultComputedTags.Contains(t)),
+            ResourceType.Series => tags.Any(t => SeriesResultComputedTags.Contains(t)),
             _ => throw new System.InvalidOperationException(),
         };
     }

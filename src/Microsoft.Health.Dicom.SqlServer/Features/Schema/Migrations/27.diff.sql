@@ -14,21 +14,20 @@ BEGIN
     WITH SCHEMABINDING
     AS
     SELECT  st.StudyInstanceUid,
-		    st.PatientId,
-		    st.PatientName,
-		    st.ReferringPhysicianName,
-		    st.StudyDate,
-		    st.StudyDescription,
-		    st.AccessionNumber,
-		    st.PatientBirthDate,
-		    (SELECT STRING_AGG(Modality, '','')
-		    FROM dbo.Series se 
-		    WHERE st.StudyKey = se.StudyKey
-		    AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
-		    (SELECT SUM(1) 
-		    FROM dbo.Instance i 
-		    WHERE st.StudyKey = i.StudyKey
-		    AND st.PartitionKey = i.PartitionKey) AS NumberofStudyRelatedInstances,
+            st.PatientId,
+            st.PatientName,
+            st.ReferringPhysicianName,
+            st.StudyDate,
+            st.StudyDescription,
+            st.AccessionNumber,
+            st.PatientBirthDate,
+            (SELECT STRING_AGG(Modality, '','')
+            FROM dbo.Series se 
+            WHERE st.StudyKey = se.StudyKey
+            AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
+            (SELECT SUM(1) 
+            FROM dbo.Instance i 
+            WHERE st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
             st.PartitionKey,
             st.StudyKey
     FROM dbo.Study st')
@@ -48,14 +47,12 @@ BEGIN
     WITH SCHEMABINDING
     AS
     SELECT  se.SeriesInstanceUid,
-		    se.Modality,
-		    se.PerformedProcedureStepStartDate,
-		    se.ManufacturerModelName,
-		    (SELECT SUM(1)
-		    FROM dbo.Instance i 
-		    WHERE se.StudyKey = i.StudyKey
-		    AND se.SeriesKey = i.SeriesKey
-		    AND se.PartitionKey = i.PartitionKey) AS NumberofSeriesRelatedInstances,
+            se.Modality,
+            se.PerformedProcedureStepStartDate,
+            se.ManufacturerModelName,
+            (SELECT SUM(1)
+            FROM dbo.Instance i 
+            WHERE se.SeriesKey = i.SeriesKey) AS NumberofSeriesRelatedInstances,
             se.PartitionKey,
             se.StudyKey,
             se.SeriesKey
@@ -79,8 +76,8 @@ GO
 --
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetStudyResult (
-	@partitionKey       INT,
-	@watermarkTableType dbo.WatermarkTableType READONLY
+    @partitionKey       INT,
+    @watermarkTableType dbo.WatermarkTableType READONLY
 ) AS
 BEGIN
     SET NOCOUNT     ON
@@ -99,8 +96,8 @@ GO
 --
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.GetSeriesResult (
-	@partitionKey       INT,
-	@watermarkTableType dbo.WatermarkTableType READONLY
+    @partitionKey       INT,
+    @watermarkTableType dbo.WatermarkTableType READONLY
 ) AS
 BEGIN
     SET NOCOUNT     ON
@@ -127,6 +124,12 @@ BEGIN
     (
         PartitionKey,
         Watermark
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey,
+        StudyInstanceUid
     )
     WITH (DATA_COMPRESSION = PAGE)
 END
