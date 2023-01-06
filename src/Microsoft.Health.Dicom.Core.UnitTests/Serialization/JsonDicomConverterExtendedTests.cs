@@ -179,6 +179,47 @@ public class JsonDicomConverterExtendedTests
     }
 
     [Fact]
+    public static void GivenDropDataWhenInvalid_WhenNoValueOnEmptySQ_WeCanStillParseValidValuesFromAttrsBeforeAndAfterAndReturnSqWithNoValue()
+    {
+        // 00081196 is WarningReason
+        // 00080051 is IssuerOfAccessionNumberSequence
+        // 00100020 is PatientID
+        // 00080301 is PrivateGroupReference
+        // US VR Type is number only
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        111
+                    ]
+                },
+                ""00080051"": {
+                    ""vr"": ""SQ""
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        222
+                    ]
+                }
+            }";
+
+
+        DicomDataset dataset = JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions);
+
+        //valid
+        Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
+
+        //partially invalid, we can handle skipping children in a sequence
+        DicomSequence sq = dataset.GetSequence(DicomTag.IssuerOfAccessionNumberSequence);
+        Assert.Equal(0, sq.Items.Count); // The SQ is empty as no Value was provided
+
+        // valid
+        Assert.Equal("222", dataset.GetString(DicomTag.PrivateGroupReference));
+    }
+
+    [Fact]
     public static void GivenDropDataWhenInvalid_WhenInvalidValueInSQ_WeCanStillParseValidValuesFromAttrsBeforeAndAfterAsWellAsValidValuesWithinSq()
     {
         // 00081196 is WarningReason

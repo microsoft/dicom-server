@@ -1146,7 +1146,14 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                     else if (reader.TokenType == JsonTokenType.StartObject)
                     {
                         DicomDataset ds = ReadJsonDataset(ref reader);
-                        if (ds.Any()) // allows us to skip children that are invalid
+                        if (_dropDataWhenInvalid)
+                        {
+                            if (ds.Any()) // allows us to skip children that are invalid
+                            {
+                                childItems.Add(ds);
+                            }
+                        }
+                        else
                         {
                             childItems.Add(ds);
                         }
@@ -1159,7 +1166,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 }
                 reader.AssumeAndSkip(JsonTokenType.EndArray);
                 var data = childItems.ToArray();
-                if (!data.Any())
+                if (_dropDataWhenInvalid && !data.Any())
                 {
                     throw new JsonException("Malformed DICOM json, no valid JSON objects parsed from within whole sequence");
                 }
