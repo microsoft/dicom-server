@@ -42,7 +42,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
     private readonly IFileStore _fileStore;
     private readonly ITranscoder _retrieveTranscoder;
     private readonly IFrameHandler _frameHandler;
-    private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+    private readonly IAcceptHeaderHandler _acceptHeaderHandler;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
@@ -63,7 +63,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
-        _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
+        _acceptHeaderHandler = new AcceptHeaderHandler(NullLogger<AcceptHeaderHandler>.Instance);
         _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
@@ -77,7 +77,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             _fileStore,
             _retrieveTranscoder,
             _frameHandler,
-            _retrieveTransferSyntaxHandler,
+            _acceptHeaderHandler,
             _dicomRequestContextAccessor,
             _metadataStore,
             instanceMetadataCache,

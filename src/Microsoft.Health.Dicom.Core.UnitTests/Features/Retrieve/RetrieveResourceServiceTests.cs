@@ -43,7 +43,7 @@ public class RetrieveResourceServiceTests
     private readonly IFileStore _fileStore;
     private readonly ITranscoder _retrieveTranscoder;
     private readonly IFrameHandler _dicomFrameHandler;
-    private readonly IRetrieveTransferSyntaxHandler _retrieveTransferSyntaxHandler;
+    private readonly IAcceptHeaderHandler _acceptHeaderHandler;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly ILogger<RetrieveResourceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -62,7 +62,7 @@ public class RetrieveResourceServiceTests
         _fileStore = Substitute.For<IFileStore>();
         _retrieveTranscoder = Substitute.For<ITranscoder>();
         _dicomFrameHandler = Substitute.For<IFrameHandler>();
-        _retrieveTransferSyntaxHandler = new RetrieveTransferSyntaxHandler(NullLogger<RetrieveTransferSyntaxHandler>.Instance);
+        _acceptHeaderHandler = new AcceptHeaderHandler(NullLogger<AcceptHeaderHandler>.Instance);
         _logger = NullLogger<RetrieveResourceService>.Instance;
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
@@ -79,7 +79,7 @@ public class RetrieveResourceServiceTests
             _fileStore,
             _retrieveTranscoder,
             _dicomFrameHandler,
-            _retrieveTransferSyntaxHandler,
+            _acceptHeaderHandler,
             _dicomRequestContextAccessor,
             _metadataStore,
             _instanceMetadataCache,
