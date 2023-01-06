@@ -326,7 +326,7 @@ CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status_Watermark
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark
     ON dbo.Instance(PartitionKey, Watermark)
-    INCLUDE(StudyKey, SeriesKey) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(StudyKey, SeriesKey, StudyInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
