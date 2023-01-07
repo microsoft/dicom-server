@@ -24,8 +24,11 @@ public interface IStoreResponseBuilder
     /// Adds a Success entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
+    /// <param name="storeValidationResult"></param>
     /// <param name="warningReasonCode">The warning reason code.</param>
-    void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null);
+    void AddSuccess(DicomDataset dicomDataset,
+        StoreValidationResult storeValidationResult,
+        ushort? warningReasonCode = null);
 
     void SetWarningMessage(string message);
 

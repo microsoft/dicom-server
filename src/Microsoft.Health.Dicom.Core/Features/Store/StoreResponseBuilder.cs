@@ -62,7 +62,9 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null)
+    public void AddSuccess(DicomDataset dicomDataset,
+        StoreValidationResult storeValidationResult,
+        ushort? warningReasonCode = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 

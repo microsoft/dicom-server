@@ -143,13 +143,14 @@ public class StoreService : IStoreService
 
         ushort? warningReasonCode = null;
         DicomDataset dicomDataset = null;
+        StoreValidationResult storeValidatorResult;
 
         try
         {
             // Open and validate the DICOM instance.
             dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            var storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+            storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
             // Existing validator behavior is to throw first exception
             // when _enableDropInvalidDicomJsonMetadata is not enabled, we want to keep going and collect all errors as
@@ -172,15 +173,6 @@ public class StoreService : IStoreService
             if ((storeValidatorResult.WarningCodes & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
             {
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
-            }
-
-            if (_enableDropInvalidDicomJsonMetadata)
-            {
-                // drop invalid metadata
-                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
-                {
-                    dicomDataset.Remove(tag);
-                }
             }
         }
         catch (Exception ex)
@@ -210,6 +202,16 @@ public class StoreService : IStoreService
 
         try
         {
+
+            if (_enableDropInvalidDicomJsonMetadata)
+            {
+                // drop invalid metadata
+                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
+                {
+                    dicomDataset.Remove(tag);
+                }
+            }
+
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
@@ -218,7 +220,7 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, warningReasonCode);
+            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode);
             return length;
         }
         catch (Exception ex)
