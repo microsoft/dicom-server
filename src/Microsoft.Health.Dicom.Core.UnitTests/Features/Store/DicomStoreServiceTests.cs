@@ -9,6 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -27,6 +29,7 @@ public class DicomStoreServiceTests
 {
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
     private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
+    private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
         studyInstanceUid: "1",
@@ -49,6 +52,7 @@ public class DicomStoreServiceTests
     private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
 
     private readonly StoreService _storeService;
+    private readonly IOptions<FeatureConfiguration> _options;
 
     public DicomStoreServiceTests()
     {
@@ -57,15 +61,17 @@ public class DicomStoreServiceTests
 
         _dicomDatasetValidator
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new StoreValidationResult(Array.Empty<string>(), Array.Empty<string>(), ValidationWarnings.None, null)));
+            .Returns(Task.FromResult(DefaultStoreValidationResult));
 
+        _options = Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false });
         _storeService = new StoreService(
             _storeResponseBuilder,
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
             _telemetryClient,
-            NullLogger<StoreService>.Instance);
+            NullLogger<StoreService>.Instance,
+            _options);
     }
 
     [Fact]
@@ -73,7 +79,7 @@ public class DicomStoreServiceTests
     {
         await ExecuteAndValidateAsync(dicomInstanceEntries: null);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
     }
 
@@ -82,7 +88,7 @@ public class DicomStoreServiceTests
     {
         await ExecuteAndValidateAsync(new IDicomInstanceEntry[0]);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
     }
 
@@ -95,7 +101,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, null);
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, DefaultStoreValidationResult, null);
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(default);
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
@@ -109,7 +115,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ProcessingFailureReasonCode);
     }
 
@@ -122,7 +128,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(null, TestConstants.ValidationFailureReasonCode);
     }
 
@@ -141,7 +147,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, failureCode);
     }
 
@@ -153,12 +159,12 @@ public class DicomStoreServiceTests
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         _storeOrchestrator
-            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, _dicomDataset2, DefaultCancellationToken))
             .Do(_ => throw new InstanceAlreadyExistsException());
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.SopInstanceAlreadyExistsReasonCode);
     }
 
@@ -170,12 +176,12 @@ public class DicomStoreServiceTests
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         _storeOrchestrator
-            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, _dicomDataset2, DefaultCancellationToken))
             .Do(_ => throw new DataStoreException("Simulated failure."));
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default);
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
     }
 
@@ -197,7 +203,7 @@ public class DicomStoreServiceTests
 
         await ExecuteAndValidateAsync(dicomInstanceEntryToSucceed, dicomInstanceEntryToFail);
 
-        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, null);
+        _storeResponseBuilder.Received(1).AddSuccess(_dicomDataset1, DefaultStoreValidationResult, null);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
         Assert.Equal(2, _dicomRequestContextAccessor.RequestContext.PartCount);
     }

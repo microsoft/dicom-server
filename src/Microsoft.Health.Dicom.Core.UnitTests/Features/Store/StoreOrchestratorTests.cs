@@ -93,7 +93,7 @@ public class StoreOrchestratorTests
     [Fact]
     public async Task GivenFilesAreSuccessfullyStored_WhenStoringFile_ThenStatusShouldBeUpdatedToCreated()
     {
-        await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
+        await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, _dicomDataset, DefaultCancellationToken);
 
         await ValidateStatusUpdateAsync();
     }
@@ -109,7 +109,7 @@ public class StoreOrchestratorTests
 
         _indexDataStore.ClearReceivedCalls();
 
-        await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+        await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, _dicomDataset, DefaultCancellationToken));
 
         await ValidateCleanupAsync();
 
@@ -127,7 +127,7 @@ public class StoreOrchestratorTests
 
         _indexDataStore.ClearReceivedCalls();
 
-        await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+        await Assert.ThrowsAsync<Exception>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, _dicomDataset, DefaultCancellationToken));
 
         await ValidateCleanupAsync();
 
@@ -145,7 +145,7 @@ public class StoreOrchestratorTests
 
         _indexDataStore.DeleteInstanceIndexAsync(default, default, default, default, default).ThrowsForAnyArgs(new InvalidOperationException());
 
-        await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, _dicomDataset, DefaultCancellationToken));
     }
 
     private Task ValidateStatusUpdateAsync()

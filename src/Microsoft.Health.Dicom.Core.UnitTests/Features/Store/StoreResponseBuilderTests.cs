@@ -18,6 +18,7 @@ public class StoreResponseBuilderTests
 {
     private readonly IUrlResolver _urlResolver = new MockUrlResolver();
     private readonly StoreResponseBuilder _storeResponseBuilder;
+    private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
         studyInstanceUid: "1",
@@ -51,7 +52,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenOnlySuccessEntry_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -88,7 +89,7 @@ public class StoreResponseBuilderTests
     public void GivenBothSuccessAndFailedEntires_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
         _storeResponseBuilder.AddFailure(_dicomDataset1, TestConstants.ProcessingFailureReasonCode);
-        _storeResponseBuilder.AddSuccess(_dicomDataset2);
+        _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -115,8 +116,8 @@ public class StoreResponseBuilderTests
         _storeResponseBuilder.AddFailure(_dicomDataset1, failureReasonCode1);
         _storeResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode2);
 
-        _storeResponseBuilder.AddSuccess(_dicomDataset2);
-        _storeResponseBuilder.AddSuccess(_dicomDataset1);
+        _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -158,7 +159,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenStudyInstanceUidAndThereIsOnlySuccessEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse("1");
 
@@ -187,7 +188,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenStudyInstanceUidAndThereAreSuccessAndFailureEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
         _storeResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode: 200);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse("1");
