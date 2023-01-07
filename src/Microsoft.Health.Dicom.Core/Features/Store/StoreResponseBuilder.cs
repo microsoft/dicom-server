@@ -3,8 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -17,16 +20,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreResponseBuilder : IStoreResponseBuilder
 {
     private readonly IUrlResolver _urlResolver;
+    private readonly bool _enableDropInvalidDicomJsonMetadata;
 
     private DicomDataset _dataset;
 
     private string _message;
 
-    public StoreResponseBuilder(IUrlResolver urlResolver)
+    public StoreResponseBuilder(
+        IUrlResolver urlResolver,
+        IOptions<FeatureConfiguration> featureConfiguration
+        )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
         _urlResolver = urlResolver;
+        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
 
     /// <inheritdoc />
@@ -86,9 +94,28 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
-        if (warningReasonCode.HasValue)
+        if (!_enableDropInvalidDicomJsonMetadata)
         {
-            referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
+            if (warningReasonCode.HasValue)
+            {
+                referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
+            }
+        }
+        else
+        {
+            // add comment Sq / list of warnings here
+
+            var warningList = storeValidationResult.Errors.Select(
+                    error => new DicomDataset( //todo I think we just want one datataset for all errors
+                        new DicomLongString(
+                            DicomTag.ErrorComment,
+                            error)))
+                .ToArray();
+
+            var commentSequence = new DicomSequence(
+                DicomTag.CalculationCommentSequence,
+                warningList);
+            referencedSop.Add(commentSequence);
         }
 
         referencedSopSequence.Items.Add(referencedSop);
