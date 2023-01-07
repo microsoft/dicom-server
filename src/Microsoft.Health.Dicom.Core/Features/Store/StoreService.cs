@@ -151,8 +151,10 @@ public class StoreService : IStoreService
 
             var storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
-            // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-            if (null != storeValidatorResult.FirstException)
+            // Existing validator behavior is to throw first exception
+            // when _enableDropInvalidDicomJsonMetadata is not enabled, we want to keep going and collect all errors as
+            // validation warnings for user in a success response
+            if (!_enableDropInvalidDicomJsonMetadata && null != storeValidatorResult.FirstException)
             {
                 throw storeValidatorResult.FirstException;
             }
