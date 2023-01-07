@@ -11,10 +11,11 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -66,6 +67,7 @@ public class StoreService : IStoreService
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
+    private readonly bool _enableDropInvalidDicomJsonMetadata;
 
     public StoreService(
         IStoreResponseBuilder storeResponseBuilder,
@@ -73,14 +75,18 @@ public class StoreService : IStoreService
         IStoreOrchestrator storeOrchestrator,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         IDicomTelemetryClient telemetryClient,
-        ILogger<StoreService> logger)
+        ILogger<StoreService> logger,
+        IOptions<FeatureConfiguration> featureConfiguration
+        )
     {
+        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
 
     /// <inheritdoc />
@@ -166,10 +172,13 @@ public class StoreService : IStoreService
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
 
-            // drop invalid metadata
-            foreach (QueryTag queryTag in storeValidatorResult.InvalidQueryTags)
+            if (_enableDropInvalidDicomJsonMetadata)
             {
-                dicomDataset.Remove(queryTag.Tag);
+                // drop invalid metadata
+                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
+                {
+                    dicomDataset.Remove(tag);
+                }
             }
         }
         catch (Exception ex)
@@ -202,6 +211,7 @@ public class StoreService : IStoreService
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
+                dicomDataset, // this dataset has potentially been modified for metadata storing
                 cancellationToken);
 
             LogSuccessfullyStoredDelegate(_logger, index, null);

@@ -26,6 +26,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreDatasetValidator : IStoreDatasetValidator
 {
     private readonly bool _enableFullDicomItemValidation;
+    private readonly bool _enableDropInvalidDicomJsonMetadata;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
     private readonly TelemetryClient _telemetryClient;
@@ -42,6 +43,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
 
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
+        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
@@ -142,6 +144,10 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag);
+                if (_enableDropInvalidDicomJsonMetadata)
+                {
+                    validationResultBuilder.Add(queryTag.Tag);
+                }
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -14,7 +15,7 @@ internal sealed class StoreValidationResultBuilder
 {
     private readonly List<string> _errorMessages;
     private readonly List<string> _warningMessages;
-    private readonly List<QueryTag> _invalidQueryTags;
+    private readonly List<DicomTag> _invalidDicomTags;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
@@ -26,7 +27,7 @@ internal sealed class StoreValidationResultBuilder
     {
         _errorMessages = new List<string>();
         _warningMessages = new List<string>();
-        _invalidQueryTags = new List<QueryTag>();
+        _invalidDicomTags = new List<DicomTag>();
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
@@ -40,7 +41,7 @@ internal sealed class StoreValidationResultBuilder
             _warningMessages,
             _warningCodes,
             _firstException,
-            _invalidQueryTags);
+            _invalidDicomTags);
     }
 
     public void Add(Exception ex, QueryTag queryTag = null)
@@ -49,7 +50,6 @@ internal sealed class StoreValidationResultBuilder
         _firstException ??= ex;
 
         _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
-        _invalidQueryTags.Add(queryTag);
     }
 
     public void Add(ValidationWarnings warningCode, QueryTag queryTag = null)
@@ -61,6 +61,15 @@ internal sealed class StoreValidationResultBuilder
         {
             _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
         }
+    }
+
+    /// <summary>
+    /// Adds a tag to a list representing invalid Dicom items.
+    /// </summary>
+    /// <param name="tag">Invalid item's tag to add.</param>
+    public void Add(DicomTag tag)
+    {
+        _invalidDicomTags.Add(tag);
     }
 
     private static string GetFormattedText(string message, QueryTag queryTag = null)

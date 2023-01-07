@@ -64,7 +64,9 @@ public class StoreOrchestrator : IStoreOrchestrator
     /// <inheritdoc />
     public async Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
-        CancellationToken cancellationToken)
+        DicomDataset dicomDataset,
+        CancellationToken cancellationToken
+        )
     {
         EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
@@ -76,7 +78,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-        DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
+        // DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken) // TODO - is there a reason we were getting this here again?
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
