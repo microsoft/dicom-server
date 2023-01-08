@@ -12,7 +12,11 @@ BEGIN
     SET XACT_ABORT  ON
 
     SELECT  i.StudyInstanceUid,
-            sv.*
+            sv.SeriesInstanceUid,
+            sv.Modality,
+            sv.PerformedProcedureStepStartDate,
+            sv.ManufacturerModelName,
+            sv.NumberofSeriesRelatedInstances
     FROM    dbo.Instance i
     JOIN    @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
     JOIN    dbo.SeriesResultView sv  ON  i.StudyKey = sv.StudyKey AND i.SeriesKey = sv.SeriesKey AND i.PartitionKey = sv.PartitionKey

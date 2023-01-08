@@ -136,7 +136,7 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in computed columns response
+-- Used in computed columns response views
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
 (
     PartitionKey,
