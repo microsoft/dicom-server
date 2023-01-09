@@ -106,7 +106,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             // add comment Sq / list of warnings here
 
             var warningList = storeValidationResult.Errors.Select(
-                    error => new DicomDataset( //todo I think we just want one datataset for all errors
+                    error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
                             error)))
