@@ -5,6 +5,8 @@
 
 using System.Linq;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -32,9 +34,12 @@ public class StoreResponseBuilderTests
         sopInstanceUid: "12",
         sopClassUid: "13");
 
+    private readonly IOptions<FeatureConfiguration> _options;
+
     public StoreResponseBuilderTests()
     {
-        _storeResponseBuilder = new StoreResponseBuilder(_urlResolver);
+        _options = Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false });
+        _storeResponseBuilder = new StoreResponseBuilder(_urlResolver, _options);
     }
 
     [Theory]
