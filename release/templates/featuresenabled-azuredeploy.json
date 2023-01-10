@@ -93,6 +93,7 @@
             "apiVersion": "2015-08-01",
             "type": "Microsoft.Web/sites",
             "name": "[variables('featuresEnabledServiceName')]",
+            "kind": "linux",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -102,6 +103,7 @@
             },
             "properties": {
                 "clientAffinityEnabled": false,
+                "linuxFxVersion": "DOTNETCORE:7.0",
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                  "siteConfig":{
                     "use32BitWorkerProcess": false
@@ -116,18 +118,6 @@
                     "dependsOn": [
                         "[variables('featuresEnabledAppServiceResourceId')]"
                     ]
-                },
-                {
-                    "apiVersion": "2015-08-01",
-                    "type": "siteextensions",
-                    "name": "AspNetCoreRuntime.7.0.x64",
-                    "dependsOn": [
-                        "[variables('featuresEnabledAppServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites/config', variables('featuresEnabledServiceName'), 'appsettings')]" // Avoid restarts mid-installation
-                    ],
-                    "properties": {
-                        "version": "7.0.1"
-                    }
                 }
             ]
         },
