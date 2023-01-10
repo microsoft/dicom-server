@@ -1,14 +1,13 @@
 steps:
 
   # Package web
-  # The web app is published as self contained to avoid dependencies on the host runtimes in App Services
 
   - task: DotNetCoreCLI@2
     displayName: 'dotnet publish web'
     inputs:
       command: publish
       projects: '**/Microsoft.Health.Dicom.Web.csproj'
-      arguments: '--configuration $(buildConfiguration) -r linux-x64 --self-contained true --output $(build.artifactStagingDirectory)/web --no-build'
+      arguments: '--configuration $(buildConfiguration) --output $(build.artifactStagingDirectory)/web --no-build'
       publishWebProjects: false
 
   - task: DotNetCoreCLI@2
