@@ -257,7 +257,6 @@
             "apiVersion": "2020-12-01",
             "type": "Microsoft.Web/sites",
             "name": "[variables('serviceName')]",
-            "kind": "linux",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -267,7 +266,6 @@
             },
             "properties": {
                 "clientAffinityEnabled": false,
-                "linuxFxVersion": "DOTNETCORE:7.0",
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                 "siteConfig": {
                     "location": "[parameters('location')]",
@@ -298,7 +296,8 @@
                     "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]"
+                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
+                        "[resourceId('Microsoft.Web/sites/siteextensions', variables('serviceName'), 'AspNetCoreRuntime.7.0.x64')]"
                     ],
                     "properties": {
                         "packageUri": "[parameters('deployWebPackageUrl')]"
@@ -363,6 +362,18 @@
                         "[variables('appInsightsConnectionStringResourceId')]"
                     ],
                     "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\" ,\"ApplicationInsightsAgent_EXTENSION_VERSION\": \"~2\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
+                },
+                {
+                    "apiVersion": "2020-12-01",
+                    "type": "siteextensions",
+                    "name": "AspNetCoreRuntime.7.0.x64",
+                    "dependsOn": [
+                        "[variables('appServiceResourceId')]",
+                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]" // Avoid restarts mid-installation
+                    ],
+                    "properties": {
+                        "version": "7.0.2"
+                    }
                 },
                 {
                     "apiVersion": "2020-12-01",
