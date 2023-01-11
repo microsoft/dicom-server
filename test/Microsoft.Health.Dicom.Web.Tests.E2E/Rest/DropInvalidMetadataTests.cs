@@ -3,13 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -18,10 +15,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
-    private const ushort ValidationFailedFailureCode = 43264;
-    private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
-    private const ushort MismatchStudyInstanceUidFailureCode = 43265;
-
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
 
@@ -64,7 +57,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             retrievedDicomFile.Dataset.GetString(DicomTag.PatientBirthDate)
         );
 
-        DicomDataset retrievedMetadata = await GetMetadata(dicomFile);
+        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
 
         // expect valid data stored in metadata/JSON
         retrievedMetadata.GetString(DicomTag.PatientBirthDate);
@@ -102,7 +95,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             retrievedDicomFile.Dataset.GetString(DicomTag.StudyDate)
             );
 
-        DicomDataset retrievedMetadata = await GetMetadata(dicomFile);
+        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
 
         // expect that metadata invalid date not present
         DicomDataException thrownException = Assert.Throws<DicomDataException>(() => retrievedMetadata.GetString(DicomTag.StudyDate));
@@ -243,9 +236,14 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset responseDataset = await response.GetValueAsync();
 
         // assert
-        await ValidateReferencedSopSequenceAsync(
+        await ResponseHelper.
+            ValidateReferencedSopSequenceAsync(
             response,
-            ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
+            ResponseHelper.ConvertToReferencedSopSequenceEntry(
+                _client,
+                dicomFile.Dataset
+                )
+            );
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
@@ -263,43 +261,6 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             sopInstanceUid: TestUidGenerator.Generate()
         );
         return dicomFile;
-    }
-
-    private static async Task ValidateReferencedSopSequenceAsync(DicomWebResponse<DicomDataset> response, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
-    {
-        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
-        ValidationHelpers.ValidateReferencedSopSequence(await response.GetValueAsync(), expectedValues);
-    }
-
-    private async Task<DicomDataset> GetMetadata(DicomFile dicomFile)
-    {
-        using DicomWebAsyncEnumerableResponse<DicomDataset> response =
-            await _client
-                .RetrieveStudyMetadataAsync(
-                    dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID)
-                );
-
-        DicomDataset[] datasets = await response.ToArrayAsync();
-
-        Assert.Single(datasets);
-
-        DicomDataset retrievedMetadata = datasets[0];
-        return retrievedMetadata;
-    }
-
-
-
-    private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
-    {
-        string studyInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-        string seriesInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-        string sopInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-
-        string relativeUri = $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
-
-        return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
-            new Uri(_client.HttpClient.BaseAddress, relativeUri).ToString(),
-            dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
     }
 
 }
