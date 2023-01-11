@@ -1,5 +1,5 @@
 ﻿/*************************************************************
-    Study View to be used for getting computed column response
+    Study result view to be used for getting computed column response
 **************************************************************/
 IF NOT EXISTS 
 (
