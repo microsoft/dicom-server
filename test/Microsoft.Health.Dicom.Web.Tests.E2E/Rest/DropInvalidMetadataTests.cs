@@ -32,28 +32,11 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         _instancesManager = new DicomInstancesManager(_client);
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public async Task DisposeAsync()
-    {
-        await _instancesManager.DisposeAsync();
-    }
-
-    private static async Task ValidateReferencedSopSequenceAsync(DicomWebResponse<DicomDataset> response, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
-    {
-        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
-        ValidationHelpers.ValidateReferencedSopSequence(await response.GetValueAsync(), expectedValues);
-    }
-
     [Fact]
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenValidDataStillWritten()
     {
         // setup
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-            );
+        DicomFile dicomFile = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
@@ -91,11 +74,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenInvalidDataDropped()
     {
         // setup
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-            );
+        DicomFile dicomFile = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
@@ -134,11 +113,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectASingleCommentsSequenceInResponse()
     {
         // setup
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-            );
+        DicomFile dicomFile = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
@@ -172,11 +147,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     public async Task GivenInstanceWithMultipleInvalidIndexableAttributes_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectMultipleErrorCommentsInASingleCommentsSequenceInResponse()
     {
         // setup
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-        );
+        DicomFile dicomFile = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
@@ -217,17 +188,9 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     public async Task GivenMultipleInstancesWithInvalidIndexableAttributes_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectMultipleCommentsSequencesInResponse()
     {
         // setup
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-        );
+        DicomFile dicomFile1 = GenerateDicomFile();
 
-        DicomFile dicomFile2 = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-        );
+        DicomFile dicomFile2 = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
@@ -266,11 +229,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectValidReferencedSopSequenceInResponse()
     {
         // setup
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-        );
+        DicomFile dicomFile = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
@@ -287,6 +246,29 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         await ValidateReferencedSopSequenceAsync(
             response,
             ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
+    }
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        await _instancesManager.DisposeAsync();
+    }
+
+    private static DicomFile GenerateDicomFile()
+    {
+        DicomFile dicomFile = Samples.CreateRandomDicomFile(
+            studyInstanceUid: TestUidGenerator.Generate(),
+            seriesInstanceUid: TestUidGenerator.Generate(),
+            sopInstanceUid: TestUidGenerator.Generate()
+        );
+        return dicomFile;
+    }
+
+    private static async Task ValidateReferencedSopSequenceAsync(DicomWebResponse<DicomDataset> response, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
+    {
+        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+        ValidationHelpers.ValidateReferencedSopSequence(await response.GetValueAsync(), expectedValues);
     }
 
     private async Task<DicomDataset> GetMetadata(DicomFile dicomFile)
