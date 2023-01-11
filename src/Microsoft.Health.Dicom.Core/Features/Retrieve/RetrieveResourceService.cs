@@ -163,12 +163,12 @@ public class RetrieveResourceService : IRetrieveResourceService
         CancellationToken cancellationToken)
     {
 
-        if (isSinglePart && message.Frames.Count() > 1)
+        if (isSinglePart && message.Frames.Count > 1)
         {
             throw new BadRequestException(DicomCoreResource.SinglePartSupportedForSingleFrame);
         }
 
-        _dicomRequestContextAccessor.RequestContext.PartCount = message.Frames.Count();
+        _dicomRequestContextAccessor.RequestContext.PartCount = message.Frames.Count;
 
         // only caching frames which are required to provide all 3 UIDs and more immutable
         InstanceIdentifier instanceIdentifier = new InstanceIdentifier(message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, partitionKey);
@@ -193,14 +193,15 @@ public class RetrieveResourceService : IRetrieveResourceService
                 _metadataStore.GetInstanceFramesRangeAsync,
                 cancellationToken);
 
-            var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+            string responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
             IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
-                                                                    instance.VersionedInstanceIdentifier,
-                                                                    framesRange,
-                                                                    message.Frames,
-                                                                    responseTransferSyntax,
-                                                                    cancellationToken);
+                instance.VersionedInstanceIdentifier,
+                framesRange,
+                message.Frames,
+                responseTransferSyntax,
+                cancellationToken);
+
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
 
@@ -328,7 +329,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(
         VersionedInstanceIdentifier identifier,
         IReadOnlyDictionary<int, FrameRange> framesRange,
-        IEnumerable<int> frames,
+        IReadOnlyCollection<int> frames,
         string responseTransferSyntax,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
@@ -336,9 +337,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             if (!framesRange.TryGetValue(frame, out FrameRange newFrameRange))
-            {
                 throw new FrameNotFoundException();
-            }
         }
 
         foreach (int frame in frames)
@@ -346,8 +345,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             FrameRange frameRange = framesRange[frame];
             Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier, frameRange, cancellationToken);
 
-            yield return
-                new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
+            yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
     }
 
