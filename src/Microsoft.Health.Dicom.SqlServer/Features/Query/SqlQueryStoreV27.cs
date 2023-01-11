@@ -82,7 +82,7 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
                         StudyDescription = rStudyDescription,
                         AccessionNumber = rAccessionNumber,
                         PatientBirthDate = rPatientBirthDate,
-                        ModalitiesInStudy = rModalitiesInStudy.Split(',', StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
+                        ModalitiesInStudy = rModalitiesInStudy?.Split(',', StringSplitOptions.RemoveEmptyEntries).Distinct().ToArray(),
                         NumberofStudyRelatedInstances = rNumberofStudyRelatedInstances
                     });
                 }

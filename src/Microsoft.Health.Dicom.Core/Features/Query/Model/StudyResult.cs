@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -39,9 +40,12 @@ public class StudyResult
                     { DicomTag.ReferringPhysicianName, ReferringPhysicianName },
                     { DicomTag.StudyDescription, StudyDescription },
                     { DicomTag.AccessionNumber, AccessionNumber },
-                    { DicomTag.ModalitiesInStudy, ModalitiesInStudy },
                     { DicomTag.NumberOfStudyRelatedInstances, NumberofStudyRelatedInstances},
                 };
+                if (ModalitiesInStudy != null && ModalitiesInStudy.Any())
+                {
+                    _dicomDataset.Add(DicomTag.ModalitiesInStudy, ModalitiesInStudy);
+                }
                 if (StudyDate.HasValue)
                 {
                     _dicomDataset.Add(DicomTag.StudyDate, StudyDate.Value);
