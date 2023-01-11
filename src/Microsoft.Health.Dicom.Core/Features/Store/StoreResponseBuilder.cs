@@ -32,6 +32,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
         _urlResolver = urlResolver;
         _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
@@ -75,6 +76,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         ushort? warningReasonCode = null)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotNull(storeValidationResult, nameof(storeValidationResult));
 
         CreateDatasetIfNeeded();
 
