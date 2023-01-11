@@ -80,10 +80,7 @@ internal class DicomTagSqlEntry
         return isLongSchemaTable ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
     }
 
-    public static DicomTagSqlEntry GetStudyKeyDicomTagSqlEntry()
-    {
-        return new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.StudyKey);
-    }
+    public static DicomTagSqlEntry StudyKeyDicomTagSqlEntry => new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.StudyKey);
 
     public static DicomTagSqlEntry GetStudyToSeriesDicomTagSqlEntry(QueryTag queryTag)
     {

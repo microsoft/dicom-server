@@ -117,10 +117,10 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
             .AppendLine();
     }
 
-    public override void Visit(StudyToSeriesStringSingleValueMatchCondition seriesStringSingleValueMatchCondition)
+    public override void Visit(StudyToSeriesStringSingleValueMatchCondition stringSingleValueMatchCondition)
     {
-        var queryTag = seriesStringSingleValueMatchCondition.QueryTag;
-        var studyDicomTagSqlEntry = DicomTagSqlEntry.GetStudyKeyDicomTagSqlEntry();
+        var queryTag = stringSingleValueMatchCondition.QueryTag;
+        var studyDicomTagSqlEntry = DicomTagSqlEntry.StudyKeyDicomTagSqlEntry;
         var seriesDicomTagSqlEntry = DicomTagSqlEntry.GetStudyToSeriesDicomTagSqlEntry(queryTag);
 
         var tableAlias = GetTableAlias(studyDicomTagSqlEntry, null);
@@ -132,7 +132,11 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
             .Append(" IN  (SELECT DISTINCT StudyKey FROM Series " + seriesTableAlias + " WHERE ")
             .Append(seriesDicomTagSqlEntry.SqlColumn, seriesTableAlias)
             .Append("=")
-            .Append(_parameters.AddParameter(seriesDicomTagSqlEntry.SqlColumn, seriesStringSingleValueMatchCondition.Value))
+            .Append(_parameters.AddParameter(seriesDicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
+            .Append(" AND ")
+            .Append(VLatest.Series.PartitionKey, seriesTableAlias)
+            .Append("=")
+            .Append(_parameters.AddParameter(VLatest.Series.PartitionKey, PartitionKey))
             .Append(")")
             .AppendLine();
     }

@@ -19,11 +19,11 @@ public interface IQueryStore
 
     Task<IReadOnlyCollection<StudyResult>> GetStudyResultAsync(
         int partitionKey,
-        IReadOnlyCollection<long> version,
+        IReadOnlyCollection<long> versions,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyCollection<SeriesResult>> GetSeriesResultAsync(
         int partitionKey,
-        IReadOnlyCollection<long> version,
+        IReadOnlyCollection<long> versions,
         CancellationToken cancellationToken = default);
 }

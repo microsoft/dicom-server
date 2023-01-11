@@ -18,7 +18,9 @@ public class StudyResult
     public string StudyDescription { get; init; }
     public string AccessionNumber { get; init; }
     public DateTime? PatientBirthDate { get; init; }
+#pragma warning disable CA1819 // Properties should not return arrays
     public string[] ModalitiesInStudy { get; init; }
+#pragma warning restore CA1819 // Properties should not return arrays
     public int NumberofStudyRelatedInstances { get; init; }
 
     private DicomDataset _dicomDataset;
