@@ -56,7 +56,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     /// <param name="acceptHeaders">One or more headers as requested by user.</param>
     /// <returns>New accept header based on highest priority valid header requested.</returns>
     /// <exception cref="NotAcceptableException"></exception>
-    public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IEnumerable<AcceptHeader> acceptHeaders)
+    public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
         List<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality).ToList();

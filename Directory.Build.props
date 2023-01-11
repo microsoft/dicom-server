@@ -22,7 +22,6 @@
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <StsVersion>net7.0</StsVersion>
-    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <TrimMode>partial</TrimMode>
     <WarningsAsErrors />

@@ -52,9 +52,9 @@ public class TableExceptionStore : IExceptionStore
             _ => null,
         };
 
-        Debug.Assert(tableName != null, $"Error type of '{errorType}' is not supported.");
         if (tableName == null)
         {
+            Debug.Fail($"Error type of '{errorType}' is not supported.");
             _logger.LogWarning("The error type '{ErrorType}' was not found so the exception wasn't recorded.", errorType);
             return;
         }
