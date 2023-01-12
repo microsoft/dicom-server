@@ -8,6 +8,7 @@
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.4.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.14.1" />
     <PackageVersion Include="Azure.Storage.Common" Version="12.13.0" />
+    <PackageVersion Include="Azure.Storage.Queues" Version="12.12.0" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.13.3" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.0.3" />
@@ -103,7 +104,6 @@
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Text.Json" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="WindowsAzure.Storage" Version="9.3.3" />
     <PackageVersion Include="xunit" Version="2.4.2" />
     <PackageVersion Include="xunit.assert" Version="2.4.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
