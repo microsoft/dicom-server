@@ -251,15 +251,9 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                     item = ReadJsonDicomItem(tag, ref reader);
 
                     dataset.Add(item);
-                }
-                catch (JsonException e)
+                } // When JSON is invalid, skip attempting to parse anything else
+                catch (Exception e) when (e is DicomJsonException)
                 {
-                    // When JSON is invalid, skip attempting to parse anything else
-                    if (!e.Message.Contains("Malformed DICOM json"))
-                    {
-                        throw;
-                    }
-
                     if (_dropDataWhenInvalid)
                     {
                         // forward reader until we've reached a property or EndObject
@@ -769,7 +763,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 vr = FindValue(reader, "vr", "none");
             }
 
-            if (vr == "none") { throw new JsonException("Malformed DICOM json. vr value missing"); }
+            if (vr == "none") { throw new DicomJsonException("Malformed DICOM json. vr value missing"); }
 
             object data;
 
@@ -956,7 +950,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 }
                 else
                 {
-                    throw new JsonException("Malformed DICOM json, number expected");
+                    throw new DicomJsonException("Malformed DICOM json, number expected");
                 }
                 reader.Read();
             }
@@ -1016,7 +1010,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 }
                 else
                 {
-                    throw new JsonException("Malformed DICOM json, number expected");
+                    throw new DicomJsonException("Malformed DICOM json, number expected");
                 }
                 reader.Read();
             }
@@ -1115,7 +1109,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             }
             else
             {
-                throw new JsonException("Malformed DICOM json, property 'Value' expected");
+                throw new DicomJsonException("Malformed DICOM json, property 'Value' expected");
             }
         }
 
@@ -1157,14 +1151,14 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                     }
                     else
                     {
-                        throw new JsonException("Malformed DICOM json, object expected");
+                        throw new DicomJsonException("Malformed DICOM json, object expected");
                     }
                 }
                 reader.AssumeAndSkip(JsonTokenType.EndArray);
                 var data = childItems.ToArray();
                 if (_dropDataWhenInvalid && !data.Any())
                 {
-                    throw new JsonException("Malformed DICOM json, no valid JSON objects parsed from within whole sequence");
+                    throw new DicomJsonException("Malformed DICOM json, no valid JSON objects parsed from within whole sequence");
                 }
                 return data;
             }
@@ -1198,7 +1192,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
         private static IByteBuffer ReadJsonInlineBinary(ref Utf8JsonReader reader)
         {
             reader.AssumeAndSkip(JsonTokenType.StartArray);
-            if (reader.TokenType != JsonTokenType.String) { throw new JsonException("Malformed DICOM json. string expected"); }
+            if (reader.TokenType != JsonTokenType.String) { throw new DicomJsonException("Malformed DICOM json. string expected"); }
             var data = new MemoryByteBuffer(reader.GetBytesFromBase64());
             reader.Read();
             reader.AssumeAndSkip(JsonTokenType.EndArray);
@@ -1208,7 +1202,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
 
         private IBulkDataUriByteBuffer ReadJsonBulkDataUri(ref Utf8JsonReader reader)
         {
-            if (reader.TokenType != JsonTokenType.String) { throw new JsonException("Malformed DICOM json. string expected"); }
+            if (reader.TokenType != JsonTokenType.String) { throw new DicomJsonException("Malformed DICOM json. string expected"); }
             var data = CreateBulkDataUriByteBuffer(reader.GetString());
             reader.Read();
             return data;

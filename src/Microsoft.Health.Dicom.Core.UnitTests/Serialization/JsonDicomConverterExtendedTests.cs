@@ -465,6 +465,25 @@ public class JsonDicomConverterExtendedTests
     }
 
     [Fact]
+    public static void GivenDropDataWhenInvalid_WhenVRKeyNotSupported_ThenNotSupportedExceptionIsThrown()
+    {
+        const string json = @"
+            {
+              ""00081030"": {
+                ""vr"": ""unknownVR"",
+                ""Value"": [ ""Study1"" ]
+              }
+            }
+            ";
+        NotSupportedException thrownException = Assert.Throws<NotSupportedException>(
+            () => JsonSerializer.Deserialize<DicomDataset>(
+                json,
+                DropDataSerializerOptions
+                ));
+        Assert.Contains("Unsupported value representation", thrownException.Message);
+    }
+
+    [Fact]
     public static void GivenDropDataWhenInvalidAndAValueWithInvalidJson_WhenDeserialized_ThenJsonReaderExceptionIsThrown()
     {
         // This is not valid JSON
@@ -480,7 +499,7 @@ public class JsonDicomConverterExtendedTests
                 }
 
             }";
-        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions));
         Assert.Contains("'T' is an invalid escapable character within a JSON string. The string should be correctly escaped.", thrownException.Message);
     }
 
@@ -493,13 +512,13 @@ public class JsonDicomConverterExtendedTests
               ""00081030"": ""vr:LO, Value: Study1""
             }
             ";
-        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions));
         Assert.Contains("invalid: StartObject expected at position", thrownException.Message);
         Assert.Contains("instead found String", thrownException.Message);
     }
 
     [Fact]
-    public static void GivenInvalidJSON_WhenDeserialized_JsonReaderExceptionIsThrown()
+    public static void GivenDropDataWhenInvalidAndInvalidEscapeCharInJSON_WhenDeserialized_JsonReaderExceptionIsThrown()
     {
         // \T is unexpected and invalid JSON here
         const string json = @"
@@ -510,7 +529,7 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions));
         Assert.Contains("'T' is an invalid escapable character within a JSON string. The string should be correctly escaped.", thrownException.Message);
     }
 
@@ -540,7 +559,7 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<DicomJsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
         Assert.Equal("Malformed DICOM json. vr value missing", thrownException.Message);
     }
 
@@ -554,7 +573,7 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<DicomJsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
         Assert.Equal("Malformed DICOM json. vr value missing", thrownException.Message);
     }
 
@@ -568,7 +587,7 @@ public class JsonDicomConverterExtendedTests
               }
             }
             ";
-        JsonException thrownException = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
+        JsonException thrownException = Assert.Throws<DicomJsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, SerializerOptions));
         Assert.Equal("Malformed DICOM json. vr value missing", thrownException.Message);
     }
 
@@ -604,7 +623,7 @@ public class JsonDicomConverterExtendedTests
             Converters = { new DicomJsonConverter(writeTagsAsKeywords: false, autoValidate: true) }
         };
 
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
+        Assert.Throws<DicomJsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, serializerOptions));
     }
 
     [Fact]
