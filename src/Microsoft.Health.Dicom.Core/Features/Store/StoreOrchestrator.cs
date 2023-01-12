@@ -78,8 +78,6 @@ public class StoreOrchestrator : IStoreOrchestrator
 
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
-        // DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken) // TODO - is there a reason we were getting this here again?
-
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
         var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
