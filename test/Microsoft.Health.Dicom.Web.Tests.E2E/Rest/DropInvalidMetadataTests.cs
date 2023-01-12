@@ -3,10 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -25,6 +28,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
         _instancesManager = new DicomInstancesManager(_client);
+        DicomValidationBuilderExtension.SkipValidation(null);
     }
 
     [Fact]
@@ -63,6 +67,23 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
 
         // expect valid data stored in metadata/JSON
         retrievedMetadata.GetString(DicomTag.PatientBirthDate);
+
+        // valid searchable index attr was stored, so we can query for instance using the valid attr
+        Assert.Single(await GetInstanceByAttribute(dicomFile, DicomTag.PatientBirthDate));
+    }
+
+    private async Task<IEnumerable<DicomDataset>> GetInstanceByAttribute(DicomFile dicomFile, DicomTag searchTag)
+    {
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync(
+            $"{searchTag.DictionaryEntry.Keyword}={dicomFile.Dataset.GetString(searchTag)}"
+        );
+        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+        DicomDataset[] datasets = await response.ToArrayAsync();
+
+        IEnumerable<DicomDataset> matchedInstances = datasets.Where(
+            ds =>
+                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+        return matchedInstances;
     }
 
     [Fact]
@@ -100,8 +121,18 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
 
         // expect that metadata invalid date not present
-        DicomDataException thrownException = Assert.Throws<DicomDataException>(() => retrievedMetadata.GetString(DicomTag.StudyDate));
+        DicomDataException thrownException = Assert.Throws<DicomDataException>(
+            () => retrievedMetadata.GetString(DicomTag.StudyDate));
         Assert.Equal("Tag: (0008,0020) not found in dataset", thrownException.Message);
+
+        // attempting to query with invalid attr produces a BadRequest
+        DicomWebException caughtException = await Assert.ThrowsAsync<DicomWebException>(
+            async () => await GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
+
+        Assert.Contains(
+            "BadRequest: Invalid query: specified Date value 'NotAValidStudyDate' is invalid for attribute 'StudyDate'" +
+            ". Date should be valid and formatted as yyyyMMdd.",
+            caughtException.Message);
     }
 
     [Fact]
