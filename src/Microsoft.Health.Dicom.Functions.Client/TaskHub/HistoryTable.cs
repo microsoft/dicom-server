@@ -4,15 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Data.Tables;
+using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 internal class HistoryTable : TrackingTable
 {
-    public HistoryTable(TableServiceClient tableServiceClient)
-        : base(tableServiceClient)
+    public HistoryTable(TableServiceClient tableServiceClient, string taskHubName)
+        : base(tableServiceClient, GetName(EnsureArg.IsNotNullOrWhiteSpace(taskHubName, nameof(taskHubName))))
     { }
 
-    protected override string GetName(string taskHubName)
+    internal static string GetName(string taskHubName)
         => taskHubName + "History";
 }

@@ -16,24 +16,24 @@ namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 internal class LeasesContainer
 {
-    private readonly BlobServiceClient _blobServiceClient;
+    private readonly BlobContainerClient _containerClient;
 
     internal const string TaskHubBlobName = "taskhub.json";
 
-    public LeasesContainer(BlobServiceClient blobServiceClient)
-        => _blobServiceClient = EnsureArg.IsNotNull(blobServiceClient, nameof(blobServiceClient));
+    public LeasesContainer(BlobServiceClient blobServiceClient, string taskHubName)
+        => _containerClient = EnsureArg
+            .IsNotNull(blobServiceClient, nameof(blobServiceClient))
+            .GetBlobContainerClient(GetName(taskHubName));
 
-    public async ValueTask<TaskHubInfo> GetTaskHubInfoAsync(string taskHubName, CancellationToken cancellationToken = default)
+    public string Name => _containerClient.Name;
+
+    public async ValueTask<TaskHubInfo> GetTaskHubInfoAsync(CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNullOrEmpty(taskHubName, nameof(taskHubName));
-
-        BlobClient client = _blobServiceClient
-            .GetBlobContainerClient(GetName(taskHubName))
-            .GetBlobClient(TaskHubBlobName);
+        BlobClient client = _containerClient.GetBlobClient(TaskHubBlobName);
 
         try
         {
-            BlobDownloadResult result = await client.DownloadContentAsync(cancellationToken).ConfigureAwait(false);
+            BlobDownloadResult result = await client.DownloadContentAsync(cancellationToken);
             return result.Content.ToObjectFromJson<TaskHubInfo>();
         }
         catch (RequestFailedException rfe) when (rfe.Status == (int)HttpStatusCode.NotFound)

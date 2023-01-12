@@ -6,6 +6,7 @@
 using System;
 using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -61,7 +62,8 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
         services.Replace(ServiceDescriptor.Singleton<IMessageSerializerSettingsFactory, MessageSerializerSettingsFactory>());
         services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
-        services.AddHealthChecks().AddCheck<DurableTaskHealthCheck>("DurableTask");
+        services.AddAzureClientsCore();
+        services.AddHealthChecks().AddCheck<AzureStorageDurableTaskHealthCheck>("DurableTask");
 
         return dicomServerBuilder;
     }

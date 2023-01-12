@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
@@ -15,22 +17,28 @@ namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 internal sealed class ControlQueues
 {
     private readonly QueueServiceClient _queueServiceClient;
+    private readonly TaskHubInfo _taskHubInfo;
 
-    public ControlQueues(QueueServiceClient queueServiceClient)
-        => _queueServiceClient = EnsureArg.IsNotNull(queueServiceClient, nameof(queueServiceClient));
-
-    public async ValueTask<bool> ExistAsync(TaskHubInfo taskHubInfo, CancellationToken cancellationToken = default)
+    public ControlQueues(QueueServiceClient queueServiceClient, TaskHubInfo taskHubInfo)
     {
-        EnsureArg.IsNotNull(taskHubInfo, nameof(taskHubInfo));
+        _queueServiceClient = EnsureArg.IsNotNull(queueServiceClient, nameof(queueServiceClient));
+        _taskHubInfo = EnsureArg.IsNotNull(taskHubInfo, nameof(taskHubInfo));
+    }
 
-        bool lastQueueExists = true;
-        for (int i = 0; i < taskHubInfo.PartitionCount && lastQueueExists; i++)
+    public IEnumerable<string> Names => Enumerable
+        .Range(0, _taskHubInfo.PartitionCount)
+        .Select(i => GetName(_taskHubInfo.TaskHubName, i));
+
+    public async ValueTask<bool> ExistAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (string queue in Names)
         {
-            QueueClient controlQueueClient = _queueServiceClient.GetQueueClient(GetName(taskHubInfo.TaskHubName, i));
-            lastQueueExists = await controlQueueClient.ExistsAsync(cancellationToken);
+            QueueClient controlQueueClient = _queueServiceClient.GetQueueClient(queue);
+            if (!await controlQueueClient.ExistsAsync(cancellationToken))
+                return false;
         }
 
-        return lastQueueExists;
+        return true;
     }
 
     // See: https://learn.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names

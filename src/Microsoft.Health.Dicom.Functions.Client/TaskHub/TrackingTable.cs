@@ -14,18 +14,17 @@ namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 internal abstract class TrackingTable
 {
-    private readonly TableServiceClient _tableServiceClient;
+    private readonly TableClient _tableClient;
 
-    protected TrackingTable(TableServiceClient tableServiceClient)
-        => _tableServiceClient = EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
+    protected TrackingTable(TableServiceClient queueServiceClient, string tableName)
+        => _tableClient = EnsureArg.IsNotNull(queueServiceClient, nameof(queueServiceClient)).GetTableClient(tableName);
 
-    public async ValueTask<bool> ExistsAsync(TaskHubInfo taskHubInfo, CancellationToken cancellationToken = default)
+    public string Name => _tableClient.Name;
+
+    public async ValueTask<bool> ExistsAsync(CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(taskHubInfo, nameof(taskHubInfo));
-
         // Note: There is no ExistsAsync method for TableClient, so instead we'll run a query that returns no elements instead
-        TableClient trackingTableClient = _tableServiceClient.GetTableClient(GetName(taskHubInfo.TaskHubName));
-        AsyncPageable<TableEntity> pageable = trackingTableClient.QueryAsync<TableEntity>(
+        AsyncPageable<TableEntity> pageable = _tableClient.QueryAsync<TableEntity>(
             filter: "false",
             maxPerPage: 1,
             cancellationToken: cancellationToken);
@@ -40,6 +39,4 @@ internal abstract class TrackingTable
             return false;
         }
     }
-
-    protected abstract string GetName(string taskHubName);
 }

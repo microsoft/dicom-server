@@ -13,18 +13,17 @@ namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 internal sealed class WorkItemQueue
 {
-    private readonly QueueServiceClient _queueServiceClient;
+    private readonly QueueClient _queueClient;
 
-    public WorkItemQueue(QueueServiceClient queueServiceClient)
-        => _queueServiceClient = EnsureArg.IsNotNull(queueServiceClient, nameof(queueServiceClient));
+    public WorkItemQueue(QueueServiceClient queueServiceClient, string taskHubName)
+        => _queueClient = EnsureArg
+            .IsNotNull(queueServiceClient, nameof(queueServiceClient))
+            .GetQueueClient(GetName(EnsureArg.IsNotNullOrWhiteSpace(taskHubName, nameof(taskHubName))));
 
-    public async ValueTask<bool> ExistsAsync(TaskHubInfo taskHubInfo, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(taskHubInfo, nameof(taskHubInfo));
+    public string Name => _queueClient.Name;
 
-        QueueClient controlQueueClient = _queueServiceClient.GetQueueClient(GetName(taskHubInfo.TaskHubName));
-        return await controlQueueClient.ExistsAsync(cancellationToken);
-    }
+    public async ValueTask<bool> ExistsAsync(CancellationToken cancellationToken = default)
+        => await _queueClient.ExistsAsync(cancellationToken);
 
     // See: https://learn.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names
     [SuppressMessage("Globalization", "CA1308:Normalize strings to uppercase", Justification = "Queue names must be lowercase.")]
