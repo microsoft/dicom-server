@@ -68,7 +68,7 @@ public class QueryService : IQueryService
         var responseBuilder = new QueryResponseBuilder(queryExpression);
         IEnumerable<DicomDataset> responseMetadata = null;
 
-        if (QueryLimit.ContainsComputedTag(queryExpression.IELevel, queryExpression.IncludeFields.DicomTags))
+        if (QueryLimit.ContainsComputedTag(queryExpression.IELevel, responseBuilder.ReturnTags))
         {
             var versions = queryResult.DicomInstances.Select(i => i.Version).ToList();
 

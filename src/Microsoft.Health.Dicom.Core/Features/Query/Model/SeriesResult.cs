@@ -5,6 +5,7 @@
 
 using System;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
 
@@ -28,10 +29,10 @@ public class SeriesResult
                 {
                     { DicomTag.StudyInstanceUID, StudyInstanceUid },
                     { DicomTag.SeriesInstanceUID, SeriesInstanceUid },
-                    { DicomTag.Modality, Modality },
-                    { DicomTag.ManufacturerModelName, ManufacturerModelName },
-                    { DicomTag.NumberOfSeriesRelatedInstances, NumberofSeriesRelatedInstances },
+                    { DicomTag.NumberOfSeriesRelatedInstances, NumberofSeriesRelatedInstances }
                 };
+                _dicomDataset.AddValueIfNotNull(DicomTag.Modality, Modality);
+                _dicomDataset.AddValueIfNotNull(DicomTag.ManufacturerModelName, ManufacturerModelName);
                 if (PerformedProcedureStepStartDate.HasValue)
                 {
                     _dicomDataset.Add(DicomTag.PerformedProcedureStepStartDate, PerformedProcedureStepStartDate.Value);

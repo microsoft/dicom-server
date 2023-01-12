@@ -131,6 +131,14 @@ public class QueryResponseBuilder
         return dicomDataset;
     }
 
+    public IReadOnlyCollection<DicomTag> ReturnTags
+    {
+        get
+        {
+            return _tagsToReturn;
+        }
+    }
+
     private void Initialize(QueryExpression queryExpression)
     {
         switch (queryExpression.QueryResource)

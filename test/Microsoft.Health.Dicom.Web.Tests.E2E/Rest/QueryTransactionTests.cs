@@ -92,15 +92,21 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
              { DicomTag.StudyInstanceUID, studyId },
              { DicomTag.Modality, "MR" }
         });
-        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync("ModalitiesInStudy=CT&includefield=NumberOfStudyRelatedInstances");
-
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync("ModalitiesInStudy=CT");
         DicomDataset[] datasets = await response.ToArrayAsync();
-
         Assert.NotEmpty(datasets);
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
         Assert.NotNull(testDataResponse);
         Assert.True(testDataResponse.GetString(DicomTag.ModalitiesInStudy) == "CT\\MR");
-        Assert.True(testDataResponse.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances) == 3);
+
+
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response2 = await _client.QueryStudyAsync("ModalitiesInStudy=CT&includefield=NumberOfStudyRelatedInstances");
+        datasets = await response2.ToArrayAsync();
+        Assert.NotEmpty(datasets);
+        DicomDataset testDataResponse2 = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+        Assert.NotNull(testDataResponse2);
+        Assert.True(testDataResponse2.GetString(DicomTag.ModalitiesInStudy) == "CT\\MR");
+        Assert.True(testDataResponse2.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances) == 3);
     }
 
     [Fact]

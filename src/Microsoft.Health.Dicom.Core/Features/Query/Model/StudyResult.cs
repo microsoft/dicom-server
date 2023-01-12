@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query.Model;
 
@@ -35,13 +36,15 @@ public class StudyResult
                 _dicomDataset = new DicomDataset()
                 {
                     { DicomTag.StudyInstanceUID, StudyInstanceUid },
-                    { DicomTag.PatientID, PatientId },
-                    { DicomTag.PatientName, PatientName },
-                    { DicomTag.ReferringPhysicianName, ReferringPhysicianName },
-                    { DicomTag.StudyDescription, StudyDescription },
-                    { DicomTag.AccessionNumber, AccessionNumber },
-                    { DicomTag.NumberOfStudyRelatedInstances, NumberofStudyRelatedInstances},
+                    { DicomTag.NumberOfStudyRelatedInstances, NumberofStudyRelatedInstances },
                 };
+
+                _dicomDataset.AddValueIfNotNull(DicomTag.PatientID, PatientId);
+                _dicomDataset.AddValueIfNotNull(DicomTag.PatientName, PatientName);
+                _dicomDataset.AddValueIfNotNull(DicomTag.ReferringPhysicianName, ReferringPhysicianName);
+                _dicomDataset.AddValueIfNotNull(DicomTag.StudyDescription, StudyDescription);
+                _dicomDataset.AddValueIfNotNull(DicomTag.AccessionNumber, AccessionNumber);
+
                 if (ModalitiesInStudy != null && ModalitiesInStudy.Any())
                 {
                     _dicomDataset.Add(DicomTag.ModalitiesInStudy, ModalitiesInStudy);
