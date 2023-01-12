@@ -266,7 +266,6 @@ public class JsonDicomConverterExtendedTests
         //valid
         Assert.Equal("111", dataset.GetString(DicomTag.WarningReason));
 
-        //partially invalid, we can handle skipping children in a sequence
         DicomSequence sq = dataset.GetSequence(DicomTag.IssuerOfAccessionNumberSequence);
         Assert.Equal(0, sq.Items.Count); // The SQ is empty as no Value was provided
 
@@ -330,6 +329,49 @@ public class JsonDicomConverterExtendedTests
 
         // valid
         Assert.Equal("222", dataset.GetString(DicomTag.PrivateGroupReference));
+    }
+
+    [Fact]
+    public static void GivenDropDataWhenInvalid_WhenValueInSQInvalidJson_ThenExpectJsonExceptionThrown()
+    {
+        const string json = @"
+            {
+                ""00081196"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        111
+                    ]
+                },
+                ""00080051"": {
+                    ""vr"": ""SQ"",
+                    ""Value"": [
+                        {
+                            ""00100020"":{
+                                ""vr"": ""US"",
+                                ""Value"": [
+                                    222
+                                ]
+                            }
+                        },
+                        {
+                            ""00100020"":{
+                                ""vr"": ""US"",
+                                ""Value"": [
+                                    ""\xyz""
+                                ]
+                            }
+                        }
+                    ]
+                },
+                ""00080301"": {
+                    ""vr"": ""US"",
+                    ""Value"": [
+                        333
+                    ]
+                }
+            }";
+
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DicomDataset>(json, DropDataSerializerOptions));
     }
 
     [Fact]
