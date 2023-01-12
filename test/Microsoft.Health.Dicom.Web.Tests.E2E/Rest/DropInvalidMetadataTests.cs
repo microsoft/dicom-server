@@ -28,6 +28,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
         _instancesManager = new DicomInstancesManager(_client);
+        DicomValidationBuilderExtension.SkipValidation(null);
     }
 
     [Fact]
