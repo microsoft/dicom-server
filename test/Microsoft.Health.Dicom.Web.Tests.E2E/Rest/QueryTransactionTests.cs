@@ -230,6 +230,24 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     }
 
     [Fact]
+    public async Task GivenSearchRequestOnPatientBirthDate_WhenStudyInstancesLevel_ThenAResultIsFound()
+    {
+        DicomDataset ds = await PostDicomFileAsync(new DicomDataset()
+        {
+            { DicomTag.PatientBirthDate, "20220315" },
+        });
+
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyInstanceAsync(
+            ds.GetSingleValue<string>(DicomTag.StudyInstanceUID),
+            $"PatientBirthDate={ds.GetString(DicomTag.PatientBirthDate)}");
+
+        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+        DicomDataset[] datasets = await response.ToArrayAsync();
+
+        Assert.Single(datasets);
+    }
+
+    [Fact]
     public async Task GivenSearchRequest_StudySeriesInstancesLevel_MatchResult()
     {
         DicomDataset matchInstance = await PostDicomFileAsync();
