@@ -13,6 +13,8 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
+
+[Trait("Category", "bvt-dp")]
 public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;

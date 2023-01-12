@@ -4,3 +4,4 @@ services:
   dicomserver:
     environment:
       DicomServer__Features__EnableDataPartitions: "true"
+      DicomServer_Features_EnableDropInvalidDicomJsonMetadata: "true"
