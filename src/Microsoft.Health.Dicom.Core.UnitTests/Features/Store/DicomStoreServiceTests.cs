@@ -194,7 +194,7 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
-    public async Task GivenAValidationError_WhenDropDataEnabled_ThenFailedEntryShouldBeAddedWithValidationFailure()
+    public async Task GivenAValidationError_WhenDropDataEnabled_ThenSucceedsWithErrorsInCommentsSequence()
     {
         // setup
         IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
