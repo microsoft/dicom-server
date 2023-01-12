@@ -282,4 +282,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.String TagValue { get; }
         internal System.Byte TagLevel { get; }
     }
+
+    internal class WatermarkTableTypeTableValuedParameterDefinition : TableValuedParameterDefinition<WatermarkTableTypeRow>
+    {
+        internal WatermarkTableTypeTableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.WatermarkTableType")
+        {
+        }
+
+        internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { Watermark };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, WatermarkTableTypeRow rowData)
+        {
+            Watermark.Set(record, 0, rowData.Watermark);
+        }
+    }
+
+    internal struct WatermarkTableTypeRow
+    {
+        internal WatermarkTableTypeRow(System.Int64 Watermark)
+        {
+            this.Watermark = Watermark;
+        }
+
+        internal System.Int64 Watermark { get; }
+    }
 }

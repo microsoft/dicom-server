@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -28,6 +28,11 @@ internal class DicomTagSqlEntry
             { DicomTag.PerformedProcedureStepStartDate, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.PerformedProcedureStepStartDate) },
             { DicomTag.ManufacturerModelName, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.ManufacturerModelName) },
             { DicomTag.SOPInstanceUID, new DicomTagSqlEntry(SqlTableType.InstanceTable, VLatest.Instance.SopInstanceUid) },
+    };
+
+    private static readonly IReadOnlyDictionary<DicomTag, DicomTagSqlEntry> StudyToSeriesQueryTagToSqlMapping = new Dictionary<DicomTag, DicomTagSqlEntry>()
+    {
+            { DicomTag.ModalitiesInStudy, new DicomTagSqlEntry(SqlTableType.SeriesTable, VLatest.Series.Modality) },
     };
 
     private static readonly IReadOnlyDictionary<DicomVR, DicomTagSqlEntry> ExtendedQueryTagVRToSqlMapping = new Dictionary<DicomVR, DicomTagSqlEntry>()
@@ -73,5 +78,12 @@ internal class DicomTagSqlEntry
     public static DicomTagSqlEntry GetDicomTagSqlEntry(QueryTag queryTag, bool isLongSchemaTable)
     {
         return isLongSchemaTable ? ExtendedQueryTagVRToSqlMapping[queryTag.VR] : CoreQueryTagToSqlMapping[queryTag.Tag];
+    }
+
+    public static DicomTagSqlEntry StudyKeyDicomTagSqlEntry => new DicomTagSqlEntry(SqlTableType.StudyTable, VLatest.Study.StudyKey);
+
+    public static DicomTagSqlEntry GetStudyToSeriesDicomTagSqlEntry(QueryTag queryTag)
+    {
+        return StudyToSeriesQueryTagToSqlMapping[queryTag.Tag];
     }
 }

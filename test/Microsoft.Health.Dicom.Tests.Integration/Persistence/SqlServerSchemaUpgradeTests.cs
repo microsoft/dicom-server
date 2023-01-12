@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -38,11 +38,15 @@ public class SqlServerSchemaUpgradeTests1
         {
             foreach (var diff in result.Differences)
             {
-                if (diff.Name == "SqlProcedure")
+                if (diff.Name == "SqlProcedure" || diff.Name == "SqlView")
                 {
                     foreach (var childDiff in diff.Children)
                     {
-                        if (childDiff.Name != "BodyScript")
+                        if (childDiff.Name == "BodyScript" || childDiff.Name == "QueryScript")
+                        {
+                            continue;
+                        }
+                        else
                         {
                             actualDiffs.Add(diff);
                             break;

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query;
 
@@ -28,6 +29,7 @@ internal static class QueryLimit
         DicomTag.PatientName,
         DicomTag.ReferringPhysicianName,
         DicomTag.PatientBirthDate,
+        DicomTag.ModalitiesInStudy,
     };
 
     private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
@@ -47,6 +49,17 @@ internal static class QueryLimit
     {
         DicomTag.RequestedProcedureID,
         DicomTag.CodeValue
+    };
+
+    private static readonly HashSet<DicomTag> StudyResultComputedTags = new HashSet<DicomTag>()
+    {
+        DicomTag.ModalitiesInStudy,
+        DicomTag.NumberOfStudyRelatedInstances
+    };
+
+    private static readonly HashSet<DicomTag> SeriesResultComputedTags = new HashSet<DicomTag>()
+    {
+        DicomTag.NumberOfSeriesRelatedInstances
     };
 
     public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
@@ -109,5 +122,20 @@ internal static class QueryLimit
     {
         EnsureArg.IsNotNull(queryTag, nameof(queryTag));
         return queryTag.VR == DicomVR.PN;
+    }
+
+    public static bool ContainsComputedTag(ResourceType queryTagLevel, IReadOnlyCollection<DicomTag> tags)
+    {
+        return queryTagLevel switch
+        {
+            ResourceType.Study => tags.Any(t => StudyResultComputedTags.Contains(t)),
+            ResourceType.Series => tags.Any(t => SeriesResultComputedTags.Contains(t)),
+            _ => false
+        };
+    }
+
+    public static bool IsStudyToSeriesTag(DicomTag tag)
+    {
+        return tag == DicomTag.ModalitiesInStudy;
     }
 }
