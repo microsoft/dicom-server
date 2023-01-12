@@ -4,15 +4,20 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -52,7 +57,7 @@ public class DicomStoreServiceTests
     private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
 
     private readonly StoreService _storeService;
-    private readonly IOptions<FeatureConfiguration> _options;
+    private readonly StoreService _storeServiceDropData;
 
     public DicomStoreServiceTests()
     {
@@ -63,7 +68,6 @@ public class DicomStoreServiceTests
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(DefaultStoreValidationResult));
 
-        _options = Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false });
         _storeService = new StoreService(
             _storeResponseBuilder,
             _dicomDatasetValidator,
@@ -71,7 +75,45 @@ public class DicomStoreServiceTests
             _dicomRequestContextAccessor,
             _telemetryClient,
             NullLogger<StoreService>.Instance,
-            _options);
+            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
+
+        IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
+            new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
+
+        _storeServiceDropData = new StoreService(
+            new StoreResponseBuilder(new MockUrlResolver(), featureConfiguration),
+            CreateStoreDatasetValidatorWithDropDataEnabled(),
+            _storeOrchestrator,
+            _dicomRequestContextAccessor,
+            _telemetryClient,
+            NullLogger<StoreService>.Instance,
+            featureConfiguration);
+
+        DicomValidationBuilderExtension.SkipValidation(null);
+    }
+
+    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled()
+    {
+        IQueryTagService queryTagService = Substitute.For<IQueryTagService>();
+        List<QueryTag> queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
+        queryTagService
+            .GetQueryTagsAsync(Arg.Any<CancellationToken>())
+            .Returns(new List<QueryTag>(QueryTagService.CoreQueryTags));
+        TelemetryClient telemetryClient = new TelemetryClient(new TelemetryConfiguration
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
+
+        IStoreDatasetValidator validator = new StoreDatasetValidator(
+            Options.Create(new FeatureConfiguration()
+            {
+                EnableFullDicomItemValidation = false,
+                EnableDropInvalidDicomJsonMetadata = true
+            }),
+            new ElementMinimumValidator(),
+            queryTagService,
+            telemetryClient);
+        return validator;
     }
 
     [Fact]
@@ -149,6 +191,55 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, failureCode);
+    }
+
+    [Fact]
+    public async Task GivenAValidationError_WhenDropDataEnabled_ThenFailedEntryShouldBeAddedWithValidationFailure()
+    {
+        // setup
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
+
+        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
+
+        // call
+        StoreResponse response = await _storeServiceDropData.ProcessAsync(
+            new[] { dicomInstanceEntry },
+            null,
+            cancellationToken: DefaultCancellationToken);
+
+        // assert response was successful
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Null(response.Warning);
+
+        // expect a single refSop sequence
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        DicomDataset firstInstance = refSopSequence.Items[0];
+
+        // expect a comment sequence present
+        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
+        Assert.Single(commentSequence);
+
+        // expect comment sequence has single warning about single invalid attribute
+        Assert.Equal(
+            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
+            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+
+        // expect that what we attempt to store has invalid attrs dropped
+        Assert.Throws<DicomDataException>(() => dicomDataset.GetString(DicomTag.StudyDate));
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntry,
+                dicomDataset,
+                DefaultCancellationToken
+            );
     }
 
     [Fact]
