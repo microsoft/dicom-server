@@ -256,15 +256,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
                 {
                     if (_dropDataWhenInvalid)
                     {
-                        // forward reader until we've reached a property or EndObject
-                        while (!(
-                                   (reader.TokenType == JsonTokenType.EndObject &&
-                                    reader.CurrentDepth == originalDepth) ||
-                                   reader.TokenType == JsonTokenType.PropertyName)
-                              )
-                        {
-                            reader.Read();
-                        }
+                        MoveReaderToNextAttribute(ref reader, originalDepth);
                         continue;
                     }
                     else
@@ -295,6 +287,19 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
             }
 
             return dataset;
+        }
+
+        private static void MoveReaderToNextAttribute(ref Utf8JsonReader reader, int originalDepth)
+        {
+            // forward reader until we've reached a property or EndObject
+            while (!(
+                       (reader.TokenType == JsonTokenType.EndObject &&
+                        reader.CurrentDepth == originalDepth) ||
+                       reader.TokenType == JsonTokenType.PropertyName)
+                  )
+            {
+                reader.Read();
+            }
         }
 
         /// <summary>
