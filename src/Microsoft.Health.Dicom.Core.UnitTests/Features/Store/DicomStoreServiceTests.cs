@@ -81,7 +81,7 @@ public class DicomStoreServiceTests
             new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
 
         _storeServiceDropData = new StoreService(
-            new StoreResponseBuilder(new MockUrlResolver(), enableDropInvalidDicomJsonMetadata: true),
+            new StoreResponseBuilder(new MockUrlResolver()),
             CreateStoreDatasetValidatorWithDropDataEnabled(),
             _storeOrchestrator,
             _dicomRequestContextAccessor,

@@ -18,21 +18,18 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreResponseBuilder : IStoreResponseBuilder
 {
     private readonly IUrlResolver _urlResolver;
-    private readonly bool _enableDropInvalidDicomJsonMetadata;
 
     private DicomDataset _dataset;
 
     private string _message;
 
     public StoreResponseBuilder(
-        IUrlResolver urlResolver,
-        bool enableDropInvalidDicomJsonMetadata = false
+        IUrlResolver urlResolver
         )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
         _urlResolver = urlResolver;
-        _enableDropInvalidDicomJsonMetadata = enableDropInvalidDicomJsonMetadata;
     }
 
     /// <inheritdoc />
@@ -70,7 +67,8 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     /// <inheritdoc />
     public void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
-        ushort? warningReasonCode = null)
+        ushort? warningReasonCode = null,
+        bool enableDropInvalidDicomJsonMetadata = false)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(storeValidationResult, nameof(storeValidationResult));
@@ -93,7 +91,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
-        if (!_enableDropInvalidDicomJsonMetadata)
+        if (!enableDropInvalidDicomJsonMetadata)
         {
             if (warningReasonCode.HasValue)
             {

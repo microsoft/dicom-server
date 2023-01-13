@@ -239,7 +239,6 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         {
             // expect a comment sequence present
             DicomSequence commentSequence = instance.GetSequence(DicomTag.CalculationCommentSequence);
-            Assert.Single(commentSequence);
 
             // expect comment sequence has same count of warnings as invalid attributes
             Assert.Single(commentSequence);
@@ -252,14 +251,13 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     }
 
     [Fact]
-    public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectValidReferencedSopSequenceInResponse()
+    public async Task GivenInstanceWithAValidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectEmptyCommentSequence()
     {
         // setup
         DicomFile dicomFile = GenerateDicomFile();
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
-        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
         dicomDataset.Add(DicomTag.PatientBirthDate, "20220315");
 
         dicomFile.Dataset.Add(dicomDataset);
@@ -271,14 +269,19 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset responseDataset = await response.GetValueAsync();
 
         // assert
-        await ResponseHelper.
-            ValidateReferencedSopSequenceAsync(
-            response,
-            ResponseHelper.ConvertToReferencedSopSequenceEntry(
-                _client,
-                dicomFile.Dataset,
-                _partition)
-            );
+        DicomSequence refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        // assert the refSopSequence has a single instances being represented
+        Assert.Single(refSopSequence.Items);
+
+        DicomDataset firstInstance = refSopSequence.Items[0];
+
+        // expect a comment sequence present
+        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
+
+        // expect comment sequence is empty as there were no errors
+        Assert.Empty(commentSequence);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

@@ -219,7 +219,7 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode);
+            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, _enableDropInvalidDicomJsonMetadata);
             return length;
         }
         catch (Exception ex)

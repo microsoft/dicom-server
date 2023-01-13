@@ -19,7 +19,6 @@ public class StoreResponseBuilderTests
 {
     private readonly IUrlResolver _urlResolver = new MockUrlResolver();
     private readonly StoreResponseBuilder _storeResponseBuilder;
-    private readonly StoreResponseBuilder _storeResponseBuilderDropData;
     private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
@@ -39,10 +38,6 @@ public class StoreResponseBuilderTests
     {
         _storeResponseBuilder = new StoreResponseBuilder(
             _urlResolver);
-
-        _storeResponseBuilderDropData = new StoreResponseBuilder(
-            _urlResolver,
-            enableDropInvalidDicomJsonMetadata: true);
     }
 
     [Theory]
@@ -77,9 +72,9 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenBuilderHadNoErrors_WhenDropMetadataEnabled_ThenResponseHasEmptyCommentSequence()
     {
-        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
-        StoreResponse response = _storeResponseBuilderDropData.BuildResponse(null);
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
         Assert.Equal(StoreResponseStatus.Success, response.Status);
         Assert.Single(response.Dataset);
@@ -117,9 +112,9 @@ public class StoreResponseBuilderTests
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"));
         StoreValidationResult storeValidationResult = builder.Build();
-        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, storeValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
-        StoreResponse response = _storeResponseBuilderDropData.BuildResponse(null);
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
         Assert.Equal(StoreResponseStatus.Success, response.Status);
         Assert.Single(response.Dataset);
@@ -146,12 +141,12 @@ public class StoreResponseBuilderTests
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"));
         StoreValidationResult storeValidationResult = builder.Build();
-        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, storeValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
         //simulate validation pass
-        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
-        StoreResponse response = _storeResponseBuilderDropData.BuildResponse(null);
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
         Assert.Equal(StoreResponseStatus.Success, response.Status);
         Assert.NotNull(response.Dataset);
