@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -44,22 +43,22 @@ internal sealed class StoreValidationResultBuilder
             _invalidDicomTags);
     }
 
-    public void Add(Exception ex, QueryTag queryTag = null)
+    public void Add(Exception ex, DicomTag dicomTag = null)
     {
         // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
         _firstException ??= ex;
 
-        _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
+        _errorMessages.Add(GetFormattedText(ex?.Message, dicomTag));
     }
 
-    public void Add(ValidationWarnings warningCode, QueryTag queryTag = null)
+    public void Add(ValidationWarnings warningCode, DicomTag dicomTag = null)
     {
         // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
         _warningCodes |= warningCode;
 
         if (warningCode != ValidationWarnings.None)
         {
-            _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
+            _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), dicomTag));
         }
     }
 
@@ -72,14 +71,14 @@ internal sealed class StoreValidationResultBuilder
         _invalidDicomTags.Add(tag);
     }
 
-    private static string GetFormattedText(string message, QueryTag queryTag = null)
+    private static string GetFormattedText(string message, DicomTag dicomTag = null)
     {
         EnsureArg.IsNotNull(message, nameof(message));
 
-        if (queryTag == null)
+        if (dicomTag == null)
             return message;
 
-        return $"{queryTag} - {message}";
+        return $"{dicomTag} - {message}";
     }
 
     private static string GetWarningMessage(ValidationWarnings warningCode)

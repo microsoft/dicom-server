@@ -62,9 +62,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
 
         // validate input data elements
-        if (_enableFullDicomItemValidation)
+        if (_enableDropInvalidDicomJsonMetadata || _enableFullDicomItemValidation)
         {
-            ValidateAllItems(dicomDataset);
+            ValidateAllItems(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -139,15 +139,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
 
-                validationResultBuilder.Add(validationWarning, queryTag);
+                validationResultBuilder.Add(validationWarning, queryTag.Tag);
             }
             catch (ElementValidationException ex)
             {
-                validationResultBuilder.Add(ex, queryTag);
-                if (_enableDropInvalidDicomJsonMetadata)
-                {
-                    validationResultBuilder.AddInvalidTag(queryTag.Tag);
-                }
+                validationResultBuilder.Add(ex, queryTag.Tag);
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",
@@ -163,7 +159,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private static void ValidateAllItems(DicomDataset dicomDataset)
+    private void ValidateAllItems(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder)
     {
         foreach (DicomItem item in dicomDataset)
         {
@@ -173,10 +171,26 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    ex.Message,
-                    ex);
+                validationResultBuilder.Add(ex, item.Tag);
+                if (_enableDropInvalidDicomJsonMetadata)
+                {
+                    validationResultBuilder.AddInvalidTag(item.Tag);
+                    _telemetryClient
+                        .GetMetric(
+                            "DroppedInvalidTag",
+                            "ExceptionContent",
+                            "TagKeyword",
+                            "VR",
+                            "Tag"
+                            )
+                        .TrackValue(
+                            1,
+                            ex.Content,
+                            item.Tag.DictionaryEntry.Keyword,
+                            item.ValueRepresentation.ToString(),
+                            item.Tag.ToString()
+                            );
+                }
             }
         }
     }
