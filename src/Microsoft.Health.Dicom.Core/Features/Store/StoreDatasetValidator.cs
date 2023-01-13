@@ -153,7 +153,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
 
-
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",

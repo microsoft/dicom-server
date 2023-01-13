@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -29,11 +30,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 /// </summary>
 public class InProcTestDicomWebServer : TestDicomWebServer
 {
-    public InProcTestDicomWebServer(Type startupType, TestServerFeatureSettingType featureSettingType = TestServerFeatureSettingType.None)
+    public InProcTestDicomWebServer(
+        Type startupType,
+        TestServerFeatureSettingType featureSettingType) : this(startupType, new[] { featureSettingType })
+    { }
+    public InProcTestDicomWebServer(Type startupType, TestServerFeatureSettingType[] featureSettingTypes)
         : base(new Uri("http://localhost/"))
     {
-        var enableDataPartitions = (featureSettingType & TestServerFeatureSettingType.DataPartition) == TestServerFeatureSettingType.DataPartition;
-        var enableDropInvalidDicomJsonMetadata = (featureSettingType & TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata) == TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata;
+        var enableDataPartitions = featureSettingTypes.Contains(TestServerFeatureSettingType.DataPartition);
+        var enableDropInvalidDicomJsonMetadata =
+            featureSettingTypes.Contains(TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata);
 
         string contentRoot = GetProjectPath("src", startupType);
 
