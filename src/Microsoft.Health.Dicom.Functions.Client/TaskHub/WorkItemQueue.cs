@@ -11,7 +11,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
-internal sealed class WorkItemQueue
+internal class WorkItemQueue
 {
     private readonly QueueClient _queueClient;
 
@@ -22,7 +22,7 @@ internal sealed class WorkItemQueue
 
     public string Name => _queueClient.Name;
 
-    public async ValueTask<bool> ExistsAsync(CancellationToken cancellationToken = default)
+    public virtual async ValueTask<bool> ExistsAsync(CancellationToken cancellationToken = default)
         => await _queueClient.ExistsAsync(cancellationToken);
 
     // See: https://learn.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names

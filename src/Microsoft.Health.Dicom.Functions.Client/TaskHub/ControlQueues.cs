@@ -14,7 +14,7 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
-internal sealed class ControlQueues
+internal class ControlQueues
 {
     private readonly QueueServiceClient _queueServiceClient;
     private readonly TaskHubInfo _taskHubInfo;
@@ -29,7 +29,7 @@ internal sealed class ControlQueues
         .Range(0, _taskHubInfo.PartitionCount)
         .Select(i => GetName(_taskHubInfo.TaskHubName, i));
 
-    public async ValueTask<bool> ExistAsync(CancellationToken cancellationToken = default)
+    public virtual async ValueTask<bool> ExistAsync(CancellationToken cancellationToken = default)
     {
         foreach (string queue in Names)
         {

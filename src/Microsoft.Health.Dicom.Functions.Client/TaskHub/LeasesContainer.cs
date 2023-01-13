@@ -27,7 +27,7 @@ internal class LeasesContainer
 
     public string Name => _containerClient.Name;
 
-    public async ValueTask<TaskHubInfo> GetTaskHubInfoAsync(CancellationToken cancellationToken = default)
+    public virtual async ValueTask<TaskHubInfo> GetTaskHubInfoAsync(CancellationToken cancellationToken = default)
     {
         BlobClient client = _containerClient.GetBlobClient(TaskHubBlobName);
 

@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Client.HealthChecks;
+using Microsoft.Health.Dicom.Functions.Client.TaskHub;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Newtonsoft.Json;
 
@@ -63,7 +64,8 @@ public static class DicomServerBuilderFunctionClientRegistrationExtensions
         services.TryAddScoped<IDicomOperationsClient, DicomAzureFunctionsClient>();
 
         services.AddAzureClientsCore();
-        services.AddHealthChecks().AddCheck<AzureStorageDurableTaskHealthCheck>("DurableTask");
+        services.TryAddScoped<ITaskHubClient, AzureStorageTaskHubClient>();
+        services.AddHealthChecks().AddCheck<DurableTaskHealthCheck>("DurableTask");
 
         return dicomServerBuilder;
     }
