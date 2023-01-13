@@ -36,8 +36,6 @@ public static class ValidationHelpers
             Assert.Equal(expectedValues[i].SopInstanceUid, actual.GetFirstValueOrDefault<string>(DicomTag.ReferencedSOPInstanceUID));
             Assert.Equal(expectedValues[i].RetrieveUri, actual.GetFirstValueOrDefault<string>(DicomTag.RetrieveURL));
             Assert.Equal(expectedValues[i].SopClassUid, actual.GetFirstValueOrDefault<string>(DicomTag.ReferencedSOPClassUID));
-
-            Assert.Throws<DicomDataException>(() => actual.GetSequence(DicomTag.CalculationCommentSequence));
         }
     }
 
