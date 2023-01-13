@@ -252,7 +252,7 @@ namespace Microsoft.Health.FellowOakDicom.Serialization
 
                     dataset.Add(item);
                 } // When JSON is invalid, skip attempting to parse anything else
-                catch (Exception e) when (e is DicomJsonException)
+                catch (DicomJsonException)
                 {
                     if (_dropDataWhenInvalid)
                     {
