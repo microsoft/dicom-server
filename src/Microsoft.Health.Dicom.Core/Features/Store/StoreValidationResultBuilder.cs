@@ -67,7 +67,7 @@ internal sealed class StoreValidationResultBuilder
     /// Adds a tag to a list representing invalid Dicom items.
     /// </summary>
     /// <param name="tag">Invalid item's tag to add.</param>
-    public void Add(DicomTag tag)
+    public void AddInvalidTag(DicomTag tag)
     {
         _invalidDicomTags.Add(tag);
     }

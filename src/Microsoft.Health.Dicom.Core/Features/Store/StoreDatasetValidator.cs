@@ -146,7 +146,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 validationResultBuilder.Add(ex, queryTag);
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
-                    validationResultBuilder.Add(queryTag.Tag);
+                    validationResultBuilder.AddInvalidTag(queryTag.Tag);
                 }
                 _telemetryClient
                     .GetMetric(
