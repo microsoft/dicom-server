@@ -107,7 +107,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         {
             // add comment Sq / list of warnings here
 
-            var warningList = storeValidationResult.Errors.Select(
+            var warnings = storeValidationResult.Errors.Select(
                     error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
@@ -116,7 +116,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
             var commentSequence = new DicomSequence(
                 DicomTag.CalculationCommentSequence,
-                warningList);
+                warnings);
             referencedSop.Add(commentSequence);
         }
 
