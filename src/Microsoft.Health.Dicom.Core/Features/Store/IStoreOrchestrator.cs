@@ -5,7 +5,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -19,7 +18,6 @@ public interface IStoreOrchestrator
     /// Asynchronously orchestrate the storing of a DICOM instance entry.
     /// </summary>
     /// <param name="dicomInstanceEntry">The DICOM instance entry to store.</param>
-    /// <param name="dicomDataset">Dataset to use to store JSON metadata</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>
     /// A task that represents the asynchronous orchestration of the storing operation.
@@ -27,6 +25,5 @@ public interface IStoreOrchestrator
     /// </returns>
     Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
-        DicomDataset dicomDataset,
         CancellationToken cancellationToken);
 }

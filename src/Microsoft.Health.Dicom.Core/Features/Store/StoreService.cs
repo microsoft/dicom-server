@@ -215,7 +215,6 @@ public class StoreService : IStoreService
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
-                dicomDataset, // this dataset has potentially been modified for metadata storing
                 cancellationToken);
 
             LogSuccessfullyStoredDelegate(_logger, index, null);

@@ -237,7 +237,6 @@ public class DicomStoreServiceTests
             .Received(1)
             .StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
-                dicomDataset,
                 DefaultCancellationToken
             );
     }
@@ -287,7 +286,6 @@ public class DicomStoreServiceTests
             .Received()
             .StoreDicomInstanceEntryAsync(
                 dicomInstanceEntryValid,
-                validDicomDataset,
                 DefaultCancellationToken
             );
 
@@ -297,7 +295,6 @@ public class DicomStoreServiceTests
             .Received()
             .StoreDicomInstanceEntryAsync(
                 dicomInstanceEntryInvalid,
-                invalidDicomDataset,
                 DefaultCancellationToken
             );
     }
@@ -310,7 +307,7 @@ public class DicomStoreServiceTests
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         _storeOrchestrator
-            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, _dicomDataset2, DefaultCancellationToken))
+            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
             .Do(_ => throw new InstanceAlreadyExistsException());
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
@@ -327,7 +324,7 @@ public class DicomStoreServiceTests
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         _storeOrchestrator
-            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, _dicomDataset2, DefaultCancellationToken))
+            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
             .Do(_ => throw new DataStoreException("Simulated failure."));
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
