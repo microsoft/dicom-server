@@ -171,9 +171,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                validationResultBuilder.Add(ex, item.Tag);
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
+                    validationResultBuilder.Add(ex, item.Tag);
                     validationResultBuilder.AddInvalidTag(item.Tag);
                     _telemetryClient
                         .GetMetric(
@@ -190,6 +190,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                             item.ValueRepresentation.ToString(),
                             item.Tag.ToString()
                             );
+                }
+                else
+                {
+                    throw new DatasetValidationException(
+                        FailureReasonCodes.ValidationFailure,
+                        ex.Message,
+                        ex);
                 }
             }
         }
