@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
@@ -20,6 +21,7 @@ public class StoreResponseBuilderTests
 {
     private readonly IUrlResolver _urlResolver = new MockUrlResolver();
     private readonly StoreResponseBuilder _storeResponseBuilder;
+    private readonly StoreResponseBuilder _storeResponseBuilderDropData;
     private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
@@ -34,12 +36,16 @@ public class StoreResponseBuilderTests
         sopInstanceUid: "12",
         sopClassUid: "13");
 
-    private readonly IOptions<FeatureConfiguration> _options;
 
     public StoreResponseBuilderTests()
     {
-        _options = Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false });
-        _storeResponseBuilder = new StoreResponseBuilder(_urlResolver, _options);
+        _storeResponseBuilder = new StoreResponseBuilder(
+            _urlResolver,
+            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
+
+        _storeResponseBuilderDropData = new StoreResponseBuilder(
+            _urlResolver,
+            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true }));
     }
 
     [Theory]
@@ -72,6 +78,24 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
+    public void GivenBuilderHadNoErrors_WhenDropMetadataEnabled_ThenResponseHasEmptyCommentSequence()
+    {
+        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+
+        StoreResponse response = _storeResponseBuilderDropData.BuildResponse(null);
+
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Single(response.Dataset);
+
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+        DicomDataset ds = refSopSequence.Items[0];
+
+        DicomSequence commentSequence = ds.GetSequence(DicomTag.CalculationCommentSequence);
+        Assert.Empty(commentSequence);
+    }
+
+    [Fact]
     public void GivenOnlyFailedEntry_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
         const ushort failureReasonCode = 100;
@@ -88,6 +112,69 @@ public class StoreResponseBuilderTests
         ValidationHelpers.ValidateFailedSopSequence(
             response.Dataset,
             ("12", "13", failureReasonCode));
+    }
+
+    [Fact]
+    public void GivenBuilderHasErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyCommentSequence()
+    {
+        StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
+        builder.Add(new Exception("There was an issue with an attribute"));
+        StoreValidationResult storeValidationResult = builder.Build();
+        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, storeValidationResult);
+
+        StoreResponse response = _storeResponseBuilderDropData.BuildResponse(null);
+
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Single(response.Dataset);
+
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+        DicomDataset ds = refSopSequence.Items[0];
+
+        DicomSequence commentSequence = ds.GetSequence(DicomTag.CalculationCommentSequence);
+        Assert.Single(commentSequence);
+        // expect comment sequence has single warning about single invalid attribute
+        Assert.Equal(
+            storeValidationResult.Errors.ToArray()[0],
+            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+    }
+
+    [Fact]
+    public void GivenBuildWithAndWithoutErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyCommentSequenceAndEmptyCommentSequence()
+    {
+        // This represents multiple instance being processed where one had a validation failure and the other did not
+
+        // simulate validation failure
+        StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
+        builder.Add(new Exception("There was an issue with an attribute"));
+        StoreValidationResult storeValidationResult = builder.Build();
+        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, storeValidationResult);
+
+        //simulate validation pass
+        _storeResponseBuilderDropData.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+
+        StoreResponse response = _storeResponseBuilderDropData.BuildResponse(null);
+
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.NotNull(response.Dataset);
+
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Equal(2, refSopSequence.Items.Count);
+
+        // invalid instance section has error in CalculationCommentSequence
+        DicomDataset invalidInstanceResponse = refSopSequence.Items[0];
+        DicomSequence commentSequence = invalidInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence);
+        Assert.Single(commentSequence);
+        // expect comment sequence has single warning about single invalid attribute
+        Assert.Equal(
+            storeValidationResult.Errors.ToArray()[0],
+            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+
+        // valid instance section has an empty CalculationCommentSequence as there were no errors
+        DicomDataset validInstanceResponse = refSopSequence.Items[1];
+        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence));
     }
 
     [Fact]
