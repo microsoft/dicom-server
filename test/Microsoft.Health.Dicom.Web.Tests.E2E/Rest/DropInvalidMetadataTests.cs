@@ -22,6 +22,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
 {
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
+    private readonly string _partition = TestUidGenerator.Generate();
 
     public DropInvalidMetadataTests(EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup> fixture)
     {
@@ -45,7 +46,9 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        await _instancesManager.StoreAsync(new[] { dicomFile });
+        await _instancesManager.StoreAsync(
+            new[] { dicomFile },
+            partitionName: _partition);
 
         // assert
 
@@ -53,7 +56,8 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID),
-            dicomTransferSyntax: "*");
+            dicomTransferSyntax: "*",
+            partitionName: _partition);
 
         DicomFile retrievedDicomFile = await retrievedInstance.GetValueAsync();
 
@@ -63,27 +67,13 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             retrievedDicomFile.Dataset.GetString(DicomTag.PatientBirthDate)
         );
 
-        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
+        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile, _partition);
 
         // expect valid data stored in metadata/JSON
         retrievedMetadata.GetString(DicomTag.PatientBirthDate);
 
         // valid searchable index attr was stored, so we can query for instance using the valid attr
         Assert.Single(await GetInstanceByAttribute(dicomFile, DicomTag.PatientBirthDate));
-    }
-
-    private async Task<IEnumerable<DicomDataset>> GetInstanceByAttribute(DicomFile dicomFile, DicomTag searchTag)
-    {
-        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync(
-            $"{searchTag.DictionaryEntry.Keyword}={dicomFile.Dataset.GetString(searchTag)}"
-        );
-        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
-        DicomDataset[] datasets = await response.ToArrayAsync();
-
-        IEnumerable<DicomDataset> matchedInstances = datasets.Where(
-            ds =>
-                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
-        return matchedInstances;
     }
 
     [Fact]
@@ -100,7 +90,9 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        await _instancesManager.StoreAsync(new[] { dicomFile });
+        await _instancesManager.StoreAsync(
+            new[] { dicomFile },
+            partitionName: _partition);
 
         // assert
 
@@ -108,7 +100,8 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID),
-            dicomTransferSyntax: "*");
+            dicomTransferSyntax: "*",
+            partitionName: _partition);
 
         DicomFile retrievedDicomFile = await retrievedInstance.GetValueAsync();
 
@@ -118,7 +111,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             retrievedDicomFile.Dataset.GetString(DicomTag.StudyDate)
             );
 
-        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
+        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile, _partition);
 
         // expect that metadata invalid date not present
         DicomDataException thrownException = Assert.Throws<DicomDataException>(
@@ -149,7 +142,10 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
+            new[] { dicomFile },
+            partitionName: _partition);
+
         DicomDataset responseDataset = await response.GetValueAsync();
 
         // assert
@@ -183,7 +179,9 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
+            new[] { dicomFile },
+            partitionName: _partition);
         DicomDataset responseDataset = await response.GetValueAsync();
 
         // assert
@@ -226,7 +224,9 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         dicomFile2.Dataset.Add(dicomDataset);
 
         // run
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
+            new[] { dicomFile1, dicomFile2 },
+            partitionName: _partition);
         DicomDataset responseDataset = await response.GetValueAsync();
 
         // assert
@@ -265,7 +265,9 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
+            new[] { dicomFile },
+            partitionName: _partition);
         DicomDataset responseDataset = await response.GetValueAsync();
 
         // assert
@@ -274,8 +276,8 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             response,
             ResponseHelper.ConvertToReferencedSopSequenceEntry(
                 _client,
-                dicomFile.Dataset
-                )
+                dicomFile.Dataset,
+                _partition)
             );
     }
 
@@ -294,6 +296,21 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             sopInstanceUid: TestUidGenerator.Generate()
         );
         return dicomFile;
+    }
+
+    private async Task<IEnumerable<DicomDataset>> GetInstanceByAttribute(DicomFile dicomFile, DicomTag searchTag)
+    {
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync(
+            $"{searchTag.DictionaryEntry.Keyword}={dicomFile.Dataset.GetString(searchTag)}",
+            partitionName: _partition
+        );
+        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+        DicomDataset[] datasets = await response.ToArrayAsync();
+
+        IEnumerable<DicomDataset> matchedInstances = datasets.Where(
+            ds =>
+                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+        return matchedInstances;
     }
 
 }

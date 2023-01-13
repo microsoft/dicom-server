@@ -16,12 +16,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 public static class ResponseHelper
 {
-    internal static async Task<DicomDataset> GetMetadata(IDicomWebClient client, DicomFile dicomFile)
+    internal static async Task<DicomDataset> GetMetadata(IDicomWebClient client, DicomFile dicomFile, string partition = null)
     {
         using DicomWebAsyncEnumerableResponse<DicomDataset> response =
             await client
                 .RetrieveStudyMetadataAsync(
-                    dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID)
+                    dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
+                    partitionName: partition
                 );
 
         DicomDataset[] datasets = await response.ToArrayAsync();
@@ -34,18 +35,32 @@ public static class ResponseHelper
 
     internal static (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(
         IDicomWebClient client,
-        DicomDataset dicomDataset)
+        DicomDataset dicomDataset,
+        string partition = null)
     {
         string studyInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
         string seriesInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-        string relativeUri = $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+        string relativeUri = GetUrl(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             new Uri(client.HttpClient.BaseAddress, relativeUri).ToString(),
             dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
     }
+
+    private static string GetUrl(string partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    {
+        if (partition != null)
+        {
+            return $"{DicomApiVersions.Latest}/partitions/{partition}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+        }
+        else
+        {
+            return $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+        }
+    }
+
     internal static async Task ValidateReferencedSopSequenceAsync(DicomWebResponse<DicomDataset> response, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
     {
         Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);

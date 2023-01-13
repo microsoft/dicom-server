@@ -11,13 +11,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 public class TestDicomWebServerFactory
 {
-    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, TestServerFeatureSettingType featureSettingType)
+    public static TestDicomWebServer GetTestDicomWebServer(Type startupType, TestServerFeatureSettingType[] featureSettingTypes)
     {
         Uri environmentUrl = GetDicomServerUrl();
 
         if (environmentUrl == null)
         {
-            return new InProcTestDicomWebServer(startupType, featureSettingType);
+            return new InProcTestDicomWebServer(startupType, featureSettingTypes);
         }
         else if (!environmentUrl.IsAbsoluteUri)
         {
