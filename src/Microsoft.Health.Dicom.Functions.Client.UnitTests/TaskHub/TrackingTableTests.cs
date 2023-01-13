@@ -30,7 +30,7 @@ public abstract class TrackingTableTests
         IAsyncEnumerator<TableEntity> asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
 
         tableServiceClient.GetTableClient(tableName).Returns(tableClient);
-        tableClient.QueryAsync<TableEntity>("false", 1, null, tokenSource.Token).Returns(asyncPageable);
+        tableClient.QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token).Returns(asyncPageable);
         asyncPageable.GetAsyncEnumerator(tokenSource.Token).Returns(asyncEnumerator);
         asyncEnumerator
             .MoveNextAsync(tokenSource.Token)
@@ -40,7 +40,7 @@ public abstract class TrackingTableTests
         Assert.False(await ExistsAsync(tableServiceClient, TaskHubName, tokenSource.Token));
 
         tableServiceClient.Received(1).GetTableClient(tableName);
-        tableClient.Received(1).QueryAsync<TableEntity>("false", 1, null, tokenSource.Token);
+        tableClient.Received(1).QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token);
         asyncPageable.Received(1).GetAsyncEnumerator(tokenSource.Token);
         await asyncEnumerator.Received(1).MoveNextAsync(tokenSource.Token);
     }
@@ -59,7 +59,7 @@ public abstract class TrackingTableTests
         IAsyncEnumerator<TableEntity> asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
 
         tableServiceClient.GetTableClient(tableName).Returns(tableClient);
-        tableClient.QueryAsync<TableEntity>("false", 1, null, tokenSource.Token).Returns(asyncPageable);
+        tableClient.QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token).Returns(asyncPageable);
         asyncPageable.GetAsyncEnumerator(tokenSource.Token).Returns(asyncEnumerator);
         asyncEnumerator
             .MoveNextAsync(tokenSource.Token)
@@ -69,7 +69,7 @@ public abstract class TrackingTableTests
         Assert.True(await ExistsAsync(tableServiceClient, TaskHubName, tokenSource.Token));
 
         tableServiceClient.Received(1).GetTableClient(tableName);
-        tableClient.Received(1).QueryAsync<TableEntity>("false", 1, null, tokenSource.Token);
+        tableClient.Received(1).QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token);
         asyncPageable.Received(1).GetAsyncEnumerator(tokenSource.Token);
         await asyncEnumerator.Received(1).MoveNextAsync(tokenSource.Token);
     }

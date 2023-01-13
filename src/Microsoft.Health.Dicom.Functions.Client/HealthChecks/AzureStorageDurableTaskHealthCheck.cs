@@ -38,9 +38,21 @@ internal sealed class AzureStorageDurableTaskHealthCheck : IHealthCheck
 
         IConfigurationSection connectionSection = EnsureArg.IsNotNull(connectionInfoProvider, nameof(connectionInfoProvider)).Resolve(clientOptions.ConnectionName);
         TokenCredential credential = connectionSection.Value is null ? factory.CreateTokenCredential(connectionSection) : null;
-        _blobServiceClient = factory.CreateClient(typeof(BlobServiceClient), connectionSection, credential, null) as BlobServiceClient;
-        _queueServiceClient = factory.CreateClient(typeof(QueueServiceClient), connectionSection, credential, null) as QueueServiceClient;
-        _tableServiceClient = factory.CreateClient(typeof(TableServiceClient), connectionSection, credential, null) as TableServiceClient;
+        _blobServiceClient = factory.CreateClient(
+            typeof(BlobServiceClient),
+            connectionSection,
+            credential,
+            factory.CreateClientOptions(typeof(BlobClientOptions), null, connectionSection)) as BlobServiceClient;
+        _queueServiceClient = factory.CreateClient(
+            typeof(QueueServiceClient),
+            connectionSection,
+            credential,
+            factory.CreateClientOptions(typeof(QueueClientOptions), null, connectionSection)) as QueueServiceClient;
+        _tableServiceClient = factory.CreateClient(
+            typeof(TableServiceClient),
+            connectionSection,
+            credential,
+            factory.CreateClientOptions(typeof(TableClientOptions), null, connectionSection)) as TableServiceClient;
 
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }

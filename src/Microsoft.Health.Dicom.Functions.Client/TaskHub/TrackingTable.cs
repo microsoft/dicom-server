@@ -25,7 +25,7 @@ internal abstract class TrackingTable
     {
         // Note: There is no ExistsAsync method for TableClient, so instead we'll run a query that returns no elements instead
         AsyncPageable<TableEntity> pageable = _tableClient.QueryAsync<TableEntity>(
-            filter: "false",
+            filter: "Partition eq null", // PartitionKey can never be null
             maxPerPage: 1,
             cancellationToken: cancellationToken);
 

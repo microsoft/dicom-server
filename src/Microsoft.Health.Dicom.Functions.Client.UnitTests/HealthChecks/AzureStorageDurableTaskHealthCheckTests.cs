@@ -45,13 +45,21 @@ public class AzureStorageDurableTaskHealthCheckTests
         TokenCredential tokenCredential = Substitute.For<TokenCredential>();
         AzureComponentFactory azureComponentFactory = Substitute.For<AzureComponentFactory>();
         IConnectionInfoResolver connectionInfoResolver = Substitute.For<IConnectionInfoResolver>();
+        var blobClientOptions = new BlobClientOptions();
+        var queueClientOptions = new QueueClientOptions();
+        var tableClientOptions = new TableClientOptions();
 
         section.Value.Returns((string)null);
         connectionInfoResolver.Resolve("AzureWebJobsStorage").Returns(section);
         azureComponentFactory.CreateTokenCredential(section).Returns(tokenCredential);
-        azureComponentFactory.CreateClient(typeof(BlobServiceClient), section, tokenCredential, null).Returns(_blobServiceClient);
-        azureComponentFactory.CreateClient(typeof(QueueServiceClient), section, tokenCredential, null).Returns(_queueServiceClient);
-        azureComponentFactory.CreateClient(typeof(TableServiceClient), section, tokenCredential, null).Returns(_tableServiceClient);
+
+        azureComponentFactory.CreateClientOptions(typeof(BlobClientOptions), null, section).Returns(blobClientOptions);
+        azureComponentFactory.CreateClientOptions(typeof(QueueClientOptions), null, section).Returns(queueClientOptions);
+        azureComponentFactory.CreateClientOptions(typeof(TableClientOptions), null, section).Returns(tableClientOptions);
+
+        azureComponentFactory.CreateClient(typeof(BlobServiceClient), section, tokenCredential, blobClientOptions).Returns(_blobServiceClient);
+        azureComponentFactory.CreateClient(typeof(QueueServiceClient), section, tokenCredential, queueClientOptions).Returns(_queueServiceClient);
+        azureComponentFactory.CreateClient(typeof(TableServiceClient), section, tokenCredential, tableClientOptions).Returns(_tableServiceClient);
 
         _healthCheck = new AzureStorageDurableTaskHealthCheck(
             azureComponentFactory,
@@ -221,7 +229,7 @@ public class AzureStorageDurableTaskHealthCheckTests
         IAsyncEnumerator<TableEntity> asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
         AsyncPageable<TableEntity> asyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
         _tableServiceClient.GetTableClient(tableName).Returns(tableClient);
-        tableClient.QueryAsync<TableEntity>("false", 1, null, token).Returns(asyncPageable);
+        tableClient.QueryAsync<TableEntity>("Partition eq null", 1, null, token).Returns(asyncPageable);
         asyncPageable.GetAsyncEnumerator(token).Returns(asyncEnumerator);
 
         if (healthy)
@@ -238,7 +246,7 @@ public class AzureStorageDurableTaskHealthCheckTests
         return new AsyncAssertionScope(async () =>
         {
             _tableServiceClient.Received(1).GetTableClient(tableName);
-            tableClient.Received(1).QueryAsync<TableEntity>("false", 1, null, token);
+            tableClient.Received(1).QueryAsync<TableEntity>("Partition eq null", 1, null, token);
             asyncPageable.Received(1).GetAsyncEnumerator(token);
             await asyncEnumerator.Received(1).MoveNextAsync(token);
         });
