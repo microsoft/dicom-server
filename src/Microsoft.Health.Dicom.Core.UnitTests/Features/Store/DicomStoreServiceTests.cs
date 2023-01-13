@@ -243,6 +243,66 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
+    public async Task GivenMultipleInstancesAndOneHasInvalidAttr_WhenDropDataEnabled_ThenSucceedsWithErrorsInCommentsSequenceForOneButNotTheOther()
+    {
+        // setup
+        IDicomInstanceEntry dicomInstanceEntryValid = Substitute.For<IDicomInstanceEntry>();
+        DicomDataset validDicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomInstanceEntryValid.GetDicomDatasetAsync(DefaultCancellationToken).Returns(validDicomDataset);
+
+        IDicomInstanceEntry dicomInstanceEntryInvalid = Substitute.For<IDicomInstanceEntry>();
+        DicomDataset invalidDicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        invalidDicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
+        dicomInstanceEntryInvalid.GetDicomDatasetAsync(DefaultCancellationToken).Returns(invalidDicomDataset);
+
+        // call
+        StoreResponse response = await _storeServiceDropData.ProcessAsync(
+            new[] { dicomInstanceEntryValid, dicomInstanceEntryInvalid },
+            null,
+            cancellationToken: DefaultCancellationToken);
+
+        // assert response was successful
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Null(response.Warning);
+
+        // expect a two refSop sequences, one for each instance
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Equal(2, refSopSequence.Items.Count);
+
+        // first was valid, expect a comment sequence present, but empty value
+        DicomDataset validInstanceResponse = refSopSequence.Items[0];
+        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence));
+
+        // second was invalid, expect a comment sequence present, and not empty value
+        DicomDataset invalidInstanceResponse = refSopSequence.Items[1];
+        DicomSequence invalidCommentSequence = invalidInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence);
+        // expect comment sequence has single warning about single invalid attribute
+        Assert.Equal(
+            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
+            invalidCommentSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+
+        //expect that we stored both instances
+        await _storeOrchestrator
+            .Received()
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntryValid,
+                validDicomDataset,
+                DefaultCancellationToken
+            );
+
+        // expect that what we attempt to store has invalid attrs dropped for invalid instance
+        Assert.Throws<DicomDataException>(() => invalidDicomDataset.GetString(DicomTag.StudyDate));
+        await _storeOrchestrator
+            .Received()
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntryInvalid,
+                invalidDicomDataset,
+                DefaultCancellationToken
+            );
+    }
+
+    [Fact]
     public async Task GivenADicomInstanceAlreadyExistsExceptionWithConflictWhenStoring_WhenProcessed_ThenFailedEntryShouldBeAddedWithSopInstanceAlreadyExists()
     {
         IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
