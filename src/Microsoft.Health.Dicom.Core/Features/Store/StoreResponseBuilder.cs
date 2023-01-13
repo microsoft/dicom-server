@@ -107,7 +107,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         {
             // add comment Sq / list of warnings here
 
-            var warningList = storeValidationResult.Errors.Select(
+            var warningList = storeValidationResult.InvalidTagErrors.Values.Select(
                     error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
@@ -124,7 +124,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
+    public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode, StoreValidationResult storeValidationResult = null)
     {
         CreateDatasetIfNeeded();
 
@@ -146,13 +146,26 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         failedSop.AutoValidate = false;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        failedSop.AddValueIfNotNull(
-            DicomTag.ReferencedSOPClassUID,
-            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
+        if (storeValidationResult != null)
+        {
+            foreach (ErrorTag errorTag in storeValidationResult.InvalidTagErrors.Keys)
+            {
+                failedSop.AddOrUpdate(
+                    errorTag.DicomTag,
+                    storeValidationResult.InvalidTagErrors[errorTag]);
+            }
+        }
+        else
+        {
+            // Keeping the existing as it is
+            failedSop.AddValueIfNotNull(
+               DicomTag.ReferencedSOPClassUID,
+               dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
 
-        failedSop.AddValueIfNotNull(
-            DicomTag.ReferencedSOPInstanceUID,
-            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+            failedSop.AddValueIfNotNull(
+                DicomTag.ReferencedSOPInstanceUID,
+                dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+        }
 
         failedSopSequence.Items.Add(failedSop);
     }

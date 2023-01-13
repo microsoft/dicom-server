@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -143,7 +144,7 @@ public class StoreService : IStoreService
 
         ushort? warningReasonCode = null;
         DicomDataset dicomDataset = null;
-        StoreValidationResult storeValidatorResult;
+        StoreValidationResult storeValidatorResult = null;
 
         try
         {
@@ -174,6 +175,22 @@ public class StoreService : IStoreService
             {
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
+
+            // If there is an error in the core tag, return immediately
+            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Key.IsCoreTag) || !_enableDropInvalidDicomJsonMetadata)
+            {
+                ushort failureCode = FailureReasonCodes.ValidationFailure;
+                _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                return null;
+            }
+            else
+            {
+                // drop invalid metadata
+                foreach (ErrorTag tag in storeValidatorResult.InvalidTagErrors.Keys)
+                {
+                    dicomDataset.Remove(tag.DicomTag);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -196,22 +213,12 @@ public class StoreService : IStoreService
 
             LogValidationFailedDelegate(_logger, index, failureCode, ex);
 
-            _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
+            _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
             return null;
         }
 
         try
         {
-
-            if (_enableDropInvalidDicomJsonMetadata)
-            {
-                // drop invalid metadata
-                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
-                {
-                    dicomDataset.Remove(tag);
-                }
-            }
-
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,

@@ -59,12 +59,19 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         var validationResultBuilder = new StoreValidationResultBuilder();
 
-        ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+        try
+        {
+            ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+        }
+        catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
+        {
+            validationResultBuilder.Add(ex, ex.DicomTag);
+        }
 
         // validate input data elements
         if (_enableFullDicomItemValidation)
         {
-            ValidateAllItems(dicomDataset);
+            ValidateAllItems(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -106,8 +113,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             !studyInstanceUid.TrimEnd().Equals(requiredStudyInstanceUid.TrimEnd(), StringComparison.OrdinalIgnoreCase))
         {
             throw new DatasetValidationException(
-                FailureReasonCodes.MismatchStudyInstanceUid,
-                DicomCoreResource.MismatchStudyInstanceUid);
+                FailureReasonCodes.ValidationFailure,
+                DicomCoreResource.MismatchStudyInstanceUid,
+                DicomTag.StudyInstanceUID);
         }
 
         string EnsureRequiredTagIsPresent(DicomTag dicomTag)
@@ -122,7 +130,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 string.Format(
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.MissingRequiredTag,
-                    dicomTag.ToString()));
+                    dicomTag.ToString()), dicomTag);
         }
     }
 
@@ -139,15 +147,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
 
-                validationResultBuilder.Add(validationWarning, queryTag);
+                validationResultBuilder.Add(validationWarning, queryTag.Tag);
             }
             catch (ElementValidationException ex)
             {
-                validationResultBuilder.Add(ex, queryTag);
-                if (_enableDropInvalidDicomJsonMetadata)
-                {
-                    validationResultBuilder.Add(queryTag.Tag);
-                }
+                validationResultBuilder.Add(ex, queryTag.Tag);
+
+
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",
@@ -163,7 +169,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private static void ValidateAllItems(DicomDataset dicomDataset)
+    private static void ValidateAllItems(DicomDataset dicomDataset, StoreValidationResultBuilder validationResultBuilder)
     {
         foreach (DicomItem item in dicomDataset)
         {
@@ -173,10 +179,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    ex.Message,
-                    ex);
+                validationResultBuilder.Add(ex, item.Tag);
             }
         }
     }
