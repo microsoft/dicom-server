@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V27
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -286,9 +286,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BitColumn HasFrameMetadata = new BitColumn("HasFrameMetadata");
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
             internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey");
-            internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_Instance_StudyInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_Status_PartitionKey");
+            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey");
+            internal readonly Index IX_Instance_SopInstanceUid_Status_PartitionKey = new Index("IX_Instance_SopInstanceUid_Status_PartitionKey");
             internal readonly Index IX_Instance_Watermark_Status = new Index("IX_Instance_Watermark_Status");
-            internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_SeriesKey = new Index("IX_Instance_PartitionKey_Status_StudyKey_SeriesKey");
+            internal readonly Index IX_Instance_SeriesKey_Status_Watermark = new Index("IX_Instance_SeriesKey_Status_Watermark");
+            internal readonly Index IX_Instance_StudyKey_Status_Watermark = new Index("IX_Instance_StudyKey_Status_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Watermark = new Index("IX_Instance_PartitionKey_Watermark");
         }
 
@@ -319,7 +322,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableNVarCharColumn ManufacturerModelName = new NullableNVarCharColumn("ManufacturerModelName", 64);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Series = new Index("IXC_Series");
-            internal readonly Index IX_Series_PartitionKey_StudyKey_SeriesInstanceUid = new Index("IX_Series_PartitionKey_StudyKey_SeriesInstanceUid");
+            internal readonly Index IX_Series_SeriesKey = new Index("IX_Series_SeriesKey");
             internal readonly Index IX_Series_SeriesInstanceUid_PartitionKey = new Index("IX_Series_SeriesInstanceUid_PartitionKey");
             internal readonly Index IX_Series_Modality_PartitionKey = new Index("IX_Series_Modality_PartitionKey");
             internal readonly Index IX_Series_PerformedProcedureStepStartDate_PartitionKey = new Index("IX_Series_PerformedProcedureStepStartDate_PartitionKey");
@@ -346,7 +349,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Study = new Index("IXC_Study");
             internal readonly Index IX_Study_StudyKey = new Index("IX_Study_StudyKey");
-            internal readonly Index IX_Study_PartitionKey_StudyInstanceUid = new Index("IX_Study_PartitionKey_StudyInstanceUid");
+            internal readonly Index IX_Study_StudyInstanceUid_PartitionKey = new Index("IX_Study_StudyInstanceUid_PartitionKey");
             internal readonly Index IX_Study_PatientId_PartitionKey = new Index("IX_Study_PatientId_PartitionKey");
             internal readonly Index IX_Study_PatientName_PartitionKey = new Index("IX_Study_PatientName_PartitionKey");
             internal readonly Index IX_Study_ReferringPhysicianName_PartitionKey = new Index("IX_Study_ReferringPhysicianName_PartitionKey");

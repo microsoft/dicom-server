@@ -30,11 +30,11 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyKey ON dbo.Study
     StudyKey
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in AddInstance; we place PartitionKey second because we assume conflicting StudyInstanceUid will be rare
-CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid_PartitionKey ON dbo.Study
+-- Used in AddInstance/STOW
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
 (
-    StudyInstanceUid,
-    PartitionKey
+    PartitionKey,
+    StudyInstanceUid
 )
 INCLUDE
 (
