@@ -43,7 +43,6 @@ SELECT  se.SeriesInstanceUid,
 FROM dbo.Series se')
 GO
 
-
 CREATE OR ALTER PROCEDURE dbo.AddInstanceV6
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
@@ -217,6 +216,7 @@ BEGIN
 
     END CATCH
 END
+GO
 
 COMMIT TRANSACTION
 
@@ -239,7 +239,7 @@ BEGIN
     (
         StudyKey
     )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 END
 
 IF EXISTS 
@@ -258,7 +258,7 @@ BEGIN
         StudyKey,
         SeriesInstanceUid
     )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 END
 
 IF EXISTS 
@@ -304,7 +304,7 @@ BEGIN
         Watermark,
         TransferSyntaxUid
     )
-    WITH (DATA_COMPRESSION = PAGE)
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 END
 
 IF EXISTS 
@@ -331,7 +331,7 @@ BEGIN
         SeriesInstanceUid,
         SopInstanceUid  
     )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
     (
@@ -347,6 +347,6 @@ BEGIN
         SeriesInstanceUid,
         SopInstanceUid  
     )
-    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 END
 
