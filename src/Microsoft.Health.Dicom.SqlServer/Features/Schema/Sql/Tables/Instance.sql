@@ -113,7 +113,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in Study/Series views
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
 (
     PartitionKey,
     Watermark

@@ -308,9 +308,13 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
     ON dbo.Instance(Watermark, Status)
     INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey
-    ON dbo.Instance(PartitionKey, Status, StudyKey, SeriesKey)
-    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark
+    ON dbo.Instance(PartitionKey, Status, StudyKey, Watermark)
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark
+    ON dbo.Instance(PartitionKey, Status, StudyKey, SeriesKey, Watermark)
+    INCLUDE(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark
     ON dbo.Instance(PartitionKey, Watermark)
