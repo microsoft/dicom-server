@@ -219,6 +219,16 @@ public class StoreService : IStoreService
 
         try
         {
+
+            if (_enableDropInvalidDicomJsonMetadata)
+            {
+                // drop invalid metadata
+                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
+                {
+                    dicomDataset.Remove(tag);
+                }
+            }
+
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
@@ -227,7 +237,7 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode);
+            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, _enableDropInvalidDicomJsonMetadata);
             return length;
         }
         catch (Exception ex)

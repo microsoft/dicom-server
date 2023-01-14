@@ -27,8 +27,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     private string _message;
 
     public StoreResponseBuilder(
-        IUrlResolver urlResolver,
-        IOptions<FeatureConfiguration> featureConfiguration
+        IUrlResolver urlResolver
         )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
@@ -73,7 +72,8 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     /// <inheritdoc />
     public void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
-        ushort? warningReasonCode = null)
+        ushort? warningReasonCode = null,
+        bool enableDropInvalidDicomJsonMetadata = false)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(storeValidationResult, nameof(storeValidationResult));
@@ -96,7 +96,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
-        if (!_enableDropInvalidDicomJsonMetadata)
+        if (!enableDropInvalidDicomJsonMetadata)
         {
             if (warningReasonCode.HasValue)
             {
@@ -114,10 +114,10 @@ public class StoreResponseBuilder : IStoreResponseBuilder
                             error.Item1)))
                 .ToArray();
 
-            var commentSequence = new DicomSequence(
-                DicomTag.CalculationCommentSequence,
+            var failedSequence = new DicomSequence(
+                DicomTag.FailedAttributesSequence,
                 warnings);
-            referencedSop.Add(commentSequence);
+            referencedSop.Add(failedSequence);
         }
 
         referencedSopSequence.Items.Add(referencedSop);

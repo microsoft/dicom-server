@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -107,13 +107,36 @@ public class QueryResponseBuilder
 
     public DicomDataset GenerateResponseDataset(DicomDataset dicomDataset)
     {
+        return GenerateResponseDataset(dicomDataset, null);
+    }
+
+    public DicomDataset GenerateResponseDataset(DicomDataset dicomDataset, DicomDataset mergeDataset)
+    {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
         dicomDataset.Remove(di => !_tagsToReturn.Any(
             t => t.Group == di.Tag.Group &&
             t.Element == di.Tag.Element));
 
+        if (mergeDataset != null)
+        {
+            foreach (DicomTag tag in _tagsToReturn)
+            {
+                if (mergeDataset.Contains(tag))
+                {
+                    dicomDataset.AddOrUpdate(mergeDataset.GetDicomItem<DicomElement>(tag));
+                }
+            }
+        }
         return dicomDataset;
+    }
+
+    public IReadOnlyCollection<DicomTag> ReturnTags
+    {
+        get
+        {
+            return _tagsToReturn;
+        }
     }
 
     private void Initialize(QueryExpression queryExpression)

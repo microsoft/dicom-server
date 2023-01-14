@@ -26,9 +26,11 @@ public interface IStoreResponseBuilder
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
     /// <param name="storeValidationResult"></param>
     /// <param name="warningReasonCode">The warning reason code.</param>
+    /// <param name="enableDropInvalidDicomJsonMetadata">Whether to build response warning sequence or not.</param>
     void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
-        ushort? warningReasonCode = null);
+        ushort? warningReasonCode = null,
+        bool enableDropInvalidDicomJsonMetadata = false);
 
     void SetWarningMessage(string message);
 

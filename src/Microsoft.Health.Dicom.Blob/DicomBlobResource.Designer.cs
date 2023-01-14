@@ -10,6 +10,7 @@
 
 namespace Microsoft.Health.Dicom.Blob {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.Health.Dicom.Blob {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.Blob.DicomBlobResource", typeof(DicomBlobResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.Blob.DicomBlobResource", typeof(DicomBlobResource).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

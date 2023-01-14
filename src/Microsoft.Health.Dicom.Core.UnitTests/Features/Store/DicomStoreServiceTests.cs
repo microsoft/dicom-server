@@ -81,7 +81,7 @@ public class DicomStoreServiceTests
             new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
 
         _storeServiceDropData = new StoreService(
-            new StoreResponseBuilder(new MockUrlResolver(), featureConfiguration),
+            new StoreResponseBuilder(new MockUrlResolver()),
             CreateStoreDatasetValidatorWithDropDataEnabled(),
             _storeOrchestrator,
             _dicomRequestContextAccessor,
@@ -107,7 +107,7 @@ public class DicomStoreServiceTests
         IStoreDatasetValidator validator = new StoreDatasetValidator(
             Options.Create(new FeatureConfiguration()
             {
-                EnableFullDicomItemValidation = false,
+                EnableFullDicomItemValidation = true,
                 EnableDropInvalidDicomJsonMetadata = true
             }),
             new ElementMinimumValidator(),
@@ -194,7 +194,7 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
-    public async Task GivenAValidationError_WhenDropDataEnabled_ThenSucceedsWithErrorsInCommentsSequence()
+    public async Task GivenAValidationError_WhenDropDataEnabled_ThenSucceedsWithErrorsInFailedAttributesSequence()
     {
         // setup
         IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
@@ -221,13 +221,13 @@ public class DicomStoreServiceTests
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
-        Assert.Single(commentSequence);
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedAttributesSequence);
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
         // expect that what we attempt to store has invalid attrs dropped
@@ -237,13 +237,60 @@ public class DicomStoreServiceTests
             .Received(1)
             .StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
-                dicomDataset,
                 DefaultCancellationToken
             );
     }
 
     [Fact]
-    public async Task GivenMultipleInstancesAndOneHasInvalidAttr_WhenDropDataEnabled_ThenSucceedsWithErrorsInCommentsSequenceForOneButNotTheOther()
+    public async Task GivenAValidationErrorOnNonCoreTag_WhenDropDataEnabledAndFullDicomItemValidationEnabled_ThenSucceedsWithErrorsInFailedAttributesSequence()
+    {
+        // setup
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.ReviewDate, "NotAValidReviewDate");
+
+        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
+
+        // call
+        StoreResponse response = await _storeServiceDropData.ProcessAsync(
+            new[] { dicomInstanceEntry },
+            null,
+            cancellationToken: DefaultCancellationToken);
+
+        // assert response was successful
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Null(response.Warning);
+
+        // expect a single refSop sequence
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        DicomDataset firstInstance = refSopSequence.Items[0];
+
+        // expect a comment sequence present
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedAttributesSequence);
+
+        // expect comment sequence has single warning about single invalid attribute
+        Assert.Equal(
+            """(300e,0004) - ReviewDate - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+
+        // expect that what we attempt to store has invalid attrs dropped
+        Assert.Throws<DicomDataException>(() => dicomDataset.GetString(DicomTag.StudyDate));
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntry,
+                DefaultCancellationToken
+            );
+    }
+
+    [Fact]
+    public async Task GivenMultipleInstancesAndOneHasInvalidAttr_WhenDropDataEnabled_ThenSucceedsWithErrorsInFailedAttributesSequenceForOneButNotTheOther()
     {
         // setup
         IDicomInstanceEntry dicomInstanceEntryValid = Substitute.For<IDicomInstanceEntry>();
@@ -271,15 +318,15 @@ public class DicomStoreServiceTests
 
         // first was valid, expect a comment sequence present, but empty value
         DicomDataset validInstanceResponse = refSopSequence.Items[0];
-        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence));
+        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence));
 
         // second was invalid, expect a comment sequence present, and not empty value
         DicomDataset invalidInstanceResponse = refSopSequence.Items[1];
-        DicomSequence invalidCommentSequence = invalidInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence invalidFailedAttributesSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
-            invalidCommentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            invalidFailedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
         //expect that we stored both instances
@@ -287,7 +334,6 @@ public class DicomStoreServiceTests
             .Received()
             .StoreDicomInstanceEntryAsync(
                 dicomInstanceEntryValid,
-                validDicomDataset,
                 DefaultCancellationToken
             );
 
@@ -297,7 +343,6 @@ public class DicomStoreServiceTests
             .Received()
             .StoreDicomInstanceEntryAsync(
                 dicomInstanceEntryInvalid,
-                invalidDicomDataset,
                 DefaultCancellationToken
             );
     }

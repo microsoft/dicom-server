@@ -64,15 +64,14 @@ public class StoreOrchestrator : IStoreOrchestrator
     /// <inheritdoc />
     public async Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
-        DicomDataset dicomDataset,
         CancellationToken cancellationToken
         )
     {
         EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-        string dicomInstanceIdentifier = (await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken))
-            .ToInstanceIdentifier()
-            .ToString();
+        DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
+
+        string dicomInstanceIdentifier = dicomDataset.ToInstanceIdentifier().ToString();
 
         _logger.LogInformation("Storing a DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 

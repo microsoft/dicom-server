@@ -69,7 +69,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
 
         // validate input data elements
-        if (_enableFullDicomItemValidation)
+        if (_enableDropInvalidDicomJsonMetadata || _enableFullDicomItemValidation)
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
         }
@@ -152,7 +152,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
-
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",
@@ -168,7 +167,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private static void ValidateAllItems(DicomDataset dicomDataset, StoreValidationResultBuilder validationResultBuilder)
+    private void ValidateAllItems(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder)
     {
         foreach (DicomItem item in dicomDataset)
         {
@@ -178,7 +179,29 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                validationResultBuilder.Add(ex, item.Tag);
+                if (_enableDropInvalidDicomJsonMetadata)
+                {
+                    validationResultBuilder.Add(ex, item.Tag);
+                    _telemetryClient
+                        .GetMetric(
+                            "DroppedInvalidTag",
+                            "ExceptionContent",
+                            "TagKeyword",
+                            "VR",
+                            "Tag"
+                            )
+                        .TrackValue(
+                            1,
+                            ex.Content,
+                            item.Tag.DictionaryEntry.Keyword,
+                            item.ValueRepresentation.ToString(),
+                            item.Tag.ToString()
+                            );
+                }
+                else
+                {
+                    validationResultBuilder.Add(ex, item.Tag);
+                }
             }
         }
     }

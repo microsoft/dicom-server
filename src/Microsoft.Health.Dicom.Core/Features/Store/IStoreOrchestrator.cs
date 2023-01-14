@@ -27,6 +27,5 @@ public interface IStoreOrchestrator
     /// </returns>
     Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
-        DicomDataset dicomDataset,
         CancellationToken cancellationToken);
 }
