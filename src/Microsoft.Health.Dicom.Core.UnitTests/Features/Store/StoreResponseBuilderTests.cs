@@ -83,7 +83,7 @@ public class StoreResponseBuilderTests
         Assert.Single(refSopSequence);
         DicomDataset ds = refSopSequence.Items[0];
 
-        DicomSequence commentSequence = ds.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence commentSequence = ds.GetSequence(DicomTag.FailedSOPSequence);
         Assert.Empty(commentSequence);
     }
 
@@ -123,7 +123,7 @@ public class StoreResponseBuilderTests
         Assert.Single(refSopSequence);
         DicomDataset ds = refSopSequence.Items[0];
 
-        DicomSequence commentSequence = ds.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence commentSequence = ds.GetSequence(DicomTag.FailedSOPSequence);
         Assert.Single(commentSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
@@ -154,9 +154,9 @@ public class StoreResponseBuilderTests
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
         Assert.Equal(2, refSopSequence.Items.Count);
 
-        // invalid instance section has error in CalculationCommentSequence
+        // invalid instance section has error in FailedSOPSequence
         DicomDataset invalidInstanceResponse = refSopSequence.Items[0];
-        DicomSequence commentSequence = invalidInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence commentSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedSOPSequence);
         Assert.Single(commentSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
@@ -164,9 +164,9 @@ public class StoreResponseBuilderTests
             commentSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
-        // valid instance section has an empty CalculationCommentSequence as there were no errors
+        // valid instance section has an empty FailedSOPSequence as there were no errors
         DicomDataset validInstanceResponse = refSopSequence.Items[1];
-        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence));
+        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.FailedSOPSequence));
     }
 
     [Fact]

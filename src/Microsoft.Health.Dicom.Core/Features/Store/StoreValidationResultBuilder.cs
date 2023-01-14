@@ -78,7 +78,7 @@ internal sealed class StoreValidationResultBuilder
         if (dicomTag == null)
             return message;
 
-        return $"{dicomTag} - {message}";
+        return $"{dicomTag} - {dicomTag.DictionaryEntry.Keyword} - {message}";
     }
 
     private static string GetWarningMessage(ValidationWarnings warningCode)

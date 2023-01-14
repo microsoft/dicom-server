@@ -155,13 +155,13 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
-        Assert.Single(commentSequence);
+        DicomSequence failedSopSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
+        Assert.Single(failedSopSequence);
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedSopSequence.Items[0].GetString(DicomTag.ErrorComment)
             );
     }
 
@@ -191,20 +191,20 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence failedSopSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
 
         // expect comment sequence has same count of warnings as invalid attributes
-        Assert.Equal(2, commentSequence.Items.Count);
+        Assert.Equal(2, failedSopSequence.Items.Count);
 
         // expect that the two invalid attributes are represented in warnings
         Assert.Equal(
-            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment));
+            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedSopSequence.Items[0].GetString(DicomTag.ErrorComment));
 
         // expect that the two invalid attributes are represented in warnings
         Assert.Equal(
-            "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'PatientBirthDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
-            commentSequence.Items[1].GetString(DicomTag.ErrorComment)
+            """(0010,0030) - PatientBirthDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedSopSequence.Items[1].GetString(DicomTag.ErrorComment)
         );
     }
 
@@ -238,20 +238,20 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         foreach (DicomDataset instance in refSopSequence.Items)
         {
             // expect a comment sequence present
-            DicomSequence commentSequence = instance.GetSequence(DicomTag.CalculationCommentSequence);
+            DicomSequence failedSopSequence = instance.GetSequence(DicomTag.FailedSOPSequence);
 
             // expect comment sequence has same count of warnings as invalid attributes
-            Assert.Single(commentSequence);
+            Assert.Single(failedSopSequence);
 
             // expect that the two invalid attribute is represented in warnings
             Assert.Equal(
-                "Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag.QueryTag - Dicom element 'StudyDate' failed validation for VR 'DA': Value cannot be parsed as a valid date.",
-                commentSequence.Items[0].GetString(DicomTag.ErrorComment));
+                """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+                failedSopSequence.Items[0].GetString(DicomTag.ErrorComment));
         }
     }
 
     [Fact]
-    public async Task GivenInstanceWithAValidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectEmptyCommentSequence()
+    public async Task GivenInstanceWithAValidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectEmptyfailedSopSequence()
     {
         // setup
         DicomFile dicomFile = GenerateDicomFile();
@@ -278,10 +278,10 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence failedSopSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
 
         // expect comment sequence is empty as there were no errors
-        Assert.Empty(commentSequence);
+        Assert.Empty(failedSopSequence);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

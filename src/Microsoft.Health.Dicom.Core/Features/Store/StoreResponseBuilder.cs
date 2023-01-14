@@ -109,10 +109,10 @@ public class StoreResponseBuilder : IStoreResponseBuilder
                             error)))
                 .ToArray();
 
-            var commentSequence = new DicomSequence(
-                DicomTag.CalculationCommentSequence,
+            var failedSopSequence = new DicomSequence(
+                DicomTag.FailedSOPSequence,
                 warnings);
-            referencedSop.Add(commentSequence);
+            referencedSop.Add(failedSopSequence);
         }
 
         referencedSopSequence.Items.Add(referencedSop);

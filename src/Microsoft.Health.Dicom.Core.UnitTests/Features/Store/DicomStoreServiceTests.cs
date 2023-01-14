@@ -221,13 +221,13 @@ public class DicomStoreServiceTests
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
-        Assert.Single(commentSequence);
+        DicomSequence failedSOPSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
+        Assert.Single(failedSOPSequence);
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedSOPSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
         // expect that what we attempt to store has invalid attrs dropped
@@ -269,13 +269,13 @@ public class DicomStoreServiceTests
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence commentSequence = firstInstance.GetSequence(DicomTag.CalculationCommentSequence);
-        Assert.Single(commentSequence);
+        DicomSequence failedSOPSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
+        Assert.Single(failedSOPSequence);
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            """(300e,0004) - ReviewDate - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedSOPSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
         // expect that what we attempt to store has invalid attrs dropped
@@ -318,15 +318,15 @@ public class DicomStoreServiceTests
 
         // first was valid, expect a comment sequence present, but empty value
         DicomDataset validInstanceResponse = refSopSequence.Items[0];
-        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence));
+        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.FailedSOPSequence));
 
         // second was invalid, expect a comment sequence present, and not empty value
         DicomDataset invalidInstanceResponse = refSopSequence.Items[1];
-        DicomSequence invalidCommentSequence = invalidInstanceResponse.GetSequence(DicomTag.CalculationCommentSequence);
+        DicomSequence invalidFailedSOPSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedSOPSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            invalidCommentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            invalidFailedSOPSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
         //expect that we stored both instances
