@@ -17,7 +17,12 @@ namespace Microsoft.Health.Dicom.Tests.Common;
 
 public static class ValidationHelpers
 {
-    public static void ValidateReferencedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
+    public static void ValidateReferencedSopSequence(
+        DicomDataset actualDicomDataset,
+        params (
+            string SopInstanceUid,
+            string RetrieveUri,
+            string SopClassUid)[] expectedValues)
     {
         EnsureArg.IsNotNull(actualDicomDataset, nameof(actualDicomDataset));
         EnsureArg.IsNotNull(expectedValues, nameof(expectedValues));

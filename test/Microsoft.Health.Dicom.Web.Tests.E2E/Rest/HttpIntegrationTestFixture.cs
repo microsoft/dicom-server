@@ -24,9 +24,12 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
         : this(TestServerFeatureSettingType.None)
     { }
 
-    protected HttpIntegrationTestFixture(TestServerFeatureSettingType featureSettingType)
+    protected HttpIntegrationTestFixture(TestServerFeatureSettingType featureSettingType) : this(new[] { featureSettingType })
+    { }
+
+    protected HttpIntegrationTestFixture(TestServerFeatureSettingType[] featureSettingTypes)
     {
-        TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), featureSettingType);
+        TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), featureSettingTypes);
     }
 
     public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
