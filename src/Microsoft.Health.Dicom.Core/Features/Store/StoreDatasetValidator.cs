@@ -65,7 +65,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
         catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
         {
-            validationResultBuilder.Add(ex, ex.DicomTag);
+            validationResultBuilder.Add(ex, ex.DicomTag, isCoreTag: true);
         }
 
         // validate input data elements

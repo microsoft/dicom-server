@@ -177,7 +177,7 @@ public class StoreService : IStoreService
             }
 
             // If there is an error in the core tag, return immediately
-            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Key.IsCoreTag) || !_enableDropInvalidDicomJsonMetadata)
+            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.Item2) || !_enableDropInvalidDicomJsonMetadata)
             {
                 ushort failureCode = FailureReasonCodes.ValidationFailure;
                 _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
@@ -186,9 +186,9 @@ public class StoreService : IStoreService
             else
             {
                 // drop invalid metadata
-                foreach (ErrorTag tag in storeValidatorResult.InvalidTagErrors.Keys)
+                foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
                 {
-                    dicomDataset.Remove(tag.DicomTag);
+                    dicomDataset.Remove(tag);
                 }
             }
         }

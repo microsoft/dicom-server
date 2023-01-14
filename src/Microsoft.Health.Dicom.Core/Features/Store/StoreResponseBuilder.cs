@@ -111,7 +111,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
                     error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
-                            error)))
+                            error.Item1)))
                 .ToArray();
 
             var commentSequence = new DicomSequence(
@@ -146,14 +146,20 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         failedSop.AutoValidate = false;
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        failedSop.AddValueIfNotNull(
+                DicomTag.ReferencedSOPInstanceUID,
+                dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+
         if (storeValidationResult != null)
         {
-            foreach (ErrorTag errorTag in storeValidationResult.InvalidTagErrors.Keys)
-            {
-                failedSop.AddOrUpdate(
-                    errorTag.DicomTag,
-                    storeValidationResult.InvalidTagErrors[errorTag]);
-            }
+            var failedAttributes = storeValidationResult.InvalidTagErrors.Values.Select(
+                               error => new DicomDataset(
+                               new DicomLongString(
+                                       DicomTag.ErrorComment,
+                                       error.Item1))).ToArray();
+
+            var failedAttributeSequence = new DicomSequence(DicomTag.FailedAttributesSequence, failedAttributes);
+            failedSop.Add(failedAttributeSequence);
         }
         else
         {
@@ -161,10 +167,6 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             failedSop.AddValueIfNotNull(
                DicomTag.ReferencedSOPClassUID,
                dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
-
-            failedSop.AddValueIfNotNull(
-                DicomTag.ReferencedSOPInstanceUID,
-                dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
         }
 
         failedSopSequence.Items.Add(failedSop);

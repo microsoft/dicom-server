@@ -3,19 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using FellowOakDicom;
-
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
-public sealed class ErrorTag
+/// <summary>
+/// This class is meant to define error for DICOM failure so it becomes easier search
+/// </summary>
+internal static class ErrorNumbers
 {
-    public ErrorTag(DicomTag dicomTag, bool isCoreTag)
-    {
-        DicomTag = dicomTag;
-        IsCoreTag = isCoreTag;
-    }
+    private const int ErrorNumberStart = 100;
 
-    public DicomTag DicomTag { get; }
-
-    public bool IsCoreTag { get; }
+    internal const int ValidationFailure = ErrorNumberStart; // For next Error number increase the counter by 1
 }
