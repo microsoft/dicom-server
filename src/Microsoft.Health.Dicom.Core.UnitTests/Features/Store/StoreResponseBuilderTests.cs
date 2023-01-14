@@ -70,7 +70,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuilderHadNoErrors_WhenDropMetadataEnabled_ThenResponseHasEmptyCommentSequence()
+    public void GivenBuilderHadNoErrors_WhenDropMetadataEnabled_ThenResponseHasEmptyFailedSequence()
     {
         _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
@@ -83,8 +83,8 @@ public class StoreResponseBuilderTests
         Assert.Single(refSopSequence);
         DicomDataset ds = refSopSequence.Items[0];
 
-        DicomSequence commentSequence = ds.GetSequence(DicomTag.FailedSOPSequence);
-        Assert.Empty(commentSequence);
+        DicomSequence failedSequence = ds.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Empty(failedSequence);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuilderHasErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyCommentSequence()
+    public void GivenBuilderHasErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyFailedSequence()
     {
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"));
@@ -123,17 +123,17 @@ public class StoreResponseBuilderTests
         Assert.Single(refSopSequence);
         DicomDataset ds = refSopSequence.Items[0];
 
-        DicomSequence commentSequence = ds.GetSequence(DicomTag.FailedSOPSequence);
-        Assert.Single(commentSequence);
+        DicomSequence failedSequence = ds.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
             storeValidationResult.Errors.ToArray()[0],
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            failedSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
     }
 
     [Fact]
-    public void GivenBuildWithAndWithoutErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyCommentSequenceAndEmptyCommentSequence()
+    public void GivenBuildWithAndWithoutErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyFailedSequenceAndEmptyFailedSequence()
     {
         // This represents multiple instance being processed where one had a validation failure and the other did not
 
@@ -156,17 +156,17 @@ public class StoreResponseBuilderTests
 
         // invalid instance section has error in FailedSOPSequence
         DicomDataset invalidInstanceResponse = refSopSequence.Items[0];
-        DicomSequence commentSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedSOPSequence);
-        Assert.Single(commentSequence);
+        DicomSequence failedSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
             storeValidationResult.Errors.ToArray()[0],
-            commentSequence.Items[0].GetString(DicomTag.ErrorComment)
+            failedSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
         // valid instance section has an empty FailedSOPSequence as there were no errors
         DicomDataset validInstanceResponse = refSopSequence.Items[1];
-        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.FailedSOPSequence));
+        Assert.Empty(validInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence));
     }
 
     [Fact]

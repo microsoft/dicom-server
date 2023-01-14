@@ -155,13 +155,13 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence failedSopSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
-        Assert.Single(failedSopSequence);
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedAttributesSequence);
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
             """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            failedSopSequence.Items[0].GetString(DicomTag.ErrorComment)
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
             );
     }
 
@@ -191,20 +191,20 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence failedSopSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
 
         // expect comment sequence has same count of warnings as invalid attributes
-        Assert.Equal(2, failedSopSequence.Items.Count);
+        Assert.Equal(2, failedAttributesSequence.Items.Count);
 
         // expect that the two invalid attributes are represented in warnings
         Assert.Equal(
             """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            failedSopSequence.Items[0].GetString(DicomTag.ErrorComment));
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
 
         // expect that the two invalid attributes are represented in warnings
         Assert.Equal(
             """(0010,0030) - PatientBirthDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            failedSopSequence.Items[1].GetString(DicomTag.ErrorComment)
+            failedAttributesSequence.Items[1].GetString(DicomTag.ErrorComment)
         );
     }
 
@@ -238,20 +238,20 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         foreach (DicomDataset instance in refSopSequence.Items)
         {
             // expect a comment sequence present
-            DicomSequence failedSopSequence = instance.GetSequence(DicomTag.FailedSOPSequence);
+            DicomSequence failedAttributesSequence = instance.GetSequence(DicomTag.FailedAttributesSequence);
 
             // expect comment sequence has same count of warnings as invalid attributes
-            Assert.Single(failedSopSequence);
+            Assert.Single(failedAttributesSequence);
 
             // expect that the two invalid attribute is represented in warnings
             Assert.Equal(
                 """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-                failedSopSequence.Items[0].GetString(DicomTag.ErrorComment));
+                failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
         }
     }
 
     [Fact]
-    public async Task GivenInstanceWithAValidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectEmptyfailedSopSequence()
+    public async Task GivenInstanceWithAValidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenExpectEmptyFailedAttributesSequence()
     {
         // setup
         DicomFile dicomFile = GenerateDicomFile();
@@ -278,10 +278,10 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
         DicomDataset firstInstance = refSopSequence.Items[0];
 
         // expect a comment sequence present
-        DicomSequence failedSopSequence = firstInstance.GetSequence(DicomTag.FailedSOPSequence);
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
 
         // expect comment sequence is empty as there were no errors
-        Assert.Empty(failedSopSequence);
+        Assert.Empty(failedAttributesSequence);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
