@@ -302,7 +302,8 @@ BEGIN
     INCLUDE
     (
         Watermark,
-        TransferSyntaxUid
+        TransferSyntaxUid,
+        HasFrameMetadata
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 END

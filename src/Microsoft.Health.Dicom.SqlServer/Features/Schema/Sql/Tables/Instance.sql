@@ -60,7 +60,8 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Serie
 INCLUDE
 (
     Watermark,
-    TransferSyntaxUid
+    TransferSyntaxUid,
+    HasFrameMetadata
 )
 WITH (DATA_COMPRESSION = PAGE)
 

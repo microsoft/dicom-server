@@ -302,7 +302,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
     ON dbo.Instance(PartitionKey, Status, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid)
-    INCLUDE(Watermark, TransferSyntaxUid) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(Watermark, TransferSyntaxUid, HasFrameMetadata) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
     ON dbo.Instance(Watermark, Status)
