@@ -141,12 +141,12 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 #pragma warning restore CS0618 // Type or member is obsolete
 
         failedSop.AddValueIfNotNull(
-                DicomTag.ReferencedSOPInstanceUID,
-                dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+            DicomTag.ReferencedSOPInstanceUID,
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
 
         failedSop.AddValueIfNotNull(
-           DicomTag.ReferencedSOPClassUID,
-           dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
+            DicomTag.ReferencedSOPClassUID,
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
 
         if (storeValidationResult != null)
         {
