@@ -167,7 +167,7 @@ public class StoreService : IStoreService
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
 
-            // If there is an error in the core tag, return immediately
+            // If there is an error in the required core tag, return immediately
             if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredTag) ||
                 !_enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
             {
@@ -176,7 +176,8 @@ public class StoreService : IStoreService
                 _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
                 return null;
             }
-            else if (_enableDropInvalidDicomJsonMetadata)
+
+            if (_enableDropInvalidDicomJsonMetadata)
             {
                 // drop invalid metadata
                 foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)

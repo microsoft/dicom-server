@@ -61,7 +61,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         try
         {
-            ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid);
         }
         catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
         {
@@ -87,7 +87,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return validationResultBuilder.Build();
     }
 
-    private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
     {
         // Ensure required tags are present.
         EnsureRequiredTagIsPresent(DicomTag.PatientID);
