@@ -24,7 +24,7 @@ public interface IStoreResponseBuilder
     /// Adds a Success entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
-    /// <param name="storeValidationResult"></param>
+    /// <param name="storeValidationResult">Store validation errors and warnings</param>
     /// <param name="warningReasonCode">The warning reason code.</param>
     /// <param name="enableDropInvalidDicomJsonMetadata">Whether to build response warning sequence or not.</param>
     void AddSuccess(DicomDataset dicomDataset,
@@ -39,7 +39,7 @@ public interface IStoreResponseBuilder
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
     /// <param name="failureReasonCode">The failure reason code.</param>
-    /// <param name="storeValidationResult"></param>
+    /// <param name="storeValidationResult">Store validation errors and warnings</param>
     void AddFailure(
         DicomDataset dicomDataset = null,
         ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
