@@ -103,9 +103,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             studyInstanceUid == sopInstanceUid ||
             seriesInstanceUid == sopInstanceUid)
         {
+            var tag = studyInstanceUid == seriesInstanceUid ? DicomTag.SeriesInstanceUID :
+                studyInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID :
+                seriesInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID : null;
+
             throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,
-                DicomCoreResource.DuplicatedUidsNotAllowed);
+                DicomCoreResource.DuplicatedUidsNotAllowed,
+                tag);
         }
 
         // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match, ignoring whitespace.
@@ -152,6 +157,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
+
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",
@@ -182,6 +188,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
                     validationResultBuilder.Add(ex, item.Tag);
+
                     _telemetryClient
                         .GetMetric(
                             "DroppedInvalidTag",

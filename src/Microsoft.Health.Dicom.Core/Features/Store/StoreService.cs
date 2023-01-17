@@ -20,7 +20,6 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
-using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -153,14 +152,6 @@ public class StoreService : IStoreService
 
             storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
-            // Existing validator behavior is to throw first exception
-            // when _enableDropInvalidDicomJsonMetadata is not enabled, we want to keep going and collect all errors as
-            // validation warnings for user in a success response
-            if (!_enableDropInvalidDicomJsonMetadata && null != storeValidatorResult.FirstException)
-            {
-                throw storeValidatorResult.FirstException;
-            }
-
             // We have different ways to handle with warnings.
             // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag
             if ((storeValidatorResult.WarningCodes & ValidationWarnings.DatasetDoesNotMatchSOPClass) == ValidationWarnings.DatasetDoesNotMatchSOPClass)
@@ -177,13 +168,15 @@ public class StoreService : IStoreService
             }
 
             // If there is an error in the core tag, return immediately
-            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.Item2) || !_enableDropInvalidDicomJsonMetadata)
+            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredTag) ||
+                !_enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
             {
                 ushort failureCode = FailureReasonCodes.ValidationFailure;
+                LogValidationFailedDelegate(_logger, index, failureCode, null);
                 _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
                 return null;
             }
-            else
+            else if (_enableDropInvalidDicomJsonMetadata)
             {
                 // drop invalid metadata
                 foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
@@ -194,45 +187,17 @@ public class StoreService : IStoreService
         }
         catch (Exception ex)
         {
-            ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-            switch (ex)
-            {
-                case DicomValidationException _:
-                    failureCode = FailureReasonCodes.ValidationFailure;
-                    break;
-
-                case DatasetValidationException dicomDatasetValidationException:
-                    failureCode = dicomDatasetValidationException.FailureCode;
-                    break;
-
-                case ValidationException _:
-                    failureCode = FailureReasonCodes.ValidationFailure;
-                    break;
-            }
-
+            ushort failureCode = FailureReasonCodes.ValidationFailure;
             LogValidationFailedDelegate(_logger, index, failureCode, ex);
-
             _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
             return null;
         }
 
         try
         {
-
-            if (_enableDropInvalidDicomJsonMetadata)
-            {
-                // drop invalid metadata
-                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
-                {
-                    dicomDataset.Remove(tag);
-                }
-            }
-
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,
-                dicomDataset, // this dataset has potentially been modified for metadata storing
                 cancellationToken);
 
             LogSuccessfullyStoredDelegate(_logger, index, null);

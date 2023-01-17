@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 internal sealed class StoreValidationResultBuilder
 {
     private readonly List<string> _warningMessages;
-    private readonly Dictionary<DicomTag, Tuple<string, bool>> _invalidDicomTagErrors;
+    private readonly Dictionary<DicomTag, StoreErrorResult> _invalidDicomTagErrors;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
@@ -25,7 +25,7 @@ internal sealed class StoreValidationResultBuilder
     public StoreValidationResultBuilder()
     {
         _warningMessages = new List<string>();
-        _invalidDicomTagErrors = new Dictionary<DicomTag, Tuple<string, bool>>();
+        _invalidDicomTagErrors = new Dictionary<DicomTag, StoreErrorResult>();
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
@@ -43,8 +43,8 @@ internal sealed class StoreValidationResultBuilder
 
     public void Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
     {
-        var tuple = new Tuple<string, bool>(GetFormattedText(ex?.Message, dicomTag), isCoreTag);
-        _invalidDicomTagErrors.TryAdd(dicomTag, tuple);
+        var errorResult = new StoreErrorResult(GetFormattedText(ex?.Message, dicomTag), isCoreTag);
+        _invalidDicomTagErrors.TryAdd(dicomTag, errorResult);
     }
 
     public void Add(ValidationWarnings warningCode, DicomTag dicomTag = null)

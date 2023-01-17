@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -6,8 +6,6 @@
 using System;
 using System.Linq;
 using FellowOakDicom;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -112,7 +110,7 @@ public class StoreResponseBuilderTests
     public void GivenBuilderHasErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyFailedSequence()
     {
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
-        builder.Add(new Exception("There was an issue with an attribute"));
+        builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
         _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
@@ -129,7 +127,7 @@ public class StoreResponseBuilderTests
         Assert.Single(failedSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            storeValidationResult.Errors.ToArray()[0],
+            storeValidationResult.InvalidTagErrors.ToArray()[0].Value.Error,
             failedSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
     }
@@ -141,7 +139,7 @@ public class StoreResponseBuilderTests
 
         // simulate validation failure
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
-        builder.Add(new Exception("There was an issue with an attribute"));
+        builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
         _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
@@ -162,7 +160,7 @@ public class StoreResponseBuilderTests
         Assert.Single(failedSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            storeValidationResult.Errors.ToArray()[0],
+            storeValidationResult.InvalidTagErrors.ToArray()[0].Value.Error,
             failedSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 

@@ -6,8 +6,6 @@
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -20,7 +18,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreResponseBuilder : IStoreResponseBuilder
 {
     private readonly IUrlResolver _urlResolver;
-    private readonly bool _enableDropInvalidDicomJsonMetadata;
 
     private DicomDataset _dataset;
 
@@ -31,10 +28,8 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
         _urlResolver = urlResolver;
-        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
 
     /// <inheritdoc />
@@ -111,7 +106,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
                     error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
-                            error.Item1)))
+                            error.Error)))
                 .ToArray();
 
             var failedSequence = new DicomSequence(
@@ -150,23 +145,20 @@ public class StoreResponseBuilder : IStoreResponseBuilder
                 DicomTag.ReferencedSOPInstanceUID,
                 dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
 
+        failedSop.AddValueIfNotNull(
+           DicomTag.ReferencedSOPClassUID,
+           dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
+
         if (storeValidationResult != null)
         {
             var failedAttributes = storeValidationResult.InvalidTagErrors.Values.Select(
                                error => new DicomDataset(
                                new DicomLongString(
                                        DicomTag.ErrorComment,
-                                       error.Item1))).ToArray();
+                                       error.Error))).ToArray();
 
             var failedAttributeSequence = new DicomSequence(DicomTag.FailedAttributesSequence, failedAttributes);
             failedSop.Add(failedAttributeSequence);
-        }
-        else
-        {
-            // Keeping the existing as it is
-            failedSop.AddValueIfNotNull(
-               DicomTag.ReferencedSOPClassUID,
-               dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
         }
 
         failedSopSequence.Items.Add(failedSop);
