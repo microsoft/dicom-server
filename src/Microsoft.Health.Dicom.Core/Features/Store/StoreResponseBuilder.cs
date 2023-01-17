@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -101,12 +101,11 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         else
         {
             // add comment Sq / list of warnings here
-
-            var warnings = storeValidationResult.InvalidTagErrors.Values.Select(
-                    error => new DicomDataset(
+            var warnings = storeValidationResult.Warnings.Select(
+                    warning => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
-                            error.Error)))
+                            warning)))
                 .ToArray();
 
             var failedSequence = new DicomSequence(
