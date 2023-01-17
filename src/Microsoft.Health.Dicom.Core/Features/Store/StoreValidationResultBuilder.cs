@@ -19,9 +19,6 @@ internal sealed class StoreValidationResultBuilder
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
 
-    // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
-    private readonly Exception _firstException;
-
     public StoreValidationResultBuilder()
     {
         _warningMessages = new List<string>();
@@ -29,7 +26,6 @@ internal sealed class StoreValidationResultBuilder
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
-        _firstException = null;
     }
 
     public StoreValidationResult Build()
@@ -37,7 +33,6 @@ internal sealed class StoreValidationResultBuilder
         return new StoreValidationResult(
             _warningMessages,
             _warningCodes,
-            _firstException,
             _invalidDicomTagErrors);
     }
 

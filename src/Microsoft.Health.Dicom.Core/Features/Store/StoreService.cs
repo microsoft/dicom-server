@@ -187,9 +187,26 @@ public class StoreService : IStoreService
         }
         catch (Exception ex)
         {
-            ushort failureCode = FailureReasonCodes.ValidationFailure;
+            ushort failureCode = FailureReasonCodes.ProcessingFailure;
+
+            switch (ex)
+            {
+                case DicomValidationException _:
+                    failureCode = FailureReasonCodes.ValidationFailure;
+                    break;
+
+                case DatasetValidationException dicomDatasetValidationException:
+                    failureCode = dicomDatasetValidationException.FailureCode;
+                    break;
+
+                case ValidationException _:
+                    failureCode = FailureReasonCodes.ValidationFailure;
+                    break;
+            }
+
             LogValidationFailedDelegate(_logger, index, failureCode, ex);
-            _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+
+            _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
             return null;
         }
 
