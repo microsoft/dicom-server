@@ -101,11 +101,11 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         else
         {
             // add comment Sq / list of warnings here
-            var warnings = storeValidationResult.Warnings.Select(
-                    warning => new DicomDataset(
+            var warnings = storeValidationResult.InvalidTagErrors.Values.Select(
+                    error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
-                            warning)))
+                            error.Error)))
                 .ToArray();
 
             var failedSequence = new DicomSequence(

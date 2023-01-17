@@ -258,7 +258,6 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
 
-        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
         dicomDataset.Add(DicomTag.PatientBirthDate, "20220315");
 
         dicomFile.Dataset.Add(dicomDataset);
