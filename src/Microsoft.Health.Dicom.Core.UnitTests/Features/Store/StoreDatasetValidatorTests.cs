@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -13,7 +14,6 @@ using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -52,7 +52,7 @@ public class StoreDatasetValidatorTests
     }
 
     [Fact]
-    public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldThrowException()
+    public async Task GivenDicomTagWithDifferentVR_WhenValidated_ThenShouldReturnInvalidEntries()
     {
         var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
         DicomTag tag = DicomTag.Date;
@@ -66,7 +66,7 @@ public class StoreDatasetValidatorTests
 
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
 
-        Assert.IsType<ElementValidationException>(result.FirstException);
+        Assert.True(result.InvalidTagErrors.Any());
 
         validator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
@@ -175,7 +175,7 @@ public class StoreDatasetValidatorTests
 
         _dicomDataset.Remove(dicomTag);
 
-        await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(dicomTag);
     }
 
     public static IEnumerable<object[]> GetDuplicatedDicomIdentifierValues()
@@ -198,7 +198,7 @@ public class StoreDatasetValidatorTests
         string value = _dicomDataset.GetSingleValue<string>(firstDicomTag);
         _dicomDataset.AddOrUpdate(secondDicomTag, value);
 
-        await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(secondDicomTag);
     }
 
     [Fact]
@@ -211,9 +211,9 @@ public class StoreDatasetValidatorTests
         {
             requiredStudyInstanceUid = TestUidGenerator.Generate();
         }
-        while (string.Equals(requiredStudyInstanceUid, studyInstanceUid, System.StringComparison.InvariantCultureIgnoreCase));
+        while (string.Equals(requiredStudyInstanceUid, studyInstanceUid, StringComparison.InvariantCultureIgnoreCase));
 
-        await ExecuteAndValidateException<DatasetValidationException>(MismatchStudyInstanceUidFailureCode, requiredStudyInstanceUid);
+        await ExecuteAndValidateInvalidTagEntries(DicomTag.StudyInstanceUID, requiredStudyInstanceUid);
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class StoreDatasetValidatorTests
         // LO VR, invalid characters
         _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
 
-        await ExecuteAndValidateException<DatasetValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(DicomTag.SeriesDescription);
     }
 
     [Fact]
@@ -240,7 +240,7 @@ public class StoreDatasetValidatorTests
         // CS VR, > 16 characters is not allowed
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
-        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(DicomTag.Modality);
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class StoreDatasetValidatorTests
         // CS VR, > 16 characters is not allowed
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
-        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(DicomTag.Modality);
 
         Metric metric = _telemetryClient.GetMetric(
             "IndexTagValidationError",
@@ -281,7 +281,7 @@ public class StoreDatasetValidatorTests
 
         QueryTag indextag = new QueryTag(standardTag.BuildExtendedQueryTagStoreEntry());
         _queryTags.Add(indextag);
-        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(standardTag);
     }
 
     [Fact]
@@ -298,31 +298,14 @@ public class StoreDatasetValidatorTests
         _queryTags.Clear();
         _queryTags.Add(indextag);
 
-        await ExecuteAndValidateTagEntriesException<ElementValidationException>(ValidationFailedFailureCode);
+        await ExecuteAndValidateInvalidTagEntries(tag);
     }
 
-    private async Task ExecuteAndValidateException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
-        where T : Exception
-    {
-        var exception = await Assert.ThrowsAsync<T>(() => _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid));
-
-        if (exception is DatasetValidationException)
-        {
-            var datasetValidationException = exception as DatasetValidationException;
-            Assert.Equal(failureCode, datasetValidationException.FailureCode);
-        }
-    }
-
-    private async Task ExecuteAndValidateTagEntriesException<T>(ushort failureCode, string requiredStudyInstanceUid = null)
-        where T : Exception
+    private async Task ExecuteAndValidateInvalidTagEntries(DicomTag dicomTag, string requiredStudyInstanceUid = null)
     {
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid);
 
-        if (result.FirstException is DatasetValidationException)
-        {
-            var datasetValidationException = result.FirstException as DatasetValidationException;
-            Assert.Equal(failureCode, datasetValidationException.FailureCode);
-        }
+        Assert.True(result.InvalidTagErrors.ContainsKey(dicomTag));
     }
 
     public static IEnumerable<object[]> GetNonExplicitVRTransferSyntax()

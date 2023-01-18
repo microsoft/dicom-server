@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -101,12 +101,11 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         else
         {
             // add comment Sq / list of warnings here
-
-            var warnings = storeValidationResult.Errors.Select(
+            var warnings = storeValidationResult.InvalidTagErrors.Values.Select(
                     error => new DicomDataset(
                         new DicomLongString(
                             DicomTag.ErrorComment,
-                            error)))
+                            error.Error)))
                 .ToArray();
 
             var failedSequence = new DicomSequence(
@@ -119,7 +118,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
+    public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode, StoreValidationResult storeValidationResult = null)
     {
         CreateDatasetIfNeeded();
 
@@ -142,12 +141,24 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 #pragma warning restore CS0618 // Type or member is obsolete
 
         failedSop.AddValueIfNotNull(
+            DicomTag.ReferencedSOPInstanceUID,
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+
+        failedSop.AddValueIfNotNull(
             DicomTag.ReferencedSOPClassUID,
             dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
 
-        failedSop.AddValueIfNotNull(
-            DicomTag.ReferencedSOPInstanceUID,
-            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+        if (storeValidationResult != null)
+        {
+            var failedAttributes = storeValidationResult.InvalidTagErrors.Values.Select(
+                               error => new DicomDataset(
+                               new DicomLongString(
+                                       DicomTag.ErrorComment,
+                                       error.Error))).ToArray();
+
+            var failedAttributeSequence = new DicomSequence(DicomTag.FailedAttributesSequence, failedAttributes);
+            failedSop.Add(failedAttributeSequence);
+        }
 
         failedSopSequence.Items.Add(failedSop);
     }

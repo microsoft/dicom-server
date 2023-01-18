@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -19,7 +20,6 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
-using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -143,7 +143,7 @@ public class StoreService : IStoreService
 
         ushort? warningReasonCode = null;
         DicomDataset dicomDataset = null;
-        StoreValidationResult storeValidatorResult;
+        StoreValidationResult storeValidatorResult = null;
 
         try
         {
@@ -151,14 +151,6 @@ public class StoreService : IStoreService
             dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
             storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
-
-            // Existing validator behavior is to throw first exception
-            // when _enableDropInvalidDicomJsonMetadata is not enabled, we want to keep going and collect all errors as
-            // validation warnings for user in a success response
-            if (!_enableDropInvalidDicomJsonMetadata && null != storeValidatorResult.FirstException)
-            {
-                throw storeValidatorResult.FirstException;
-            }
 
             // We have different ways to handle with warnings.
             // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag
@@ -173,6 +165,25 @@ public class StoreService : IStoreService
             if ((storeValidatorResult.WarningCodes & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
             {
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
+            }
+
+            // If there is an error in the required core tag, return immediately
+            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag) ||
+                !_enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
+            {
+                ushort failureCode = FailureReasonCodes.ValidationFailure;
+                LogValidationFailedDelegate(_logger, index, failureCode, null);
+                _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                return null;
+            }
+
+            if (_enableDropInvalidDicomJsonMetadata)
+            {
+                // drop invalid metadata
+                foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
+                {
+                    dicomDataset.Remove(tag);
+                }
             }
         }
         catch (Exception ex)
@@ -202,16 +213,6 @@ public class StoreService : IStoreService
 
         try
         {
-
-            if (_enableDropInvalidDicomJsonMetadata)
-            {
-                // drop invalid metadata
-                foreach (DicomTag tag in storeValidatorResult.InvalidTags)
-                {
-                    dicomDataset.Remove(tag);
-                }
-            }
-
             // Store the instance.
             long length = await _storeOrchestrator.StoreDicomInstanceEntryAsync(
                 dicomInstanceEntry,

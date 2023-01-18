@@ -304,6 +304,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DICOM{0}: {1} - {2}.
+        /// </summary>
+        internal static string ErrorMessageFormat {
+            get {
+                return ResourceManager.GetString("ErrorMessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Value cannot be parsed as a valid integer string..
         /// </summary>
         internal static string ErrorMessageIntegerStringIsInvalid {

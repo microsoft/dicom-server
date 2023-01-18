@@ -175,25 +175,6 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
-    public async Task GivenAValidationError_WhenProcessed_ThenFailedEntryShouldBeAddedWithValidationFailure()
-    {
-        const ushort failureCode = 500;
-
-        _dicomDatasetValidator
-            .When(validator => validator.ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>()))
-            .Do(_ => throw new DatasetValidationException(failureCode, "test"));
-
-        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
-
-        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
-
-        await ExecuteAndValidateAsync(dicomInstanceEntry);
-
-        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
-        _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, failureCode);
-    }
-
-    [Fact]
     public async Task GivenAValidationError_WhenDropDataEnabled_ThenSucceedsWithErrorsInFailedAttributesSequence()
     {
         // setup
@@ -226,7 +207,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -274,7 +255,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(300e,0004) - ReviewDate - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -325,7 +306,7 @@ public class DicomStoreServiceTests
         DicomSequence invalidFailedAttributesSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(0008,0020) - StudyDate - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             invalidFailedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -361,7 +342,7 @@ public class DicomStoreServiceTests
         await ExecuteAndValidateAsync(dicomInstanceEntry);
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
-        _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.SopInstanceAlreadyExistsReasonCode);
+        _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.SopInstanceAlreadyExistsReasonCode, null);
     }
 
     [Fact]

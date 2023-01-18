@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -24,10 +24,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
-    private const ushort ValidationFailedFailureCode = 43264;
-    private const ushort SopInstanceAlreadyExistsFailureCode = 45070;
-    private const ushort MismatchStudyInstanceUidFailureCode = 43265;
-
     private readonly IDicomWebClient _client;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly DicomInstancesManager _instancesManager;
@@ -207,8 +203,8 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             dataset,
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, MismatchStudyInstanceUidFailureCode),
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode),
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, ValidationHelpers.ValidationFailedFailureCode));
     }
 
     [Fact]
@@ -240,7 +236,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             ValidationHelpers.ValidateFailedSopSequence(
                 dataset,
-                ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
+                ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, ValidationHelpers.ValidationFailedFailureCode));
         }
         finally
         {
@@ -264,7 +260,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             dataset,
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode));
     }
 
     [Fact]
@@ -297,7 +293,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             ValidationHelpers.ValidateFailedSopSequence(
                 exception.ResponseDataset,
-                ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, SopInstanceAlreadyExistsFailureCode));
+                ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.SopInstanceAlreadyExistsFailureCode));
         }
         finally
         {
@@ -319,7 +315,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             exception.ResponseDataset,
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode));
     }
 
     [Theory]
@@ -337,7 +333,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             exception.ResponseDataset,
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode));
     }
 
     [Fact]
