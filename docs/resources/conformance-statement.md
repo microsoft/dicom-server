@@ -184,6 +184,12 @@ An example response with `Accept` header `application/dicom+json`:
 | 45071 | A DICOM instance is being created by another process, or the previous attempt to create has failed and the cleanup process has not had chance to clean up yet. Please delete the instance first before attempting to create again. |
 | 45063 | A DICOM instance Data Set does not match SOP Class. The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance. |
 
+### Store Error Codes
+
+| Code  | Description |
+| :---- | :---------- |
+| 100   | The provided instance attributes did not meet the validation criteria. |
+
 ## Retrieve (WADO-RS)
 
 This Retrieve Transaction offers support for retrieving stored studies, series, instances and frames by reference.
