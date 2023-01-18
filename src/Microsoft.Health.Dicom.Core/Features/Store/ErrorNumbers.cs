@@ -6,11 +6,9 @@
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
 /// <summary>
-/// This class is meant to define error for DICOM failure so it becomes easier search
+/// This class is meant to define error for DICOM failure so it becomes easier to search
 /// </summary>
 internal static class ErrorNumbers
 {
-    private const int ErrorNumberStart = 100;
-
-    internal const int ValidationFailure = ErrorNumberStart; // For next Error number increase the counter by 1
+    internal const int ValidationFailure = 100; // For next Error number increase the counter by 1
 }

@@ -10,10 +10,10 @@ public sealed class StoreErrorResult
     public StoreErrorResult(string error, bool isRequiredTag)
     {
         Error = error;
-        IsRequiredTag = isRequiredTag;
+        IsRequiredCoreTag = isRequiredTag;
     }
 
     public string Error { get; }
 
-    public bool IsRequiredTag { get; }
+    public bool IsRequiredCoreTag { get; }
 }

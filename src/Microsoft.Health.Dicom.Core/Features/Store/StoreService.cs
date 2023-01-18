@@ -168,7 +168,7 @@ public class StoreService : IStoreService
             }
 
             // If there is an error in the required core tag, return immediately
-            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredTag) ||
+            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag) ||
                 !_enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
             {
                 ushort failureCode = FailureReasonCodes.ValidationFailure;
