@@ -290,6 +290,122 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
+    public async Task GivenASequenceWithOnlyInvalidAttributes_WhenDropDataEnabled_ThenSequenceDropped()
+    {
+        // setup
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+
+        dicomDataset.Add(
+            new DicomSequence(
+                DicomTag.IssuerOfAccessionNumberSequence,
+                new DicomDataset
+                {
+                    { DicomTag.ReviewDate, "NotAValidReviewDate" },
+                    { DicomTag.StudyDate, "NotAValidStudyDate" }
+                })
+            );
+
+        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
+
+        // call
+        StoreResponse response = await _storeServiceDropData.ProcessAsync(
+            new[] { dicomInstanceEntry },
+            null,
+            cancellationToken: DefaultCancellationToken);
+
+        // assert response was successful
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Null(response.Warning);
+
+        // expect a single refSop sequence
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        DicomDataset firstInstance = refSopSequence.Items[0];
+
+        // expect a failed attr sequence present
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+
+        // even though the sequence has multiple attributes, we exist validation on the first error and only provide the
+        // first error
+        Assert.Single(failedAttributesSequence);
+
+        // expect failed attr sequence has single warning about single invalid attribute, in this case the first we encounter
+        // which is last in the sequence
+        Assert.Equal(
+            """(0008,0051) - IssuerOfAccessionNumberSequence - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+
+        // expect that what we attempt to store has invalid attrs dropped
+        Assert.Throws<DicomDataException>(() => dicomDataset.GetString(DicomTag.IssuerOfAccessionNumberSequence));
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntry,
+                DefaultCancellationToken
+            );
+    }
+
+    [Fact]
+    public async Task GivenASequenceWithOneValidAndOneInvalidAttribute_WhenDropDataEnabled_ThenSequenceDropped()
+    {
+        // setup
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+
+        dicomDataset.Add(
+            new DicomSequence(
+                DicomTag.IssuerOfAccessionNumberSequence,
+                new DicomDataset
+                {
+                    { DicomTag.ReviewDate, "NotAValidReviewDate" },
+                    { DicomTag.StudyDate, "20220119" }
+                })
+            );
+
+        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
+
+        // call
+        StoreResponse response = await _storeServiceDropData.ProcessAsync(
+            new[] { dicomInstanceEntry },
+            null,
+            cancellationToken: DefaultCancellationToken);
+
+        // assert response was successful
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Null(response.Warning);
+
+        // expect a single refSop sequence
+        DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        DicomDataset firstInstance = refSopSequence.Items[0];
+
+        // expect a failed attr sequence present
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedAttributesSequence);
+
+        // expect failed attr sequence has single warning about single invalid attribute
+        Assert.Equal(
+            """(0008,0051) - IssuerOfAccessionNumberSequence - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
+        );
+
+        // expect that what we attempt to store has invalid attrs dropped
+        Assert.Throws<DicomDataException>(() => dicomDataset.GetString(DicomTag.IssuerOfAccessionNumberSequence));
+
+        await _storeOrchestrator
+            .Received(1)
+            .StoreDicomInstanceEntryAsync(
+                dicomInstanceEntry,
+                DefaultCancellationToken
+            );
+    }
+
+    [Fact]
     public async Task GivenMultipleInstancesAndOneHasInvalidAttr_WhenDropDataEnabled_ThenSucceedsWithErrorsInFailedAttributesSequenceForOneButNotTheOther()
     {
         // setup
