@@ -79,3 +79,11 @@ CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE
 (
     TagKey                     INT
 )
+
+/*************************************************************
+    Table value param to get query response
+*************************************************************/
+CREATE TYPE dbo.WatermarkTableType AS TABLE
+(
+   Watermark                  BIGINT
+)

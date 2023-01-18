@@ -23,5 +23,7 @@ public interface IStoreOrchestrator
     /// A task that represents the asynchronous orchestration of the storing operation.
     /// The value of the <see cref="Task{TResult}.Result"/> property is the length of the uploaded DICOM instance in bytes.
     /// </returns>
-    Task<long> StoreDicomInstanceEntryAsync(IDicomInstanceEntry dicomInstanceEntry, CancellationToken cancellationToken);
+    Task<long> StoreDicomInstanceEntryAsync(
+        IDicomInstanceEntry dicomInstanceEntry,
+        CancellationToken cancellationToken);
 }

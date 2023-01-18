@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -114,6 +114,30 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
             .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
             .Append("=")
             .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
+            .AppendLine();
+    }
+
+    public override void Visit(StudyToSeriesStringSingleValueMatchCondition stringSingleValueMatchCondition)
+    {
+        var queryTag = stringSingleValueMatchCondition.QueryTag;
+        var studyDicomTagSqlEntry = DicomTagSqlEntry.StudyKeyDicomTagSqlEntry;
+        var seriesDicomTagSqlEntry = DicomTagSqlEntry.GetStudyToSeriesDicomTagSqlEntry(queryTag);
+
+        var tableAlias = GetTableAlias(studyDicomTagSqlEntry, null);
+        StringBuilder
+            .Append("AND ");
+        var seriesTableAlias = "ses";
+        StringBuilder
+            .Append(studyDicomTagSqlEntry.SqlColumn, tableAlias)
+            .Append(" IN  (SELECT DISTINCT StudyKey FROM Series " + seriesTableAlias + " WHERE ")
+            .Append(seriesDicomTagSqlEntry.SqlColumn, seriesTableAlias)
+            .Append("=")
+            .Append(_parameters.AddParameter(seriesDicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
+            .Append(" AND ")
+            .Append(VLatest.Series.PartitionKey, seriesTableAlias)
+            .Append("=")
+            .Append(_parameters.AddParameter(VLatest.Series.PartitionKey, PartitionKey))
+            .Append(")")
             .AppendLine();
     }
 

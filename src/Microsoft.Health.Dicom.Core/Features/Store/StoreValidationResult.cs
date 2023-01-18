@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -14,12 +15,14 @@ public sealed class StoreValidationResult
         IReadOnlyCollection<string> errors,
         IReadOnlyCollection<string> warnings,
         ValidationWarnings validationWarnings,
-        Exception firstException)
+        Exception firstException,
+        IReadOnlyCollection<DicomTag> invalidTags)
     {
         Errors = errors;
         Warnings = warnings;
         WarningCodes = validationWarnings;
         FirstException = firstException;
+        InvalidTags = invalidTags;
     }
 
     public IReadOnlyCollection<string> Errors { get; }
@@ -30,4 +33,6 @@ public sealed class StoreValidationResult
 
     // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
     public Exception FirstException { get; }
+
+    public IReadOnlyCollection<DicomTag> InvalidTags { get; }
 }

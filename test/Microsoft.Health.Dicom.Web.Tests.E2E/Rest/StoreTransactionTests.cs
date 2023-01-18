@@ -143,9 +143,9 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
-            await ValidateReferencedSopSequenceAsync(
+            await ResponseHelper.ValidateReferencedSopSequenceAsync(
                 response,
-                ConvertToReferencedSopSequenceEntry(validFile.Dataset));
+                ResponseHelper.ConvertToReferencedSopSequenceEntry(_client, validFile.Dataset));
         }
         finally
         {
@@ -177,9 +177,9 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-            await ValidateReferencedSopSequenceAsync(
+            await ResponseHelper.ValidateReferencedSopSequenceAsync(
                 response,
-                ConvertToReferencedSopSequenceEntry(dicomFile.Dataset));
+                ResponseHelper.ConvertToReferencedSopSequenceEntry(_client, dicomFile.Dataset));
         }
         finally
         {
@@ -207,8 +207,8 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             dataset,
-            ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, MismatchStudyInstanceUidFailureCode),
-            ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, MismatchStudyInstanceUidFailureCode),
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
     }
 
     [Fact]
@@ -234,13 +234,13 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             Assert.EndsWith($"studies/{studyInstanceUID1}", dataset.GetSingleValue<string>(DicomTag.RetrieveURL));
 
-            await ValidateReferencedSopSequenceAsync(
+            await ResponseHelper.ValidateReferencedSopSequenceAsync(
                 response,
-                ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
+                ResponseHelper.ConvertToReferencedSopSequenceEntry(_client, dicomFile1.Dataset));
 
             ValidationHelpers.ValidateFailedSopSequence(
                 dataset,
-                ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
+                ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile2.Dataset, MismatchStudyInstanceUidFailureCode));
         }
         finally
         {
@@ -264,7 +264,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             dataset,
-            ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
     }
 
     [Fact]
@@ -282,9 +282,11 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             DicomDataset dataset = await response.GetValueAsync();
 
-            await ValidateReferencedSopSequenceAsync(
+            await ResponseHelper.ValidateReferencedSopSequenceAsync(
                 response,
-                ConvertToReferencedSopSequenceEntry(dicomFile1.Dataset));
+                ResponseHelper.ConvertToReferencedSopSequenceEntry(
+                    _client,
+                    dicomFile1.Dataset));
 
             Assert.False(dataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
@@ -295,7 +297,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
             ValidationHelpers.ValidateFailedSopSequence(
                 exception.ResponseDataset,
-                ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, SopInstanceAlreadyExistsFailureCode));
+                ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, SopInstanceAlreadyExistsFailureCode));
         }
         finally
         {
@@ -317,7 +319,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             exception.ResponseDataset,
-            ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
     }
 
     [Theory]
@@ -335,7 +337,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
 
         ValidationHelpers.ValidateFailedSopSequence(
             exception.ResponseDataset,
-            ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationFailedFailureCode));
     }
 
     [Fact]
@@ -432,31 +434,5 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     public async Task DisposeAsync()
     {
         await _instancesManager.DisposeAsync();
-    }
-
-    private static async Task ValidateReferencedSopSequenceAsync(DicomWebResponse<DicomDataset> response, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
-    {
-        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
-        ValidationHelpers.ValidateReferencedSopSequence(await response.GetValueAsync(), expectedValues);
-    }
-
-    private (string SopInstanceUid, string RetrieveUri, string SopClassUid) ConvertToReferencedSopSequenceEntry(DicomDataset dicomDataset)
-    {
-        string studyInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.StudyInstanceUID);
-        string seriesInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
-        string sopInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
-
-        string relativeUri = $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
-
-        return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
-            new Uri(_client.HttpClient.BaseAddress, relativeUri).ToString(),
-            dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
-    }
-
-    private static (string SopInstanceUid, string SopClassUid, ushort FailureReason) ConvertToFailedSopSequenceEntry(DicomDataset dicomDataset, ushort failureReason)
-    {
-        return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
-            dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID),
-            failureReason);
     }
 }
