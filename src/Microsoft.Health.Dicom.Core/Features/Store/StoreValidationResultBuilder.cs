@@ -64,6 +64,7 @@ internal sealed class StoreValidationResultBuilder
             CultureInfo.InvariantCulture,
             DicomCoreResource.ErrorMessageFormat,
             ErrorNumbers.ValidationFailure,
+            dicomTag.ToString(),
             message);
     }
 

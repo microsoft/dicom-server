@@ -638,6 +638,6 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Data partition already exists.</value>
   </data>
   <data name="ErrorMessageFormat" xml:space="preserve">
-    <value>DICOM{0}: {1}</value>
+    <value>DICOM{0}: {1} - {2}</value>
   </data>
 </root>

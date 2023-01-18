@@ -160,7 +160,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
             );
     }
@@ -198,12 +198,12 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
 
         // expect that the two invalid attributes are represented in warnings
         Assert.Equal(
-            """DICOM100: Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
 
         // expect that the two invalid attributes are represented in warnings
         Assert.Equal(
-            """DICOM100: Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0010,0030) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[1].GetString(DicomTag.ErrorComment)
         );
     }
@@ -245,7 +245,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
 
             // expect that the two invalid attribute is represented in warnings
             Assert.Equal(
-                """DICOM100: Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+                """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
                 failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
         }
     }

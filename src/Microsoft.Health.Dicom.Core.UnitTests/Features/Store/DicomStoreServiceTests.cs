@@ -207,7 +207,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -255,7 +255,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -306,7 +306,7 @@ public class DicomStoreServiceTests
         DicomSequence invalidFailedAttributesSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             invalidFailedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 

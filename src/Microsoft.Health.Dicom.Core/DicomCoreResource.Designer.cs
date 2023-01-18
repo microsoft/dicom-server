@@ -304,7 +304,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DICOM{0}: {1}.
+        ///   Looks up a localized string similar to DICOM{0}: {1} - {2}.
         /// </summary>
         internal static string ErrorMessageFormat {
             get {
