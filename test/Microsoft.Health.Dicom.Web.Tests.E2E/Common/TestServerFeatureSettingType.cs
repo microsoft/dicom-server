@@ -18,5 +18,6 @@ public enum TestServerFeatureSettingType : byte
     None = 0,
 
     // Enable Data Partition
-    DataPartition = 1
+    DataPartition = 1,
+    EnableDropInvalidDicomJsonMetadata = 2
 }

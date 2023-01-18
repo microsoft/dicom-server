@@ -129,11 +129,23 @@ public class QueryParserTests
     }
 
     [Theory]
-    [InlineData("00080061", "CT")]
+    [InlineData("00201208", "3")]
     public void GivenFilterCondition_WithNotSupportedTag_Throws(string key, string value)
     {
         Assert.Throws<QueryParseException>(() => _queryParser
             .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags));
+    }
+
+    [Theory]
+    [InlineData("ModalitiesInStudy", "CT")]
+    public void GivenFilterCondition_WithModalitiesInStudySupportedTag_Works(string key, string value)
+    {
+        var queryExp = _queryParser
+            .Parse(CreateParameters(GetSingleton(key, value), QueryResource.AllStudies), QueryTagService.CoreQueryTags);
+
+        QueryFilterCondition queryFilterCondition = queryExp.FilterConditions.First();
+        Assert.True(queryFilterCondition is StudyToSeriesStringSingleValueMatchCondition);
+        Assert.True(queryFilterCondition.QueryTag.Tag == DicomTag.ModalitiesInStudy);
     }
 
     [Theory]

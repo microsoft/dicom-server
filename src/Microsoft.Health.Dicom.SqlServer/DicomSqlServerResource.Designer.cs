@@ -10,6 +10,7 @@
 
 namespace Microsoft.Health.Dicom.SqlServer {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.Health.Dicom.SqlServer {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SqlServer.DicomSqlServerResource", typeof(DicomSqlServerResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SqlServer.DicomSqlServerResource", typeof(DicomSqlServerResource).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

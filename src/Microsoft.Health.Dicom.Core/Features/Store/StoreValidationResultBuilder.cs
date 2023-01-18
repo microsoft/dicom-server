@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -14,6 +14,7 @@ internal sealed class StoreValidationResultBuilder
 {
     private readonly List<string> _errorMessages;
     private readonly List<string> _warningMessages;
+    private readonly List<DicomTag> _invalidDicomTags;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
@@ -25,6 +26,7 @@ internal sealed class StoreValidationResultBuilder
     {
         _errorMessages = new List<string>();
         _warningMessages = new List<string>();
+        _invalidDicomTags = new List<DicomTag>();
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
@@ -37,36 +39,46 @@ internal sealed class StoreValidationResultBuilder
             _errorMessages,
             _warningMessages,
             _warningCodes,
-            _firstException);
+            _firstException,
+            _invalidDicomTags);
     }
 
-    public void Add(Exception ex, QueryTag queryTag = null)
+    public void Add(Exception ex, DicomTag dicomTag = null)
     {
         // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
         _firstException ??= ex;
 
-        _errorMessages.Add(GetFormattedText(ex?.Message, queryTag));
+        _errorMessages.Add(GetFormattedText(ex?.Message, dicomTag));
     }
 
-    public void Add(ValidationWarnings warningCode, QueryTag queryTag = null)
+    public void Add(ValidationWarnings warningCode, DicomTag dicomTag = null)
     {
         // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
         _warningCodes |= warningCode;
 
         if (warningCode != ValidationWarnings.None)
         {
-            _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), queryTag));
+            _warningMessages.Add(GetFormattedText(GetWarningMessage(warningCode), dicomTag));
         }
     }
 
-    private static string GetFormattedText(string message, QueryTag queryTag = null)
+    /// <summary>
+    /// Adds a tag to a list representing invalid Dicom items.
+    /// </summary>
+    /// <param name="tag">Invalid item's tag to add.</param>
+    public void AddInvalidTag(DicomTag tag)
+    {
+        _invalidDicomTags.Add(tag);
+    }
+
+    private static string GetFormattedText(string message, DicomTag dicomTag = null)
     {
         EnsureArg.IsNotNull(message, nameof(message));
 
-        if (queryTag == null)
+        if (dicomTag == null)
             return message;
 
-        return $"{queryTag} - {message}";
+        return $"{dicomTag} - {dicomTag.DictionaryEntry.Keyword} - {message}";
     }
 
     private static string GetWarningMessage(ValidationWarnings warningCode)

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -74,6 +74,42 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     }
 
     [Fact]
+    public async Task GivenSearchRequest_AllStudyComputedColumns_MatchResult()
+    {
+        // 3 instances in the same study, 2 CT and 1 MR
+        DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.Modality, "CT" },
+        });
+        var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+        await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.StudyInstanceUID, studyId },
+             { DicomTag.Modality, "CT" }
+        });
+        await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.StudyInstanceUID, studyId },
+             { DicomTag.Modality, "MR" }
+        });
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudyAsync("ModalitiesInStudy=CT");
+        DicomDataset[] datasets = await response.ToArrayAsync();
+        Assert.NotEmpty(datasets);
+        DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+        Assert.NotNull(testDataResponse);
+        Assert.True(testDataResponse.GetString(DicomTag.ModalitiesInStudy) == "CT\\MR");
+
+
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response2 = await _client.QueryStudyAsync("ModalitiesInStudy=CT&includefield=NumberOfStudyRelatedInstances");
+        datasets = await response2.ToArrayAsync();
+        Assert.NotEmpty(datasets);
+        DicomDataset testDataResponse2 = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+        Assert.NotNull(testDataResponse2);
+        Assert.True(testDataResponse2.GetString(DicomTag.ModalitiesInStudy) == "CT\\MR");
+        Assert.True(testDataResponse2.GetSingleValue<int>(DicomTag.NumberOfStudyRelatedInstances) == 3);
+    }
+
+    [Fact]
     public async Task GivenSearchRequest_AllStudyLevelOnPatientName_MatchIsCaseIncensitiveAndAccentIncensitive()
     {
         string randomNamePart = RandomString(7);
@@ -137,6 +173,37 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.SeriesInstanceUID) == seriesId);
         Assert.NotNull(testDataResponse);
         ValidationHelpers.ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
+    }
+
+    [Fact]
+    public async Task GivenSearchRequest_AllSeriesComputedColumns_MatchResult()
+    {
+        // 3 instances in the same study, 1 series with 2 instances in CT and 1 series with 1 instance in MR
+        DicomDataset matchInstance = await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.Modality, "CT" },
+        });
+        var studyId = matchInstance.GetSingleValue<string>(DicomTag.StudyInstanceUID);
+        var seriesId = matchInstance.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+        await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.StudyInstanceUID, studyId },
+             { DicomTag.SeriesInstanceUID, seriesId },
+             { DicomTag.Modality, "CT" }
+        });
+        await PostDicomFileAsync(new DicomDataset()
+        {
+             { DicomTag.StudyInstanceUID, studyId },
+             { DicomTag.Modality, "MR" }
+        });
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QuerySeriesAsync("Modality=CT&includefield=NumberOfSeriesRelatedInstances");
+
+        DicomDataset[] datasets = await response.ToArrayAsync();
+
+        Assert.NotEmpty(datasets);
+        DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
+        Assert.NotNull(testDataResponse);
+        Assert.True(testDataResponse.GetSingleValue<int>(DicomTag.NumberOfSeriesRelatedInstances) == 2);
     }
 
     [Fact]

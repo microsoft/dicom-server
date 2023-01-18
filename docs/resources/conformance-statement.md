@@ -328,6 +328,7 @@ We support searching on below attributes and search type.
 | ReferringPhysicianName | X | X | X |
 | StudyDate | X | X | X |
 | StudyDescription | X | X | X |
+| ModalitiesInStudy | X | X | X |
 | SeriesInstanceUID |  | X | X |
 | Modality |  | X | X |
 | PerformedProcedureStepStartDate |  | X | X |

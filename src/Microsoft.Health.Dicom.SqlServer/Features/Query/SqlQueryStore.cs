@@ -1,8 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -26,5 +27,17 @@ internal class SqlQueryStore : IQueryStore
     {
         ISqlQueryStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.QueryAsync(partitionKey, query, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<StudyResult>> GetStudyResultAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken)
+    {
+        ISqlQueryStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetStudyResultAsync(partitionKey, versions, cancellationToken);
+    }
+
+    public async Task<IReadOnlyCollection<SeriesResult>> GetSeriesResultAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken)
+    {
+        ISqlQueryStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetSeriesResultAsync(partitionKey, versions, cancellationToken);
     }
 }

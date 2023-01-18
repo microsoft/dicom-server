@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
@@ -64,13 +65,53 @@ public class QueryService : IQueryService
             return new QueryResourceResponse(Array.Empty<DicomDataset>(), queryExpression.ErroneousTags);
         }
 
-        IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
-            queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
-
         var responseBuilder = new QueryResponseBuilder(queryExpression);
-        IEnumerable<DicomDataset> responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
+        IEnumerable<DicomDataset> responseMetadata = null;
+
+        if (QueryLimit.ContainsComputedTag(queryExpression.IELevel, responseBuilder.ReturnTags))
+        {
+            var versions = queryResult.DicomInstances.Select(i => i.Version).ToList();
+
+            if (queryExpression.IELevel == Messages.ResourceType.Study)
+            {
+                var studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
+                var studyResultUidMap = studyComputedResults.ToDictionary<StudyResult, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
+                responseMetadata = await Task.WhenAll(queryResult.DicomInstances.Select(x =>
+                GenerateQueryResult(x, studyResultUidMap[x.StudyInstanceUid].DicomDataset, responseBuilder, getFullMetadata: true, cancellationToken)));
+            }
+            else if (queryExpression.IELevel == Messages.ResourceType.Series)
+            {
+                var seriesComputedResults = await _queryStore.GetSeriesResultAsync(partitionKey, versions, cancellationToken);
+                var seriesResultMap = seriesComputedResults.ToDictionary<SeriesResult, string>(a => a.StudyInstanceUid + "-" + a.SeriesInstanceUid, StringComparer.OrdinalIgnoreCase);
+                responseMetadata = await Task.WhenAll(queryResult.DicomInstances.Select(x =>
+                GenerateQueryResult(x, seriesResultMap[x.StudyInstanceUid + "-" + x.SeriesInstanceUid].DicomDataset, responseBuilder, getFullMetadata: true, cancellationToken)));
+            }
+        }
+        if (responseMetadata == null)
+        {
+            IEnumerable<DicomDataset> instanceMetadata = await Task.WhenAll(
+                queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
+
+            responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
+        }
 
         return new QueryResourceResponse(responseMetadata, queryExpression.ErroneousTags);
+    }
+
+    // TODO version the API to change the default results to only include indexed columns and control the getFullMetadata param
+    private async Task<DicomDataset> GenerateQueryResult(
+        VersionedInstanceIdentifier versionedInstance,
+        DicomDataset computedMetadata,
+        QueryResponseBuilder queryResponseBuilder,
+        bool getFullMetadata,
+        CancellationToken cancellationToken)
+    {
+        if (getFullMetadata)
+        {
+            DicomDataset fullMetadata = await _metadataStore.GetInstanceMetadataAsync(versionedInstance, cancellationToken);
+            return queryResponseBuilder.GenerateResponseDataset(fullMetadata, computedMetadata);
+        }
+        return queryResponseBuilder.GenerateResponseDataset(computedMetadata);
     }
 
     private static void ValidateRequestIdentifiers(QueryParameters parameters)
