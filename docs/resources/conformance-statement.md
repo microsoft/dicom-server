@@ -108,6 +108,7 @@ Each dataset in the `FailedSOPSequence` will have the following elements (if the
 | (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
 | (0008, 1155) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
 | (0008, 1197) | FailureReason            | The reason code why this instance failed to store. |
+| (0074, 1048) | FailedAttributesSequence | The sequence of `ErrorComment` that includes the reason for each failed attribute. |
 
 Each dataset in the `ReferencedSOPSequence` will have the following elements:
 
