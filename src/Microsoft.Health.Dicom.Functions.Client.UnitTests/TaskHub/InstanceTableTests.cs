@@ -12,8 +12,8 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 
 public class InstanceTableTests : TrackingTableTests
 {
-    protected override ValueTask<bool> ExistsAsync(TableServiceClient tableServiceClient, string tableName, CancellationToken cancellationToken)
-        => new InstanceTable(tableServiceClient, tableName).ExistsAsync(cancellationToken);
+    protected override ValueTask<bool> ExistsAsync(TableServiceClient tableServiceClient, string taskHubName, CancellationToken cancellationToken)
+        => new InstanceTable(tableServiceClient, taskHubName).ExistsAsync(cancellationToken);
 
     protected override string GetName(string taskHubName)
         => InstanceTable.GetName(taskHubName);

@@ -16,62 +16,62 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 
 public abstract class TrackingTableTests
 {
+    private readonly string _tableName;
+    private readonly TableServiceClient _tableServiceClient = Substitute.For<TableServiceClient>("UseDevelopmentStorage=true");
+    private readonly TableClient _tableClient;
+    private readonly AsyncPageable<TableEntity> _asyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
+    private readonly IAsyncEnumerator<TableEntity> _asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
+
+    private const string EmptyQuery = "PartitionKey eq null";
+    private const string TaskHubName = "TestTaskHub";
+
+    protected TrackingTableTests()
+    {
+        _tableName = GetName(TaskHubName);
+        _tableClient = Substitute.For<TableClient>("UseDevelopmentStorage=true", _tableName);
+        _tableServiceClient.GetTableClient(_tableName).Returns(_tableClient);
+    }
+
     [Fact]
     public async Task GivenMissingTable_WhenCheckingExistence_ThenReturnFalse()
     {
         // Set up clients
-        const string TaskHubName = "TestTaskHub";
-        string tableName = GetName(TaskHubName);
         using var tokenSource = new CancellationTokenSource();
 
-        TableServiceClient tableServiceClient = Substitute.For<TableServiceClient>("UseDevelopmentStorage=true");
-        TableClient tableClient = Substitute.For<TableClient>("UseDevelopmentStorage=true", tableName);
-        AsyncPageable<TableEntity> asyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
-        IAsyncEnumerator<TableEntity> asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
-
-        tableServiceClient.GetTableClient(tableName).Returns(tableClient);
-        tableClient.QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token).Returns(asyncPageable);
-        asyncPageable.GetAsyncEnumerator(tokenSource.Token).Returns(asyncEnumerator);
-        asyncEnumerator
+        _tableClient.QueryAsync<TableEntity>(EmptyQuery, 1, null, tokenSource.Token).Returns(_asyncPageable);
+        _asyncPageable.GetAsyncEnumerator(tokenSource.Token).Returns(_asyncEnumerator);
+        _asyncEnumerator
             .MoveNextAsync(tokenSource.Token)
             .Returns(info => ValueTask.FromException<bool>(new RequestFailedException((int)HttpStatusCode.NotFound, "Cannot find table")));
 
         // Test
-        Assert.False(await ExistsAsync(tableServiceClient, TaskHubName, tokenSource.Token));
+        Assert.False(await ExistsAsync(_tableServiceClient, TaskHubName, tokenSource.Token));
 
-        tableServiceClient.Received(1).GetTableClient(tableName);
-        tableClient.Received(1).QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token);
-        asyncPageable.Received(1).GetAsyncEnumerator(tokenSource.Token);
-        await asyncEnumerator.Received(1).MoveNextAsync(tokenSource.Token);
+        _tableServiceClient.Received(1).GetTableClient(_tableName);
+        _tableClient.Received(1).QueryAsync<TableEntity>(EmptyQuery, 1, null, tokenSource.Token);
+        _asyncPageable.Received(1).GetAsyncEnumerator(tokenSource.Token);
+        await _asyncEnumerator.Received(1).MoveNextAsync(tokenSource.Token);
     }
 
     [Fact]
     public async Task GivenAvailableTable_WhenCheckingExistence_ThenReturnTrue()
     {
         // Set up clients
-        const string TaskHubName = "TestTaskHub";
-        string tableName = GetName(TaskHubName);
         using var tokenSource = new CancellationTokenSource();
 
-        TableServiceClient tableServiceClient = Substitute.For<TableServiceClient>("UseDevelopmentStorage=true");
-        TableClient tableClient = Substitute.For<TableClient>("UseDevelopmentStorage=true", tableName);
-        AsyncPageable<TableEntity> asyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
-        IAsyncEnumerator<TableEntity> asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
-
-        tableServiceClient.GetTableClient(tableName).Returns(tableClient);
-        tableClient.QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token).Returns(asyncPageable);
-        asyncPageable.GetAsyncEnumerator(tokenSource.Token).Returns(asyncEnumerator);
-        asyncEnumerator
+        _tableClient.QueryAsync<TableEntity>(EmptyQuery, 1, null, tokenSource.Token).Returns(_asyncPageable);
+        _asyncPageable.GetAsyncEnumerator(tokenSource.Token).Returns(_asyncEnumerator);
+        _asyncEnumerator
             .MoveNextAsync(tokenSource.Token)
-            .Returns(info => ValueTask.FromResult(false));
+            .Returns(info => ValueTask.FromResult(true));
 
         // Test
-        Assert.True(await ExistsAsync(tableServiceClient, TaskHubName, tokenSource.Token));
+        Assert.True(await ExistsAsync(_tableServiceClient, TaskHubName, tokenSource.Token));
 
-        tableServiceClient.Received(1).GetTableClient(tableName);
-        tableClient.Received(1).QueryAsync<TableEntity>("Partition eq null", 1, null, tokenSource.Token);
-        asyncPageable.Received(1).GetAsyncEnumerator(tokenSource.Token);
-        await asyncEnumerator.Received(1).MoveNextAsync(tokenSource.Token);
+        _tableServiceClient.Received(1).GetTableClient(_tableName);
+        _tableClient.Received(1).QueryAsync<TableEntity>(EmptyQuery, 1, null, tokenSource.Token);
+        _asyncPageable.Received(1).GetAsyncEnumerator(tokenSource.Token);
+        await _asyncEnumerator.Received(1).MoveNextAsync(tokenSource.Token);
     }
 
     protected abstract ValueTask<bool> ExistsAsync(TableServiceClient tableServiceClient, string tableName, CancellationToken cancellationToken);

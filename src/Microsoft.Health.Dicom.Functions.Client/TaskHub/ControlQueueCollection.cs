@@ -9,17 +9,18 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Queues;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
-internal class ControlQueues
+internal class ControlQueueCollection
 {
     private readonly QueueServiceClient _queueServiceClient;
     private readonly TaskHubInfo _taskHubInfo;
 
-    public ControlQueues(QueueServiceClient queueServiceClient, TaskHubInfo taskHubInfo)
+    public ControlQueueCollection(QueueServiceClient queueServiceClient, TaskHubInfo taskHubInfo)
     {
         _queueServiceClient = EnsureArg.IsNotNull(queueServiceClient, nameof(queueServiceClient));
         _taskHubInfo = EnsureArg.IsNotNull(taskHubInfo, nameof(taskHubInfo));
@@ -31,14 +32,12 @@ internal class ControlQueues
 
     public virtual async ValueTask<bool> ExistAsync(CancellationToken cancellationToken = default)
     {
-        foreach (string queue in Names)
-        {
-            QueueClient controlQueueClient = _queueServiceClient.GetQueueClient(queue);
-            if (!await controlQueueClient.ExistsAsync(cancellationToken))
-                return false;
-        }
+        // Note: The maximum number of partitions is 16
+        Response<bool>[] responses = await Task
+            .WhenAll(Names
+                .Select(n => _queueServiceClient.GetQueueClient(n).ExistsAsync(cancellationToken)));
 
-        return true;
+        return responses.All(x => x.Value);
     }
 
     // See: https://learn.microsoft.com/en-us/rest/api/storageservices/naming-queues-and-metadata#queue-names

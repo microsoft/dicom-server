@@ -12,14 +12,14 @@ namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 internal class AzureStorageTaskHub : ITaskHub
 {
-    private readonly ControlQueues _controlQueues;
+    private readonly ControlQueueCollection _controlQueues;
     private readonly WorkItemQueue _workItemQueue;
     private readonly InstanceTable _instanceTable;
     private readonly HistoryTable _historyTable;
     private readonly ILogger<AzureStorageTaskHub> _logger;
 
     public AzureStorageTaskHub(
-        ControlQueues controlQueues,
+        ControlQueueCollection controlQueues,
         WorkItemQueue workItemQueue,
         InstanceTable instanceTable,
         HistoryTable historyTable,
@@ -34,26 +34,39 @@ internal class AzureStorageTaskHub : ITaskHub
 
     public async ValueTask<bool> IsHealthyAsync(CancellationToken cancellationToken = default)
     {
+        ValueTask<bool> controlQueueTask = _controlQueues.ExistAsync(cancellationToken);
+        ValueTask<bool> workItemQueueTask = _workItemQueue.ExistsAsync(cancellationToken);
+        ValueTask<bool> instanceTableTask = _instanceTable.ExistsAsync(cancellationToken);
+        ValueTask<bool> historyTableTask = _historyTable.ExistsAsync(cancellationToken);
+
+        (bool ControlQueues, bool WorkItemQueue, bool InstanceTable, bool HistoryTable) healthCheck =
+            (
+                await controlQueueTask,
+                await workItemQueueTask,
+                await instanceTableTask,
+                await historyTableTask
+            );
+
         // Check that each of the components found in the Task Hub are available
-        if (!await _controlQueues.ExistAsync(cancellationToken))
+        if (!healthCheck.ControlQueues)
         {
             _logger.LogWarning("Cannot find one or more of the control queues: [{ControlQueues}].", string.Join(", ", _controlQueues.Names));
             return false;
         }
 
-        if (!await _workItemQueue.ExistsAsync(cancellationToken))
+        if (!healthCheck.WorkItemQueue)
         {
             _logger.LogWarning("Cannot find work item queue '{WorkItemQueue}.'", _workItemQueue.Name);
             return false;
         }
 
-        if (!await _instanceTable.ExistsAsync(cancellationToken))
+        if (!healthCheck.InstanceTable)
         {
             _logger.LogWarning("Cannot find instance table '{InstanceTable}.'", _instanceTable.Name);
             return false;
         }
 
-        if (!await _historyTable.ExistsAsync(cancellationToken))
+        if (!healthCheck.HistoryTable)
         {
             _logger.LogWarning("Cannot find history table '{HistoryTable}.'", _historyTable.Name);
             return false;

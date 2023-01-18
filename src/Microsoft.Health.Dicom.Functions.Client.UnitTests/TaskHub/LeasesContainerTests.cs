@@ -19,65 +19,64 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 
 public class LeasesContainerTests
 {
+    private readonly string _containerName = LeasesContainer.GetName(TaskHubName);
+    private readonly BlobServiceClient _blobServiceClient = Substitute.For<BlobServiceClient>("UseDevelopmentStorage=true");
+    private readonly BlobContainerClient _blobContainerClient;
+    private readonly BlobClient _blobClient;
+    private readonly LeasesContainer _leasesContainer;
+
+    private const string TaskHubName = "TestTaskHub";
+
+    public LeasesContainerTests()
+    {
+        _blobContainerClient = Substitute.For<BlobContainerClient>("UseDevelopmentStorage=true", _containerName);
+        _blobClient = Substitute.For<BlobClient>("UseDevelopmentStorage=true", _containerName, LeasesContainer.TaskHubBlobName);
+        _blobServiceClient.GetBlobContainerClient(_containerName).Returns(_blobContainerClient);
+        _blobContainerClient.GetBlobClient(LeasesContainer.TaskHubBlobName).Returns(_blobClient);
+        _leasesContainer = new LeasesContainer(_blobServiceClient, TaskHubName);
+    }
+
     [Fact]
     public async Task GivenMissingContainerOrBlob_WhenGettingInfo_ThenReturnNull()
     {
         // Set up clients
-        const string TaskHubName = "TestTaskHub";
-        string containerName = LeasesContainer.GetName(TaskHubName);
         using var tokenSource = new CancellationTokenSource();
-
-        BlobServiceClient blobServiceClient = Substitute.For<BlobServiceClient>("UseDevelopmentStorage=true");
-        BlobContainerClient blobContainerClient = Substitute.For<BlobContainerClient>("UseDevelopmentStorage=true", containerName);
-        BlobClient blobClient = Substitute.For<BlobClient>("UseDevelopmentStorage=true", containerName, LeasesContainer.TaskHubBlobName);
-
-        blobServiceClient.GetBlobContainerClient(containerName).Returns(blobContainerClient);
-        blobContainerClient.GetBlobClient(LeasesContainer.TaskHubBlobName).Returns(blobClient);
-        blobClient
+        _blobClient
             .DownloadContentAsync(tokenSource.Token)
             .Returns(
                 Task.FromException<Response<BlobDownloadResult>>(
                     new RequestFailedException((int)HttpStatusCode.NotFound, "Blob not found.")));
 
         // Test
-        var leasesContainer = new LeasesContainer(blobServiceClient, TaskHubName);
+        Assert.Null(await _leasesContainer.GetTaskHubInfoAsync(tokenSource.Token));
 
-        Assert.Null(await leasesContainer.GetTaskHubInfoAsync(tokenSource.Token));
-
-        blobServiceClient.Received(1).GetBlobContainerClient(containerName);
-        blobContainerClient.Received(1).GetBlobClient(LeasesContainer.TaskHubBlobName);
-        await blobClient.Received(1).DownloadContentAsync(tokenSource.Token);
+        _blobServiceClient.Received(1).GetBlobContainerClient(_containerName);
+        _blobContainerClient.Received(1).GetBlobClient(LeasesContainer.TaskHubBlobName);
+        await _blobClient.Received(1).DownloadContentAsync(tokenSource.Token);
     }
 
     [Fact]
     public async Task GivenAvailableBlob_WhenGettingInfo_ThenReturnObject()
     {
         // Set up clients
-        const string TaskHubName = "TestTaskHub";
-        string containerName = LeasesContainer.GetName(TaskHubName);
-        var expected = new TaskHubInfo { CreatedAt = DateTime.UtcNow, PartitionCount = 7, TaskHubName = TaskHubName };
         using var tokenSource = new CancellationTokenSource();
 
-        BlobServiceClient blobServiceClient = Substitute.For<BlobServiceClient>("UseDevelopmentStorage=true");
-        BlobContainerClient blobContainerClient = Substitute.For<BlobContainerClient>("UseDevelopmentStorage=true", containerName);
-        BlobClient blobClient = Substitute.For<BlobClient>("UseDevelopmentStorage=true", containerName, LeasesContainer.TaskHubBlobName);
+        var expected = new TaskHubInfo { CreatedAt = DateTime.UtcNow, PartitionCount = 7, TaskHubName = TaskHubName };
         BlobDownloadResult result = BlobDownloadResultFactory.CreateResult(new BinaryData(JsonSerializer.Serialize(expected)));
-
-        blobServiceClient.GetBlobContainerClient(containerName).Returns(blobContainerClient);
-        blobContainerClient.GetBlobClient(LeasesContainer.TaskHubBlobName).Returns(blobClient);
-        blobClient.DownloadContentAsync(tokenSource.Token).Returns(Response.FromValue(result, Substitute.For<Response>()));
+        _blobClient
+            .DownloadContentAsync(tokenSource.Token)
+            .Returns(Response.FromValue(result, Substitute.For<Response>()));
 
         // Test
-        var leasesContainer = new LeasesContainer(blobServiceClient, TaskHubName);
-        TaskHubInfo actual = await leasesContainer.GetTaskHubInfoAsync(tokenSource.Token);
+        TaskHubInfo actual = await _leasesContainer.GetTaskHubInfoAsync(tokenSource.Token);
 
         Assert.NotNull(actual);
         Assert.Equal(expected.CreatedAt, actual.CreatedAt);
         Assert.Equal(expected.PartitionCount, actual.PartitionCount);
         Assert.Equal(expected.TaskHubName, actual.TaskHubName);
 
-        blobServiceClient.Received(1).GetBlobContainerClient(containerName);
-        blobContainerClient.Received(1).GetBlobClient(LeasesContainer.TaskHubBlobName);
-        await blobClient.Received(1).DownloadContentAsync(tokenSource.Token);
+        _blobServiceClient.Received(1).GetBlobContainerClient(_containerName);
+        _blobContainerClient.Received(1).GetBlobClient(LeasesContainer.TaskHubBlobName);
+        await _blobClient.Received(1).DownloadContentAsync(tokenSource.Token);
     }
 }

@@ -15,45 +15,49 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 
 public class WorkItemQueueTests
 {
+    private readonly string _queueName = WorkItemQueue.GetName(TaskHubName);
+    private readonly QueueServiceClient _queueServiceClient = Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true");
+    private readonly QueueClient _queueClient;
+    private readonly WorkItemQueue _workItemQueue;
+
+    private const string TaskHubName = "TestTaskHub";
+
+    public WorkItemQueueTests()
+    {
+        _queueClient = Substitute.For<QueueClient>("UseDevelopmentStorage=true", _queueName);
+        _queueServiceClient.GetQueueClient(_queueName).Returns(_queueClient);
+        _workItemQueue = new WorkItemQueue(_queueServiceClient, TaskHubName);
+    }
+
     [Fact]
     public async Task GivenMissingQueue_WhenCheckingExistence_ThenReturnFalse()
     {
         // Set up clients
-        const string TaskHubName = "TestTaskHub";
-        string queueName = WorkItemQueue.GetName(TaskHubName);
         using var tokenSource = new CancellationTokenSource();
-
-        QueueServiceClient queueServiceClient = Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true");
-        QueueClient queueClient = Substitute.For<QueueClient>("UseDevelopmentStorage=true", queueName);
-        queueServiceClient.GetQueueClient(queueName).Returns(queueClient);
-        queueClient.ExistsAsync(tokenSource.Token).Returns(Response.FromValue(false, Substitute.For<Response>()));
+        _queueClient
+            .ExistsAsync(tokenSource.Token)
+            .Returns(Response.FromValue(false, Substitute.For<Response>()));
 
         // Test
-        var workItemQueue = new WorkItemQueue(queueServiceClient, TaskHubName);
-        Assert.False(await workItemQueue.ExistsAsync(tokenSource.Token));
+        Assert.False(await _workItemQueue.ExistsAsync(tokenSource.Token));
 
-        queueServiceClient.Received(1).GetQueueClient(queueName);
-        await queueClient.Received(1).ExistsAsync(tokenSource.Token);
+        _queueServiceClient.Received(1).GetQueueClient(_queueName);
+        await _queueClient.Received(1).ExistsAsync(tokenSource.Token);
     }
 
     [Fact]
-    public async Task GivenAvailableQueues_WhenCheckingExistence_ThenReturnTrue()
+    public async Task GivenAvailableQueue_WhenCheckingExistence_ThenReturnTrue()
     {
         // Set up clients
-        const string TaskHubName = "TestTaskHub";
-        string queueName = WorkItemQueue.GetName(TaskHubName);
         using var tokenSource = new CancellationTokenSource();
-
-        QueueServiceClient queueServiceClient = Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true");
-        QueueClient queueClient = Substitute.For<QueueClient>("UseDevelopmentStorage=true", queueName);
-        queueServiceClient.GetQueueClient(queueName).Returns(queueClient);
-        queueClient.ExistsAsync(tokenSource.Token).Returns(Response.FromValue(true, Substitute.For<Response>()));
+        _queueClient
+            .ExistsAsync(tokenSource.Token)
+            .Returns(Response.FromValue(true, Substitute.For<Response>()));
 
         // Test
-        var workItemQueue = new WorkItemQueue(queueServiceClient, TaskHubName);
-        Assert.True(await workItemQueue.ExistsAsync(tokenSource.Token));
+        Assert.True(await _workItemQueue.ExistsAsync(tokenSource.Token));
 
-        queueServiceClient.Received(1).GetQueueClient(queueName);
-        await queueClient.Received(1).ExistsAsync(tokenSource.Token);
+        _queueServiceClient.Received(1).GetQueueClient(_queueName);
+        await _queueClient.Received(1).ExistsAsync(tokenSource.Token);
     }
 }

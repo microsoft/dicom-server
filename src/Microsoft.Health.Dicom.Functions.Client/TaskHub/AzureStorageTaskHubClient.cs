@@ -67,7 +67,7 @@ internal class AzureStorageTaskHubClient : ITaskHubClient
         }
 
         return new AzureStorageTaskHub(
-            new ControlQueues(_queueServiceClient, taskHubInfo),
+            new ControlQueueCollection(_queueServiceClient, taskHubInfo),
             new WorkItemQueue(_queueServiceClient, taskHubInfo.TaskHubName),
             new InstanceTable(_tableServiceClient, taskHubInfo.TaskHubName),
             new HistoryTable(_tableServiceClient, taskHubInfo.TaskHubName),

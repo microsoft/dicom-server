@@ -23,9 +23,10 @@ internal abstract class TrackingTable
 
     public virtual async ValueTask<bool> ExistsAsync(CancellationToken cancellationToken = default)
     {
-        // Note: There is no ExistsAsync method for TableClient, so instead we'll run a query that returns no elements instead
+        // Note: There is no ExistsAsync method for TableClient, so instead
+        //       we'll run a query that returns no elements as PartitionKey can never be null
         AsyncPageable<TableEntity> pageable = _tableClient.QueryAsync<TableEntity>(
-            filter: "Partition eq null", // PartitionKey can never be null
+            filter: "PartitionKey eq null",
             maxPerPage: 1,
             cancellationToken: cancellationToken);
 
