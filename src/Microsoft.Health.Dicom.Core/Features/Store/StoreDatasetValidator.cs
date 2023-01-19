@@ -59,7 +59,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         var validationResultBuilder = new StoreValidationResultBuilder();
 
-        ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+        try
+        {
+            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid);
+        }
+        catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
+        {
+            validationResultBuilder.Add(ex, ex.DicomTag, isCoreTag: true);
+        }
 
         // validate input data elements
         if (_enableDropInvalidDicomJsonMetadata || _enableFullDicomItemValidation)
@@ -80,7 +87,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return validationResultBuilder.Build();
     }
 
-    private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
     {
         // Ensure required tags are present.
         EnsureRequiredTagIsPresent(DicomTag.PatientID);
@@ -96,9 +103,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             studyInstanceUid == sopInstanceUid ||
             seriesInstanceUid == sopInstanceUid)
         {
+            var tag = studyInstanceUid == seriesInstanceUid ? DicomTag.SeriesInstanceUID :
+                studyInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID :
+                seriesInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID : null;
+
             throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,
-                DicomCoreResource.DuplicatedUidsNotAllowed);
+                DicomCoreResource.DuplicatedUidsNotAllowed,
+                tag);
         }
 
         // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match, ignoring whitespace.
@@ -106,8 +118,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             !studyInstanceUid.TrimEnd().Equals(requiredStudyInstanceUid.TrimEnd(), StringComparison.OrdinalIgnoreCase))
         {
             throw new DatasetValidationException(
-                FailureReasonCodes.MismatchStudyInstanceUid,
-                DicomCoreResource.MismatchStudyInstanceUid);
+                FailureReasonCodes.ValidationFailure,
+                DicomCoreResource.MismatchStudyInstanceUid,
+                DicomTag.StudyInstanceUID);
         }
 
         string EnsureRequiredTagIsPresent(DicomTag dicomTag)
@@ -122,7 +135,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 string.Format(
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.MissingRequiredTag,
-                    dicomTag.ToString()));
+                    dicomTag.ToString()), dicomTag);
         }
     }
 
@@ -144,6 +157,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
+
                 _telemetryClient
                     .GetMetric(
                         "IndexTagValidationError",
@@ -174,7 +188,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
                     validationResultBuilder.Add(ex, item.Tag);
-                    validationResultBuilder.AddInvalidTag(item.Tag);
+
                     _telemetryClient
                         .GetMetric(
                             "DroppedInvalidTag",
@@ -193,10 +207,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 }
                 else
                 {
-                    throw new DatasetValidationException(
-                        FailureReasonCodes.ValidationFailure,
-                        ex.Message,
-                        ex);
+                    validationResultBuilder.Add(ex, item.Tag);
                 }
             }
         }

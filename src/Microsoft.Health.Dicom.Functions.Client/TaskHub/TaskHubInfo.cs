@@ -4,10 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Resources;
-using System.Runtime.CompilerServices;
 
-[assembly: CLSCompliant(false)]
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
-[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Functions.Client.UnitTests")]
-[assembly: NeutralResourcesLanguage("en-us")]
+namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
+
+internal sealed class TaskHubInfo
+{
+    public string TaskHubName { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public int PartitionCount { get; set; }
+}

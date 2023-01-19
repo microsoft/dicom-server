@@ -187,6 +187,7 @@ dotnet_code_quality.exclude_indirect_base_types           = false
 
 dotnet_code_quality.CA1002.api_surface = public, internal # Do not expose generic lists
 dotnet_code_quality.CA1062.api_surface = public           # Validate arguments of public methods
+dotnet_code_quality.CA1711.api_surface = public           # Identifiers should not have incorrect suffix
 dotnet_code_quality.CA1802 = static                       # Use Literals Where Appropriate
 dotnet_code_quality.CA1815.api_surface = public, internal # Override equals and operator equals on value types
 

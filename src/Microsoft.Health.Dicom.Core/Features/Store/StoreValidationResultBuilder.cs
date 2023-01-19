@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
 
@@ -12,43 +13,33 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 
 internal sealed class StoreValidationResultBuilder
 {
-    private readonly List<string> _errorMessages;
     private readonly List<string> _warningMessages;
-    private readonly List<DicomTag> _invalidDicomTags;
+    private readonly Dictionary<DicomTag, StoreErrorResult> _invalidDicomTagErrors;
 
     // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
     private ValidationWarnings _warningCodes;
 
-    // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
-    private Exception _firstException;
-
     public StoreValidationResultBuilder()
     {
-        _errorMessages = new List<string>();
         _warningMessages = new List<string>();
-        _invalidDicomTags = new List<DicomTag>();
+        _invalidDicomTagErrors = new Dictionary<DicomTag, StoreErrorResult>();
 
         // TODO: Remove these during the cleanup. (this is to support the existing validator behavior)
         _warningCodes = ValidationWarnings.None;
-        _firstException = null;
     }
 
     public StoreValidationResult Build()
     {
         return new StoreValidationResult(
-            _errorMessages,
             _warningMessages,
             _warningCodes,
-            _firstException,
-            _invalidDicomTags);
+            _invalidDicomTagErrors);
     }
 
-    public void Add(Exception ex, DicomTag dicomTag = null)
+    public void Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
     {
-        // TODO: Remove this during the cleanup. (this is to support the existing validator behavior)
-        _firstException ??= ex;
-
-        _errorMessages.Add(GetFormattedText(ex?.Message, dicomTag));
+        var errorResult = new StoreErrorResult(GetFormattedText(ex?.Message, dicomTag), isCoreTag);
+        _invalidDicomTagErrors.TryAdd(dicomTag, errorResult);
     }
 
     public void Add(ValidationWarnings warningCode, DicomTag dicomTag = null)
@@ -62,15 +53,6 @@ internal sealed class StoreValidationResultBuilder
         }
     }
 
-    /// <summary>
-    /// Adds a tag to a list representing invalid Dicom items.
-    /// </summary>
-    /// <param name="tag">Invalid item's tag to add.</param>
-    public void AddInvalidTag(DicomTag tag)
-    {
-        _invalidDicomTags.Add(tag);
-    }
-
     private static string GetFormattedText(string message, DicomTag dicomTag = null)
     {
         EnsureArg.IsNotNull(message, nameof(message));
@@ -78,7 +60,12 @@ internal sealed class StoreValidationResultBuilder
         if (dicomTag == null)
             return message;
 
-        return $"{dicomTag} - {dicomTag.DictionaryEntry.Keyword} - {message}";
+        return string.Format(
+            CultureInfo.InvariantCulture,
+            DicomCoreResource.ErrorMessageFormat,
+            ErrorNumbers.ValidationFailure,
+            dicomTag.ToString(),
+            message);
     }
 
     private static string GetWarningMessage(ValidationWarnings warningCode)
