@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -15,12 +17,17 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 
 public class ControlQueueCollectionTests
 {
-    private readonly TaskHubInfo _taskHubInfo = new TaskHubInfo { PartitionCount = 3, TaskHubName = TaskHubName };
+    private readonly TaskHubInfo _taskHubInfo = new TaskHubInfo { PartitionCount = PartitionCount, TaskHubName = TaskHubName };
     private readonly QueueServiceClient _queueServiceClient = Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true");
     private readonly QueueClient[] _queueClients;
     private readonly ControlQueueCollection _controlQueues;
 
+    private const int PartitionCount = 3;
     private const string TaskHubName = "TestTaskHub";
+
+    public static IEnumerable<object[]> EnumeratePartitions => Enumerable
+        .Repeat<object>(null, PartitionCount)
+        .Select((obj, i) => new object[] { i });
 
     public ControlQueueCollectionTests()
     {
@@ -38,10 +45,8 @@ public class ControlQueueCollectionTests
     }
 
     [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    public async Task GivenOneMissingQueue_WhenCheckingExistence_ThenReturnFalse(int missingQueueIndex)
+    [MemberData(nameof(EnumeratePartitions))]
+    public async Task GivenOneMissingQueue_WhenCheckingExistence_ThenReturnFalse(int missingPartitionIndex)
     {
         // Set up clients
         using var tokenSource = new CancellationTokenSource();
@@ -50,7 +55,7 @@ public class ControlQueueCollectionTests
         {
             _queueClients[i]
                 .ExistsAsync(tokenSource.Token)
-                .Returns(Task.FromResult(Response.FromValue(i != missingQueueIndex, Substitute.For<Response>())));
+                .Returns(Task.FromResult(Response.FromValue(i != missingPartitionIndex, Substitute.For<Response>())));
         }
 
         // Test

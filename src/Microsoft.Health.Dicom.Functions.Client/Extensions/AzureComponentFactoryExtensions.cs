@@ -15,6 +15,7 @@ internal static class AzureComponentFactoryExtensions
     public static TClient CreateClient<TOptions, TClient>(this AzureComponentFactory factory, IConfigurationSection configuration)
     {
         EnsureArg.IsNotNull(factory, nameof(factory));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         TokenCredential credential = configuration.Value is null ? factory.CreateTokenCredential(configuration) : null;
         var options = (TOptions)factory.CreateClientOptions(typeof(TOptions), null, configuration);
