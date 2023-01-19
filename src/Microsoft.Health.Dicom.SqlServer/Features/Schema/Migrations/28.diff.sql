@@ -351,3 +351,69 @@ BEGIN
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 END
 
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Series_SeriesInstanceUid_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Series')
+)
+BEGIN
+    DROP INDEX IX_Series_SeriesInstanceUid_PartitionKey ON dbo.Series
+    
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+    (
+        PartitionKey,
+        SeriesInstanceUid
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey ON dbo.Instance
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    )
+    INCLUDE
+    (
+        Status,
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+END
+
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_PartitionKey_SopInstanceUid'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
+    (
+        PartitionKey,
+        SopInstanceUid
+    )
+    INCLUDE
+    (
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+END
+

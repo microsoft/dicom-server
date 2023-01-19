@@ -296,8 +296,8 @@ WITH (DATA_COMPRESSION = PAGE);
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance
     ON dbo.Instance(PartitionKey, StudyKey, SeriesKey, InstanceKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey
-    ON dbo.Instance(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, PartitionKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
+    ON dbo.Instance(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid)
     INCLUDE(Status, Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
@@ -307,6 +307,10 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Serie
 CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_Watermark_Status
     ON dbo.Instance(Watermark, Status)
     INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid
+    ON dbo.Instance(PartitionKey, SopInstanceUid)
+    INCLUDE(SeriesKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark
     ON dbo.Instance(PartitionKey, Status, StudyKey, Watermark)
@@ -353,8 +357,8 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Series
 CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceUid
     ON dbo.Series(PartitionKey, StudyKey, SeriesInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid_PartitionKey
-    ON dbo.Series(SeriesInstanceUid, PartitionKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid
+    ON dbo.Series(PartitionKey, SeriesInstanceUid)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_Series_Modality_PartitionKey

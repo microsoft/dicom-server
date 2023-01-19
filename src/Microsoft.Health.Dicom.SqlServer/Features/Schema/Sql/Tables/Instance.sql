@@ -32,14 +32,13 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
     InstanceKey
 )
 
---Filter indexes
--- Used in AddInstance, DeleteInstance, DeleteDeletedInstance, QIDO
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey on dbo.Instance
+-- Used in AddInstance, DeleteInstance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid,
-    PartitionKey
+    SopInstanceUid
 )
 INCLUDE
 (
@@ -77,6 +76,18 @@ INCLUDE
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+-- QIDO filtering
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
+(
+    PartitionKey,
+    SopInstanceUid
+)
+INCLUDE
+(
+    SeriesKey
 )
 WITH (DATA_COMPRESSION = PAGE)
 

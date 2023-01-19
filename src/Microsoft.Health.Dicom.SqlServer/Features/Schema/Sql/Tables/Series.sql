@@ -30,11 +30,11 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceU
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO when querying at the study level; we place PartitionKey second because we assume conflicting SeriesInstanceUid will be rare
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid_PartitionKey ON dbo.Series
+-- Used in QIDO when querying at the study level; UIDs will not be used cross partition
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
 (
-    SeriesInstanceUid,
-    PartitionKey
+    PartitionKey,
+    SeriesInstanceUid
 )
 INCLUDE
 (
