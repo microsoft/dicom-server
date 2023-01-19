@@ -18,13 +18,15 @@ namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 public class AzureStorageTaskHubClientTests
 {
     private readonly LeasesContainer _leasesContainer = Substitute.For<LeasesContainer>(Substitute.For<BlobServiceClient>("UseDevelopmentStorage=true"), "Foo");
-    private readonly QueueServiceClient _queueServiceClient = Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true");
-    private readonly TableServiceClient _tableServiceClient = Substitute.For<TableServiceClient>("UseDevelopmentStorage=true");
     private readonly AzureStorageTaskHubClient _client;
 
     public AzureStorageTaskHubClientTests()
     {
-        _client = new AzureStorageTaskHubClient(_leasesContainer, _queueServiceClient, _tableServiceClient, NullLoggerFactory.Instance);
+        _client = new AzureStorageTaskHubClient(
+            _leasesContainer,
+            Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true"),
+            Substitute.For<TableServiceClient>("UseDevelopmentStorage=true"),
+            NullLoggerFactory.Instance);
     }
 
     [Fact]

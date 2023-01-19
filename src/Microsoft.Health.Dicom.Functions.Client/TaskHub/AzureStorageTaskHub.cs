@@ -49,29 +49,20 @@ internal class AzureStorageTaskHub : ITaskHub
 
         // Check that each of the components found in the Task Hub are available
         if (!healthCheck.ControlQueues)
-        {
             _logger.LogWarning("Cannot find one or more of the control queues: [{ControlQueues}].", string.Join(", ", _controlQueues.Names));
-            return false;
-        }
 
         if (!healthCheck.WorkItemQueue)
-        {
             _logger.LogWarning("Cannot find work item queue '{WorkItemQueue}.'", _workItemQueue.Name);
-            return false;
-        }
 
         if (!healthCheck.InstanceTable)
-        {
             _logger.LogWarning("Cannot find instance table '{InstanceTable}.'", _instanceTable.Name);
-            return false;
-        }
 
         if (!healthCheck.HistoryTable)
-        {
             _logger.LogWarning("Cannot find history table '{HistoryTable}.'", _historyTable.Name);
-            return false;
-        }
 
-        return true;
+        return healthCheck.ControlQueues
+            && healthCheck.WorkItemQueue
+            && healthCheck.InstanceTable
+            && healthCheck.HistoryTable;
     }
 }
