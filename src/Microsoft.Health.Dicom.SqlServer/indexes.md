@@ -4,8 +4,8 @@ This document provides context on how the SQL indexes are organized on core tabl
 
 ## Context
 
-Study, Series and Instance table all have PartitionKey, *Keys and Uid's. 
-- `Uids` are customer generated unique ids. 
+Study, Series and Instance table all have PartitionKey, *Keys and *Uid's. 
+- `*Uids` are customer generated unique ids. 
 - `*Keys` are system generated primary keys. Key's are smaller and used for internal SQL joins only. Should not be distributed to customers.
 - `PartitionKey` allows logical grouping of data per partition. Losely held, no strong enforcement. Need to be extremely carefull to include in all filtering and exceptions should be carefully reviewed.
 
