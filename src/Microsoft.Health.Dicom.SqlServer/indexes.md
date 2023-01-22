@@ -11,6 +11,6 @@ Study, Series and Instance table all have PartitionKey, *Keys and *Uid's.
 
 ## Best Practices
 
-- All the indexes will be using PartitionKey as first column, except for columns for QIDO, they will have this column at the end to support cross partition queries in the future. All the SQL filtering should include PartitionKey.
-- Exceptions like Re-Indexing which works across all partition, will have indexes on watermark that will be cross partition.
+- All the indexes will be using PartitionKey as first column, sincce this is the least specific. All the SQL filtering should include PartitionKey. Cross partition QIDO is not supported today. In the future we can support in Analytics.
+- Exceptions like ExtendQueryTag/ChangeFeed/Re-Indexing which works across all partition, will have indexes on watermark that will be cross partition.
 - Indexes on both Uids and Keys will be supported. Uids are used during STOW and WADO from the customers. Keys are used for internal use only for joins.

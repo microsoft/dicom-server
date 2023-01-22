@@ -18,6 +18,7 @@ CREATE TABLE dbo.ExtendedQueryTag (
     ErrorCount              INT                  DEFAULT 0 NOT NULL
 )
 
+-- cross partition
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTag ON dbo.ExtendedQueryTag
 (
     TagKey

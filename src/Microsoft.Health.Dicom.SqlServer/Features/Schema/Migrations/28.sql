@@ -145,14 +145,14 @@ CREATE TABLE dbo.ExtendedQueryTagDateTime (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime
-    ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagDateTime(PartitionKey, ResourceType, TagKey, TagValue, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagDateTime(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+    ON dbo.ExtendedQueryTagDateTime(PartitionKey, ResourceType, TagKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagDateTime(ResourceType, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.ExtendedQueryTagDateTime(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagDouble (
     TagKey          INT        NOT NULL,
@@ -167,14 +167,14 @@ CREATE TABLE dbo.ExtendedQueryTagDouble (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble
-    ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagDouble(PartitionKey, ResourceType, TagKey, TagValue, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagDouble(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+    ON dbo.ExtendedQueryTagDouble(PartitionKey, ResourceType, TagKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagDouble(ResourceType, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.ExtendedQueryTagDouble(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagError (
     TagKey      INT           NOT NULL,
@@ -206,14 +206,14 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong
-    ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagLong(PartitionKey, ResourceType, TagKey, TagValue, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagLong(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+    ON dbo.ExtendedQueryTagLong(PartitionKey, ResourceType, TagKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagLong(ResourceType, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.ExtendedQueryTagLong(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTagOperation (
     TagKey      INT              NOT NULL,
@@ -242,14 +242,14 @@ CREATE TABLE dbo.ExtendedQueryTagPersonName (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName
-    ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagPersonName(PartitionKey, ResourceType, TagKey, TagValue, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagPersonName(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+    ON dbo.ExtendedQueryTagPersonName(PartitionKey, ResourceType, TagKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagPersonName(ResourceType, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.ExtendedQueryTagPersonName(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE NONCLUSTERED INDEX IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey
     ON dbo.ExtendedQueryTagPersonName(WatermarkAndTagKey) WITH (DATA_COMPRESSION = PAGE);
@@ -267,14 +267,14 @@ CREATE TABLE dbo.ExtendedQueryTagString (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString
-    ON dbo.ExtendedQueryTagString(ResourceType, TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
+    ON dbo.ExtendedQueryTagString(PartitionKey, ResourceType, TagKey, TagValue, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3);
 
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagString(ResourceType, TagKey, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
+    ON dbo.ExtendedQueryTagString(PartitionKey, ResourceType, TagKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3)
     INCLUDE(Watermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3
-    ON dbo.ExtendedQueryTagString(ResourceType, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
+    ON dbo.ExtendedQueryTagString(PartitionKey, ResourceType, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
@@ -361,16 +361,16 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid
     ON dbo.Series(PartitionKey, SeriesInstanceUid)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Series_Modality_PartitionKey
-    ON dbo.Series(Modality, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_Modality
+    ON dbo.Series(PartitionKey, Modality)
     INCLUDE(StudyKey, SeriesKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate_PartitionKey
-    ON dbo.Series(PerformedProcedureStepStartDate, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_PerformedProcedureStepStartDate
+    ON dbo.Series(PartitionKey, PerformedProcedureStepStartDate)
     INCLUDE(StudyKey, SeriesKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName_PartitionKey
-    ON dbo.Series(ManufacturerModelName, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_ManufacturerModelName
+    ON dbo.Series(PartitionKey, ManufacturerModelName)
     INCLUDE(StudyKey, SeriesKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Study (
@@ -399,32 +399,32 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid
     ON dbo.Study(PartitionKey, StudyInstanceUid)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_PatientId_PartitionKey
-    ON dbo.Study(PatientId, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientId
+    ON dbo.Study(PartitionKey, PatientId)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_PatientName_PartitionKey
-    ON dbo.Study(PatientName, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientName
+    ON dbo.Study(PartitionKey, PatientName)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName_PartitionKey
-    ON dbo.Study(ReferringPhysicianName, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_ReferringPhysicianName
+    ON dbo.Study(PartitionKey, ReferringPhysicianName)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_StudyDate_PartitionKey
-    ON dbo.Study(StudyDate, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyDate
+    ON dbo.Study(PartitionKey, StudyDate)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_StudyDescription_PartitionKey
-    ON dbo.Study(StudyDescription, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyDescription
+    ON dbo.Study(PartitionKey, StudyDescription)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber_PartitionKey
-    ON dbo.Study(AccessionNumber, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_AccessionNumber
+    ON dbo.Study(PartitionKey, AccessionNumber)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate_PartitionKey
-    ON dbo.Study(PatientBirthDate, PartitionKey)
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientBirthDate
+    ON dbo.Study(PartitionKey, PatientBirthDate)
     INCLUDE(StudyKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Workitem (
@@ -440,10 +440,10 @@ CREATE TABLE dbo.Workitem (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_Workitem
-    ON dbo.Workitem(WorkitemKey);
+    ON dbo.Workitem(PartitionKey, WorkitemKey);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey
-    ON dbo.Workitem(WorkitemUid, PartitionKey)
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_PartitionKey_WorkitemUid
+    ON dbo.Workitem(PartitionKey, WorkitemUid)
     INCLUDE(Watermark, WorkitemKey, Status, TransactionUid) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark

@@ -30,7 +30,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceU
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO when querying at the study level; UIDs will not be used cross partition
+-- Used in QIDO
 CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
 (
     PartitionKey,
@@ -42,11 +42,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Series_Modality_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_Modality ON dbo.Series
 (
-    Modality,
-    PartitionKey
+    PartitionKey,
+    Modality
 )
 INCLUDE
 (
@@ -55,11 +55,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_PerformedProcedureStepStartDate ON dbo.Series
 (
-    PerformedProcedureStepStartDate,
-    PartitionKey
+    PartitionKey,
+    PerformedProcedureStepStartDate
 )
 INCLUDE
 (
@@ -68,11 +68,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_ManufacturerModelName ON dbo.Series
 (
-    ManufacturerModelName,
-    PartitionKey
+    PartitionKey,
+    ManufacturerModelName
 )
 INCLUDE
 (

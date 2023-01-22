@@ -228,8 +228,6 @@ IF EXISTS
         AND Object_id = OBJECT_ID('dbo.Study')
 )
 BEGIN
-    DROP INDEX IX_Study_StudyInstanceUid_PartitionKey ON dbo.Study
-
     CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
     (
         PartitionKey,
@@ -240,6 +238,92 @@ BEGIN
         StudyKey
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientId ON dbo.Study
+    (
+        PartitionKey,
+        PatientId
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientName ON dbo.Study
+    (
+        PartitionKey,
+        PatientName   
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_ReferringPhysicianName ON dbo.Study
+    (
+       PartitionKey,
+       ReferringPhysicianName
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyDate ON dbo.Study
+    (
+        PartitionKey,
+        StudyDate
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyDescription ON dbo.Study
+    (
+        PartitionKey,
+        StudyDescription
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_AccessionNumber ON dbo.Study
+    (
+        PartitionKey,
+        AccessionNumber   
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientBirthDate ON dbo.Study
+    (
+        PartitionKey,
+        PatientBirthDate  
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_Study_StudyInstanceUid_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_PatientId_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_PatientName_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_ReferringPhysicianName_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_StudyDate_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_StudyDescription_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_AccessionNumber_PartitionKey ON dbo.Study
+    DROP INDEX IX_Study_PatientBirthDate_PartitionKey ON dbo.Study
 END
 
 IF EXISTS 
@@ -250,8 +334,6 @@ IF EXISTS
         AND Object_id = OBJECT_ID('dbo.Series')
 )
 BEGIN
-    DROP INDEX IX_Series_SeriesKey ON dbo.Series
-
     CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceUid ON dbo.Series
     (
         PartitionKey,
@@ -259,13 +341,66 @@ BEGIN
         SeriesInstanceUid
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+    (
+        PartitionKey,
+        SeriesInstanceUid
+    )
+    INCLUDE
+    (
+        StudyKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_Modality ON dbo.Series
+    (
+        PartitionKey,
+        Modality
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_PerformedProcedureStepStartDate ON dbo.Series
+    (
+        PartitionKey,
+        PerformedProcedureStepStartDate
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_ManufacturerModelName ON dbo.Series
+    (
+        PartitionKey,
+        ManufacturerModelName
+    )
+    INCLUDE
+    (
+        StudyKey,
+        SeriesKey
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_Series_SeriesKey ON dbo.Series
+    DROP INDEX IX_Series_SeriesInstanceUid_PartitionKey ON dbo.Series
+    DROP INDEX IX_Series_Modality_PartitionKey ON dbo.Series
+    DROP INDEX IX_Series_PerformedProcedureStepStartDate_PartitionKey ON dbo.Series
+    DROP INDEX IX_Series_ManufacturerModelName_PartitionKey ON dbo.Series
 END
 
 IF EXISTS 
 (
     SELECT *
     FROM    sys.indexes
-    WHERE   NAME = 'IXC_Instance'
+    WHERE   NAME = 'IX_Instance_StudyInstanceUid_Status_PartitionKey'
         AND Object_id = OBJECT_ID('dbo.Instance')
 )
 BEGIN
@@ -277,19 +412,6 @@ BEGIN
         InstanceKey
     )
     WITH (DROP_EXISTING=ON, ONLINE=ON)
-END
-
-IF EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_Instance_StudyInstanceUid_Status_PartitionKey'
-        AND Object_id = OBJECT_ID('dbo.Instance')
-)
-BEGIN
-    DROP INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey ON dbo.Instance
-    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey ON dbo.Instance
-    DROP INDEX IX_Instance_SopInstanceUid_Status_PartitionKey ON dbo.Instance
 
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
     (
@@ -306,18 +428,6 @@ BEGIN
         HasFrameMetadata
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
-END
-
-IF EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_Instance_SeriesKey_Status_Watermark        '
-        AND Object_id = OBJECT_ID('dbo.Instance')
-)
-BEGIN
-    DROP INDEX IX_Instance_SeriesKey_Status_Watermark ON dbo.Instance
-    DROP INDEX IX_Instance_StudyKey_Status_Watermark ON dbo.Instance
 
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
     (
@@ -349,39 +459,7 @@ BEGIN
         SopInstanceUid  
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
-END
 
-IF EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_Series_SeriesInstanceUid_PartitionKey'
-        AND Object_id = OBJECT_ID('dbo.Series')
-)
-BEGIN
-    DROP INDEX IX_Series_SeriesInstanceUid_PartitionKey ON dbo.Series
-    
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
-    (
-        PartitionKey,
-        SeriesInstanceUid
-    )
-    INCLUDE
-    (
-        StudyKey
-    )
-    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
-END
-
-IF EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey'
-        AND Object_id = OBJECT_ID('dbo.Instance')
-)
-BEGIN
-    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey ON dbo.Instance
     CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
     (
         PartitionKey,
@@ -395,16 +473,7 @@ BEGIN
         Watermark
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
-END
 
-IF NOT EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_Instance_PartitionKey_SopInstanceUid'
-        AND Object_id = OBJECT_ID('dbo.Instance')
-)
-BEGIN
     CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
     (
         PartitionKey,
@@ -415,5 +484,284 @@ BEGIN
         SeriesKey
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey ON dbo.Instance
+    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey ON dbo.Instance
+    DROP INDEX IX_Instance_SopInstanceUid_Status_PartitionKey ON dbo.Instance
+    DROP INDEX IX_Instance_SeriesKey_Status_Watermark ON dbo.Instance
+    DROP INDEX IX_Instance_StudyKey_Status_Watermark ON dbo.Instance
+    DROP INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey ON dbo.Instance
 END
 
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Workitem_WorkitemUid_PartitionKey'
+        AND Object_id = OBJECT_ID('dbo.Workitem')
+)
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
+    (
+        PartitionKey,
+        WorkitemKey
+    )
+    WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_PartitionKey_WorkitemUid ON dbo.Workitem
+    (
+        PartitionKey,
+        WorkitemUid
+    )
+    INCLUDE
+    (
+        Watermark,
+        WorkitemKey,
+        Status,
+        TransactionUid
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3'
+        AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagDateTime')
+)
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDateTime ON dbo.ExtendedQueryTagDateTime
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        TagValue,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDateTime
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDateTime
+    (
+        PartitionKey,
+        ResourceType,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 ON dbo.ExtendedQueryTagDateTime
+END
+
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3'
+        AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagDouble')
+)
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagDouble ON dbo.ExtendedQueryTagDouble
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        TagValue,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDouble
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagDouble
+    (
+        PartitionKey,
+        ResourceType,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 ON dbo.ExtendedQueryTagDouble
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3'
+        AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagLong')
+)
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        TagValue,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
+    (
+        PartitionKey,
+        ResourceType,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 ON dbo.ExtendedQueryTagLong
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3'
+        AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagPersonName')
+)
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagPersonName ON dbo.ExtendedQueryTagPersonName
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        TagValue,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagPersonName
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagPersonName
+    (
+        PartitionKey,
+        ResourceType,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 ON dbo.ExtendedQueryTagPersonName
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3'
+        AND Object_id = OBJECT_ID('dbo.ExtendedQueryTagString')
+)
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagString ON dbo.ExtendedQueryTagString
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        TagValue,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagString
+    (
+        PartitionKey,
+        ResourceType,
+        TagKey,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    INCLUDE
+    (
+        Watermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagString
+    (
+        PartitionKey,
+        ResourceType,
+        SopInstanceKey1,
+        SopInstanceKey2,
+        SopInstanceKey3
+    )
+    WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 ON dbo.ExtendedQueryTagString
+END

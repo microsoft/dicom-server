@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
-            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagDateTime_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
-            internal readonly Index IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
-            internal readonly Index IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -241,7 +241,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
-            internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
@@ -261,7 +261,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
-            internal readonly Index IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagString_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -323,9 +323,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IXC_Series = new Index("IXC_Series");
             internal readonly Index IX_Series_PartitionKey_StudyKey_SeriesInstanceUid = new Index("IX_Series_PartitionKey_StudyKey_SeriesInstanceUid");
             internal readonly Index IX_Series_PartitionKey_SeriesInstanceUid = new Index("IX_Series_PartitionKey_SeriesInstanceUid");
-            internal readonly Index IX_Series_Modality_PartitionKey = new Index("IX_Series_Modality_PartitionKey");
-            internal readonly Index IX_Series_PerformedProcedureStepStartDate_PartitionKey = new Index("IX_Series_PerformedProcedureStepStartDate_PartitionKey");
-            internal readonly Index IX_Series_ManufacturerModelName_PartitionKey = new Index("IX_Series_ManufacturerModelName_PartitionKey");
+            internal readonly Index IX_Series_PartitionKey_Modality = new Index("IX_Series_PartitionKey_Modality");
+            internal readonly Index IX_Series_PartitionKey_PerformedProcedureStepStartDate = new Index("IX_Series_PartitionKey_PerformedProcedureStepStartDate");
+            internal readonly Index IX_Series_PartitionKey_ManufacturerModelName = new Index("IX_Series_PartitionKey_ManufacturerModelName");
         }
 
         internal class StudyTable : Table
@@ -349,13 +349,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IXC_Study = new Index("IXC_Study");
             internal readonly Index IX_Study_StudyKey = new Index("IX_Study_StudyKey");
             internal readonly Index IX_Study_PartitionKey_StudyInstanceUid = new Index("IX_Study_PartitionKey_StudyInstanceUid");
-            internal readonly Index IX_Study_PatientId_PartitionKey = new Index("IX_Study_PatientId_PartitionKey");
-            internal readonly Index IX_Study_PatientName_PartitionKey = new Index("IX_Study_PatientName_PartitionKey");
-            internal readonly Index IX_Study_ReferringPhysicianName_PartitionKey = new Index("IX_Study_ReferringPhysicianName_PartitionKey");
-            internal readonly Index IX_Study_StudyDate_PartitionKey = new Index("IX_Study_StudyDate_PartitionKey");
-            internal readonly Index IX_Study_StudyDescription_PartitionKey = new Index("IX_Study_StudyDescription_PartitionKey");
-            internal readonly Index IX_Study_AccessionNumber_PartitionKey = new Index("IX_Study_AccessionNumber_PartitionKey");
-            internal readonly Index IX_Study_PatientBirthDate_PartitionKey = new Index("IX_Study_PatientBirthDate_PartitionKey");
+            internal readonly Index IX_Study_PartitionKey_PatientId = new Index("IX_Study_PartitionKey_PatientId");
+            internal readonly Index IX_Study_PartitionKey_PatientName = new Index("IX_Study_PartitionKey_PatientName");
+            internal readonly Index IX_Study_PartitionKey_ReferringPhysicianName = new Index("IX_Study_PartitionKey_ReferringPhysicianName");
+            internal readonly Index IX_Study_PartitionKey_StudyDate = new Index("IX_Study_PartitionKey_StudyDate");
+            internal readonly Index IX_Study_PartitionKey_StudyDescription = new Index("IX_Study_PartitionKey_StudyDescription");
+            internal readonly Index IX_Study_PartitionKey_AccessionNumber = new Index("IX_Study_PartitionKey_AccessionNumber");
+            internal readonly Index IX_Study_PartitionKey_PatientBirthDate = new Index("IX_Study_PartitionKey_PatientBirthDate");
         }
 
         internal class WorkitemTable : Table
@@ -373,7 +373,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
-            internal readonly Index IX_Workitem_WorkitemUid_PartitionKey = new Index("IX_Workitem_WorkitemUid_PartitionKey");
+            internal readonly Index IX_Workitem_PartitionKey_WorkitemUid = new Index("IX_Workitem_PartitionKey_WorkitemUid");
             internal readonly Index IX_Workitem_WorkitemKey_Watermark = new Index("IX_Workitem_WorkitemKey_Watermark");
         }
 
