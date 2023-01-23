@@ -164,8 +164,8 @@ public partial class RetrieveTransactionResourceTests
         {
             partContentTypeHeader.Add(part.ContentType);
         }
-        Assert.Equal($"application/dicom; transfer-syntax={DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID}", partContentTypeHeader[0]);
-        Assert.Equal($"application/dicom; transfer-syntax={DicomTransferSyntax.MPEG2.UID.UID}", partContentTypeHeader[1]);
+        Assert.Contains($"application/dicom; transfer-syntax={DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID}", partContentTypeHeader);
+        Assert.Contains($"application/dicom; transfer-syntax={DicomTransferSyntax.MPEG2.UID.UID}", partContentTypeHeader);
 
         // check content body
         DicomFile[] instancesInStudy = await response.ToArrayAsync();

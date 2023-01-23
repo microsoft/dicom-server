@@ -22,24 +22,24 @@ CREATE TABLE dbo.ExtendedQueryTagLong (
     ResourceType            TINYINT              NOT NULL DEFAULT 0 
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO, PartitionKey is moved down to support cross partition query in future
+-- Used in QIDO
 CREATE UNIQUE CLUSTERED INDEX IXC_ExtendedQueryTagLong ON dbo.ExtendedQueryTagLong
 (
+    PartitionKey,
     ResourceType,
     TagKey,
     TagValue,
-    PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
 )
 
 -- Used in IIndexInstanceCore
-CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
+CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
 (
+    PartitionKey,
     ResourceType,
     TagKey,
-    PartitionKey,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3
@@ -53,8 +53,8 @@ WITH (DATA_COMPRESSION = PAGE)
 -- Used in DeleteInstance
 CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 on dbo.ExtendedQueryTagLong
 (
-    ResourceType,
     PartitionKey,
+    ResourceType,
     SopInstanceKey1,
     SopInstanceKey2,
     SopInstanceKey3

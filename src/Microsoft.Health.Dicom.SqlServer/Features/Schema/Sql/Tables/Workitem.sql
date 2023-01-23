@@ -13,16 +13,20 @@ CREATE TABLE dbo.Workitem (
     Watermark                   BIGINT                            DEFAULT 0 NOT NULL,
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Ordering workitems by WorkitemKey for retrieval
+
+-- used in GetWorkitemMetadata, DeleteWorkitem
 CREATE UNIQUE CLUSTERED INDEX IXC_Workitem ON dbo.Workitem
 (
+    PartitionKey,
     WorkitemKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemUid_PartitionKey ON dbo.Workitem
+
+-- used in GetWorkitemMetadata, AddWorkitem
+CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_PartitionKey_WorkitemUid ON dbo.Workitem
 (
-    WorkitemUid,
-    PartitionKey
+    PartitionKey,
+    WorkitemUid
 )
 INCLUDE
 (
@@ -33,6 +37,7 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
+-- cross partition
 CREATE UNIQUE NONCLUSTERED INDEX IX_Workitem_WorkitemKey_Watermark ON dbo.Workitem
 (
     WorkitemKey,
