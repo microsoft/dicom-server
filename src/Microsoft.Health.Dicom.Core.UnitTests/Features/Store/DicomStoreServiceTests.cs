@@ -315,7 +315,7 @@ public class DicomStoreServiceTests
         // expect failed attr sequence has single warning about single invalid attribute, in this case the first we encounter
         // which is last in the sequence
         Assert.Equal(
-            """(0008,0051) - IssuerOfAccessionNumberSequence - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0051) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -371,7 +371,7 @@ public class DicomStoreServiceTests
 
         // expect failed attr sequence has single warning about single invalid attribute
         Assert.Equal(
-            """(0008,0051) - IssuerOfAccessionNumberSequence - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            """DICOM100: (0008,0051) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
