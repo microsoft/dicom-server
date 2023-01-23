@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -76,6 +76,7 @@ WHERE 1 = 1";
         string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
+AND a.PartitionKey = 1 
 AND a.StudyKey = f.StudyKey
 AND a.Status = 1 
 ORDER BY a.Watermark DESC";
@@ -124,6 +125,7 @@ FETCH NEXT 100 ROWS ONLY";
         string expectedCrossApply = @"
 FROM dbo.Instance a
 WHERE 1 = 1
+AND a.PartitionKey = 1 
 AND a.StudyKey = f.StudyKey
 AND a.SeriesKey = f.SeriesKey
 AND a.Status = 1 

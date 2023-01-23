@@ -30,11 +30,11 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyKey ON dbo.Study
     StudyKey
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used in AddInstance; we place PartitionKey second because we assume conflicting StudyInstanceUid will be rare
-CREATE UNIQUE NONCLUSTERED INDEX IX_Study_StudyInstanceUid_PartitionKey ON dbo.Study
+-- Used in AddInstance/STOW
+CREATE UNIQUE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyInstanceUid ON dbo.Study
 (
-    StudyInstanceUid,
-    PartitionKey
+    PartitionKey,
+    StudyInstanceUid
 )
 INCLUDE
 (
@@ -42,11 +42,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_PatientId_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientId ON dbo.Study
 (
-    PatientId,
-    PartitionKey
+    PartitionKey,
+    PatientId
 )
 INCLUDE
 (
@@ -54,11 +54,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_PatientName_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientName ON dbo.Study
 (
-    PatientName,
-    PartitionKey
+    PartitionKey,
+    PatientName   
 )
 INCLUDE
 (
@@ -66,11 +66,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_ReferringPhysicianName_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_ReferringPhysicianName ON dbo.Study
 (
-    ReferringPhysicianName,
-    PartitionKey
+   PartitionKey,
+   ReferringPhysicianName
 )
 INCLUDE
 (
@@ -78,11 +78,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_StudyDate_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyDate ON dbo.Study
 (
-    StudyDate,
-    PartitionKey
+    PartitionKey,
+    StudyDate
 )
 INCLUDE
 (
@@ -90,11 +90,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_StudyDescription_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_StudyDescription ON dbo.Study
 (
-    StudyDescription,
-    PartitionKey
+    PartitionKey,
+    StudyDescription
 )
 INCLUDE
 (
@@ -102,11 +102,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_AccessionNumber_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_AccessionNumber ON dbo.Study
 (
-    AccessionNumber,
-    PartitionKey
+    PartitionKey,
+    AccessionNumber   
 )
 INCLUDE
 (
@@ -114,11 +114,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Study_PatientBirthDate_PartitionKey ON dbo.Study
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Study_PartitionKey_PatientBirthDate ON dbo.Study
 (
-    PatientBirthDate,
-    PartitionKey
+    PartitionKey,
+    PatientBirthDate  
 )
 INCLUDE
 (

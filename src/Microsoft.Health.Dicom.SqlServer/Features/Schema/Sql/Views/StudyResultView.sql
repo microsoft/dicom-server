@@ -25,7 +25,8 @@ BEGIN
             AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
             (SELECT SUM(1) 
             FROM dbo.Instance i 
-            WHERE st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
+            WHERE st.PartitionKey = i.PartitionKey
+            AND st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
             st.PartitionKey,
             st.StudyKey
     FROM dbo.Study st')

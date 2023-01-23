@@ -142,7 +142,9 @@ BEGIN
                     -- Latest wins
                     UPDATE dbo.Study
                     SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
-                    WHERE StudyKey = @studyKey
+                    WHERE PartitionKey = @partitionKey
+                        AND StudyKey = @studyKey
+
 
                 END
                 ELSE
@@ -154,7 +156,8 @@ BEGIN
                 -- Latest wins
                 UPDATE dbo.Study
                 SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
-                WHERE StudyKey = @studyKey
+                WHERE PartitionKey = @partitionKey
+                    AND StudyKey = @studyKey
             END
 
             -- Insert Series
