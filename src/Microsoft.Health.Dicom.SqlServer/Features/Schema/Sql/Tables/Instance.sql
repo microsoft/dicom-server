@@ -20,7 +20,8 @@ CREATE TABLE dbo.Instance (
     PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
     --instance metadata
     TransferSyntaxUid       VARCHAR(64)                NULL,
-    HasFrameMetadata        BIT                        NOT NULL DEFAULT 0
+    HasFrameMetadata        BIT                        NOT NULL DEFAULT 0,
+    HasDroppedMetadata      BIT                        NOT NULL DEFAULT 0
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Primary index, also used in views
@@ -60,7 +61,8 @@ INCLUDE
 (
     Watermark,
     TransferSyntaxUid,
-    HasFrameMetadata
+    HasFrameMetadata,
+    HasDroppedMetadata
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -103,7 +105,7 @@ INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid  
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -120,7 +122,7 @@ INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid  
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 

@@ -284,6 +284,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly NullableVarCharColumn TransferSyntaxUid = new NullableVarCharColumn("TransferSyntaxUid", 64);
             internal readonly BitColumn HasFrameMetadata = new BitColumn("HasFrameMetadata");
+            internal readonly BitColumn HasDroppedMetadata = new BitColumn("HasDroppedMetadata");
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
             internal readonly Index IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
             internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
