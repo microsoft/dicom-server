@@ -22,7 +22,7 @@ public abstract class TrackingTableTests
     private readonly AsyncPageable<TableEntity> _asyncPageable = Substitute.For<AsyncPageable<TableEntity>>();
     private readonly IAsyncEnumerator<TableEntity> _asyncEnumerator = Substitute.For<IAsyncEnumerator<TableEntity>>();
 
-    private const string EmptyQuery = "PartitionKey eq null";
+    private const string EmptyQuery = "PartitionKey eq ''";
     private const string TaskHubName = "TestTaskHub";
 
     protected TrackingTableTests()
