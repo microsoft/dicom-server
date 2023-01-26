@@ -6,7 +6,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
-using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -37,9 +36,9 @@ internal class AzureStorageTaskHubClient : ITaskHubClient
         DurableClientOptions clientOptions = EnsureArg.IsNotNull(options?.Value, nameof(options));
         IConfigurationSection connectionSection = EnsureArg.IsNotNull(connectionInfoProvider, nameof(connectionInfoProvider)).Resolve(clientOptions.ConnectionName);
 
-        _leasesContainer = new LeasesContainer(factory.CreateClient<BlobClientOptions, BlobServiceClient>(connectionSection), clientOptions.TaskHub);
-        _queueServiceClient = factory.CreateClient<QueueClientOptions, QueueServiceClient>(connectionSection);
-        _tableServiceClient = factory.CreateClient<TableClientOptions, TableServiceClient>(connectionSection);
+        _leasesContainer = new LeasesContainer(factory.CreateBlobServiceClient(connectionSection), clientOptions.TaskHub);
+        _queueServiceClient = factory.CreateQueueServiceClient(connectionSection);
+        _tableServiceClient = factory.CreateTableServiceClient(connectionSection);
         _loggerFactory = EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory));
         _logger = _loggerFactory.CreateLogger<AzureStorageTaskHubClient>();
     }
