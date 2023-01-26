@@ -55,7 +55,7 @@ internal static class AzureComponentFactoryExtensions
                 return clientFactory(serviceUri, credential, options);
         }
 
-        return (TClient)factory.CreateClient(typeof(TClient), configuration, null, null);
+        return (TClient)factory.CreateClient(typeof(TClient), configuration, credential, options);
     }
 
     private sealed class StorageServiceUriOptions
