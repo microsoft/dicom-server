@@ -34,26 +34,32 @@ public class AzureComponentFactoryExtensionsTests
         _factory = services.BuildServiceProvider().GetRequiredService<AzureComponentFactory>();
     }
 
-    [Fact]
-    public void GivenBasicConfiguration_WhenCreatingBlobServiceClient_ThenCreateClient()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GivenBasicConfiguration_WhenCreatingBlobServiceClient_ThenCreateClient(bool direct)
     {
-        IConfiguration config = CreateConnectionStringConfiguration(SectionName);
+        IConfiguration config = CreateConnectionStringConfiguration(SectionName, direct);
         BlobServiceClient actual = _factory.CreateBlobServiceClient(config.GetSection(SectionName));
         Assert.Equal(new Uri("http://127.0.0.1:10000/devstoreaccount1"), actual.Uri);
     }
 
-    [Fact]
-    public void GivenBasicConfiguration_WhenCreatingQueueServiceClient_ThenCreateClient()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GivenBasicConfiguration_WhenCreatingQueueServiceClient_ThenCreateClient(bool direct)
     {
-        IConfiguration config = CreateConnectionStringConfiguration(SectionName);
+        IConfiguration config = CreateConnectionStringConfiguration(SectionName, direct);
         QueueServiceClient actual = _factory.CreateQueueServiceClient(config.GetSection(SectionName));
         Assert.Equal(new Uri("http://127.0.0.1:10001/devstoreaccount1"), actual.Uri);
     }
 
-    [Fact]
-    public void GivenBasicConfiguration_WhenCreatingTableServiceClient_ThenCreateClient()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void GivenBasicConfiguration_WhenCreatingTableServiceClient_ThenCreateClient(bool direct)
     {
-        IConfiguration config = CreateConnectionStringConfiguration(SectionName);
+        IConfiguration config = CreateConnectionStringConfiguration(SectionName, direct);
         TableServiceClient actual = _factory.CreateTableServiceClient(config.GetSection(SectionName));
         Assert.Equal(new Uri("http://127.0.0.1:10002/devstoreaccount1"), actual.Uri);
     }
@@ -88,13 +94,14 @@ public class AzureComponentFactoryExtensionsTests
         Assert.Equal(new Uri($"https://{AccountName}.table.core.windows.net"), actual.Uri);
     }
 
-    private static IConfiguration CreateConnectionStringConfiguration(string section)
+    private static IConfiguration CreateConnectionStringConfiguration(string section, bool direct)
     {
+        string key = direct ? section : section + ":ConnectionString";
         return new ConfigurationBuilder()
             .AddInMemoryCollection(
                 new KeyValuePair<string, string>[]
                 {
-                    KeyValuePair.Create(section, "UseDevelopmentStorage=true"),
+                    KeyValuePair.Create(key, "UseDevelopmentStorage=true"),
                 })
             .Build();
     }
