@@ -17,7 +17,7 @@ using Xunit;
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 
-[Trait("Category", "bvt-dp")]
+[Trait("Category", "leniency")]
 public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
@@ -33,6 +33,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     }
 
     [Fact]
+    [Trait("Category", "bvt-leniency")]
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenValidDataStillWritten()
     {
         // setup
