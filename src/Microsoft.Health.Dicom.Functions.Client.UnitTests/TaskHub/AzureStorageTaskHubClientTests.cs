@@ -9,20 +9,22 @@ using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Functions.Client.TaskHub;
 using NSubstitute;
 using Xunit;
-using Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 
 public class AzureStorageTaskHubClientTests
 {
+    private const string TaskHubName = "TestTaskHub";
     private readonly LeasesContainer _leasesContainer = Substitute.For<LeasesContainer>(Substitute.For<BlobServiceClient>("UseDevelopmentStorage=true"), "Foo");
     private readonly AzureStorageTaskHubClient _client;
 
     public AzureStorageTaskHubClientTests()
     {
         _client = new AzureStorageTaskHubClient(
+            TaskHubName,
             _leasesContainer,
             Substitute.For<QueueServiceClient>("UseDevelopmentStorage=true"),
             Substitute.For<TableServiceClient>("UseDevelopmentStorage=true"),
@@ -45,7 +47,7 @@ public class AzureStorageTaskHubClientTests
     public async Task GivenAvailableLeases_WhenGettingTaskHub_ThenReturnObject()
     {
         using var tokenSource = new CancellationTokenSource();
-        var taskHubInfo = new TaskHubInfo { PartitionCount = 4, TaskHubName = "TestTaskHub" };
+        var taskHubInfo = new TaskHubInfo { PartitionCount = 4, TaskHubName = TaskHubName };
 
         _leasesContainer.GetTaskHubInfoAsync(tokenSource.Token).Returns(taskHubInfo);
 
