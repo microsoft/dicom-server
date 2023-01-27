@@ -38,6 +38,7 @@ internal sealed class StoreValidationResultBuilder
 
     public void Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
     {
+        // todo add logging here instead
         var errorResult = new StoreErrorResult(GetFormattedText(ex?.Message, dicomTag), isCoreTag);
         _invalidDicomTagErrors.TryAdd(dicomTag, errorResult);
     }
