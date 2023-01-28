@@ -32,14 +32,14 @@ internal class AzureStorageTaskHub : ITaskHub
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public async ValueTask<bool> IsHealthyAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<bool> IsReadyAsync(CancellationToken cancellationToken = default)
     {
         ValueTask<bool> controlQueueTask = _controlQueues.ExistAsync(cancellationToken);
         ValueTask<bool> workItemQueueTask = _workItemQueue.ExistsAsync(cancellationToken);
         ValueTask<bool> instanceTableTask = _instanceTable.ExistsAsync(cancellationToken);
         ValueTask<bool> historyTableTask = _historyTable.ExistsAsync(cancellationToken);
 
-        (bool ControlQueues, bool WorkItemQueue, bool InstanceTable, bool HistoryTable) healthCheck =
+        (bool ControlQueues, bool WorkItemQueue, bool InstanceTable, bool HistoryTable) available =
             (
                 await controlQueueTask,
                 await workItemQueueTask,
@@ -48,21 +48,21 @@ internal class AzureStorageTaskHub : ITaskHub
             );
 
         // Check that each of the components found in the Task Hub are available
-        if (!healthCheck.ControlQueues)
+        if (!available.ControlQueues)
             _logger.LogWarning("Cannot find one or more of the control queues: [{ControlQueues}].", string.Join(", ", _controlQueues.Names));
 
-        if (!healthCheck.WorkItemQueue)
+        if (!available.WorkItemQueue)
             _logger.LogWarning("Cannot find work item queue '{WorkItemQueue}.'", _workItemQueue.Name);
 
-        if (!healthCheck.InstanceTable)
+        if (!available.InstanceTable)
             _logger.LogWarning("Cannot find instance table '{InstanceTable}.'", _instanceTable.Name);
 
-        if (!healthCheck.HistoryTable)
+        if (!available.HistoryTable)
             _logger.LogWarning("Cannot find history table '{HistoryTable}.'", _historyTable.Name);
 
-        return healthCheck.ControlQueues
-            && healthCheck.WorkItemQueue
-            && healthCheck.InstanceTable
-            && healthCheck.HistoryTable;
+        return available.ControlQueues
+            && available.WorkItemQueue
+            && available.InstanceTable
+            && available.HistoryTable;
     }
 }
