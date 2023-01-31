@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -23,4 +23,6 @@ public interface IDicomRequestContext : IRequestContext
     int PartCount { get; set; }
 
     PartitionEntry DataPartitionEntry { get; set; }
+
+    int? ApiMajorVersion { get; set; }
 }

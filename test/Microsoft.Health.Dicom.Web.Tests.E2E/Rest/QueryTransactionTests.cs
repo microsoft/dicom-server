@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -71,6 +72,28 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
         Assert.NotNull(testDataResponse);
         ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
+    }
+
+
+    [Fact]
+    public void Test_DeadLock()
+    {
+        var stUid = TestUidGenerator.Generate();
+        var seUid = TestUidGenerator.Generate();
+
+        List<Task> tasks = new List<Task>();
+        for (int i = 0; i < 200; i++)
+        {
+            Task t1 = PostDicomFileAsync(new DicomDataset()
+            {
+                 { DicomTag.StudyInstanceUID, stUid },
+                 { DicomTag.SeriesInstanceUID, seUid }
+            });
+            tasks.Add(t1);
+        }
+
+        Task.WaitAll(tasks.ToArray());
+
     }
 
     [Fact]
