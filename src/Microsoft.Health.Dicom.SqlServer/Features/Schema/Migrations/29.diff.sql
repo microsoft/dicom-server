@@ -1,27 +1,6 @@
-/***************************************************************************************/
--- STORED PROCEDURE
---     DeleteInstanceV6
---
--- FIRST SCHEMA VERSION
---     6
---
--- DESCRIPTION
---     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
---
--- PARAMETERS
---     @partitionKey
---         * The Partition key
---     @cleanupAfter
---         * The date time offset that the instance can be cleaned up.
---     @createdStatus
---         * Status value representing the created state.
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
-/***************************************************************************************/
+SET XACT_ABORT ON
+BEGIN TRANSACTION
+GO
 CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
@@ -261,3 +240,6 @@ AS
     END
 
     COMMIT TRANSACTION
+
+COMMIT TRANSACTION
+
