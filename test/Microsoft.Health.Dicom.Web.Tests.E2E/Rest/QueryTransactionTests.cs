@@ -74,28 +74,6 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
     }
 
-
-    [Fact]
-    public void Test_DeadLock()
-    {
-        var stUid = TestUidGenerator.Generate();
-        var seUid = TestUidGenerator.Generate();
-
-        List<Task> tasks = new List<Task>();
-        for (int i = 0; i < 200; i++)
-        {
-            Task t1 = PostDicomFileAsync(new DicomDataset()
-            {
-                 { DicomTag.StudyInstanceUID, stUid },
-                 { DicomTag.SeriesInstanceUID, seUid }
-            });
-            tasks.Add(t1);
-        }
-
-        Task.WaitAll(tasks.ToArray());
-
-    }
-
     [Fact]
     public async Task GivenSearchRequest_AllStudyComputedColumns_MatchResult()
     {
