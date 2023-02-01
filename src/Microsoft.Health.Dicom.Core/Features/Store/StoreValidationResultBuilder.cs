@@ -36,11 +36,12 @@ internal sealed class StoreValidationResultBuilder
             _invalidDicomTagErrors);
     }
 
-    public void Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
+    public string Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
     {
-        // todo add logging here instead
-        var errorResult = new StoreErrorResult(GetFormattedText(ex?.Message, dicomTag), isCoreTag);
+        var message = GetFormattedText(ex?.Message, dicomTag);
+        var errorResult = new StoreErrorResult(message, isCoreTag);
         _invalidDicomTagErrors.TryAdd(dicomTag, errorResult);
+        return message;
     }
 
     public void Add(ValidationWarnings warningCode, DicomTag dicomTag = null)

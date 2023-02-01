@@ -8,28 +8,22 @@ using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store;
+namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
-public static class ShLogger
+public static class LogExporter
 {
-    // private static readonly string Namespace = MetricIdentifier.DefaultMetricNamespace;
-    private const string HelpLinkAttribute = "helpLink";
     private const string MessageAttribute = "message";
     private const string LogForwardingAttribute = "logToCustomerDicom";
 
-    public static void LogTrace(TelemetryClient telemetryClient, Exception ex)
+    public static void LogException(TelemetryClient telemetryClient, Exception ex, string message = null)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(ex, nameof(ex));
 
-        var telemetry = new TraceTelemetry("Validation warning.");
-
-        telemetry.Properties.Add("message", ex.Message ?? string.Empty);
-        telemetry.Properties.Add("helpLink", ex.HelpLink ?? string.Empty);
-        telemetry.Properties.Add(MessageAttribute, ex.Message ?? string.Empty);
-        telemetry.Properties.Add(HelpLinkAttribute, ex.HelpLink ?? string.Empty);
+        var telemetry = new ExceptionTelemetry(ex);
+        telemetry.Properties.Add(MessageAttribute, message ?? ex.Message ?? string.Empty);
         telemetry.Properties.Add(LogForwardingAttribute, true.ToString());
 
-        telemetryClient.TrackTrace(telemetry);
+        telemetryClient.TrackException(telemetry);
     }
 }

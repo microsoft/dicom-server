@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -187,10 +188,10 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
-                    validationResultBuilder.Add(ex, item.Tag);
+                    var message = validationResultBuilder.Add(ex, item.Tag);
 
                     // add log - todo ensure this emits with property expected, then capture on wkspc pltfm side
-                    ShLogger.LogTrace(_telemetryClient, ex);
+                    LogExporter.LogException(_telemetryClient, ex, message);
                     _telemetryClient
                         .GetMetric(
                             "DroppedInvalidTag",
