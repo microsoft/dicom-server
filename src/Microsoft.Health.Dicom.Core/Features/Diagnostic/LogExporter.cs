@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -12,18 +11,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
 public static class LogExporter
 {
-    private const string MessageAttribute = "message";
     private const string LogForwardingAttribute = "logToCustomerDicom";
 
-    public static void LogException(TelemetryClient telemetryClient, Exception ex, string message = null)
+    public static void LogTrace(TelemetryClient telemetryClient, string message)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        EnsureArg.IsNotNull(ex, nameof(ex));
+        EnsureArg.IsNotNull(message, nameof(message));
 
-        var telemetry = new ExceptionTelemetry(ex);
-        telemetry.Properties.Add(MessageAttribute, message ?? ex.Message ?? string.Empty);
+        var telemetry = new TraceTelemetry(message ?? string.Empty);
         telemetry.Properties.Add(LogForwardingAttribute, true.ToString());
 
-        telemetryClient.TrackException(telemetry);
+        telemetryClient.TrackTrace(telemetry);
     }
 }

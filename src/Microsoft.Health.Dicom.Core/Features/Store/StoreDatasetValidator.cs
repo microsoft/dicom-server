@@ -190,8 +190,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 {
                     var message = validationResultBuilder.Add(ex, item.Tag);
 
-                    // add log - todo ensure this emits with property expected, then capture on wkspc pltfm side
-                    LogExporter.LogException(_telemetryClient, ex, message);
+                    LogExporter.LogTrace(_telemetryClient, message);
                     _telemetryClient
                         .GetMetric(
                             "DroppedInvalidTag",
