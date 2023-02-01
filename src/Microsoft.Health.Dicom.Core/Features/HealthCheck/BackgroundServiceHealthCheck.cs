@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,7 +7,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -21,26 +20,26 @@ public class BackgroundServiceHealthCheck : IHealthCheck
 {
     private readonly IIndexDataStore _indexDataStore;
     private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
-    private readonly TelemetryClient _telemetryClient;
+    private readonly StoreMeter _storeMeter;
     private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
     private readonly ILogger<BackgroundServiceHealthCheck> _logger;
 
     public BackgroundServiceHealthCheck(
         IIndexDataStore indexDataStore,
         IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
-        TelemetryClient telemetryClient,
+        StoreMeter storeMeter,
         BackgroundServiceHealthCheckCache backgroundServiceHealthCheckCache,
         ILogger<BackgroundServiceHealthCheck> logger)
     {
         EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
-        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _indexDataStore = indexDataStore;
         _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
-        _telemetryClient = telemetryClient;
+        _storeMeter = storeMeter;
         _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;
         _logger = logger;
     }
@@ -54,8 +53,9 @@ public class BackgroundServiceHealthCheck : IHealthCheck
                 t => _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
                 cancellationToken);
 
-            _telemetryClient.GetMetric("Oldest-Requested-Deletion").TrackValue((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
-            _telemetryClient.GetMetric("Count-Deletions-Max-Retry").TrackValue(await numReachedMaxedRetry);
+            _storeMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
+            _storeMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
+
         }
         catch (DataStoreNotReadyException)
         {

@@ -1,13 +1,16 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Functions.Client;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
 
 namespace Microsoft.Health.Dicom.Web;
 
@@ -40,7 +43,8 @@ public class Startup
             .AddBackgroundWorkers()
             .AddHostedServices();
 
-        AddApplicationInsightsTelemetry(services);
+        // AddApplicationInsightsTelemetry(services);
+        AddOpenTelemetry(services);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -63,6 +67,21 @@ public class Startup
             var connectionString = $"InstrumentationKey={instrumentationKey}";
 
             services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
+        }
+    }
+
+    private void AddOpenTelemetry(IServiceCollection services)
+    {
+        string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+
+        if (!string.IsNullOrWhiteSpace(instrumentationKey))
+        {
+            var connectionString = $"InstrumentationKey={instrumentationKey}";
+
+            services.AddSingleton(Sdk.CreateMeterProviderBuilder()
+                .AddMeter("Microsoft.Health.Cloud.*")
+                .AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString)
+                .Build());
         }
     }
 }

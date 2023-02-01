@@ -28,6 +28,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
@@ -126,7 +127,7 @@ public class WadoBenchmark : DicomBenchmark
             scope.ServiceProvider.GetRequiredService<IMetadataStore>(),
             scope.ServiceProvider.GetRequiredService<IETagGenerator>(),
             scope.ServiceProvider.GetRequiredService<IDicomRequestContextAccessor>(),
-            scope.ServiceProvider.GetRequiredService<IDicomTelemetryClient>(),
+            scope.ServiceProvider.GetRequiredService<StoreMeter>(),
             Options.Create(options));
 
         RetrieveMetadataResponse response = await service.RetrieveStudyInstanceMetadataAsync(StudyUid);

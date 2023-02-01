@@ -52,6 +52,9 @@ public static class DicomServerBuilderBlobRegistrationExtensions
                 o => configuration.GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
                 o => blobConfig.Bind(o)); // Re-use the blob store's configuration for the client
 
+        serverBuilder.Services
+            .AddSingleton<BlobMeter>();
+
         return serverBuilder;
     }
 

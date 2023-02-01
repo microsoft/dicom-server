@@ -15,10 +15,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -62,7 +60,7 @@ public class StoreService : IStoreService
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly IDicomTelemetryClient _telemetryClient;
+    private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
@@ -74,7 +72,7 @@ public class StoreService : IStoreService
         IStoreDatasetValidator dicomDatasetValidator,
         IStoreOrchestrator storeOrchestrator,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
-        IDicomTelemetryClient telemetryClient,
+        StoreMeter storeMeter,
         ILogger<StoreService> logger,
         IOptions<FeatureConfiguration> featureConfiguration
         )
@@ -84,7 +82,7 @@ public class StoreService : IStoreService
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
@@ -100,7 +98,7 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
-            _telemetryClient.TrackInstanceCount(instanceEntries.Count);
+            _storeMeter.InstanceCount.Add(instanceEntries.Count);
 
             InstanceByteMetrics? metrics = null;
             for (int index = 0; index < instanceEntries.Count; index++)
@@ -120,9 +118,9 @@ public class StoreService : IStoreService
                     if (metrics != null)
                     {
                         (long totalLength, long minLength, long maxLength) = metrics.GetValueOrDefault();
-                        _telemetryClient.TrackTotalInstanceBytes(totalLength);
-                        _telemetryClient.TrackMinInstanceBytes(minLength);
-                        _telemetryClient.TrackMaxInstanceBytes(maxLength);
+                        _storeMeter.TotalInstanceBytes.Add(totalLength);
+                        _storeMeter.MinInstanceBytes.Add(minLength);
+                        _storeMeter.MaxInstanceBytes.Add(maxLength);
                     }
 
                     // Fire and forget.

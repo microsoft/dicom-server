@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,6 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
@@ -43,7 +43,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
-    private readonly TelemetryClient _telemetryClient;
+    private readonly BlobMeter _blobMeter;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -51,8 +51,8 @@ public class BlobMetadataStore : IMetadataStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
-        ILogger<BlobMetadataStore> logger,
-        TelemetryClient telemetryClient)
+        BlobMeter blobMeter,
+        ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
@@ -60,7 +60,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _blobMeter = EnsureArg.IsNotNull(blobMeter, nameof(blobMeter));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -101,9 +101,11 @@ public class BlobMetadataStore : IMetadataStore
         {
             if (ex is NotSupportedException)
             {
-                _telemetryClient
-                    .GetMetric("JsonSerializationException", "ExceptionType")
-                    .TrackValue(1, ex.GetType().FullName);
+                var tags = new KeyValuePair<string, object>[]
+                {
+                    new KeyValuePair<string, object>("ExceptionType", ex.GetType().FullName)
+                };
+                _blobMeter.JsonSerializationException.Add(1, tags);
             }
             throw new DataStoreException(ex);
         }
@@ -148,13 +150,11 @@ public class BlobMetadataStore : IMetadataStore
                         versionedInstanceIdentifier);
                     break;
                 case JsonException or NotSupportedException:
-                    _telemetryClient
-                        .GetMetric(
-                            JsonDeserializationException,
-                            JsonDeserializationExceptionTypeDimension)
-                        .TrackValue(
-                            1,
-                            ex.GetType().FullName);
+                    var tags = new KeyValuePair<string, object>[]
+                    {
+                        new KeyValuePair<string, object>(JsonDeserializationExceptionTypeDimension, ex.GetType().FullName)
+                    };
+                    _blobMeter.JsonDeserializationException.Add(1, tags);
                     break;
             }
 

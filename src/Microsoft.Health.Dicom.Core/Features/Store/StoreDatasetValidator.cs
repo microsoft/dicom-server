@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -29,14 +28,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly bool _enableDropInvalidDicomJsonMetadata;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
-    private readonly TelemetryClient _telemetryClient;
-
+    private readonly StoreMeter _storeMeter;
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
-        TelemetryClient telemetryClient)
+        StoreMeter storeMeter)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -46,7 +44,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
     }
 
     /// <inheritdoc/>
@@ -157,18 +155,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
-
-                _telemetryClient
-                    .GetMetric(
-                        "IndexTagValidationError",
-                        "ExceptionErrorCode",
-                        "ExceptionName",
-                        "VR")
-                    .TrackValue(
-                        1,
-                        ex.ErrorCode.ToString(),
-                        ex.Name,
-                        queryTag.VR.Code);
+                var tags = new KeyValuePair<string, object>[]
+                {
+                    new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
+                    new KeyValuePair<string, object>("ExceptionName", ex.Name),
+                    new KeyValuePair<string, object>("VR", queryTag.VR.Code)
+                };
+                _storeMeter.IndexTagValidationError.Add(1, tags);
             }
         }
     }
@@ -188,22 +181,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
                     validationResultBuilder.Add(ex, item.Tag);
-
-                    _telemetryClient
-                        .GetMetric(
-                            "DroppedInvalidTag",
-                            "ExceptionContent",
-                            "TagKeyword",
-                            "VR",
-                            "Tag"
-                            )
-                        .TrackValue(
-                            1,
-                            ex.Content,
-                            item.Tag.DictionaryEntry.Keyword,
-                            item.ValueRepresentation.ToString(),
-                            item.Tag.ToString()
-                            );
+                    var tags = new KeyValuePair<string, object>[]
+                    {
+                        new KeyValuePair<string, object>("ExceptionContent", ex.Content),
+                        new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
+                        new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
+                        new KeyValuePair<string, object>("Tag", item.Tag.ToString())
+                    };
+                    _storeMeter.DroppedInvalidTag.Add(1, tags);
                 }
                 else
                 {

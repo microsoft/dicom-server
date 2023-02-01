@@ -64,6 +64,8 @@ public static class DicomSqlServerRegistrationExtensions
             .AddSqlQueryStores()
             .AddSqlWorkitemStores();
 
+        services.AddSingleton<StoreMeter>();
+
         return dicomServerBuilder;
     }
 
