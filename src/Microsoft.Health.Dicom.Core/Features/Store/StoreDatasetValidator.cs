@@ -190,7 +190,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 {
                     var message = validationResultBuilder.Add(ex, item.Tag);
 
-                    LogExporter.LogTrace(_telemetryClient, message);
+                    LogExporter.LogTrace(
+                        _telemetryClient,
+                        message,
+                        dicomDataset);
+
                     _telemetryClient
                         .GetMetric(
                             "DroppedInvalidTag",
