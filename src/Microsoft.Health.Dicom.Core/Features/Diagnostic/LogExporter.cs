@@ -24,6 +24,7 @@ public static class LogExporter
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
 
         var telemetry = new TraceTelemetry(message ?? string.Empty);
         telemetry.Properties.Add(StudyInstanceUid, dataset.GetString(DicomTag.StudyInstanceUID));
