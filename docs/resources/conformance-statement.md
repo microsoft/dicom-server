@@ -325,22 +325,22 @@ The following parameters for each query are supported:
 
 We support searching on below attributes and search type.
 
-| Attribute Keyword | Study | Series | Instance |
-| :---------------- | :---: | :----: | :------: |
-| StudyInstanceUID | X | X | X |
-| PatientName | X | X | X |
-| PatientID | X | X | X |
-| PatientBirthDate | X | X | X |
-| AccessionNumber | X | X | X |
-| ReferringPhysicianName | X | X | X |
-| StudyDate | X | X | X |
-| StudyDescription | X | X | X |
-| ModalitiesInStudy | X | X | X |
-| SeriesInstanceUID |  | X | X |
-| Modality |  | X | X |
-| PerformedProcedureStepStartDate |  | X | X |
-| ManufacturerModelName | | X | X |
-| SOPInstanceUID |  |  | X |
+| Attribute Keyword | All Studies | All Series | All Instance | Study's Series | Study's Instances | Study Series' Instances |
+| :---------------- | :---: | :----: | :------: | :---: | :----: | :------: |
+| StudyInstanceUID | X | X | X |  |  |  |
+| PatientName | X | X | X |  |  |  |
+| PatientID | X | X | X |  |  |  |
+| PatientBirthDate | X | X | X |  |  |  |
+| AccessionNumber | X | X | X |  |  |  |
+| ReferringPhysicianName | X | X | X |  |  |  |
+| StudyDate | X | X | X |  |  |  |
+| StudyDescription | X | X | X |  |  |  |
+| ModalitiesInStudy | X | X | X |  |  |  |
+| SeriesInstanceUID |  | X | X | X | X |  |
+| Modality |  | X | X | X | X |  |
+| PerformedProcedureStepStartDate |  | X | X | X | X |  |
+| ManufacturerModelName | | X | X | X | X |  |
+| SOPInstanceUID |  |  | X |  | X | X |
 
 #### Search Matching
 
