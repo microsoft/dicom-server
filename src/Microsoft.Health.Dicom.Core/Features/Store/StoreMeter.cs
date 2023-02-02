@@ -27,9 +27,9 @@ public sealed class StoreMeter : IDisposable
         OldestRequestedDeletion = _meter.CreateCounter<double>(nameof(OldestRequestedDeletion));
         CountDeletionsMaxRetry = _meter.CreateCounter<double>(nameof(CountDeletionsMaxRetry));
         InstanceCount = _meter.CreateCounter<double>(nameof(InstanceCount));
-        TotalInstanceBytes = _meter.CreateCounter<double>(nameof(TotalInstanceBytes));
-        MinInstanceBytes = _meter.CreateCounter<double>(nameof(MinInstanceBytes));
-        MaxInstanceBytes = _meter.CreateCounter<double>(nameof(MaxInstanceBytes));
+        TotalInstanceBytes = _meter.CreateHistogram<double>(nameof(TotalInstanceBytes));
+        MinInstanceBytes = _meter.CreateHistogram<double>(nameof(MinInstanceBytes));
+        MaxInstanceBytes = _meter.CreateHistogram<double>(nameof(MaxInstanceBytes));
     }
 
     public Counter<double> IndexTagValidationError { get; }
@@ -37,9 +37,9 @@ public sealed class StoreMeter : IDisposable
     public Counter<double> OldestRequestedDeletion { get; }
     public Counter<double> CountDeletionsMaxRetry { get; }
     public Counter<double> InstanceCount { get; }
-    public Counter<double> TotalInstanceBytes { get; }
-    public Counter<double> MinInstanceBytes { get; }
-    public Counter<double> MaxInstanceBytes { get; }
+    public Histogram<double> TotalInstanceBytes { get; }
+    public Histogram<double> MinInstanceBytes { get; }
+    public Histogram<double> MaxInstanceBytes { get; }
 
     public void Dispose()
         => _meter.Dispose();

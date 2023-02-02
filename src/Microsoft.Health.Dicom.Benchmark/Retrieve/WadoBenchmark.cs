@@ -29,7 +29,6 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.SqlServer.Configs;
@@ -75,7 +74,6 @@ public class WadoBenchmark : DicomBenchmark
             .AddSingleton<TelemetryClient>()
             .AddBlobServiceClient(Configuration.GetSection(BlobServiceClientOptions.DefaultSectionName))
             .AddSqlServerConnection()
-            .AddSingleton<IDicomTelemetryClient, BenchmarkTelemetryClient>()
             .AddScoped<IDicomRequestContext>(s => new DicomRequestContext(HttpMethod.Get.Method, new Uri("http://localhost/benchmark"), new Uri("http://localhost"), Guid.NewGuid().ToString(), new Dictionary<string, StringValues>(), new Dictionary<string, StringValues>()))
             .AddScoped<IDicomRequestContextAccessor>(s => new DicomRequestContextAccessor { RequestContext = s.GetRequiredService<IDicomRequestContext>() })
             .AddSingleton<RecyclableMemoryStreamManager>()

@@ -18,7 +18,6 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -45,7 +44,6 @@ public class StoreOrchestratorTests
     private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
     private readonly IQueryTagService _queryTagService = Substitute.For<IQueryTagService>();
     private readonly IDicomRequestContextAccessor _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
     private readonly StoreOrchestrator _storeOrchestrator;
 
     private readonly DicomDataset _dicomDataset;
@@ -86,7 +84,6 @@ public class StoreOrchestratorTests
             _indexDataStore,
             _deleteService,
             _queryTagService,
-            _telemetryClient,
             logger);
     }
 

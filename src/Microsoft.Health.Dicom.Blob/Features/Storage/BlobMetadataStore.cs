@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,8 +35,6 @@ public class BlobMetadataStore : IMetadataStore
 {
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
-    private const string JsonDeserializationException = "JsonDeserializationException";
-    private const string JsonDeserializationExceptionTypeDimension = "JsonDeserializationExceptionTypeDimension";
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -152,7 +149,7 @@ public class BlobMetadataStore : IMetadataStore
                 case JsonException or NotSupportedException:
                     var tags = new KeyValuePair<string, object>[]
                     {
-                        new KeyValuePair<string, object>(JsonDeserializationExceptionTypeDimension, ex.GetType().FullName)
+                        new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName)
                     };
                     _blobMeter.JsonDeserializationException.Add(1, tags);
                     break;

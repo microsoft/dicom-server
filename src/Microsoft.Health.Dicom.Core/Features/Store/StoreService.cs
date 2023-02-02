@@ -118,9 +118,9 @@ public class StoreService : IStoreService
                     if (metrics != null)
                     {
                         (long totalLength, long minLength, long maxLength) = metrics.GetValueOrDefault();
-                        _storeMeter.TotalInstanceBytes.Add(totalLength);
-                        _storeMeter.MinInstanceBytes.Add(minLength);
-                        _storeMeter.MaxInstanceBytes.Add(maxLength);
+                        _storeMeter.TotalInstanceBytes.Record(totalLength);
+                        _storeMeter.MinInstanceBytes.Record(minLength);
+                        _storeMeter.MaxInstanceBytes.Record(maxLength);
                     }
 
                     // Fire and forget.
