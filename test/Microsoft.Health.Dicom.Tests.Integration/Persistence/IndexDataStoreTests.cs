@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -565,6 +565,23 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         DicomDataset instance1 = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
         DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
+
+        Task.WaitAll(
+                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance1),
+                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance2));
+    }
+
+
+    [Fact]
+    public void GivenMultipleNewInstancesInDifferentStudy_SameSeriesAndSopInstanceUID_ThenItShouldBeAdded()
+    {
+        string studyInstanceUid1 = TestUidGenerator.Generate();
+        string studyInstanceUid2 = TestUidGenerator.Generate();
+        string seriesInstanceUid = TestUidGenerator.Generate();
+        string sopInstanceUid = TestUidGenerator.Generate();
+
+        DicomDataset instance1 = CreateTestDicomDataset(studyInstanceUid1, seriesInstanceUid, sopInstanceUid);
+        DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid2, seriesInstanceUid, sopInstanceUid);
 
         Task.WaitAll(
                 _indexDataStore.BeginCreateInstanceIndexAsync(1, instance1),
