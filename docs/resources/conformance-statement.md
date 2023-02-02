@@ -325,7 +325,7 @@ The following parameters for each query are supported:
 
 We support searching on below attributes and search type.
 
-| Attribute Keyword | All Studies | All Series | All Instance | Study's Series | Study's Instances | Study Series' Instances |
+| Attribute Keyword | All Studies | All Series | All Instances | Study's Series | Study's Instances | Study Series' Instances |
 | :---------------- | :---: | :----: | :------: | :---: | :----: | :------: |
 | StudyInstanceUID | X | X | X |  |  |  |
 | PatientName | X | X | X |  |  |  |
