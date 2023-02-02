@@ -6,14 +6,17 @@
 using System;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Modules;
 using Microsoft.Health.DicomCast.TableStorage;
 using Microsoft.Health.Extensions.DependencyInjection;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
 
 namespace Microsoft.Health.DicomCast.Hosting;
 
@@ -45,7 +48,7 @@ public static class Program
 
                 services.AddHostedService<DicomCastBackgroundService>();
 
-                AddApplicationInsightsTelemetry(services, configuration);
+                AddOpenTelemetry(services, configuration);
             })
             .Build();
 
@@ -53,22 +56,22 @@ public static class Program
     }
 
     /// <summary>
-    /// Adds ApplicationInsights for telemetry and logging.
+    /// Adds Open telemetry exporter for Azure monitor.
     /// </summary>
-    private static void AddApplicationInsightsTelemetry(IServiceCollection services, IConfiguration configuration)
+    private static void AddOpenTelemetry(IServiceCollection services, IConfiguration configuration)
     {
+        services.Add<DicomCastMeter>();
+
         string instrumentationKey = configuration["ApplicationInsights:InstrumentationKey"];
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
             var connectionString = $"InstrumentationKey={instrumentationKey}";
 
-            services.AddApplicationInsightsTelemetryWorkerService(aiServiceOptions => aiServiceOptions.ConnectionString = connectionString);
-            services.AddLogging(
-                loggingBuilder => loggingBuilder.AddApplicationInsights(
-                    telemetryConfig => telemetryConfig.ConnectionString = connectionString,
-                    aiLoggerOptions => { }
-                ));
+            services.AddSingleton(Sdk.CreateMeterProviderBuilder()
+                .AddMeter("Microsoft.Health.Cloud.*")
+                .AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString)
+                .Build());
         }
     }
 }
