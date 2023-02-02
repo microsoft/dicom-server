@@ -8,9 +8,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -57,10 +54,6 @@ public class DataStoreTestsFixture : IAsyncLifetime
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
 
     public int NextWatermark => Interlocked.Increment(ref _watermark);
-    private readonly TelemetryClient _appInsightsTelemetryClient = new TelemetryClient(new TelemetryConfiguration()
-    {
-        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-    });
 
     public async Task InitializeAsync()
     {

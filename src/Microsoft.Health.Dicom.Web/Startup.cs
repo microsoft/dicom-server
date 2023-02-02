@@ -43,7 +43,6 @@ public class Startup
             .AddBackgroundWorkers()
             .AddHostedServices();
 
-        // AddApplicationInsightsTelemetry(services);
         AddOpenTelemetry(services);
     }
 
@@ -56,20 +55,8 @@ public class Startup
     }
 
     /// <summary>
-    /// Adds ApplicationInsights for telemetry and logging.
+    /// Adds Open telemetry exporter for Azure monitor.
     /// </summary>
-    private void AddApplicationInsightsTelemetry(IServiceCollection services)
-    {
-        string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
-
-        if (!string.IsNullOrWhiteSpace(instrumentationKey))
-        {
-            var connectionString = $"InstrumentationKey={instrumentationKey}";
-
-            services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
-        }
-    }
-
     private void AddOpenTelemetry(IServiceCollection services)
     {
         string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
