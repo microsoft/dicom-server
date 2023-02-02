@@ -31,4 +31,9 @@ public class FeatureConfiguration
     /// Enables dropping invalid Dicom+Json objects so we do not store them in metadata. Binary file is left as is.
     /// </summary>
     public bool EnableDropInvalidDicomJsonMetadata { get; set; }
+
+    /// <summary>
+    /// Enables the latest API version
+    /// </summary>
+    public bool EnableLatestApiVersion { get; set; }
 }

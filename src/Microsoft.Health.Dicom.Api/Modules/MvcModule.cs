@@ -21,8 +21,11 @@ public class MvcModule : IStartupModule
 
         services.PostConfigure<MvcOptions>(options =>
         {
-            // This filter should run first because it populates data for DicomRequestContext.
-            options.Filters.Add(typeof(DicomRequestContextRouteDataPopulatingFilterAttribute), 0);
+            // validate if the apiversion is supported. Remove this after latest version is by default supported
+            options.Filters.Add(typeof(ApiVersionValidatorAttribute), 0);
+
+            // This filter should run second because it populates data for DicomRequestContext.
+            options.Filters.Add(typeof(DicomRequestContextRouteDataPopulatingFilterAttribute), 1);
         });
 
         services.AddHttpContextAccessor();
