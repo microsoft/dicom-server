@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 
@@ -16,7 +17,7 @@ public class SeriesResult
     public string Modality { get; init; }
     public DateTime? PerformedProcedureStepStartDate { get; init; }
     public string ManufacturerModelName { get; init; }
-    public int NumberofSeriesRelatedInstances { get; init; }
+    public int NumberOfSeriesRelatedInstances { get; init; }
 
     private DicomDataset _dicomDataset;
     public DicomDataset DicomDataset
@@ -29,7 +30,7 @@ public class SeriesResult
                 {
                     { DicomTag.StudyInstanceUID, StudyInstanceUid },
                     { DicomTag.SeriesInstanceUID, SeriesInstanceUid },
-                    { DicomTag.NumberOfSeriesRelatedInstances, NumberofSeriesRelatedInstances }
+                    { DicomTag.NumberOfSeriesRelatedInstances, NumberOfSeriesRelatedInstances }
                 };
                 _dicomDataset.AddValueIfNotNull(DicomTag.Modality, Modality);
                 _dicomDataset.AddValueIfNotNull(DicomTag.ManufacturerModelName, ManufacturerModelName);
@@ -41,4 +42,14 @@ public class SeriesResult
             return _dicomDataset;
         }
     }
+
+    public static readonly IReadOnlyCollection<DicomTag> AvailableTags = new HashSet<DicomTag>()
+    {
+        DicomTag.StudyInstanceUID,
+        DicomTag.SeriesInstanceUID,
+        DicomTag.Modality,
+        DicomTag.PerformedProcedureStepStartDate,
+        DicomTag.ManufacturerModelName,
+        DicomTag.NumberOfSeriesRelatedInstances
+    };
 }

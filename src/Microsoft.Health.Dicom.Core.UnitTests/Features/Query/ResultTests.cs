@@ -32,7 +32,7 @@ public class ResultsTests
         {
             StudyInstanceUid = "1.2.3",
             SeriesInstanceUid = "1.2.3.4",
-            NumberofSeriesRelatedInstances = 1,
+            NumberOfSeriesRelatedInstances = 1,
         };
         Assert.True(StudyResult.DicomDataset.Count() == 3);
     }

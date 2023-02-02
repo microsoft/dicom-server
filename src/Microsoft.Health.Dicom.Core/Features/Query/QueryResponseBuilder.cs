@@ -32,6 +32,18 @@ public class QueryResponseBuilder
         DicomTag.StudyID,
     };
 
+    private static readonly HashSet<DicomTag> V2DefaultStudyTags = new HashSet<DicomTag>()
+    {
+        DicomTag.StudyInstanceUID,
+        DicomTag.StudyDate,
+        DicomTag.StudyDescription,
+        DicomTag.AccessionNumber,
+        DicomTag.ReferringPhysicianName,
+        DicomTag.PatientName,
+        DicomTag.PatientID,
+        DicomTag.PatientBirthDate
+    };
+
     private static readonly HashSet<DicomTag> AllStudyTags = new HashSet<DicomTag>(DefaultStudyTags)
     {
         DicomTag.StudyDescription,
@@ -59,6 +71,15 @@ public class QueryResponseBuilder
         DicomTag.RequestAttributesSequence,
     };
 
+
+    private static readonly HashSet<DicomTag> V2DefaultSeriesTags = new HashSet<DicomTag>()
+    {
+        DicomTag.SeriesInstanceUID,
+        DicomTag.Modality,
+        DicomTag.PerformedProcedureStepStartDate,
+        DicomTag.ManufacturerModelName
+    };
+
     private static readonly HashSet<DicomTag> AllSeriesTags = new HashSet<DicomTag>(DefaultSeriesTags)
     {
         DicomTag.SeriesNumber,
@@ -81,36 +102,24 @@ public class QueryResponseBuilder
         DicomTag.NumberOfFrames,
     };
 
-    private static readonly HashSet<DicomTag> AllInstancesTags = new HashSet<DicomTag>(DefaultInstancesTags);
+    private static readonly HashSet<DicomTag> V2DefaultInstancesTags = new HashSet<DicomTag>()
+    {
+        DicomTag.SOPInstanceUID
+    };
 
-    private static readonly HashSet<DicomTag> DefaultStudySeriesTags = new HashSet<DicomTag>(DefaultStudyTags.Union(DefaultSeriesTags));
-
-    private static readonly HashSet<DicomTag> AllStudySeriesTags = new HashSet<DicomTag>(AllStudyTags.Union(AllSeriesTags));
-
-    private static readonly HashSet<DicomTag> DefaultStudySeriesInstanceTags = new HashSet<DicomTag>(DefaultStudyTags.Union(DefaultSeriesTags).Union(DefaultInstancesTags));
-
-    private static readonly HashSet<DicomTag> AllStudySeriesInstanceTags = new HashSet<DicomTag>(AllStudyTags.Union(AllSeriesTags).Union(AllInstancesTags));
-
-    private static readonly HashSet<DicomTag> DefaultSeriesInstanceTags = new HashSet<DicomTag>(DefaultSeriesTags.Union(DefaultInstancesTags));
-
-    private static readonly HashSet<DicomTag> AllSeriesInstanceTags = new HashSet<DicomTag>(AllSeriesTags.Union(AllInstancesTags));
+    private static readonly HashSet<DicomTag> AllInstancesTags = DefaultInstancesTags;
 
     private HashSet<DicomTag> _tagsToReturn;
 
-    public QueryResponseBuilder(QueryExpression queryExpression)
+    public QueryResponseBuilder(QueryExpression queryExpression, int? apiMajorVersion = null)
     {
         EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
         EnsureArg.IsFalse(queryExpression.IELevel == ResourceType.Frames, nameof(queryExpression.IELevel));
 
-        Initialize(queryExpression);
+        Initialize(queryExpression, apiMajorVersion);
     }
 
     public DicomDataset GenerateResponseDataset(DicomDataset dicomDataset)
-    {
-        return GenerateResponseDataset(dicomDataset, null);
-    }
-
-    public DicomDataset GenerateResponseDataset(DicomDataset dicomDataset, DicomDataset mergeDataset)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -118,16 +127,6 @@ public class QueryResponseBuilder
             t => t.Group == di.Tag.Group &&
             t.Element == di.Tag.Element));
 
-        if (mergeDataset != null)
-        {
-            foreach (DicomTag tag in _tagsToReturn)
-            {
-                if (mergeDataset.Contains(tag))
-                {
-                    dicomDataset.AddOrUpdate(mergeDataset.GetDicomItem<DicomElement>(tag));
-                }
-            }
-        }
         return dicomDataset;
     }
 
@@ -139,27 +138,36 @@ public class QueryResponseBuilder
         }
     }
 
-    private void Initialize(QueryExpression queryExpression)
+    // If the target resource is All Series, then Study level attributes are also returned.
+    // If the target resource is All Instances, then Study and Series level attributes are also returned.
+    // If the target resource is Study's Instances, then Series level attributes are also returned.
+    private void Initialize(QueryExpression queryExpression, int? apiMajorVersion)
     {
+        bool useNewDefaults = false;
+        if (apiMajorVersion != null && apiMajorVersion >= 2)
+        {
+            useNewDefaults = true;
+        }
+
         switch (queryExpression.QueryResource)
         {
-            case QueryResource.AllStudies:
-                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags : DefaultStudyTags);
+            case (QueryResource.AllStudies):
+                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags : useNewDefaults ? V2DefaultStudyTags : DefaultStudyTags);
                 break;
             case QueryResource.AllSeries:
-                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesTags : DefaultStudySeriesTags);
-                break;
-            case QueryResource.StudySeries:
-                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesTags : DefaultSeriesTags);
+                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags.Union(AllSeriesTags) : useNewDefaults ? V2DefaultStudyTags.Union(V2DefaultSeriesTags) : DefaultStudyTags.Union(DefaultSeriesTags));
                 break;
             case QueryResource.AllInstances:
-                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudySeriesInstanceTags : DefaultStudySeriesInstanceTags);
+                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags.Union(AllSeriesTags).Union(AllInstancesTags) : useNewDefaults ? V2DefaultStudyTags.Union(V2DefaultSeriesTags).Union(V2DefaultInstancesTags) : DefaultStudyTags.Union(DefaultSeriesTags).Union(DefaultInstancesTags));
+                break;
+            case QueryResource.StudySeries:
+                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesTags : useNewDefaults ? V2DefaultSeriesTags : DefaultSeriesTags);
                 break;
             case QueryResource.StudyInstances:
-                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesInstanceTags : DefaultSeriesInstanceTags);
+                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllSeriesTags.Union(AllInstancesTags) : useNewDefaults ? V2DefaultSeriesTags.Union(V2DefaultInstancesTags) : DefaultSeriesTags.Union(DefaultInstancesTags));
                 break;
             case QueryResource.StudySeriesInstances:
-                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : DefaultInstancesTags);
+                _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllInstancesTags : useNewDefaults ? V2DefaultInstancesTags : DefaultInstancesTags);
                 break;
             default:
                 Debug.Fail("A newly added queryResource is not implemeted here");

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 /// Represents an API controller for export operations.
 /// </summary>
 [ApiVersion("1")]
+[ApiVersion("2")]
 [ServiceFilter(typeof(Features.Audit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public class ExportController : ControllerBase
