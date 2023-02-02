@@ -68,6 +68,10 @@ public static class DicomFunctionsBuilderRegistrationExtensions
                 o => configuration.GetSection(functionSectionName).GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
                 o => blobConfig.Bind(o)); // Re-use the blob store's configuration
 
+        // Telemetry
+        functionsBuilder.Services
+            .AddSingleton<BlobMeter>();
+
         return functionsBuilder;
     }
 }
