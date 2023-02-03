@@ -334,6 +334,8 @@ IF EXISTS
         AND Object_id = OBJECT_ID('dbo.Series')
 )
 BEGIN
+
+    DROP INDEX IF EXISTS IX_Series_PartitionKey_StudyKey_SeriesInstanceUid ON dbo.Series
     CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceUid ON dbo.Series
     (
         PartitionKey,
@@ -342,7 +344,7 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+    CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
     (
         PartitionKey,
         SeriesInstanceUid
