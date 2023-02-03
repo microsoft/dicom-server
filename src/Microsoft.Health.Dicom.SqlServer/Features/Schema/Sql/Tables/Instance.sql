@@ -80,7 +80,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- QIDO filtering
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
 (
     PartitionKey,
     SopInstanceUid

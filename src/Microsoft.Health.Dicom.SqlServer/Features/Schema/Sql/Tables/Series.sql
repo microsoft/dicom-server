@@ -31,7 +31,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceU
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in QIDO
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
 (
     PartitionKey,
     SeriesInstanceUid
