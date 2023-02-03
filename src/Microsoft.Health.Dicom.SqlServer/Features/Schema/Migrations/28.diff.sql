@@ -413,6 +413,8 @@ BEGIN
     )
     WITH (DROP_EXISTING=ON, ONLINE=ON)
 
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
     (
         PartitionKey,
@@ -429,6 +431,8 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
+
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
     (
         PartitionKey,
@@ -443,6 +447,8 @@ BEGIN
         SopInstanceUid  
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
 
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
     (
@@ -460,6 +466,8 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+
     CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
     (
         PartitionKey,
@@ -474,7 +482,7 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
     (
         PartitionKey,
         SopInstanceUid
