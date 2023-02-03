@@ -192,7 +192,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
                     LogExporter.LogTrace(
                         _telemetryClient,
-                        message,
+                        $"{message}. This attribute will be dropped from JSON metadata and can not be used to index. This attribute will remain in your Dicom binary file.",
                         dicomDataset);
 
                     _telemetryClient
