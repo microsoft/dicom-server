@@ -10,12 +10,13 @@ using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
-public static class LogExporter
+public static class LogForwarder
 {
-    private const string LogForwardingAttribute = "logToCustomerDicom";
-    private const string StudyInstanceUid = "studyInstanceUID";
-    private const string SeriesInstanceUid = "seriesInstanceUID";
-    private const string SOPInstanceUid = "sopInstanceUID";
+    private const string ForwardLogFlag = "forwardLog";
+    private const string Prefix = "dicomAdditionalInformation_";
+    private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
+    private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
+    private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
 
     public static void LogTrace(
         TelemetryClient telemetryClient,
@@ -27,10 +28,10 @@ public static class LogExporter
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 
         var telemetry = new TraceTelemetry(message ?? string.Empty);
-        telemetry.Properties.Add(StudyInstanceUid, dataset.GetString(DicomTag.StudyInstanceUID));
-        telemetry.Properties.Add(SeriesInstanceUid, dataset.GetString(DicomTag.SeriesInstanceUID));
-        telemetry.Properties.Add(SOPInstanceUid, dataset.GetString(DicomTag.SOPInstanceUID));
-        telemetry.Properties.Add(LogForwardingAttribute, true.ToString());
+        telemetry.Properties.Add(StudyInstanceUID, dataset.GetString(DicomTag.StudyInstanceUID));
+        telemetry.Properties.Add(SeriesInstanceUID, dataset.GetString(DicomTag.SeriesInstanceUID));
+        telemetry.Properties.Add(SOPInstanceUID, dataset.GetString(DicomTag.SOPInstanceUID));
+        telemetry.Properties.Add(ForwardLogFlag, true.ToString());
 
         telemetryClient.TrackTrace(telemetry);
     }
