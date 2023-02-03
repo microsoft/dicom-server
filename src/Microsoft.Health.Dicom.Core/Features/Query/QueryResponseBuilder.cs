@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Query;
 
 public class QueryResponseBuilder
 {
-    private static readonly HashSet<DicomTag> DefaultStudyTags = new HashSet<DicomTag>()
+    internal static readonly HashSet<DicomTag> DefaultStudyTags = new HashSet<DicomTag>()
     {
         DicomTag.SpecificCharacterSet,
         DicomTag.StudyDate,
@@ -32,7 +32,7 @@ public class QueryResponseBuilder
         DicomTag.StudyID,
     };
 
-    private static readonly HashSet<DicomTag> V2DefaultStudyTags = new HashSet<DicomTag>()
+    internal static readonly HashSet<DicomTag> V2DefaultStudyTags = new HashSet<DicomTag>()
     {
         DicomTag.StudyInstanceUID,
         DicomTag.StudyDate,
@@ -44,7 +44,7 @@ public class QueryResponseBuilder
         DicomTag.PatientBirthDate
     };
 
-    private static readonly HashSet<DicomTag> AllStudyTags = new HashSet<DicomTag>(DefaultStudyTags)
+    internal static readonly HashSet<DicomTag> AllStudyTags = new HashSet<DicomTag>(DefaultStudyTags)
     {
         DicomTag.StudyDescription,
         DicomTag.AnatomicRegionsInStudyCodeSequence,
@@ -59,7 +59,7 @@ public class QueryResponseBuilder
         DicomTag.AdditionalPatientHistory,
     };
 
-    private static readonly HashSet<DicomTag> DefaultSeriesTags = new HashSet<DicomTag>()
+    internal static readonly HashSet<DicomTag> DefaultSeriesTags = new HashSet<DicomTag>()
     {
         DicomTag.SpecificCharacterSet,
         DicomTag.Modality,
@@ -72,7 +72,7 @@ public class QueryResponseBuilder
     };
 
 
-    private static readonly HashSet<DicomTag> V2DefaultSeriesTags = new HashSet<DicomTag>()
+    internal static readonly HashSet<DicomTag> V2DefaultSeriesTags = new HashSet<DicomTag>()
     {
         DicomTag.SeriesInstanceUID,
         DicomTag.Modality,
@@ -80,7 +80,7 @@ public class QueryResponseBuilder
         DicomTag.ManufacturerModelName
     };
 
-    private static readonly HashSet<DicomTag> AllSeriesTags = new HashSet<DicomTag>(DefaultSeriesTags)
+    internal static readonly HashSet<DicomTag> AllSeriesTags = new HashSet<DicomTag>(DefaultSeriesTags)
     {
         DicomTag.SeriesNumber,
         DicomTag.Laterality,
@@ -88,7 +88,7 @@ public class QueryResponseBuilder
         DicomTag.SeriesTime,
     };
 
-    private static readonly HashSet<DicomTag> DefaultInstancesTags = new HashSet<DicomTag>()
+    internal static readonly HashSet<DicomTag> DefaultInstancesTags = new HashSet<DicomTag>()
     {
         DicomTag.SpecificCharacterSet,
         DicomTag.SOPClassUID,
@@ -102,7 +102,7 @@ public class QueryResponseBuilder
         DicomTag.NumberOfFrames,
     };
 
-    private static readonly HashSet<DicomTag> V2DefaultInstancesTags = new HashSet<DicomTag>()
+    internal static readonly HashSet<DicomTag> V2DefaultInstancesTags = new HashSet<DicomTag>()
     {
         DicomTag.SOPInstanceUID
     };
