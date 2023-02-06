@@ -48,5 +48,5 @@ public class DefaultDicomRequestContext : IDicomRequestContext
 
     public IDictionary<string, StringValues> ResponseHeaders { get; set; }
 
-    public int? ApiMajorVersion { get; set; }
+    public int? Version { get; set; }
 }

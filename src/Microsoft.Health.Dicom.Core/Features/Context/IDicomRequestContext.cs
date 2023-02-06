@@ -24,5 +24,6 @@ public interface IDicomRequestContext : IRequestContext
 
     PartitionEntry DataPartitionEntry { get; set; }
 
-    int? ApiMajorVersion { get; set; }
+    // Opportunity for the core to change based on the caller version
+    int? Version { get; set; }
 }

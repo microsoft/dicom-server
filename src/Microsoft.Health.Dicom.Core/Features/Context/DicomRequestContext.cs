@@ -79,7 +79,7 @@ public class DicomRequestContext : IDicomRequestContext
 
     public ClaimsPrincipal Principal { get; set; }
 
-    public int? ApiMajorVersion { get; set; }
+    public int? Version { get; set; }
 
     public IDictionary<string, StringValues> RequestHeaders { get; }
 

@@ -74,7 +74,7 @@ public class QueryService : IQueryService
             return new QueryResourceResponse(Array.Empty<DicomDataset>(), queryExpression.ErroneousTags);
         }
 
-        var responseBuilder = new QueryResponseBuilder(queryExpression, _contextAccessor.RequestContext.ApiMajorVersion);
+        var responseBuilder = new QueryResponseBuilder(queryExpression, ReturnNewTagDefaults(_contextAccessor.RequestContext.Version));
 
         stopwatch.Restart();
         IEnumerable<DicomDataset> instanceMetadata = await GetInstanceMetadataAsync(partitionKey, queryExpression, queryResult, responseBuilder.ReturnTags, cancellationToken);
@@ -84,6 +84,16 @@ public class QueryService : IQueryService
 
         var responseMetadata = instanceMetadata.Select(m => responseBuilder.GenerateResponseDataset(m));
         return new QueryResourceResponse(responseMetadata, queryExpression.ErroneousTags);
+    }
+
+    private static bool ReturnNewTagDefaults(int? apiMajorVersion)
+    {
+        bool useNewDefaults = false;
+        if (apiMajorVersion != null && apiMajorVersion >= 2)
+        {
+            useNewDefaults = true;
+        }
+        return useNewDefaults;
     }
 
     // Does not handle retrieving the extendedQueryTag indexes right now. Logs are in place to evaluate it in the future.

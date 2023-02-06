@@ -170,7 +170,7 @@ public class QueryServiceTests
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
             new QueryExpression(QueryResource.AllStudies, new QueryIncludeField(new List<DicomTag>()), default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
-        _contextAccessor.RequestContext.ApiMajorVersion = 2;
+        _contextAccessor.RequestContext.Version = 2;
 
         await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
 
@@ -186,7 +186,7 @@ public class QueryServiceTests
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
             new QueryExpression(QueryResource.AllSeries, new QueryIncludeField(new List<DicomTag>()), default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
-        _contextAccessor.RequestContext.ApiMajorVersion = 2;
+        _contextAccessor.RequestContext.Version = 2;
 
         await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
 
@@ -202,7 +202,7 @@ public class QueryServiceTests
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
             new QueryExpression(QueryResource.StudySeries, new QueryIncludeField(new List<DicomTag>()), default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
-        _contextAccessor.RequestContext.ApiMajorVersion = 2;
+        _contextAccessor.RequestContext.Version = 2;
 
         await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
 
@@ -218,7 +218,7 @@ public class QueryServiceTests
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
             new QueryExpression(QueryResource.AllStudies, QueryIncludeField.AllFields, default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
-        _contextAccessor.RequestContext.ApiMajorVersion = 2;
+        _contextAccessor.RequestContext.Version = 2;
 
         await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
 
@@ -235,7 +235,7 @@ public class QueryServiceTests
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
             new QueryExpression(QueryResource.AllStudies, includeFields, default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
-        _contextAccessor.RequestContext.ApiMajorVersion = 2;
+        _contextAccessor.RequestContext.Version = 2;
 
         await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
 

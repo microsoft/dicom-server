@@ -111,12 +111,12 @@ public class QueryResponseBuilder
 
     private HashSet<DicomTag> _tagsToReturn;
 
-    public QueryResponseBuilder(QueryExpression queryExpression, int? apiMajorVersion = null)
+    public QueryResponseBuilder(QueryExpression queryExpression, bool useNewDefaults = false)
     {
         EnsureArg.IsNotNull(queryExpression, nameof(queryExpression));
         EnsureArg.IsFalse(queryExpression.IELevel == ResourceType.Frames, nameof(queryExpression.IELevel));
 
-        Initialize(queryExpression, apiMajorVersion);
+        Initialize(queryExpression, useNewDefaults);
     }
 
     public DicomDataset GenerateResponseDataset(DicomDataset dicomDataset)
@@ -141,17 +141,11 @@ public class QueryResponseBuilder
     // If the target resource is All Series, then Study level attributes are also returned.
     // If the target resource is All Instances, then Study and Series level attributes are also returned.
     // If the target resource is Study's Instances, then Series level attributes are also returned.
-    private void Initialize(QueryExpression queryExpression, int? apiMajorVersion)
+    private void Initialize(QueryExpression queryExpression, bool useNewDefaults)
     {
-        bool useNewDefaults = false;
-        if (apiMajorVersion != null && apiMajorVersion >= 2)
-        {
-            useNewDefaults = true;
-        }
-
         switch (queryExpression.QueryResource)
         {
-            case (QueryResource.AllStudies):
+            case QueryResource.AllStudies:
                 _tagsToReturn = new HashSet<DicomTag>(queryExpression.IncludeFields.All ? AllStudyTags : useNewDefaults ? V2DefaultStudyTags : DefaultStudyTags);
                 break;
             case QueryResource.AllSeries:

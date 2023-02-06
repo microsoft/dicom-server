@@ -150,28 +150,28 @@ public class QueryResponseBuilderTests
         var filters = new List<QueryFilterCondition>();
 
         var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
-        int apiMajorVersion = 1;
-        var responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        bool useNewDefaults = false;
+        var responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.DefaultStudyTags, responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags), responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags).Union(QueryResponseBuilder.DefaultInstancesTags), responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.DefaultSeriesTags, responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.DefaultInstancesTags, responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.DefaultSeriesTags.Union(QueryResponseBuilder.DefaultInstancesTags), responseBuilder.ReturnTags);
     }
 
@@ -182,28 +182,28 @@ public class QueryResponseBuilderTests
         var filters = new List<QueryFilterCondition>();
 
         var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
-        int apiMajorVersion = 2;
-        var responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        bool useNewDefaults = true;
+        var responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags, responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags), responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags).Union(QueryResponseBuilder.V2DefaultInstancesTags), responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.V2DefaultSeriesTags, responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.V2DefaultInstancesTags, responseBuilder.ReturnTags);
 
         query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
-        responseBuilder = new QueryResponseBuilder(query, apiMajorVersion);
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
         Assert.Equal(QueryResponseBuilder.V2DefaultSeriesTags.Union(QueryResponseBuilder.V2DefaultInstancesTags), responseBuilder.ReturnTags);
     }
 

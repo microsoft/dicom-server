@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 
@@ -43,13 +43,13 @@ public class SeriesResult
         }
     }
 
-    public static readonly IReadOnlyCollection<DicomTag> AvailableTags = new HashSet<DicomTag>()
-    {
+    public static readonly ImmutableHashSet<DicomTag> AvailableTags = ImmutableHashSet.Create<DicomTag>
+    (
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
         DicomTag.Modality,
         DicomTag.PerformedProcedureStepStartDate,
         DicomTag.ManufacturerModelName,
         DicomTag.NumberOfSeriesRelatedInstances
-    };
+    );
 }
