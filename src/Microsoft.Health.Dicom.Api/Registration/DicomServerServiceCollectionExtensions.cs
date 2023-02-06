@@ -4,12 +4,14 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -148,6 +150,16 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton<ITelemetryInitializer, DicomTelemetryInitializer>();
         services.AddSingleton<IDicomTelemetryClient, HttpDicomTelemetryClient>();
 
+        services.AddResponseCompression(options =>
+        {
+            options.EnableForHttps = true;
+            options.Providers.Add<BrotliCompressionProvider>();
+            options.Providers.Add<GzipCompressionProvider>();
+            options.MimeTypes =
+                ResponseCompressionDefaults.MimeTypes.Concat(
+                    new[] { "application/dicom+json", "application/dicom" });
+        });
+
         return new DicomServerBuilder(services);
     }
 
@@ -210,6 +222,8 @@ public static class DicomServerServiceCollectionExtensions
                 //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
                 //    }
                 //});
+
+                app.UseResponseCompression();
 
                 next(app);
             };
