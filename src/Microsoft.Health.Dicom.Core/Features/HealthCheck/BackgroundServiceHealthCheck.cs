@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Features.HealthCheck;
 
@@ -20,26 +21,26 @@ public class BackgroundServiceHealthCheck : IHealthCheck
 {
     private readonly IIndexDataStore _indexDataStore;
     private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
-    private readonly StoreMeter _storeMeter;
+    private readonly HealthCheckMeter _healthCheckMeter;
     private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
     private readonly ILogger<BackgroundServiceHealthCheck> _logger;
 
     public BackgroundServiceHealthCheck(
         IIndexDataStore indexDataStore,
         IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
-        StoreMeter storeMeter,
+        HealthCheckMeter healthCheckMeter,
         BackgroundServiceHealthCheckCache backgroundServiceHealthCheckCache,
         ILogger<BackgroundServiceHealthCheck> logger)
     {
         EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
-        EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
+        EnsureArg.IsNotNull(healthCheckMeter, nameof(healthCheckMeter));
         EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _indexDataStore = indexDataStore;
         _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
-        _storeMeter = storeMeter;
+        _healthCheckMeter = healthCheckMeter;
         _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;
         _logger = logger;
     }
@@ -53,8 +54,8 @@ public class BackgroundServiceHealthCheck : IHealthCheck
                 t => _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
                 cancellationToken);
 
-            _storeMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
-            _storeMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
+            _healthCheckMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
+            _healthCheckMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
 
         }
         catch (DataStoreNotReadyException)

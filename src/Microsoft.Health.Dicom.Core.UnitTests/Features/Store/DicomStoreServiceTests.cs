@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -50,7 +51,7 @@ public class DicomStoreServiceTests
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
-    private readonly StoreMeter _storeMeter = new StoreMeter();
+    private readonly InstanceMeter _instanceMeter = new InstanceMeter();
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
@@ -69,7 +70,7 @@ public class DicomStoreServiceTests
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _storeMeter,
+            _instanceMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
 
@@ -81,7 +82,7 @@ public class DicomStoreServiceTests
             CreateStoreDatasetValidatorWithDropDataEnabled(),
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _storeMeter,
+            _instanceMeter,
             NullLogger<StoreService>.Instance,
             featureConfiguration);
 

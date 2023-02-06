@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Blob.Features.Storage;
+namespace Microsoft.Health.Dicom.Blob.Features.Telemetry;
 public sealed class BlobMeter : IDisposable
 {
     private readonly Meter _meter;

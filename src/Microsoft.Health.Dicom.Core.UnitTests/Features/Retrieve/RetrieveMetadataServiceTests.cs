@@ -16,7 +16,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -33,7 +33,7 @@ public class RetrieveMetadataServiceTests
     private readonly IETagGenerator _eTagGenerator;
     private readonly RetrieveMetadataService _retrieveMetadataService;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly StoreMeter _storeMeter;
+    private readonly InstanceMeter _instanceMeter;
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -46,7 +46,7 @@ public class RetrieveMetadataServiceTests
         _metadataStore = Substitute.For<IMetadataStore>();
         _eTagGenerator = Substitute.For<IETagGenerator>();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _storeMeter = new StoreMeter();
+        _instanceMeter = new InstanceMeter();
 
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         _retrieveMetadataService = new RetrieveMetadataService(
@@ -54,7 +54,7 @@ public class RetrieveMetadataServiceTests
             _metadataStore,
             _eTagGenerator,
             _dicomRequestContextAccessor,
-            _storeMeter,
+            _instanceMeter,
             Options.Create(new RetrieveConfiguration()));
     }
 
