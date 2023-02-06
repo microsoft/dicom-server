@@ -60,7 +60,7 @@ public static class Program
     /// </summary>
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration configuration)
     {
-        services.Add<DicomCastMeter>();
+        services.AddSingleton<DicomCastMeter>();
 
         string instrumentationKey = configuration["ApplicationInsights:InstrumentationKey"];
 

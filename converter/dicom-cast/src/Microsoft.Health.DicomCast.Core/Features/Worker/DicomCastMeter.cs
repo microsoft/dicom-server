@@ -4,24 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
-using EnsureThat;
 
 namespace Microsoft.Health.DicomCast.Core.Features.Worker;
 public sealed class DicomCastMeter : IDisposable
 {
     private readonly Meter _meter;
 
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dispose method.")]
     public DicomCastMeter()
-        : this(new Meter("Microsoft.Health.DicomCast.Core.Features.Worker", "1.0"))
     {
-    }
-
-    internal DicomCastMeter(Meter meter)
-    {
-        _meter = EnsureArg.IsNotNull(meter, nameof(meter));
+        _meter = new Meter("Microsoft.Health.DicomCast.Core.Features.Worker", "1.0");
         CastToFhirForbidden = _meter.CreateCounter<double>(nameof(CastToFhirForbidden));
         DicomToCastForbidden = _meter.CreateCounter<double>(nameof(DicomToCastForbidden));
         CastMIUnavailable = _meter.CreateCounter<double>(nameof(CastMIUnavailable));

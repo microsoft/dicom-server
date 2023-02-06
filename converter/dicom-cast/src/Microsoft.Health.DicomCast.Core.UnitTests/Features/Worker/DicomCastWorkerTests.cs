@@ -136,7 +136,7 @@ public class DicomCastWorkerTests
     {
         _exportedItems = new List<Metric>();
         _meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter("Microsoft.Health.Cloud.DicomCast.Core.Features.Worker", "1.0")
+            .AddMeter("Microsoft.Health.DicomCast.Core.Features.Worker", "1.0")
             .AddInMemoryExporter(_exportedItems)
             .Build();
     }
