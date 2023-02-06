@@ -13,9 +13,9 @@ public sealed class StoreMeter : IDisposable
 {
     private readonly Meter _meter;
 
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dipose method.")]
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dispose method.")]
     public StoreMeter()
-        : this(new Meter("Microsoft.Health.Cloud.Dicom.Core.Features.Store", "1.0"))
+        : this(new Meter("Microsoft.Health.Dicom.Core.Features.Store", "1.0"))
     {
     }
 

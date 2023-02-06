@@ -13,9 +13,9 @@ public sealed class DicomCastMeter : IDisposable
 {
     private readonly Meter _meter;
 
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dipose method.")]
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dispose method.")]
     public DicomCastMeter()
-        : this(new Meter("Microsoft.Health.Cloud.DicomCast.Core.Features.Worker", "1.0"))
+        : this(new Meter("Microsoft.Health.DicomCast.Core.Features.Worker", "1.0"))
     {
     }
 

@@ -69,7 +69,7 @@ public static class Program
             var connectionString = $"InstrumentationKey={instrumentationKey}";
 
             services.AddSingleton(Sdk.CreateMeterProviderBuilder()
-                .AddMeter("Microsoft.Health.Cloud.*")
+                .AddMeter("Microsoft.Health.DicomCast.*")
                 .AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString)
                 .Build());
         }

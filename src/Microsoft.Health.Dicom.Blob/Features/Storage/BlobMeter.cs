@@ -13,9 +13,9 @@ public sealed class BlobMeter : IDisposable
 {
     private readonly Meter _meter;
 
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dipose method.")]
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Disposal is done through Dispose method.")]
     public BlobMeter()
-        : this(new Meter("Microsoft.Health.Cloud.Dicom.Blob.Features.Storage", "1.0"))
+        : this(new Meter("Microsoft.Health.Dicom.Blob.Features.Storage", "1.0"))
     {
     }
 
