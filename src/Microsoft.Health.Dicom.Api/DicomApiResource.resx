@@ -117,10 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ApiVersionNotSupported" xml:space="preserve">
-    <value>The API Version {0} is not supported. Try a supported version instead. </value>
-    <comment>{0} is the API version number.</comment>
-  </data>
   <data name="CustomAuditHeaderTooLarge" xml:space="preserve">
     <value>The maximum length of a custom audit header value is {0}. The supplied custom audit header '{1}' has length of {2}.</value>
     <comment>PH0 is a constant defining the max length of a header.  PH1 is the name  of the header sent in the request.  PH2 is the length of the incoming header value.  Example: The maximum length of a custom audit header value is 2048. The supplied custom audit header 'X-MS-AZUREFHIR-AUDIT-SITE' has length of 3072.</comment>

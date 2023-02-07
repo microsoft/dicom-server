@@ -3,15 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
-using Microsoft.Health.Dicom.Core.Exceptions;
+using System;
 
-namespace Microsoft.Health.Dicom.Api.Features.Exceptions;
+namespace Microsoft.Health.Dicom.Api.Features.Conventions;
 
-public class ApiVersionNotSupportedException : BadRequestException
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class IntroducedInApiVersionAttribute : Attribute
 {
-    public ApiVersionNotSupportedException(int version)
-        : base(string.Format(CultureInfo.InvariantCulture, DicomApiResource.ApiVersionNotSupported, version))
+    public int? Version { get; init; }
+    public IntroducedInApiVersionAttribute(int verion)
     {
+        Version = verion;
     }
 }

@@ -23,9 +23,6 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
-[ApiVersion("1.0-prerelease")]
-[ApiVersion("1")]
-[ApiVersion("2")]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
 public class PartitionController : ControllerBase
 {

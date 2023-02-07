@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
+using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -31,8 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 /// <summary>
 /// Represents an API controller for export operations.
 /// </summary>
-[ApiVersion("1")]
-[ApiVersion("2")]
+[IntroducedInApiVersion(1)]
 [ServiceFilter(typeof(Features.Audit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public class ExportController : ControllerBase
