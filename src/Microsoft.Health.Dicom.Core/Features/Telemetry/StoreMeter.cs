@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics.Metrics;
 
 namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
+
 public sealed class StoreMeter : IDisposable
 {
     private readonly Meter _meter;

@@ -164,7 +164,6 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.AddSingleton<HealthCheckMeter>();
         services.AddSingleton<InstanceMeter>();
         services.AddSingleton<StoreMeter>();
 
