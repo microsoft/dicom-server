@@ -55,7 +55,10 @@ public class DicomStoreServiceTests
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
     private readonly IDicomTelemetryClient _dicomTelemetryClient = Substitute.For<IDicomTelemetryClient>();
-    private readonly TelemetryClient _telemetryClient = Substitute.For<TelemetryClient>();
+    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
