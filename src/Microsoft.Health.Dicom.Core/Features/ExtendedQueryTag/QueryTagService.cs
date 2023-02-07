@@ -25,7 +25,7 @@ public sealed class QueryTagService : IQueryTagService, IDisposable
         _queryTagCache = new AsyncCache<IReadOnlyCollection<QueryTag>>(ResolveQueryTagsAsync);
     }
 
-    public static IReadOnlyList<QueryTag> CoreQueryTags { get; } = QueryLimit.CoreTags.Select(tag => new QueryTag(tag)).ToList();
+    public static IReadOnlyList<QueryTag> CoreQueryTags { get; } = QueryLimit.CoreFilterTags.Select(tag => new QueryTag(tag)).ToList();
 
     public void Dispose()
     {

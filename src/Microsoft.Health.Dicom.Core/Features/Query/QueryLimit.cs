@@ -19,7 +19,7 @@ internal static class QueryLimit
     public const int MaxQueryResultCount = 200;
     public const int DefaultQueryResultCount = 100;
 
-    private static readonly HashSet<DicomTag> CoreStudyTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> StudyFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.StudyDate,
         DicomTag.StudyInstanceUID,
@@ -32,7 +32,7 @@ internal static class QueryLimit
         DicomTag.ModalitiesInStudy,
     };
 
-    private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> SeriesFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.SeriesInstanceUID,
         DicomTag.Modality,
@@ -40,7 +40,7 @@ internal static class QueryLimit
         DicomTag.ManufacturerModelName,
     };
 
-    private static readonly HashSet<DicomTag> CoreInstanceTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> InstanceFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.SOPInstanceUID,
     };
@@ -62,8 +62,8 @@ internal static class QueryLimit
         DicomTag.NumberOfSeriesRelatedInstances
     };
 
-    public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
-        CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
+    public static readonly HashSet<DicomTag> CoreFilterTags = new HashSet<DicomTag>(
+        StudyFilterTags.Union(SeriesFilterTags).Union(InstanceFilterTags));
 
     public static readonly HashSet<DicomVR> ValidRangeQueryTags = new HashSet<DicomVR>()
     {
@@ -91,15 +91,15 @@ internal static class QueryLimit
     {
         EnsureArg.IsNotNull(coreTag, nameof(coreTag));
 
-        if (CoreStudyTags.Contains(coreTag))
+        if (StudyFilterTags.Contains(coreTag))
         {
             return QueryTagLevel.Study;
         }
-        if (CoreSeriesTags.Contains(coreTag))
+        if (SeriesFilterTags.Contains(coreTag))
         {
             return QueryTagLevel.Series;
         }
-        if (CoreInstanceTags.Contains(coreTag))
+        if (InstanceFilterTags.Contains(coreTag))
         {
             return QueryTagLevel.Instance;
         }
