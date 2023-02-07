@@ -19,7 +19,6 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -192,8 +191,7 @@ public class StoreService : IStoreService
                     dicomDataset.Remove(tag);
 
                     string message = storeValidatorResult.InvalidTagErrors[tag].Error;
-                    LogForwarder.LogTrace(
-                        _telemetryClient,
+                    _telemetryClient.ForwardLogTrace(
                         $"{message}. This attribute will be dropped from JSON metadata and can not be used to index." +
                         $" This attribute will remain in the Dicom binary file.",
                         dicomDataset.ToInstanceIdentifier());

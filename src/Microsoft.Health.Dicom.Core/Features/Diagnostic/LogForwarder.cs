@@ -27,8 +27,8 @@ public static class LogForwarder
     /// <param name="telemetryClient">client to use to emit the trace</param>
     /// <param name="message">message to set on the trace log</param>
     /// <param name="instanceIdentifier">identifier to use to set UIDs on log and telemetry properties</param>
-    public static void LogTrace(
-        TelemetryClient telemetryClient,
+    public static void ForwardLogTrace(
+        this TelemetryClient telemetryClient,
         string message,
         InstanceIdentifier instanceIdentifier)
     {
