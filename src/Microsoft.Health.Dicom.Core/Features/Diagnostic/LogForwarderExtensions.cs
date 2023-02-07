@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 /// <summary>
 /// A log forwarder which sets a property designating a log to be forwarded.
 /// </summary>
-public static class LogForwarder
+public static class LogForwarderExtensions
 {
     private const string ForwardLogFlag = "forwardLog";
     private const string Prefix = "dicomAdditionalInformation_";
