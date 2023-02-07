@@ -4,12 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
-using FellowOakDicom;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
+/// <summary>
+/// A log forwarder which sets a property designating a log to be forwarded.
+/// </summary>
 public static class LogForwarder
 {
     private const string ForwardLogFlag = "forwardLog";
@@ -18,19 +21,25 @@ public static class LogForwarder
     private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
     private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
 
+    /// <summary>
+    /// Emits a trace log with forwarding flag set and adds properties from instanceIdentifier as properties to telemetry.
+    /// </summary>
+    /// <param name="telemetryClient">client to use to emit the trace</param>
+    /// <param name="message">message to set on the trace log</param>
+    /// <param name="instanceIdentifier">identifier to use to set UIDs on log and telemetry properties</param>
     public static void LogTrace(
         TelemetryClient telemetryClient,
         string message,
-        DicomDataset dataset)
+        InstanceIdentifier instanceIdentifier)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
-        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
         var telemetry = new TraceTelemetry(message ?? string.Empty);
-        telemetry.Properties.Add(StudyInstanceUID, dataset.GetString(DicomTag.StudyInstanceUID));
-        telemetry.Properties.Add(SeriesInstanceUID, dataset.GetString(DicomTag.SeriesInstanceUID));
-        telemetry.Properties.Add(SOPInstanceUID, dataset.GetString(DicomTag.SOPInstanceUID));
+        telemetry.Properties.Add(StudyInstanceUID, instanceIdentifier.StudyInstanceUid);
+        telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
+        telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
         telemetry.Properties.Add(ForwardLogFlag, true.ToString());
 
         telemetryClient.TrackTrace(telemetry);
