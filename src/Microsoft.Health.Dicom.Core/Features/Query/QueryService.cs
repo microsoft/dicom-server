@@ -86,10 +86,10 @@ public class QueryService : IQueryService
         return new QueryResourceResponse(responseMetadata, queryExpression.ErroneousTags);
     }
 
-    private static bool ReturnNewTagDefaults(int? apiMajorVersion)
+    private static bool ReturnNewTagDefaults(int? version)
     {
         bool useNewDefaults = false;
-        if (apiMajorVersion != null && apiMajorVersion >= 2)
+        if (version != null && version >= 2)
         {
             useNewDefaults = true;
         }
