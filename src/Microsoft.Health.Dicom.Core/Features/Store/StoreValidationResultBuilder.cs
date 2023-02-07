@@ -36,12 +36,10 @@ internal sealed class StoreValidationResultBuilder
             _invalidDicomTagErrors);
     }
 
-    public string Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
+    public void Add(Exception ex, DicomTag dicomTag, bool isCoreTag = false)
     {
-        var message = GetFormattedText(ex?.Message, dicomTag);
-        var errorResult = new StoreErrorResult(message, isCoreTag);
+        var errorResult = new StoreErrorResult(GetFormattedText(ex?.Message, dicomTag), isCoreTag);
         _invalidDicomTagErrors.TryAdd(dicomTag, errorResult);
-        return message;
     }
 
     public void Add(ValidationWarnings warningCode, DicomTag dicomTag = null)

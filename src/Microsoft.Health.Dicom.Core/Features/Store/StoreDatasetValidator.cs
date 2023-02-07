@@ -15,7 +15,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -188,12 +187,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
-                    var message = validationResultBuilder.Add(ex, item.Tag);
-
-                    LogForwarder.LogTrace(
-                        _telemetryClient,
-                        $"{message}. This attribute will be dropped from JSON metadata and can not be used to index. This attribute will remain in your Dicom binary file.",
-                        dicomDataset);
+                    validationResultBuilder.Add(ex, item.Tag);
 
                     _telemetryClient
                         .GetMetric(
