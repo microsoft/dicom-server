@@ -21,7 +21,7 @@ public class MvcModule : IStartupModule
 
         services.PostConfigure<MvcOptions>(options =>
         {
-            // This filter should run second because it populates data for DicomRequestContext.
+            // This filter should run first because it populates data for DicomRequestContext.
             options.Filters.Add(typeof(DicomRequestContextRouteDataPopulatingFilterAttribute), 0);
         });
 
