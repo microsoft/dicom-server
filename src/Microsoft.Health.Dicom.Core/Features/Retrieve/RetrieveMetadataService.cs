@@ -95,7 +95,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private RetrieveMetadataResponse RetrieveMetadata(IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve, bool isCacheValid, string eTag, CancellationToken cancellationToken)
     {
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
-        _instanceMeter.InstanceCount.Add(instancesToRetrieve.Count);
+        _instanceMeter.RetrieveInstanceCount.Add(instancesToRetrieve.Count);
 
         // Retrieve metadata instances only if cache is not valid.
         IAsyncEnumerable<DicomDataset> instanceMetadata = isCacheValid

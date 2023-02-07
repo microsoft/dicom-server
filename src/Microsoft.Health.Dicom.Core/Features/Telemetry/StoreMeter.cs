@@ -14,14 +14,14 @@ public sealed class StoreMeter : IDisposable
 
     public StoreMeter()
     {
-        _meter = new Meter("Microsoft.Health.Dicom.Core.Features.Telemetry.Store", "1.0");
-        IndexTagValidationError = _meter.CreateCounter<double>(nameof(IndexTagValidationError));
-        DroppedInvalidTag = _meter.CreateCounter<double>(nameof(DroppedInvalidTag));
+        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Store", "1.0");
+        IndexTagValidationError = _meter.CreateCounter<int>(nameof(IndexTagValidationError), "count", "Index tag validation error");
+        DroppedInvalidTag = _meter.CreateCounter<int>(nameof(DroppedInvalidTag), "count", "Drop invalid dicom json");
     }
 
-    public Counter<double> IndexTagValidationError { get; }
-    public Counter<double> DroppedInvalidTag { get; }
+    public Counter<int> IndexTagValidationError { get; }
 
+    public Counter<int> DroppedInvalidTag { get; }
 
     public void Dispose()
         => _meter.Dispose();

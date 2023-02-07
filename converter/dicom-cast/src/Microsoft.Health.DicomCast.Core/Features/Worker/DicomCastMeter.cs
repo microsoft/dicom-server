@@ -13,16 +13,19 @@ public sealed class DicomCastMeter : IDisposable
 
     public DicomCastMeter()
     {
-        _meter = new Meter("Microsoft.Health.DicomCast.Core.Features.Worker", "1.0");
-        CastToFhirForbidden = _meter.CreateCounter<double>(nameof(CastToFhirForbidden));
-        DicomToCastForbidden = _meter.CreateCounter<double>(nameof(DicomToCastForbidden));
-        CastMIUnavailable = _meter.CreateCounter<double>(nameof(CastMIUnavailable));
-        CastingFailedForOtherReasons = _meter.CreateCounter<double>(nameof(CastingFailedForOtherReasons));
+        _meter = new Meter("Microsoft.Health.DicomCast", "1.0");
+        CastToFhirForbidden = _meter.CreateCounter<double>(nameof(CastToFhirForbidden), "count", "Casting to Fhir forbidden");
+        DicomToCastForbidden = _meter.CreateCounter<double>(nameof(DicomToCastForbidden), "count", "Dicom casting forbidden");
+        CastMIUnavailable = _meter.CreateCounter<double>(nameof(CastMIUnavailable), "count", "Managed Identity unavailable");
+        CastingFailedForOtherReasons = _meter.CreateCounter<double>(nameof(CastingFailedForOtherReasons), "count", "Casting failed due to other reasons");
     }
 
     public Counter<double> CastToFhirForbidden { get; }
+
     public Counter<double> DicomToCastForbidden { get; }
+
     public Counter<double> CastMIUnavailable { get; }
+
     public Counter<double> CastingFailedForOtherReasons { get; }
 
     public void Dispose()
