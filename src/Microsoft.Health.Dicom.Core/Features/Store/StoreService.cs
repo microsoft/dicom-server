@@ -191,16 +191,12 @@ public class StoreService : IStoreService
                     // drop invalid metadata
                     dicomDataset.Remove(tag);
 
-                    InstanceIdentifier instanceIdentifier = new InstanceIdentifier(
-                        dicomDataset.GetString(DicomTag.StudyInstanceUID),
-                        dicomDataset.GetString(DicomTag.SeriesInstanceUID),
-                        dicomDataset.GetString(DicomTag.SOPInstanceUID));
                     string message = storeValidatorResult.InvalidTagErrors[tag].Error;
                     LogForwarder.LogTrace(
                         _telemetryClient,
                         $"{message}. This attribute will be dropped from JSON metadata and can not be used to index." +
                         $" This attribute will remain in the Dicom binary file.",
-                        instanceIdentifier);
+                        dicomDataset.ToInstanceIdentifier());
                 }
             }
         }
