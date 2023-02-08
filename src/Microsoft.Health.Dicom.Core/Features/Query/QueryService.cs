@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Query;
+using Microsoft.Health.Dicom.Core.Models.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query;
 
@@ -128,6 +129,8 @@ public class QueryService : IQueryService
         {
             _logger.LogInformation("QueryService tags returned from full metadata {FullMetadataTags}", string.Join(',', remainingTags));
             getFullMetadata = true;
+            getStudyResponse = false;
+            getSeriesResponse = false;
             // exception of computed tags
             if (QueryLimit.ContainsComputedTag(queryExpression.IELevel, returnTags))
             {
@@ -140,11 +143,6 @@ public class QueryService : IQueryService
                     getSeriesResponse = true;
                 }
             }
-            else
-            {
-                getStudyResponse = false;
-                getSeriesResponse = false;
-            }
         }
 
         // logging to track usage
@@ -152,7 +150,7 @@ public class QueryService : IQueryService
 
         // start getting and merging the results based on the source.
         IEnumerable<DicomDataset> instanceMetadata = null;
-        var versions = queryResult.DicomInstances.Select(i => i.Version).ToList();
+        List<long> versions = queryResult.DicomInstances.Select(i => i.Version).ToList();
         if (getFullMetadata)
         {
             instanceMetadata = await Task.WhenAll(
@@ -160,7 +158,7 @@ public class QueryService : IQueryService
         }
         if (getSeriesResponse)
         {
-            var seriesComputedResults = await _queryStore.GetSeriesResultAsync(partitionKey, versions, cancellationToken);
+            IReadOnlyCollection<SeriesResult> seriesComputedResults = await _queryStore.GetSeriesResultAsync(partitionKey, versions, cancellationToken);
 
             if (instanceMetadata == null)
             {
@@ -168,24 +166,24 @@ public class QueryService : IQueryService
             }
             else
             {
-                var map = seriesComputedResults.ToDictionary<SeriesResult, string>(a => a.StudyInstanceUid + "-" + a.SeriesInstanceUid, StringComparer.OrdinalIgnoreCase);
+                Dictionary<DicomIdentifier, SeriesResult> map = seriesComputedResults.ToDictionary<SeriesResult, DicomIdentifier>(a => new DicomIdentifier(a.StudyInstanceUid, a.SeriesInstanceUid, default));
                 instanceMetadata = instanceMetadata.Select(x =>
                 {
                     var ds = new DicomDataset(x);
-                    return ds.AddOrUpdate(map[x.GetSingleValue<string>(DicomTag.StudyInstanceUID) + "-" + x.GetSingleValue<string>(DicomTag.SeriesInstanceUID)].DicomDataset);
+                    return ds.AddOrUpdate(map[new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default)].DicomDataset);
                 });
             }
         }
         if (getStudyResponse)
         {
-            var studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
+            IReadOnlyCollection<StudyResult> studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
             if (instanceMetadata == null)
             {
                 instanceMetadata = studyComputedResults.Select(x => x.DicomDataset);
             }
             else
             {
-                var map = studyComputedResults.ToDictionary<StudyResult, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, StudyResult> map = studyComputedResults.ToDictionary<StudyResult, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
                 instanceMetadata = instanceMetadata.Select(x =>
                 {
                     var ds = new DicomDataset(x);
