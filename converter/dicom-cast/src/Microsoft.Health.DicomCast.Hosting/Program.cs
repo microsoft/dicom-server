@@ -56,7 +56,7 @@ public static class Program
     }
 
     /// <summary>
-    /// Adds Open telemetry exporter for Azure monitor.
+    /// Adds Open Telemetry exporter for Azure Monitor.
     /// </summary>
     private static void AddOpenTelemetry(IServiceCollection services, IConfiguration configuration)
     {

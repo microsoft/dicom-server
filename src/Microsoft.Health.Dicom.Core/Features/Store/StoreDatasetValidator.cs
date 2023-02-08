@@ -156,13 +156,12 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
-                var tags = new KeyValuePair<string, object>[]
-                {
-                    new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
-                    new KeyValuePair<string, object>("ExceptionName", ex.Name),
-                    new KeyValuePair<string, object>("VR", queryTag.VR.Code)
-                };
-                _storeMeter.IndexTagValidationError.Add(1, tags);
+                _storeMeter.IndexTagValidationError.Add(1, new KeyValuePair<string, object>[]
+                    {
+                        new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
+                        new KeyValuePair<string, object>("ExceptionName", ex.Name),
+                        new KeyValuePair<string, object>("VR", queryTag.VR.Code)
+                    });
             }
         }
     }
@@ -182,14 +181,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
                     validationResultBuilder.Add(ex, item.Tag);
-                    var tags = new KeyValuePair<string, object>[]
+                    _storeMeter.DroppedInvalidTag.Add(1, new KeyValuePair<string, object>[]
                     {
                         new KeyValuePair<string, object>("ExceptionContent", ex.Content),
                         new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
                         new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
                         new KeyValuePair<string, object>("Tag", item.Tag.ToString())
-                    };
-                    _storeMeter.DroppedInvalidTag.Add(1, tags);
+                    });
                 }
                 else
                 {
