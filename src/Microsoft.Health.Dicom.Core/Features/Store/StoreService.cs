@@ -184,6 +184,7 @@ public class StoreService : IStoreService
 
             if (_enableDropInvalidDicomJsonMetadata)
             {
+                var identifier = dicomDataset.ToInstanceIdentifier();
 
                 foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
                 {
@@ -194,7 +195,7 @@ public class StoreService : IStoreService
                     _telemetryClient.ForwardLogTrace(
                         $"{message}. This attribute will be dropped from JSON metadata and can not be used to index." +
                         $" This attribute will remain in the Dicom binary file.",
-                        dicomDataset.ToInstanceIdentifier());
+                        identifier);
                 }
             }
         }
