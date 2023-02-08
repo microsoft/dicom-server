@@ -56,37 +56,33 @@ internal class ApiVersionsConvention : IControllerConvention
             .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
             .SingleOrDefault();
 
-        var versions = AllSupportedVersions;
+        IEnumerable<ApiVersion> versions = AllSupportedVersions;
         if (controllerIntroducedInVersion != null)
         {
             versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
         // when upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove this logic
-        versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion).ToList() : versions;
+        versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
 
         controller.HasApiVersions(versions);
         return true;
     }
 
-    internal static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int startApiVersion, int currentApiVersion)
+    internal static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int start, int end)
     {
-        if (startApiVersion < 1)
+        if (start < 1)
         {
             Debug.Fail("startApiVersion must be more >= 1");
         }
-        if (currentApiVersion < startApiVersion)
+        if (end < start)
         {
             Debug.Fail("currentApiVersion must be >= startApiVersion");
         }
 
-        var currentVersion = ApiVersion.Parse(currentApiVersion.ToString(CultureInfo.InvariantCulture));
-        var allVersions = new List<ApiVersion>();
-
-        for (int i = startApiVersion; i <= currentApiVersion; i++)
-        {
-            allVersions.Add(ApiVersion.Parse(i.ToString(CultureInfo.InvariantCulture)));
-        }
-        return allVersions;
+        return Enumerable
+            .Range(start, end - start + 1)
+            .Select(v => ApiVersion.Parse(v.ToString(CultureInfo.InvariantCulture)))
+            .ToList();
     }
 
 }

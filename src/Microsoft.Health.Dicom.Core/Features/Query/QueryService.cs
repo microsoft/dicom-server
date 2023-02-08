@@ -110,7 +110,7 @@ public class QueryService : IQueryService
 
         ImmutableHashSet<DicomTag> tags = returnTags.ToImmutableHashSet();
         ImmutableHashSet<DicomTag> remaining = tags.Except(
-            StudyResult.AvailableTags.Concat(SeriesResult.AvailableTags));
+            StudyResult.AvailableTags.Union(SeriesResult.AvailableTags));
 
         if (remaining.Count > 0)
         {

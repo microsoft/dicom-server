@@ -45,7 +45,6 @@ public class SeriesResult
 
     public static readonly ImmutableHashSet<DicomTag> AvailableTags = ImmutableHashSet.Create<DicomTag>
     (
-        DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
         DicomTag.Modality,
         DicomTag.PerformedProcedureStepStartDate,
