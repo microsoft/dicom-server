@@ -16,8 +16,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Conventions;
 internal sealed class IntroducedInApiVersionAttribute : Attribute
 {
     public int? Version { get; init; }
-    public IntroducedInApiVersionAttribute(int verion)
+    public IntroducedInApiVersionAttribute(int version)
     {
-        Version = verion;
+        Version = version;
     }
 }

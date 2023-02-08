@@ -25,23 +25,22 @@ namespace Microsoft.Health.Dicom.Api.Features.Conventions;
 /// </summary>
 internal class ApiVersionsConvention : IControllerConvention
 {
-    private readonly IReadOnlyList<ApiVersion> _allSupportedVersions = new List<ApiVersion>()
+    private static readonly IReadOnlyList<ApiVersion> AllSupportedVersions = new List<ApiVersion>()
     {
         // this will result in null minor instead of 0 minor. There is no constructor on ApiVersion that allows this directly
         ApiVersion.Parse("1.0-prerelease"),
         ApiVersion.Parse("1"),
     };
 
-    private readonly IReadOnlyList<ApiVersion> _upcomingVersion = new List<ApiVersion>()
+    private static readonly IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>()
     {
         ApiVersion.Parse("2")
     };
 
-    private readonly int _currentVersion = 1;
+    private const int CurrentVersion = 1;
     private readonly bool _isLatestApiVersionEnabled;
 
-    public ApiVersionsConvention(
-        IOptions<FeatureConfiguration> featureConfiguration)
+    public ApiVersionsConvention(IOptions<FeatureConfiguration> featureConfiguration)
     {
         EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
         _isLatestApiVersionEnabled = featureConfiguration.Value.EnableLatestApiVersion;
@@ -53,17 +52,17 @@ internal class ApiVersionsConvention : IControllerConvention
         EnsureArg.IsNotNull(controllerModel, nameof(controllerModel));
 
         var controllerIntroducedInVersion = controllerModel.Attributes
-                .Where(a => a.GetType() == typeof(IntroducedInApiVersionAttribute))
-                .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
-                .SingleOrDefault();
+            .Where(a => a.GetType() == typeof(IntroducedInApiVersionAttribute))
+            .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
+            .SingleOrDefault();
 
-        var versions = _allSupportedVersions;
+        var versions = AllSupportedVersions;
         if (controllerIntroducedInVersion != null)
         {
-            versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, _currentVersion);
+            versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
         // when upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove this logic
-        versions = _isLatestApiVersionEnabled == true ? versions.Union(_upcomingVersion).ToList() : versions;
+        versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion).ToList() : versions;
 
         controller.HasApiVersions(versions);
         return true;

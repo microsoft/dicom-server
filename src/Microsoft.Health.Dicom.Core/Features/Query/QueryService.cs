@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -107,42 +108,25 @@ public class QueryService : IQueryService
     {
         bool getStudyResponse = false, getSeriesResponse = false, getFullMetadata = false;
 
-        IEnumerable<DicomTag> currentResponseTags = returnTags;
-        // are the expected responses available in StudyResult
-        var remainingTags = currentResponseTags.Except(StudyResult.AvailableTags).ToList();
-        if (currentResponseTags.Count() > remainingTags.Count)
+        ImmutableHashSet<DicomTag> tags = returnTags.ToImmutableHashSet();
+        ImmutableHashSet<DicomTag> remaining = tags.Except(
+            StudyResult.AvailableTags.Concat(SeriesResult.AvailableTags));
+
+        if (remaining.Count > 0)
         {
-            getStudyResponse = true;
-        }
-        // are the remaining expected responses available in SeriesResult
-        if (remainingTags.Any())
-        {
-            currentResponseTags = remainingTags;
-            remainingTags = currentResponseTags.Except(SeriesResult.AvailableTags).ToList();
-            if (currentResponseTags.Count() > remainingTags.Count)
-            {
-                getSeriesResponse = true;
-            }
-        }
-        // if still remaining response tags, just get full metadata
-        if (remainingTags.Any())
-        {
-            _logger.LogInformation("QueryService tags returned from full metadata {FullMetadataTags}", string.Join(',', remainingTags));
             getFullMetadata = true;
-            getStudyResponse = false;
-            getSeriesResponse = false;
-            // exception of computed tags
             if (QueryLimit.ContainsComputedTag(queryExpression.IELevel, returnTags))
             {
                 if (queryExpression.IELevel == Messages.ResourceType.Study)
-                {
                     getStudyResponse = true;
-                }
                 else if (queryExpression.IELevel == Messages.ResourceType.Series)
-                {
                     getSeriesResponse = true;
-                }
             }
+        }
+        else
+        {
+            getStudyResponse = tags.Overlaps(StudyResult.AvailableTags);
+            getSeriesResponse = tags.Overlaps(SeriesResult.AvailableTags);
         }
 
         // logging to track usage
