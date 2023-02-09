@@ -193,7 +193,7 @@ public class StoreService : IStoreService
 
                     string message = storeValidatorResult.InvalidTagErrors[tag].Error;
                     _telemetryClient.ForwardLogTrace(
-                        $"{message}. This attribute will be dropped from JSON metadata and can not be used to index." +
+                        $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
                         $" This attribute will remain in the Dicom binary file.",
                         identifier);
                 }
