@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -63,6 +64,7 @@ public class StoreService : IStoreService
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly TelemetryClient _telemetryClient;
     private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
 
@@ -78,18 +80,17 @@ public class StoreService : IStoreService
         StoreMeter storeMeter,
         ILogger<StoreService> logger,
         IOptions<FeatureConfiguration> featureConfiguration,
-        TelemetryClient telemetryClient
-        )
+        TelemetryClient telemetryClient)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc />
