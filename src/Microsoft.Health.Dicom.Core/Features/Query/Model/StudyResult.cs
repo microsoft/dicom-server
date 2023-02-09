@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -26,7 +27,6 @@ public class StudyResult
     public int NumberofStudyRelatedInstances { get; init; }
 
     private DicomDataset _dicomDataset;
-
     public DicomDataset DicomDataset
     {
         get
@@ -61,4 +61,18 @@ public class StudyResult
             return _dicomDataset;
         }
     }
+
+    public static readonly ImmutableHashSet<DicomTag> AvailableTags = ImmutableHashSet.Create<DicomTag>
+    (
+        DicomTag.StudyInstanceUID,
+        DicomTag.PatientID,
+        DicomTag.PatientName,
+        DicomTag.ReferringPhysicianName,
+        DicomTag.StudyDate,
+        DicomTag.StudyDescription,
+        DicomTag.AccessionNumber,
+        DicomTag.PatientBirthDate,
+        DicomTag.ModalitiesInStudy,
+        DicomTag.NumberOfStudyRelatedInstances
+    );
 }

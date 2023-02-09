@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -47,4 +47,6 @@ public class DefaultDicomRequestContext : IDicomRequestContext
     public IDictionary<string, StringValues> RequestHeaders { get; set; }
 
     public IDictionary<string, StringValues> ResponseHeaders { get; set; }
+
+    public int? Version { get; set; }
 }

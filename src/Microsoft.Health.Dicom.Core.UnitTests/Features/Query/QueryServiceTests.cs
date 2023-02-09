@@ -1,12 +1,15 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
+using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -45,7 +48,8 @@ public class QueryServiceTests
             _queryStore,
             _metadataStore,
             _queryTagService,
-            _contextAccessor);
+            _contextAccessor,
+            Substitute.For<ILogger<QueryService>>());
     }
 
     [Theory]
@@ -159,4 +163,183 @@ public class QueryServiceTests
 
         _queryParser.Received().Parse(parameters, Arg.Do<IReadOnlyCollection<QueryTag>>(x => Assert.Equal(x, list, QueryTagComparer.Default)));
     }
+
+    [Fact]
+    public async void GivenRequest_WhenV2DefaultStudyExpected_OnlyStudyResultPathIsCalled()
+    {
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.AllStudies, new QueryIncludeField(new List<DicomTag>()), default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+
+        await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async void GivenRequest_WhenDefaultStudySeriesExpected_OnlyStudySeriesResultPathIsCalled()
+    {
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.AllSeries, new QueryIncludeField(new List<DicomTag>()), default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+        var studyResults = GenerateStudyResults(identifier.StudyInstanceUid);
+        var seriesResults = GenerateSeriesResults(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, TestUidGenerator.Generate());
+        _queryStore.GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>()).Returns(studyResults);
+        _queryStore.GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>()).Returns(seriesResults);
+
+        var response = await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.Received().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        Assert.Equal(2, response.ResponseDataset.Count());
+        ValidationResponse(response.ResponseDataset, studyResults.Single(), seriesResults);
+    }
+
+    [Fact]
+    public async void GivenRequest_WhenDefaultSeriesExpected_OnlySeriesResultPathIsCalled()
+    {
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.StudySeries, new QueryIncludeField(new List<DicomTag>()), default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+
+        await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.DidNotReceive().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.Received().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async void GivenRequest_WhenAllRequests_MetadataPathCalled()
+    {
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.AllStudies, QueryIncludeField.AllFields, default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+
+        await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.DidNotReceive().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async void GivenRequest_WhenAllRequestsAndComputedRequested_MetadataPathAndStudyResultCalled()
+    {
+        var includeFields = new QueryIncludeField(new List<DicomTag>() { DicomTag.PatientAdditionalPosition, DicomTag.ProposedStudySequence, DicomTag.ModalitiesInStudy });
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.AllStudies, includeFields, default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+        var studyResults = GenerateStudyResults(identifier.StudyInstanceUid);
+        var metadataResult = GenerateMetadataStoreResponse(identifier);
+        _queryStore.GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>()).Returns(studyResults);
+        _metadataStore.GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>()).Returns(metadataResult);
+
+        var response = await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        Assert.Single(response.ResponseDataset);
+        ValidationResponse(response.ResponseDataset.Single(), studyResults.Single(), metadataResult);
+    }
+
+    [Fact]
+    public async void GivenRequest_WhenDefaultSeriesWithComputedCalled_StudyPathIsNotCalled()
+    {
+        var includeFields = new QueryIncludeField(new List<DicomTag>() { DicomTag.PatientAdditionalPosition, DicomTag.NumberOfSeriesRelatedInstances, DicomTag.Modality });
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.AllSeries, includeFields, default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+
+        await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.DidNotReceive().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.Received().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+    }
+
+
+    private static IReadOnlyCollection<StudyResult> GenerateStudyResults(string studyInstanceUid)
+    {
+        var studyResult = new StudyResult()
+        {
+            StudyInstanceUid = studyInstanceUid,
+            StudyDescription = "test",
+            PatientId = "1234",
+            ModalitiesInStudy = new[] { "CT", "MR" }
+        };
+        return new List<StudyResult>() { studyResult };
+    }
+
+    private static IReadOnlyCollection<SeriesResult> GenerateSeriesResults(string studyInstanceUid, params string[] seriesInstanceUids)
+    {
+        var seriesResults = new List<SeriesResult>();
+
+        foreach (string seUid in seriesInstanceUids)
+        {
+            var seriesResult = new SeriesResult()
+            {
+                StudyInstanceUid = studyInstanceUid,
+                SeriesInstanceUid = seUid,
+                Modality = "CT"
+            };
+            seriesResults.Add(seriesResult);
+        }
+        return seriesResults;
+    }
+
+    private static void ValidationResponse(IEnumerable<DicomDataset> responseDataset, StudyResult studyResult, IReadOnlyCollection<SeriesResult> seriesResults)
+    {
+        Dictionary<string, DicomDataset> keyValues = new Dictionary<string, DicomDataset>();
+        foreach (SeriesResult result in seriesResults)
+        {
+            var ds = new DicomDataset(result.DicomDataset);
+            ds.AddOrUpdate(studyResult.DicomDataset);
+            ds.Remove(DicomTag.NumberOfSeriesRelatedInstances);
+            ds.Remove(DicomTag.NumberOfStudyRelatedInstances);
+            ds.Remove(DicomTag.ModalitiesInStudy);
+            keyValues.Add(result.SeriesInstanceUid, ds);
+        }
+
+        foreach (DicomDataset items in responseDataset)
+        {
+            Assert.Equal(keyValues[items.GetSingleValue<string>(DicomTag.SeriesInstanceUID)], items);
+        }
+    }
+
+    private static void ValidationResponse(DicomDataset responseDataset, StudyResult studyResult, DicomDataset metadataResult)
+    {
+        var ds = new DicomDataset(studyResult.DicomDataset);
+        ds.AddOrUpdate(metadataResult);
+        ds.Remove(DicomTag.NumberOfStudyRelatedInstances);
+
+        Assert.Equal(ds, responseDataset);
+    }
+
+    private static DicomDataset GenerateMetadataStoreResponse(VersionedInstanceIdentifier identifier)
+    {
+        return new DicomDataset()
+        {
+            { DicomTag.StudyInstanceUID, identifier.StudyInstanceUid },
+            { DicomTag.PatientAdditionalPosition, "foobar" }
+        };
+    }
+
+
 }

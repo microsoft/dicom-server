@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Controllers;
+using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Modules;
 using Xunit;
 
@@ -27,17 +28,14 @@ public class ControllerMetadataTests
     public void GivenApi_WhenCountingControllers_ThenFindExpectedNumber()
         => Assert.Equal(10, _controllerTypes.Count);
 
-    [Theory]
-    [InlineData("1.0-prerelease", nameof(ExportController))]
-    [InlineData("1")]
-    public void GivenControllers_WhenQueryingApiVersion_ThenFindCorrectValue(string version, params string[] exclusions)
+    [Fact]
+    public void GivenExportControllers_WhenQueryingApiVersion_ThenSupportedfromV1()
     {
-        var expected = ApiVersion.Parse(version);
-        foreach (Type controllerType in _controllerTypes.Where(x => !exclusions.Contains(x.Name)))
-        {
-            Attribute[] apiVersions = Attribute.GetCustomAttributes(controllerType, typeof(ApiVersionAttribute));
-            Assert.Contains(apiVersions.Cast<ApiVersionAttribute>(), x => x.Versions.Single() == expected);
-        }
+        var expectedStartedVersion = 1;
+        int? actualStartedVersion = Attribute.GetCustomAttributes(typeof(ExportController), typeof(IntroducedInApiVersionAttribute))
+             .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
+             .SingleOrDefault();
+        Assert.Equal(expectedStartedVersion, actualStartedVersion);
     }
 
     [Fact]

@@ -1,10 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using EnsureThat;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
@@ -34,8 +35,11 @@ public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : Acti
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         EnsureArg.IsNotNull(context, nameof(context));
+
         IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
         dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
+
+        dicomRequestContext.Version = context.HttpContext.GetRequestedApiVersion()?.MajorVersion;
 
         // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
         RouteData routeData = context.RouteData;
