@@ -36,11 +36,11 @@ internal static class LogForwarderExtensions
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
-        var telemetry = new TraceTelemetry(message ?? string.Empty);
+        var telemetry = new TraceTelemetry(message);
         telemetry.Properties.Add(StudyInstanceUID, instanceIdentifier.StudyInstanceUid);
         telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
         telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
-        telemetry.Properties.Add(ForwardLogFlag, true.ToString());
+        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
 
         telemetryClient.TrackTrace(telemetry);
     }
