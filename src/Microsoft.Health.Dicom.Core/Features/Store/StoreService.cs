@@ -194,7 +194,7 @@ public class StoreService : IStoreService
                     string message = storeValidatorResult.InvalidTagErrors[tag].Error;
                     _telemetryClient.ForwardLogTrace(
                         $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
-                        $" This attribute will remain in the Dicom binary file.",
+                        "However, it will still be present when retrieving study, series, or instance resources.",
                         identifier);
                 }
             }
