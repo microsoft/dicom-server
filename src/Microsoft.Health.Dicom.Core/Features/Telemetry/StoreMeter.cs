@@ -16,13 +16,13 @@ public sealed class StoreMeter : IDisposable
     {
         _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Store", "1.0");
         IndexTagValidationError = _meter.CreateCounter<int>(nameof(IndexTagValidationError), description: "Index tag validation error");
-        DroppedInvalidTag = _meter.CreateCounter<int>(nameof(DroppedInvalidTag), description: "Drop invalid dicom json");
+        InvalidTagsDropped = _meter.CreateCounter<int>(nameof(InvalidTagsDropped), description: "Drop invalid dicom json");
         InstanceLength = _meter.CreateHistogram<double>(nameof(InstanceLength), "bytes", "Length of the instance");
     }
 
     public Counter<int> IndexTagValidationError { get; }
 
-    public Counter<int> DroppedInvalidTag { get; }
+    public Counter<int> InvalidTagsDropped { get; }
 
     public Histogram<double> InstanceLength { get; }
 

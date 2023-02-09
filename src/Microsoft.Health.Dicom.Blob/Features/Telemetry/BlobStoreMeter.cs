@@ -8,20 +8,20 @@ using System.Diagnostics.Metrics;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Telemetry;
-public sealed class BlobMeter : IDisposable
+public sealed class BlobStoreMeter : IDisposable
 {
     private readonly Meter _meter;
 
-    public BlobMeter()
+    public BlobStoreMeter()
     {
-        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Blob", "1.0");
-        JsonSerializationException = _meter.CreateCounter<double>(nameof(JsonSerializationException), description: "Json serialization exception");
-        JsonDeserializationException = _meter.CreateCounter<double>(nameof(JsonDeserializationException), description: "Json deserialization exception");
+        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Store.Blob", "1.0");
+        JsonSerializationException = _meter.CreateCounter<int>(nameof(JsonSerializationException), description: "Json serialization exception");
+        JsonDeserializationException = _meter.CreateCounter<int>(nameof(JsonDeserializationException), description: "Json deserialization exception");
     }
 
-    public Counter<double> JsonSerializationException { get; }
+    public Counter<int> JsonSerializationException { get; }
 
-    public Counter<double> JsonDeserializationException { get; }
+    public Counter<int> JsonDeserializationException { get; }
 
     public void Dispose()
         => _meter.Dispose();

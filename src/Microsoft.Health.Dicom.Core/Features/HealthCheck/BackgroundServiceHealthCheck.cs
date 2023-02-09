@@ -56,7 +56,6 @@ public class BackgroundServiceHealthCheck : IHealthCheck
 
             _deleteMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
             _deleteMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
-
         }
         catch (DataStoreNotReadyException)
         {

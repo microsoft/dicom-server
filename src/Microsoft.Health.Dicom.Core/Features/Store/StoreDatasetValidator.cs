@@ -181,7 +181,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
                     validationResultBuilder.Add(ex, item.Tag);
-                    _storeMeter.DroppedInvalidTag.Add(1, new[]
+                    _storeMeter.InvalidTagsDropped.Add(1, new[]
                     {
                         new KeyValuePair<string, object>("ExceptionContent", ex.Content),
                         new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),

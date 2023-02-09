@@ -15,19 +15,19 @@ public sealed class DicomCastMeter : IDisposable
     public DicomCastMeter()
     {
         _meter = new Meter("Microsoft.Health.DicomCast", "1.0");
-        CastToFhirForbidden = _meter.CreateCounter<double>(nameof(CastToFhirForbidden), description: "DicomCast failed due to a 403 (Forbidden) response from the FHIR server.");
-        DicomToCastForbidden = _meter.CreateCounter<double>(nameof(DicomToCastForbidden), description: "Dicom casting forbidden");
-        CastMIUnavailable = _meter.CreateCounter<double>(nameof(CastMIUnavailable), description: "Managed Identity unavailable");
-        CastingFailedForOtherReasons = _meter.CreateCounter<double>(nameof(CastingFailedForOtherReasons), description: "Casting failed due to other reasons");
+        CastToFhirForbidden = _meter.CreateCounter<int>(nameof(CastToFhirForbidden), description: "DicomCast failed due to a 403 (Forbidden) response from the FHIR server.");
+        DicomToCastForbidden = _meter.CreateCounter<int>(nameof(DicomToCastForbidden), description: "Dicom casting forbidden");
+        CastMIUnavailable = _meter.CreateCounter<int>(nameof(CastMIUnavailable), description: "Managed Identity unavailable");
+        CastingFailedForOtherReasons = _meter.CreateCounter<int>(nameof(CastingFailedForOtherReasons), description: "Casting failed due to other reasons");
     }
 
-    public Counter<double> CastToFhirForbidden { get; }
+    public Counter<int> CastToFhirForbidden { get; }
 
-    public Counter<double> DicomToCastForbidden { get; }
+    public Counter<int> DicomToCastForbidden { get; }
 
-    public Counter<double> CastMIUnavailable { get; }
+    public Counter<int> CastMIUnavailable { get; }
 
-    public Counter<double> CastingFailedForOtherReasons { get; }
+    public Counter<int> CastingFailedForOtherReasons { get; }
 
     public void Dispose()
         => _meter.Dispose();

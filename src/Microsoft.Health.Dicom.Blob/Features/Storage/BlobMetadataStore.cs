@@ -41,7 +41,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
-    private readonly BlobMeter _blobMeter;
+    private readonly BlobStoreMeter _blobStoreMeter;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -49,7 +49,7 @@ public class BlobMetadataStore : IMetadataStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
-        BlobMeter blobMeter,
+        BlobStoreMeter blobStoreMeter,
         ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
@@ -58,7 +58,7 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _blobMeter = EnsureArg.IsNotNull(blobMeter, nameof(blobMeter));
+        _blobStoreMeter = EnsureArg.IsNotNull(blobStoreMeter, nameof(blobStoreMeter));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -99,7 +99,7 @@ public class BlobMetadataStore : IMetadataStore
         {
             if (ex is NotSupportedException)
             {
-                _blobMeter.JsonSerializationException.Add(1, new[] { new KeyValuePair<string, object>("ExceptionType", ex.GetType().FullName) });
+                _blobStoreMeter.JsonSerializationException.Add(1, new[] { new KeyValuePair<string, object>("ExceptionType", ex.GetType().FullName) });
             }
             throw new DataStoreException(ex);
         }
@@ -144,7 +144,7 @@ public class BlobMetadataStore : IMetadataStore
                         versionedInstanceIdentifier);
                     break;
                 case JsonException or NotSupportedException:
-                    _blobMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
+                    _blobStoreMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
                     break;
             }
 

@@ -14,7 +14,7 @@ public sealed class RetrieveMeter : IDisposable
 
     public RetrieveMeter()
     {
-        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Instance", "1.0");
+        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Retrieve", "1.0");
         RetrieveInstanceCount = _meter.CreateCounter<long>(nameof(RetrieveInstanceCount), description: "Total number of instances retrieved");
     }
 
