@@ -72,7 +72,8 @@ public class DicomStoreServiceTests
             _dicomRequestContextAccessor,
             _storeMeter,
             NullLogger<StoreService>.Instance,
-            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
+            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }),
+            _telemetryClient);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
             new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
@@ -84,7 +85,8 @@ public class DicomStoreServiceTests
             _dicomRequestContextAccessor,
             _storeMeter,
             NullLogger<StoreService>.Instance,
-            featureConfiguration);
+            featureConfiguration,
+            _telemetryClient);
 
         DicomValidationBuilderExtension.SkipValidation(null);
     }

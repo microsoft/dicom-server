@@ -26,8 +26,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 /// <summary>
 /// Represents the REST API controller for interacting with long-running DICOM operations.
 /// </summary>
-[ApiVersion("1.0-prerelease")]
-[ApiVersion("1")]
 [ServiceFilter(typeof(DicomApiAuditLoggingFilterAttribute))]
 public class OperationsController : ControllerBase
 {

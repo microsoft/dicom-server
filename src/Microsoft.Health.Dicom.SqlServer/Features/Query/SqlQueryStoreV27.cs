@@ -132,7 +132,7 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
                         Modality = rModality,
                         PerformedProcedureStepStartDate = rPerformedProcedureStepStartDate,
                         ManufacturerModelName = rManufacturerModelName,
-                        NumberofSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
+                        NumberOfSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
                     });
                 }
             }

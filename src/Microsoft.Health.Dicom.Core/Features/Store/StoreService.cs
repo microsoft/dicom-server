@@ -11,11 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -75,7 +77,8 @@ public class StoreService : IStoreService
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         StoreMeter storeMeter,
         ILogger<StoreService> logger,
-        IOptions<FeatureConfiguration> featureConfiguration
+        IOptions<FeatureConfiguration> featureConfiguration,
+        TelemetryClient telemetryClient
         )
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
@@ -86,6 +89,7 @@ public class StoreService : IStoreService
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc />
@@ -168,10 +172,18 @@ public class StoreService : IStoreService
 
             if (_enableDropInvalidDicomJsonMetadata)
             {
-                // drop invalid metadata
+                var identifier = dicomDataset.ToInstanceIdentifier();
+
                 foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
                 {
+                    // drop invalid metadata
                     dicomDataset.Remove(tag);
+
+                    string message = storeValidatorResult.InvalidTagErrors[tag].Error;
+                    _telemetryClient.ForwardLogTrace(
+                        $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
+                        "However, it will still be present when retrieving study, series, or instance resources.",
+                        identifier);
                 }
             }
         }
