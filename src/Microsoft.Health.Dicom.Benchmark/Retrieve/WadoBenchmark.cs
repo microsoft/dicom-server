@@ -111,7 +111,7 @@ public class WadoBenchmark : DicomBenchmark
             scope.ServiceProvider.GetRequiredService<IMetadataStore>(),
             scope.ServiceProvider.GetRequiredService<IETagGenerator>(),
             scope.ServiceProvider.GetRequiredService<IDicomRequestContextAccessor>(),
-            scope.ServiceProvider.GetRequiredService<InstanceMeter>(),
+            scope.ServiceProvider.GetRequiredService<RetrieveMeter>(),
             Options.Create(options));
 
         RetrieveMetadataResponse response = await service.RetrieveStudyInstanceMetadataAsync(StudyUid);

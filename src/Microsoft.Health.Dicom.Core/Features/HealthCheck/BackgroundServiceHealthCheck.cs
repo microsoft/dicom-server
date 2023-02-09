@@ -21,26 +21,26 @@ public class BackgroundServiceHealthCheck : IHealthCheck
 {
     private readonly IIndexDataStore _indexDataStore;
     private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
-    private readonly InstanceMeter _instanceMeter;
+    private readonly DeleteMeter _deleteMeter;
     private readonly BackgroundServiceHealthCheckCache _backgroundServiceHealthCheckCache;
     private readonly ILogger<BackgroundServiceHealthCheck> _logger;
 
     public BackgroundServiceHealthCheck(
         IIndexDataStore indexDataStore,
         IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
-        InstanceMeter instanceMeter,
+        DeleteMeter deleteMeter,
         BackgroundServiceHealthCheckCache backgroundServiceHealthCheckCache,
         ILogger<BackgroundServiceHealthCheck> logger)
     {
         EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
-        EnsureArg.IsNotNull(instanceMeter, nameof(instanceMeter));
+        EnsureArg.IsNotNull(deleteMeter, nameof(deleteMeter));
         EnsureArg.IsNotNull(backgroundServiceHealthCheckCache, nameof(backgroundServiceHealthCheckCache));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _indexDataStore = indexDataStore;
         _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
-        _instanceMeter = instanceMeter;
+        _deleteMeter = deleteMeter;
         _backgroundServiceHealthCheckCache = backgroundServiceHealthCheckCache;
         _logger = logger;
     }
@@ -54,8 +54,8 @@ public class BackgroundServiceHealthCheck : IHealthCheck
                 t => _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(_deletedInstanceCleanupConfiguration.MaxRetries, t),
                 cancellationToken);
 
-            _instanceMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
-            _instanceMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
+            _deleteMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
+            _deleteMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
 
         }
         catch (DataStoreNotReadyException)

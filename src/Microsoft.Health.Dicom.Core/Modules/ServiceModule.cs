@@ -164,7 +164,8 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.AddSingleton<InstanceMeter>();
+        services.AddSingleton<DeleteMeter>();
+        services.AddSingleton<RetrieveMeter>();
         services.AddSingleton<StoreMeter>();
 
         AddExtendedQueryTagServices(services);

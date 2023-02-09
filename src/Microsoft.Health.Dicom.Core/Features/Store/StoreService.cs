@@ -61,7 +61,7 @@ public class StoreService : IStoreService
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly InstanceMeter _instanceMeter;
+    private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
@@ -73,7 +73,7 @@ public class StoreService : IStoreService
         IStoreDatasetValidator dicomDatasetValidator,
         IStoreOrchestrator storeOrchestrator,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
-        InstanceMeter instanceMeter,
+        StoreMeter storeMeter,
         ILogger<StoreService> logger,
         IOptions<FeatureConfiguration> featureConfiguration
         )
@@ -83,7 +83,7 @@ public class StoreService : IStoreService
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-        _instanceMeter = EnsureArg.IsNotNull(instanceMeter, nameof(instanceMeter));
+        _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
@@ -99,9 +99,7 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
-            _instanceMeter.InstanceCount.Add(instanceEntries.Count);
 
-            InstanceByteMetrics? metrics = null;
             for (int index = 0; index < instanceEntries.Count; index++)
             {
                 try
@@ -110,20 +108,12 @@ public class StoreService : IStoreService
                     if (length != null)
                     {
                         long len = length.GetValueOrDefault();
-                        metrics = metrics == null ? new InstanceByteMetrics(len) : metrics.GetValueOrDefault().Aggregate(len);
+                        // Update Telemetry
+                        _storeMeter.InstanceLength.Record(len);
                     }
                 }
                 finally
                 {
-                    // Update Telemetry
-                    if (metrics != null)
-                    {
-                        (long totalLength, long minLength, long maxLength) = metrics.GetValueOrDefault();
-                        _instanceMeter.TotalInstanceBytes.Record(totalLength);
-                        _instanceMeter.MinInstanceBytes.Record(minLength);
-                        _instanceMeter.MaxInstanceBytes.Record(maxLength);
-                    }
-
                     // Fire and forget.
                     int capturedIndex = index;
 
@@ -254,36 +244,6 @@ public class StoreService : IStoreService
         catch (Exception ex)
         {
             LogFailedToDisposeDelegate(_logger, index, ex);
-        }
-    }
-
-    private readonly struct InstanceByteMetrics
-    {
-        private readonly long _total;
-        private readonly long _min;
-        private readonly long _max;
-
-        public InstanceByteMetrics(long bytes)
-            : this(bytes, bytes, bytes)
-        { }
-
-        private InstanceByteMetrics(long total, long min, long max)
-        {
-            _total = total;
-            _min = min;
-            _max = max;
-        }
-
-        public InstanceByteMetrics Aggregate(long length)
-        {
-            return new InstanceByteMetrics(_total + length, Math.Min(_min, length), Math.Max(_max, length));
-        }
-
-        public void Deconstruct(out long total, out long min, out long max)
-        {
-            total = _total;
-            min = _min;
-            max = _max;
         }
     }
 }

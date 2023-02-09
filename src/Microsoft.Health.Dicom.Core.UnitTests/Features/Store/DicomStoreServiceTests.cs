@@ -51,7 +51,7 @@ public class DicomStoreServiceTests
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
-    private readonly InstanceMeter _instanceMeter = new InstanceMeter();
+    private readonly StoreMeter _storeMeter = new StoreMeter();
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
@@ -70,7 +70,7 @@ public class DicomStoreServiceTests
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _instanceMeter,
+            _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
 
@@ -82,7 +82,7 @@ public class DicomStoreServiceTests
             CreateStoreDatasetValidatorWithDropDataEnabled(),
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _instanceMeter,
+            _storeMeter,
             NullLogger<StoreService>.Instance,
             featureConfiguration);
 
