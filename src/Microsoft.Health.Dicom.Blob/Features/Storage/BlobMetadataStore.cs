@@ -99,7 +99,7 @@ public class BlobMetadataStore : IMetadataStore
         {
             if (ex is NotSupportedException)
             {
-                _blobMeter.JsonSerializationException.Add(1, new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("ExceptionType", ex.GetType().FullName) });
+                _blobMeter.JsonSerializationException.Add(1, new[] { new KeyValuePair<string, object>("ExceptionType", ex.GetType().FullName) });
             }
             throw new DataStoreException(ex);
         }
@@ -144,7 +144,7 @@ public class BlobMetadataStore : IMetadataStore
                         versionedInstanceIdentifier);
                     break;
                 case JsonException or NotSupportedException:
-                    _blobMeter.JsonDeserializationException.Add(1, new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
+                    _blobMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
                     break;
             }
 

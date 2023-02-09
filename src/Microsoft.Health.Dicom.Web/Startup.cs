@@ -62,7 +62,7 @@ public class Startup
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
             var connectionString = $"InstrumentationKey={instrumentationKey}";
-            AddOpenTelemetry(services, connectionString);
+            AddOpenTelemetryMetrics(services, connectionString);
             AddApplicationInsightsTelemetry(services, connectionString);
         }
     }
@@ -70,7 +70,7 @@ public class Startup
     /// <summary>
     /// Adds Open telemetry exporter for Azure monitor.
     /// </summary>
-    private static void AddOpenTelemetry(IServiceCollection services, string connectionString)
+    private static void AddOpenTelemetryMetrics(IServiceCollection services, string connectionString)
     {
         services.AddSingleton(Sdk.CreateMeterProviderBuilder()
             .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.*")

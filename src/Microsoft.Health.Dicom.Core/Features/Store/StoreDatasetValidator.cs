@@ -156,7 +156,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
-                _storeMeter.IndexTagValidationError.Add(1, new KeyValuePair<string, object>[]
+                _storeMeter.IndexTagValidationError.Add(1, new[]
                     {
                         new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
                         new KeyValuePair<string, object>("ExceptionName", ex.Name),
@@ -181,7 +181,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 if (_enableDropInvalidDicomJsonMetadata)
                 {
                     validationResultBuilder.Add(ex, item.Tag);
-                    _storeMeter.DroppedInvalidTag.Add(1, new KeyValuePair<string, object>[]
+                    _storeMeter.DroppedInvalidTag.Add(1, new[]
                     {
                         new KeyValuePair<string, object>("ExceptionContent", ex.Content),
                         new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),

@@ -15,8 +15,8 @@ public sealed class BlobMeter : IDisposable
     public BlobMeter()
     {
         _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Blob", "1.0");
-        JsonSerializationException = _meter.CreateCounter<double>(nameof(JsonSerializationException), "count", "Json serialization exception");
-        JsonDeserializationException = _meter.CreateCounter<double>(nameof(JsonDeserializationException), "count", "Json deserialization exception");
+        JsonSerializationException = _meter.CreateCounter<double>(nameof(JsonSerializationException), description: "Json serialization exception");
+        JsonDeserializationException = _meter.CreateCounter<double>(nameof(JsonDeserializationException), description: "Json deserialization exception");
     }
 
     public Counter<double> JsonSerializationException { get; }
