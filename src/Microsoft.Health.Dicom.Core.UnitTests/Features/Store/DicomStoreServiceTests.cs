@@ -54,7 +54,11 @@ public class DicomStoreServiceTests
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
-    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
+    private readonly IDicomTelemetryClient _dicomTelemetryClient = Substitute.For<IDicomTelemetryClient>();
+    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
@@ -73,9 +77,10 @@ public class DicomStoreServiceTests
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _telemetryClient,
+            _dicomTelemetryClient,
             NullLogger<StoreService>.Instance,
-            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
+            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }),
+            _telemetryClient);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
             new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
@@ -85,9 +90,10 @@ public class DicomStoreServiceTests
             CreateStoreDatasetValidatorWithDropDataEnabled(),
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _telemetryClient,
+            _dicomTelemetryClient,
             NullLogger<StoreService>.Instance,
-            featureConfiguration);
+            featureConfiguration,
+            _telemetryClient);
 
         DicomValidationBuilderExtension.SkipValidation(null);
     }
