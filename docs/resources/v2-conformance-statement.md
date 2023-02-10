@@ -1,4 +1,6 @@
-# DICOM Conformance Statement
+# Version 2 DICOM Conformance Statement
+
+> API version 2 is in **Preview** and should be used only for testing.
 
 The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade; Standard. Support includes:
 
@@ -370,47 +372,29 @@ The response will be an array of DICOM datasets. Depending on the resource, by *
 
 | Tag          | Attribute Name |
 | :----------- | :------------- |
-| (0008, 0005) | SpecificCharacterSet |
 | (0008, 0020) | StudyDate |
-| (0008, 0030) | StudyTime |
 | (0008, 0050) | AccessionNumber |
-| (0008, 0056) | InstanceAvailability |
+| (0008, 1030) | StudyDescription |
 | (0009, 0090) | ReferringPhysicianName |
-| (0008, 0201) | TimezoneOffsetFromUTC |
 | (0010, 0010) | PatientName |
 | (0010, 0020) | PatientID |
 | (0010, 0030) | PatientBirthDate |
-| (0010, 0040) | PatientSex |
-| (0020, 0010) | StudyID |
 | (0020, 000D) | StudyInstanceUID |
 
 #### Default Series tags
 
 | Tag          | Attribute Name |
 | :----------- | :------------- |
-| (0008, 0005) | SpecificCharacterSet |
 | (0008, 0060) | Modality |
-| (0008, 0201) | TimezoneOffsetFromUTC |
-| (0008, 103E) | SeriesDescription |
+| (0008, 1090) | ManufacturerModelName |
 | (0020, 000E) | SeriesInstanceUID |
 | (0040, 0244) | PerformedProcedureStepStartDate |
-| (0040, 0245) | PerformedProcedureStepStartTime |
-| (0040, 0275) | RequestAttributesSequence |
 
 #### Default Instance tags
 
 | Tag          | Attribute Name |
 | :----------- | :------------- |
-| (0008, 0005) | SpecificCharacterSet |
-| (0008, 0016) | SOPClassUID |
 | (0008, 0018) | SOPInstanceUID |
-| (0008, 0056) | InstanceAvailability |
-| (0008, 0201) | TimezoneOffsetFromUTC |
-| (0020, 0013) | InstanceNumber |
-| (0028, 0010) | Rows |
-| (0028, 0011) | Columns |
-| (0028, 0100) | BitsAllocated |
-| (0028, 0008) | NumberOfFrames |
 
 If `includefield=all`, below attributes are included along with default attributes. Along with default attributes, this is the full list of attributes supported at each resource level.
 
@@ -418,7 +402,10 @@ If `includefield=all`, below attributes are included along with default attribut
 
 | Tag          | Attribute Name |
 | :----------- | :------------- |
-| (0008, 1030) | Study Description |
+| (0008, 0005) | SpecificCharacterSet |
+| (0008, 0030) | StudyTime |
+| (0008, 0056) | InstanceAvailability |
+| (0008, 0201) | TimezoneOffsetFromUTC |
 | (0008, 0063) | AnatomicRegionsInStudyCodeSequence |
 | (0008, 1032) | ProcedureCodeSequence |
 | (0008, 1060) | NameOfPhysiciansReadingStudy |
@@ -429,15 +416,36 @@ If `includefield=all`, below attributes are included along with default attribut
 | (0010, 1030) | PatientWeight |
 | (0010, 2180) | Occupation |
 | (0010, 21B0) | AdditionalPatientHistory |
+| (0010, 0040) | PatientSex |
+| (0020, 0010) | StudyID |
 
 #### Additional Series tags
 
 | Tag          | Attribute Name |
 | :----------- | :------------- |
+| (0008, 0005) | SpecificCharacterSet |
+| (0008, 0201) | TimezoneOffsetFromUTC |
 | (0020, 0011) | SeriesNumber |
 | (0020, 0060) | Laterality |
 | (0008, 0021) | SeriesDate |
 | (0008, 0031) | SeriesTime |
+| (0008, 103E) | SeriesDescription |
+| (0040, 0245) | PerformedProcedureStepStartTime |
+| (0040, 0275) | RequestAttributesSequence |
+
+#### Additional Instance tags
+
+| Tag          | Attribute Name |
+| :----------- | :------------- |
+| (0008, 0005) | SpecificCharacterSet |
+| (0008, 0016) | SOPClassUID |
+| (0008, 0056) | InstanceAvailability |
+| (0008, 0201) | TimezoneOffsetFromUTC |
+| (0020, 0013) | InstanceNumber |
+| (0028, 0010) | Rows |
+| (0028, 0011) | Columns |
+| (0028, 0100) | BitsAllocated |
+| (0028, 0008) | NumberOfFrames |
 
 The following attributes are returned:
 
@@ -471,6 +479,7 @@ The query API will return one of the following status codes in the response:
 - Matching is case in-sensitive and accent in-sensitive for PN VR types.
 - Matching is case in-sensitive and accent sensitive for other string VR types.
 - Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
+- For best performance default attributes or limited number of responses is recommended.
 
 ## Delete
 
