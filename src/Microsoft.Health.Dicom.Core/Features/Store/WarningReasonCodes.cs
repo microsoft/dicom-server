@@ -25,6 +25,6 @@ internal static class WarningReasonCodes
     /// <remarks>
     /// The Studies Store Transaction (Section 10.5) observed that the Data Set has validation warnings.
     /// </remarks>
-    public const ushort DatasetHasValidationWarnings = 45063;
+    public const ushort DatasetHasValidationWarnings = 1;
 
 }
