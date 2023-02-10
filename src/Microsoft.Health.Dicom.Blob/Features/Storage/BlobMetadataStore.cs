@@ -42,6 +42,7 @@ public class BlobMetadataStore : IMetadataStore
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
     private readonly BlobStoreMeter _blobStoreMeter;
+    private readonly BlobRetrieveMeter _blobRetrieveMeter;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -50,6 +51,7 @@ public class BlobMetadataStore : IMetadataStore
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
         BlobStoreMeter blobStoreMeter,
+        BlobRetrieveMeter blobRetrieveMeter,
         ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
@@ -59,6 +61,7 @@ public class BlobMetadataStore : IMetadataStore
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _blobStoreMeter = EnsureArg.IsNotNull(blobStoreMeter, nameof(blobStoreMeter));
+        _blobRetrieveMeter = EnsureArg.IsNotNull(blobRetrieveMeter, nameof(blobRetrieveMeter));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -144,7 +147,7 @@ public class BlobMetadataStore : IMetadataStore
                         versionedInstanceIdentifier);
                     break;
                 case JsonException or NotSupportedException:
-                    _blobStoreMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
+                    _blobRetrieveMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
                     break;
             }
 

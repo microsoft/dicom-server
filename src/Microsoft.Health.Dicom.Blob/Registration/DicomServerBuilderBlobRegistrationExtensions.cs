@@ -54,7 +54,8 @@ public static class DicomServerBuilderBlobRegistrationExtensions
                 o => blobConfig.Bind(o)); // Re-use the blob store's configuration for the client
 
         serverBuilder.Services
-            .AddSingleton<BlobMeter>();
+            .AddSingleton<BlobStoreMeter>()
+            .AddSingleton<BlobRetrieveMeter>();
 
         return serverBuilder;
     }

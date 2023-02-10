@@ -71,7 +71,8 @@ public static class DicomFunctionsBuilderRegistrationExtensions
 
         // Telemetry
         functionsBuilder.Services
-            .AddSingleton<BlobMeter>();
+            .AddSingleton<BlobStoreMeter>()
+            .AddSingleton<BlobRetrieveMeter>();
 
         return functionsBuilder;
     }
