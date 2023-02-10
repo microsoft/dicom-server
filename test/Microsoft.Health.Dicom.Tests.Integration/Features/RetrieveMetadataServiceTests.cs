@@ -39,7 +39,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     private readonly IMetadataStore _metadataStore;
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly IDicomTelemetryClient _telemetryClient;
+    private readonly RetrieveMeter _retrieveMeter;
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -52,7 +52,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _metadataStore = storagefixture.MetadataStore;
         _eTagGenerator = Substitute.For<IETagGenerator>();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _telemetryClient = Substitute.For<IDicomTelemetryClient>();
+        _retrieveMeter = new RetrieveMeter();
 
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
@@ -61,7 +61,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
             _metadataStore,
             _eTagGenerator,
             _dicomRequestContextAccessor,
-            _telemetryClient,
+            _retrieveMeter,
             Options.Create(new RetrieveConfiguration()));
     }
 

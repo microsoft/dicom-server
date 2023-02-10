@@ -12,9 +12,6 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -61,20 +58,8 @@ public class WadoBenchmark : DicomBenchmark
             .Configure<JsonSerializerOptions>(o => o.ConfigureDefaultDicomSettings())
             .Configure<RetrieveConfiguration>(Configuration.GetSection("DicomServer:Services:Retrieve"))
             .Configure<LoggerFilterOptions>(Configuration.GetSection("Logging"))
-            .AddSingleton(sp =>
-            {
-                var config = TelemetryConfiguration.CreateDefault();
-                IConfigurationSection section = sp.GetRequiredService<IConfiguration>().GetSection("ApplicationInsights");
-#pragma warning disable CS0618 // Type or member is obsolete
-                config.InstrumentationKey = section[nameof(TelemetryConfiguration.InstrumentationKey)];
-#pragma warning restore CS0618 // Type or member is obsolete
-                config.ConnectionString = section[nameof(TelemetryConfiguration.ConnectionString)];
-                return config;
-            })
-            .AddSingleton<TelemetryClient>()
             .AddBlobServiceClient(Configuration.GetSection(BlobServiceClientOptions.DefaultSectionName))
             .AddSqlServerConnection()
-            .AddSingleton<IDicomTelemetryClient, BenchmarkTelemetryClient>()
             .AddScoped<IDicomRequestContext>(s => new DicomRequestContext(HttpMethod.Get.Method, new Uri("http://localhost/benchmark"), new Uri("http://localhost"), Guid.NewGuid().ToString(), new Dictionary<string, StringValues>(), new Dictionary<string, StringValues>()))
             .AddScoped<IDicomRequestContextAccessor>(s => new DicomRequestContextAccessor { RequestContext = s.GetRequiredService<IDicomRequestContext>() })
             .AddSingleton<RecyclableMemoryStreamManager>()
@@ -126,7 +111,7 @@ public class WadoBenchmark : DicomBenchmark
             scope.ServiceProvider.GetRequiredService<IMetadataStore>(),
             scope.ServiceProvider.GetRequiredService<IETagGenerator>(),
             scope.ServiceProvider.GetRequiredService<IDicomRequestContextAccessor>(),
-            scope.ServiceProvider.GetRequiredService<IDicomTelemetryClient>(),
+            scope.ServiceProvider.GetRequiredService<RetrieveMeter>(),
             Options.Create(options));
 
         RetrieveMetadataResponse response = await service.RetrieveStudyInstanceMetadataAsync(StudyUid);

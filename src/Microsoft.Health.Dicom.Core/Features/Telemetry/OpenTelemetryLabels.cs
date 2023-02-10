@@ -5,9 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
 
-public interface IDicomTelemetryClient
+public static class OpenTelemetryLabels
 {
-    void TrackMetric(string name, int value);
-
-    void TrackMetric(string name, long value);
+    public const string BaseMeterName = "Microsoft.Health.Dicom";
 }
