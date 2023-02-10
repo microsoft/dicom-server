@@ -17,7 +17,7 @@ RUN dotnet build "Microsoft.Health.DicomCast.Hosting.csproj" -c $BUILD_CONFIGURA
 # Publish the DICOM Server from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.DicomCast.Hosting.csproj" -c $BUILD_CONFIGURATION --no-build -o /app/publish
+RUN dotnet publish "Microsoft.Health.DicomCast.Hosting.csproj" -c $BUILD_CONFIGURATION --framework net7.0 --no-build -o /app/publish
 
 # Copy the published application
 FROM runtime AS dicom-cast
