@@ -19,7 +19,7 @@ public interface IStoreResponseBuilder
     /// <param name="studyInstanceUid">If specified and there is at least one success, then the RetrieveURL for the study will be set.</param>
     /// <param name="enableDropInvalidDicomJsonMetadata">Whether to build response with feature enabled or not.</param>
     /// <returns>An instance of <see cref="StoreResponse"/> representing the response.</returns>
-    StoreResponse BuildResponse(string studyInstanceUid, bool enableDropInvalidDicomJsonMetadata);
+    StoreResponse BuildResponse(string studyInstanceUid, bool enableDropInvalidDicomJsonMetadata = false);
 
     /// <summary>
     /// Adds a Success entry to the response.
