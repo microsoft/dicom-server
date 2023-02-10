@@ -8,13 +8,14 @@ using System.Diagnostics.Metrics;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Telemetry;
+
 public sealed class BlobRetrieveMeter : IDisposable
 {
     private readonly Meter _meter;
 
     public BlobRetrieveMeter()
     {
-        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Store.Blob", "1.0");
+        _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Retrieve.Blob", "1.0");
         JsonDeserializationException = _meter.CreateCounter<int>(nameof(JsonDeserializationException), description: "Json deserialization exception");
     }
 

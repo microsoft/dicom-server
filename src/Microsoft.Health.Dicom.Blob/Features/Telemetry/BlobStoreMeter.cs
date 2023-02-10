@@ -8,6 +8,7 @@ using System.Diagnostics.Metrics;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Telemetry;
+
 public sealed class BlobStoreMeter : IDisposable
 {
     private readonly Meter _meter;
