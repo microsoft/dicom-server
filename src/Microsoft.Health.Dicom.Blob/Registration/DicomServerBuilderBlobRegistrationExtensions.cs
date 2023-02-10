@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -52,6 +53,10 @@ public static class DicomServerBuilderBlobRegistrationExtensions
                 o => configuration.GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
                 o => blobConfig.Bind(o)); // Re-use the blob store's configuration for the client
 
+        serverBuilder.Services
+            .AddSingleton<BlobStoreMeter>()
+            .AddSingleton<BlobRetrieveMeter>();
+
         return serverBuilder;
     }
 
@@ -69,7 +74,6 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<TStoreConfigurationSection>())
             .AddPersistence<TIStore, TStore>()
             .AddBlobServiceClient(blobConfig)
-            .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
             .AddBlobContainerInitialization(x => blobConfig
                 .GetSection(BlobInitializerOptions.DefaultSectionName)

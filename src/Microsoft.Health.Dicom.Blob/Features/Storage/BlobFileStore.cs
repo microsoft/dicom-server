@@ -4,9 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -17,11 +15,9 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -32,25 +28,18 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobContainerClient _container;
     private readonly BlobOperationOptions _options;
-    private readonly BlobMigrationFormatType _blobMigrationFormatType;
-    private readonly bool _logOldFormatUsage;
-    private readonly DicomFileNameWithUid _nameWithUid;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobFileStore> _logger;
 
     public BlobFileStore(
         BlobServiceClient client,
-        DicomFileNameWithUid nameWithUid,
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
-        IOptions<BlobMigrationConfiguration> blobMigrationFormatConfiguration,
         ILogger<BlobFileStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
-        EnsureArg.IsNotNull(blobMigrationFormatConfiguration, nameof(blobMigrationFormatConfiguration));
-        _nameWithUid = EnsureArg.IsNotNull(nameWithUid, nameof(nameWithUid));
         _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -59,8 +48,6 @@ public class BlobFileStore : IFileStore
             .Get(Constants.BlobContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
-        _blobMigrationFormatType = blobMigrationFormatConfiguration.Value.FormatType;
-        _logOldFormatUsage = blobMigrationFormatConfiguration.Value.LogOldFormatUsage;
     }
 
     /// <inheritdoc />
@@ -72,19 +59,16 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
 
         try
         {
-            foreach (var blob in blobClients)
-            {
-                stream.Seek(0, SeekOrigin.Begin);
-                await blob.UploadAsync(stream, blobUploadOptions, cancellationToken);
-            }
+            stream.Seek(0, SeekOrigin.Begin);
+            await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
 
-            return blobClients[0].Uri;
+            return blobClient.Uri;
         }
         catch (Exception ex)
         {
@@ -101,9 +85,9 @@ public class BlobFileStore : IFileStore
 
         try
         {
-            BlockBlobClient[] blobClients = GetInstanceBlockBlobClients(versionedInstanceIdentifier);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
 
-            await Task.WhenAll(blobClients.Select(blob => ExecuteAsync(() => blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken))));
+            await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
         }
         catch (Exception ex)
         {
@@ -120,7 +104,7 @@ public class BlobFileStore : IFileStore
 
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
 
             Stream stream = null;
             var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -150,7 +134,7 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -172,7 +156,7 @@ public class BlobFileStore : IFileStore
 
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
             FileProperties fileProperties = null;
 
             await ExecuteAsync(async () =>
@@ -191,43 +175,6 @@ public class BlobFileStore : IFileStore
         }
     }
 
-    /// <inheritdoc/>
-    public async Task CopyFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
-        var copyBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
-
-        if (!await copyBlobClient.ExistsAsync(cancellationToken))
-        {
-            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
-            await operation.WaitForCompletionAsync(cancellationToken);
-        }
-    }
-
-    /// <inheritdoc/>
-    public async Task DeleteOldFileIfExistsAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
-        bool forceDelete = false,
-        CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        var blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.Old);
-        var newBlobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier, BlobMigrationFormatType.New);
-
-        // Delete the old file only if the new file exists
-        if (forceDelete || await newBlobClient.ExistsAsync(cancellationToken))
-        {
-            await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
-        }
-        else
-        {
-            throw new DataStoreException("DICOM instance does not exists with new format.", FailureReasonCodes.BlobNotFound);
-        }
-    }
-
     /// <inheritdoc />
     public async Task<Stream> GetFileFrameAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
@@ -237,7 +184,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(range, nameof(range));
 
-        BlockBlobClient blob = GetInstanceBlockBlobClient(versionedInstanceIdentifier, _blobMigrationFormatType);
+        BlockBlobClient blob = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -252,53 +199,11 @@ public class BlobFileStore : IFileStore
     }
 
 
-    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier, BlobMigrationFormatType formatType)
+    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
     {
-        string blobName;
-        if (formatType == BlobMigrationFormatType.New)
-        {
-            blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
-        }
-        else
-        {
-            LogOldFormatUsage();
-            blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
-        }
+        string blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
 
         return _container.GetBlockBlobClient(blobName);
-    }
-
-    // TODO: This should removed once we migrate everything and the global flag is turned on
-    private BlockBlobClient[] GetInstanceBlockBlobClients(VersionedInstanceIdentifier versionedInstanceIdentifier)
-    {
-        var clients = new List<BlockBlobClient>(2);
-
-        string blobName;
-
-        if (_blobMigrationFormatType == BlobMigrationFormatType.New)
-        {
-            blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-        }
-        else if (_blobMigrationFormatType == BlobMigrationFormatType.Dual)
-        {
-            LogOldFormatUsage();
-
-            blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-
-            blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-        }
-        else
-        {
-            LogOldFormatUsage();
-
-            blobName = _nameWithUid.GetInstanceFileName(versionedInstanceIdentifier);
-            clients.Add(_container.GetBlockBlobClient(blobName));
-        }
-
-        return clients.ToArray();
     }
 
     private static async Task ExecuteAsync(Func<Task> action)
@@ -314,14 +219,6 @@ public class BlobFileStore : IFileStore
         catch (Exception ex)
         {
             throw new DataStoreException(ex);
-        }
-    }
-
-    private void LogOldFormatUsage()
-    {
-        if (_logOldFormatUsage)
-        {
-            _logger.LogInformation("Using old blob format.");
         }
     }
 }

@@ -170,8 +170,9 @@ AS
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance WITH(HOLDLOCK, UPDLOCK)
-                    WHERE   StudyKey = @studyKey
-                    AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid))
+                    WHERE   PartitionKey = @partitionKey
+                    AND     StudyKey = @studyKey
+                    AND     SeriesKey = ISNULL(@seriesKey, SeriesKey))
     BEGIN
         DELETE
         FROM    dbo.Series

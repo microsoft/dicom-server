@@ -35,15 +35,6 @@
     <None Include="Indexing\ReindexDurableFunctionTests.*.cs">
       <DependentUpon>ReindexDurableFunctionTests.cs</DependentUpon>
     </None>
-    <None Include="Copy\CopyDurableFunctionTests.*.cs">
-      <DependentUpon>CopyDurableFunctionTests.cs</DependentUpon>
-    </None>
-    <None Include="Delete\DeleteDurableFunctionTests.*.cs">
-      <DependentUpon>DeleteDurableFunctionTests.cs</DependentUpon>
-    </None>
-    <None Include="CleanupDeleted\CleanupDeletedDurableFunctionTests.*.cs">
-      <DependentUpon>CleanupDeletedDurableFunctionTests.cs</DependentUpon>
-    </None>
   </ItemGroup>
 
 </Project>

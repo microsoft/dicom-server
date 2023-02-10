@@ -634,4 +634,10 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DatasetDoesNotMatchSOPClass" xml:space="preserve">
     <value>Dataset does not match SOP Class.</value>
   </data>
+  <data name="DataPartitionAlreadyExists" xml:space="preserve">
+    <value>Data partition already exists.</value>
+  </data>
+  <data name="ErrorMessageFormat" xml:space="preserve">
+    <value>DICOM{0}: {1} - {2}</value>
+  </data>
 </root>

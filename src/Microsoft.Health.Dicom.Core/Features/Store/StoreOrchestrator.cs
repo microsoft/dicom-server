@@ -23,7 +23,6 @@ using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -38,7 +37,6 @@ public class StoreOrchestrator : IStoreOrchestrator
     private readonly IIndexDataStore _indexDataStore;
     private readonly IDeleteService _deleteService;
     private readonly IQueryTagService _queryTagService;
-    private readonly IDicomTelemetryClient _telemetryClient;
     private readonly ILogger<StoreOrchestrator> _logger;
 
     public StoreOrchestrator(
@@ -48,7 +46,6 @@ public class StoreOrchestrator : IStoreOrchestrator
         IIndexDataStore indexDataStore,
         IDeleteService deleteService,
         IQueryTagService queryTagService,
-        IDicomTelemetryClient telemetryClient,
         ILogger<StoreOrchestrator> logger)
     {
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
@@ -57,26 +54,24 @@ public class StoreOrchestrator : IStoreOrchestrator
         _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc />
     public async Task<long> StoreDicomInstanceEntryAsync(
         IDicomInstanceEntry dicomInstanceEntry,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken
+        )
     {
         EnsureArg.IsNotNull(dicomInstanceEntry, nameof(dicomInstanceEntry));
 
-        string dicomInstanceIdentifier = (await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken))
-            .ToInstanceIdentifier()
-            .ToString();
+        DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
+
+        string dicomInstanceIdentifier = dicomDataset.ToInstanceIdentifier().ToString();
 
         _logger.LogInformation("Storing a DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
-
-        DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);

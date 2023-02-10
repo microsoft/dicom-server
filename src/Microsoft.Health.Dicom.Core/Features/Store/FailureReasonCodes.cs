@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -35,11 +35,6 @@ internal static class FailureReasonCodes
     /// The DICOM instance failed validation.
     /// </summary>
     public const ushort ValidationFailure = 43264;
-
-    /// <summary>
-    /// The DICOM instance does not belong to the specified study.
-    /// </summary>
-    public const ushort MismatchStudyInstanceUid = 43265;
 
     /// <summary>
     /// The DICOM instance already exists.

@@ -37,7 +37,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomStudyAsync(
-        this IMediator mediator, string studyInstanceUid, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
@@ -53,7 +53,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomSeriesAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
@@ -69,7 +69,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomInstanceAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
@@ -85,7 +85,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomFramesAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, IEnumerable<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int[] frames, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(

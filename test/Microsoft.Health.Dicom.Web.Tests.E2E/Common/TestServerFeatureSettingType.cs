@@ -19,7 +19,5 @@ public enum TestServerFeatureSettingType : byte
 
     // Enable Data Partition
     DataPartition = 1,
-
-    // Enable Dual Write
-    DualWrite = 2
+    EnableDropInvalidDicomJsonMetadata = 2
 }

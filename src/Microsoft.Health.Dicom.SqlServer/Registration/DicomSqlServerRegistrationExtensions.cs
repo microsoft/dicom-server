@@ -111,6 +111,7 @@ public static class DicomSqlServerRegistrationExtensions
     {
         services.Add<SqlSchemaVersionResolver>()
             .Scoped()
+            .AsSelf()
             .AsImplementedInterfaces();
 
         return services;
@@ -122,7 +123,6 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddScoped<VersionedCache<ISqlChangeFeedStore>>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV4>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV6>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlChangeFeedStore, SqlChangeFeedStoreV24>());
 
         return services;
     }
@@ -196,7 +196,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddScoped<VersionedCache<ISqlQueryStore>>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV4>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV6>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV9>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlQueryStore, SqlQueryStoreV27>());
 
         return services;
     }

@@ -5,161 +5,218 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
-using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Web;
-using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 
 public class AcceptHeaderDescriptorTests
 {
-    [Fact]
-    public void GivenTransferSyntaxIsNotMandatory_WhenConstructAcceptHeaderDescriptorWithoutTransferSyntax_ShouldThrowException()
-    {
-        Assert.Throws<ArgumentException>(() => CreateAcceptHeaderDescriptor(isTransferSyntaxMandatory: false, transferSyntaxWhenMissing: string.Empty, acceptableTransferSyntaxes: new HashSet<string>()));
-    }
+    private static readonly AcceptHeaderDescriptor ValidStudyAcceptHeaderDescriptor = AcceptHeaderHandler
+        .AcceptableDescriptors[ResourceType.Study]
+        .First();
 
     [Fact]
-    public void GivenTransferSyntaxIsMandatory_WhenConstructAcceptHeaderDescriptorWithoutTransferSyntax_ShouldSucceed()
+    public void
+        GivenTransferSyntaxIsNotMandatory_WhenConstructingAcceptHeaderDescriptorWithoutTransferSyntaxDefault_ShouldThrowException()
     {
-        CreateAcceptHeaderDescriptor(isTransferSyntaxMandatory: true, transferSyntaxWhenMissing: string.Empty, acceptableTransferSyntaxes: new HashSet<string>());
+        Assert.Throws<ArgumentException>(() => new AcceptHeaderDescriptor(
+            payloadType: PayloadTypes.SinglePart,
+            mediaType: KnownContentTypes.ApplicationDicom,
+            isTransferSyntaxMandatory: false,
+            transferSyntaxWhenMissing: string.Empty,
+            acceptableTransferSyntaxes: new HashSet<string>())
+        );
     }
 
     [Fact]
-    public void GivenValidInputs_WhenContructAcceptHeaderDescriptor_ShouldSucceed()
+    public void
+        GivenTransferSyntaxIsMandatory_WhenConstructAcceptHeaderDescriptorWithoutTransferSyntaxDefault_ShouldSucceed()
     {
-        PayloadTypes payloadType = PayloadTypes.MultipartRelated;
-        string mediaType = KnownContentTypes.ApplicationDicom;
-        bool isTransferSyntaxMandatory = false;
-        string transferSyntaxWhenMissing = DicomTransferSyntaxUids.ExplicitVRLittleEndian;
-        ISet<string> acceptableTransferSyntaxes = new HashSet<string>() { transferSyntaxWhenMissing };
-        AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(payloadType, mediaType, isTransferSyntaxMandatory, transferSyntaxWhenMissing, acceptableTransferSyntaxes);
-        Assert.Equal(payloadType, descriptor.PayloadType);
-        Assert.Equal(mediaType, descriptor.MediaType);
-        Assert.Equal(isTransferSyntaxMandatory, descriptor.IsTransferSyntaxMandatory);
-        Assert.Equal(transferSyntaxWhenMissing, descriptor.TransferSyntaxWhenMissing);
-        Assert.Equal(acceptableTransferSyntaxes, descriptor.AcceptableTransferSyntaxes);
+        var _ = new AcceptHeaderDescriptor(
+            payloadType: PayloadTypes.SinglePart,
+            mediaType: KnownContentTypes.ApplicationDicom,
+            isTransferSyntaxMandatory: true,
+            transferSyntaxWhenMissing: string.Empty,
+            acceptableTransferSyntaxes: new HashSet<string>()
+        );
     }
 
-    [Theory]
-    [InlineData(PayloadTypes.SinglePart, PayloadTypes.SinglePart, true)]
-    [InlineData(PayloadTypes.SinglePart, PayloadTypes.MultipartRelated, false)]
-    [InlineData(PayloadTypes.MultipartRelated, PayloadTypes.MultipartRelated, true)]
-    [InlineData(PayloadTypes.MultipartRelated, PayloadTypes.SinglePart, false)]
-    [InlineData(PayloadTypes.SinglePartOrMultipartRelated, PayloadTypes.SinglePart, true)]
-    [InlineData(PayloadTypes.SinglePartOrMultipartRelated, PayloadTypes.MultipartRelated, true)]
-    public void GivenPayloadType_WhenCheckIsAcceptable_ShouldSucceed(PayloadTypes descriptorPayloadType, PayloadTypes acceptHeaderPayloadType, bool isAcceptable)
+    [Fact]
+    public void GivenValidParameters_WhenUsingConstructor_ThenAllPropertiesAssigned()
     {
-        (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForPayloadType(descriptorPayloadType, acceptHeaderPayloadType);
-        string transferSyntax;
-        AcceptHeader acceptHeader = testData.Item1;
-        AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
-    }
+        PayloadTypes expectedPayloadType = PayloadTypes.MultipartRelated;
+        string expectedMediaType = KnownContentTypes.ApplicationDicom;
+        bool expectedIsTransferSyntaxMandatory = false;
+        string expectedTransferSyntaxWhenMissing = DicomTransferSyntaxUids.ExplicitVRLittleEndian;
+        ISet<string> expectedAcceptableTransferSyntaxes = new HashSet<string>() { expectedTransferSyntaxWhenMissing };
 
-    [Theory]
-    [InlineData(KnownContentTypes.ApplicationDicom, "Application/Dicom", true)]
-    [InlineData(KnownContentTypes.ApplicationDicom, KnownContentTypes.ApplicationDicomJson, false)]
-    public void GivenMediaType_WhenCheckIsAcceptable_ShouldSucceed(string descriptorMediaType, string acceptHeaderMediaType, bool isAcceptable)
-    {
-        (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForMediaType(descriptorMediaType, acceptHeaderMediaType);
-        string transferSyntax;
-        AcceptHeader acceptHeader = testData.Item1;
-        AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
-    }
-
-    [Theory]
-    [InlineData(true, "", "", false, "")]
-    [InlineData(true, "", KnownContentTypes.ApplicationDicom, true, KnownContentTypes.ApplicationDicom)]
-    [InlineData(false, KnownContentTypes.ApplicationDicom, "", true, KnownContentTypes.ApplicationDicom)]
-    [InlineData(false, KnownContentTypes.ApplicationDicom, KnownContentTypes.ApplicationDicomJson, true, KnownContentTypes.ApplicationDicomJson)]
-    public void GivenTransferSyntaxMandatory_WhenCheckIsAcceptable_ShouldSucceed(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax, bool isAcceptable, string expectedTransferSyntax)
-    {
-        (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForTransferSyntaxMandatory(isTransferSyntaxMandatory, transferSyntaxWhenMissing, acceptHeaderTransferSyntax);
-        string transferSyntax;
-        AcceptHeader acceptHeader = testData.Item1;
-        AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
-        if (isAcceptable)
-        {
-            Assert.Equal(expectedTransferSyntax, transferSyntax);
-        }
-    }
-
-    [Theory]
-    [InlineData(true, KnownContentTypes.ApplicationDicom, true, KnownContentTypes.ApplicationDicom)]
-    [InlineData(false, KnownContentTypes.ApplicationDicom, false, "")]
-    public void GivenAcceptableTransferSyntaxes_WhenCheckIsAcceptable_ShouldSucceed(bool inSet, string acceptHeaderTransferSyntax, bool isAcceptable, string expectedTransferSyntax)
-    {
-        (AcceptHeader, AcceptHeaderDescriptor) testData = CreateAcceptHeaderAndDescriptorForAcceptableSet(inSet, acceptHeaderTransferSyntax);
-        string transferSyntax;
-        AcceptHeader acceptHeader = testData.Item1;
-        AcceptHeaderDescriptor descriptor = testData.Item2;
-        Assert.Equal(isAcceptable, descriptor.IsAcceptable(acceptHeader, out transferSyntax));
-        if (isAcceptable)
-        {
-            Assert.Equal(expectedTransferSyntax, transferSyntax);
-        }
-    }
-
-    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForAcceptableSet(bool inSet, string acceptHeaderTransferSyntax)
-    {
-        AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(transferSyntax: acceptHeaderTransferSyntax);
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
-           payloadType: acceptHeader.PayloadType,
-           mediaType: acceptHeader.MediaType.Value,
-           isTransferSyntaxMandatory: true,
-           transferSyntaxWhenMissing: string.Empty,
-           acceptableTransferSyntaxes: inSet ? new HashSet<string>() { acceptHeader.TransferSyntax.Value } : new HashSet<string>() { });
-        return (acceptHeader, descriptor);
+            expectedPayloadType,
+            expectedMediaType,
+            expectedIsTransferSyntaxMandatory,
+            expectedTransferSyntaxWhenMissing,
+            expectedAcceptableTransferSyntaxes
+        );
+
+        Assert.Equal(expectedPayloadType, descriptor.PayloadType);
+        Assert.Equal(expectedMediaType, descriptor.MediaType);
+        Assert.Equal(expectedIsTransferSyntaxMandatory, descriptor.IsTransferSyntaxMandatory);
+        Assert.Equal(expectedTransferSyntaxWhenMissing, descriptor.TransferSyntaxWhenMissing);
+        Assert.Equal(expectedAcceptableTransferSyntaxes, descriptor.AcceptableTransferSyntaxes);
     }
 
-    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForTransferSyntaxMandatory(bool isTransferSyntaxMandatory, string transferSyntaxWhenMissing, string acceptHeaderTransferSyntax)
+
+    [Fact]
+    public void GivenUnsupportedMediaType_ThenIsNotAcceptable()
     {
-        AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(transferSyntax: acceptHeaderTransferSyntax);
+        Assert.False(ValidStudyAcceptHeaderDescriptor.IsAcceptable(
+                new(
+                    "unsupportedMediaType",
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.First())
+            )
+        );
+    }
+
+    [Fact]
+    public void GivenUnsupportedPayloadType_ThenIsNotAcceptable()
+    {
+        Assert.NotEqual(PayloadTypes.None, ValidStudyAcceptHeaderDescriptor.PayloadType);
+        Assert.False(ValidStudyAcceptHeaderDescriptor.IsAcceptable(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    PayloadTypes.None,
+                    ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.First())
+            )
+        );
+    }
+
+    [Fact]
+    public void GivenAcceptHeaderWithSupportedParameters_ThenIsAcceptable()
+    {
+        Assert.True(ValidStudyAcceptHeaderDescriptor.IsAcceptable(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.First())
+            )
+        );
+    }
+
+
+    [Fact]
+    public void GivenUnsupportedTransferSyntax_ThenIsNotAcceptable()
+    {
+        Assert.False(ValidStudyAcceptHeaderDescriptor.IsAcceptable(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    "unacceptableTransferSyntax")
+            )
+        );
+    }
+
+    [Fact]
+    public void
+        GivenAcceptHeaderWithoutTransferSyntax_WhenTransferSyntaxIsMandatoryAndNoDefaultOnDescriptor_ThenIsNotAcceptable()
+    {
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
-           payloadType: acceptHeader.PayloadType,
-           mediaType: acceptHeader.MediaType.Value,
-           isTransferSyntaxMandatory: isTransferSyntaxMandatory,
-           transferSyntaxWhenMissing: transferSyntaxWhenMissing,
-           acceptableTransferSyntaxes: new HashSet<string>() { acceptHeader.TransferSyntax.Value });
-        return (acceptHeader, descriptor);
+            payloadType: ValidStudyAcceptHeaderDescriptor.PayloadType,
+            mediaType: ValidStudyAcceptHeaderDescriptor.MediaType,
+            isTransferSyntaxMandatory: true,
+            transferSyntaxWhenMissing: null,
+            acceptableTransferSyntaxes: ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes);
+
+        Assert.True(descriptor.IsTransferSyntaxMandatory);
+        Assert.Null(descriptor.TransferSyntaxWhenMissing);
+
+        Assert.False(descriptor.IsAcceptable(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    transferSyntax: null)
+            )
+        );
     }
 
-    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForMediaType(string descriptorMediaType, string acceptHeaderMediaType)
+    [Fact]
+    public void
+        GivenAcceptHeaderWithoutTransferSyntax_WhenTransferSyntaxNotMandatoryAndDefaultOnDescriptor_ThenIsAcceptable()
     {
-        AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(mediaType: acceptHeaderMediaType);
+        Assert.False(ValidStudyAcceptHeaderDescriptor.IsTransferSyntaxMandatory);
+        Assert.NotNull(ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
+
+        Assert.True(ValidStudyAcceptHeaderDescriptor.IsAcceptable(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    transferSyntax: null)
+            )
+        );
+    }
+
+    [Fact]
+    public void
+        GivenAcceptHeaderWithoutTransferSyntax_WhenTransferSyntaxNotMandatoryAndDefaultOnDescriptor_GetTransferSyntax_ThenDefaultSyntaxReturned()
+    {
+        Assert.False(ValidStudyAcceptHeaderDescriptor.IsTransferSyntaxMandatory);
+        Assert.NotNull(ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
+
+        Assert.Equal(
+            ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing,
+            ValidStudyAcceptHeaderDescriptor.GetTransferSyntax(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    transferSyntax: null)
+            )
+        );
+    }
+
+    [Fact]
+    public void
+        GivenAcceptHeaderWithTransferSyntax_WhenTransferSyntaxMandatory_GetTransferSyntax_ThenAcceptHeaderTransferSyntaxReturned()
+    {
+        Assert.False(ValidStudyAcceptHeaderDescriptor.IsTransferSyntaxMandatory);
+        Assert.NotNull(ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
+        Assert.NotEqual(DicomTransferSyntaxUids.Original, ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
+
+        Assert.Equal(
+            DicomTransferSyntaxUids.Original,
+            ValidStudyAcceptHeaderDescriptor.GetTransferSyntax(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    transferSyntax: DicomTransferSyntaxUids.Original)
+            )
+        );
+    }
+
+    [Fact]
+    public void
+        GivenAcceptHeaderWithoutTransferSyntax_WhenTransferSyntaxMandatory_GetTransferSyntax_ThenAcceptHeaderEmptyTransferSyntaxReturned()
+    {
         AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
-           payloadType: acceptHeader.PayloadType,
-           mediaType: descriptorMediaType,
-           isTransferSyntaxMandatory: true,
-           transferSyntaxWhenMissing: string.Empty,
-           acceptableTransferSyntaxes: new HashSet<string>() { acceptHeader.TransferSyntax.Value });
-        return (acceptHeader, descriptor);
-    }
+            payloadType: ValidStudyAcceptHeaderDescriptor.PayloadType,
+            mediaType: ValidStudyAcceptHeaderDescriptor.MediaType,
+            isTransferSyntaxMandatory: true,
+            transferSyntaxWhenMissing: null,
+            acceptableTransferSyntaxes: ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes);
 
-    private static (AcceptHeader, AcceptHeaderDescriptor) CreateAcceptHeaderAndDescriptorForPayloadType(PayloadTypes descriptorPayloadType, PayloadTypes acceptHeaderPayloadType)
-    {
-        AcceptHeader acceptHeader = AcceptHeaderHelpers.CreateAcceptHeader(payloadType: acceptHeaderPayloadType);
-        AcceptHeaderDescriptor descriptor = new AcceptHeaderDescriptor(
-           payloadType: descriptorPayloadType,
-           mediaType: acceptHeader.MediaType.Value,
-           isTransferSyntaxMandatory: true,
-           transferSyntaxWhenMissing: string.Empty,
-           acceptableTransferSyntaxes: new HashSet<string>() { acceptHeader.TransferSyntax.Value });
-        return (acceptHeader, descriptor);
-    }
+        Assert.True(descriptor.IsTransferSyntaxMandatory);
+        Assert.Null(descriptor.TransferSyntaxWhenMissing);
 
-    private static AcceptHeaderDescriptor CreateAcceptHeaderDescriptor(
-        PayloadTypes payloadType = PayloadTypes.SinglePart,
-        string mediaType = KnownContentTypes.ApplicationDicom,
-        bool isTransferSyntaxMandatory = true,
-        string transferSyntaxWhenMissing = "",
-        ISet<string> acceptableTransferSyntaxes = null)
-    {
-        return new AcceptHeaderDescriptor(payloadType, mediaType, isTransferSyntaxMandatory, transferSyntaxWhenMissing, acceptableTransferSyntaxes);
+        Assert.Null(
+            descriptor.GetTransferSyntax(
+                new(
+                    ValidStudyAcceptHeaderDescriptor.MediaType,
+                    ValidStudyAcceptHeaderDescriptor.PayloadType,
+                    transferSyntax: null)
+            ).Value
+        );
     }
 }

@@ -10,8 +10,8 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Blob.Utilities;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
@@ -46,16 +46,11 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .Bind(blobConfig.GetSection(DicomBlobContainerOptions.SectionName))
             .ValidateDataAnnotations();
 
-        functionsBuilder.Services
-            .AddOptions<BlobMigrationConfiguration>()
-            .Bind(blobConfig.GetSection("Migration"));
-
         // Metadata
         functionsBuilder.Services
             .AddSingleton<MetadataStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<MetadataStoreConfigurationSection>())
             .AddPersistence<IMetadataStore, BlobMetadataStore>()
-            .AddScoped<DicomFileNameWithUid>()
             .AddScoped<DicomFileNameWithPrefix>()
             .AddOptions<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName)
             .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.Metadata);
@@ -73,6 +68,11 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddAzureBlobExportSink(
                 o => configuration.GetSection(functionSectionName).GetSection(AzureBlobExportSinkProviderOptions.DefaultSection).Bind(o),
                 o => blobConfig.Bind(o)); // Re-use the blob store's configuration
+
+        // Telemetry
+        functionsBuilder.Services
+            .AddSingleton<BlobStoreMeter>()
+            .AddSingleton<BlobRetrieveMeter>();
 
         return functionsBuilder;
     }

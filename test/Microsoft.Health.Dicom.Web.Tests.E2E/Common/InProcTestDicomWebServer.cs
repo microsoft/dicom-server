@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading;
@@ -29,11 +30,16 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E;
 /// </summary>
 public class InProcTestDicomWebServer : TestDicomWebServer
 {
-    public InProcTestDicomWebServer(Type startupType, TestServerFeatureSettingType featureSettingType = TestServerFeatureSettingType.None)
+    public InProcTestDicomWebServer(
+        Type startupType,
+        TestServerFeatureSettingType featureSettingType) : this(startupType, new[] { featureSettingType })
+    { }
+    public InProcTestDicomWebServer(Type startupType, TestServerFeatureSettingType[] featureSettingTypes)
         : base(new Uri("http://localhost/"))
     {
-        var enableDataPartitions = (featureSettingType & TestServerFeatureSettingType.DataPartition) == TestServerFeatureSettingType.DataPartition;
-        var enableDualWrite = (featureSettingType & TestServerFeatureSettingType.DualWrite) == TestServerFeatureSettingType.DualWrite;
+        var enableDataPartitions = featureSettingTypes.Contains(TestServerFeatureSettingType.DataPartition);
+        var enableDropInvalidDicomJsonMetadata =
+            featureSettingTypes.Contains(TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata);
 
         string contentRoot = GetProjectPath("src", startupType);
 
@@ -49,13 +55,9 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         {
             { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
+            { "DicomServer:Features:EnableDropInvalidDicomJsonMetadata", enableDropInvalidDicomJsonMetadata.ToString() },
         };
 
-
-        var serviceSettings = new Dictionary<string, string>
-        {
-            { "DicomServer:Services:BlobMigration:FormatType", "Dual" }
-        };
 
         string dbName = enableDataPartitions ? "DicomWithPartitions" : "Dicom";
 
@@ -74,11 +76,6 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 config.AddInMemoryCollection(authSettings);
                 config.AddInMemoryCollection(featureSettings);
                 config.AddInMemoryCollection(sqlSettings);
-
-                if (enableDualWrite)
-                {
-                    config.AddInMemoryCollection(serviceSettings);
-                }
 
                 IConfigurationRoot existingConfig = config.Build();
 

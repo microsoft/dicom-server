@@ -10,12 +10,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -26,25 +26,26 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreDatasetValidator : IStoreDatasetValidator
 {
     private readonly bool _enableFullDicomItemValidation;
+    private readonly bool _enableDropInvalidDicomJsonMetadata;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
-    private readonly TelemetryClient _telemetryClient;
-
+    private readonly StoreMeter _storeMeter;
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
-        TelemetryClient telemetryClient)
+        StoreMeter storeMeter)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
 
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
+        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
     }
 
     /// <inheritdoc/>
@@ -57,12 +58,19 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
         var validationResultBuilder = new StoreValidationResultBuilder();
 
-        ValidateCoreTags(dicomDataset, requiredStudyInstanceUid);
+        try
+        {
+            ValidateRequiredCoreTags(dicomDataset, requiredStudyInstanceUid);
+        }
+        catch (DatasetValidationException ex) when (ex.FailureCode == FailureReasonCodes.ValidationFailure)
+        {
+            validationResultBuilder.Add(ex, ex.DicomTag, isCoreTag: true);
+        }
 
         // validate input data elements
-        if (_enableFullDicomItemValidation)
+        if (_enableDropInvalidDicomJsonMetadata || _enableFullDicomItemValidation)
         {
-            ValidateAllItems(dicomDataset);
+            ValidateAllItems(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -78,7 +86,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return validationResultBuilder.Build();
     }
 
-    private static void ValidateCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
+    private static void ValidateRequiredCoreTags(DicomDataset dicomDataset, string requiredStudyInstanceUid)
     {
         // Ensure required tags are present.
         EnsureRequiredTagIsPresent(DicomTag.PatientID);
@@ -94,9 +102,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             studyInstanceUid == sopInstanceUid ||
             seriesInstanceUid == sopInstanceUid)
         {
+            var tag = studyInstanceUid == seriesInstanceUid ? DicomTag.SeriesInstanceUID :
+                studyInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID :
+                seriesInstanceUid == sopInstanceUid ? DicomTag.SOPInstanceUID : null;
+
             throw new DatasetValidationException(
                 FailureReasonCodes.ValidationFailure,
-                DicomCoreResource.DuplicatedUidsNotAllowed);
+                DicomCoreResource.DuplicatedUidsNotAllowed,
+                tag);
         }
 
         // If the requestedStudyInstanceUid is specified, then the StudyInstanceUid must match, ignoring whitespace.
@@ -104,8 +117,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             !studyInstanceUid.TrimEnd().Equals(requiredStudyInstanceUid.TrimEnd(), StringComparison.OrdinalIgnoreCase))
         {
             throw new DatasetValidationException(
-                FailureReasonCodes.MismatchStudyInstanceUid,
-                DicomCoreResource.MismatchStudyInstanceUid);
+                FailureReasonCodes.ValidationFailure,
+                DicomCoreResource.MismatchStudyInstanceUid,
+                DicomTag.StudyInstanceUID);
         }
 
         string EnsureRequiredTagIsPresent(DicomTag dicomTag)
@@ -120,7 +134,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 string.Format(
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.MissingRequiredTag,
-                    dicomTag.ToString()));
+                    dicomTag.ToString()), dicomTag);
         }
     }
 
@@ -137,27 +151,24 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 var validationWarning = dicomDataset.ValidateQueryTag(queryTag, _minimumValidator);
 
-                validationResultBuilder.Add(validationWarning, queryTag);
+                validationResultBuilder.Add(validationWarning, queryTag.Tag);
             }
             catch (ElementValidationException ex)
             {
-                validationResultBuilder.Add(ex, queryTag);
-                _telemetryClient
-                    .GetMetric(
-                        "IndexTagValidationError",
-                        "ExceptionErrorCode",
-                        "ExceptionName",
-                        "VR")
-                    .TrackValue(
-                        1,
-                        ex.ErrorCode.ToString(),
-                        ex.Name,
-                        queryTag.VR.Code);
+                validationResultBuilder.Add(ex, queryTag.Tag);
+                _storeMeter.IndexTagValidationError.Add(1, new[]
+                    {
+                        new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
+                        new KeyValuePair<string, object>("ExceptionName", ex.Name),
+                        new KeyValuePair<string, object>("VR", queryTag.VR.Code)
+                    });
             }
         }
     }
 
-    private static void ValidateAllItems(DicomDataset dicomDataset)
+    private void ValidateAllItems(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder)
     {
         foreach (DicomItem item in dicomDataset)
         {
@@ -167,10 +178,21 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                throw new DatasetValidationException(
-                    FailureReasonCodes.ValidationFailure,
-                    ex.Message,
-                    ex);
+                if (_enableDropInvalidDicomJsonMetadata)
+                {
+                    validationResultBuilder.Add(ex, item.Tag);
+                    _storeMeter.InvalidTagsDropped.Add(1, new[]
+                    {
+                        new KeyValuePair<string, object>("ExceptionContent", ex.Content),
+                        new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
+                        new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
+                        new KeyValuePair<string, object>("Tag", item.Tag.ToString())
+                    });
+                }
+                else
+                {
+                    validationResultBuilder.Add(ex, item.Tag);
+                }
             }
         }
     }

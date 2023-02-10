@@ -108,6 +108,7 @@ Each dataset in the `FailedSOPSequence` will have the following elements (if the
 | (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
 | (0008, 1155) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
 | (0008, 1197) | FailureReason            | The reason code why this instance failed to store. |
+| (0074, 1048) | FailedAttributesSequence | The sequence of `ErrorComment` that includes the reason for each failed attribute. |
 
 Each dataset in the `ReferencedSOPSequence` will have the following elements:
 
@@ -182,6 +183,12 @@ An example response with `Accept` header `application/dicom+json`:
 | 45070 | A DICOM instance with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first. |
 | 45071 | A DICOM instance is being created by another process, or the previous attempt to create has failed and the cleanup process has not had chance to clean up yet. Please delete the instance first before attempting to create again. |
 | 45063 | A DICOM instance Data Set does not match SOP Class. The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance. |
+
+### Store Error Codes
+
+| Code  | Description |
+| :---- | :---------- |
+| 100   | The provided instance attributes did not meet the validation criteria. |
 
 ## Retrieve (WADO-RS)
 
@@ -318,21 +325,22 @@ The following parameters for each query are supported:
 
 We support searching on below attributes and search type.
 
-| Attribute Keyword | Study | Series | Instance |
-| :---------------- | :---: | :----: | :------: |
-| StudyInstanceUID | X | X | X |
-| PatientName | X | X | X |
-| PatientID | X | X | X |
-| PatientBirthDate | X | X | X |
-| AccessionNumber | X | X | X |
-| ReferringPhysicianName | X | X | X |
-| StudyDate | X | X | X |
-| StudyDescription | X | X | X |
-| SeriesInstanceUID |  | X | X |
-| Modality |  | X | X |
-| PerformedProcedureStepStartDate |  | X | X |
-| ManufacturerModelName | | X | X |
-| SOPInstanceUID |  |  | X |
+| Attribute Keyword | All Studies | All Series | All Instances | Study's Series | Study's Instances | Study Series' Instances |
+| :---------------- | :---: | :----: | :------: | :---: | :----: | :------: |
+| StudyInstanceUID | X | X | X |  |  |  |
+| PatientName | X | X | X |  |  |  |
+| PatientID | X | X | X |  |  |  |
+| PatientBirthDate | X | X | X |  |  |  |
+| AccessionNumber | X | X | X |  |  |  |
+| ReferringPhysicianName | X | X | X |  |  |  |
+| StudyDate | X | X | X |  |  |  |
+| StudyDescription | X | X | X |  |  |  |
+| ModalitiesInStudy | X | X | X |  |  |  |
+| SeriesInstanceUID |  | X | X | X | X |  |
+| Modality |  | X | X | X | X |  |
+| PerformedProcedureStepStartDate |  | X | X | X | X |  |
+| ManufacturerModelName | | X | X | X | X |  |
+| SOPInstanceUID |  |  | X |  | X | X |
 
 #### Search Matching
 
@@ -440,6 +448,8 @@ The following attributes are returned:
 - If the target resource is `All Series`, then `Study` level attributes are also returned.
 - If the target resource is `All Instances`, then `Study` and `Series` level attributes are also returned.
 - If the target resource is `Study's Instances`, then `Series` level attributes are also returned.
+- `NumberOfStudyRelatedInstances` aggregated attribute is supported in `Study` level includeField.
+- `NumberOfSeriesRelatedInstances` aggregated attribute is supported in `Series` level includeField.
 
 ### Search Response Codes
 

@@ -6,7 +6,7 @@ steps:
     downloadPath: '$(System.ArtifactsDirectory)'
     artifactName: 'IntegrationTests'
 
-- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter Category!=bvt-dp --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
+- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "Category!=bvt-dp & Category!=leniency" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults"
   displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
 

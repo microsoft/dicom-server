@@ -1,8 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -22,7 +23,9 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
     private string _message;
 
-    public StoreResponseBuilder(IUrlResolver urlResolver)
+    public StoreResponseBuilder(
+        IUrlResolver urlResolver
+        )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
@@ -62,9 +65,13 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null)
+    public void AddSuccess(DicomDataset dicomDataset,
+        StoreValidationResult storeValidationResult,
+        ushort? warningReasonCode = null,
+        bool enableDropInvalidDicomJsonMetadata = false)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotNull(storeValidationResult, nameof(storeValidationResult));
 
         CreateDatasetIfNeeded();
 
@@ -84,16 +91,34 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
-        if (warningReasonCode.HasValue)
+        if (!enableDropInvalidDicomJsonMetadata)
         {
-            referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
+            if (warningReasonCode.HasValue)
+            {
+                referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
+            }
+        }
+        else
+        {
+            // add comment Sq / list of warnings here
+            var warnings = storeValidationResult.InvalidTagErrors.Values.Select(
+                    error => new DicomDataset(
+                        new DicomLongString(
+                            DicomTag.ErrorComment,
+                            error.Error)))
+                .ToArray();
+
+            var failedSequence = new DicomSequence(
+                DicomTag.FailedAttributesSequence,
+                warnings);
+            referencedSop.Add(failedSequence);
         }
 
         referencedSopSequence.Items.Add(referencedSop);
     }
 
     /// <inheritdoc />
-    public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode)
+    public void AddFailure(DicomDataset dicomDataset, ushort failureReasonCode, StoreValidationResult storeValidationResult = null)
     {
         CreateDatasetIfNeeded();
 
@@ -116,12 +141,24 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 #pragma warning restore CS0618 // Type or member is obsolete
 
         failedSop.AddValueIfNotNull(
+            DicomTag.ReferencedSOPInstanceUID,
+            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+
+        failedSop.AddValueIfNotNull(
             DicomTag.ReferencedSOPClassUID,
             dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID));
 
-        failedSop.AddValueIfNotNull(
-            DicomTag.ReferencedSOPInstanceUID,
-            dicomDataset?.GetFirstValueOrDefault<string>(DicomTag.SOPInstanceUID));
+        if (storeValidationResult != null)
+        {
+            var failedAttributes = storeValidationResult.InvalidTagErrors.Values.Select(
+                               error => new DicomDataset(
+                               new DicomLongString(
+                                       DicomTag.ErrorComment,
+                                       error.Error))).ToArray();
+
+            var failedAttributeSequence = new DicomSequence(DicomTag.FailedAttributesSequence, failedAttributes);
+            failedSop.Add(failedAttributeSequence);
+        }
 
         failedSopSequence.Items.Add(failedSop);
     }

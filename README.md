@@ -1,4 +1,4 @@
- | :exclamation:  [BREAKING CHANGE: Upcoming change to blob storage](https://github.com/microsoft/dicom-server/discussions/1561])   |
+ | :exclamation:[BREAKING CHANGE in v10.0.0 related to blob storage](https://github.com/microsoft/dicom-server/discussions/1561])   |
  |-----------------------------------------|
 # Medical Imaging Server for DICOM
 

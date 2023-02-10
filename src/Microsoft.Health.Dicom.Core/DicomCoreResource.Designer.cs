@@ -133,6 +133,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Data partition already exists..
+        /// </summary>
+        internal static string DataPartitionAlreadyExists {
+            get {
+                return ResourceManager.GetString("DataPartitionAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Data partitions feature cannot be disabled while existing data has already been partitioned..
         /// </summary>
         internal static string DataPartitionFeatureCannotBeDisabled {
@@ -291,6 +300,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ErrorMessageExceedMaxLength {
             get {
                 return ResourceManager.GetString("ErrorMessageExceedMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DICOM{0}: {1} - {2}.
+        /// </summary>
+        internal static string ErrorMessageFormat {
+            get {
+                return ResourceManager.GetString("ErrorMessageFormat", resourceCulture);
             }
         }
         

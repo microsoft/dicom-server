@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -24,8 +24,13 @@ public interface IStoreResponseBuilder
     /// Adds a Success entry to the response.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
+    /// <param name="storeValidationResult">Store validation errors and warnings</param>
     /// <param name="warningReasonCode">The warning reason code.</param>
-    void AddSuccess(DicomDataset dicomDataset, ushort? warningReasonCode = null);
+    /// <param name="enableDropInvalidDicomJsonMetadata">Whether to build response warning sequence or not.</param>
+    void AddSuccess(DicomDataset dicomDataset,
+        StoreValidationResult storeValidationResult,
+        ushort? warningReasonCode = null,
+        bool enableDropInvalidDicomJsonMetadata = false);
 
     void SetWarningMessage(string message);
 
@@ -34,5 +39,9 @@ public interface IStoreResponseBuilder
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset that failed to be stored.</param>
     /// <param name="failureReasonCode">The failure reason code.</param>
-    void AddFailure(DicomDataset dicomDataset = null, ushort failureReasonCode = FailureReasonCodes.ProcessingFailure);
+    /// <param name="storeValidationResult">Store validation errors and warnings</param>
+    void AddFailure(
+        DicomDataset dicomDataset = null,
+        ushort failureReasonCode = FailureReasonCodes.ProcessingFailure,
+        StoreValidationResult storeValidationResult = null);
 }

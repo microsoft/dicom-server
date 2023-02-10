@@ -49,7 +49,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
-        internal readonly static GetDeletedChangeFeedByWatermarkOrTimeStampProcedure GetDeletedChangeFeedByWatermarkOrTimeStamp = new GetDeletedChangeFeedByWatermarkOrTimeStampProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
@@ -62,9 +61,10 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceWithPropertiesProcedure GetInstanceWithProperties = new GetInstanceWithPropertiesProcedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
-        internal readonly static GetMaxDeletedChangeFeedWatermarkProcedure GetMaxDeletedChangeFeedWatermark = new GetMaxDeletedChangeFeedWatermarkProcedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
         internal readonly static GetPartitionsProcedure GetPartitions = new GetPartitionsProcedure();
+        internal readonly static GetSeriesResultProcedure GetSeriesResult = new GetSeriesResultProcedure();
+        internal readonly static GetStudyResultProcedure GetStudyResult = new GetStudyResultProcedure();
         internal readonly static GetWorkitemMetadataProcedure GetWorkitemMetadata = new GetWorkitemMetadataProcedure();
         internal readonly static GetWorkitemQueryTagsProcedure GetWorkitemQueryTags = new GetWorkitemQueryTagsProcedure();
         internal readonly static IIndexInstanceCoreV9Procedure IIndexInstanceCoreV9 = new IIndexInstanceCoreV9Procedure();
@@ -155,7 +155,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagDateTime = new Index("IXC_ExtendedQueryTagDateTime");
-            internal readonly Index IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagDateTime_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDateTime_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -174,7 +174,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagDouble = new Index("IXC_ExtendedQueryTagDouble");
-            internal readonly Index IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagDouble_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagLong = new Index("IXC_ExtendedQueryTagLong");
-            internal readonly Index IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagLong_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -241,7 +241,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagPersonName = new Index("IXC_ExtendedQueryTagPersonName");
-            internal readonly Index IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagPersonName_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey = new Index("IXC_ExtendedQueryTagPersonName_WatermarkAndTagKey");
         }
@@ -261,7 +261,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly TinyIntColumn ResourceType = new TinyIntColumn("ResourceType");
             internal readonly Index IXC_ExtendedQueryTagString = new Index("IXC_ExtendedQueryTagString");
-            internal readonly Index IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_TagKey_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
+            internal readonly Index IX_ExtendedQueryTagString_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_PartitionKey_TagKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
             internal readonly Index IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3 = new Index("IX_ExtendedQueryTagString_PartitionKey_ResourceType_SopInstanceKey1_SopInstanceKey2_SopInstanceKey3");
         }
 
@@ -285,13 +285,13 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableVarCharColumn TransferSyntaxUid = new NullableVarCharColumn("TransferSyntaxUid", 64);
             internal readonly BitColumn HasFrameMetadata = new BitColumn("HasFrameMetadata");
             internal readonly Index IXC_Instance = new Index("IXC_Instance");
-            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey");
-            internal readonly Index IX_Instance_StudyInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_Status_PartitionKey");
-            internal readonly Index IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey = new Index("IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey");
-            internal readonly Index IX_Instance_SopInstanceUid_Status_PartitionKey = new Index("IX_Instance_SopInstanceUid_Status_PartitionKey");
+            internal readonly Index IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
             internal readonly Index IX_Instance_Watermark_Status = new Index("IX_Instance_Watermark_Status");
-            internal readonly Index IX_Instance_SeriesKey_Status_Watermark = new Index("IX_Instance_SeriesKey_Status_Watermark");
-            internal readonly Index IX_Instance_StudyKey_Status_Watermark = new Index("IX_Instance_StudyKey_Status_Watermark");
+            internal readonly Index IX_Instance_PartitionKey_SopInstanceUid = new Index("IX_Instance_PartitionKey_SopInstanceUid");
+            internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyKey_Watermark");
+            internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark");
+            internal readonly Index IX_Instance_PartitionKey_Watermark = new Index("IX_Instance_PartitionKey_Watermark");
         }
 
         internal class PartitionTable : Table
@@ -321,11 +321,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly NullableNVarCharColumn ManufacturerModelName = new NullableNVarCharColumn("ManufacturerModelName", 64);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Series = new Index("IXC_Series");
-            internal readonly Index IX_Series_SeriesKey = new Index("IX_Series_SeriesKey");
-            internal readonly Index IX_Series_SeriesInstanceUid_PartitionKey = new Index("IX_Series_SeriesInstanceUid_PartitionKey");
-            internal readonly Index IX_Series_Modality_PartitionKey = new Index("IX_Series_Modality_PartitionKey");
-            internal readonly Index IX_Series_PerformedProcedureStepStartDate_PartitionKey = new Index("IX_Series_PerformedProcedureStepStartDate_PartitionKey");
-            internal readonly Index IX_Series_ManufacturerModelName_PartitionKey = new Index("IX_Series_ManufacturerModelName_PartitionKey");
+            internal readonly Index IX_Series_PartitionKey_StudyKey_SeriesInstanceUid = new Index("IX_Series_PartitionKey_StudyKey_SeriesInstanceUid");
+            internal readonly Index IX_Series_PartitionKey_SeriesInstanceUid = new Index("IX_Series_PartitionKey_SeriesInstanceUid");
+            internal readonly Index IX_Series_PartitionKey_Modality = new Index("IX_Series_PartitionKey_Modality");
+            internal readonly Index IX_Series_PartitionKey_PerformedProcedureStepStartDate = new Index("IX_Series_PartitionKey_PerformedProcedureStepStartDate");
+            internal readonly Index IX_Series_PartitionKey_ManufacturerModelName = new Index("IX_Series_PartitionKey_ManufacturerModelName");
         }
 
         internal class StudyTable : Table
@@ -348,14 +348,14 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_Study = new Index("IXC_Study");
             internal readonly Index IX_Study_StudyKey = new Index("IX_Study_StudyKey");
-            internal readonly Index IX_Study_StudyInstanceUid_PartitionKey = new Index("IX_Study_StudyInstanceUid_PartitionKey");
-            internal readonly Index IX_Study_PatientId_PartitionKey = new Index("IX_Study_PatientId_PartitionKey");
-            internal readonly Index IX_Study_PatientName_PartitionKey = new Index("IX_Study_PatientName_PartitionKey");
-            internal readonly Index IX_Study_ReferringPhysicianName_PartitionKey = new Index("IX_Study_ReferringPhysicianName_PartitionKey");
-            internal readonly Index IX_Study_StudyDate_PartitionKey = new Index("IX_Study_StudyDate_PartitionKey");
-            internal readonly Index IX_Study_StudyDescription_PartitionKey = new Index("IX_Study_StudyDescription_PartitionKey");
-            internal readonly Index IX_Study_AccessionNumber_PartitionKey = new Index("IX_Study_AccessionNumber_PartitionKey");
-            internal readonly Index IX_Study_PatientBirthDate_PartitionKey = new Index("IX_Study_PatientBirthDate_PartitionKey");
+            internal readonly Index IX_Study_PartitionKey_StudyInstanceUid = new Index("IX_Study_PartitionKey_StudyInstanceUid");
+            internal readonly Index IX_Study_PartitionKey_PatientId = new Index("IX_Study_PartitionKey_PatientId");
+            internal readonly Index IX_Study_PartitionKey_PatientName = new Index("IX_Study_PartitionKey_PatientName");
+            internal readonly Index IX_Study_PartitionKey_ReferringPhysicianName = new Index("IX_Study_PartitionKey_ReferringPhysicianName");
+            internal readonly Index IX_Study_PartitionKey_StudyDate = new Index("IX_Study_PartitionKey_StudyDate");
+            internal readonly Index IX_Study_PartitionKey_StudyDescription = new Index("IX_Study_PartitionKey_StudyDescription");
+            internal readonly Index IX_Study_PartitionKey_AccessionNumber = new Index("IX_Study_PartitionKey_AccessionNumber");
+            internal readonly Index IX_Study_PartitionKey_PatientBirthDate = new Index("IX_Study_PartitionKey_PatientBirthDate");
         }
 
         internal class WorkitemTable : Table
@@ -373,7 +373,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly DateTime2Column LastStatusUpdatedDate = new DateTime2Column("LastStatusUpdatedDate", 7);
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
             internal readonly Index IXC_Workitem = new Index("IXC_Workitem");
-            internal readonly Index IX_Workitem_WorkitemUid_PartitionKey = new Index("IX_Workitem_WorkitemUid_PartitionKey");
+            internal readonly Index IX_Workitem_PartitionKey_WorkitemUid = new Index("IX_Workitem_PartitionKey_WorkitemUid");
             internal readonly Index IX_Workitem_WorkitemKey_Watermark = new Index("IX_Workitem_WorkitemKey_Watermark");
         }
 
@@ -1026,28 +1026,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetDeletedChangeFeedByWatermarkOrTimeStampProcedure : StoredProcedure
-        {
-            internal GetDeletedChangeFeedByWatermarkOrTimeStampProcedure() : base("dbo.GetDeletedChangeFeedByWatermarkOrTimeStamp")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _timeStamp = new ParameterDefinition<System.Nullable<System.DateTime>>("@timeStamp", global::System.Data.SqlDbType.DateTime, true);
-            private readonly ParameterDefinition<System.Nullable<System.Int64>> _startWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@startWatermark", global::System.Data.SqlDbType.BigInt, true);
-            private readonly ParameterDefinition<System.Nullable<System.Int64>> _endWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@endWatermark", global::System.Data.SqlDbType.BigInt, true);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchCount, System.Nullable<System.DateTime> timeStamp, System.Nullable<System.Int64> startWatermark, System.Nullable<System.Int64> endWatermark)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetDeletedChangeFeedByWatermarkOrTimeStamp";
-                _batchCount.AddParameter(command.Parameters, batchCount);
-                _timeStamp.AddParameter(command.Parameters, timeStamp);
-                _startWatermark.AddParameter(command.Parameters, startWatermark);
-                _endWatermark.AddParameter(command.Parameters, endWatermark);
-            }
-        }
-
         internal class GetExtendedQueryTagProcedure : StoredProcedure
         {
             internal GetExtendedQueryTagProcedure() : base("dbo.GetExtendedQueryTag")
@@ -1316,22 +1294,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetMaxDeletedChangeFeedWatermarkProcedure : StoredProcedure
-        {
-            internal GetMaxDeletedChangeFeedWatermarkProcedure() : base("dbo.GetMaxDeletedChangeFeedWatermark")
-            {
-            }
-
-            private readonly ParameterDefinition<System.DateTime> _timeStamp = new ParameterDefinition<System.DateTime>("@timeStamp", global::System.Data.SqlDbType.DateTime, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.DateTime timeStamp)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetMaxDeletedChangeFeedWatermark";
-                _timeStamp.AddParameter(command.Parameters, timeStamp);
-            }
-        }
-
         internal class GetPartitionProcedure : StoredProcedure
         {
             internal GetPartitionProcedure() : base("dbo.GetPartition")
@@ -1359,6 +1321,102 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetPartitions";
             }
+        }
+
+        internal class GetSeriesResultProcedure : StoredProcedure
+        {
+            internal GetSeriesResultProcedure() : base("dbo.GetSeriesResult")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly WatermarkTableTypeTableValuedParameterDefinition _watermarkTableType = new WatermarkTableTypeTableValuedParameterDefinition("@watermarkTableType");
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetSeriesResult";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetSeriesResultTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
+            }
+        }
+
+        internal class GetSeriesResultTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetSeriesResultTableValuedParameters>
+        {
+            public GetSeriesResultTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
+            {
+                this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
+
+            public GetSeriesResultTableValuedParameters Generate(TInput input)
+            {
+                return new GetSeriesResultTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct GetSeriesResultTableValuedParameters
+        {
+            internal GetSeriesResultTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
+            {
+                this.WatermarkTableType = WatermarkTableType;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
+        }
+
+        internal class GetStudyResultProcedure : StoredProcedure
+        {
+            internal GetStudyResultProcedure() : base("dbo.GetStudyResult")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly WatermarkTableTypeTableValuedParameterDefinition _watermarkTableType = new WatermarkTableTypeTableValuedParameterDefinition("@watermarkTableType");
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetStudyResult";
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, GetStudyResultTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
+            }
+        }
+
+        internal class GetStudyResultTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, GetStudyResultTableValuedParameters>
+        {
+            public GetStudyResultTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
+            {
+                this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
+
+            public GetStudyResultTableValuedParameters Generate(TInput input)
+            {
+                return new GetStudyResultTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct GetStudyResultTableValuedParameters
+        {
+            internal GetStudyResultTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
+            {
+                this.WatermarkTableType = WatermarkTableType;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
         }
 
         internal class GetWorkitemMetadataProcedure : StoredProcedure

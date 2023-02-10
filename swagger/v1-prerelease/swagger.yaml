@@ -2052,6 +2052,57 @@ paths:
             application/json:
               schema:
                 type: string
+  /_schema/versions:
+    get:
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: Success
+  /_schema/versions/current:
+    get:
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: Success
+  '/_schema/versions/{id}/script':
+    get:
+      tags:
+        - Schema
+      operationId: Script
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+  '/_schema/versions/{id}/script/diff':
+    get:
+      tags:
+        - Schema
+      operationId: Diff
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: Success
+  /_schema/compatibility:
+    get:
+      tags:
+        - Schema
+      responses:
+        '200':
+          description: Success
   '/v1-prerelease/partitions/{partitionName}/workitems':
     post:
       tags:
@@ -2667,8 +2718,6 @@ components:
         - unknown
         - reindex
         - export
-        - copy
-        - migrationDeletion
       type: string
     DicomOperationIOperationState:
       type: object

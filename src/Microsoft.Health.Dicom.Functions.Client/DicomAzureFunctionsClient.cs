@@ -15,7 +15,6 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask.ContextImplementations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -24,7 +23,6 @@ using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -176,56 +174,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
-    /// <inheritdoc/>
-    public async Task StartBlobCopyAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string instanceId = await _durableClient.StartNewAsync(
-            _options.Copy.Name,
-            operationId.ToString(OperationId.FormatSpecifier),
-            new BlobMigrationCheckpoint
-            {
-                Batching = _options.Copy.Batching,
-                Completed = previousCheckpoint
-            });
-
-        _logger.LogInformation("Successfully started copy operation with ID '{InstanceId}'.", instanceId);
-    }
-
-    public async Task StartBlobDeleteAsync(Guid operationId, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string instanceId = await _durableClient.StartNewAsync(
-            _options.MigrationDeletion.Name,
-            operationId.ToString(OperationId.FormatSpecifier),
-            new BlobMigrationCheckpoint
-            {
-                Batching = _options.MigrationDeletion.Batching,
-                Completed = previousCheckpoint
-            });
-
-        _logger.LogInformation("Successfully started delete operation with ID '{InstanceId}'.", instanceId);
-    }
-
-    public async Task StartBlobCleanupDeletedAsync(Guid operationId, DateTime filterTimeStamp, WatermarkRange? previousCheckpoint = null, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string instanceId = await _durableClient.StartNewAsync(
-            _options.CleanupDeleted.Name,
-            operationId.ToString(OperationId.FormatSpecifier),
-            new BlobMigrationCheckpoint
-            {
-                Batching = _options.CleanupDeleted.Batching,
-                Completed = previousCheckpoint,
-                FilterTimeStamp = filterTimeStamp,
-            });
-
-        _logger.LogInformation("Successfully started cleanup deleted operation with ID '{InstanceId}'.", instanceId);
-    }
-
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
         Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,
@@ -288,7 +236,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOrchestrationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
-            DicomOperation.Copy or DicomOperation.MigrationDeletion => status.Input?.ToObject<BlobMigrationCheckpoint>() ?? new BlobMigrationCheckpoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             _ => NullOrchestrationCheckpoint.Value,

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ public class ExtendedQueryTagEntryValidator : IExtendedQueryTagEntryValidator
         DicomTag tag = ParseTag(tagEntry.Path);
 
         // cannot be any tag we already support
-        if (QueryLimit.CoreTags.Contains(tag))
+        if (QueryLimit.CoreFilterTags.Contains(tag))
         {
             throw new ExtendedQueryTagEntryValidationException(
                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.QueryTagAlreadySupported, tagEntry.Path));

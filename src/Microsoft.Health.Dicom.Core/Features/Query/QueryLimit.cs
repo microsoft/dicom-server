@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query;
 
@@ -18,7 +19,7 @@ internal static class QueryLimit
     public const int MaxQueryResultCount = 200;
     public const int DefaultQueryResultCount = 100;
 
-    private static readonly HashSet<DicomTag> CoreStudyTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> StudyFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.StudyDate,
         DicomTag.StudyInstanceUID,
@@ -28,9 +29,10 @@ internal static class QueryLimit
         DicomTag.PatientName,
         DicomTag.ReferringPhysicianName,
         DicomTag.PatientBirthDate,
+        DicomTag.ModalitiesInStudy,
     };
 
-    private static readonly HashSet<DicomTag> CoreSeriesTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> SeriesFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.SeriesInstanceUID,
         DicomTag.Modality,
@@ -38,7 +40,7 @@ internal static class QueryLimit
         DicomTag.ManufacturerModelName,
     };
 
-    private static readonly HashSet<DicomTag> CoreInstanceTags = new HashSet<DicomTag>()
+    private static readonly HashSet<DicomTag> InstanceFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.SOPInstanceUID,
     };
@@ -49,8 +51,19 @@ internal static class QueryLimit
         DicomTag.CodeValue
     };
 
-    public static readonly HashSet<DicomTag> CoreTags = new HashSet<DicomTag>(
-        CoreStudyTags.Union(CoreSeriesTags).Union(CoreInstanceTags));
+    private static readonly HashSet<DicomTag> StudyResultComputedTags = new HashSet<DicomTag>()
+    {
+        DicomTag.ModalitiesInStudy,
+        DicomTag.NumberOfStudyRelatedInstances
+    };
+
+    private static readonly HashSet<DicomTag> SeriesResultComputedTags = new HashSet<DicomTag>()
+    {
+        DicomTag.NumberOfSeriesRelatedInstances
+    };
+
+    public static readonly HashSet<DicomTag> CoreFilterTags = new HashSet<DicomTag>(
+        StudyFilterTags.Union(SeriesFilterTags).Union(InstanceFilterTags));
 
     public static readonly HashSet<DicomVR> ValidRangeQueryTags = new HashSet<DicomVR>()
     {
@@ -78,15 +91,15 @@ internal static class QueryLimit
     {
         EnsureArg.IsNotNull(coreTag, nameof(coreTag));
 
-        if (CoreStudyTags.Contains(coreTag))
+        if (StudyFilterTags.Contains(coreTag))
         {
             return QueryTagLevel.Study;
         }
-        if (CoreSeriesTags.Contains(coreTag))
+        if (SeriesFilterTags.Contains(coreTag))
         {
             return QueryTagLevel.Series;
         }
-        if (CoreInstanceTags.Contains(coreTag))
+        if (InstanceFilterTags.Contains(coreTag))
         {
             return QueryTagLevel.Instance;
         }
@@ -109,5 +122,20 @@ internal static class QueryLimit
     {
         EnsureArg.IsNotNull(queryTag, nameof(queryTag));
         return queryTag.VR == DicomVR.PN;
+    }
+
+    public static bool ContainsComputedTag(ResourceType queryTagLevel, IReadOnlyCollection<DicomTag> tags)
+    {
+        return queryTagLevel switch
+        {
+            ResourceType.Study => tags.Any(t => StudyResultComputedTags.Contains(t)),
+            ResourceType.Series => tags.Any(t => SeriesResultComputedTags.Contains(t)),
+            _ => false
+        };
+    }
+
+    public static bool IsStudyToSeriesTag(DicomTag tag)
+    {
+        return tag == DicomTag.ModalitiesInStudy;
     }
 }

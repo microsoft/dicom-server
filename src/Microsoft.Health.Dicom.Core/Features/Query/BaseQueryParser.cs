@@ -196,6 +196,10 @@ public abstract class BaseQueryParser<TQueryExpression, TQueryParameters> : IQue
 
     private static QueryFilterCondition ParseStringTagValue(QueryTag queryTag, string value)
     {
+        if (QueryLimit.IsStudyToSeriesTag(queryTag.Tag))
+        {
+            return new StudyToSeriesStringSingleValueMatchCondition(queryTag, value);
+        }
         return new StringSingleValueMatchCondition(queryTag, value);
     }
 

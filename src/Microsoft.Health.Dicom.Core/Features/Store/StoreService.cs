@@ -6,18 +6,22 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
-using DicomValidationException = FellowOakDicom.DicomValidationException;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -60,26 +64,33 @@ public class StoreService : IStoreService
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly IDicomTelemetryClient _telemetryClient;
+    private readonly TelemetryClient _telemetryClient;
+    private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
+    private readonly bool _enableDropInvalidDicomJsonMetadata;
 
     public StoreService(
         IStoreResponseBuilder storeResponseBuilder,
         IStoreDatasetValidator dicomDatasetValidator,
         IStoreOrchestrator storeOrchestrator,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
-        IDicomTelemetryClient telemetryClient,
-        ILogger<StoreService> logger)
+        StoreMeter storeMeter,
+        ILogger<StoreService> logger,
+        IOptions<FeatureConfiguration> featureConfiguration,
+        TelemetryClient telemetryClient)
     {
+        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
 
     /// <inheritdoc />
@@ -93,9 +104,7 @@ public class StoreService : IStoreService
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
             _dicomInstanceEntries = instanceEntries;
             _requiredStudyInstanceUid = requiredStudyInstanceUid;
-            _telemetryClient.TrackInstanceCount(instanceEntries.Count);
 
-            InstanceByteMetrics? metrics = null;
             for (int index = 0; index < instanceEntries.Count; index++)
             {
                 try
@@ -104,20 +113,12 @@ public class StoreService : IStoreService
                     if (length != null)
                     {
                         long len = length.GetValueOrDefault();
-                        metrics = metrics == null ? new InstanceByteMetrics(len) : metrics.GetValueOrDefault().Aggregate(len);
+                        // Update Telemetry
+                        _storeMeter.InstanceLength.Record(len);
                     }
                 }
                 finally
                 {
-                    // Update Telemetry
-                    if (metrics != null)
-                    {
-                        (long totalLength, long minLength, long maxLength) = metrics.GetValueOrDefault();
-                        _telemetryClient.TrackTotalInstanceBytes(totalLength);
-                        _telemetryClient.TrackMinInstanceBytes(minLength);
-                        _telemetryClient.TrackMaxInstanceBytes(maxLength);
-                    }
-
                     // Fire and forget.
                     int capturedIndex = index;
 
@@ -136,19 +137,14 @@ public class StoreService : IStoreService
 
         ushort? warningReasonCode = null;
         DicomDataset dicomDataset = null;
+        StoreValidationResult storeValidatorResult = null;
 
         try
         {
             // Open and validate the DICOM instance.
             dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            var storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
-
-            // TODO: Remove this during the cleanup. *** Hack to support the existing validator behavior ***
-            if (null != storeValidatorResult.FirstException)
-            {
-                throw storeValidatorResult.FirstException;
-            }
+            storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
             // We have different ways to handle with warnings.
             // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag
@@ -163,6 +159,33 @@ public class StoreService : IStoreService
             if ((storeValidatorResult.WarningCodes & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
             {
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
+            }
+
+            // If there is an error in the required core tag, return immediately
+            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag) ||
+                !_enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
+            {
+                ushort failureCode = FailureReasonCodes.ValidationFailure;
+                LogValidationFailedDelegate(_logger, index, failureCode, null);
+                _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                return null;
+            }
+
+            if (_enableDropInvalidDicomJsonMetadata)
+            {
+                var identifier = dicomDataset.ToInstanceIdentifier();
+
+                foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
+                {
+                    // drop invalid metadata
+                    dicomDataset.Remove(tag);
+
+                    string message = storeValidatorResult.InvalidTagErrors[tag].Error;
+                    _telemetryClient.ForwardLogTrace(
+                        $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
+                        "However, it will still be present when retrieving study, series, or instance resources.",
+                        identifier);
+                }
             }
         }
         catch (Exception ex)
@@ -199,7 +222,7 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, warningReasonCode);
+            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, _enableDropInvalidDicomJsonMetadata);
             return length;
         }
         catch (Exception ex)
@@ -234,36 +257,6 @@ public class StoreService : IStoreService
         catch (Exception ex)
         {
             LogFailedToDisposeDelegate(_logger, index, ex);
-        }
-    }
-
-    private readonly struct InstanceByteMetrics
-    {
-        private readonly long _total;
-        private readonly long _min;
-        private readonly long _max;
-
-        public InstanceByteMetrics(long bytes)
-            : this(bytes, bytes, bytes)
-        { }
-
-        private InstanceByteMetrics(long total, long min, long max)
-        {
-            _total = total;
-            _min = min;
-            _max = max;
-        }
-
-        public InstanceByteMetrics Aggregate(long length)
-        {
-            return new InstanceByteMetrics(_total + length, Math.Min(_min, length), Math.Max(_max, length));
-        }
-
-        public void Deconstruct(out long total, out long min, out long max)
-        {
-            total = _total;
-            min = _min;
-            max = _max;
         }
     }
 }

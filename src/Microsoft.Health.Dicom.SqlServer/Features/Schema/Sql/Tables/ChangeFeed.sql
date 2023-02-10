@@ -19,6 +19,7 @@ CREATE TABLE dbo.ChangeFeed (
     PartitionKey            INT                  NOT NULL DEFAULT 1    --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
+-- Change feed is cross partition
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
 (
     Sequence

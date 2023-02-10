@@ -35,15 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="BlobMigration\CopyDurableFunction.*.cs">
-      <DependentUpon>CopyDurableFunction.cs</DependentUpon>
-    </None>
-    <None Include="BlobMigration\DeleteDurableFunction.*.cs">
-      <DependentUpon>DeleteDurableFunction.cs</DependentUpon>
-    </None>
-    <None Include="BlobMigration\CleanupDeletedDurableFunction.*.cs">
-      <DependentUpon>CleanupDeletedDurableFunction.cs</DependentUpon>
-    </None>
     <None Include="Export\ExportDurableFunction.*.cs">
       <DependentUpon>ExportDurableFunction.cs</DependentUpon>
     </None>

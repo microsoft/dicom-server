@@ -23,21 +23,5 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an export operation that copies data out of the DICOM server and into an external data store.
     /// </summary>
-    Export,
-
-    /// <summary>
-    /// Specifies an copy operation that copies DICOM instance and metadata file in the same container.
-    /// </summary>
-    Copy,
-
-    /// <summary>
-    /// Specifies an delete operation that deletes DICOM instance and metadata file in the same container.
-    /// </summary>
-    MigrationDeletion,
-
-    /// <summary>
-    /// Specifies an cleanup deleted operation that deletes DICOM instance and metadata file in the same container.
-    /// </summary>
-    [IgnoreEnum]
-    CleanupDeleted,
+    Export
 }

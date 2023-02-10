@@ -23,20 +23,22 @@ CREATE TABLE dbo.Instance (
     HasFrameMetadata        BIT                        NOT NULL DEFAULT 0
 ) WITH (DATA_COMPRESSION = PAGE)
 
+-- Primary index, also used in views
 CREATE UNIQUE CLUSTERED INDEX IXC_Instance on dbo.Instance
 (
+    PartitionKey,
+    StudyKey,
     SeriesKey,
     InstanceKey
 )
 
---Filter indexes
--- Used in AddInstance, DeleteInstance, DeleteDeletedInstance, QIDO
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid_PartitionKey on dbo.Instance
+-- Used in AddInstance, DeleteInstance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
+    PartitionKey,
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid,
-    PartitionKey
+    SopInstanceUid
 )
 INCLUDE
 (
@@ -45,50 +47,20 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_Status_PartitionKey on dbo.Instance
+-- Used in WADO
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
-    StudyInstanceUid,
+    PartitionKey,
     Status,
-    PartitionKey    
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid
 )
 INCLUDE
 (
-    SeriesInstanceUid,
-    SopInstanceUid,
     Watermark,
-    TransferSyntaxUid
-)
-WITH (DATA_COMPRESSION = PAGE)
-
--- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Instance_StudyInstanceUid_SeriesInstanceUid_Status_PartitionKey on dbo.Instance
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    Status,
-    PartitionKey    
-)
-INCLUDE
-(
-    SopInstanceUid,
-    Watermark,
-    TransferSyntaxUid
-)
-WITH (DATA_COMPRESSION = PAGE)
-
--- Used in WADO and QIDO, putting PartitionKey last allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Instance_SopInstanceUid_Status_PartitionKey on dbo.Instance
-(
-    SopInstanceUid,
-    Status,
-    PartitionKey    
-)
-INCLUDE
-(
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    Watermark
+    TransferSyntaxUid,
+    HasFrameMetadata
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -107,31 +79,61 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Cross apply indexes - partition identifiers are not needed
-CREATE NONCLUSTERED INDEX IX_Instance_SeriesKey_Status_Watermark on dbo.Instance
+-- QIDO filtering
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
 (
-    SeriesKey,
-    Status,
-    Watermark
+    PartitionKey,
+    SopInstanceUid
 )
 INCLUDE
 (
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid
+    SeriesKey
 )
 WITH (DATA_COMPRESSION = PAGE)
 
-CREATE NONCLUSTERED INDEX IX_Instance_StudyKey_Status_Watermark on dbo.Instance
+-- QIDO Cross apply indexes
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
 (
-    StudyKey,
+    PartitionKey,
     Status,
+    StudyKey,
     Watermark
 )
 INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid
+    SopInstanceUid  
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+-- QIDO Cross apply indexes
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
+(
+    PartitionKey,
+    Status,
+    StudyKey,
+    SeriesKey,
+    Watermark
+)
+INCLUDE
+(
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid  
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in Study/Series views
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
+(
+    PartitionKey,
+    Watermark
+)
+INCLUDE
+(
+    StudyKey,
+    SeriesKey,
+    StudyInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)

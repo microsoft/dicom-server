@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -141,6 +141,70 @@ public class QueryResponseBuilderTests
         Assert.DoesNotContain<DicomTag>(DicomTag.Modality, tags); // StudySeriesInstance does not include series tags by deault
         Assert.Contains<DicomTag>(DicomTag.SeriesInstanceUID, tags); // Valid series tag
         Assert.Contains<DicomTag>(DicomTag.SOPInstanceUID, tags); // Valid instance tag
+    }
+
+    [Fact]
+    public void GivenDefault_DefaultForV1_ValidReturned()
+    {
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var filters = new List<QueryFilterCondition>();
+
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+        bool useNewDefaults = false;
+        var responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.DefaultStudyTags, responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags), responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.DefaultStudyTags.Union(QueryResponseBuilder.DefaultSeriesTags).Union(QueryResponseBuilder.DefaultInstancesTags), responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.DefaultSeriesTags, responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.DefaultInstancesTags, responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.DefaultSeriesTags.Union(QueryResponseBuilder.DefaultInstancesTags), responseBuilder.ReturnTags);
+    }
+
+    [Fact]
+    public void GivenAllInstance_DefaultForV2_ValidReturned()
+    {
+        var includeField = new QueryIncludeField(new List<DicomTag>());
+        var filters = new List<QueryFilterCondition>();
+
+        var query = new QueryExpression(QueryResource.AllStudies, includeField, false, 0, 0, filters, Array.Empty<string>());
+        bool useNewDefaults = true;
+        var responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags, responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.AllSeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags), responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.AllInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.V2DefaultStudyTags.Union(QueryResponseBuilder.V2DefaultSeriesTags).Union(QueryResponseBuilder.V2DefaultInstancesTags), responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.StudySeries, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.V2DefaultSeriesTags, responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.StudySeriesInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.V2DefaultInstancesTags, responseBuilder.ReturnTags);
+
+        query = new QueryExpression(QueryResource.StudyInstances, includeField, false, 0, 0, filters, Array.Empty<string>());
+        responseBuilder = new QueryResponseBuilder(query, useNewDefaults);
+        Assert.Equal(QueryResponseBuilder.V2DefaultSeriesTags.Union(QueryResponseBuilder.V2DefaultInstancesTags), responseBuilder.ReturnTags);
     }
 
     private static DicomDataset GenerateTestDataSet()

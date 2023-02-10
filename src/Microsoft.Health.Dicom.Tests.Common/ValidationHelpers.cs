@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -17,7 +17,15 @@ namespace Microsoft.Health.Dicom.Tests.Common;
 
 public static class ValidationHelpers
 {
-    public static void ValidateReferencedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string RetrieveUri, string SopClassUid)[] expectedValues)
+    public const ushort ValidationFailedFailureCode = 43264;
+    public const ushort SopInstanceAlreadyExistsFailureCode = 45070;
+
+    public static void ValidateReferencedSopSequence(
+        DicomDataset actualDicomDataset,
+        params (
+            string SopInstanceUid,
+            string RetrieveUri,
+            string SopClassUid)[] expectedValues)
     {
         EnsureArg.IsNotNull(actualDicomDataset, nameof(actualDicomDataset));
         EnsureArg.IsNotNull(expectedValues, nameof(expectedValues));
@@ -34,7 +42,9 @@ public static class ValidationHelpers
         }
     }
 
-    public static void ValidateFailedSopSequence(DicomDataset actualDicomDataset, params (string SopInstanceUid, string SopClassUid, ushort FailureReason)[] expectedValues)
+    public static void ValidateFailedSopSequence(
+        DicomDataset actualDicomDataset,
+        params (string SopInstanceUid, string SopClassUid, ushort FailureReason)[] expectedValues)
     {
         EnsureArg.IsNotNull(actualDicomDataset, nameof(actualDicomDataset));
         EnsureArg.IsNotNull(expectedValues, nameof(expectedValues));
@@ -49,6 +59,15 @@ public static class ValidationHelpers
             ValidateNullOrCorrectValue(expectedValues[i].SopClassUid, actual, DicomTag.ReferencedSOPClassUID);
 
             Assert.Equal(expectedValues[i].FailureReason, actual.GetFirstValueOrDefault<ushort>(DicomTag.FailureReason));
+
+            if (expectedValues[i].FailureReason == ValidationFailedFailureCode)
+            {
+                Assert.True(actual.TryGetSequence(DicomTag.FailedAttributesSequence, out DicomSequence failedAttributeSequence));
+                Assert.True(failedAttributeSequence.Any());
+
+                DicomDataset failedAttribute = failedAttributeSequence.ElementAt(0);
+                Assert.NotEmpty(failedAttribute.GetFirstValueOrDefault<string>(DicomTag.ErrorComment));
+            }
         }
 
         void ValidateNullOrCorrectValue(string expectedValue, DicomDataset actual, DicomTag dicomTag)

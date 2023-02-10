@@ -1,13 +1,17 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Functions.Client;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
 
 namespace Microsoft.Health.Dicom.Web;
 
@@ -40,7 +44,7 @@ public class Startup
             .AddBackgroundWorkers()
             .AddHostedServices();
 
-        AddApplicationInsightsTelemetry(services);
+        AddTelemetry(services);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,18 +55,34 @@ public class Startup
         app.UseDevelopmentIdentityProviderIfConfigured();
     }
 
-    /// <summary>
-    /// Adds ApplicationInsights for telemetry and logging.
-    /// </summary>
-    private void AddApplicationInsightsTelemetry(IServiceCollection services)
+    private void AddTelemetry(IServiceCollection services)
     {
         string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
 
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
             var connectionString = $"InstrumentationKey={instrumentationKey}";
-
-            services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
+            AddOpenTelemetryMetrics(services, connectionString);
+            AddApplicationInsightsTelemetry(services, connectionString);
         }
+    }
+
+    /// <summary>
+    /// Adds Open telemetry exporter for Azure monitor.
+    /// </summary>
+    private static void AddOpenTelemetryMetrics(IServiceCollection services, string connectionString)
+    {
+        services.AddSingleton(Sdk.CreateMeterProviderBuilder()
+            .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.*")
+            .AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString)
+            .Build());
+    }
+
+    /// <summary>
+    /// Adds ApplicationInsights for logging.
+    /// </summary>
+    private static void AddApplicationInsightsTelemetry(IServiceCollection services, string connectionString)
+    {
+        services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
     }
 }

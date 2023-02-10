@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -90,7 +91,7 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Add<RetrieveTransferSyntaxHandler>()
+        services.Add<AcceptHeaderHandler>()
             .Transient()
             .AsSelf()
             .AsImplementedInterfaces();
@@ -162,6 +163,10 @@ public class ServiceModule : IStartupModule
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        services.AddSingleton<DeleteMeter>();
+        services.AddSingleton<RetrieveMeter>();
+        services.AddSingleton<StoreMeter>();
 
         AddExtendedQueryTagServices(services);
 

@@ -13,7 +13,7 @@ CREATE TABLE dbo.Series (
     PartitionKey                        INT                        NOT NULL DEFAULT 1   --FK
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Ordering studies by partition, study, and series key for partition-specific retrieval
+-- Ordering studies by partition, study, and series key for partition-specific retrieval, Also used in STOW
 CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
 (
     PartitionKey,
@@ -21,17 +21,20 @@ CREATE UNIQUE CLUSTERED INDEX IXC_Series ON dbo.Series
     SeriesKey
 )
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesKey ON dbo.Series
+-- used in STOW and Delete
+CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceUid ON dbo.Series
 (
-    SeriesKey
+    PartitionKey,
+    StudyKey,
+    SeriesInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO when querying at the study level; we place PartitionKey second because we assume conflicting SeriesInstanceUid will be rare
-CREATE UNIQUE NONCLUSTERED INDEX IX_Series_SeriesInstanceUid_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
 (
-    SeriesInstanceUid,
-    PartitionKey
+    PartitionKey,
+    SeriesInstanceUid
 )
 INCLUDE
 (
@@ -39,11 +42,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Series_Modality_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_Modality ON dbo.Series
 (
-    Modality,
-    PartitionKey
+    PartitionKey,
+    Modality
 )
 INCLUDE
 (
@@ -52,11 +55,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Series_PerformedProcedureStepStartDate_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_PerformedProcedureStepStartDate ON dbo.Series
 (
-    PerformedProcedureStepStartDate,
-    PartitionKey
+    PartitionKey,
+    PerformedProcedureStepStartDate
 )
 INCLUDE
 (
@@ -65,11 +68,11 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in QIDO; putting PartitionKey second allows us to query across partitions in the future.
-CREATE NONCLUSTERED INDEX IX_Series_ManufacturerModelName_PartitionKey ON dbo.Series
+-- Used in QIDO
+CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_ManufacturerModelName ON dbo.Series
 (
-    ManufacturerModelName,
-    PartitionKey
+    PartitionKey,
+    ManufacturerModelName
 )
 INCLUDE
 (

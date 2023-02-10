@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -206,6 +206,11 @@ internal class SqlQueryGenerator : BaseSqlQueryGenerator
         StringBuilder.AppendLine(VLatest.Instance.Watermark, tableAlias);
         StringBuilder.AppendLine($"FROM {VLatest.Instance.TableName} {tableAlias}");
         StringBuilder.AppendLine("WHERE 1 = 1");
+        StringBuilder
+                .Append("AND ")
+                .Append(VLatest.Instance.PartitionKey, tableAlias)
+                .AppendLine($" = {PartitionKey} ");
+
         using (IndentedStringBuilder.DelimitedScope delimited = StringBuilder.BeginDelimitedWhereClause())
         {
             StringBuilder
