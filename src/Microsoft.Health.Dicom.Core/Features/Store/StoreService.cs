@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -184,19 +185,10 @@ public class StoreService : IStoreService
 
             if (_enableDropInvalidDicomJsonMetadata)
             {
-                var identifier = dicomDataset.ToInstanceIdentifier();
+                DropInvalidMetadata(storeValidatorResult, dicomDataset);
 
-                foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
-                {
-                    // drop invalid metadata
-                    dicomDataset.Remove(tag);
-
-                    string message = storeValidatorResult.InvalidTagErrors[tag].Error;
-                    _telemetryClient.ForwardLogTrace(
-                        $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
-                        "However, it will still be present when retrieving study, series, or instance resources.",
-                        identifier);
-                }
+                // set warning code if none set yet
+                warningReasonCode ??= WarningReasonCodes.DatasetHasValidationWarnings;
             }
         }
         catch (Exception ex)
@@ -255,6 +247,22 @@ public class StoreService : IStoreService
 
             _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
             return null;
+        }
+    }
+
+    private void DropInvalidMetadata(StoreValidationResult storeValidatorResult, DicomDataset dicomDataset)
+    {
+        var identifier = dicomDataset.ToInstanceIdentifier();
+        foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
+        {
+            // drop invalid metadata
+            dicomDataset.Remove(tag);
+
+            string message = storeValidatorResult.InvalidTagErrors[tag].Error;
+            _telemetryClient.ForwardLogTrace(
+                $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
+                "However, it will still be present when retrieving study, series, or instance resources.",
+                identifier);
         }
     }
 

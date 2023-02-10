@@ -25,7 +25,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
     public StoreResponseBuilder(
         IUrlResolver urlResolver
-        )
+    )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
@@ -33,7 +33,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public StoreResponse BuildResponse(string studyInstanceUid)
+    public StoreResponse BuildResponse(string studyInstanceUid, bool enableDropInvalidDicomJsonMetadata = false)
     {
         bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
         bool hasFailure = _dataset?.TryGetSequence(DicomTag.FailedSOPSequence, out _) ?? false;
@@ -47,8 +47,16 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
         else if (hasSuccess)
         {
-            // There are only success.
-            status = StoreResponseStatus.Success;
+            if (enableDropInvalidDicomJsonMetadata && LeniencyApplied())
+            {
+                // if we applied leniency to any of the instances, status code should reflect that
+                status = StoreResponseStatus.PartialSuccess;
+            }
+            else
+            {
+                // There are only success.
+                status = StoreResponseStatus.Success;
+            }
         }
         else if (hasFailure)
         {
@@ -56,12 +64,21 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             status = StoreResponseStatus.Failure;
         }
 
+
         if (hasSuccess && studyInstanceUid != null)
         {
             _dataset.Add(DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid).ToString());
         }
 
         return new StoreResponse(status, _dataset, _message);
+    }
+
+    private bool LeniencyApplied()
+    {
+        DicomSequence referencedSOPSequence = _dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        return referencedSOPSequence
+            .Select(ds => ds.TryGetSequence(DicomTag.FailedAttributesSequence, out _) == true)
+            .Any();
     }
 
     /// <inheritdoc />
