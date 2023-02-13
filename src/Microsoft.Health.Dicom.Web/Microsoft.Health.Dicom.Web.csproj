@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <Description>An example web app for Microsoft's Medical Imaging Server for DICOM.</Description>
@@ -20,6 +20,8 @@
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
