@@ -70,7 +70,6 @@ public class StoreService : IStoreService
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
-    private readonly bool _enableDropInvalidDicomJsonMetadata;
 
     public StoreService(
         IStoreResponseBuilder storeResponseBuilder,
@@ -90,7 +89,6 @@ public class StoreService : IStoreService
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
     }
 
     /// <inheritdoc />
@@ -139,6 +137,8 @@ public class StoreService : IStoreService
         DicomDataset dicomDataset = null;
         StoreValidationResult storeValidatorResult = null;
 
+        bool enableDropInvalidDicomJsonMetadata = EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
+
         try
         {
             // Open and validate the DICOM instance.
@@ -163,7 +163,7 @@ public class StoreService : IStoreService
 
             // If there is an error in the required core tag, return immediately
             if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag) ||
-                !_enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
+                !enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
             {
                 ushort failureCode = FailureReasonCodes.ValidationFailure;
                 LogValidationFailedDelegate(_logger, index, failureCode, null);
@@ -171,7 +171,7 @@ public class StoreService : IStoreService
                 return null;
             }
 
-            if (_enableDropInvalidDicomJsonMetadata)
+            if (enableDropInvalidDicomJsonMetadata)
             {
                 var identifier = dicomDataset.ToInstanceIdentifier();
 
@@ -222,7 +222,7 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, _enableDropInvalidDicomJsonMetadata);
+            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, enableDropInvalidDicomJsonMetadata);
             return length;
         }
         catch (Exception ex)
@@ -258,5 +258,10 @@ public class StoreService : IStoreService
         {
             LogFailedToDisposeDelegate(_logger, index, ex);
         }
+    }
+
+    private static bool EnableDropMetadata(int? version)
+    {
+        return version is >= 2;
     }
 }

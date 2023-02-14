@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -28,13 +29,14 @@ public class StoreDatasetValidatorTests
 {
     private const ushort ValidationFailedFailureCode = 43264;
     private const ushort MismatchStudyInstanceUidFailureCode = 43265;
-
     private IStoreDatasetValidator _dicomDatasetValidator;
-
     private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
     private readonly IQueryTagService _queryTagService;
     private readonly List<QueryTag> _queryTags;
     private readonly StoreMeter _storeMeter;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
+
 
     public StoreDatasetValidatorTests()
     {
@@ -44,7 +46,37 @@ public class StoreDatasetValidatorTests
         _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
         _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
         _storeMeter = new StoreMeter();
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenNonCoreTagInvalid_ExpectTagValidatedAndErrorProduced()
+    {
+
+        var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration
+        {
+            EnableFullDicomItemValidation = true,
+        });
+        IDicomRequestContext dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
+        dicomRequestContextV2.Version.Returns(2);
+        _dicomRequestContextAccessorV2.RequestContext.Returns(dicomRequestContextV2);
+        IElementMinimumValidator minimumValidator = Substitute.For<IElementMinimumValidator>();
+
+        var dicomDatasetValidator = new StoreDatasetValidator(featureConfigurationEnableFullValidation, minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.ReviewDate, "NotAValidReviewDate");
+
+        var result = await dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.True(result.InvalidTagErrors.Any());
+        Assert.Single(result.InvalidTagErrors);
+        Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
+        minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]
@@ -58,7 +90,7 @@ public class StoreDatasetValidatorTests
         _queryTags.Clear();
         _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
         IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _storeMeter);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
 
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
 
@@ -222,7 +254,7 @@ public class StoreDatasetValidatorTests
         });
         var minValidator = new ElementMinimumValidator();
 
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
 
         // LO VR, invalid characters
         _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
