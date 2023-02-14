@@ -64,7 +64,6 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             status = StoreResponseStatus.Failure;
         }
 
-
         if (hasSuccess && studyInstanceUid != null)
         {
             _dataset.Add(DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveStudyUri(studyInstanceUid).ToString());
