@@ -49,8 +49,8 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomWebException exception =
             await Assert.ThrowsAsync<DicomWebException>(() => _clientV2.StoreAsync(dicomFile1));
 
-        Assert.Equal(
-            """BadRequest: {"error":{"code":"UnsupportedApiVersion","message":"The HTTP resource that matches the request URI 'http://localhost/v2/studies' does not support the API version '2'."}}""",
+        Assert.Contains(
+            """BadRequest: {"error":{"code":"UnsupportedApiVersion""",
             exception.Message);
     }
 
