@@ -12,7 +12,7 @@ public class DataPartitionEnabledHttpIntegrationTestFixture<TStartup> : HttpInte
     public DataPartitionEnabledHttpIntegrationTestFixture()
         : base(new[]
         {
-            Common.TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata,
+            Common.TestServerFeatureSettingType.EnableLatestApiVersion,
             Common.TestServerFeatureSettingType.DataPartition
         })
     { }

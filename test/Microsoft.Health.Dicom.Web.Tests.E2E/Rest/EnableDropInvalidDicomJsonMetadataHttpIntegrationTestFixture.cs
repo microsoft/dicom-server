@@ -12,7 +12,7 @@ public class EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<TStart
     public EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture()
         : base(new[]
         {
-            Common.TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata,
+            Common.TestServerFeatureSettingType.EnableLatestApiVersion,
             Common.TestServerFeatureSettingType.DataPartition
         })
     { }

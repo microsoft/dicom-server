@@ -27,7 +27,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     public DropInvalidMetadataTests(EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient();
+        _client = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _instancesManager = new DicomInstancesManager(_client);
         DicomValidationBuilderExtension.SkipValidation(null);
     }
