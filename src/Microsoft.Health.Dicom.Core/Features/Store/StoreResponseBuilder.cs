@@ -108,14 +108,12 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
-        if (!enableDropInvalidDicomJsonMetadata)
+        if (warningReasonCode.HasValue)
         {
-            if (warningReasonCode.HasValue)
-            {
-                referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
-            }
+            referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
         }
-        else
+
+        if (enableDropInvalidDicomJsonMetadata)
         {
             // add comment Sq / list of warnings here
             var warnings = storeValidationResult.InvalidTagErrors.Values.Select(
