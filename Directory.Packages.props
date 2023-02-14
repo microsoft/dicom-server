@@ -89,7 +89,7 @@
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.1" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
-    <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="161.6374.0" />
+    <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="161.8089.0" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.4.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
