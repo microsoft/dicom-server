@@ -479,7 +479,7 @@ The query API will return one of the following status codes in the response:
 - Matching is case in-sensitive and accent in-sensitive for PN VR types.
 - Matching is case in-sensitive and accent sensitive for other string VR types.
 - Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
-- For best performance default attributes or limited number of responses is recommended.
+- Using the default attributes or limiting the number of results requested will maximize performance.
 
 ## Delete
 
