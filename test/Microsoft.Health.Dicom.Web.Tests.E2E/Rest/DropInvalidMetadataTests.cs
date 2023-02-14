@@ -37,7 +37,7 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
     }
 
     [Fact]
-    public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenUsingV1_ThenNotAccepted()
+    public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenUsingV1WithV2Enabled_TheServerShouldReturnConflict ()
     {
         // setup
         DicomFile dicomFile = GenerateDicomFile();
