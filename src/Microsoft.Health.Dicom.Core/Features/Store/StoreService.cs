@@ -259,6 +259,7 @@ public class StoreService : IStoreService
             LogFailedToDisposeDelegate(_logger, index, ex);
         }
     }
+
     private static bool EnableDropMetadata(int? version)
     {
         return version is >= 2;

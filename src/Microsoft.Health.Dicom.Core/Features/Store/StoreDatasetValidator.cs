@@ -199,6 +199,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
         }
     }
+
     private static bool EnableDropMetadata(int? version)
     {
         return version is >= 2;
