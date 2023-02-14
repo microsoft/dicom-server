@@ -41,13 +41,17 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     }
 
     [Fact]
-    public async Task GivenV2NotEnabled_WhenAttemptingToUseV2_TheServerShouldReturnConflict()
+    public async Task GivenV2NotEnabled_WhenAttemptingToUseV2_TheExpectUnsupportedApiVersionExceptionThrown()
     {
         var studyInstanceUID1 = TestUidGenerator.Generate();
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
 
         DicomWebException exception =
             await Assert.ThrowsAsync<DicomWebException>(() => _clientV2.StoreAsync(dicomFile1));
+
+        Assert.Equal(
+            """BadRequest: {"error":{"code":"UnsupportedApiVersion","message":"The HTTP resource that matches the request URI 'http://localhost/v2/studies' does not support the API version '2'."}}""",
+            exception.Message);
     }
 
     [Fact]
