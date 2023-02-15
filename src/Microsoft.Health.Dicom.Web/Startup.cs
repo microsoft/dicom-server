@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -17,9 +19,12 @@ namespace Microsoft.Health.Dicom.Web;
 
 public class Startup
 {
-    public Startup(IConfiguration configuration)
+    private readonly IWebHostEnvironment _environment;
+
+    public Startup(IConfiguration configuration, IWebHostEnvironment environment)
     {
         Configuration = configuration;
+        _environment = environment;
     }
 
     public IConfiguration Configuration { get; }
@@ -44,7 +49,8 @@ public class Startup
             .AddBackgroundWorkers()
             .AddHostedServices();
 
-        AddTelemetry(services);
+        AddOpenTelemetryMetrics(services);
+        AddApplicationInsightsTelemetry(services);
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,34 +61,41 @@ public class Startup
         app.UseDevelopmentIdentityProviderIfConfigured();
     }
 
-    private void AddTelemetry(IServiceCollection services)
+    /// <summary>
+    /// Adds Open Telemetry metrics.
+    /// </summary>
+    private void AddOpenTelemetryMetrics(IServiceCollection services)
     {
-        string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+        var builder = Sdk.CreateMeterProviderBuilder()
+            .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.*");
 
+        if (_environment.IsDevelopment())
+        {
+            // builder.AddConsoleExporter();
+        }
+
+        string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
             var connectionString = $"InstrumentationKey={instrumentationKey}";
-            AddOpenTelemetryMetrics(services, connectionString);
-            AddApplicationInsightsTelemetry(services, connectionString);
+            builder.AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString);
         }
-    }
 
-    /// <summary>
-    /// Adds Open telemetry exporter for Azure monitor.
-    /// </summary>
-    private static void AddOpenTelemetryMetrics(IServiceCollection services, string connectionString)
-    {
-        services.AddSingleton(Sdk.CreateMeterProviderBuilder()
-            .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.*")
-            .AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString)
-            .Build());
+        builder.Build();
+
+        services.AddSingleton(builder);
     }
 
     /// <summary>
     /// Adds ApplicationInsights for logging.
     /// </summary>
-    private static void AddApplicationInsightsTelemetry(IServiceCollection services, string connectionString)
+    private void AddApplicationInsightsTelemetry(IServiceCollection services)
     {
-        services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
+        string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
+        if (!string.IsNullOrWhiteSpace(instrumentationKey))
+        {
+            var connectionString = $"InstrumentationKey={instrumentationKey}";
+            services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
+        }
     }
 }
