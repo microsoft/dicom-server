@@ -16,6 +16,10 @@
         {
             "placeholder": "L0ca1P@ssw0rd",
             "_justification": "Test admin password for testing SQL server using docker locally"
+        },
+        {
+            "placeholder": "T3stP@ssw0rd",
+            "_justification": "Test admin password for validating the ARM template"
         }
     ]
 }
