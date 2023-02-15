@@ -76,7 +76,6 @@
             "DicomServer__Security__Authorization__Enabled": "true",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",
             "DicomServer__Security__Authentication__Audience": "[parameters('securityAuthenticationAudience')]",
-            "DicomServer__Features__EnableDropInvalidDicomJsonMetadata": "true",
             "KeyVault__Endpoint": "[variables('keyVaultEndpoint')]"
         },
         "keyVaultEndpoint": "[concat('https://', variables('loweredServiceName'), '.vault.azure.net/')]",
