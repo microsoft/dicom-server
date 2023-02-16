@@ -71,7 +71,7 @@ public class Startup
 
         if (_environment.IsDevelopment())
         {
-            // builder.AddConsoleExporter();
+            builder.AddConsoleExporter();
         }
 
         string instrumentationKey = Configuration["ApplicationInsights:InstrumentationKey"];
@@ -81,9 +81,7 @@ public class Startup
             builder.AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString);
         }
 
-        builder.Build();
-
-        services.AddSingleton(builder);
+        services.AddSingleton(builder.Build());
     }
 
     /// <summary>
