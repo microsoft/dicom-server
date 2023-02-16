@@ -126,7 +126,7 @@
                         "[resourceId('Microsoft.Web/sites/config', variables('featuresEnabledServiceName'), 'appsettings')]" // Avoid restarts mid-installation
                     ],
                     "properties": {
-                        "version": "7.0.2"
+                        "version": "7.0.3"
                     }
                 }
             ]
