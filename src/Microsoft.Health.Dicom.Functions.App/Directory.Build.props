@@ -1,0 +1,10 @@
+<Project>
+
+  <!-- Resolve TargetFramework before the parent Directory.Build.props -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+</Project>
