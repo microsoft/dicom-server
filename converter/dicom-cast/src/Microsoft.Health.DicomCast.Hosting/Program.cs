@@ -11,6 +11,8 @@ using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Modules;
 using Microsoft.Health.DicomCast.TableStorage;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -61,8 +63,8 @@ public static class Program
         if (!string.IsNullOrWhiteSpace(instrumentationKey))
         {
             var connectionString = $"InstrumentationKey={instrumentationKey}";
-            AddOpenTelemetryMetrics(services, connectionString);
             AddApplicationInsightsTelemetry(services, connectionString);
+            AddOpenTelemetryMetrics(services, connectionString);
         }
     }
 
@@ -71,6 +73,7 @@ public static class Program
     /// </summary>
     private static void AddOpenTelemetryMetrics(IServiceCollection services, string connectionString)
     {
+        services.AddSingleton<DicomCastMeter>();
         services.AddSingleton(Sdk.CreateMeterProviderBuilder()
             .AddMeter("Microsoft.Health.DicomCast")
             .AddAzureMonitorMetricExporter(o => o.ConnectionString = connectionString)
@@ -82,6 +85,11 @@ public static class Program
     /// </summary>
     private static void AddApplicationInsightsTelemetry(IServiceCollection services, string connectionString)
     {
-        services.AddApplicationInsightsTelemetry(aiOptions => aiOptions.ConnectionString = connectionString);
+        services.AddApplicationInsightsTelemetryWorkerService(aiOptions => aiOptions.ConnectionString = connectionString);
+        services.AddLogging(
+            loggingBuilder => loggingBuilder.AddApplicationInsights(
+                telemetryConfig => telemetryConfig.ConnectionString = connectionString,
+                aiLoggerOptions => { }
+            ));
     }
 }
