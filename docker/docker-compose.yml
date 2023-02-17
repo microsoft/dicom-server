@@ -29,10 +29,10 @@ services:
       - sql
   functions:
     build:
-      # VS Container Tools does not currently support automatically attaching a debugger to Azure Functions
-      # for Docker Compose, so the Dockerfile cannot be in the same folder as the csproj
+      # While Container Tools are said to support Azure Functions, it does not appear that
+      # Docker Compose projects support them. So for now the Dockerfile is kept in a folder separate from the project file
       context: ./..
-      dockerfile: src/Microsoft.Health.Dicom.Functions.App/Dockerfile
+      dockerfile: src/Microsoft.Health.Dicom.Functions.App/Docker/Dockerfile
       args:
         BUILD_CONFIGURATION: Release
         CONTINUOUS_INTEGRATION_BUILD: ${ContinuousIntegrationBuild:-false}

@@ -28,7 +28,7 @@ RUN dotnet build "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGU
 # Publish the Azure Functions from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGURATION --framework net6.0 --no-build -o /home/site/wwwroot
+RUN dotnet publish "Microsoft.Health.Dicom.Functions.App.csproj" -c $BUILD_CONFIGURATION --no-build -o /home/site/wwwroot
 
 # Copy the published application
 FROM az-func-runtime AS dicom-az-func
