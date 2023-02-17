@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <Description>An example web app for Microsoft's Medical Imaging Server for DICOM.</Description>
-    <DockerComposeProjectPath>..\..\docker\docker-compose.dcproj</DockerComposeProjectPath>
     <IsPackable>true</IsPackable>
     <NoWarn>$(NoWarn);NU5104</NoWarn>
     <TargetFramework>$(LatestVersion)</TargetFramework>

@@ -27,7 +27,7 @@ updates:
     open-pull-requests-limit: 30
 
   - package-ecosystem: "docker"
-    directory: "/src/Microsoft.Health.Dicom.Functions.App"
+    directory: "/src/Microsoft.Health.Dicom.Functions.App/Docker"
     schedule:
       interval: "daily"
       time: "09:00"
