@@ -6,4 +6,4 @@
 *       @microsoft/Medical-Imaging-Team
 
 # PMs own markdown files in the `/docs` directory
-/docs/**/*.md @mmitrik
+/docs/**/*.md @mmitrik @microsoft/Medical-Imaging-Team
