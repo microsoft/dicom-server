@@ -48,7 +48,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in WADO
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
 (
     PartitionKey,
     Status,
@@ -92,7 +92,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- QIDO Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
 (
     PartitionKey,
     Status,
@@ -108,7 +108,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- QIDO Cross apply indexes
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
 (
     PartitionKey,
     Status,
@@ -125,7 +125,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in Study/Series views
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark on dbo.Instance
 (
     PartitionKey,
     Watermark
