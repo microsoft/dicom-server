@@ -4,6 +4,31 @@ IF EXISTS
 (
     SELECT *
     FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+    (
+        PartitionKey,
+        Status,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid
+    )
+    INCLUDE
+    (
+        Watermark,
+        TransferSyntaxUid,
+        HasFrameMetadata
+    )
+    WITH (DATA_COMPRESSION = PAGE, ONLINE=ON, DROP_EXISTING=ON)
+END
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
     WHERE   NAME = 'IX_Instance_PartitionKey_Status_StudyKey_Watermark'
         AND Object_id = OBJECT_ID('dbo.Instance')
 )
