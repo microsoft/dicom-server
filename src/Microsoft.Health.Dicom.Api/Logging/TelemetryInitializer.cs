@@ -15,7 +15,7 @@ namespace Microsoft.Health.Dicom.Api.Logging;
 /// <summary>
 /// Class extends AppInsights telemtry to include custom properties
 /// </summary>
-public class TelemetryInitializer : ITelemetryInitializer
+internal class TelemetryInitializer : ITelemetryInitializer
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private const string ApiVersionColumnName = "ApiVersion";
