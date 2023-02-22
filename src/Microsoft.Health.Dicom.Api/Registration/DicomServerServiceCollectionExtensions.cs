@@ -6,6 +6,7 @@
 using System;
 using System.Reflection;
 using EnsureThat;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -26,6 +27,7 @@ using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
+using Microsoft.Health.Dicom.Api.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -145,6 +147,8 @@ public static class DicomServerServiceCollectionExtensions
         services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
+
+        services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
 
         return new DicomServerBuilder(services);
     }
