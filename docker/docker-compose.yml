@@ -52,7 +52,7 @@ services:
       - azurite
   azurite:
     # See here for tags: https://mcr.microsoft.com/en-us/product/azure-storage/azurite/tags
-    image: mcr.microsoft.com/azure-storage/azurite:3.19.0@sha256:dfdb270d21233d4841690c9105f9556319c221acc05bb5652371d0b2d0c119df
+    image: mcr.microsoft.com/azure-storage/azurite:3.22.0@sha256:f7d8c2250b282ef1e7179eef5473ecabfd1d9ea3ade2c2b35eea5150dfe44c90
     # # These port bindings [source]:[dest] can be uncommented to connect to the storage emulator via Microsoft Azure Storage Explorer
     # # Note that the source ports may need to change if a storage emulator is already running on localhost
     # ports:
