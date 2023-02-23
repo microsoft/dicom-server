@@ -41,4 +41,5 @@ public enum SchemaVersion
     V28 = 28,
     V29 = 29,
     V30 = 30,
+    V31 = 31,
 }
