@@ -5,7 +5,7 @@
     <IsPackable>true</IsPackable>
     <!-- TODO: Remove once Microsoft.SqlServer.DACFx is a stable version -->
     <NoWarn>$(NoWarn);NU5104</NoWarn>
-    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
+    <TargetFramework>$(LatestVersion)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

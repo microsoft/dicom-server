@@ -4,7 +4,7 @@
     <NoWarn>$(NoWarn);NU5104</NoWarn>
     <Nullable>enable</Nullable>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
+    <TargetFramework>$(LatestVersion)</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

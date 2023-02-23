@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -26,23 +27,25 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreDatasetValidator : IStoreDatasetValidator
 {
     private readonly bool _enableFullDicomItemValidation;
-    private readonly bool _enableDropInvalidDicomJsonMetadata;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
     private readonly StoreMeter _storeMeter;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
-        StoreMeter storeMeter)
+        StoreMeter storeMeter,
+        IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+        EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
-        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
@@ -68,7 +71,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
 
         // validate input data elements
-        if (_enableDropInvalidDicomJsonMetadata || _enableFullDicomItemValidation)
+        if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
         }
@@ -178,7 +181,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                if (_enableDropInvalidDicomJsonMetadata)
+                if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
                 {
                     validationResultBuilder.Add(ex, item.Tag);
                     _storeMeter.InvalidTagsDropped.Add(1, new[]
@@ -195,5 +198,10 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 }
             }
         }
+    }
+
+    private static bool EnableDropMetadata(int? version)
+    {
+        return version is >= 2;
     }
 }

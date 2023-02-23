@@ -4,7 +4,7 @@
     <Description>An example web app for Microsoft's Medical Imaging Server for DICOM.</Description>
     <IsPackable>true</IsPackable>
     <NoWarn>$(NoWarn);NU5104</NoWarn>
-    <TargetFrameworks>$(LatestVersion)</TargetFrameworks>
+    <TargetFramework>$(LatestVersion)</TargetFramework>
     <UserSecretsId>5af726e8-ef4d-4c66-9d3a-25b8d546261e</UserSecretsId>
   </PropertyGroup>
 
@@ -41,8 +41,8 @@
 
   <Target Name="SwaggerPostBuildTarget" AfterTargets="DispatchtoInnerBuilds" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
     <Exec Command="dotnet tool restore"></Exec>
-    <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1\swagger.yaml bin\$(Platform)\$(Configuration)\net7.0\Microsoft.Health.Dicom.Web.dll v1"></Exec>
-    <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1-prerelease\swagger.yaml bin\$(Platform)\$(Configuration)\net7.0\Microsoft.Health.Dicom.Web.dll v1-prerelease"></Exec>
+    <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1"></Exec>
+    <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1-prerelease\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1-prerelease"></Exec>
   </Target>
 
 </Project>

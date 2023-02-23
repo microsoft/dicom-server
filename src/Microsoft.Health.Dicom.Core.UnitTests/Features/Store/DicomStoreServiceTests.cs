@@ -53,7 +53,9 @@ public class DicomStoreServiceTests
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
+    private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
     private readonly StoreMeter _storeMeter = new StoreMeter();
     private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
     {
@@ -67,6 +69,8 @@ public class DicomStoreServiceTests
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
+        _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
+        _dicomRequestContextV2.Version.Returns(2);
 
         _dicomDatasetValidator
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -79,17 +83,17 @@ public class DicomStoreServiceTests
             _dicomRequestContextAccessor,
             _storeMeter,
             NullLogger<StoreService>.Instance,
-            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }),
+            Options.Create(new FeatureConfiguration { EnableLatestApiVersion = false }),
             _telemetryClient);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
-            new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
+            new FeatureConfiguration { EnableLatestApiVersion = true });
 
         _storeServiceDropData = new StoreService(
             new StoreResponseBuilder(new MockUrlResolver()),
-            CreateStoreDatasetValidatorWithDropDataEnabled(),
+            CreateStoreDatasetValidatorWithDropDataEnabled(_dicomRequestContextAccessorV2),
             _storeOrchestrator,
-            _dicomRequestContextAccessor,
+            _dicomRequestContextAccessorV2,
             _storeMeter,
             NullLogger<StoreService>.Instance,
             featureConfiguration,
@@ -98,7 +102,7 @@ public class DicomStoreServiceTests
         DicomValidationBuilderExtension.SkipValidation(null);
     }
 
-    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled()
+    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled(IDicomRequestContextAccessor contextAccessor)
     {
         IQueryTagService queryTagService = Substitute.For<IQueryTagService>();
         List<QueryTag> queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
@@ -110,12 +114,12 @@ public class DicomStoreServiceTests
         IStoreDatasetValidator validator = new StoreDatasetValidator(
             Options.Create(new FeatureConfiguration()
             {
-                EnableFullDicomItemValidation = true,
-                EnableDropInvalidDicomJsonMetadata = true
+                EnableFullDicomItemValidation = true
             }),
             new ElementMinimumValidator(),
             queryTagService,
-            storeMeter);
+            storeMeter,
+            contextAccessor);
         return validator;
     }
 

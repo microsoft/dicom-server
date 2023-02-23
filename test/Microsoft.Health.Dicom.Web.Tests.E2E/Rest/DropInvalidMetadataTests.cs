@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
@@ -21,16 +23,49 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
+    private readonly IDicomWebClient _clientV1;
     private readonly DicomInstancesManager _instancesManager;
+    private readonly DicomInstancesManager _instancesManagerV1;
     private readonly string _partition = TestUidGenerator.Generate();
 
     public DropInvalidMetadataTests(EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient();
+        _client = fixture.GetDicomWebClient(DicomApiVersions.V2);
+        _clientV1 = fixture.GetDicomWebClient(DicomApiVersions.V1);
         _instancesManager = new DicomInstancesManager(_client);
+        _instancesManagerV1 = new DicomInstancesManager(_clientV1);
         DicomValidationBuilderExtension.SkipValidation(null);
     }
+
+    [Fact]
+    public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenUsingV1WithV2Enabled_TheServerShouldReturnConflict()
+    {
+        // setup
+        DicomFile dicomFile = GenerateDicomFile();
+
+        DicomDataset dicomDataset = new DicomDataset().NotValidated();
+
+        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
+        dicomDataset.Add(DicomTag.PatientBirthDate, "20220315");
+
+        dicomFile.Dataset.Add(dicomDataset);
+
+        // run
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManagerV1.StoreAsync(
+            new[] { dicomFile },
+            partitionName: _partition)
+        );
+
+        // assert
+        Assert.Equal("Conflict", exception.Message);
+        DicomSequence sq = exception.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
+        DicomDataset instance = sq.Items[0];
+        Assert.Equal(
+            FailureReasonCodes.ValidationFailure.ToString(CultureInfo.InvariantCulture),
+            instance.GetString(DicomTag.FailureReason));
+    }
+
 
     [Fact]
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenInvalidDataDroppedAndValidDataWritten()
