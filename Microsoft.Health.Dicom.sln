@@ -16,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{404C6C33
 	EndProjectSection
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker\docker-compose.dcproj", "{336B1FB4-EEF8-4E11-BDD5-818983D4E1CD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BFB96311-9B1A-41C1-ABF1-4F6522660084} = {BFB96311-9B1A-41C1-ABF1-4F6522660084}
+		{C71E1BDD-2B8E-47F3-8801-AE95F5F39941} = {C71E1BDD-2B8E-47F3-8801-AE95F5F39941}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.Api", "src\Microsoft.Health.Dicom.Api\Microsoft.Health.Dicom.Api.csproj", "{B0570D75-E376-44AC-870B-87ECB54F0AE3}"
 EndProject
@@ -225,7 +229,7 @@ Global
 		{ADD2B971-3C5C-429A-B954-A55FA0FA987D} = {AEDC6C96-15FF-4AFB-BD49-3549211AACCF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal
