@@ -199,7 +199,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -247,7 +247,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -303,7 +303,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -363,7 +363,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -413,7 +413,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a two refSop sequences, one for each instance
