@@ -35,8 +35,8 @@ public class DicomStoreServiceTests
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
     private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
     private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
-    private const string ExpectedAttributeError = """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
-
+    private const string ExpectedAttributeError =
+        """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
     private const string ExpectedIssuerOfAccessionNumberSequenceError =
         """DICOM100: (0008,0051) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
 
