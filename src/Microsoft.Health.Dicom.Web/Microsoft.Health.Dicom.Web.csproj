@@ -3,11 +3,13 @@
   <PropertyGroup>
     <Description>An example web app for Microsoft's Medical Imaging Server for DICOM.</Description>
     <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);NU5104</NoWarn>
     <TargetFramework>$(LatestVersion)</TargetFramework>
     <UserSecretsId>5af726e8-ef4d-4c66-9d3a-25b8d546261e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="Google.Protobuf" PrivateAssets="All" />
     <PackageReference Include="IdentityServer4" />
@@ -18,6 +20,8 @@
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
@@ -34,7 +38,7 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
-  <Target Name="SwaggerPostBuildTarget" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
+  <Target Name="SwaggerPostBuildTarget" AfterTargets="DispatchtoInnerBuilds" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
     <Exec Command="dotnet tool restore"></Exec>
     <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1"></Exec>
     <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1-prerelease\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1-prerelease"></Exec>

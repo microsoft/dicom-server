@@ -4,3 +4,6 @@
 # These owners will be the default owners for everything in the repo.
 *       @microsoft/resolute-admins
 *       @microsoft/Medical-Imaging-Team
+
+# PMs own markdown files in the `/docs` directory
+/docs/**/*.md @mmitrik @microsoft/Medical-Imaging-Team

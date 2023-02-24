@@ -15,10 +15,10 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -36,14 +36,13 @@ public class BlobMetadataStore : IMetadataStore
 {
     private const string StoreInstanceMetadataStreamTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceMetadataAsync);
     private const string StoreInstanceFramesRangeTagName = nameof(BlobMetadataStore) + "." + nameof(StoreInstanceFramesRangeAsync);
-    private const string JsonDeserializationException = "JsonDeserializationException";
-    private const string JsonDeserializationExceptionTypeDimension = "JsonDeserializationExceptionTypeDimension";
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobMetadataStore> _logger;
-    private readonly TelemetryClient _telemetryClient;
+    private readonly BlobStoreMeter _blobStoreMeter;
+    private readonly BlobRetrieveMeter _blobRetrieveMeter;
 
     public BlobMetadataStore(
         BlobServiceClient client,
@@ -51,8 +50,9 @@ public class BlobMetadataStore : IMetadataStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
-        ILogger<BlobMetadataStore> logger,
-        TelemetryClient telemetryClient)
+        BlobStoreMeter blobStoreMeter,
+        BlobRetrieveMeter blobRetrieveMeter,
+        ILogger<BlobMetadataStore> logger)
     {
         EnsureArg.IsNotNull(client, nameof(client));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
@@ -60,7 +60,8 @@ public class BlobMetadataStore : IMetadataStore
         EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _blobStoreMeter = EnsureArg.IsNotNull(blobStoreMeter, nameof(blobStoreMeter));
+        _blobRetrieveMeter = EnsureArg.IsNotNull(blobRetrieveMeter, nameof(blobRetrieveMeter));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
             .Get(Constants.MetadataContainerConfigurationName);
@@ -101,9 +102,7 @@ public class BlobMetadataStore : IMetadataStore
         {
             if (ex is NotSupportedException)
             {
-                _telemetryClient
-                    .GetMetric("JsonSerializationException", "ExceptionType")
-                    .TrackValue(1, ex.GetType().FullName);
+                _blobStoreMeter.JsonSerializationException.Add(1, new[] { new KeyValuePair<string, object>("ExceptionType", ex.GetType().FullName) });
             }
             throw new DataStoreException(ex);
         }
@@ -148,13 +147,7 @@ public class BlobMetadataStore : IMetadataStore
                         versionedInstanceIdentifier);
                     break;
                 case JsonException or NotSupportedException:
-                    _telemetryClient
-                        .GetMetric(
-                            JsonDeserializationException,
-                            JsonDeserializationExceptionTypeDimension)
-                        .TrackValue(
-                            1,
-                            ex.GetType().FullName);
+                    _blobRetrieveMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
                     break;
             }
 

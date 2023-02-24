@@ -38,8 +38,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         : base(new Uri("http://localhost/"))
     {
         var enableDataPartitions = featureSettingTypes.Contains(TestServerFeatureSettingType.DataPartition);
-        var enableDropInvalidDicomJsonMetadata =
-            featureSettingTypes.Contains(TestServerFeatureSettingType.EnableDropInvalidDicomJsonMetadata);
+        var enableLatestApiVersion = featureSettingTypes.Contains(TestServerFeatureSettingType.EnableLatestApiVersion);
 
         string contentRoot = GetProjectPath("src", startupType);
 
@@ -55,7 +54,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         {
             { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
-            { "DicomServer:Features:EnableDropInvalidDicomJsonMetadata", enableDropInvalidDicomJsonMetadata.ToString() },
+            { "DicomServer:Features:EnableLatestApiVersion", enableLatestApiVersion.ToString() },
         };
 
 

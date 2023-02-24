@@ -3,8 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
-using System.Resources;
+namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
 
-[assembly: NeutralResourcesLanguage("en-us")]
-[assembly: CLSCompliant(false)]
+public static class OpenTelemetryLabels
+{
+    public const string BaseMeterName = "Microsoft.Health.Dicom";
+}

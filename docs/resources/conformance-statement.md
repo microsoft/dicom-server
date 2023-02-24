@@ -1,7 +1,5 @@
 # DICOM Conformance Statement
 
-> This is currently a work-in progress document
-
 The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade; Standard. Support includes:
 
 - [Studies Service](#studies-service)

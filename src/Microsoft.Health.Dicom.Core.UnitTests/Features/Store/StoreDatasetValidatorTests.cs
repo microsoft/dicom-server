@@ -9,13 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -30,16 +29,14 @@ public class StoreDatasetValidatorTests
 {
     private const ushort ValidationFailedFailureCode = 43264;
     private const ushort MismatchStudyInstanceUidFailureCode = 43265;
-
     private IStoreDatasetValidator _dicomDatasetValidator;
-
     private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
     private readonly IQueryTagService _queryTagService;
     private readonly List<QueryTag> _queryTags;
-    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
-    {
-        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-    });
+    private readonly StoreMeter _storeMeter;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
+
 
     public StoreDatasetValidatorTests()
     {
@@ -48,7 +45,38 @@ public class StoreDatasetValidatorTests
         _queryTagService = Substitute.For<IQueryTagService>();
         _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
         _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _telemetryClient);
+        _storeMeter = new StoreMeter();
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenNonCoreTagInvalid_ExpectTagValidatedAndErrorProduced()
+    {
+
+        var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration
+        {
+            EnableFullDicomItemValidation = true,
+        });
+        IDicomRequestContext dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
+        dicomRequestContextV2.Version.Returns(2);
+        _dicomRequestContextAccessorV2.RequestContext.Returns(dicomRequestContextV2);
+        IElementMinimumValidator minimumValidator = Substitute.For<IElementMinimumValidator>();
+
+        var dicomDatasetValidator = new StoreDatasetValidator(featureConfigurationEnableFullValidation, minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.ReviewDate, "NotAValidReviewDate");
+
+        var result = await dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.True(result.InvalidTagErrors.Any());
+        Assert.Single(result.InvalidTagErrors);
+        Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
+        minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]
@@ -62,7 +90,7 @@ public class StoreDatasetValidatorTests
         _queryTags.Clear();
         _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
         IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _telemetryClient);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
 
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
 
@@ -226,7 +254,7 @@ public class StoreDatasetValidatorTests
         });
         var minValidator = new ElementMinimumValidator();
 
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _telemetryClient);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
 
         // LO VR, invalid characters
         _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");
@@ -241,27 +269,6 @@ public class StoreDatasetValidatorTests
         _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
 
         await ExecuteAndValidateInvalidTagEntries(DicomTag.Modality);
-    }
-
-    [Fact]
-    public async Task GivenDatasetWithInvalidIndexedTagValue_WhenValidating_ThenValidationExceptionMetricsShouldBeTracked()
-    {
-        // CS VR, > 16 characters is not allowed
-        _dicomDataset.Add(DicomTag.Modality, "01234567890123456789");
-
-        await ExecuteAndValidateInvalidTagEntries(DicomTag.Modality);
-
-        Metric metric = _telemetryClient.GetMetric(
-            "IndexTagValidationError",
-            "ExceptionErrorCode",
-            "ExceptionName",
-            "VR");
-
-        Assert.Equal(2, metric.SeriesCount);
-
-        Assert.Contains("ExceedMaxLength", metric.GetAllSeries()[1].Key);
-        Assert.Contains("Modality", metric.GetAllSeries()[1].Key);
-        Assert.Contains("CS", metric.GetAllSeries()[1].Key);
     }
 
     [Fact]

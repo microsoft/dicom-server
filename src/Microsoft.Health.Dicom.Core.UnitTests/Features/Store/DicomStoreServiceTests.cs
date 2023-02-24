@@ -9,9 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -53,8 +53,10 @@ public class DicomStoreServiceTests
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
-    private readonly IDicomTelemetryClient _dicomTelemetryClient = Substitute.For<IDicomTelemetryClient>();
+    private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
+    private readonly StoreMeter _storeMeter = new StoreMeter();
     private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
     {
         TelemetryChannel = Substitute.For<ITelemetryChannel>(),
@@ -67,6 +69,8 @@ public class DicomStoreServiceTests
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
+        _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
+        _dicomRequestContextV2.Version.Returns(2);
 
         _dicomDatasetValidator
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -77,20 +81,20 @@ public class DicomStoreServiceTests
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _dicomTelemetryClient,
+            _storeMeter,
             NullLogger<StoreService>.Instance,
-            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }),
+            Options.Create(new FeatureConfiguration { EnableLatestApiVersion = false }),
             _telemetryClient);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
-            new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
+            new FeatureConfiguration { EnableLatestApiVersion = true });
 
         _storeServiceDropData = new StoreService(
             new StoreResponseBuilder(new MockUrlResolver()),
-            CreateStoreDatasetValidatorWithDropDataEnabled(),
+            CreateStoreDatasetValidatorWithDropDataEnabled(_dicomRequestContextAccessorV2),
             _storeOrchestrator,
-            _dicomRequestContextAccessor,
-            _dicomTelemetryClient,
+            _dicomRequestContextAccessorV2,
+            _storeMeter,
             NullLogger<StoreService>.Instance,
             featureConfiguration,
             _telemetryClient);
@@ -98,27 +102,24 @@ public class DicomStoreServiceTests
         DicomValidationBuilderExtension.SkipValidation(null);
     }
 
-    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled()
+    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled(IDicomRequestContextAccessor contextAccessor)
     {
         IQueryTagService queryTagService = Substitute.For<IQueryTagService>();
         List<QueryTag> queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
         queryTagService
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
             .Returns(new List<QueryTag>(QueryTagService.CoreQueryTags));
-        TelemetryClient telemetryClient = new TelemetryClient(new TelemetryConfiguration
-        {
-            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-        });
+        StoreMeter storeMeter = new StoreMeter();
 
         IStoreDatasetValidator validator = new StoreDatasetValidator(
             Options.Create(new FeatureConfiguration()
             {
-                EnableFullDicomItemValidation = true,
-                EnableDropInvalidDicomJsonMetadata = true
+                EnableFullDicomItemValidation = true
             }),
             new ElementMinimumValidator(),
             queryTagService,
-            telemetryClient);
+            storeMeter,
+            contextAccessor);
         return validator;
     }
 
