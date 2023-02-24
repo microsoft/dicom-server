@@ -125,7 +125,7 @@ public class StoreService : IStoreService
             }
         }
 
-        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid, _enableDropInvalidDicomJsonMetadata);
+        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when refactoring validation.")]

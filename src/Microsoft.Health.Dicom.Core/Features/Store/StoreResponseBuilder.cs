@@ -33,7 +33,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public StoreResponse BuildResponse(string studyInstanceUid, bool enableDropInvalidDicomJsonMetadata = false)
+    public StoreResponse BuildResponse(string studyInstanceUid)
     {
         bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
         bool hasFailure = _dataset?.TryGetSequence(DicomTag.FailedSOPSequence, out _) ?? false;
@@ -47,7 +47,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
         else if (hasSuccess)
         {
-            if (enableDropInvalidDicomJsonMetadata && LeniencyApplied())
+            if (LeniencyApplied())
             {
                 // if we applied leniency to any of the instances, status code should reflect that
                 status = StoreResponseStatus.PartialSuccess;
