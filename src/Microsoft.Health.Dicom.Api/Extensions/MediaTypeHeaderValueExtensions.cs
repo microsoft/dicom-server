@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,10 +34,16 @@ public static class MediaTypeHeaderValueExtensions
     {
         EnsureArg.IsNotNull(headerValue, nameof(headerValue));
         StringSegment mediaType = headerValue.MediaType;
+
         bool isMultipartRelated = StringSegment.Equals(KnownContentTypes.MultipartRelated, mediaType, StringComparison.OrdinalIgnoreCase);
         if (isMultipartRelated)
         {
             mediaType = headerValue.GetParameter(AcceptHeaderParameterNames.Type);
+        }
+        // handle accept type with no quotes like "multipart/related; type=application/octet-stream; transfer-syntax=*"
+        else if ((bool)(mediaType.Buffer?.StartsWith(KnownContentTypes.MultipartRelated, StringComparison.OrdinalIgnoreCase)))
+        {
+            isMultipartRelated = true;
         }
 
         StringSegment transferSyntax = headerValue.GetParameter(AcceptHeaderParameterNames.TransferSyntax);
