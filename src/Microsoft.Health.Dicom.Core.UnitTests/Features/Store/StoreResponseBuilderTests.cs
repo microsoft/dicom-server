@@ -97,7 +97,7 @@ public class StoreResponseBuilderTests
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Single(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -137,7 +137,7 @@ public class StoreResponseBuilderTests
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Single(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -169,7 +169,7 @@ public class StoreResponseBuilderTests
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.NotNull(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);

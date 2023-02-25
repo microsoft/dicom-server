@@ -76,8 +76,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     {
         DicomSequence referencedSOPSequence = _dataset.GetSequence(DicomTag.ReferencedSOPSequence);
         return referencedSOPSequence
-            .Select(ds => ds.TryGetSequence(DicomTag.FailedAttributesSequence, out _) == true)
-            .Any();
+            .Any(ds => ds.TryGetSequence(DicomTag.FailedAttributesSequence, out _) == true);
     }
 
     /// <inheritdoc />
