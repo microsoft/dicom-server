@@ -36,12 +36,13 @@ public static class MediaTypeHeaderValueExtensions
         StringSegment mediaType = headerValue.MediaType;
 
         bool isMultipartRelated = StringSegment.Equals(KnownContentTypes.MultipartRelated, mediaType, StringComparison.OrdinalIgnoreCase);
+        // handle accept type with no quotes like "multipart/related; type=application/octet-stream; transfer-syntax=*"
+        bool? startsWithMultiPart = mediaType.Buffer?.StartsWith(KnownContentTypes.MultipartRelated, StringComparison.OrdinalIgnoreCase);
         if (isMultipartRelated)
         {
             mediaType = headerValue.GetParameter(AcceptHeaderParameterNames.Type);
         }
-        // handle accept type with no quotes like "multipart/related; type=application/octet-stream; transfer-syntax=*"
-        else if ((bool)(mediaType.Buffer?.StartsWith(KnownContentTypes.MultipartRelated, StringComparison.OrdinalIgnoreCase)))
+        else if (startsWithMultiPart.HasValue && startsWithMultiPart == true)
         {
             isMultipartRelated = true;
         }
