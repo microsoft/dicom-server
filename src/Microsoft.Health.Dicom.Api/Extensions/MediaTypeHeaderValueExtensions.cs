@@ -37,6 +37,7 @@ public static class MediaTypeHeaderValueExtensions
 
         bool isMultipartRelated = StringSegment.Equals(KnownContentTypes.MultipartRelated, mediaType, StringComparison.OrdinalIgnoreCase);
         // handle accept type with no quotes like "multipart/related; type=application/octet-stream; transfer-syntax=*"
+        // RFC 2045 is clear that any content type parameter value must be quoted if it contains at least one special character. However, the DICOMweb standard incorrectly omits quotes, so we need to compensate for it in our server
         bool? startsWithMultiPart = mediaType.Buffer?.StartsWith(KnownContentTypes.MultipartRelated, StringComparison.OrdinalIgnoreCase);
         if (isMultipartRelated)
         {
