@@ -1,12 +1,12 @@
 # Define the "runtime" image which will run DICOMcast
-FROM mcr.microsoft.com/dotnet/aspnet:7.0.2-alpine3.16@sha256:78a1e45845cba24507e3422a0969832f6ae9fbd1511d2a6bbe6663b625da253f AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0.3-alpine3.16-amd64@sha256:5bb421efc4cd3be2cec8a8f59a87e4647aca354d746675eea8ff4a9cc393034b AS runtime
 RUN set -x && \
     addgroup nonroot && \
     adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
 USER nonroot
 
 # Copy the DICOMcast project and build it
-FROM mcr.microsoft.com/dotnet/sdk:7.0.102-alpine3.16@sha256:aff5ad5b6d7d161a3b5a0bfc9930992a5050bec304b98ef7575ed38d271fd3bf AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.103-alpine3.16-amd64@sha256:e157d0b3c2ef4d873e8a1df3bff48904a3adf1dcdb79a46867022e873feaed82 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 WORKDIR /dicom-server
@@ -17,7 +17,7 @@ RUN dotnet build "Microsoft.Health.DicomCast.Hosting.csproj" -c $BUILD_CONFIGURA
 # Publish the DICOM Server from the build
 FROM build as publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Microsoft.Health.DicomCast.Hosting.csproj" -c $BUILD_CONFIGURATION --framework net7.0 --no-build -o /app/publish
+RUN dotnet publish "Microsoft.Health.DicomCast.Hosting.csproj" -c $BUILD_CONFIGURATION --no-build -o /app/publish
 
 # Copy the published application
 FROM runtime AS dicom-cast

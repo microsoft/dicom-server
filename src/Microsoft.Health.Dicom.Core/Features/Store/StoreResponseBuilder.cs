@@ -25,7 +25,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
     public StoreResponseBuilder(
         IUrlResolver urlResolver
-        )
+    )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
 
@@ -47,8 +47,16 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
         else if (hasSuccess)
         {
-            // There are only success.
-            status = StoreResponseStatus.Success;
+            if (LeniencyApplied())
+            {
+                // if we applied leniency to any of the instances, status code should reflect that
+                status = StoreResponseStatus.PartialSuccess;
+            }
+            else
+            {
+                // There are only success.
+                status = StoreResponseStatus.Success;
+            }
         }
         else if (hasFailure)
         {
@@ -62,6 +70,13 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
 
         return new StoreResponse(status, _dataset, _message);
+    }
+
+    private bool LeniencyApplied()
+    {
+        DicomSequence referencedSOPSequence = _dataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        return referencedSOPSequence
+            .Any(ds => ds.TryGetSequence(DicomTag.FailedAttributesSequence, out _) == true);
     }
 
     /// <inheritdoc />
@@ -91,14 +106,12 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
-        if (!enableDropInvalidDicomJsonMetadata)
+        if (warningReasonCode.HasValue)
         {
-            if (warningReasonCode.HasValue)
-            {
-                referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
-            }
+            referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
         }
-        else
+
+        if (enableDropInvalidDicomJsonMetadata)
         {
             // add comment Sq / list of warnings here
             var warnings = storeValidationResult.InvalidTagErrors.Values.Select(

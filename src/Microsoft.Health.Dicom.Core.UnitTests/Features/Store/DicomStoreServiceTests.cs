@@ -35,6 +35,10 @@ public class DicomStoreServiceTests
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
     private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
     private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
+    private const string ExpectedAttributeError =
+        """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
+    private const string ExpectedIssuerOfAccessionNumberSequenceError =
+        """DICOM100: (0008,0051) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
         studyInstanceUid: "1",
@@ -199,7 +203,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -214,7 +218,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedAttributeError,
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -236,7 +240,7 @@ public class DicomStoreServiceTests
         IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
-        dicomDataset.Add(DicomTag.ReviewDate, "NotAValidReviewDate");
+        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
 
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
 
@@ -247,7 +251,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -262,7 +266,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedAttributeError,
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -303,7 +307,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -349,8 +353,8 @@ public class DicomStoreServiceTests
                 DicomTag.IssuerOfAccessionNumberSequence,
                 new DicomDataset
                 {
-                    { DicomTag.ReviewDate, "NotAValidReviewDate" },
-                    { DicomTag.StudyDate, "20220119" }
+                    { DicomTag.StudyDate, "NotAValidStudyDate" },
+                    { DicomTag.ReviewDate, "20220119" }
                 })
             );
 
@@ -363,7 +367,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -378,7 +382,7 @@ public class DicomStoreServiceTests
 
         // expect failed attr sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0051) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedIssuerOfAccessionNumberSequenceError,
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -413,7 +417,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a two refSop sequences, one for each instance
@@ -429,7 +433,7 @@ public class DicomStoreServiceTests
         DicomSequence invalidFailedAttributesSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedAttributeError,
             invalidFailedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 

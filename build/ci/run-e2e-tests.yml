@@ -9,7 +9,7 @@ jobs:
     inputs:
       useGlobalJson: true
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Set Secret Variables'
     inputs:
       azureSubscription: $(azureSubscriptionName)
@@ -25,7 +25,7 @@ jobs:
             Write-Host "##vso[task.setvariable variable=$environmentVariableName]$secretValue"
         }
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'Create Azure Storage SAS Token'
     inputs:
       azureSubscription: $(azureSubscriptionName)

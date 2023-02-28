@@ -4,7 +4,7 @@ jobs:
   pool:
     vmImage: 'windows-latest'
   steps:
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     displayName: 'New Resource Group'
     inputs:
       azureSubscription: $(azureSubscriptionName)
@@ -15,7 +15,7 @@ jobs:
 
   - template: add-aad-test-environment.yml
 
-  - task: AzurePowerShell@4
+  - task: AzurePowerShell@5
     name: deploy
     displayName: 'New Azure resource group deployment'
     inputs:

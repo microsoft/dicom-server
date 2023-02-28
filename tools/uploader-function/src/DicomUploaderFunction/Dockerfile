@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0.102-alpine3.16@sha256:aff5ad5b6d7d161a3b5a0bfc9930992a5050bec304b98ef7575ed38d271fd3bf AS installer-env
+FROM mcr.microsoft.com/dotnet/sdk:7.0.103-alpine3.16-amd64@sha256:e157d0b3c2ef4d873e8a1df3bff48904a3adf1dcdb79a46867022e873feaed82 AS installer-env
 
 RUN set -x && \
     apk update && \
@@ -10,7 +10,7 @@ COPY ./forks /forks
 COPY ./tools/uploader-function/src/DicomUploaderFunction /tools/uploader-function/src/DicomUploaderFunction
 RUN cd /tools/uploader-function/src/DicomUploaderFunction && \
     mkdir -p /home/site/wwwroot && \
-    dotnet publish *.csproj --framework net6.0 --output /home/site/wwwroot
+    dotnet publish *.csproj --output /home/site/wwwroot
 
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/dotnet:4-appservice

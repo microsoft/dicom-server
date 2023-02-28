@@ -43,7 +43,7 @@ steps:
     inputs:
       command: 'build'
       containerRegistry: '$(azureContainerRegistry)'
-      Dockerfile: 'docker/functions/Dockerfile'
+      Dockerfile: 'src/Microsoft.Health.Dicom.Functions.App/Docker/Dockerfile'
       buildContext: '$(Build.Repository.LocalPath)'
       arguments: '--build-arg BUILD_CONFIGURATION=Release --build-arg CONTINUOUS_INTEGRATION_BUILD=true'
       repository: dicom-functions

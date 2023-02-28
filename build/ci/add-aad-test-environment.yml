@@ -6,7 +6,7 @@ steps:
     azureSubscription: $(azureSubscriptionName)
     KeyVaultName: 'resolute-oss-tenant-info'
 
-- task: AzurePowerShell@4
+- task: AzurePowerShell@5
   displayName: Setup Aad Test Tenant
   inputs:
     azureSubscription: $(azureSubscriptionName)
