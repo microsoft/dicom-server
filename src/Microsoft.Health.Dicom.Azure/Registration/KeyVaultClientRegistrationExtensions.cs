@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -84,10 +84,10 @@ public static class KeyVaultClientRegistrationExtensions
         if (options.VaultUri != null)
         {
             // Backfill from obsolete setting
-#pragma warning disable CS0612
+#pragma warning disable CS0618
             if (options.Endpoint != null)
                 section[nameof(KeyVaultSecretClientOptions.VaultUri)] = section[nameof(KeyVaultSecretClientOptions.Endpoint)];
-#pragma warning restore CS0612
+#pragma warning restore CS0618
 
             services.AddAzureClients(builder =>
             {
