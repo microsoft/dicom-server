@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -23,6 +24,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 using Microsoft.Health.Dicom.SqlServer.Features.Partition;
+using Microsoft.Health.Dicom.SqlServer.Features.Query;
 using Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
@@ -177,6 +179,15 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
             }));
 
+        QueryStore = new SqlQueryStore(new VersionedCache<ISqlQueryStore>(
+            schemaResolver,
+            new[]
+            {
+                new SqlQueryStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlQueryStoreV4>.Instance),
+                new SqlQueryStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlQueryStoreV6>.Instance),
+                new SqlQueryStoreV27(SqlConnectionWrapperFactory, NullLogger<SqlQueryStoreV27>.Instance)
+            }));
+
         IndexDataStoreTestHelper = new SqlIndexDataStoreTestHelper(TestConnectionString);
         ExtendedQueryTagStoreTestHelper = new ExtendedQueryTagStoreTestHelper(TestConnectionString);
         ExtendedQueryTagErrorStoreTestHelper = new ExtendedQueryTagErrorStoreTestHelper(TestConnectionString);
@@ -207,6 +218,8 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
     public IIndexWorkitemStore IndexWorkitemStore { get; }
 
     public IChangeFeedStore ChangeFeedStore { get; }
+
+    internal IQueryStore QueryStore { get; }
 
     public SchemaUpgradeRunner SchemaUpgradeRunner { get; }
     public string TestConnectionString { get; }

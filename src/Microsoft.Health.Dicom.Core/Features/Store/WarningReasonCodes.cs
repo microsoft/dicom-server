@@ -19,4 +19,12 @@ internal static class WarningReasonCodes
     /// </remarks>
     public const ushort DatasetDoesNotMatchSOPClass = 45063;
 
+    /// <summary>
+    /// Data Set has validation warnings
+    /// </summary>
+    /// <remarks>
+    /// The Studies Store Transaction (Section 10.5) observed that the Data Set has validation warnings.
+    /// </remarks>
+    public const ushort DatasetHasValidationWarnings = 1;
+
 }
