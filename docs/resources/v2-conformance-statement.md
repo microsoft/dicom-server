@@ -250,10 +250,10 @@ We will also output diagnostic logs per failed attribute per instance.
 
 ### Store Warning Reason Codes
 
-| Code  | Description |
-|:------| :---------- |
+| Code  | Description                                                                                                                                            |
+|:------|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 45063 | The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance. |
-| 1     | he Studies Store Transaction (Section 10.5) observed that the Data Set has validation warnings. |
+| 1     | The Studies Store Transaction (Section 10.5) observed that the Data Set has validation warnings.                                                       |
 
 ### Store Error Codes
 
