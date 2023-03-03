@@ -11,7 +11,7 @@
     <PackageVersion Include="Azure.Storage.Queues" Version="12.13.0" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
     <PackageVersion Include="fo-dicom" Version="5.0.3" />
-    <PackageVersion Include="fo-dicom.Codecs" Version="5.9.2" />
+    <PackageVersion Include="fo-dicom.Codecs" Version="5.10.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.22.0" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
