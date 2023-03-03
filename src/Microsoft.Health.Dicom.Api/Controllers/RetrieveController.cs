@@ -152,6 +152,29 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
+    [Produces(KnownContentTypes.ImageJpeg)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.InstanceRenderedRoute)]
+    [VersionedRoute(KnownRoutes.InstanceRenderedRoute)]
+    [AuditEventType(AuditEventSubType.Retrieve)]
+    public async Task<IActionResult> GetRenderedInstanceAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+        RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
+
+        return CreateResult(response);
+    }
+
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
     [Produces(KnownContentTypes.ApplicationDicomJson)]
     [ProducesResponseType(typeof(IEnumerable<DicomDataset>), (int)HttpStatusCode.OK)]
@@ -199,13 +222,18 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
+    private IActionResult CreateResult(RetrieveResourceResponse response)
+    {
+        return new ResourceResult(response, _retrieveConfiguration);
+    }
+
     private static IActionResult CreateResult(RetrieveMetadataResponse response)
     {
         return new MetadataResult(response);
     }
 
-    private IActionResult CreateResult(RetrieveResourceResponse response)
+    private static IActionResult CreateResult(RetrieveRenderedResponse response)
     {
-        return new ResourceResult(response, _retrieveConfiguration);
+        return new RenderedResult(response);
     }
 }

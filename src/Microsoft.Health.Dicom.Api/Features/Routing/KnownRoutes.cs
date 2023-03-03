@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,6 +12,7 @@ public static class KnownRoutes
     private const string SeriesRouteSegment = "series";
     private const string InstancesRouteSegment = "instances";
     private const string MetadataSegment = "metadata";
+    private const string RenderedSegment = "rendered";
     private const string ErrorsSegment = "errors";
     private const string ExtendedQueryTagsRouteSegment = "extendedquerytags";
     private const string OperationsSegment = "operations";
@@ -47,6 +48,8 @@ public static class KnownRoutes
     public const string StudyMetadataRoute = StudyRoute + "/" + MetadataSegment;
     public const string SeriesMetadataRoute = SeriesRoute + "/" + MetadataSegment;
     public const string InstanceMetadataRoute = InstanceRoute + "/" + MetadataSegment;
+
+    public const string InstanceRenderedRoute = InstanceRoute + "/" + RenderedSegment;
 
     public const string QueryAllStudiesRoute = StudiesRouteSegment;
     public const string QueryAllSeriesRoute = SeriesRouteSegment;
