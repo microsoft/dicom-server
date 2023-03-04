@@ -236,7 +236,7 @@ An example response with `Accept` header `application/dicom+json` with a FailedA
 ```
 
 In the case that leniency is applied and the file is stored, you will be notified with each failing attribute per instance. In case of a failing sequence or multiple issues of a single attribute, only the first failing attribute reason will be noted.
-We will also output diagnostic logs per failed attribute per instance.
+Diagnostic logs will also list failed attributes per instance.
 
 ### Store Failure Reason Codes
 
