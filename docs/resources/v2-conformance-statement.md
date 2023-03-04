@@ -380,7 +380,7 @@ The following `Accept` header(s) are supported for searching:
 
 - `application/dicom+json`
 
-Note that any instances stored with leniency applied to indexed attributes may not be retrievable by attributes which failed validation.
+Note if an instance returned validation warnings for searchable attributes at the time the instance was stored, those attributes may not be retrievable via search.
 
 ### Supported Search Parameters
 
