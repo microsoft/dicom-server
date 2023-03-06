@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -37,16 +38,21 @@ public static class Program
             description: "Path to a directory containing .dcm files to be uploaded.",
             getDefaultValue: () => @"./Images");
 
+        var deleteFiles = new Option<bool>(
+            "--deleteFiles",
+            description: "Delete files after a successful uploaded.");
+
         var rootCommand = new RootCommand("Upload DICOM image(s)");
 
         rootCommand.AddOption(dicomOption);
         rootCommand.AddOption(filePath);
+        rootCommand.AddOption(deleteFiles);
 
-        rootCommand.SetHandler(StoreImageAsync, dicomOption, filePath);
+        rootCommand.SetHandler(StoreImageAsync, dicomOption, filePath, deleteFiles);
         rootCommand.Invoke(args);
     }
 
-    private static async Task StoreImageAsync(Uri dicomServiceUrl, string filePath)
+    private static async Task StoreImageAsync(Uri dicomServiceUrl, string filePath, bool deleteFiles)
     {
         var files = new List<string> { @"./Image/blue-circle.dcm" };
 
@@ -69,13 +75,20 @@ public static class Program
 
         IDicomWebClient client = new DicomWebClient(httpClient);
 
+        var stopwatch = Stopwatch.StartNew();
         foreach (string file in files)
         {
             var dicomFile = await DicomFile.OpenAsync(file);
-
             var response = await client.StoreAsync(dicomFile);
-
             Console.WriteLine($"{dicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID)}/{dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID)}/{dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID)} saved with status code: {response.StatusCode}");
+
+            if (deleteFiles)
+            {
+                File.Delete(file);
+            }
         }
+
+        stopwatch.Stop();
+        Console.WriteLine($"{files.Count} files uploaded from {filePath} to {dicomServiceUrl} in {stopwatch.Elapsed}");
     }
 }

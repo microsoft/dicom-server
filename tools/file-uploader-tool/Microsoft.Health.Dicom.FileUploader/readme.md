@@ -11,6 +11,9 @@ Dicom service URL to target. If not specified, will default to the standard port
 ## --path
 Path to a directory containing `.dcm` files to be uploaded. If not specified, will default to `/Images`.
 
+## --deleteFiles
+If specified, will delete successfully uploaded files.
+
 # Example
 To upload the sample file, run:
 ```

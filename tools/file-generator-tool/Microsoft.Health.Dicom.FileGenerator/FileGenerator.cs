@@ -13,12 +13,12 @@ using FellowOakDicom.IO.Buffer;
 
 namespace Microsoft.Health.Dicom.FileGenerator;
 
-public class FileGenerator
+public class Generator
 {
     private const int PixelsPerMB = 520000;
     private readonly DicomDataset _generatedPixelData;
 
-    public FileGenerator(int fileSizeInMB = 1)
+    public Generator(int fileSizeInMB = 1)
     {
         _generatedPixelData = GetPixelData(fileSizeInMB);
     }
@@ -34,6 +34,8 @@ public class FileGenerator
         var seriesUids = Enumerable.Range(1, numberOfSeries).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
         var instanceUids = Enumerable.Range(1, numberOfInstances).Select(_ => DicomUIDGenerator.GenerateDerivedFromUUID()).ToList();
 
+        int instancesWritten = 0;
+
         studyUids.ForEach(
             (studyUid) => seriesUids.ForEach(
                 (seriesUid) => instanceUids.ForEach(
@@ -42,8 +44,7 @@ public class FileGenerator
                         var file = GenerateDicomFile(
                             studyUid,
                             seriesUid,
-                            instanceUid,
-                            DicomUIDGenerator.GenerateDerivedFromUUID());
+                            instanceUid);
 
                         if (invalidDS)
                         {
@@ -55,26 +56,30 @@ public class FileGenerator
                             file.Dataset.Add(new DicomSignedShort(DicomTag.TagAngleSecondAxis, new MemoryByteBuffer(Encoding.UTF8.GetBytes("asdf"))));
                         }
 
-                        var fullPath = $"{filePath}{instanceUid.UID}.dcm";
-
-                        Console.WriteLine($"Writing {fullPath}");
+                        var fullPath = $"{filePath}{studyUid.UID}-{seriesUid.UID}-{instanceUid.UID}.dcm";
                         file.Save(fullPath);
+                        instancesWritten++;
+
+                        if (instancesWritten % 50 == 0)
+                        {
+                            Console.WriteLine($"{instancesWritten} instances written to {filePath}");
+                        }
                     }
                     )));
+        Console.WriteLine($"{instancesWritten} instances written to {filePath}");
     }
 
     private DicomFile GenerateDicomFile(
         DicomUID studyInstanceUid,
         DicomUID seriesInstanceUid,
-        DicomUID sopInstanceUid,
-        DicomUID sopClassUid)
+        DicomUID sopInstanceUid)
     {
         var dataset = _generatedPixelData.Clone();
 
-        dataset.Add(DicomTag.StudyInstanceUID, studyInstanceUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
-        dataset.Add(DicomTag.SeriesInstanceUID, seriesInstanceUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
-        dataset.Add(DicomTag.SOPInstanceUID, sopInstanceUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
-        dataset.Add(DicomTag.SOPClassUID, sopClassUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
+        dataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
+        dataset.AddOrUpdate(DicomTag.SeriesInstanceUID, seriesInstanceUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
+        dataset.AddOrUpdate(DicomTag.SOPInstanceUID, sopInstanceUid ?? DicomUIDGenerator.GenerateDerivedFromUUID());
+        dataset.Add(DicomTag.SOPClassUID, DicomUID.UltrasoundMultiFrameImageStorage);
         dataset.Add(DicomTag.PatientName, "Patient Name");
         dataset.Add(DicomTag.PatientID, "12345");
         dataset.Add(DicomTag.PatientBirthDate, DateTime.Now);

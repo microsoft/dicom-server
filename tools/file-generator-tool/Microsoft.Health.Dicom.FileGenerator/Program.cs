@@ -8,18 +8,18 @@ using System.CommandLine.Parsing;
 
 namespace Microsoft.Health.Dicom.FileGenerator;
 
-public class Program
+public static class Program
 {
     private const int MaxStudies = 50;
     private const int MaxSeries = 100;
     private const int MaxInstances = 1000;
 
-    public void Main(string[] args)
+    public static void Main(string[] args)
     {
         ParseArgumentsAndExecute(args);
     }
 
-    private void ParseArgumentsAndExecute(string[] args)
+    private static void ParseArgumentsAndExecute(string[] args)
     {
         var path = new Option<string>(
             "--path",
@@ -73,12 +73,12 @@ public class Program
         });
 
         var fileSizeInMB = new Option<int>(
-            "--fileSize",
+            "--fileSizeInMB",
             description: "The approximate size of each instance file, in MB");
 
         fileSizeInMB.AddValidator((OptionResult result) =>
         {
-            if (result.GetValueForOption(fileSize) < 1)
+            if (result.GetValueForOption(fileSizeInMB) < 1)
             {
                 result.ErrorMessage = $"The value of --fileSizeInMB must not be less than 0.";
             }
@@ -92,15 +92,15 @@ public class Program
         rootCommand.AddOption(numberOfStudies);
         rootCommand.AddOption(numberOfSeries);
         rootCommand.AddOption(numberOfInstances);
-        rootCommand.AddOption(fileSize);
+        rootCommand.AddOption(fileSizeInMB);
 
         rootCommand.SetHandler(Execute, path, invalidSS, invalidDS, numberOfStudies, numberOfSeries, numberOfInstances, fileSizeInMB);
         rootCommand.Invoke(args);
     }
 
-    private void Execute(string path, bool invalidSS, bool invalidDS, int numberOfStudies = 1, int numberOfSeries = 1, int numberOfInstances = 1, int fileSizeInMB = 1)
+    private static void Execute(string path, bool invalidSS, bool invalidDS, int numberOfStudies = 1, int numberOfSeries = 1, int numberOfInstances = 1, int fileSizeInMB = 1)
     {
-        var fileGenerator = new FileGenerator(fileSizeInMB);
+        var fileGenerator = new Generator(fileSizeInMB);
         fileGenerator.SaveFiles(path, invalidSS, invalidDS, numberOfStudies, numberOfSeries, numberOfInstances);
     }
 }
