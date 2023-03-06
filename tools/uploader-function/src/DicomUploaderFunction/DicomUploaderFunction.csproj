@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
-    <TargetFramework>$(LtsVersion)</TargetFramework>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
 
@@ -12,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" PrivateAssets="All" />
+    <PackageReference Include="Azure.Storage.Queues" PrivateAssets="All" />
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="fo-dicom" />
     <PackageReference Include="Microsoft.AspNetCore.Http" PrivateAssets="All" />

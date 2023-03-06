@@ -9,9 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -35,6 +35,10 @@ public class DicomStoreServiceTests
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
     private static readonly StoreResponse DefaultResponse = new StoreResponse(StoreResponseStatus.Success, new DicomDataset(), null);
     private static readonly StoreValidationResult DefaultStoreValidationResult = new StoreValidationResultBuilder().Build();
+    private const string ExpectedAttributeError =
+        """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
+    private const string ExpectedIssuerOfAccessionNumberSequenceError =
+        """DICOM100: (0008,0051) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""";
 
     private readonly DicomDataset _dicomDataset1 = Samples.CreateRandomInstanceDataset(
         studyInstanceUid: "1",
@@ -53,8 +57,14 @@ public class DicomStoreServiceTests
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
-    private readonly IDicomTelemetryClient _telemetryClient = Substitute.For<IDicomTelemetryClient>();
+    private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
+    private readonly StoreMeter _storeMeter = new StoreMeter();
+    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
@@ -63,6 +73,8 @@ public class DicomStoreServiceTests
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
+        _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
+        _dicomRequestContextV2.Version.Returns(2);
 
         _dicomDatasetValidator
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -73,46 +85,45 @@ public class DicomStoreServiceTests
             _dicomDatasetValidator,
             _storeOrchestrator,
             _dicomRequestContextAccessor,
-            _telemetryClient,
+            _storeMeter,
             NullLogger<StoreService>.Instance,
-            Options.Create(new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = false }));
+            Options.Create(new FeatureConfiguration { EnableLatestApiVersion = false }),
+            _telemetryClient);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
-            new FeatureConfiguration { EnableDropInvalidDicomJsonMetadata = true });
+            new FeatureConfiguration { EnableLatestApiVersion = true });
 
         _storeServiceDropData = new StoreService(
             new StoreResponseBuilder(new MockUrlResolver()),
-            CreateStoreDatasetValidatorWithDropDataEnabled(),
+            CreateStoreDatasetValidatorWithDropDataEnabled(_dicomRequestContextAccessorV2),
             _storeOrchestrator,
-            _dicomRequestContextAccessor,
-            _telemetryClient,
+            _dicomRequestContextAccessorV2,
+            _storeMeter,
             NullLogger<StoreService>.Instance,
-            featureConfiguration);
+            featureConfiguration,
+            _telemetryClient);
 
         DicomValidationBuilderExtension.SkipValidation(null);
     }
 
-    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled()
+    private static IStoreDatasetValidator CreateStoreDatasetValidatorWithDropDataEnabled(IDicomRequestContextAccessor contextAccessor)
     {
         IQueryTagService queryTagService = Substitute.For<IQueryTagService>();
         List<QueryTag> queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
         queryTagService
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
             .Returns(new List<QueryTag>(QueryTagService.CoreQueryTags));
-        TelemetryClient telemetryClient = new TelemetryClient(new TelemetryConfiguration
-        {
-            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-        });
+        StoreMeter storeMeter = new StoreMeter();
 
         IStoreDatasetValidator validator = new StoreDatasetValidator(
             Options.Create(new FeatureConfiguration()
             {
-                EnableFullDicomItemValidation = true,
-                EnableDropInvalidDicomJsonMetadata = true
+                EnableFullDicomItemValidation = true
             }),
             new ElementMinimumValidator(),
             queryTagService,
-            telemetryClient);
+            storeMeter,
+            contextAccessor);
         return validator;
     }
 
@@ -192,7 +203,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -207,7 +218,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedAttributeError,
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -229,7 +240,7 @@ public class DicomStoreServiceTests
         IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
 
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
-        dicomDataset.Add(DicomTag.ReviewDate, "NotAValidReviewDate");
+        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
 
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(dicomDataset);
 
@@ -240,7 +251,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -255,7 +266,7 @@ public class DicomStoreServiceTests
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedAttributeError,
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -296,7 +307,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -342,8 +353,8 @@ public class DicomStoreServiceTests
                 DicomTag.IssuerOfAccessionNumberSequence,
                 new DicomDataset
                 {
-                    { DicomTag.ReviewDate, "NotAValidReviewDate" },
-                    { DicomTag.StudyDate, "20220119" }
+                    { DicomTag.StudyDate, "NotAValidStudyDate" },
+                    { DicomTag.ReviewDate, "20220119" }
                 })
             );
 
@@ -356,7 +367,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a single refSop sequence
@@ -371,7 +382,7 @@ public class DicomStoreServiceTests
 
         // expect failed attr sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0051) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedIssuerOfAccessionNumberSequenceError,
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 
@@ -406,7 +417,7 @@ public class DicomStoreServiceTests
             cancellationToken: DefaultCancellationToken);
 
         // assert response was successful
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Null(response.Warning);
 
         // expect a two refSop sequences, one for each instance
@@ -422,7 +433,7 @@ public class DicomStoreServiceTests
         DicomSequence invalidFailedAttributesSequence = invalidInstanceResponse.GetSequence(DicomTag.FailedAttributesSequence);
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
+            ExpectedAttributeError,
             invalidFailedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
 

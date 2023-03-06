@@ -70,13 +70,34 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
+    public void GivenOnlySuccessEntry_WhenLeniencyAppliedAndResponseIsBuilt_ThenExpectPartialSuccessReturned()
+    {
+        StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
+        builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
+        StoreValidationResult result = builder.Build();
+
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, result, enableDropInvalidDicomJsonMetadata: true);
+
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null);
+
+        Assert.NotNull(response);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
+        Assert.NotNull(response.Dataset);
+        Assert.Single(response.Dataset);
+
+        ValidationHelpers.ValidateReferencedSopSequence(
+            response.Dataset,
+            ("3", "/1/2/3", "4"));
+    }
+
+    [Fact]
     public void GivenBuilderHadNoErrors_WhenDropMetadataEnabled_ThenResponseHasEmptyFailedSequence()
     {
         _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, enableDropInvalidDicomJsonMetadata: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Single(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -116,7 +137,7 @@ public class StoreResponseBuilderTests
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Single(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -148,7 +169,7 @@ public class StoreResponseBuilderTests
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.Success, response.Status);
+        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.NotNull(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);

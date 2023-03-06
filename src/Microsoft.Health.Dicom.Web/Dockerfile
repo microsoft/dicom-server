@@ -1,7 +1,7 @@
 # See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 # Define the "runtime" image which will run the DICOM Server
-FROM mcr.microsoft.com/dotnet/aspnet:7.0.2-alpine3.16@sha256:64841801e7fa957f8d4a9545d3e56da1915711c88ff21e8316d56ac9dc444009 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0.3-alpine3.16-amd64@sha256:5bb421efc4cd3be2cec8a8f59a87e4647aca354d746675eea8ff4a9cc393034b AS runtime
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
     apk update && \
@@ -17,7 +17,7 @@ EXPOSE 8080
 USER nonroot
 
 # Copy the DICOM Server project and build it
-FROM mcr.microsoft.com/dotnet/sdk:7.0.102-alpine3.16@sha256:df7d027646aecec00079612dc163b9626e0286cf3457fcb64883031b675f5c82 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.201-alpine3.16-amd64@sha256:e3d3fab124dd773ddf5945cfcd24bb116d68598d33c597a0c192fe16defc7536 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 

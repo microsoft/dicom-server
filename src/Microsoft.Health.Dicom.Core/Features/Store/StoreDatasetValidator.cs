@@ -10,12 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -26,27 +27,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 public class StoreDatasetValidator : IStoreDatasetValidator
 {
     private readonly bool _enableFullDicomItemValidation;
-    private readonly bool _enableDropInvalidDicomJsonMetadata;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
-    private readonly TelemetryClient _telemetryClient;
-
+    private readonly StoreMeter _storeMeter;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
-        TelemetryClient telemetryClient)
+        StoreMeter storeMeter,
+        IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+        EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
         _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
-        _enableDropInvalidDicomJsonMetadata = featureConfiguration.Value.EnableDropInvalidDicomJsonMetadata;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
     }
 
     /// <inheritdoc/>
@@ -69,7 +71,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
 
         // validate input data elements
-        if (_enableDropInvalidDicomJsonMetadata || _enableFullDicomItemValidation)
+        if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
         }
@@ -157,18 +159,12 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
-
-                _telemetryClient
-                    .GetMetric(
-                        "IndexTagValidationError",
-                        "ExceptionErrorCode",
-                        "ExceptionName",
-                        "VR")
-                    .TrackValue(
-                        1,
-                        ex.ErrorCode.ToString(),
-                        ex.Name,
-                        queryTag.VR.Code);
+                _storeMeter.IndexTagValidationError.Add(1, new[]
+                    {
+                        new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
+                        new KeyValuePair<string, object>("ExceptionName", ex.Name),
+                        new KeyValuePair<string, object>("VR", queryTag.VR.Code)
+                    });
             }
         }
     }
@@ -185,25 +181,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                if (_enableDropInvalidDicomJsonMetadata)
+                if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
                 {
                     validationResultBuilder.Add(ex, item.Tag);
-
-                    _telemetryClient
-                        .GetMetric(
-                            "DroppedInvalidTag",
-                            "ExceptionContent",
-                            "TagKeyword",
-                            "VR",
-                            "Tag"
-                            )
-                        .TrackValue(
-                            1,
-                            ex.Content,
-                            item.Tag.DictionaryEntry.Keyword,
-                            item.ValueRepresentation.ToString(),
-                            item.Tag.ToString()
-                            );
+                    _storeMeter.InvalidTagsDropped.Add(1, new[]
+                    {
+                        new KeyValuePair<string, object>("ExceptionContent", ex.Content),
+                        new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
+                        new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
+                        new KeyValuePair<string, object>("Tag", item.Tag.ToString())
+                    });
                 }
                 else
                 {
@@ -211,5 +198,10 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 }
             }
         }
+    }
+
+    private static bool EnableDropMetadata(int? version)
+    {
+        return version is >= 2;
     }
 }

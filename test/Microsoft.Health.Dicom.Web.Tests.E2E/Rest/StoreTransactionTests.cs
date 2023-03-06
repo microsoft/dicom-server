@@ -25,15 +25,33 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
+    private readonly IDicomWebClient _clientV2;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly DicomInstancesManager _instancesManager;
+    private readonly DicomInstancesManager _instancesManagerV2;
 
     public StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
+        _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _instancesManager = new DicomInstancesManager(_client);
+        _instancesManagerV2 = new DicomInstancesManager(_clientV2);
         _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
+    }
+
+    [Fact]
+    public async Task GivenV2NotEnabled_WhenAttemptingToUseV2_TheExpectUnsupportedApiVersionExceptionThrown()
+    {
+        var studyInstanceUID1 = TestUidGenerator.Generate();
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
+
+        DicomWebException exception =
+            await Assert.ThrowsAsync<DicomWebException>(() => _clientV2.StoreAsync(dicomFile1));
+
+        Assert.Contains(
+            """BadRequest: {"error":{"code":"UnsupportedApiVersion""",
+            exception.Message);
     }
 
     [Fact]

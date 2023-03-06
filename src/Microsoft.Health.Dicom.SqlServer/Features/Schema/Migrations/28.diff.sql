@@ -334,6 +334,8 @@ IF EXISTS
         AND Object_id = OBJECT_ID('dbo.Series')
 )
 BEGIN
+
+    DROP INDEX IF EXISTS IX_Series_PartitionKey_StudyKey_SeriesInstanceUid ON dbo.Series
     CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_StudyKey_SeriesInstanceUid ON dbo.Series
     (
         PartitionKey,
@@ -342,7 +344,7 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
+    CREATE NONCLUSTERED INDEX IX_Series_PartitionKey_SeriesInstanceUid ON dbo.Series
     (
         PartitionKey,
         SeriesInstanceUid
@@ -413,6 +415,8 @@ BEGIN
     )
     WITH (DROP_EXISTING=ON, ONLINE=ON)
 
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
     (
         PartitionKey,
@@ -429,6 +433,8 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
+
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Watermark on dbo.Instance
     (
         PartitionKey,
@@ -443,6 +449,8 @@ BEGIN
         SopInstanceUid  
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
 
     CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark on dbo.Instance
     (
@@ -460,6 +468,8 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
+    DROP INDEX IF EXISTS IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
+
     CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid on dbo.Instance
     (
         PartitionKey,
@@ -474,7 +484,7 @@ BEGIN
     )
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_SopInstanceUid ON dbo.Instance
     (
         PartitionKey,
         SopInstanceUid

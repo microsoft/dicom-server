@@ -16,17 +16,23 @@ public enum StoreResponseStatus
     None,
 
     /// <summary>
-    /// All DICOM instance(s) have been stored successfully.
+    /// The origin server successfully stored all Instances.
     /// </summary>
     Success,
 
     /// <summary>
-    /// Some DICOM instance(s) have been stored successfully.
+    /// The origin server stored some of the Instances and failures exist for others.
+    /// Or origin server stored has warnings for Instances stored.
+    /// Additional information regarding this error may be found in the response message body.
     /// </summary>
     PartialSuccess,
 
     /// <summary>
-    /// All DICOM instance(s) have failed to be stored.
+    /// The origin server was unable to store any instances due to bad syntax.
+    /// The request was formed correctly but the origin server was unable to store any instances due to a conflict
+    /// in the request (e.g., unsupported SOP Class or Study Instance UID mismatch).
+    /// This may also be used to indicate that the origin server was unable to store any instances for a mixture of reasons.
+    /// Additional information regarding the instance errors may be found in the payload.
     /// </summary>
     Failure,
 }

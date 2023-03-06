@@ -25,14 +25,14 @@ using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
+using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Partition;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
-using Microsoft.Health.Dicom.Api.Features.Telemetry;
+using Microsoft.Health.Dicom.Api.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
@@ -88,9 +88,10 @@ public static class DicomServerServiceCollectionExtensions
         configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
         configureAction?.Invoke(dicomServerConfiguration);
 
+        var featuresOptions = Options.Create(dicomServerConfiguration.Features);
         services.AddSingleton(Options.Create(dicomServerConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Features));
+        services.AddSingleton(featuresOptions);
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
@@ -121,6 +122,8 @@ public static class DicomServerServiceCollectionExtensions
             c.AssumeDefaultVersionWhenUnspecified = true;
             c.ReportApiVersions = true;
             c.UseApiBehavior = false;
+
+            c.Conventions.Add(new ApiVersionsConvention(featuresOptions));
         });
 
         services.AddVersionedApiExplorer(options =>
@@ -147,8 +150,7 @@ public static class DicomServerServiceCollectionExtensions
 
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
-        services.AddSingleton<ITelemetryInitializer, DicomTelemetryInitializer>();
-        services.AddSingleton<IDicomTelemetryClient, HttpDicomTelemetryClient>();
+        services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
 
         services.AddResponseCompression(options =>
         {

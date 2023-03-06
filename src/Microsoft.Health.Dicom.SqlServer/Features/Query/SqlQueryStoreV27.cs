@@ -69,7 +69,7 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
                        VLatest.Study.StudyDescription,
                        VLatest.Study.AccessionNumber,
                        VLatest.Study.PatientBirthDate,
-                       new NVarCharColumn("ModalitiesInStudy", 4000),
+                       new NullableNVarCharColumn("ModalitiesInStudy", 4000),
                        new IntColumn("NumberofStudyRelatedInstances"));
 
                     results.Add(new StudyResult()
@@ -132,7 +132,7 @@ internal class SqlQueryStoreV27 : SqlQueryStoreV6
                         Modality = rModality,
                         PerformedProcedureStepStartDate = rPerformedProcedureStepStartDate,
                         ManufacturerModelName = rManufacturerModelName,
-                        NumberofSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
+                        NumberOfSeriesRelatedInstances = rNumberofSeriesRelatedInstances,
                     });
                 }
             }

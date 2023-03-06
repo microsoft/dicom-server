@@ -19,7 +19,7 @@ updates:
     open-pull-requests-limit: 30
 
   - package-ecosystem: "docker"
-    directory: "/docker/functions"
+    directory: "/docker/sql"
     schedule:
       interval: "daily"
       time: "09:00"
@@ -27,7 +27,7 @@ updates:
     open-pull-requests-limit: 30
 
   - package-ecosystem: "docker"
-    directory: "/docker/sql"
+    directory: "/src/Microsoft.Health.Dicom.Functions.App/Docker"
     schedule:
       interval: "daily"
       time: "09:00"
@@ -49,7 +49,7 @@ updates:
       time: "09:00"
       timezone: "America/Los_Angeles"
     open-pull-requests-limit: 30
-  
+
   - package-ecosystem: "docker"
     directory: "/tools/uploader-function/src/DicomUploaderFunction"
     schedule:

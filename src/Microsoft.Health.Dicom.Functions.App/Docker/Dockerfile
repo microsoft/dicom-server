@@ -1,11 +1,4 @@
-﻿# Debugging for Azure Functions project is not supported out-of-the-box for Docker Compose tooling.
-# See microsoft/DockerTools#124 for details.
-# To attach a debugger manually, follow the steps here:
-# https://docs.microsoft.com/en-us/visualstudio/debugger/attach-to-running-processes-with-the-visual-studio-debugger?view=vs-2019#BKMK_Linux_Docker_Attach
-
-# To enable ssh & remote debugging on app service change the base image to the one below
-# FROM mcr.microsoft.com/azure-functions/dotnet:4.0-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:4-slim@sha256:b8b8efe72670f0f47a54c433edf6273ee18bcf71ab3e713152995ba027cc7fb8 AS az-func-runtime
+FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:8446a35b9b031a26b0d0d5eed0a29e3e9283c639701d932e12a7fd065f629501 AS az-func-runtime
 ENV ASPNETCORE_URLS=http://+:8080 \
     AzureWebJobsScriptRoot=/home/site/wwwroot \
     LANG=en_US.UTF-8 \
@@ -17,7 +10,7 @@ USER nonroot
 EXPOSE 8080
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:7.0.102-alpine3.16@sha256:df7d027646aecec00079612dc163b9626e0286cf3457fcb64883031b675f5c82 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.201-alpine3.16-amd64@sha256:e3d3fab124dd773ddf5945cfcd24bb116d68598d33c597a0c192fe16defc7536 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 
