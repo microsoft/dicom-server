@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -124,4 +124,10 @@ public interface IIndexDataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that gets the date of the oldest deleted instance</returns>
     Task<DateTimeOffset> GetOldestDeletedAsync(CancellationToken cancellationToken = default);
+
+    Task UpdateStudyAsync(int partitionKey, DicomDataset dicomDataset, CancellationToken cancellationToken = default);
+
+    Task CreateInstanceRevision(VersionedInstanceIdentifier versionedInstanceIdentifier, long nextWatermark, CancellationToken cancellationToken = default);
+
+    Task<long> GetInstanceNextWatermark(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
 }

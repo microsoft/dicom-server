@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +41,20 @@
     </None>
     <None Include="Indexing\ReindexDurableFunction.*.cs">
       <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Update\ReindexDurableFunction.Activity.cs" />
+    <Compile Remove="Update\ReindexDurableFunction.Orchestration.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Update\UpdateDurableFunction.Activity.cs">
+      <DependentUpon>UpdateDurableFunction.cs</DependentUpon>
+    </None>
+    <None Include="Update\UpdateDurableFunction.Orchestration.cs">
+      <DependentUpon>UpdateDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>
 

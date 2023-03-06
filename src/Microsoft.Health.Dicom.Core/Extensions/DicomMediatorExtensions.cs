@@ -22,8 +22,10 @@ using Microsoft.Health.Dicom.Core.Messages.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Dicom.Core.Models.Update;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
 
@@ -202,6 +204,15 @@ public static class DicomMediatorExtensions
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(new OperationStateRequest(operationId), cancellationToken);
+    }
+
+    public static Task<UpdateInstanceResponse> UpdateInstanceAsync(
+       this IMediator mediator,
+       UpdateSpecification updateSpecification,
+       CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        return mediator.Send(new UpdateInstanceRequest(updateSpecification), cancellationToken);
     }
 
     public static Task<GetPartitionResponse> GetPartitionAsync(

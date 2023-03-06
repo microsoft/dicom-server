@@ -6,6 +6,7 @@
     <!-- TODO: Remove once Microsoft.SqlServer.DACFx is a stable version -->
     <NoWarn>$(NoWarn);NU5104</NoWarn>
     <TargetFramework>$(LatestVersion)</TargetFramework>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

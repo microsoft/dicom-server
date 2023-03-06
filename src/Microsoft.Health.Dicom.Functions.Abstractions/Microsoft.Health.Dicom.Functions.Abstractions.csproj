@@ -4,6 +4,7 @@
     <Description>Common abstractions used by DICOM functions.</Description>
     <RootNamespace>Microsoft.Health.Dicom.Functions</RootNamespace>
     <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

@@ -54,17 +54,19 @@ internal class SqlQueryStoreV6 : SqlQueryStoreV4
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark) = reader.ReadRow(
+            (string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, int revision) = reader.ReadRow(
                VLatest.Instance.StudyInstanceUid,
                VLatest.Instance.SeriesInstanceUid,
                VLatest.Instance.SopInstanceUid,
-               VLatest.Instance.Watermark);
+               VLatest.Instance.Watermark,
+               VLatest.Instance.Revision);
 
             results.Add(new VersionedInstanceIdentifier(
                     studyInstanceUid,
                     seriesInstanceUid,
                     sopInstanceUid,
-                    watermark));
+                    watermark,
+                    revision));
         }
 
         return new QueryResult(results);

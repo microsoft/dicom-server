@@ -4,6 +4,7 @@
     <IsPackable>false</IsPackable>
     <RootNamespace>Microsoft.Health.Dicom.Functions.UnitTests</RootNamespace>
     <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

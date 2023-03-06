@@ -6,6 +6,7 @@
     <NoWarn>$(NoWarn);NU5104</NoWarn>
     <TargetFramework>$(LatestVersion)</TargetFramework>
     <UserSecretsId>5af726e8-ef4d-4c66-9d3a-25b8d546261e</UserSecretsId>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

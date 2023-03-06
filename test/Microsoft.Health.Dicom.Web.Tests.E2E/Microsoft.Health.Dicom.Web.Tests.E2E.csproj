@@ -4,6 +4,7 @@
     <IncludeContentInPack>false</IncludeContentInPack>
     <IsPackable>true</IsPackable>
     <TargetFramework>$(LatestVersion)</TargetFramework>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

@@ -80,6 +80,7 @@ internal class SqlQueryGenerator : BaseSqlQueryGenerator
             StringBuilder.Append(",").AppendLine(VLatest.Series.SeriesInstanceUid, InstanceTableAlias);
             StringBuilder.Append(",").AppendLine(VLatest.Instance.SopInstanceUid, InstanceTableAlias);
             StringBuilder.Append(",").AppendLine(VLatest.Instance.Watermark, InstanceTableAlias);
+            StringBuilder.Append(",").AppendLine(VLatest.Instance.Revision, InstanceTableAlias);
         }
         else
         {
@@ -242,7 +243,8 @@ internal class SqlQueryGenerator : BaseSqlQueryGenerator
             .Append(VLatest.Instance.StudyInstanceUid, tableAlias).AppendLine(",")
             .Append(VLatest.Instance.SeriesInstanceUid, tableAlias).AppendLine(",")
             .Append(VLatest.Instance.SopInstanceUid, tableAlias).AppendLine(",")
-            .AppendLine(VLatest.Instance.Watermark, tableAlias)
+            .AppendLine(VLatest.Instance.Watermark, tableAlias).AppendLine(",")
+            .AppendLine(VLatest.Instance.Revision, tableAlias)
             .AppendLine("FROM");
     }
 

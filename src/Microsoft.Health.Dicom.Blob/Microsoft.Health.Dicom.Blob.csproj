@@ -3,6 +3,7 @@
   <PropertyGroup>
     <Description>Azure blob storage utilities for Microsoft's DICOMweb APIs.</Description>
     <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

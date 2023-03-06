@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -12,12 +13,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
+using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Models.Update;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Operations;
 using DicomApiAuditLoggingFilterAttribute = Microsoft.Health.Dicom.Api.Features.Audit.AuditLoggingFilterAttribute;
 
@@ -27,6 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 /// Represents the REST API controller for interacting with long-running DICOM operations.
 /// </summary>
 [ServiceFilter(typeof(DicomApiAuditLoggingFilterAttribute))]
+[ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public class OperationsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -103,6 +109,21 @@ public class OperationsController : ControllerBase
         }
 
         return StatusCode((int)statusCode, GetV1State(state));
+    }
+
+    [HttpPost]
+    [Consumes(KnownContentTypes.ApplicationJson)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType((int)HttpStatusCode.Conflict)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [VersionedPartitionRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.PartitionedUpdateInstance)]
+    [VersionedRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.UpdateInstance)]
+    [AuditEventType(AuditEventSubType.UpdateInstance)]
+    public async Task<IActionResult> UpdateAsync([FromBody][Required] UpdateSpecification updateSpecification)
+    {
+        UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);
+        return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
     }
 
     // TODO #94762: After v1, we can use Succeeded instead of Completed

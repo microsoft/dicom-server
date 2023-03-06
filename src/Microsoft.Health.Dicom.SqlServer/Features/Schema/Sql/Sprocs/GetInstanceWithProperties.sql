@@ -38,7 +38,8 @@ BEGIN
             SopInstanceUid,
             Watermark,
             TransferSyntaxUid,
-            HasFrameMetadata
+            HasFrameMetadata,
+            Revision
     FROM    dbo.Instance
     WHERE   PartitionKey            = @partitionKey
             AND StudyInstanceUid    = @studyInstanceUid

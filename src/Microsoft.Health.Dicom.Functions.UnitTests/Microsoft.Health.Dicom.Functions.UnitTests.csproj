@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(LtsVersion)</TargetFrameworks>
+    <Platforms>x64;AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

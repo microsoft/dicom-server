@@ -88,6 +88,7 @@ public static class DicomSqlServerRegistrationExtensions
             .AddSqlIndexDataStores()
             .AddSqlInstanceStores()
             .AddSqlPartitionStores()
+            .AddSqlQueryStores()
             .AddSqlChangeFeedStores();
 
         return dicomFunctionsBuilder;
@@ -163,6 +164,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV6>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV10>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV23>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV31>());
 
         return services;
     }

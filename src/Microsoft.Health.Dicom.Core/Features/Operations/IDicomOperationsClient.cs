@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations;
@@ -98,4 +99,6 @@ public interface IDicomOperationsClient
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
+
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -303,6 +303,68 @@ public static class DicomDatasetExtensions
                 .Select(dicomItem =>
                 {
                     if (DicomBulkDataVr.Contains(dicomItem.ValueRepresentation))
+                    {
+                        // If the VR is bulk data type, return null so it can be filtered out later.
+                        return null;
+                    }
+                    else if (dicomItem.ValueRepresentation == DicomVR.SQ)
+                    {
+                        // If the VR is sequence, then process each item within the sequence.
+                        DicomSequence sequenceToCopy = (DicomSequence)dicomItem;
+
+                        return new DicomSequence(
+                            sequenceToCopy.Tag,
+                            sequenceToCopy.Select(itemToCopy => itemToCopy.CopyWithoutBulkDataItems()).ToArray());
+                    }
+                    else
+                    {
+                        // The VR is not bulk data, return it.
+                        return dicomItem;
+                    }
+                })
+                .Where(dicomItem => dicomItem != null));
+        }
+    }
+
+    public static DicomDataset CloneDataset(this DicomDataset dicomDataset)
+    {
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        return CloneDataset(dicomDataset);
+
+        static DicomDataset CloneDataset(DicomDataset dicomDatasetToCopy)
+        {
+            return new DicomDataset(dicomDatasetToCopy
+                .Select(dicomItem =>
+                {
+                    if (dicomItem.ValueRepresentation == DicomVR.SQ)
+                    {
+                        // If the VR is sequence, then process each item within the sequence.
+                        DicomSequence sequenceToCopy = (DicomSequence)dicomItem;
+
+                        return new DicomSequence(
+                            sequenceToCopy.Tag,
+                            sequenceToCopy.Select(itemToCopy => itemToCopy.CopyWithoutBulkDataItems()).ToArray());
+                    }
+
+                    return dicomItem;
+                })
+                .Where(dicomItem => dicomItem != null));
+        }
+    }
+
+    public static DicomDataset CopyWithoutPixelDataItems(this DicomDataset dicomDataset)
+    {
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        return CopyDicomDatasetWithoutPixelDataItems(dicomDataset);
+
+        static DicomDataset CopyDicomDatasetWithoutPixelDataItems(DicomDataset dicomDatasetToCopy)
+        {
+            return new DicomDataset(dicomDatasetToCopy
+                .Select(dicomItem =>
+                {
+                    if (DicomVR.OB == dicomItem.ValueRepresentation)
                     {
                         // If the VR is bulk data type, return null so it can be filtered out later.
                         return null;

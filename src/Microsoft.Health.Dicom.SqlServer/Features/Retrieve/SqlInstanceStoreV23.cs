@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -43,13 +43,14 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
             {
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark, string rTransferSyntaxUid, bool rHasFrameMetadata) = reader.ReadRow(
+                    (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark, string rTransferSyntaxUid, bool rHasFrameMetadata, int revision) = reader.ReadRow(
                        VLatest.Instance.StudyInstanceUid,
                        VLatest.Instance.SeriesInstanceUid,
                        VLatest.Instance.SopInstanceUid,
                        VLatest.Instance.Watermark,
                        VLatest.Instance.TransferSyntaxUid,
-                       VLatest.Instance.HasFrameMetadata);
+                       VLatest.Instance.HasFrameMetadata,
+                       VLatest.Instance.Revision);
 
                     results.Add(
                         new InstanceMetadata(
@@ -58,7 +59,8 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
                                 watermark,
-                                partitionKey),
+                                partitionKey,
+                                revision),
                             new InstanceProperties() { TransferSyntaxUid = rTransferSyntaxUid, HasFrameMetadata = rHasFrameMetadata }));
                 }
             }
