@@ -23,7 +23,7 @@ public class AuditModule : IStartupModule
             .Singleton()
             .AsSelf();
 
-        services.AddSingleton<IAuditLogger, AuditLogger>();
+        services.AddSingleton<IDicomLogger, DicomLogger>();
 
         services.AddSingleton<IAuditHeaderReader, AuditHeaderReader>();
 

@@ -28,7 +28,7 @@ public class AuditHelperTests
     private const string CallerIpAddressInString = "10.0.0.0";
 
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-    private readonly IAuditLogger _auditLogger = Substitute.For<IAuditLogger>();
+    private readonly IDicomLogger _dicomLogger = Substitute.For<IDicomLogger>();
     private readonly IAuditHeaderReader _auditHeaderReader = Substitute.For<IAuditHeaderReader>();
 
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
@@ -49,7 +49,7 @@ public class AuditHelperTests
 
         _claimsExtractor.Extract().Returns(Claims);
 
-        _auditHelper = new AuditHelper(_dicomRequestContextAccessor, _auditLogger, _auditHeaderReader);
+        _auditHelper = new AuditHelper(_dicomRequestContextAccessor, _dicomLogger, _auditHeaderReader);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class AuditHelperTests
     {
         _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
 
-        _auditLogger.DidNotReceiveWithAnyArgs().LogAudit(
+        _dicomLogger.DidNotReceiveWithAnyArgs().LogAudit(
             auditAction: default,
             operation: default,
             requestUri: default,
@@ -74,7 +74,7 @@ public class AuditHelperTests
 
         _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
 
-        _auditLogger.Received(1).LogAudit(
+        _dicomLogger.Received(1).LogAudit(
             AuditAction.Executing,
             AuditEventType,
             requestUri: Uri,
@@ -90,7 +90,7 @@ public class AuditHelperTests
     {
         _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
 
-        _auditLogger.DidNotReceiveWithAnyArgs().LogAudit(
+        _dicomLogger.DidNotReceiveWithAnyArgs().LogAudit(
             auditAction: default,
             operation: default,
             requestUri: default,
@@ -111,7 +111,7 @@ public class AuditHelperTests
 
         _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
 
-        _auditLogger.Received(1).LogAudit(
+        _dicomLogger.Received(1).LogAudit(
             AuditAction.Executed,
             AuditEventType,
             Uri,

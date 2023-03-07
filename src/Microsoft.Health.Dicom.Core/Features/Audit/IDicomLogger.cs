@@ -7,13 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.Health.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Audit;
 
 /// <summary>
-/// Provides mechanism to log audit event.
+/// Provides mechanism to log audit and diagnostic events.
 /// </summary>
-public interface IAuditLogger
+public interface IDicomLogger
 {
     /// <summary>
     /// Logs an audit event.
@@ -35,4 +36,8 @@ public interface IAuditLogger
         string callerIpAddress,
         IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
         IReadOnlyDictionary<string, string> customHeaders = null);
+
+    public void LogDiagnostic(
+        string message,
+        InstanceIdentifier instanceIdentifier);
 }

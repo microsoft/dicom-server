@@ -11,14 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -64,9 +63,9 @@ public class StoreService : IStoreService
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly IStoreOrchestrator _storeOrchestrator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly TelemetryClient _telemetryClient;
     private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
+    private readonly IDicomLogger _dicomLogger;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
@@ -79,14 +78,15 @@ public class StoreService : IStoreService
         StoreMeter storeMeter,
         ILogger<StoreService> logger,
         IOptions<FeatureConfiguration> featureConfiguration,
-        TelemetryClient telemetryClient)
+        IDicomLogger dicomLogger)
     {
+        _dicomLogger = EnsureArg.IsNotNull(dicomLogger, nameof(dicomLogger));
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));
-        _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        _dicomRequestContextAccessor =
+            EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
@@ -128,7 +128,8 @@ public class StoreService : IStoreService
         return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
     }
 
-    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when refactoring validation.")]
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "Will reevaluate exceptions when refactoring validation.")]
     private async Task<long?> ProcessDicomInstanceEntryAsync(int index, CancellationToken cancellationToken)
     {
         IDicomInstanceEntry dicomInstanceEntry = _dicomInstanceEntries[index];
@@ -137,26 +138,31 @@ public class StoreService : IStoreService
         DicomDataset dicomDataset = null;
         StoreValidationResult storeValidatorResult = null;
 
-        bool enableDropInvalidDicomJsonMetadata = EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
+        bool enableDropInvalidDicomJsonMetadata =
+            EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
 
         try
         {
             // Open and validate the DICOM instance.
             dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-            storeValidatorResult = await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
+            storeValidatorResult =
+                await _dicomDatasetValidator.ValidateAsync(dicomDataset, _requiredStudyInstanceUid, cancellationToken);
 
             // We have different ways to handle with warnings.
             // DatasetDoesNotMatchSOPClass is defined in Dicom Standards (https://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_I.2.html), put into Warning Reason dicom tag
-            if ((storeValidatorResult.WarningCodes & ValidationWarnings.DatasetDoesNotMatchSOPClass) == ValidationWarnings.DatasetDoesNotMatchSOPClass)
+            if ((storeValidatorResult.WarningCodes & ValidationWarnings.DatasetDoesNotMatchSOPClass) ==
+                ValidationWarnings.DatasetDoesNotMatchSOPClass)
             {
                 warningReasonCode = WarningReasonCodes.DatasetDoesNotMatchSOPClass;
 
-                LogValidationSucceededWithWarningDelegate(_logger, index, WarningReasonCodes.DatasetDoesNotMatchSOPClass, null);
+                LogValidationSucceededWithWarningDelegate(_logger, index,
+                    WarningReasonCodes.DatasetDoesNotMatchSOPClass, null);
             }
 
             // IndexedDicomTagHasMultipleValues is our warning, put into http Warning header.
-            if ((storeValidatorResult.WarningCodes & ValidationWarnings.IndexedDicomTagHasMultipleValues) == ValidationWarnings.IndexedDicomTagHasMultipleValues)
+            if ((storeValidatorResult.WarningCodes & ValidationWarnings.IndexedDicomTagHasMultipleValues) ==
+                ValidationWarnings.IndexedDicomTagHasMultipleValues)
             {
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
@@ -213,7 +219,8 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, enableDropInvalidDicomJsonMetadata);
+            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode,
+                enableDropInvalidDicomJsonMetadata);
             return length;
         }
         catch (Exception ex)
@@ -247,14 +254,15 @@ public class StoreService : IStoreService
             dicomDataset.Remove(tag);
 
             string message = storeValidatorResult.InvalidTagErrors[tag].Error;
-            _telemetryClient.ForwardLogTrace(
+            _dicomLogger.LogDiagnostic(
                 $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
                 " However, it will still be present when retrieving study, series, or instance resources.",
                 identifier);
         }
     }
 
-    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Ignore errors during disposal.")]
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types",
+        Justification = "Ignore errors during disposal.")]
     private async Task DisposeResourceAsync(int index)
     {
         try

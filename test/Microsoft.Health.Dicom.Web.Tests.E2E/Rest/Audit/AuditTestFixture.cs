@@ -10,15 +10,15 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 
 public class AuditTestFixture : HttpIntegrationTestFixture<StartupWithTraceAuditLogger>
 {
-    private TraceAuditLogger _auditLogger;
+    private TraceDicomLogger _dicomLogger;
 
     public AuditTestFixture()
         : base()
     {
     }
 
-    public TraceAuditLogger AuditLogger
+    public TraceDicomLogger DicomLogger
     {
-        get => _auditLogger ?? (_auditLogger = (TraceAuditLogger)(TestDicomWebServer as InProcTestDicomWebServer)?.Server.Host.Services.GetRequiredService<IAuditLogger>());
+        get => _dicomLogger ?? (_dicomLogger = (TraceDicomLogger)(TestDicomWebServer as InProcTestDicomWebServer)?.Server.Host.Services.GetRequiredService<IDicomLogger>());
     }
 }

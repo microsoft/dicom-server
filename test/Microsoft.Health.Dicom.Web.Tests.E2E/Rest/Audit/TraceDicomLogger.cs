@@ -9,10 +9,11 @@ using System.Linq;
 using System.Net;
 using Microsoft.Health.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 
-public class TraceAuditLogger : IAuditLogger
+public class TraceDicomLogger : IDicomLogger
 {
     private readonly List<AuditEntry> _auditEntries = new List<AuditEntry>();
     private readonly object _syncLock = new object();
@@ -32,6 +33,8 @@ public class TraceAuditLogger : IAuditLogger
             _auditEntries.Add(new AuditEntry(auditAction, operation, requestUri, statusCode));
         }
     }
+
+    public void LogDiagnostic(string message, InstanceIdentifier instanceIdentifier) => throw new NotImplementedException();
 
     public IReadOnlyList<AuditEntry> GetAuditEntriesByOperationAndRequestUri(string operation, Uri uri)
     {

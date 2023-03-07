@@ -11,16 +11,24 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Core.Features.Audit;
+using Microsoft.Health.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Audit;
 
 /// <summary>
-/// Provides mechanism to log the audit event using default logger.
+/// Provides mechanism to log an audit or diagnostic event using default logger.
 /// </summary>
-public class AuditLogger : IAuditLogger
+public class DicomLogger : IDicomLogger
 {
     private const string AuditEventType = "AuditEvent";
+
+    private const string Prefix = "dicomAdditionalInformation_";
+    private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
+    private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
+    private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
 
     private static readonly string AuditMessageFormat =
         "ActionType: {ActionType}" + Environment.NewLine +
@@ -33,18 +41,28 @@ public class AuditLogger : IAuditLogger
         "CorrelationId: {CorrelationId}" + Environment.NewLine +
         "Claims: {Claims}";
 
-    private readonly SecurityConfiguration _securityConfiguration;
-    private readonly ILogger<IAuditLogger> _logger;
+    private static readonly string DiagnosticMessageFormat =
+        "Message: {Message}" + Environment.NewLine +
+        "Operation: {Operation}" + Environment.NewLine +
+        "CorrelationId: {CorrelationId}" + Environment.NewLine +
+        "Properties: {Properties}";
 
-    public AuditLogger(
+    private readonly SecurityConfiguration _securityConfiguration;
+    private readonly ILogger<IDicomLogger> _logger;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+
+    public DicomLogger(
         IOptions<SecurityConfiguration> securityConfiguration,
-        ILogger<IAuditLogger> logger)
+        ILogger<IDicomLogger> logger,
+        IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
         EnsureArg.IsNotNull(securityConfiguration?.Value, nameof(securityConfiguration));
         EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
         _securityConfiguration = securityConfiguration.Value;
         _logger = logger;
+        _dicomRequestContextAccessor = dicomRequestContextAccessor;
     }
 
     /// <inheritdoc />
@@ -86,6 +104,37 @@ public class AuditLogger : IAuditLogger
             correlationId,
             claimsInString,
             customerHeadersInString);
+#pragma warning restore CA2254
+    }
+
+    public void LogDiagnostic(
+        string message,
+        InstanceIdentifier instanceIdentifier)
+    {
+        EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
+
+        IRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
+
+        var props = new string[]
+        {
+            $"{StudyInstanceUID}={instanceIdentifier.StudyInstanceUid}",
+            $"{SeriesInstanceUID}={instanceIdentifier.SeriesInstanceUid}",
+            $"{SOPInstanceUID}={instanceIdentifier.SopInstanceUid}"
+        };
+
+        var parsedProperties = string.Join(";", props);
+        var operation = $"{dicomRequestContext.RouteName} / {dicomRequestContext.Method}";
+
+#pragma warning disable CA2254
+        // AuditMessageFormat is not const and erroneously flags CA2254.
+        // While the template does indeed change per OS, it does not change the variables in use.
+        _logger.LogInformation(
+            DiagnosticMessageFormat,
+            message,
+            operation,
+            dicomRequestContext.CorrelationId,
+            parsedProperties);
 #pragma warning restore CA2254
     }
 }

@@ -20,6 +20,6 @@ public class StartupWithTraceAuditLogger : StartupBaseForCustomProviders
     public override void ConfigureServices(IServiceCollection services)
     {
         base.ConfigureServices(services);
-        services.Replace(new ServiceDescriptor(typeof(IAuditLogger), typeof(TraceAuditLogger), ServiceLifetime.Singleton));
+        services.Replace(new ServiceDescriptor(typeof(IDicomLogger), typeof(TraceDicomLogger), ServiceLifetime.Singleton));
     }
 }

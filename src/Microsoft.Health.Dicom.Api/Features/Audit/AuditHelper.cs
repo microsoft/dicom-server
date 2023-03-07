@@ -18,20 +18,20 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit;
 public class AuditHelper : IAuditHelper
 {
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly IAuditLogger _auditLogger;
+    private readonly IDicomLogger _dicomLogger;
     private readonly IAuditHeaderReader _auditHeaderReader;
 
     public AuditHelper(
         IDicomRequestContextAccessor dicomRequestContextAccessor,
-        IAuditLogger auditLogger,
+        IDicomLogger dicomLogger,
         IAuditHeaderReader auditHeaderReader)
     {
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-        EnsureArg.IsNotNull(auditLogger, nameof(auditLogger));
+        EnsureArg.IsNotNull(dicomLogger, nameof(dicomLogger));
         EnsureArg.IsNotNull(auditHeaderReader, nameof(auditHeaderReader));
 
         _dicomRequestContextAccessor = dicomRequestContextAccessor;
-        _auditLogger = auditLogger;
+        _dicomLogger = dicomLogger;
         _auditHeaderReader = auditHeaderReader;
     }
 
@@ -70,7 +70,7 @@ public class AuditHelper : IAuditHelper
         // Audit the call if an audit event type is associated with the action.
         if (!string.IsNullOrEmpty(auditEventType))
         {
-            _auditLogger.LogAudit(
+            _dicomLogger.LogAudit(
                 auditAction,
                 operation: auditEventType,
                 requestUri: dicomRequestContext.Uri,
