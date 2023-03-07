@@ -159,7 +159,7 @@ public static class DicomServerServiceCollectionExtensions
             options.Providers.Add<GzipCompressionProvider>();
             options.MimeTypes =
                 ResponseCompressionDefaults.MimeTypes.Concat(
-                    new[] { "application/dicom+json", "application/dicom" });
+                    new[] { "application/dicom+json", "application/dicom", "multipart/related" });
         });
 
         return new DicomServerBuilder(services);
