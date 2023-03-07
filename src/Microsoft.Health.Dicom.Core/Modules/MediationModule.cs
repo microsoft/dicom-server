@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ public class MediationModule : IStartupModule
 
         Assembly coreAssembly = typeof(MediationModule).Assembly;
 
-        services.AddMediatR(GetType().Assembly, coreAssembly);
+        services.AddMediatR(c => c.RegisterServicesFromAssembly(coreAssembly));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>));
 

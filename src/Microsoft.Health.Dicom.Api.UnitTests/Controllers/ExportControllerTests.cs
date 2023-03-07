@@ -34,17 +34,17 @@ public class ExportControllerTests
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
-            new Mediator(t => null),
+            new Mediator(null),
             null,
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
-            new Mediator(t => null),
+            new Mediator(null),
             Options.Create<FeatureConfiguration>(null),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
-            new Mediator(t => null),
+            new Mediator(null),
             Options.Create(new FeatureConfiguration()),
             null));
     }

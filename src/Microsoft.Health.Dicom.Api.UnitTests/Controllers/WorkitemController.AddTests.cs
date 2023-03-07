@@ -44,7 +44,7 @@ public sealed class WorkitemControllerAddTests
             NullLogger<WorkitemController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new WorkitemController(
-            new Mediator(t => null),
+            new Mediator(null),
             null));
     }
 

@@ -33,12 +33,12 @@ public class OperationsControllerTests
             NullLogger<OperationsController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new OperationsController(
-            new Mediator(t => null),
+            new Mediator(null),
             null,
             NullLogger<OperationsController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new OperationsController(
-            new Mediator(t => null),
+            new Mediator(null),
             Substitute.For<IUrlResolver>(),
             null));
     }

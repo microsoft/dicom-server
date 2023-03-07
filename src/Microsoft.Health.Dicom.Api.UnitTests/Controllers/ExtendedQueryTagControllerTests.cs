@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ public class ExtendedQueryTagControllerTests
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(null, NullLogger<ExtendedQueryTagController>.Instance));
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(new Mediator(t => null), null));
+        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(new Mediator(null), null));
     }
 
     [Fact]
