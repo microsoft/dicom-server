@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Reflection;
 using EnsureThat;
 using MediatR;
 using MediatR.Pipeline;
@@ -21,9 +20,7 @@ public class MediationModule : IStartupModule
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        Assembly coreAssembly = typeof(MediationModule).Assembly;
-
-        services.AddMediatR(c => c.RegisterServicesFromAssembly(coreAssembly));
+        services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<MediationModule>());
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>));
 

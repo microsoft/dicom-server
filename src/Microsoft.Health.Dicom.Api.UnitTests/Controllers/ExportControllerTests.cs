@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -28,23 +28,25 @@ public class ExportControllerTests
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
+        var mediator = new Mediator(null);
+
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             null,
             Options.Create(new FeatureConfiguration()),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
-            new Mediator(null),
+            mediator,
             null,
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
-            new Mediator(null),
+            mediator,
             Options.Create<FeatureConfiguration>(null),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
-            new Mediator(null),
+            mediator,
             Options.Create(new FeatureConfiguration()),
             null));
     }

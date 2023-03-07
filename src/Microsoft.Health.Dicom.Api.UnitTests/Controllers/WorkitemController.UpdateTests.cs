@@ -39,12 +39,13 @@ public sealed class WorkitemControllerUpdateTests
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
+        var mediator = new Mediator(null);
         Assert.Throws<ArgumentNullException>(() => new WorkitemController(
             null,
             NullLogger<WorkitemController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new WorkitemController(
-            new Mediator(null),
+            mediator,
             null));
     }
 

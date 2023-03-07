@@ -27,18 +27,20 @@ public class OperationsControllerTests
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
+        var mediator = new Mediator(null);
+
         Assert.Throws<ArgumentNullException>(() => new OperationsController(
             null,
             Substitute.For<IUrlResolver>(),
             NullLogger<OperationsController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new OperationsController(
-            new Mediator(null),
+            mediator,
             null,
             NullLogger<OperationsController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new OperationsController(
-            new Mediator(null),
+            mediator,
             Substitute.For<IUrlResolver>(),
             null));
     }
