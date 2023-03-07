@@ -32,8 +32,9 @@ public class ExtendedQueryTagControllerTests
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
+        var mediator = new Mediator(null);
         Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(null, NullLogger<ExtendedQueryTagController>.Instance));
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(new Mediator(null), null));
+        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(mediator, null));
     }
 
     [Fact]
