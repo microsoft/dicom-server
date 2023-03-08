@@ -1,11 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Linq;
-using System.Reflection;
 using EnsureThat;
 using MediatR;
 using MediatR.Pipeline;
@@ -21,9 +20,7 @@ public class MediationModule : IStartupModule
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        Assembly coreAssembly = typeof(MediationModule).Assembly;
-
-        services.AddMediatR(GetType().Assembly, coreAssembly);
+        services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<MediationModule>());
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPreProcessorBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(RequestPostProcessorBehavior<,>));
 
