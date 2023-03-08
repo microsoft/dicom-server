@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using NSubstitute;
 using Xunit;
+using IAuditHelper = Microsoft.Health.Dicom.Api.Features.Audit.IAuditHelper;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit;
 
@@ -55,16 +56,10 @@ public class AuditHelperTests
     [Fact]
     public void GivenNoAuditEventType_WhenLogExecutingIsCalled_ThenAuditLogShouldNotBeLogged()
     {
-        _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.LogExecuting(_httpContext);
 
         _dicomLogger.DidNotReceiveWithAnyArgs().LogAudit(
-            auditAction: default,
-            operation: default,
-            requestUri: default,
-            statusCode: default,
-            correlationId: default,
-            callerIpAddress: default,
-            callerClaims: default);
+            auditAction: default);
     }
 
     [Fact]
@@ -72,32 +67,20 @@ public class AuditHelperTests
     {
         _dicomRequestContext.AuditEventType.Returns(AuditEventType);
 
-        _auditHelper.LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.LogExecuting(_httpContext);
 
         _dicomLogger.Received(1).LogAudit(
             AuditAction.Executing,
-            AuditEventType,
-            requestUri: Uri,
-            statusCode: null,
-            correlationId: CorrelationId,
-            callerIpAddress: CallerIpAddressInString,
-            callerClaims: Claims,
             customHeaders: _auditHeaderReader.Read(_httpContext));
     }
 
     [Fact]
     public void GivenNoAuditEventType_WhenLogExecutedIsCalled_ThenAuditLogShouldNotBeLogged()
     {
-        _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
+        _auditHelper.LogExecuted(_httpContext);
 
         _dicomLogger.DidNotReceiveWithAnyArgs().LogAudit(
-            auditAction: default,
-            operation: default,
-            requestUri: default,
-            statusCode: default,
-            correlationId: default,
-            callerIpAddress: default,
-            callerClaims: default);
+            auditAction: default);
     }
 
     [Fact]
@@ -109,16 +92,10 @@ public class AuditHelperTests
 
         _httpContext.Response.StatusCode = (int)expectedStatusCode;
 
-        _auditHelper.LogExecuted(_httpContext, _claimsExtractor);
+        _auditHelper.LogExecuted(_httpContext);
 
         _dicomLogger.Received(1).LogAudit(
             AuditAction.Executed,
-            AuditEventType,
-            Uri,
-            expectedStatusCode,
-            CorrelationId,
-            CallerIpAddressInString,
-            Claims,
             customHeaders: _auditHeaderReader.Read(_httpContext));
     }
 }

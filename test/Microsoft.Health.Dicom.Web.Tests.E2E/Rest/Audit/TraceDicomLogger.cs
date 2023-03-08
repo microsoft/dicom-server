@@ -5,8 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using Microsoft.Health.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -20,27 +18,21 @@ public class TraceDicomLogger : IDicomLogger
 
     public void LogAudit(
         AuditAction auditAction,
-        string operation,
-        Uri requestUri,
-        HttpStatusCode? statusCode,
-        string correlationId,
-        string callerIpAddress,
-        IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
         IReadOnlyDictionary<string, string> customHeaders = null)
     {
         lock (_syncLock)
         {
-            _auditEntries.Add(new AuditEntry(auditAction, operation, requestUri, statusCode));
+            _auditEntries.Add(new AuditEntry(auditAction));
         }
     }
 
     public void LogDiagnostic(string message, InstanceIdentifier instanceIdentifier) => throw new NotImplementedException();
 
-    public IReadOnlyList<AuditEntry> GetAuditEntriesByOperationAndRequestUri(string operation, Uri uri)
+    public IReadOnlyList<AuditEntry> GetAuditEntries()
     {
         lock (_syncLock)
         {
-            return _auditEntries.Where(ae => string.Equals(ae.Action, operation) && string.Equals(ae.RequestUri?.ToString(), uri?.ToString())).ToList();
+            return _auditEntries;
         }
     }
 }

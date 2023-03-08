@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Core.Features.Context;
-using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -93,7 +92,7 @@ public class SecurityModule : IStartupModule
             .AsService<RequestContextAccessor<IDicomRequestContext>>()
             .AsService<IDicomRequestContextAccessor>();
 
-        services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
+        // services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
     }
 
     internal string[] GetValidAudiences()

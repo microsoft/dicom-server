@@ -7,8 +7,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Core.Features.Security;
 
 namespace Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -17,17 +15,12 @@ namespace Microsoft.Health.Dicom.Api.Features.Audit;
 public class AuditLoggingFilterAttribute : ActionFilterAttribute
 {
     public AuditLoggingFilterAttribute(
-        IClaimsExtractor claimsExtractor,
         IAuditHelper auditHelper)
     {
-        EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
         EnsureArg.IsNotNull(auditHelper, nameof(auditHelper));
 
-        ClaimsExtractor = claimsExtractor;
         AuditHelper = auditHelper;
     }
-
-    protected IClaimsExtractor ClaimsExtractor { get; }
 
     protected IAuditHelper AuditHelper { get; }
 
@@ -35,7 +28,8 @@ public class AuditLoggingFilterAttribute : ActionFilterAttribute
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
-        AuditHelper.LogExecuting(context.HttpContext, ClaimsExtractor);
+        // AuditHelper.LogExecuting(context.HttpContext);
+        // todo will remove whole filter later once paas fully converted
 
         base.OnActionExecuting(context);
     }

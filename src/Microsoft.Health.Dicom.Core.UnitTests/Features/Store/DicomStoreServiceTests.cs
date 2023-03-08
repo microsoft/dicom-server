@@ -9,13 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -61,10 +59,7 @@ public class DicomStoreServiceTests
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
     private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
     private readonly StoreMeter _storeMeter = new StoreMeter();
-    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
-    {
-        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
-    });
+    private readonly IDicomLogger _dicomLogger = Substitute.For<IDicomLogger>();
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
@@ -88,7 +83,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { EnableLatestApiVersion = false }),
-            _telemetryClient);
+            _dicomLogger);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
             new FeatureConfiguration { EnableLatestApiVersion = true });
@@ -101,7 +96,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             featureConfiguration,
-            _telemetryClient);
+            _dicomLogger);
 
         DicomValidationBuilderExtension.SkipValidation(null);
     }

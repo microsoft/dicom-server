@@ -6,13 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Core.Features.Audit;
 using Microsoft.Health.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -23,8 +20,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Audit;
 /// </summary>
 public class DicomLogger : IDicomLogger
 {
-    private const string AuditEventType = "AuditEvent";
-
     private const string Prefix = "dicomAdditionalInformation_";
     private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
     private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
@@ -32,35 +27,22 @@ public class DicomLogger : IDicomLogger
 
     private static readonly string AuditMessageFormat =
         "ActionType: {ActionType}" + Environment.NewLine +
-        "EventType: {EventType}" + Environment.NewLine +
-        "Audience: {Audience}" + Environment.NewLine +
-        "Authority: {Authority}" + Environment.NewLine +
-        "RequestUri: {ResourceUri}" + Environment.NewLine +
-        "Action: {Action}" + Environment.NewLine +
-        "StatusCode: {StatusCode}" + Environment.NewLine +
-        "CorrelationId: {CorrelationId}" + Environment.NewLine +
-        "Claims: {Claims}";
+        "Action: {Action}";
 
     private static readonly string DiagnosticMessageFormat =
         "Message: {Message}" + Environment.NewLine +
-        "Operation: {Operation}" + Environment.NewLine +
-        "CorrelationId: {CorrelationId}" + Environment.NewLine +
         "Properties: {Properties}";
 
-    private readonly SecurityConfiguration _securityConfiguration;
     private readonly ILogger<IDicomLogger> _logger;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
     public DicomLogger(
-        IOptions<SecurityConfiguration> securityConfiguration,
         ILogger<IDicomLogger> logger,
         IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
-        EnsureArg.IsNotNull(securityConfiguration?.Value, nameof(securityConfiguration));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
-        _securityConfiguration = securityConfiguration.Value;
         _logger = logger;
         _dicomRequestContextAccessor = dicomRequestContextAccessor;
     }
@@ -68,21 +50,9 @@ public class DicomLogger : IDicomLogger
     /// <inheritdoc />
     public void LogAudit(
         AuditAction auditAction,
-        string operation,
-        Uri requestUri,
-        HttpStatusCode? statusCode,
-        string correlationId,
-        string callerIpAddress,
-        IReadOnlyCollection<KeyValuePair<string, string>> callerClaims,
         IReadOnlyDictionary<string, string> customHeaders = null)
     {
-        string claimsInString = null;
         string customerHeadersInString = null;
-
-        if (callerClaims != null)
-        {
-            claimsInString = string.Join(";", callerClaims.Select(claim => $"{claim.Key}={claim.Value}"));
-        }
 
         if (customHeaders != null)
         {
@@ -95,14 +65,6 @@ public class DicomLogger : IDicomLogger
         _logger.LogInformation(
             AuditMessageFormat,
             auditAction,
-            AuditEventType,
-            _securityConfiguration.Authentication?.Audience,
-            _securityConfiguration.Authentication?.Authority,
-            requestUri,
-            operation,
-            statusCode,
-            correlationId,
-            claimsInString,
             customerHeadersInString);
 #pragma warning restore CA2254
     }
@@ -132,8 +94,6 @@ public class DicomLogger : IDicomLogger
         _logger.LogInformation(
             DiagnosticMessageFormat,
             message,
-            operation,
-            dicomRequestContext.CorrelationId,
             parsedProperties);
 #pragma warning restore CA2254
     }

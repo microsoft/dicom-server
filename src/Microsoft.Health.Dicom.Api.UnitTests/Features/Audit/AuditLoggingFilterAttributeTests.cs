@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Core.Features.Security;
 using Microsoft.Health.Dicom.Api.UnitTests.Features.Filters;
 using NSubstitute;
 using Xunit;
@@ -21,8 +19,7 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Audit;
 
 public class AuditLoggingFilterAttributeTests
 {
-    private readonly IClaimsExtractor _claimsExtractor = Substitute.For<IClaimsExtractor>();
-    private readonly IAuditHelper _auditHelper = Substitute.For<IAuditHelper>();
+    private readonly DicomAudit.IAuditHelper _auditHelper = Substitute.For<DicomAudit.IAuditHelper>();
 
     private readonly DicomAudit.AuditLoggingFilterAttribute _filter;
 
@@ -30,7 +27,7 @@ public class AuditLoggingFilterAttributeTests
 
     public AuditLoggingFilterAttributeTests()
     {
-        _filter = new DicomAudit.AuditLoggingFilterAttribute(_claimsExtractor, _auditHelper);
+        _filter = new DicomAudit.AuditLoggingFilterAttribute(_auditHelper);
     }
 
     [Fact]
@@ -44,7 +41,7 @@ public class AuditLoggingFilterAttributeTests
 
         _filter.OnActionExecuting(actionExecutingContext);
 
-        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.Received(1).LogExecuting(_httpContext);
     }
 
     [Fact]
@@ -62,8 +59,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnActionExecuted(actionExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -80,8 +76,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnResultExecuted(resultExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -95,7 +90,7 @@ public class AuditLoggingFilterAttributeTests
 
         _filter.OnActionExecuting(actionExecutingContext);
 
-        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.Received(1).LogExecuting(_httpContext);
     }
 
     [Fact]
@@ -113,8 +108,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnActionExecuted(actionExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -131,8 +125,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnResultExecuted(resultExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -146,7 +139,7 @@ public class AuditLoggingFilterAttributeTests
 
         _filter.OnActionExecuting(actionExecutingContext);
 
-        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.Received(1).LogExecuting(_httpContext);
     }
 
     [Fact]
@@ -164,8 +157,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnActionExecuted(actionExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -182,8 +174,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnResultExecuted(resultExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -197,7 +188,7 @@ public class AuditLoggingFilterAttributeTests
 
         _filter.OnActionExecuting(actionExecutingContext);
 
-        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.Received(1).LogExecuting(_httpContext);
     }
 
     [Fact]
@@ -215,8 +206,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnActionExecuted(actionExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -233,8 +223,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnResultExecuted(resultExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -248,7 +237,7 @@ public class AuditLoggingFilterAttributeTests
 
         _filter.OnActionExecuting(actionExecutingContext);
 
-        _auditHelper.Received(1).LogExecuting(_httpContext, _claimsExtractor);
+        _auditHelper.Received(1).LogExecuting(_httpContext);
     }
 
     [Fact]
@@ -266,8 +255,7 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnActionExecuted(actionExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 
     [Fact]
@@ -284,7 +272,6 @@ public class AuditLoggingFilterAttributeTests
         _filter.OnResultExecuted(resultExecutedContext);
 
         _auditHelper.DidNotReceiveWithAnyArgs().LogExecuted(
-            httpContext: default,
-            claimsExtractor: default);
+            httpContext: default);
     }
 }

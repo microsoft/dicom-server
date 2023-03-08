@@ -217,28 +217,25 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
         var expectedUri = new Uri($"http://localhost/{DicomApiVersions.Latest}/{expectedPathSegment}");
 
         Assert.Collection(
-            _dicomLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri),
-            ae => ValidateExecutingAuditEntry(ae, expectedAction, expectedUri),
-            ae => ValidateExecutedAuditEntry(ae, expectedAction, expectedUri, expectedStatusCode));
+            _dicomLogger.GetAuditEntries(),
+            ae => ValidateExecutingAuditEntry(ae),
+            ae => ValidateExecutedAuditEntry(ae));
     }
 
-    private static void ValidateExecutingAuditEntry(AuditEntry auditEntry, string expectedAction, Uri expectedUri)
+    private static void ValidateExecutingAuditEntry(AuditEntry auditEntry)
     {
-        ValidateAuditEntry(auditEntry, AuditAction.Executing, expectedAction, expectedUri, null);
+        ValidateAuditEntry(auditEntry, AuditAction.Executing);
     }
 
-    private static void ValidateExecutedAuditEntry(AuditEntry auditEntry, string expectedAction, Uri expectedUri, HttpStatusCode? expectedStatusCode)
+    private static void ValidateExecutedAuditEntry(AuditEntry auditEntry)
     {
-        ValidateAuditEntry(auditEntry, AuditAction.Executed, expectedAction, expectedUri, expectedStatusCode);
+        ValidateAuditEntry(auditEntry, AuditAction.Executed);
     }
 
-    private static void ValidateAuditEntry(AuditEntry auditEntry, AuditAction expectedAuditAction, string expectedAction, Uri expectedUri, HttpStatusCode? expectedStatusCode)
+    private static void ValidateAuditEntry(AuditEntry auditEntry, AuditAction expectedAuditAction)
     {
         Assert.NotNull(auditEntry);
         Assert.Equal(expectedAuditAction, auditEntry.AuditAction);
-        Assert.Equal(expectedAction, auditEntry.Action);
-        Assert.Equal(expectedUri, auditEntry.RequestUri);
-        Assert.Equal(expectedStatusCode, auditEntry.StatusCode);
     }
 
     private async Task<InstanceIdentifier> CreateDicomFileAndGetInstanceIdentifierAsync()

@@ -7,15 +7,14 @@ using System;
 using System.Reflection;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Api.Features.Context;
 using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
@@ -36,7 +35,7 @@ using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Microsoft.AspNetCore.Builder;
+namespace Microsoft.Health.Dicom.Api.Registration;
 
 public static class DicomServerServiceCollectionExtensions
 {
@@ -143,7 +142,8 @@ public static class DicomServerServiceCollectionExtensions
 
         services.AddSingleton<IUrlResolver, UrlResolver>();
 
-        services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
+        services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features,
+            dicomServerConfiguration.Services);
         services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
@@ -167,7 +167,8 @@ public static class DicomServerServiceCollectionExtensions
     /// <summary>
     /// An <see cref="IStartupFilter"/> that configures middleware components before any components are added in Startup.Configure
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is instantiated.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance",
+        "CA1812:Avoid uninstantiated internal classes.", Justification = "This class is instantiated.")]
     private class DicomServerStartupFilter : IStartupFilter
     {
         public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
@@ -175,8 +176,6 @@ public static class DicomServerServiceCollectionExtensions
             return app =>
             {
                 IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-
-                IApiVersionDescriptionProvider provider = app.ApplicationServices.GetRequiredService<IApiVersionDescriptionProvider>();
 
                 // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
                 app.UseBaseHeaders();
@@ -190,28 +189,16 @@ public static class DicomServerServiceCollectionExtensions
                     app.UseDeveloperExceptionPage();
                 }
 
-                app.UseAudit();
-
                 app.UseExceptionHandling();
 
                 app.UseAuthentication();
 
                 app.UseRequestContextAfterAuthentication<IDicomRequestContext>();
 
-                // Dependency on URSA scan. We should see how other teams do this.
                 app.UseSwagger(c =>
                 {
                     c.RouteTemplate = "{documentName}/api.{json|yaml}";
                 });
-
-                //Disabling swagger ui until accesability team gets back to us
-                //app.UseSwaggerUI(options =>
-                //{
-                //    foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
-                //    {
-                //        options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.yaml", description.GroupName.ToUpperInvariant());
-                //    }
-                //});
 
                 next(app);
             };

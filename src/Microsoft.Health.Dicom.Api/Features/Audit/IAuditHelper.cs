@@ -3,17 +3,13 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Core.Features.Audit;
+using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
+namespace Microsoft.Health.Dicom.Api.Features.Audit;
 
-public class AuditEntry
+public interface IAuditHelper
 {
-    public AuditEntry(
-        AuditAction auditAction)
-    {
-        AuditAction = auditAction;
-    }
+    public void LogExecuting(HttpContext httpContext);
 
-    public AuditAction AuditAction { get; }
+    public void LogExecuted(HttpContext httpContext);
 }

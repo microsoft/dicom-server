@@ -29,7 +29,7 @@ public class AuditModule : IStartupModule
 
         services.Add<DicomAudit.AuditHelper>()
             .Singleton()
-            .AsService<IAuditHelper>();
+            .AsService<DicomAudit.IAuditHelper>();
 
         services.Add<AuditEventTypeMapping>()
             .Singleton()
