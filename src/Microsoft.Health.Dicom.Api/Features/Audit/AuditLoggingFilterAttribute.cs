@@ -11,18 +11,13 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace Microsoft.Health.Dicom.Api.Features.Audit;
 
 [AttributeUsage(AttributeTargets.Class)]
-[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes", Justification = "This attribute to meant to be extended.")]
+[SuppressMessage("Performance", "CA1813:Avoid unsealed attributes",
+    Justification = "This attribute to meant to be extended.")]
 public class AuditLoggingFilterAttribute : ActionFilterAttribute
 {
-    public AuditLoggingFilterAttribute(
-        IAuditHelper auditHelper)
+    public AuditLoggingFilterAttribute()
     {
-        EnsureArg.IsNotNull(auditHelper, nameof(auditHelper));
-
-        AuditHelper = auditHelper;
     }
-
-    protected IAuditHelper AuditHelper { get; }
 
     public override void OnActionExecuting(ActionExecutingContext context)
     {
