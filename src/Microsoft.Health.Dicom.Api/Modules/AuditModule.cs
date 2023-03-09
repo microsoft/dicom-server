@@ -5,8 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Extensions.DependencyInjection;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
@@ -24,10 +22,5 @@ public class AuditModule : IStartupModule
             .AsSelf();
 
         services.AddSingleton<IDicomLogger, DicomLogger>();
-
-        services.Add<AuditEventTypeMapping>()
-            .Singleton()
-            .AsService<IAuditEventTypeMapping>()
-            .AsService<IHostedService>();
     }
 }

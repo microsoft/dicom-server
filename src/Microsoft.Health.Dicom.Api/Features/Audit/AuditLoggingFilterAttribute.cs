@@ -23,8 +23,7 @@ public class AuditLoggingFilterAttribute : ActionFilterAttribute
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
-        // AuditHelper.LogExecuting(context.HttpContext);
-        // todo will remove whole filter later once paas fully converted
+        //  filter to be removed in subsequent PR
 
         base.OnActionExecuting(context);
     }
