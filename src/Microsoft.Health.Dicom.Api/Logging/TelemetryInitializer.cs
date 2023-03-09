@@ -38,7 +38,6 @@ internal class TelemetryInitializer : ITelemetryInitializer
             return;
         }
 
-        // todo fails for health check
         string version = _httpContextAccessor.HttpContext?.GetRequestedApiVersion()?.ToString();
         if (version == null)
         {
