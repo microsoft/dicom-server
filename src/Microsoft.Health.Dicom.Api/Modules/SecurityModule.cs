@@ -91,8 +91,6 @@ public class SecurityModule : IStartupModule
             .AsSelf()
             .AsService<RequestContextAccessor<IDicomRequestContext>>()
             .AsService<IDicomRequestContextAccessor>();
-
-        // services.AddSingleton<IClaimsExtractor, PrincipalClaimsExtractor>();
     }
 
     internal string[] GetValidAudiences()
