@@ -33,7 +33,6 @@ public class DicomRequestContextDataPopulatingFilterAttributeTests
     private const string ControllerName = "controller";
     private const string ActionName = "actionName";
     private const string RouteName = "routeName";
-    private const string NormalAuditEventType = "event-name";
     private const string StudyInstanceUid = "123";
     private const string SeriesInstanceUid = "456";
     private const string SopInstanceUid = "789";
