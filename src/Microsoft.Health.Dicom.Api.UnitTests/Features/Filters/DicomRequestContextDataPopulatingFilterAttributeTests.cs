@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.UnitTests.Features.Context;
@@ -24,9 +23,11 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Filters;
 public class DicomRequestContextDataPopulatingFilterAttributeTests
 {
     private readonly ControllerActionDescriptor _controllerActionDescriptor;
-    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor =
+        Substitute.For<IDicomRequestContextAccessor>();
+
     private readonly DefaultDicomRequestContext _dicomRequestContext = new DefaultDicomRequestContext();
-    private readonly IAuditEventTypeMapping _auditEventTypeMapping = Substitute.For<IAuditEventTypeMapping>();
     private readonly HttpContext _httpContext = new DefaultHttpContext();
     private readonly ActionExecutingContext _actionExecutingContext;
     private const string ControllerName = "controller";
@@ -46,10 +47,7 @@ public class DicomRequestContextDataPopulatingFilterAttributeTests
             DisplayName = "Executing Context Test Descriptor",
             ActionName = ActionName,
             ControllerName = ControllerName,
-            AttributeRouteInfo = new AttributeRouteInfo
-            {
-                Name = RouteName,
-            },
+            AttributeRouteInfo = new AttributeRouteInfo { Name = RouteName, },
         };
 
         _actionExecutingContext = new ActionExecutingContext(
@@ -60,19 +58,16 @@ public class DicomRequestContextDataPopulatingFilterAttributeTests
 
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
 
-        _filterAttribute = new DicomRequestContextRouteDataPopulatingFilterAttribute(_dicomRequestContextAccessor, _auditEventTypeMapping);
+        _filterAttribute = new DicomRequestContextRouteDataPopulatingFilterAttribute(_dicomRequestContextAccessor);
     }
 
     [Fact]
     public void GivenRetrieveRequestForStudy_WhenExecutingAnAction_ThenValuesShouldBeSetOnDicomFhirRequestContext()
     {
-        var routeValueDictionary = new RouteValueDictionary
-        {
-            { KnownActionParameterNames.StudyInstanceUid, "123" },
-        };
+        var routeValueDictionary = new RouteValueDictionary { { KnownActionParameterNames.StudyInstanceUid, "123" }, };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
-        ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Study);
+        ExecuteAndValidateFilter(ResourceType.Study);
     }
 
     [Fact]
@@ -85,11 +80,12 @@ public class DicomRequestContextDataPopulatingFilterAttributeTests
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
-        ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Series);
+        ExecuteAndValidateFilter(ResourceType.Series);
     }
 
     [Fact]
-    public void GivenRetrieveRequestForSopInstance_WhenExecutingAnAction_ThenValuesShouldBeSetOnDicomFhirRequestContext()
+    public void
+        GivenRetrieveRequestForSopInstance_WhenExecutingAnAction_ThenValuesShouldBeSetOnDicomFhirRequestContext()
     {
         var routeValueDictionary = new RouteValueDictionary
         {
@@ -99,20 +95,14 @@ public class DicomRequestContextDataPopulatingFilterAttributeTests
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
-        ExecuteAndValidateFilter(NormalAuditEventType, NormalAuditEventType, ResourceType.Series);
+        ExecuteAndValidateFilter(ResourceType.Series);
     }
 
     private void ExecuteAndValidateFilter(
-        string auditEventTypeFromMapping,
-        string expectedAuditEventType,
         ResourceType? resourceType = null)
     {
-        _auditEventTypeMapping.GetAuditEventType(ControllerName, ActionName).Returns(auditEventTypeFromMapping);
-
         _filterAttribute.OnActionExecuting(_actionExecutingContext);
 
-        Assert.NotNull(_dicomRequestContextAccessor.RequestContext.AuditEventType);
-        Assert.Equal(expectedAuditEventType, _dicomRequestContextAccessor.RequestContext.AuditEventType);
         Assert.Equal(RouteName, _dicomRequestContextAccessor.RequestContext.RouteName);
 
         if (resourceType != null)

@@ -6,10 +6,8 @@
 using System;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
@@ -19,17 +17,13 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters;
 public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : ActionFilterAttribute
 {
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly IAuditEventTypeMapping _auditEventTypeMapping;
 
     public DicomRequestContextRouteDataPopulatingFilterAttribute(
-        IDicomRequestContextAccessor dicomRequestContextAccessor,
-        IAuditEventTypeMapping auditEventTypeMapping)
+        IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
-        EnsureArg.IsNotNull(auditEventTypeMapping, nameof(auditEventTypeMapping));
 
         _dicomRequestContextAccessor = dicomRequestContextAccessor;
-        _auditEventTypeMapping = auditEventTypeMapping;
     }
 
     public override void OnActionExecuting(ActionExecutingContext context)
@@ -52,24 +46,19 @@ public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : Acti
                 dicomRequestContext.StudyInstanceUid = studyInstanceUid.ToString();
 
                 // Try to get SeriesInstanceUid only if StudyInstanceUid was successfully fetched.
-                if (routeData.Values.TryGetValue(KnownActionParameterNames.SeriesInstanceUid, out object seriesInstanceUid))
+                if (routeData.Values.TryGetValue(KnownActionParameterNames.SeriesInstanceUid,
+                        out object seriesInstanceUid))
                 {
                     dicomRequestContext.SeriesInstanceUid = seriesInstanceUid.ToString();
 
                     // Try to get SopInstanceUid only if StudyInstanceUid and SeriesInstanceUid were fetched successfully.
-                    if (routeData.Values.TryGetValue(KnownActionParameterNames.SopInstanceUid, out object sopInstanceUid))
+                    if (routeData.Values.TryGetValue(KnownActionParameterNames.SopInstanceUid,
+                            out object sopInstanceUid))
                     {
                         dicomRequestContext.SopInstanceUid = sopInstanceUid.ToString();
                     }
                 }
             }
-        }
-
-        if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)
-        {
-            dicomRequestContext.AuditEventType = _auditEventTypeMapping.GetAuditEventType(
-                controllerActionDescriptor.ControllerName,
-                controllerActionDescriptor.ActionName);
         }
 
         base.OnActionExecuting(context);
