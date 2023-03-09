@@ -25,8 +25,6 @@ public class AuditModule : IStartupModule
 
         services.AddSingleton<IDicomLogger, DicomLogger>();
 
-        services.AddSingleton<IAuditHeaderReader, AuditHeaderReader>();
-
         services.Add<AuditEventTypeMapping>()
             .Singleton()
             .AsService<IAuditEventTypeMapping>()
