@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Extensions.DependencyInjection;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -20,7 +19,5 @@ public class AuditModule : IStartupModule
         services.Add<DicomAudit.AuditLoggingFilterAttribute>()
             .Singleton()
             .AsSelf();
-
-        services.AddSingleton<IDicomLogger, DicomLogger>();
     }
 }

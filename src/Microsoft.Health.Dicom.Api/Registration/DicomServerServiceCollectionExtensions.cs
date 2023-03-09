@@ -28,6 +28,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Api.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
@@ -138,6 +139,8 @@ public static class DicomServerServiceCollectionExtensions
             options.DocumentFilter<ReflectionTypeFilter>();
             options.SchemaFilter<IgnoreEnumSchemaFilter>();
         });
+
+        services.AddSingleton<IDicomLogger, DicomLogger>();
 
         services.AddSingleton<IUrlResolver, UrlResolver>();
 
