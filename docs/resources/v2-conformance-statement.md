@@ -61,7 +61,7 @@ The following `Content-Type` header(s) are supported:
 - `multipart/related; type="application/dicom"`
 - `application/dicom`
 
-> Note: The Server will <u>not</u> coerce or replace existing data on the DICOM binary. The DICOM binary will be stored as provided.
+> Note: the Server will <u>not</u> coerce or replace data in the DICOM PS 3.10 file. The DICOM file will be stored as provided, except where otherwise noted.
 
 The following DICOM elements are required to be present in every DICOM file attempting to be stored:
 
