@@ -79,7 +79,7 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 > Requests are limited to 2GB. No single DICOM file or combination of files may exceed this limit.
 
 ### Store Changes From V1
-A major change from V1 Store API is that attributes will continue to be validated, but only validation errors with [required attributes](#store-required-attributes) would cause Store to fail.
+In previous versions, a Store request would fail if any of the [required](#store-required-attributes) or [searchable attributes](#searchable-attributes) failed validation. Beginning with V2, the request will only fail if **required attributes** fail validation.
 
 Failed validation of attributes not required by the API will still result in the file being stored and a warning will be given about each failing attribute per instance.
 When a sequence contains an attribute that fails validation, or when there are multiple issues with a single attribute, only the first failing attribute reason will be noted.
