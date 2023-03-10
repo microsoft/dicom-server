@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Health.Core.Features.Audit;
-using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;

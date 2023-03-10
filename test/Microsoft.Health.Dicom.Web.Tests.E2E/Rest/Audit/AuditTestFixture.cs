@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 
