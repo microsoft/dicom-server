@@ -13,8 +13,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -53,7 +54,6 @@ public class DicomStoreServiceTests
     private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
     private readonly IStoreDatasetValidator _dicomDatasetValidator = Substitute.For<IStoreDatasetValidator>();
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
-    private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
@@ -274,6 +274,8 @@ public class DicomStoreServiceTests
                 dicomInstanceEntry,
                 DefaultCancellationToken
             );
+
+        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]
@@ -334,6 +336,8 @@ public class DicomStoreServiceTests
                 dicomInstanceEntry,
                 DefaultCancellationToken
             );
+
+        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]
@@ -390,6 +394,8 @@ public class DicomStoreServiceTests
                 dicomInstanceEntry,
                 DefaultCancellationToken
             );
+
+        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]
@@ -448,6 +454,8 @@ public class DicomStoreServiceTests
                 dicomInstanceEntryInvalid,
                 DefaultCancellationToken
             );
+
+        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), invalidDicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]

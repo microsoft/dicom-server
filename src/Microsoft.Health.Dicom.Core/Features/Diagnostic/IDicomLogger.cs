@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using Microsoft.Health.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
-namespace Microsoft.Health.Dicom.Core.Features.Audit;
+namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
 /// <summary>
 /// Provides mechanism to log audit and diagnostic events.
