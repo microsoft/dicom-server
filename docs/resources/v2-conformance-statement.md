@@ -75,7 +75,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
-> DICOM File Size Limit: there is a size limit of 2GB for request size, thus limiting the size of the DICOM file.
+> Requests are limited to 2GB. No single DICOM file or combination of files may exceed this limit.
 
 ### Store Response Status Codes
 
