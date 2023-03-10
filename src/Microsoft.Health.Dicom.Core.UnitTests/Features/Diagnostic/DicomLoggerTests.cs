@@ -15,12 +15,12 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Diagnostic;
 
 public class DicomLoggerTests
 {
-    private readonly IDicomLogger _dicomLogger;
-    private readonly ILogger<IDicomLogger> _logger = Substitute.For<ILogger<IDicomLogger>>();
+    private readonly IDicomForwardingLogger _dicomForwardingLogger;
+    private readonly ILogger<IDicomForwardingLogger> _logger = Substitute.For<ILogger<IDicomForwardingLogger>>();
 
     public DicomLoggerTests()
     {
-        _dicomLogger = new DicomLogger(_logger);
+        _dicomForwardingLogger = new DicomForwardingLogger(_logger);
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class DicomLoggerTests
     {
         IReadOnlyDictionary<string, string> customHeaders = new Dictionary<string, string>() { { "A", "B" } };
 
-        _dicomLogger.LogAudit(AuditAction.Executed, customHeaders);
+        _dicomForwardingLogger.LogAudit(AuditAction.Executed, customHeaders);
 
         var expected = "Audit Log: { Executed, Custom Headers: { [A, B] } }";
         _logger.ReceivedWithAnyArgs(1).LogInformation(expected);
@@ -39,7 +39,7 @@ public class DicomLoggerTests
     {
         IReadOnlyDictionary<string, string> customHeaders = new Dictionary<string, string>() { { "A", "B" } };
 
-        _dicomLogger.LogDiagnostic(
+        _dicomForwardingLogger.LogDiagnostic(
             "A message.",
             new InstanceIdentifier("1", "2", "3"));
 

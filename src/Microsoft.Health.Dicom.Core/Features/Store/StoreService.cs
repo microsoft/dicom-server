@@ -65,7 +65,7 @@ public class StoreService : IStoreService
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
-    private readonly IDicomLogger _dicomLogger;
+    private readonly IDicomForwardingLogger _dicomForwardingLogger;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
@@ -78,9 +78,9 @@ public class StoreService : IStoreService
         StoreMeter storeMeter,
         ILogger<StoreService> logger,
         IOptions<FeatureConfiguration> featureConfiguration,
-        IDicomLogger dicomLogger)
+        IDicomForwardingLogger dicomForwardingLogger)
     {
-        _dicomLogger = EnsureArg.IsNotNull(dicomLogger, nameof(dicomLogger));
+        _dicomForwardingLogger = EnsureArg.IsNotNull(dicomForwardingLogger, nameof(dicomForwardingLogger));
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
@@ -254,7 +254,7 @@ public class StoreService : IStoreService
             dicomDataset.Remove(tag);
 
             string message = storeValidatorResult.InvalidTagErrors[tag].Error;
-            _dicomLogger.LogDiagnostic(
+            _dicomForwardingLogger.LogDiagnostic(
                 $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
                 " However, it will still be present when retrieving study, series, or instance resources.",
                 identifier);

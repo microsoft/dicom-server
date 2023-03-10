@@ -140,7 +140,7 @@ public static class DicomServerServiceCollectionExtensions
             options.SchemaFilter<IgnoreEnumSchemaFilter>();
         });
 
-        services.AddSingleton<IDicomLogger, DicomLogger>();
+        services.AddSingleton<IDicomForwardingLogger, DicomForwardingLogger>();
 
         services.AddSingleton<IUrlResolver, UrlResolver>();
 

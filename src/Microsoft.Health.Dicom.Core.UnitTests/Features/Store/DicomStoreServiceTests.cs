@@ -59,7 +59,7 @@ public class DicomStoreServiceTests
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
     private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
     private readonly StoreMeter _storeMeter = new StoreMeter();
-    private readonly IDicomLogger _dicomLogger = Substitute.For<IDicomLogger>();
+    private readonly IDicomForwardingLogger _dicomForwardingLogger = Substitute.For<IDicomForwardingLogger>();
 
     private readonly StoreService _storeService;
     private readonly StoreService _storeServiceDropData;
@@ -83,7 +83,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             Options.Create(new FeatureConfiguration { EnableLatestApiVersion = false }),
-            _dicomLogger);
+            _dicomForwardingLogger);
 
         IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
             new FeatureConfiguration { EnableLatestApiVersion = true });
@@ -96,7 +96,7 @@ public class DicomStoreServiceTests
             _storeMeter,
             NullLogger<StoreService>.Instance,
             featureConfiguration,
-            _dicomLogger);
+            _dicomForwardingLogger);
 
         DicomValidationBuilderExtension.SkipValidation(null);
     }
@@ -275,7 +275,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
+        _dicomForwardingLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
+        _dicomForwardingLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]
@@ -395,7 +395,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
+        _dicomForwardingLogger.Received(1).LogDiagnostic(Arg.Any<string>(), dicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]
@@ -455,7 +455,7 @@ public class DicomStoreServiceTests
                 DefaultCancellationToken
             );
 
-        _dicomLogger.Received(1).LogDiagnostic(Arg.Any<string>(), invalidDicomDataset.ToInstanceIdentifier());
+        _dicomForwardingLogger.Received(1).LogDiagnostic(Arg.Any<string>(), invalidDicomDataset.ToInstanceIdentifier());
     }
 
     [Fact]

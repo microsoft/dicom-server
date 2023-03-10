@@ -15,16 +15,16 @@ namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 /// <summary>
 /// Provides mechanism to log an audit or diagnostic event using default logger.
 /// </summary>
-public class DicomLogger : IDicomLogger
+public class DicomForwardingLogger : IDicomForwardingLogger
 {
     private const string Prefix = "dicomAdditionalInformation_";
     private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
     private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
     private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
 
-    private readonly ILogger<IDicomLogger> _logger;
+    private readonly ILogger<IDicomForwardingLogger> _logger;
 
-    public DicomLogger(ILogger<IDicomLogger> logger)
+    public DicomForwardingLogger(ILogger<IDicomForwardingLogger> logger)
     {
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }

@@ -10,9 +10,9 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
 /// <summary>
-/// Provides mechanism to log audit and diagnostic events.
+/// Provides mechanism to log audit and diagnostic events meant to be forwarded.
 /// </summary>
-public interface IDicomLogger
+public interface IDicomForwardingLogger
 {
     /// <summary>
     /// Logs an audit event.
@@ -23,6 +23,11 @@ public interface IDicomLogger
         AuditAction auditAction,
         IReadOnlyDictionary<string, string> customHeaders = null);
 
+    /// <summary>
+    /// Logs a diagnostic event.
+    /// </summary>
+    /// <param name="message">A message containing diagnostic information.</param>
+    /// <param name="instanceIdentifier">A dicom dataset's instance identifier.</param>
     public void LogDiagnostic(
         string message,
         InstanceIdentifier instanceIdentifier);
