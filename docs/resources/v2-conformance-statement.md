@@ -63,6 +63,7 @@ The following `Content-Type` header(s) are supported:
 
 > Note: the Server will <u>not</u> coerce or replace data in the DICOM PS 3.10 file. The DICOM file will be stored as provided, except where otherwise noted.
 
+### Store Required Attributes
 The following DICOM elements are required to be present in every DICOM file attempting to be stored:
 
 - StudyInstanceUID
@@ -76,6 +77,12 @@ The following DICOM elements are required to be present in every DICOM file atte
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
 > Requests are limited to 2GB. No single DICOM file or combination of files may exceed this limit.
+
+### Store Changes From V1
+A major change from V1 Store API is that attributes will continue to be validated, but only validation errors with [required attributes](#store-required-attributes) would cause for Store to fail.
+
+Failed validation of attributes not required by the API will still result in the file being stored and a warning will be given about each failing attribute per instance.
+In the case of a failing sequence or multiple issues of a single attribute, only the first failing attribute reason will be noted.
 
 ### Store Response Status Codes
 
@@ -235,9 +242,6 @@ An example response with `Accept` header `application/dicom+json` with a FailedA
 }
 ```
 
-In the case that leniency is applied and the file is stored, you will be notified with each failing attribute per instance. In case of a failing sequence or multiple issues of a single attribute, only the first failing attribute reason will be noted.
-Diagnostic logs will also list failed attributes per instance.
-
 ### Store Failure Reason Codes
 
 | Code  | Description |
@@ -380,7 +384,9 @@ The following `Accept` header(s) are supported for searching:
 
 - `application/dicom+json`
 
-Note if an instance returned validation warnings for searchable attributes at the time the instance was stored, those attributes may not be retrievable via search.
+### Search Changes From V1
+Note if an instance returned validation warnings for [searchable attributes](#searchable-attributes) at the time the [instance was stored](#store-changes-from-v1), those attributes may not be used to search for the stored instance.
+To correct an attribute, delete the stored instance and upload the corrected data.
 
 ### Supported Search Parameters
 
