@@ -82,7 +82,7 @@ Each file stored must have a unique combination of StudyInstanceUID, SeriesInsta
 A major change from V1 Store API is that attributes will continue to be validated, but only validation errors with [required attributes](#store-required-attributes) would cause Store to fail.
 
 Failed validation of attributes not required by the API will still result in the file being stored and a warning will be given about each failing attribute per instance.
-In the case of a failing sequence or multiple issues of a single attribute, only the first failing attribute reason will be noted.
+When a sequence contains an attribute that fails validation, or when there are multiple issues with a single attribute, only the first failing attribute reason will be noted.
 
 ### Store Response Status Codes
 
