@@ -385,7 +385,7 @@ The following `Accept` header(s) are supported for searching:
 - `application/dicom+json`
 
 ### Search Changes From V1
-Note if an instance returned validation warnings for [searchable attributes](#searchable-attributes) at the time the [instance was stored](#store-changes-from-v1), those attributes may not be used to search for the stored instance.
+If an instance returned validation warnings for [searchable attributes](#searchable-attributes) at the time the [instance was stored](#store-changes-from-v1), those attributes may not be used to search for the stored instance.
 To correct an attribute, delete the stored instance and upload the corrected data.
 
 ### Supported Search Parameters
