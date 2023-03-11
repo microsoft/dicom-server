@@ -31,8 +31,11 @@ public class AuditLoggingFilterAttributeTests
     public void GivenChangeFeedController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
     {
         var actionExecutingContext = new ActionExecutingContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executing ChangeFeed." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executing ChangeFeed." }
+            ),
             new List<IFilterMetadata>(),
             new Dictionary<string, object>(),
             FilterTestsHelper.CreateMockChangeFeedController());
@@ -46,8 +49,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var actionExecutedContext = new ActionExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }
+            ),
             new List<IFilterMetadata>(),
             FilterTestsHelper.CreateMockChangeFeedController());
 
@@ -62,8 +68,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var resultExecutedContext = new ResultExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed ChangeFeed." }
+            ),
             new List<IFilterMetadata>(),
             result,
             FilterTestsHelper.CreateMockChangeFeedController());
@@ -75,8 +84,11 @@ public class AuditLoggingFilterAttributeTests
     public void GivenDeleteController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
     {
         var actionExecutingContext = new ActionExecutingContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executing Delete." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executing Delete." }
+            ),
             new List<IFilterMetadata>(),
             new Dictionary<string, object>(),
             FilterTestsHelper.CreateMockDeleteController());
@@ -90,8 +102,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var actionExecutedContext = new ActionExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Delete." }
+            ),
             new List<IFilterMetadata>(),
             FilterTestsHelper.CreateMockDeleteController());
 
@@ -106,8 +121,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var resultExecutedContext = new ResultExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Delete." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Delete." }
+            ),
             new List<IFilterMetadata>(),
             result,
             FilterTestsHelper.CreateMockDeleteController());
@@ -119,8 +137,11 @@ public class AuditLoggingFilterAttributeTests
     public void GivenQueryController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
     {
         var actionExecutingContext = new ActionExecutingContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executing Query." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executing Query." }
+            ),
             new List<IFilterMetadata>(),
             new Dictionary<string, object>(),
             FilterTestsHelper.CreateMockQueryController());
@@ -134,8 +155,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var actionExecutedContext = new ActionExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Query." }
+            ),
             new List<IFilterMetadata>(),
             FilterTestsHelper.CreateMockQueryController());
 
@@ -150,8 +174,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var resultExecutedContext = new ResultExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Query." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Query." }
+            ),
             new List<IFilterMetadata>(),
             result,
             FilterTestsHelper.CreateMockQueryController());
@@ -163,8 +190,11 @@ public class AuditLoggingFilterAttributeTests
     public void GivenRetrieveController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
     {
         var actionExecutingContext = new ActionExecutingContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executing Retrieve." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executing Retrieve." }
+            ),
             new List<IFilterMetadata>(),
             new Dictionary<string, object>(),
             FilterTestsHelper.CreateMockRetrieveController());
@@ -178,8 +208,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var actionExecutedContext = new ActionExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }
+            ),
             new List<IFilterMetadata>(),
             FilterTestsHelper.CreateMockRetrieveController());
 
@@ -194,8 +227,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var resultExecutedContext = new ResultExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Retrieve." }
+            ),
             new List<IFilterMetadata>(),
             result,
             FilterTestsHelper.CreateMockRetrieveController());
@@ -207,8 +243,11 @@ public class AuditLoggingFilterAttributeTests
     public void GivenStoreController_WhenExecutingAction_ThenAuditLogShouldBeLogged()
     {
         var actionExecutingContext = new ActionExecutingContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executing Store." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executing Store." }
+            ),
             new List<IFilterMetadata>(),
             new Dictionary<string, object>(),
             FilterTestsHelper.CreateMockStoreController());
@@ -222,8 +261,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var actionExecutedContext = new ActionExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Store." }
+            ),
             new List<IFilterMetadata>(),
             FilterTestsHelper.CreateMockStoreController());
 
@@ -238,8 +280,11 @@ public class AuditLoggingFilterAttributeTests
         var result = new NoContentResult();
 
         var resultExecutedContext = new ResultExecutedContext(
-            new ActionContext(_httpContext, new RouteData(),
-                new ControllerActionDescriptor() { DisplayName = "Executed Store." }),
+            new ActionContext(
+                _httpContext,
+                new RouteData(),
+                new ControllerActionDescriptor() { DisplayName = "Executed Store." }
+            ),
             new List<IFilterMetadata>(),
             result,
             FilterTestsHelper.CreateMockStoreController());
