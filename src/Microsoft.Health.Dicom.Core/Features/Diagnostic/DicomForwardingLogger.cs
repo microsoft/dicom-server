@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
 /// <summary>
-/// Provides mechanism to log an audit or diagnostic event using default logger.
+/// Used to log audit events or specific diagnostic events that need specialized sinks rather than the injected ILogger.
 /// </summary>
 public class DicomForwardingLogger : IDicomForwardingLogger
 {
