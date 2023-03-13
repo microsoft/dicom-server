@@ -17,8 +17,9 @@ public interface IStoreResponseBuilder
     /// Builds the response.
     /// </summary>
     /// <param name="studyInstanceUid">If specified and there is at least one success, then the RetrieveURL for the study will be set.</param>
+    /// <param name="apiV2Enabled">Whether to build Api V2 response or not..</param>
     /// <returns>An instance of <see cref="StoreResponse"/> representing the response.</returns>
-    StoreResponse BuildResponse(string studyInstanceUid);
+    StoreResponse BuildResponse(string studyInstanceUid, bool apiV2Enabled = false);
 
     /// <summary>
     /// Adds a Success entry to the response.
@@ -26,11 +27,11 @@ public interface IStoreResponseBuilder
     /// <param name="dicomDataset">The DICOM dataset that was successfully stored.</param>
     /// <param name="storeValidationResult">Store validation errors and warnings</param>
     /// <param name="warningReasonCode">The warning reason code.</param>
-    /// <param name="enableDropInvalidDicomJsonMetadata">Whether to build response warning sequence or not.</param>
+    /// <param name="apiV2Enabled">Whether to build response warning sequence or not.</param>
     void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
         ushort? warningReasonCode = null,
-        bool enableDropInvalidDicomJsonMetadata = false);
+        bool apiV2Enabled = false);
 
     void SetWarningMessage(string message);
 
