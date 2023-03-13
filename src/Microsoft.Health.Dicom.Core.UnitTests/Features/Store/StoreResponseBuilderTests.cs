@@ -70,34 +70,40 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenOnlySuccessEntry_WhenLeniencyAppliedAndResponseIsBuilt_ThenExpectPartialSuccessReturned()
+    public void GivenOnlySuccessEntry_WhenApiV2EnabledAndHasWarningCode_ThenExpectPartialSuccessReturned()
     {
-        StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
-        builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
-        StoreValidationResult result = builder.Build();
+        _storeResponseBuilder.AddSuccess(
+            _dicomDataset1,
+            DefaultStoreValidationResult,
+            warningReasonCode: WarningReasonCodes.DatasetHasValidationWarnings);
 
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, result, enableDropInvalidDicomJsonMetadata: true);
-
-        StoreResponse response = _storeResponseBuilder.BuildResponse(null);
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null, apiV2Enabled: true);
 
         Assert.NotNull(response);
         Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
-        Assert.NotNull(response.Dataset);
-        Assert.Single(response.Dataset);
-
-        ValidationHelpers.ValidateReferencedSopSequence(
-            response.Dataset,
-            ("3", "/1/2/3", "4"));
     }
 
     [Fact]
-    public void GivenBuilderHadNoErrors_WhenDropMetadataEnabled_ThenResponseHasEmptyFailedSequence()
+    public void GivenOnlySuccessEntry_WhenApiV2EnabledAndHasNoWarningCode_ThenExpectSuccessReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, enableDropInvalidDicomJsonMetadata: true);
+        _storeResponseBuilder.AddSuccess(
+            _dicomDataset1,
+            DefaultStoreValidationResult,
+            warningReasonCode: null);
+
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null, apiV2Enabled: true);
+
+        Assert.NotNull(response);
+        Assert.Equal(StoreResponseStatus.Success, response.Status);
+    }
+
+    [Fact]
+    public void GivenBuilderHadNoErrors_WhenApiV2Enabled_ThenResponseHasEmptyFailedSequence()
+    {
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, apiV2Enabled: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Single(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -128,16 +134,16 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuilderHasErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyFailedSequence()
+    public void GivenBuilderHasErrors_WhenApiV2Enabled_ThenResponseHasNonEmptyFailedSequence()
     {
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, enableDropInvalidDicomJsonMetadata: true);
+
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, apiV2Enabled: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.Single(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -154,7 +160,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuildWithAndWithoutErrors_WhenDropMetadataEnabled_ThenResponseHasNonEmptyFailedSequenceAndEmptyFailedSequence()
+    public void GivenBuildWithAndWithoutErrors_WhenApiV2Enabled_ThenResponseHasNonEmptyFailedSequenceAndEmptyFailedSequence()
     {
         // This represents multiple instance being processed where one had a validation failure and the other did not
 
@@ -162,14 +168,13 @@ public class StoreResponseBuilderTests
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, enableDropInvalidDicomJsonMetadata: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, apiV2Enabled: true);
 
         //simulate validation pass
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, enableDropInvalidDicomJsonMetadata: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, apiV2Enabled: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
-        Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
         Assert.NotNull(response.Dataset);
 
         DicomSequence refSopSequence = response.Dataset.GetSequence(DicomTag.ReferencedSOPSequence);
@@ -191,7 +196,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBothSuccessAndFailedEntires_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
+    public void GivenBothSuccessAndFailedEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
         _storeResponseBuilder.AddFailure(_dicomDataset1, TestConstants.ProcessingFailureReasonCode);
         _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult);
