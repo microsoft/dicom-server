@@ -1,8 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -12,8 +13,8 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest.Audit;
 
 public class StartupWithTraceAuditLogger : StartupBaseForCustomProviders
 {
-    public StartupWithTraceAuditLogger(IConfiguration configuration)
-        : base(configuration)
+    public StartupWithTraceAuditLogger(IConfiguration configuration, IWebHostEnvironment environment)
+        : base(configuration, environment)
     {
     }
 
