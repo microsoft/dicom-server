@@ -44,4 +44,4 @@ jobs:
       filepath: './build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
       arguments: >
         -SwaggerDir 'swagger'
-        -Version 'v1-prerelease','v1'
+        -Version 'v1-prerelease','v1', 'v2'
