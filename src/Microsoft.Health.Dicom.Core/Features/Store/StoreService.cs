@@ -97,7 +97,7 @@ public class StoreService : IStoreService
         string requiredStudyInstanceUid,
         CancellationToken cancellationToken)
     {
-        bool apiV2Enabled = IsApiV2Enabled(_dicomRequestContextAccessor.RequestContext.Version);
+        bool returnWarning202 = _dicomRequestContextAccessor.RequestContext.Version is >= 2;
         if (instanceEntries != null)
         {
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
@@ -126,7 +126,7 @@ public class StoreService : IStoreService
             }
         }
 
-        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid, apiV2Enabled);
+        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid, returnWarning202);
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when refactoring validation.")]
@@ -138,7 +138,7 @@ public class StoreService : IStoreService
         DicomDataset dicomDataset = null;
         StoreValidationResult storeValidatorResult = null;
 
-        bool apiV2Enabled = IsApiV2Enabled(_dicomRequestContextAccessor.RequestContext.Version);
+        bool dropMetadata = _dicomRequestContextAccessor.RequestContext.Version is >= 2;
 
         try
         {
@@ -164,7 +164,7 @@ public class StoreService : IStoreService
 
             // If there is an error in the required core tag, return immediately
             if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag) ||
-                !apiV2Enabled && storeValidatorResult.InvalidTagErrors.Any())
+                !dropMetadata && storeValidatorResult.InvalidTagErrors.Any())
             {
                 ushort failureCode = FailureReasonCodes.ValidationFailure;
                 LogValidationFailedDelegate(_logger, index, failureCode, null);
@@ -172,7 +172,7 @@ public class StoreService : IStoreService
                 return null;
             }
 
-            if (apiV2Enabled)
+            if (dropMetadata)
             {
                 DropInvalidMetadata(storeValidatorResult, dicomDataset);
 
@@ -214,7 +214,12 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, apiV2Enabled);
+            _storeResponseBuilder.AddSuccess(
+                dicomDataset,
+                storeValidatorResult,
+                warningReasonCode,
+                buildWarningSequence: dropMetadata
+            );
             return length;
         }
         catch (Exception ex)
@@ -266,10 +271,5 @@ public class StoreService : IStoreService
         {
             LogFailedToDisposeDelegate(_logger, index, ex);
         }
-    }
-
-    private static bool IsApiV2Enabled(int? version)
-    {
-        return version is >= 2;
     }
 }

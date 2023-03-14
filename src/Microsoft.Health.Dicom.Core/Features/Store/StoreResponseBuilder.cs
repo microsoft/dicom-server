@@ -33,7 +33,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public StoreResponse BuildResponse(string studyInstanceUid, bool apiV2Enabled = false)
+    public StoreResponse BuildResponse(string studyInstanceUid, bool returnWarning202 = false)
     {
         bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
         bool hasFailure = _dataset?.TryGetSequence(DicomTag.FailedSOPSequence, out _) ?? false;
@@ -47,7 +47,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
         else if (hasSuccess)
         {
-            if (apiV2Enabled && HasWarningReasonCode())
+            if (returnWarning202 && HasWarningReasonCode())
             {
                 // if we have warning reason code on any of the instances, status code should reflect that
                 status = StoreResponseStatus.PartialSuccess;
@@ -83,7 +83,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     public void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
         ushort? warningReasonCode = null,
-        bool apiV2Enabled = false)
+        bool buildWarningSequence = false)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(storeValidationResult, nameof(storeValidationResult));
@@ -111,7 +111,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
         }
 
-        if (apiV2Enabled)
+        if (buildWarningSequence)
         {
             // add comment Sq / list of warnings here
             var warnings = storeValidationResult.InvalidTagErrors.Values.Select(

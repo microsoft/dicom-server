@@ -77,7 +77,7 @@ public class StoreResponseBuilderTests
             DefaultStoreValidationResult,
             warningReasonCode: WarningReasonCodes.DatasetHasValidationWarnings);
 
-        StoreResponse response = _storeResponseBuilder.BuildResponse(null, apiV2Enabled: true);
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null, returnWarning202: true);
 
         Assert.NotNull(response);
         Assert.Equal(StoreResponseStatus.PartialSuccess, response.Status);
@@ -91,7 +91,7 @@ public class StoreResponseBuilderTests
             DefaultStoreValidationResult,
             warningReasonCode: null);
 
-        StoreResponse response = _storeResponseBuilder.BuildResponse(null, apiV2Enabled: true);
+        StoreResponse response = _storeResponseBuilder.BuildResponse(null, returnWarning202: true);
 
         Assert.NotNull(response);
         Assert.Equal(StoreResponseStatus.Success, response.Status);
@@ -100,7 +100,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenBuilderHadNoErrors_WhenApiV2Enabled_ThenResponseHasEmptyFailedSequence()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, apiV2Enabled: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, buildWarningSequence: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -140,7 +140,7 @@ public class StoreResponseBuilderTests
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
 
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, apiV2Enabled: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, buildWarningSequence: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -168,10 +168,10 @@ public class StoreResponseBuilderTests
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, apiV2Enabled: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, buildWarningSequence: true);
 
         //simulate validation pass
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, apiV2Enabled: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, buildWarningSequence: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
