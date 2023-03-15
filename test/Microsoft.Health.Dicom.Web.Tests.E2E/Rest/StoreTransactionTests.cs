@@ -439,7 +439,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     public async Task GivenInstanceWithPatientIDWithInvalidChars_WhenStoreInstanceWithPartialValidation_ThenExpectDicom100ErrorAndConflictStatus()
     {
         DicomFile dicomFile1 = new DicomFile(
-            Samples.CreateRandomInstanceDataset(patientId: "Before Null Character, \0", validateItems:false));
+            Samples.CreateRandomInstanceDataset(patientId: "Before Null Character, \0", validateItems: false));
 
         var ex = await Assert.ThrowsAsync<DicomWebException>(
             () => _instancesManager.StoreAsync(new[] { dicomFile1 }));
