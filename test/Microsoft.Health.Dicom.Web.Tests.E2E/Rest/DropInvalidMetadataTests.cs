@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
@@ -140,6 +141,23 @@ public class DropInvalidMetadataTests : IClassFixture<EnableDropInvalidDicomJson
             """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
         );
+    }
+
+    [Fact]
+    public async Task GivenInstanceWithPatientIDWithInvalidChars_WhenStoreInstanceWithPartialValidation_ThenExpectDicom100Error()
+    {
+        DicomFile dicomFile1 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(patientId: "Before Null Character, \0"));
+
+        var ex = await Assert.ThrowsAsync<DicomWebException>(
+            () => _instancesManager.StoreAsync(new[] { dicomFile1 }, partitionName: _partition));
+
+        Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
+        DicomSequence failedSOPSequence = ex.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
+        DicomSequence failedAttributesSequence = failedSOPSequence.Items[0].GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Equal(
+            """DICOM100: (0010,0020) - Dicom element 'PatientID' failed validation for VR 'LO': Value contains invalid character.""",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
