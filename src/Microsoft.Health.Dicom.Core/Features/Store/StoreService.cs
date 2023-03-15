@@ -161,22 +161,32 @@ public class StoreService : IStoreService
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
 
-            // If there is an error in the required core tag, return immediately
-            if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag) ||
-                !enableDropInvalidDicomJsonMetadata && storeValidatorResult.InvalidTagErrors.Any())
-            {
-                ushort failureCode = FailureReasonCodes.ValidationFailure;
-                LogValidationFailedDelegate(_logger, index, failureCode, null);
-                _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
-                return null;
-            }
-
             if (enableDropInvalidDicomJsonMetadata)
             {
+                // if any core tag errors occured, log as failure and return. otherwise we drop the invalid tag
+                if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag))
+                {
+                    ushort failureCode = FailureReasonCodes.ValidationFailure;
+                    LogValidationFailedDelegate(_logger, index, failureCode, null);
+                    _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                    return null;
+                }
+
                 DropInvalidMetadata(storeValidatorResult, dicomDataset);
 
                 // set warning code if none set yet
                 warningReasonCode ??= WarningReasonCodes.DatasetHasValidationWarnings;
+            }
+            else
+            {
+                // if any tag errors occured, log as failure and return
+                if (storeValidatorResult.InvalidTagErrors.Any())
+                {
+                    ushort failureCode = FailureReasonCodes.ValidationFailure;
+                    LogValidationFailedDelegate(_logger, index, failureCode, null);
+                    _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                    return null;
+                }
             }
         }
         catch (Exception ex)
