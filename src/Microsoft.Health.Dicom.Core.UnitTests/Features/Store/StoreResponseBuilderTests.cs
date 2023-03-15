@@ -70,7 +70,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenOnlySuccessEntry_WhenApiV2EnabledAndHasWarningCode_ThenExpectPartialSuccessReturned()
+    public void GivenOnlySuccessEntry_WhenBuildWarningSequenceEnabledAndHasWarningCode_ThenExpectPartialSuccessReturned()
     {
         _storeResponseBuilder.AddSuccess(
             _dicomDataset1,
@@ -84,7 +84,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenOnlySuccessEntry_WhenApiV2EnabledAndHasNoWarningCode_ThenExpectSuccessReturned()
+    public void GivenOnlySuccessEntry_WhenBuildWarningSequenceEnabledAndHasNoWarningCode_ThenExpectSuccessReturned()
     {
         _storeResponseBuilder.AddSuccess(
             _dicomDataset1,
@@ -98,7 +98,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuilderHadNoErrors_WhenApiV2Enabled_ThenResponseHasEmptyFailedSequence()
+    public void GivenBuilderHadNoErrors_WhenBuildWarningSequenceEnabled_ThenResponseHasEmptyFailedSequence()
     {
         _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, buildWarningSequence: true);
 
@@ -134,7 +134,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuilderHasErrors_WhenApiV2Enabled_ThenResponseHasNonEmptyFailedSequence()
+    public void GivenBuilderHasErrors_WhenBuildWarningSequenceEnabled_ThenResponseHasNonEmptyFailedSequence()
     {
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
@@ -160,7 +160,7 @@ public class StoreResponseBuilderTests
     }
 
     [Fact]
-    public void GivenBuildWithAndWithoutErrors_WhenApiV2Enabled_ThenResponseHasNonEmptyFailedSequenceAndEmptyFailedSequence()
+    public void GivenBuildWithAndWithoutErrors_WhenBuildWarningSequenceEnabled_ThenResponseHasNonEmptyFailedSequenceAndEmptyFailedSequence()
     {
         // This represents multiple instance being processed where one had a validation failure and the other did not
 
