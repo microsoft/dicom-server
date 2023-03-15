@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -37,8 +38,18 @@ internal class TelemetryInitializer : ITelemetryInitializer
         {
             return;
         }
-
-        string version = _httpContextAccessor.HttpContext?.GetRequestedApiVersion()?.ToString();
+        string version = null;
+        try
+        {
+            version = _httpContextAccessor.HttpContext?.GetRequestedApiVersion()?.ToString();
+        }
+        catch (ArgumentNullException)
+        {
+            /*
+             * GetRequestedApiVersion() is throwing argument null on urls like health/check which as no version.
+             * logged a bug  https://github.com/dotnet/aspnet-api-versioning/issues/976
+             */
+        }
         if (version == null)
         {
             return;
