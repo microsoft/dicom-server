@@ -166,9 +166,7 @@ public class StoreService : IStoreService
                 // if any core tag errors occured, log as failure and return. otherwise we drop the invalid tag
                 if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag))
                 {
-                    ushort failureCode = FailureReasonCodes.ValidationFailure;
-                    LogValidationFailedDelegate(_logger, index, failureCode, null);
-                    _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                    LogFailure(index, dicomDataset, storeValidatorResult);
                     return null;
                 }
 
@@ -182,9 +180,7 @@ public class StoreService : IStoreService
                 // if any tag errors occured, log as failure and return
                 if (storeValidatorResult.InvalidTagErrors.Any())
                 {
-                    ushort failureCode = FailureReasonCodes.ValidationFailure;
-                    LogValidationFailedDelegate(_logger, index, failureCode, null);
-                    _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
+                    LogFailure(index, dicomDataset, storeValidatorResult);
                     return null;
                 }
             }
@@ -246,6 +242,13 @@ public class StoreService : IStoreService
             _storeResponseBuilder.AddFailure(dicomDataset, failureCode);
             return null;
         }
+    }
+
+    private void LogFailure(int index, DicomDataset dicomDataset, StoreValidationResult storeValidatorResult)
+    {
+        ushort failureCode = FailureReasonCodes.ValidationFailure;
+        LogValidationFailedDelegate(_logger, index, failureCode, null);
+        _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
     }
 
     private void DropInvalidMetadata(StoreValidationResult storeValidatorResult, DicomDataset dicomDataset)
