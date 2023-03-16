@@ -3,15 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 internal class RetrieveRenderedHandler : BaseHandler, IRequestHandler<RetrieveRenderedRequest, RetrieveRenderedResponse>
@@ -43,5 +47,14 @@ internal class RetrieveRenderedHandler : BaseHandler, IRequestHandler<RetrieveRe
     private static void ValidateRetrieveRenderedRequest(RetrieveRenderedRequest request)
     {
         RetrieveRequestValidator.ValidateInstanceIdentifiers(request.ResourceType, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+
+        if (request.AcceptHeaders.Count > 1)
+        {
+            throw new NotAcceptableException(DicomCoreResource.MultipleAcceptHeadersNotSupported);
+        }
+        else if (request.AcceptHeaders.Count == 1 && !StringSegment.Equals(request.AcceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+        }
     }
 }

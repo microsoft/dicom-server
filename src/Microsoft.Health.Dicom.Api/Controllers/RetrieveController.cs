@@ -170,7 +170,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }

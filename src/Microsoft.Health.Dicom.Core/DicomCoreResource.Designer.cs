@@ -913,6 +913,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
+        /// </summary>
+        internal static string MultipleAcceptHeadersNotSupported {
+            get {
+                return ResourceManager.GetString("MultipleAcceptHeadersNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nested Dicom sequence tags are currently not supported..
         /// </summary>
         internal static string NestedSequencesNotSupported {
@@ -927,15 +936,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string NotAcceptableHeaders {
             get {
                 return ResourceManager.GetString("NotAcceptableHeaders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
-        /// </summary>
-        internal static string NotSupportMultipleAcceptHeaders {
-            get {
-                return ResourceManager.GetString("NotSupportMultipleAcceptHeaders", resourceCulture);
             }
         }
         

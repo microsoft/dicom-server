@@ -61,7 +61,6 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             InstanceMetadata instance = retrieveInstances.First();
 
-
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
 
             Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
@@ -73,12 +72,14 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             using var sharpImage = img.AsSharpImage();
             Stream imageFormat = new MemoryStream();
             sharpImage.SaveAsJpeg(imageFormat, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
-            return new RetrieveRenderedResponse(new RetrieveResourceInstance(imageFormat), "image/jpeg");
+            imageFormat.Position = 0;
+
+            return new RetrieveRenderedResponse(new RetrieveResourceInstance(imageFormat, streamLength: imageFormat.Length), "image/jpeg");
         }
         catch (DataStoreException e)
         {
             // Log request details associated with exception. Note that the details are not for the store call that failed but for the request only.
-            _logger.LogError(e, "Error retrieving dicom resource. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            _logger.LogError(e, "Error retrieving dicom resource to render. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
             throw;
         }
