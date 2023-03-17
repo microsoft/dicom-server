@@ -97,6 +97,7 @@ public class StoreService : IStoreService
         string requiredStudyInstanceUid,
         CancellationToken cancellationToken)
     {
+        bool returnWarning202 = _dicomRequestContextAccessor.RequestContext.Version is >= 2;
         if (instanceEntries != null)
         {
             _dicomRequestContextAccessor.RequestContext.PartCount = instanceEntries.Count;
@@ -125,7 +126,7 @@ public class StoreService : IStoreService
             }
         }
 
-        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid);
+        return _storeResponseBuilder.BuildResponse(requiredStudyInstanceUid, returnWarning202);
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Will reevaluate exceptions when refactoring validation.")]
@@ -137,7 +138,7 @@ public class StoreService : IStoreService
         DicomDataset dicomDataset = null;
         StoreValidationResult storeValidatorResult = null;
 
-        bool enableDropInvalidDicomJsonMetadata = EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version);
+        bool dropMetadata = _dicomRequestContextAccessor.RequestContext.Version is >= 2;
 
         try
         {
@@ -161,7 +162,7 @@ public class StoreService : IStoreService
                 _storeResponseBuilder.SetWarningMessage(DicomCoreResource.IndexedDicomTagHasMultipleValues);
             }
 
-            if (enableDropInvalidDicomJsonMetadata)
+            if (dropMetadata)
             {
                 // if any core tag errors occured, log as failure and return. otherwise we drop the invalid tag
                 if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag))
@@ -219,7 +220,12 @@ public class StoreService : IStoreService
 
             LogSuccessfullyStoredDelegate(_logger, index, null);
 
-            _storeResponseBuilder.AddSuccess(dicomDataset, storeValidatorResult, warningReasonCode, enableDropInvalidDicomJsonMetadata);
+            _storeResponseBuilder.AddSuccess(
+                dicomDataset,
+                storeValidatorResult,
+                warningReasonCode,
+                buildWarningSequence: dropMetadata
+            );
             return length;
         }
         catch (Exception ex)
@@ -278,10 +284,5 @@ public class StoreService : IStoreService
         {
             LogFailedToDisposeDelegate(_logger, index, ex);
         }
-    }
-
-    private static bool EnableDropMetadata(int? version)
-    {
-        return version is >= 2;
     }
 }
