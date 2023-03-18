@@ -435,6 +435,23 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
     }
 
+    [Fact]
+    public async Task GivenInstanceWithPatientIDWithInvalidChars_WhenStoreInstanceWithPartialValidation_ThenExpectDicom100ErrorAndConflictStatus()
+    {
+        DicomFile dicomFile1 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(patientId: "Before Null Character, \0", validateItems: false));
+
+        var ex = await Assert.ThrowsAsync<DicomWebException>(
+            () => _instancesManager.StoreAsync(new[] { dicomFile1 }));
+
+        Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
+        DicomSequence failedSOPSequence = ex.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
+        DicomSequence failedAttributesSequence = failedSOPSequence.Items[0].GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Equal(
+            """DICOM100: (0010,0020) - Dicom element 'PatientID' failed validation for VR 'LO': Value contains invalid character.""",
+        failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
+    }
+
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders
     {
         get

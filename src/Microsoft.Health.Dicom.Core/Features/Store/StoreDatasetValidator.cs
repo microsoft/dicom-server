@@ -32,6 +32,15 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
+    private static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
+    {
+        DicomTag.StudyInstanceUID,
+        DicomTag.SeriesInstanceUID,
+        DicomTag.SOPInstanceUID,
+        DicomTag.PatientID,
+        DicomTag.SOPClassUID,
+    };
+
     public StoreDatasetValidator(
         IOptions<FeatureConfiguration> featureConfiguration,
         IElementMinimumValidator minimumValidator,
@@ -159,7 +168,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, queryTag.Tag);
-                _storeMeter.IndexTagValidationError.Add(1, new[]
+                _storeMeter.IndexTagValidationError.Add(
+                    1,
+                    new[]
                     {
                         new KeyValuePair<string, object>("ExceptionErrorCode", ex.ErrorCode.ToString()),
                         new KeyValuePair<string, object>("ExceptionName", ex.Name),
@@ -183,14 +194,23 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
                 {
-                    validationResultBuilder.Add(ex, item.Tag);
-                    _storeMeter.InvalidTagsDropped.Add(1, new[]
+                    if (RequiredCoreTags.Contains(item.Tag))
                     {
-                        new KeyValuePair<string, object>("ExceptionContent", ex.Content),
-                        new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
-                        new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
-                        new KeyValuePair<string, object>("Tag", item.Tag.ToString())
-                    });
+                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: true);
+                    }
+                    else
+                    {
+                        validationResultBuilder.Add(ex, item.Tag);
+                    }
+                    _storeMeter.ValidateAllValidationError.Add(
+                        1,
+                        new[]
+                        {
+                            new KeyValuePair<string, object>("ExceptionContent", ex.Content),
+                            new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
+                            new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
+                            new KeyValuePair<string, object>("Tag", item.Tag.ToString())
+                        });
                 }
                 else
                 {
