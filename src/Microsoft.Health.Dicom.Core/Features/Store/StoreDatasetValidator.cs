@@ -38,6 +38,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         DicomTag.SeriesInstanceUID,
         DicomTag.SOPInstanceUID,
         DicomTag.PatientID,
+        DicomTag.SOPClassUID,
     };
 
     public StoreDatasetValidator(
