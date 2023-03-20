@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
@@ -167,10 +168,10 @@ public class RetrieveController : ControllerBase
         string seriesInstanceUid,
         string sopInstanceUid)
     {
-        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for instance received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -218,6 +219,30 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}, frames: {Frames}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, string.Join(", ", frames ?? Array.Empty<int>()));
         RetrieveResourceResponse response = await _mediator.RetrieveDicomFramesAsync(
             studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+
+        return CreateResult(response);
+    }
+
+    [Produces(KnownContentTypes.ImageJpeg)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NoContent)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotAcceptable)]
+    [HttpGet]
+    [VersionedPartitionRoute(KnownRoutes.FrameRenderedRoute)]
+    [VersionedRoute(KnownRoutes.FrameRenderedRoute)]
+    [AuditEventType(AuditEventSubType.Retrieve)]
+    public async Task<IActionResult> GetRenderedFrameAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        int frames)
+    {
+        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}', frame '{Frames}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames);
+
+        RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,18 +47,16 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         _logger = logger;
     }
 
-    public async Task<RetrieveRenderedResponse> RetrieveSopInstanceRenderedAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken = default)
+    public async Task<RetrieveRenderedResponse> RetrieveRenderedImageAsync(RetrieveRenderedRequest request, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(studyInstanceUid, nameof(studyInstanceUid));
-        EnsureArg.IsNotNull(seriesInstanceUid, nameof(seriesInstanceUid));
-        EnsureArg.IsNotNull(sopInstanceUid, nameof(sopInstanceUid));
+        EnsureArg.IsNotNull(request, nameof(request));
         var partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
 
         try
         {
             // this call throws NotFound when zero instance found
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance, partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
 
             InstanceMetadata instance = retrieveInstances.First();
 
@@ -68,7 +67,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
 
             var dicomImage = new DicomImage(dicomFile.Dataset);
-            using var img = dicomImage.RenderImage();
+            using var img = dicomImage.RenderImage(request.FrameNumber);
             using var sharpImage = img.AsSharpImage();
             Stream imageFormat = new MemoryStream();
             sharpImage.SaveAsJpeg(imageFormat, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
@@ -76,10 +75,14 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             return new RetrieveRenderedResponse(new RetrieveResourceInstance(imageFormat, streamLength: imageFormat.Length), "image/jpeg");
         }
+        catch (IndexOutOfRangeException e)
+        {
+            throw new FrameNotFoundException(e);
+        }
         catch (DataStoreException e)
         {
             // Log request details associated with exception. Note that the details are not for the store call that failed but for the request only.
-            _logger.LogError(e, "Error retrieving dicom resource to render. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+            _logger.LogError(e, "Error retrieving dicom resource to render. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
 
             throw;
         }

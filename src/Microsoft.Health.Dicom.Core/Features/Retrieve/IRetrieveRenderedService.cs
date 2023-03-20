@@ -10,9 +10,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 public interface IRetrieveRenderedService
 {
-    Task<RetrieveRenderedResponse> RetrieveSopInstanceRenderedAsync(
-       string studyInstanceUid,
-       string seriesInstanceUid,
-       string sopInstanceUid,
+    Task<RetrieveRenderedResponse> RetrieveRenderedImageAsync(
+       RetrieveRenderedRequest request,
        CancellationToken cancellationToken = default);
 }

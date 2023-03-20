@@ -50,6 +50,7 @@ public static class KnownRoutes
     public const string InstanceMetadataRoute = InstanceRoute + "/" + MetadataSegment;
 
     public const string InstanceRenderedRoute = InstanceRoute + "/" + RenderedSegment;
+    public const string FrameRenderedRoute = InstanceRoute + "/frames/" + FrameIdsRouteSegment + "/" + RenderedSegment;
 
     public const string QueryAllStudiesRoute = StudiesRouteSegment;
     public const string QueryAllSeriesRoute = SeriesRouteSegment;

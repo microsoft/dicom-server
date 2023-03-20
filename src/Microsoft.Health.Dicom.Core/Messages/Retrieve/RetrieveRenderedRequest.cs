@@ -10,12 +10,13 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 public class RetrieveRenderedRequest : IRequest<RetrieveRenderedResponse>
 {
 
-    public RetrieveRenderedRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders)
+    public RetrieveRenderedRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, ResourceType resourceType, int frameNumber, IReadOnlyCollection<AcceptHeader> acceptHeaders)
     {
         StudyInstanceUid = studyInstanceUid;
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
-        ResourceType = ResourceType.Instance;
+        ResourceType = resourceType;
+        FrameNumber = frameNumber;
         AcceptHeaders = acceptHeaders;
     }
 
@@ -28,4 +29,6 @@ public class RetrieveRenderedRequest : IRequest<RetrieveRenderedResponse>
     public string SeriesInstanceUid { get; }
 
     public string SopInstanceUid { get; }
+
+    public int FrameNumber { get; }
 }

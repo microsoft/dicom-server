@@ -39,7 +39,7 @@ internal class RetrieveRenderedHandler : BaseHandler, IRequestHandler<RetrieveRe
 
         ValidateRetrieveRenderedRequest(request);
 
-        RetrieveRenderedResponse renderedResponse = await _retrieveRenderedService.RetrieveSopInstanceRenderedAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
+        RetrieveRenderedResponse renderedResponse = await _retrieveRenderedService.RetrieveRenderedImageAsync(request, cancellationToken);
 
         return renderedResponse;
     }
