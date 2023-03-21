@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Health.Dicom.Lake", "Microsoft.Health.Dicom.Lake\Microsoft.Health.Dicom.Lake.csproj", "{6ED5D103-7CCF-424C-A248-5EE13F83ED60}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6ED5D103-7CCF-424C-A248-5EE13F83ED60}.Debug|x64.ActiveCfg = Debug|x64
+		{6ED5D103-7CCF-424C-A248-5EE13F83ED60}.Debug|x64.Build.0 = Debug|x64
+		{6ED5D103-7CCF-424C-A248-5EE13F83ED60}.Release|x64.ActiveCfg = Release|x64
+		{6ED5D103-7CCF-424C-A248-5EE13F83ED60}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7057AB09-970F-4356-A8DE-F69A0840FC9A}
+	EndGlobalSection
+EndGlobal
