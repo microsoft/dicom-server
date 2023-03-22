@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ public class HttpRequestExtensionsTests
     [Fact]
     public void GivenNullHttpRequest_WhenGetAcceptHeaders_ThenShouldThrowException()
     {
-        Assert.Throws<ArgumentNullException>(() => HttpRequestExtensions.GetAcceptHeaders(null));
+        Assert.Throws<ArgumentNullException>(() => Microsoft.Health.Dicom.Api.Extensions.HttpRequestExtensions.GetAcceptHeaders(null));
     }
 
     [Fact]

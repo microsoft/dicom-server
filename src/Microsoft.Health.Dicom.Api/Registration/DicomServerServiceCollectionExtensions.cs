@@ -5,11 +5,10 @@
 
 using System;
 using System.Reflection;
+using Asp.Versioning;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -114,22 +113,23 @@ public static class DicomServerServiceCollectionExtensions
             })
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
 
-        services.AddApiVersioning(c =>
+        services.AddApiVersioning(options =>
         {
-            c.ApiVersionReader = new UrlSegmentApiVersionReader();
-            c.AssumeDefaultVersionWhenUnspecified = true;
-            c.ReportApiVersions = true;
-            c.UseApiBehavior = false;
-
-            c.Conventions.Add(new ApiVersionsConvention(featuresOptions));
-        });
-
-        services.AddVersionedApiExplorer(options =>
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            options.AssumeDefaultVersionWhenUnspecified = true;
+            options.ReportApiVersions = true;
+        })
+        .AddMvc(options =>
+        {
+            options.Conventions.Add(new ApiVersionsConvention(featuresOptions));
+        })
+        .AddApiExplorer(options =>
         {
             // The format for this is 'v'major[.minor][-status] ex. v1.0-prerelease
             options.GroupNameFormat = "'v'VVV";
             options.SubstituteApiVersionInUrl = true;
         });
+
 
         services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
         services.AddSwaggerGen(options =>
@@ -175,8 +175,6 @@ public static class DicomServerServiceCollectionExtensions
             return app =>
             {
                 IWebHostEnvironment env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
-
-                IApiVersionDescriptionProvider provider = app.ApplicationServices.GetRequiredService<IApiVersionDescriptionProvider>();
 
                 // This middleware will add delegates to the OnStarting method of httpContext.Response for setting headers.
                 app.UseBaseHeaders();

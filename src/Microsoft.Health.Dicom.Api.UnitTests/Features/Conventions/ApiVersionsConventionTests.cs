@@ -6,9 +6,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Reflection;
-using Microsoft.AspNetCore.Mvc;
+using Asp.Versioning;
+using Asp.Versioning.Conventions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.AspNetCore.Mvc.Versioning.Conventions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Core.Configs;

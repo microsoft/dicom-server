@@ -5,7 +5,7 @@
 
 using System;
 using EnsureThat;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
@@ -39,7 +39,7 @@ public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : Acti
         IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
         dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
-        dicomRequestContext.Version = context.HttpContext.GetRequestedApiVersion()?.MajorVersion;
+        dicomRequestContext.Version = context.HttpContext.ApiVersioningFeature().RequestedApiVersion?.MajorVersion;
 
         // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
         RouteData routeData = context.RouteData;
