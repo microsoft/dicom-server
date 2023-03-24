@@ -6,6 +6,7 @@
 using System;
 using System.Reflection;
 using Asp.Versioning;
+using Asp.Versioning.ApplicationModels;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
@@ -112,6 +113,9 @@ public static class DicomServerServiceCollectionExtensions
                 options.RespectBrowserAcceptHeader = true;
             })
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings());
+
+        // equivalent to the old ApiVersioningOptions.UseApiBehavior = false
+        services.Replace(ServiceDescriptor.Transient<IApiControllerFilter, NoControllerFilter>());
 
         services.AddApiVersioning(options =>
         {
