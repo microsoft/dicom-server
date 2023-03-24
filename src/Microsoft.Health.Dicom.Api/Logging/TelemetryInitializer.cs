@@ -3,13 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace Microsoft.Health.Dicom.Api.Logging;
 
@@ -38,18 +37,15 @@ internal class TelemetryInitializer : ITelemetryInitializer
         {
             return;
         }
+
         string version = null;
-        try
+        var feature = _httpContextAccessor.HttpContext?.Features.Get<IApiVersioningFeature>();
+
+        if (feature.RouteParameter != null)
         {
-            version = _httpContextAccessor.HttpContext?.GetRequestedApiVersion()?.ToString();
+            version = feature.RawRequestedApiVersion;
         }
-        catch (ArgumentNullException)
-        {
-            /*
-             * GetRequestedApiVersion() is throwing argument null on urls like health/check which as no version.
-             * logged a bug  https://github.com/dotnet/aspnet-api-versioning/issues/976
-             */
-        }
+
         if (version == null)
         {
             return;
