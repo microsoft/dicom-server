@@ -10,13 +10,12 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
@@ -28,17 +27,16 @@ public class PartitionController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<PartitionController> _logger;
-    private readonly bool _featureEnabled;
+    private readonly IFeatureConfigurationService _featureConfigurationService;
 
-    public PartitionController(IMediator mediator, ILogger<PartitionController> logger, IOptions<FeatureConfiguration> featureConfiguration)
+    public PartitionController(IMediator mediator, ILogger<PartitionController> logger, IFeatureConfigurationService featureConfigurationService)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         EnsureArg.IsNotNull(logger, nameof(logger));
-        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+        _featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
 
         _mediator = mediator;
         _logger = logger;
-        _featureEnabled = featureConfiguration.Value.EnableDataPartitions;
     }
 
     [HttpGet]
@@ -50,7 +48,7 @@ public class PartitionController : ControllerBase
     [AuditEventType(AuditEventSubType.Partition)]
     public async Task<IActionResult> GetAllPartitions()
     {
-        if (!_featureEnabled)
+        if (!await _featureConfigurationService.IsFeatureEnabled(FeatureConstants.EnableDataPartitions))
         {
             throw new DataPartitionsFeatureDisabledException();
         }

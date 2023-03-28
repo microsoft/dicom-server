@@ -16,7 +16,10 @@
     <PackageReference Include="IdentityServer4.Storage" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="Microsoft.AspNetCore.Http" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
     <PackageReference Include="Microsoft.Health.Development.IdentityProvider" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" />

@@ -10,10 +10,9 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
-using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
@@ -32,7 +31,7 @@ public class ExportControllerTests
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             null,
-            Options.Create(new FeatureConfiguration()),
+            Substitute.For<FeatureConfigurationService>(),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
@@ -42,12 +41,12 @@ public class ExportControllerTests
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             mediator,
-            Options.Create<FeatureConfiguration>(null),
+            Substitute.For<FeatureConfigurationService>(),
             NullLogger<ExportController>.Instance));
 
         Assert.Throws<ArgumentNullException>(() => new ExportController(
             mediator,
-            Options.Create(new FeatureConfiguration()),
+            Substitute.For<FeatureConfigurationService>(),
             null));
     }
 
@@ -57,7 +56,7 @@ public class ExportControllerTests
         IMediator _mediator = Substitute.For<IMediator>();
         var controller = new ExportController(
             _mediator,
-            Options.Create(new FeatureConfiguration { EnableExport = false }),
+            Substitute.For<FeatureConfigurationService>(),
             NullLogger<ExportController>.Instance);
         var spec = new ExportSpecification
         {
@@ -75,7 +74,7 @@ public class ExportControllerTests
         IMediator mediator = Substitute.For<IMediator>();
         var controller = new ExportController(
             mediator,
-            Options.Create(new FeatureConfiguration { EnableExport = true }),
+            Substitute.For<FeatureConfigurationService>(),
             NullLogger<ExportController>.Instance);
 
         controller.ControllerContext.HttpContext = new DefaultHttpContext();

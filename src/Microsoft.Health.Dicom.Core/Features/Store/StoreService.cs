@@ -13,10 +13,9 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
@@ -67,6 +66,7 @@ public class StoreService : IStoreService
     private readonly TelemetryClient _telemetryClient;
     private readonly StoreMeter _storeMeter;
     private readonly ILogger _logger;
+    private readonly IFeatureConfigurationService _featureConfigurationService;
 
     private IReadOnlyList<IDicomInstanceEntry> _dicomInstanceEntries;
     private string _requiredStudyInstanceUid;
@@ -78,10 +78,10 @@ public class StoreService : IStoreService
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         StoreMeter storeMeter,
         ILogger<StoreService> logger,
-        IOptions<FeatureConfiguration> featureConfiguration,
+        IFeatureConfigurationService featureConfigurationService,
         TelemetryClient telemetryClient)
     {
-        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
+        _featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
         _storeResponseBuilder = EnsureArg.IsNotNull(storeResponseBuilder, nameof(storeResponseBuilder));
         _dicomDatasetValidator = EnsureArg.IsNotNull(dicomDatasetValidator, nameof(dicomDatasetValidator));
         _storeOrchestrator = EnsureArg.IsNotNull(storeOrchestrator, nameof(storeOrchestrator));

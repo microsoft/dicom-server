@@ -86,10 +86,8 @@ public static class DicomServerServiceCollectionExtensions
         configurationRoot?.GetSection(DicomServerConfigurationSectionName).Bind(dicomServerConfiguration);
         configureAction?.Invoke(dicomServerConfiguration);
 
-        var featuresOptions = Options.Create(dicomServerConfiguration.Features);
         services.AddSingleton(Options.Create(dicomServerConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Security));
-        services.AddSingleton(featuresOptions);
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.DeletedInstanceCleanup));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.StoreServiceSettings));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.ExtendedQueryTag));
@@ -121,7 +119,7 @@ public static class DicomServerServiceCollectionExtensions
             c.ReportApiVersions = true;
             c.UseApiBehavior = false;
 
-            c.Conventions.Add(new ApiVersionsConvention(featuresOptions));
+            c.Conventions.Add(new ApiVersionsConvention());
         });
 
         services.AddVersionedApiExplorer(options =>
@@ -143,7 +141,7 @@ public static class DicomServerServiceCollectionExtensions
 
         services.AddSingleton<IUrlResolver, UrlResolver>();
 
-        services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
+        services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Services);
         services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
         services.TryAddSingleton<RecyclableMemoryStreamManager>();

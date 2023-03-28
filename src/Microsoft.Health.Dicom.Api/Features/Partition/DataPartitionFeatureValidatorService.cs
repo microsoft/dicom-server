@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,9 +10,8 @@ using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Api.Features.Partition;
@@ -27,24 +26,24 @@ namespace Microsoft.Health.Dicom.Api.Features.Partition;
 public class DataPartitionFeatureValidatorService : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly bool _isPartitionEnabled;
+    private readonly IFeatureConfigurationService _featureConfigurationService;
     private readonly ILogger<DataPartitionFeatureValidatorService> _logger;
 
     public DataPartitionFeatureValidatorService(
         IServiceProvider serviceProvider,
-        IOptions<FeatureConfiguration> featureConfiguration,
+        IFeatureConfigurationService featureConfigurationService,
         ILogger<DataPartitionFeatureValidatorService> logger)
     {
         _serviceProvider = serviceProvider;
-        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
 
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
-        _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
+        _featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        var _isPartitionEnabled = await _featureConfigurationService.IsFeatureEnabled(FeatureConstants.EnableDataPartitions);
         if (!_isPartitionEnabled)
         {
             try

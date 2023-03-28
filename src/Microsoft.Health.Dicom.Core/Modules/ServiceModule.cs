@@ -129,6 +129,11 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<FeatureConfigurationService>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
         services.Add<ETagGenerator>()
             .Scoped()
             .AsSelf()

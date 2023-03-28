@@ -4,15 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Versioning.Conventions;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
-using System.Diagnostics;
-using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Api.Features.Conventions;
 
@@ -38,12 +36,11 @@ internal class ApiVersionsConvention : IControllerConvention
     };
 
     private const int CurrentVersion = 1;
-    private readonly bool _isLatestApiVersionEnabled;
+    // private readonly IFeatureConfigurationService _featureConfigurationService;
 
-    public ApiVersionsConvention(IOptions<FeatureConfiguration> featureConfiguration)
+    public ApiVersionsConvention()
     {
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-        _isLatestApiVersionEnabled = featureConfiguration.Value.EnableLatestApiVersion;
+        //_featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
     }
 
     public bool Apply(IControllerConventionBuilder controller, ControllerModel controllerModel)
@@ -61,8 +58,11 @@ internal class ApiVersionsConvention : IControllerConvention
         {
             versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
+
+        var isLatestApiVersionEnabled = controllerIntroducedInVersion != null;// _featureConfigurationService.IsFeatureEnabled(FeatureConstants.EnableLatestApiVersion).Result;
+
         // when upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove this logic
-        versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
+        versions = isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
 
         controller.HasApiVersions(versions);
         return true;

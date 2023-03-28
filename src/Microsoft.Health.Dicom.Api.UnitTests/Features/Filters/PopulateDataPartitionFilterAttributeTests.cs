@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,11 +12,10 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Partition;
@@ -32,7 +31,6 @@ public class PopulateDataPartitionFilterAttributeTests
     private readonly ActionExecutingContext _actionExecutingContext;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly IMediator _mediator;
-    private readonly IOptions<FeatureConfiguration> _featureConfiguration;
     private readonly ActionExecutionDelegate _nextActionDelegate;
 
     private const string ControllerName = "controller";
@@ -77,9 +75,8 @@ public class PopulateDataPartitionFilterAttributeTests
         _mediator.Send(Arg.Any<GetPartitionRequest>())
             .Returns(new GetPartitionResponse(PartitionEntry.Default));
 
-        _featureConfiguration = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
 
-        _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
+        _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, Substitute.For<FeatureConfigurationService>());
     }
 
     [Fact]
@@ -103,9 +100,7 @@ public class PopulateDataPartitionFilterAttributeTests
             { KnownActionParameterNames.PartitionName, "partition1" },
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
-
-        _featureConfiguration.Value.EnableDataPartitions = false;
-        _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
+        _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, Substitute.For<FeatureConfigurationService>());
 
         Assert.ThrowsAsync<DataPartitionsFeatureDisabledException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
     }
@@ -119,8 +114,7 @@ public class PopulateDataPartitionFilterAttributeTests
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
-        _featureConfiguration.Value.EnableDataPartitions = false;
-        _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
+        _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, Substitute.For<FeatureConfigurationService>());
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
     }

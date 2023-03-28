@@ -10,10 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -26,11 +25,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Store;
 /// </summary>
 public class StoreDatasetValidator : IStoreDatasetValidator
 {
-    private readonly bool _enableFullDicomItemValidation;
     private readonly IElementMinimumValidator _minimumValidator;
     private readonly IQueryTagService _queryTagService;
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly IFeatureConfigurationService _featureConfigurationService;
 
     private static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
@@ -42,22 +41,21 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     };
 
     public StoreDatasetValidator(
-        IOptions<FeatureConfiguration> featureConfiguration,
+        IFeatureConfigurationService featureConfigurationService,
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
         StoreMeter storeMeter,
         IDicomRequestContextAccessor dicomRequestContextAccessor)
     {
-        EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
         EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
 
         _dicomRequestContextAccessor = dicomRequestContextAccessor;
-        _enableFullDicomItemValidation = featureConfiguration.Value.EnableFullDicomItemValidation;
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
+        _featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
     }
 
     /// <inheritdoc/>
@@ -78,7 +76,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         {
             validationResultBuilder.Add(ex, ex.DicomTag, isCoreTag: true);
         }
-
+        var _enableFullDicomItemValidation = await _featureConfigurationService.IsFeatureEnabled(FeatureConstants.EnableFullDicomItemValidation);
         // validate input data elements
         if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
         {

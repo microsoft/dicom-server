@@ -13,15 +13,14 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Web;
@@ -39,25 +38,25 @@ public class ExportController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ExportController> _logger;
-    private readonly bool _enabled;
+    private readonly IFeatureConfigurationService _featureConfigurationService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ExportController"/> class based on the given options.
     /// </summary>
     /// <param name="mediator">An <see cref="IMediator"/> used to send requests.</param>
-    /// <param name="options">Options concerning which features are enabled.</param>
+    /// <param name="featureConfigurationService"></param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="mediator"/>, <paramref name="options"/>, or <paramref name="logger"/> is <see langword="null"/>.
+    /// <paramref name="mediator"/>, or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     public ExportController(
         IMediator mediator,
-        IOptions<FeatureConfiguration> options,
+        IFeatureConfigurationService featureConfigurationService,
         ILogger<ExportController> logger)
     {
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _enabled = EnsureArg.IsNotNull(options?.Value?.EnableExport, nameof(options)).GetValueOrDefault();
+        _featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
     }
 
     /// <summary>
@@ -97,5 +96,6 @@ public class ExportController : ControllerBase
     }
 
     private async ValueTask<IActionResult> GetResultIfEnabledAsync<T>(Func<T, CancellationToken, Task<IActionResult>> factoryAsync, T input)
-        => _enabled ? await factoryAsync(input, HttpContext.RequestAborted) : NotFound();
+        => await _featureConfigurationService.IsFeatureEnabled(FeatureConstants.EnableExport) ? await factoryAsync(input, HttpContext.RequestAborted) : NotFound();
+
 }

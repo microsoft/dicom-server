@@ -10,11 +10,10 @@ using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -25,7 +24,7 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
 {
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly IMediator _mediator;
-    private readonly bool _isPartitionEnabled;
+    private readonly IFeatureConfigurationService _featureConfigurationService;
 
     private readonly HashSet<string> _partitionCreationSupportedRouteNames = new HashSet<string>
     {
@@ -37,13 +36,12 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
     public PopulateDataPartitionFilterAttribute(
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         IMediator mediator,
-        IOptions<FeatureConfiguration> featureConfiguration)
+        IFeatureConfigurationService featureConfigurationService)
     {
         _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
 
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-        _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
+        _featureConfigurationService = EnsureArg.IsNotNull(featureConfigurationService, nameof(featureConfigurationService));
     }
 
     public async override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -54,6 +52,8 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
         var routeName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
         var routeContainsPartition = routeData.Values.TryGetValue(KnownActionParameterNames.PartitionName, out object value);
+
+        var _isPartitionEnabled = await _featureConfigurationService.IsFeatureEnabled(FeatureConstants.EnableDataPartitions);
 
         if (!_isPartitionEnabled && routeContainsPartition)
             throw new DataPartitionsFeatureDisabledException();

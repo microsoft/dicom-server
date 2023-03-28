@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -8,10 +8,10 @@ using FellowOakDicom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using Microsoft.Health.Api.Registration;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -37,8 +37,10 @@ public static class DicomServerApplicationBuilderExtensions
         // Update Fellow Oak DICOM services to use ASP.NET Core's service container
         DicomSetupBuilder.UseServiceProvider(app.ApplicationServices);
 
-        IOptions<FeatureConfiguration> featureConfiguration = app.ApplicationServices.GetRequiredService<IOptions<FeatureConfiguration>>();
-        if (featureConfiguration.Value.EnableOhifViewer)
+        var featureConfigurationService = app.ApplicationServices.GetRequiredService<IFeatureManager>();
+
+        var enableOhifViewer = featureConfigurationService.IsEnabledAsync(FeatureConstants.EnableOhifViewer).Result;
+        if (enableOhifViewer)
         {
             // In order to make OHIF viewer work with direct link to studies, we need to rewrite any path under viewer
             // back to the index page so the viewer can display accordingly.

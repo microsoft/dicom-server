@@ -9,9 +9,8 @@ using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Versioning.Conventions;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Features.Conventions;
-using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using NSubstitute;
 using Xunit;
 
@@ -26,8 +25,7 @@ public class ApiVersionsConventionTests
         var attributes = Array.Empty<object>();
         var controllerModel = new ControllerModel(controllerType.GetTypeInfo(), attributes);
         var controller = Substitute.For<IControllerConventionBuilder>();
-        var featuresOptions = Options.Create(new FeatureConfiguration());
-        var convention = new ApiVersionsConvention(featuresOptions);
+        var convention = new ApiVersionsConvention();
 
         // act
         var applied = convention.Apply(controller, controllerModel);
@@ -49,8 +47,8 @@ public class ApiVersionsConventionTests
         var attributes = new object[] { new IntroducedInApiVersionAttribute(1) };
         var controllerModel = new ControllerModel(controllerType.GetTypeInfo(), attributes);
         var controller = Substitute.For<IControllerConventionBuilder>();
-        var featuresOptions = Options.Create(new FeatureConfiguration());
-        var convention = new ApiVersionsConvention(featuresOptions);
+
+        var convention = new ApiVersionsConvention();
 
         // act
         var applied = convention.Apply(controller, controllerModel);
@@ -71,8 +69,8 @@ public class ApiVersionsConventionTests
         var attributes = new object[] { new IntroducedInApiVersionAttribute(1) };
         var controllerModel = new ControllerModel(controllerType.GetTypeInfo(), attributes);
         var controller = Substitute.For<IControllerConventionBuilder>();
-        var featuresOptions = Options.Create(new FeatureConfiguration { EnableLatestApiVersion = true });
-        var convention = new ApiVersionsConvention(featuresOptions);
+
+        var convention = new ApiVersionsConvention();
 
         // act
         var applied = convention.Apply(controller, controllerModel);
@@ -94,8 +92,8 @@ public class ApiVersionsConventionTests
         var attributes = Array.Empty<object>();
         var controllerModel = new ControllerModel(controllerType.GetTypeInfo(), attributes);
         var controller = Substitute.For<IControllerConventionBuilder>();
-        var featuresOptions = Options.Create(new FeatureConfiguration { EnableLatestApiVersion = true });
-        var convention = new ApiVersionsConvention(featuresOptions);
+
+        var convention = new ApiVersionsConvention();
 
         // act
         var applied = convention.Apply(controller, controllerModel);
