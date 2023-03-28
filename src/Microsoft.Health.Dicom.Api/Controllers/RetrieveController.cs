@@ -162,7 +162,7 @@ public class RetrieveController : ControllerBase
     [HttpGet]
     [VersionedPartitionRoute(KnownRoutes.InstanceRenderedRoute)]
     [VersionedRoute(KnownRoutes.InstanceRenderedRoute)]
-    [AuditEventType(AuditEventSubType.Retrieve)]
+    [AuditEventType(AuditEventSubType.RetrieveRendered)]
     public async Task<IActionResult> GetRenderedInstanceAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -232,7 +232,7 @@ public class RetrieveController : ControllerBase
     [HttpGet]
     [VersionedPartitionRoute(KnownRoutes.FrameRenderedRoute)]
     [VersionedRoute(KnownRoutes.FrameRenderedRoute)]
-    [AuditEventType(AuditEventSubType.Retrieve)]
+    [AuditEventType(AuditEventSubType.RetrieveRendered)]
     public async Task<IActionResult> GetRenderedFrameAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
