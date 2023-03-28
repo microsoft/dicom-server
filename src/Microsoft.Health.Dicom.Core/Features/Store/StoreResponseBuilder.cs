@@ -33,7 +33,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     }
 
     /// <inheritdoc />
-    public StoreResponse BuildResponse(string studyInstanceUid)
+    public StoreResponse BuildResponse(string studyInstanceUid, bool returnWarning202 = false)
     {
         bool hasSuccess = _dataset?.TryGetSequence(DicomTag.ReferencedSOPSequence, out _) ?? false;
         bool hasFailure = _dataset?.TryGetSequence(DicomTag.FailedSOPSequence, out _) ?? false;
@@ -47,9 +47,9 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         }
         else if (hasSuccess)
         {
-            if (LeniencyApplied())
+            if (returnWarning202 && HasWarningReasonCode())
             {
-                // if we applied leniency to any of the instances, status code should reflect that
+                // if we have warning reason code on any of the instances, status code should reflect that
                 status = StoreResponseStatus.PartialSuccess;
             }
             else
@@ -72,18 +72,18 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         return new StoreResponse(status, _dataset, _message);
     }
 
-    private bool LeniencyApplied()
+    private bool HasWarningReasonCode()
     {
         DicomSequence referencedSOPSequence = _dataset.GetSequence(DicomTag.ReferencedSOPSequence);
         return referencedSOPSequence
-            .Any(ds => ds.TryGetSequence(DicomTag.FailedAttributesSequence, out _) == true);
+            .Any(ds => ds.TryGetString(DicomTag.WarningReason, out _) == true);
     }
 
     /// <inheritdoc />
     public void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
         ushort? warningReasonCode = null,
-        bool enableDropInvalidDicomJsonMetadata = false)
+        bool buildWarningSequence = false)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(storeValidationResult, nameof(storeValidationResult));
@@ -111,7 +111,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             referencedSop.Add(DicomTag.WarningReason, warningReasonCode.Value);
         }
 
-        if (enableDropInvalidDicomJsonMetadata)
+        if (buildWarningSequence)
         {
             // add comment Sq / list of warnings here
             var warnings = storeValidationResult.InvalidTagErrors.Values.Select(

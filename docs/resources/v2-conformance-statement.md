@@ -23,7 +23,7 @@ Additionally, the following non-standard API(s) are supported:
 
 All paths below include an implicit base URL of the server, such as `https://localhost:63838` when running locally.
 
-The service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified as part of the base URL as in the following example: 
+The service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified as part of the base URL as in the following example:
 
 `https://localhost:63838/v1/studies`
 
@@ -61,8 +61,9 @@ The following `Content-Type` header(s) are supported:
 - `multipart/related; type="application/dicom"`
 - `application/dicom`
 
-> Note: The Server will <u>not</u> coerce or replace attributes that conflict with existing data. All data will be stored as provided.
+> Note: the Server will <u>not</u> coerce or replace data in the DICOM PS 3.10 file. The DICOM file will be stored as provided, except where otherwise noted.
 
+### Store Required Attributes
 The following DICOM elements are required to be present in every DICOM file attempting to be stored:
 
 - StudyInstanceUID
@@ -75,21 +76,27 @@ The following DICOM elements are required to be present in every DICOM file atte
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
-> DICOM File Size Limit: there is a size limit of 2GB for a DICOM file by default.
+> Requests are limited to 2GB. No single DICOM file or combination of files may exceed this limit.
+
+### Store Changes From V1
+In previous versions, a Store request would fail if any of the [required](#store-required-attributes) or [searchable attributes](#searchable-attributes) failed validation. Beginning with V2, the request will only fail if **required attributes** fail validation.
+
+Failed validation of attributes not required by the API will still result in the file being stored and a warning will be given about each failing attribute per instance.
+When a sequence contains an attribute that fails validation, or when there are multiple issues with a single attribute, only the first failing attribute reason will be noted.
 
 ### Store Response Status Codes
 
-| Code                         | Description |
-| :--------------------------- | :---------- |
-| 200 (OK)                     | All the SOP instances in the request have been stored. |
-| 202 (Accepted)               | Some instances in the request have been stored but others have failed. |
-| 204 (No Content)             | No content was provided in the store transaction request. |
-| 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format. |
-| 401 (Unauthorized)           | The client is not authenticated. |
-| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
-| 409 (Conflict)               | None of the instances in the store transaction request have been stored. |
-| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported. |
-| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
+| Code                         | Description                                                                                                                                                                                                                         |
+| :--------------------------- |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 200 (OK)                     | All the SOP instances in the request have been stored.                                                                                                                                                                              |
+| 202 (Accepted)               | The origin server stored some of the Instances and others have failed or returned warnings. Additional information regarding this error may be found in the response message body. |
+| 204 (No Content)             | No content was provided in the store transaction request.                                                                                                                                                                           |
+| 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format.                                                                                                       |
+| 401 (Unauthorized)           | The client is not authenticated.                                                                                                                                                                                                    |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported.                                                                                                                                                                                     |
+| 409 (Conflict)               | None of the instances in the store transaction request have been stored.                                                                                                                                                            |
+| 415 (Unsupported Media Type) | The provided `Content-Type` is not supported.                                                                                                                                                                                       |
+| 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later.                                                                                                                                                                         |
 
 ### Store Response Payload
 
@@ -103,11 +110,12 @@ The response payload will populate a DICOM dataset with the following elements:
 
 Each dataset in the `FailedSOPSequence` will have the following elements (if the DICOM file attempting to be stored could be read):
 
-| Tag          | Name                     | Description |
-| :----------- | :----------------------- | :---------- |
-| (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store. |
-| (0008, 1155) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store. |
-| (0008, 1197) | FailureReason            | The reason code why this instance failed to store. |
+| Tag          | Name                     | Description                                                                        |
+|:-------------|:-------------------------|:-----------------------------------------------------------------------------------|
+| (0008, 1150) | ReferencedSOPClassUID    | The SOP class unique identifier of the instance that failed to store.              |
+| (0008, 1155) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that failed to store.           |
+| (0008, 1197) | FailureReason            | The reason code why this instance failed to store.                                 |
+| (0008, 1196) | WarningReason            | The reason code why this instance successfully to store, but may have issues.      |
 | (0074, 1048) | FailedAttributesSequence | The sequence of `ErrorComment` that includes the reason for each failed attribute. |
 
 Each dataset in the `ReferencedSOPSequence` will have the following elements:
@@ -118,7 +126,7 @@ Each dataset in the `ReferencedSOPSequence` will have the following elements:
 | (0008, 1155) | ReferencedSOPInstanceUID | The SOP instance unique identifier of the instance that was stored. |
 | (0008, 1190) | RetrieveURL              | The retrieve URL of this instance on the DICOM server. |
 
-An example response with `Accept` header `application/dicom+json`:
+An example response with `Accept` header `application/dicom+json` without a FailedAttributesSequence in a ReferencedSOPSequence:
 
 ```json
 {
@@ -173,6 +181,67 @@ An example response with `Accept` header `application/dicom+json`:
 }
 ```
 
+An example response with `Accept` header `application/dicom+json` with a FailedAttributesSequence in a ReferencedSOPSequence:
+
+```json
+{
+  "00081190":
+  {
+    "vr":"UR",
+    "Value":["http://localhost/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232"]
+  },
+  "00081199":
+  {
+    "vr":"SQ",
+    "Value":
+    [{
+      "00081150":
+      {
+        "vr":"UI",
+        "Value":["d246deb5-18c8-4336-a591-aeb6f8596664"]
+      },
+      "00081155":
+      {
+        "vr":"UI",
+        "Value":["4a858cbb-a71f-4c01-b9b5-85f88b031365"]
+      },
+      "00081190":
+      {
+        "vr":"UR",
+        "Value":["http://localhost/studies/d09e8215-e1e1-4c7a-8496-b4f6641ed232/series/8c4915f5-cc54-4e50-aa1f-9b06f6e58485/instances/4a858cbb-a71f-4c01-b9b5-85f88b031365"]
+      },
+      "00081196": {
+        "vr": "US",
+        "Value": [
+            1
+        ]
+      },
+      "00741048": {
+        "vr": "SQ",
+        "Value": [
+          {
+            "00000902": {
+              "vr": "LO",
+              "Value": [
+                "DICOM100: (0008,0020) - Content \"NotAValidDate\" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD"
+              ]
+            }
+          },
+          {
+            "00000902": {
+              "vr": "LO",
+              "Value": [
+                "DICOM100: (0008,002a) - Content \"NotAValidDate\" does not validate VR DT: value does not mach pattern YYYY[MM[DD[HH[MM[SS[.F{1-6}]]]]]]"
+              ]
+            }
+          }
+        ]
+      }
+    }]
+  }
+}
+```
+
 ### Store Failure Reason Codes
 
 | Code  | Description |
@@ -182,7 +251,13 @@ An example response with `Accept` header `application/dicom+json`:
 | 43265 | The provided instance StudyInstanceUID did not match the specified StudyInstanceUID in the store request. |
 | 45070 | A DICOM instance with the same StudyInstanceUID, SeriesInstanceUID and SopInstanceUID has already been stored. If you wish to update the contents, delete this instance first. |
 | 45071 | A DICOM instance is being created by another process, or the previous attempt to create has failed and the cleanup process has not had chance to clean up yet. Please delete the instance first before attempting to create again. |
-| 45063 | A DICOM instance Data Set does not match SOP Class. The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance. |
+
+### Store Warning Reason Codes
+
+| Code  | Description                                                                                                                                            |
+|:------|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 45063 | The Studies Store Transaction (Section 10.5) observed that the Data Set did not match the constraints of the SOP Class during storage of the instance. |
+| 1     | The Studies Store Transaction (Section 10.5) observed that the Data Set has validation warnings.                                                       |
 
 ### Store Error Codes
 
@@ -308,6 +383,10 @@ Query based on ID for DICOM Objects (QIDO) enables you to search for studies, se
 The following `Accept` header(s) are supported for searching:
 
 - `application/dicom+json`
+
+### Search Changes From V1
+If an instance returned validation warnings for [searchable attributes](#searchable-attributes) at the time the [instance was stored](#store-changes-from-v1), those attributes may not be used to search for the stored instance.
+To correct an attribute, delete the stored instance and upload the corrected data.
 
 ### Supported Search Parameters
 
@@ -534,7 +613,7 @@ If not specified in the URI, the payload dataset must contain the Workitem in th
 The `Accept` and `Content-Type` headers are required in the request, and must both have the value `application/dicom+json`.
 
 There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
-required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be
 found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
 
 Notes on dataset attributes:
@@ -654,7 +733,7 @@ The request payload contains a dataset with the changes to be applied to the tar
 When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
 
 There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
-required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be
 found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
 
 Notes on dataset attributes:

@@ -1,8 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Core;
@@ -92,6 +94,21 @@ public class MediaTypeHeaderValueExtensionsTests
         Assert.Equal(type, acceptHeader.MediaType);
         Assert.Equal(transferSyntax, acceptHeader.TransferSyntax);
         Assert.Equal(quality, acceptHeader.Quality);
+    }
+
+    /// <summary>
+    ///  used by OHIF viewer, we will continue to recommend quotes in our conformance doc
+    /// </summary>
+    [Fact]
+    public void GivenMultiPartRelatedHeaderWithNoQuotesOnType_WhenGetAcceptHeader_ShouldSucceed()
+    {
+        var newMediaTypes = MediaTypeHeaderValue.ParseList(new List<string> { "multipart/related; type=application/octet-stream; transfer-syntax=*" });
+        MediaTypeHeaderValue headerValue = newMediaTypes.First();
+
+        AcceptHeader acceptHeader = headerValue.ToAcceptHeader();
+        Assert.Equal(PayloadTypes.MultipartRelated, acceptHeader.PayloadType);
+        Assert.Equal("application/octet-stream", acceptHeader.MediaType);
+        Assert.Equal("*", acceptHeader.TransferSyntax);
     }
 
     [Fact]

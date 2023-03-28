@@ -188,7 +188,8 @@ public static class Samples
         string sopInstanceUid = null,
         string sopClassUid = null,
         bool validateItems = true,
-        DicomTransferSyntax dicomTransferSyntax = null)
+        DicomTransferSyntax dicomTransferSyntax = null,
+        string patientId = null)
     {
         var ds = new DicomDataset(dicomTransferSyntax ?? DicomTransferSyntax.ExplicitVRLittleEndian);
 
@@ -203,7 +204,7 @@ public static class Samples
         ds.Add(DicomTag.SOPClassUID, sopClassUid ?? TestUidGenerator.Generate());
         ds.Add(DicomTag.BitsAllocated, (ushort)8);
         ds.Add(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
-        ds.Add(DicomTag.PatientID, TestUidGenerator.Generate());
+        ds.Add(DicomTag.PatientID, patientId ?? TestUidGenerator.Generate());
         return ds;
     }
 

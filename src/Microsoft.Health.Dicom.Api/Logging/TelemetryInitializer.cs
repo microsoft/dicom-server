@@ -8,7 +8,7 @@ using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace Microsoft.Health.Dicom.Api.Logging;
 
@@ -38,7 +38,14 @@ internal class TelemetryInitializer : ITelemetryInitializer
             return;
         }
 
-        string version = _httpContextAccessor.HttpContext?.GetRequestedApiVersion()?.ToString();
+        string version = null;
+        var feature = _httpContextAccessor.HttpContext?.Features.Get<IApiVersioningFeature>();
+
+        if (feature.RouteParameter != null)
+        {
+            version = feature.RawRequestedApiVersion;
+        }
+
         if (version == null)
         {
             return;
