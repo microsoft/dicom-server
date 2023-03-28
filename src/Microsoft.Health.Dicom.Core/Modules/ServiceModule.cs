@@ -91,7 +91,6 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-
         services.Add<FrameHandler>()
             .Transient()
             .AsSelf()
