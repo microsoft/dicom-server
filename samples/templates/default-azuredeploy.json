@@ -199,7 +199,6 @@
             "APPINSIGHTS_PORTALINFO": "ASP.NETCORE",
             "APPINSIGHTS_PROFILERFEATURE_VERSION": "1.0.0",
             "APPINSIGHTS_SNAPSHOTFEATURE_VERSION": "1.0.0",
-            "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
             "SqlServer__Initialize": "true",
             "DicomFunctions__DurableTask__ConnectionName": "AzureWebJobsStorage",
             "DicomFunctions__DurableTask__Monitor__Enabled": "true",
@@ -243,6 +242,7 @@
             "apiVersion": "2020-12-01",
             "name": "[variables('appServicePlanName')]",
             "type": "Microsoft.Web/serverfarms",
+            "kind": "linux",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -251,13 +251,15 @@
                 "name": "[parameters('appServicePlanSku')]"
             },
             "properties": {
-                "name": "[variables('appServicePlanName')]"
+                "name": "[variables('appServicePlanName')]",
+                "reserved": true // Needed for Linux. See https://github.com/MicrosoftDocs/azure-docs/issues/36849
             }
         },
         {
             "apiVersion": "2020-12-01",
             "type": "Microsoft.Web/sites",
             "name": "[variables('serviceName')]",
+            "kind": "app,linux",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -269,7 +271,10 @@
                 "clientAffinityEnabled": false,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                 "siteConfig": {
+                    "linuxFxVersion": "DOTNETCORE|7.0",
+                    "httpsOnly": true,
                     "location": "[parameters('location')]",
+                    "publicNetworkAccess": "Enabled",
                     "use32BitWorkerProcess": false
                 }
             },
@@ -288,29 +293,16 @@
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
                         "[variables('appInsightsConnectionStringResourceId')]"
                     ],
-                    "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\" ,\"ApplicationInsightsAgent_EXTENSION_VERSION\": \"~2\"}')), json('{}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
-                },
-                {
-                    "apiVersion": "2020-12-01",
-                    "type": "siteextensions",
-                    "name": "AspNetCoreRuntime.7.0.x64",
-                    "dependsOn": [
-                        "[variables('appServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]" // Avoid restarts mid-installation
-                    ],
-                    "properties": {
-                        "version": "7.0.3"
-                    }
+                    "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\" ,\"ApplicationInsightsAgent_EXTENSION_VERSION\": \"~3\", \"XDT_MicrosoftApplicationInsights_Mode\": \"Recommended\"}')), json('{}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomServerConfigProperties'))]"
                 },
                 {
                     "apiVersion": "2020-12-01",
                     "type": "extensions",
-                    "name": "MSDeploy",
+                    "name": "ZipDeploy",
                     "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('appServiceResourceId')]",
-                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]",
-                        "[resourceId('Microsoft.Web/sites/siteextensions', variables('serviceName'), 'AspNetCoreRuntime.7.0.x64')]"
+                        "[resourceId('Microsoft.Web/sites/config', variables('serviceName'), 'appsettings')]"
                     ],
                     "properties": {
                         "packageUri": "[parameters('deployWebPackageUrl')]"
@@ -322,7 +314,7 @@
             "apiVersion": "2020-12-01",
             "type": "Microsoft.Web/sites",
             "name": "[variables('functionAppName')]",
-            "kind": "functionapp",
+            "kind": "functionapp,linux",
             "tags": {
                 "DicomServerSolution": "[parameters('solutionType')]"
             },
@@ -332,9 +324,10 @@
             },
             "properties": {
                 "clientAffinityEnabled": false,
+                "httpsOnly": true,
                 "serverFarmId": "[variables('appServicePlanResourceId')]",
                 "siteConfig": {
-                    // We need to initially configure the Azure Function App for v3 so that it does not regenerate the function access keys later
+                    // We need to initially configure the Azure Function App for v4 so that it does not regenerate the function access keys later
                     "appSettings": [
                         {
                             "name": "AzureWebJobsStorage",
@@ -354,6 +347,7 @@
                         }
                     ],
                     "alwaysOn": true,
+                    "linuxFxVersion": "DOTNETCORE|6.0",
                     "location": "[parameters('location')]",
                     "use32BitWorkerProcess": false
                 }
@@ -374,12 +368,12 @@
                         "[variables('appInsightsInstrumentationKeyResourceId')]",
                         "[variables('appInsightsConnectionStringResourceId')]"
                     ],
-                    "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\" ,\"ApplicationInsightsAgent_EXTENSION_VERSION\": \"~2\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
+                    "properties": "[union(if(parameters('deployApplicationInsights'), json(concat('{\"APPINSIGHTS_INSTRUMENTATIONKEY\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsInstrumentationKeyResourceId')).secretUriWithVersion, ')'), '\" ,\"APPLICATIONINSIGHTS_CONNECTION_STRING\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('appInsightsConnectionStringResourceId')).secretUriWithVersion, ')'), '\" ,\"ApplicationInsightsAgent_EXTENSION_VERSION\": \"~3\", \"XDT_MicrosoftApplicationInsights_Mode\": \"Recommended\"}')), json('{}')), json(concat('{\"AzureFunctionsJobHost__BlobStore__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureFunctionsJobHost__SqlServer__ConnectionString\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('sqlServerConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), json(concat('{\"AzureWebJobsStorage\": \"', concat('@Microsoft.KeyVault(SecretUri=', reference(variables('azureStorageConnectionStringResourceId')).secretUriWithVersion, ')'), '\"}')), variables('combinedDicomFunctionAppConfigProperties'))]"
                 },
                 {
                     "apiVersion": "2020-12-01",
                     "type": "extensions",
-                    "name": "MSDeploy",
+                    "name": "ZipDeploy",
                     "condition": "[parameters('deployPackage')]",
                     "dependsOn": [
                         "[variables('functionAppServiceResourceId')]",
