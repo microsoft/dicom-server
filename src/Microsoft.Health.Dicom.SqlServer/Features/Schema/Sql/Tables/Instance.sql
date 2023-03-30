@@ -20,7 +20,10 @@ CREATE TABLE dbo.Instance (
     PartitionKey            INT                        NOT NULL DEFAULT 1,  --FK
     --instance metadata
     TransferSyntaxUid       VARCHAR(64)                NULL,
-    HasFrameMetadata        BIT                        NOT NULL DEFAULT 0
+    HasFrameMetadata        BIT                        NOT NULL DEFAULT 0,
+    --update columns
+    OriginalWatermark       BIGINT                     NULL,
+    NewWatermark            BIGINT                     NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Primary index, also used in views
@@ -135,5 +138,39 @@ INCLUDE
     StudyKey,
     SeriesKey,
     StudyInstanceUid
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in GetInstancesByStudyAndWatermarkRange
+CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark on dbo.Instance
+(
+    PartitionKey,
+    Status,
+    StudyInstanceUid,
+    Watermark
+)
+INCLUDE
+(
+    SeriesInstanceUid,
+    SopInstanceUid,
+    OriginalWatermark,
+    NewWatermark  
+)
+WITH (DATA_COMPRESSION = PAGE)
+
+--Used in Bulk update, also can be used in Cleanup job
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark on dbo.Instance
+(
+    PartitionKey,
+    Status,
+    StudyInstanceUid,
+    NewWatermark
+)
+INCLUDE
+(
+    SeriesInstanceUid,
+    SopInstanceUid,
+    Watermark,
+    OriginalWatermark
 )
 WITH (DATA_COMPRESSION = PAGE)

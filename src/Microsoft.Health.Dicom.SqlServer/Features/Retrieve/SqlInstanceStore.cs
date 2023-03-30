@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -55,5 +55,11 @@ internal sealed class SqlInstanceStore : IInstanceStore
     {
         ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifiersInStudyByWatermarkAsync(int batchSize, int partitionKey, string studyInstanceUid, long? maxWatermark, CancellationToken cancellationToken = default)
+    {
+        ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetInstanceIdentifiersInStudyByWatermarkAsync(batchSize, partitionKey, studyInstanceUid, maxWatermark, cancellationToken);
     }
 }
