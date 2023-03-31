@@ -64,7 +64,7 @@ BEGIN
             InstanceKey BIGINT,
             Watermark BIGINT)
 
-    DECLARE @totalCount INT = (SELECT COUNT(*) FROM dbo.Instance WHERE PartitionKey = 1 AND StudyInstanceUid = @studyInstanceUid AND Status = 1 AND NewWatermark IS NOT NULL) 
+    DECLARE @totalCount INT = (SELECT COUNT(*) FROM dbo.Instance WHERE PartitionKey = @partitionKey AND StudyInstanceUid = @studyInstanceUid AND Status = 1 AND NewWatermark IS NOT NULL) 
 
     WHILE (@rowsUpdated < @totalCount)
     BEGIN
