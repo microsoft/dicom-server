@@ -950,7 +950,7 @@ BEGIN
         Watermark         BIGINT      );
     DECLARE @totalCount AS INT = (SELECT COUNT(*)
                                   FROM   dbo.Instance
-                                  WHERE  PartitionKey = 1
+                                  WHERE  PartitionKey = @partitionKey
                                          AND StudyInstanceUid = @studyInstanceUid
                                          AND Status = 1
                                          AND NewWatermark IS NOT NULL);
