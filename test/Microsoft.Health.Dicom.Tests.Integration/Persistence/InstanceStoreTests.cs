@@ -39,9 +39,11 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private readonly IPartitionStore _partitionStore;
     private readonly IQueryStore _queryStore;
     private readonly IChangeFeedStore _changeFeedStore;
+    private readonly SqlDataStoreTestsFixture _fixture;
 
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
     {
+        _fixture = EnsureArg.IsNotNull(fixture, nameof(fixture));
         _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
         _indexDataStore = EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
         _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
@@ -297,7 +299,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
             1,
             DefaultPartition.Key,
             studyInstanceUID1,
-            2);
+            instance1.Watermark + 1);
 
         Assert.Equal(instances.Select(x => x.VersionedInstanceIdentifier),
                     new[] { new VersionedInstanceIdentifier(
@@ -364,13 +366,13 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
 
         // Verify Changefeed entries are inserted
-        var changeFeedEntries = (await _changeFeedStore.GetChangeFeedAsync(instanceMetadata.First().VersionedInstanceIdentifier.Version - 1, 4)).ToList();
+        var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetUpdatedChangeFeedRowsAsync(4);
         Assert.True(changeFeedEntries.Any());
         for (int i = 0; i < instances.Count; i++)
         {
-            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalVersion);
+            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalWatermark);
+            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
             Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
-            Assert.Equal(ChangeFeedAction.Update, changeFeedEntries[i].Action);
         }
 
         // Verify extended query tag watermark is updated
