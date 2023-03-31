@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -313,13 +314,21 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         DicomDataset dataset4 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
         dataset4.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
 
+        DicomTag tag = DicomTag.DeviceLabel;
+        string tagValue = "test";
+        var tagStoreEntry = await AddExtendedQueryTagAsync(tag.BuildAddExtendedQueryTagEntry(level: QueryTagLevel.Instance));
+        dataset1.Add(tag, tagValue);
+
         var instance1 = await CreateInstanceIndexAsync(dataset1);
         var instance2 = await CreateInstanceIndexAsync(dataset2);
         var instance3 = await CreateInstanceIndexAsync(dataset3);
         var instance4 = await CreateInstanceIndexAsync(dataset4);
 
+        await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { new QueryTag(tagStoreEntry) });
+
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
+        // Update the instances with newWatermark
         foreach (var instance in instances)
         {
             await _indexDataStore.UpdateInstanceNewWatermarkAsync(
@@ -337,6 +346,8 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
             studyInstanceUID1,
             null);
 
+
+        // Verify the instances are updated with updated information
         Assert.Equal(instances.Count, instanceMetadata.Count);
 
         for (int i = 0; i < instances.Count; i++)
@@ -361,6 +372,10 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
             Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
             Assert.Equal(ChangeFeedAction.Update, changeFeedEntries[i].Action);
         }
+
+        // Verify extended query tag watermark is updated
+        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, instance1.InstanceKey)).First();
+        Assert.Equal(instanceMetadata.First().VersionedInstanceIdentifier.Version, row.Watermark);
     }
 
     private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)

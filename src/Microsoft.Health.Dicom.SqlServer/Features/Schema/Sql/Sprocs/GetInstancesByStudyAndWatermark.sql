@@ -7,6 +7,8 @@
 --     Get instances by given minimum watermark in a study.
 --
 -- PARAMETERS
+--     @batchSize
+--         * The desired number of instances per batch. Actual number may be smaller.
 --     @partitionKey
 --         * The system identified of the data partition.
 --     @studyInstanceUid

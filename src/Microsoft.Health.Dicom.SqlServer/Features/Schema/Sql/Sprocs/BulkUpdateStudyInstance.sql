@@ -9,6 +9,8 @@
 --     Bulk update all instances in a study, and update extendedquerytag with new watermark.
 --
 -- PARAMETERS
+--     @batchSize
+--         * The desired number of instances per batch. Actual number may be smaller.
 --     @partitionKey
 --         * The partition key.
 --     @studyInstanceUid

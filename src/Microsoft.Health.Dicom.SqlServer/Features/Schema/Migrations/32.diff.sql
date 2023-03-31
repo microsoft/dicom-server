@@ -28,6 +28,8 @@ GO
 --     Get instances by given minimum watermark in a study.
 --
 -- PARAMETERS
+--     @batchSize
+--         * The desired number of instances per batch. Actual number may be smaller.
 --     @partitionKey
 --         * The system identified of the data partition.
 --     @studyInstanceUid
@@ -128,6 +130,8 @@ GO
 --     Bulk update all instances in a study, and update extendedquerytag with new watermark.
 --
 -- PARAMETERS
+--     @batchSize
+--         * The desired number of instances per batch. Actual number may be smaller.
 --     @partitionKey
 --         * The partition key.
 --     @studyInstanceUid
@@ -274,5 +278,56 @@ BEGIN
 END
 GO
 
-
 COMMIT TRANSACTION
+
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark on dbo.Instance
+    (
+        PartitionKey,
+        Status,
+        StudyInstanceUid,
+        Watermark
+    )
+    INCLUDE
+    (
+        SeriesInstanceUid,
+        SopInstanceUid,
+        OriginalWatermark,
+        NewWatermark  
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO
+
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark'
+        AND Object_id = OBJECT_ID('dbo.Instance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark on dbo.Instance
+    (
+        PartitionKey,
+        Status,
+        StudyInstanceUid,
+        NewWatermark
+    )
+    INCLUDE
+    (
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark,
+        OriginalWatermark
+    )
+    WITH (DATA_COMPRESSION = PAGE)
+END
+GO

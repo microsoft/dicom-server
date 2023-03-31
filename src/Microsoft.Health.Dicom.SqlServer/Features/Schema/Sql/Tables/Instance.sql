@@ -142,7 +142,7 @@ INCLUDE
 WITH (DATA_COMPRESSION = PAGE)
 
 -- Used in GetInstancesByStudyAndWatermarkRange
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark on dbo.Instance
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark on dbo.Instance
 (
     PartitionKey,
     Status,

@@ -326,7 +326,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark
     ON dbo.Instance(PartitionKey, Watermark)
     INCLUDE(StudyKey, SeriesKey, StudyInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark
     ON dbo.Instance(PartitionKey, Status, StudyInstanceUid, Watermark)
     INCLUDE(SeriesInstanceUid, SopInstanceUid, OriginalWatermark, NewWatermark) WITH (DATA_COMPRESSION = PAGE);
 
