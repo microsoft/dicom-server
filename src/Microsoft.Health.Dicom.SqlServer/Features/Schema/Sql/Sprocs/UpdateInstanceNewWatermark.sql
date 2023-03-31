@@ -32,22 +32,22 @@ BEGIN
     SET XACT_ABORT ON
 
     BEGIN TRANSACTION
-		
-		DECLARE @newWatermark BIGINT
+        
+        DECLARE @newWatermark BIGINT
 
-		SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+        SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
 
-		UPDATE dbo.Instance
-		SET NewWatermark = @newWatermark
-		WHERE PartitionKey = @partitionKey
+        UPDATE dbo.Instance
+        SET NewWatermark = @newWatermark
+        WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid = @sopInstanceUid
         AND Status = 1
 
-		-- The instance does not exist.
-		IF @@ROWCOUNT = 0
-			THROW 50404, 'Instance does not exist', 1
+        -- The instance does not exist.
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'Instance does not exist', 1
 
     COMMIT TRANSACTION
 END
