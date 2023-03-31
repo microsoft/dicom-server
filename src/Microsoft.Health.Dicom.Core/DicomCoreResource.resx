@@ -462,6 +462,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DataPartitionFeatureCannotBeDisabled" xml:space="preserve">
     <value>Data partitions feature cannot be disabled while existing data has already been partitioned.</value>
   </data>
+  <data name="DicomUpdateFeatureDisabled" xml:space="preserve">
+    <value>Dicom update feature is disabled.</value>
+  </data>
   <data name="ImplicitVRNotAllowed" xml:space="preserve">
     <value>Implicit VR is not allowed.</value>
   </data>
@@ -613,6 +616,10 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="ExistingReindexOperation" xml:space="preserve">
     <value>There is already an active re-index operation with ID '{0}'.</value>
+    <comment>{0} Operation ID</comment>
+  </data>
+  <data name="ExistingUpdateOperation" xml:space="preserve">
+    <value>There is already an active update operation with ID '{0}'.</value>
     <comment>{0} Operation ID</comment>
   </data>
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations;
@@ -98,4 +99,21 @@ public interface IDicomOperationsClient
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously begins the update of files as detailed in the given <paramref name="updateSpecification"/>.
+    /// </summary>
+    /// <param name="operationId">The desired ID for the long-running export operation.</param>
+    /// <param name="updateSpecification">The specification that details the data to be updated</param>
+    /// <param name="cancellationToken">
+    /// The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.
+    /// </param>
+    /// <returns>
+    /// OperationId?
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="updateSpecification"/>, or <paramref name="operationId"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, CancellationToken cancellationToken = default);
 }

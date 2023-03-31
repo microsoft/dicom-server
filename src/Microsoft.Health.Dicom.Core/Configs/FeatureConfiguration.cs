@@ -31,4 +31,9 @@ public class FeatureConfiguration
     /// Enables the latest API version
     /// </summary>
     public bool EnableLatestApiVersion { get; set; }
+
+    /// <summary>
+    /// Enables Dicom update feature
+    /// </summary>
+    public bool EnableDicomUpdate { get; set; }
 }
