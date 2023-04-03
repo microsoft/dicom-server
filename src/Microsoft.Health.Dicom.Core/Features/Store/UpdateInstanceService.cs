@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
@@ -20,6 +21,7 @@ public class UpdateInstanceService : IUpdateInstanceService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
+    private readonly IUrlResolver _urlResolver;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -33,13 +35,16 @@ public class UpdateInstanceService : IUpdateInstanceService
 
     public UpdateInstanceService(
         IGuidFactory guidFactory,
-        IDicomOperationsClient client)
+        IDicomOperationsClient client,
+        IUrlResolver iUrlResolver)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
+        EnsureArg.IsNotNull(iUrlResolver, nameof(iUrlResolver));
 
         _guidFactory = guidFactory;
         _client = client;
+        _urlResolver = iUrlResolver;
     }
 
     public async Task<OperationReference> UpdateInstanceAsync(
@@ -55,7 +60,8 @@ public class UpdateInstanceService : IUpdateInstanceService
         if (activeOperation != null)
             throw new ExistingUpdateOperationException(activeOperation);
 
-        OperationReference operation = await _client.StartUpdateOperationAsync(_guidFactory.Create(), spec, cancellationToken);
+        var operationId = _guidFactory.Create();
+        OperationReference operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
 
         return operation;
     }

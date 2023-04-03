@@ -9,13 +9,5 @@ public class UpdateSpecification
 {
     public int PartitionKey { get; set; }
     public string Id { get; set; }
-    public Level UpdateLevel { get; set; }
     public object Dataset { get; set; }
-}
-
-public enum Level
-{
-    Study,
-    Series,
-    Instance
 }
