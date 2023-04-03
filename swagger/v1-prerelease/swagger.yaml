@@ -2617,6 +2617,7 @@ components:
       enum:
         - create
         - delete
+        - update
       type: string
     ChangeFeedEntry:
       type: object
