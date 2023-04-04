@@ -8,20 +8,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store;
+namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 public class UpdateInstanceService : IUpdateInstanceService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IUrlResolver _urlResolver;
+    private readonly IDicomRequestContextAccessor _contextAccessor;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -36,15 +39,18 @@ public class UpdateInstanceService : IUpdateInstanceService
     public UpdateInstanceService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
-        IUrlResolver iUrlResolver)
+        IUrlResolver iUrlResolver,
+        IDicomRequestContextAccessor contextAccessor)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(iUrlResolver, nameof(iUrlResolver));
+        EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
 
         _guidFactory = guidFactory;
         _client = client;
         _urlResolver = iUrlResolver;
+        _contextAccessor = contextAccessor;
     }
 
     public async Task<OperationReference> UpdateInstanceAsync(
@@ -61,7 +67,9 @@ public class UpdateInstanceService : IUpdateInstanceService
             throw new ExistingUpdateOperationException(activeOperation);
 
         var operationId = _guidFactory.Create();
-        OperationReference operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
+        var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+        var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
 
         return operation;
     }

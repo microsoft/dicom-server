@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store;
+namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstanceRequest, UpdateInstanceResponse>
 {
@@ -28,9 +28,7 @@ internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstan
         EnsureArg.IsNotNull(request, nameof(request));
 
         if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
-        {
             throw new UnauthorizedDicomActionException(DataActions.Write);
-        }
 
         return new UpdateInstanceResponse(await _updateInstanceService.UpdateInstanceAsync(request.UpdateSpec, cancellationToken));
     }

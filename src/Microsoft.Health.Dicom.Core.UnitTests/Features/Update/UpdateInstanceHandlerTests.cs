@@ -10,7 +10,7 @@ using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -18,7 +18,7 @@ using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Update;
 
 public class UpdateInstanceHandlerTests
 {
@@ -56,10 +56,10 @@ public class UpdateInstanceHandlerTests
     [Fact]
     public async Task GivenSupportedContentType_WhenHandled_ThenCorrectUpdateInstanceResponseShouldBeReturned()
     {
-        Guid id = Guid.NewGuid();
+        var id = Guid.NewGuid();
         IUrlResolver urlResolver = new MockUrlResolver();
         var updateSpec = new UpdateSpecification();
-        OperationReference operation = new OperationReference(id, urlResolver.ResolveOperationStatusUri(id));
+        var operation = new OperationReference(id, urlResolver.ResolveOperationStatusUri(id));
         var updateInstanceRequest = new UpdateInstanceRequest(updateSpec);
 
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.Write);

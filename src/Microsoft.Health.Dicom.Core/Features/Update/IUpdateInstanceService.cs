@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
-namespace Microsoft.Health.Dicom.Core.Features.Store;
+namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 public interface IUpdateInstanceService
 {
