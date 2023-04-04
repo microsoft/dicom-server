@@ -109,21 +109,4 @@ public interface IInstanceStore
         string seriesInstanceUid = null,
         string sopInstanceUid = null,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets identifiers of instances in a study greater than a watermark.
-    /// </summary>
-    /// <param name="batchSize">Max size to retrieve from a batch</param>
-    /// <param name="partitionKey">The partition key.</param>
-    /// <param name="studyInstanceUid">The study identifier.</param>
-    /// <param name="maxWatermark">Optional maxwatermark to filters the result</param>
-    /// <param name="cancellationToken">An optional cancellation token.</param>
-    /// <returns>Instance identifiers.</returns>
-    Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifiersInStudyByWatermarkAsync(
-        int batchSize,
-        int partitionKey,
-        string studyInstanceUid,
-        long? maxWatermark,
-        CancellationToken cancellationToken = default);
-
 }

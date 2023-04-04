@@ -128,10 +128,11 @@ public interface IIndexDataStore
     /// <summary>
     /// Asynchronously updates a DICOM instance NewWatermark
     /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="versions">List of instances watermark to update</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that updates instace new watermark.</returns>
-    Task UpdateInstanceNewWatermarkAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default);
+    Task BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously bulk update all instances in a study, and update extendedquerytag with new watermark.
@@ -143,5 +144,5 @@ public interface IIndexDataStore
     /// <param name="dicomDataset">The DICOM dataset to index.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task BulkUpdateStudyInstanceAsync(int batchSize, int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default);
+    Task EndUpdateInstanceAsync(int batchSize, int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default);
 }
