@@ -58,6 +58,9 @@ public class UpdateInstanceService : IUpdateInstanceService
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(spec, nameof(spec));
+        EnsureArg.IsNotNull(spec.ChangeDataset, nameof(spec.ChangeDataset));
+
+        UpdateRequestValidator.ValidateDicomDataset(spec.ChangeDataset);
 
         OperationReference activeOperation = await _client
             .FindOperationsAsync(Query, cancellationToken)

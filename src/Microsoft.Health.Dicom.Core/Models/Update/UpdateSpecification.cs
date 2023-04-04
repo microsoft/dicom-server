@@ -10,6 +10,12 @@ namespace Microsoft.Health.Dicom.Core.Models.Update;
 
 public class UpdateSpecification
 {
+    public UpdateSpecification(IReadOnlyList<string> studyInstanceUids, DicomDataset changeDataset)
+    {
+        StudyInstanceUids = studyInstanceUids;
+        ChangeDataset = changeDataset;
+    }
+
     public IReadOnlyList<string> StudyInstanceUids { get; set; }
 
     public DicomDataset ChangeDataset { get; set; }
