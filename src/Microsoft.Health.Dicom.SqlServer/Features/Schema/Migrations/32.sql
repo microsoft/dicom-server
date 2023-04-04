@@ -326,10 +326,6 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark
     ON dbo.Instance(PartitionKey, Watermark)
     INCLUDE(StudyKey, SeriesKey, StudyInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark
-    ON dbo.Instance(PartitionKey, Status, StudyInstanceUid, Watermark)
-    INCLUDE(SeriesInstanceUid, SopInstanceUid, OriginalWatermark, NewWatermark) WITH (DATA_COMPRESSION = PAGE);
-
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark
     ON dbo.Instance(PartitionKey, Status, StudyInstanceUid, NewWatermark)
     INCLUDE(SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark) WITH (DATA_COMPRESSION = PAGE);
@@ -929,119 +925,23 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.BulkUpdateStudyInstance
-@batchSize INT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @patientBirthDate DATE=NULL
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
+@partitionKey INT, @watermarkTableType dbo.WatermarkTableType READONLY
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @rowsUpdated AS INT = 0;
-    DECLARE @imageResourceType AS TINYINT = 0;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @updatedInstances AS TABLE (
-        PartitionKey      INT         ,
-        StudyInstanceUid  VARCHAR (64),
-        SeriesInstanceUid VARCHAR (64),
-        SopInstanceUid    VARCHAR (64),
-        StudyKey          BIGINT      ,
-        SeriesKey         BIGINT      ,
-        InstanceKey       BIGINT      ,
-        Watermark         BIGINT      );
-    DECLARE @totalCount AS INT = (SELECT COUNT(*)
-                                  FROM   dbo.Instance
-                                  WHERE  PartitionKey = @partitionKey
-                                         AND StudyInstanceUid = @studyInstanceUid
-                                         AND Status = 1
-                                         AND NewWatermark IS NOT NULL);
-    WHILE (@rowsUpdated < @totalCount)
-        BEGIN
-            DELETE @updatedInstances;
-            UPDATE TOP (@batchSize)
-             dbo.Instance
-            SET    LastStatusUpdatedDate = @currentDate,
-                   OriginalWatermark     = Watermark,
-                   Watermark             = NewWatermark,
-                   NewWatermark          = NULL
-            OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.StudyKey, deleted.SeriesKey, deleted.InstanceKey, deleted.NewWatermark INTO @updatedInstances
-            WHERE  PartitionKey = @partitionKey
-                   AND StudyInstanceUid = @studyInstanceUid
-                   AND Status = 1
-                   AND NewWatermark IS NOT NULL;
-            SET @rowsUpdated = @rowsUpdated + @@ROWCOUNT;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagString AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagLong AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagDouble AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagDateTime AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagPersonName AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark)
-            SELECT @currentDate,
-                   2,
-                   PartitionKey,
-                   StudyInstanceUid,
-                   SeriesInstanceUid,
-                   SopInstanceUid,
-                   Watermark,
-                   Watermark
-            FROM   @updatedInstances;
-        END
-    UPDATE dbo.Study
-    SET    PatientId              = ISNULL(@patientId, PatientId),
-           PatientName            = ISNULL(@patientName, PatientName),
-           PatientBirthDate       = ISNULL(@patientBirthDate, PatientBirthDate),
-           ReferringPhysicianName = ISNULL(@referringPhysicianName, ReferringPhysicianName),
-           StudyDate              = ISNULL(@studyDate, StudyDate),
-           StudyDescription       = ISNULL(@studyDescription, StudyDescription),
-           AccessionNumber        = ISNULL(@accessionNumber, AccessionNumber)
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid;
+    UPDATE i
+    SET    NewWatermark =  NEXT VALUE FOR dbo.WatermarkSequence
+    FROM   dbo.Instance AS i
+           INNER JOIN
+           @watermarkTableType AS input
+           ON i.Watermark = input.Watermark
+              AND i.PartitionKey = @partitionKey
+    WHERE  Status = 1;
     IF @@ROWCOUNT = 0
-        THROW 50404, 'Study does not exist', 1;
+        THROW 50404, 'Instance does not exist', 1;
     COMMIT TRANSACTION;
 END
 
@@ -1497,6 +1397,123 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
+@batchSize INT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @patientBirthDate DATE=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @rowsUpdated AS INT = 0;
+    DECLARE @imageResourceType AS TINYINT = 0;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @updatedInstances AS TABLE (
+        PartitionKey      INT         ,
+        StudyInstanceUid  VARCHAR (64),
+        SeriesInstanceUid VARCHAR (64),
+        SopInstanceUid    VARCHAR (64),
+        StudyKey          BIGINT      ,
+        SeriesKey         BIGINT      ,
+        InstanceKey       BIGINT      ,
+        Watermark         BIGINT      );
+    DECLARE @totalCount AS INT = (SELECT COUNT(*)
+                                  FROM   dbo.Instance
+                                  WHERE  PartitionKey = @partitionKey
+                                         AND StudyInstanceUid = @studyInstanceUid
+                                         AND Status = 1
+                                         AND NewWatermark IS NOT NULL);
+    WHILE (@rowsUpdated < @totalCount)
+        BEGIN
+            DELETE @updatedInstances;
+            UPDATE TOP (@batchSize)
+             dbo.Instance
+            SET    LastStatusUpdatedDate = @currentDate,
+                   OriginalWatermark     = Watermark,
+                   Watermark             = NewWatermark,
+                   NewWatermark          = NULL
+            OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.StudyKey, deleted.SeriesKey, deleted.InstanceKey, deleted.NewWatermark INTO @updatedInstances
+            WHERE  PartitionKey = @partitionKey
+                   AND StudyInstanceUid = @studyInstanceUid
+                   AND Status = 1
+                   AND NewWatermark IS NOT NULL;
+            SET @rowsUpdated = @rowsUpdated + @@ROWCOUNT;
+            UPDATE EQT
+            SET    Watermark = U.Watermark
+            FROM   ExtendedQueryTagString AS EQT
+                   INNER JOIN
+                   @updatedInstances AS U
+                   ON EQT.SopInstanceKey1 = U.StudyKey
+                      AND EQT.SopInstanceKey2 = U.SeriesKey
+                      AND EQT.SopInstanceKey3 = U.InstanceKey
+                      AND EQT.PartitionKey = @partitionKey
+                      AND EQT.ResourceType = @imageResourceType;
+            UPDATE EQT
+            SET    Watermark = U.Watermark
+            FROM   ExtendedQueryTagLong AS EQT
+                   INNER JOIN
+                   @updatedInstances AS U
+                   ON EQT.SopInstanceKey1 = U.StudyKey
+                      AND EQT.SopInstanceKey2 = U.SeriesKey
+                      AND EQT.SopInstanceKey3 = U.InstanceKey
+                      AND EQT.PartitionKey = @partitionKey
+                      AND EQT.ResourceType = @imageResourceType;
+            UPDATE EQT
+            SET    Watermark = U.Watermark
+            FROM   ExtendedQueryTagDouble AS EQT
+                   INNER JOIN
+                   @updatedInstances AS U
+                   ON EQT.SopInstanceKey1 = U.StudyKey
+                      AND EQT.SopInstanceKey2 = U.SeriesKey
+                      AND EQT.SopInstanceKey3 = U.InstanceKey
+                      AND EQT.PartitionKey = @partitionKey
+                      AND EQT.ResourceType = @imageResourceType;
+            UPDATE EQT
+            SET    Watermark = U.Watermark
+            FROM   ExtendedQueryTagDateTime AS EQT
+                   INNER JOIN
+                   @updatedInstances AS U
+                   ON EQT.SopInstanceKey1 = U.StudyKey
+                      AND EQT.SopInstanceKey2 = U.SeriesKey
+                      AND EQT.SopInstanceKey3 = U.InstanceKey
+                      AND EQT.PartitionKey = @partitionKey
+                      AND EQT.ResourceType = @imageResourceType;
+            UPDATE EQT
+            SET    Watermark = U.Watermark
+            FROM   ExtendedQueryTagPersonName AS EQT
+                   INNER JOIN
+                   @updatedInstances AS U
+                   ON EQT.SopInstanceKey1 = U.StudyKey
+                      AND EQT.SopInstanceKey2 = U.SeriesKey
+                      AND EQT.SopInstanceKey3 = U.InstanceKey
+                      AND EQT.PartitionKey = @partitionKey
+                      AND EQT.ResourceType = @imageResourceType;
+            INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark)
+            SELECT @currentDate,
+                   2,
+                   PartitionKey,
+                   StudyInstanceUid,
+                   SeriesInstanceUid,
+                   SopInstanceUid,
+                   Watermark,
+                   Watermark
+            FROM   @updatedInstances;
+        END
+    UPDATE dbo.Study
+    SET    PatientId              = ISNULL(@patientId, PatientId),
+           PatientName            = ISNULL(@patientName, PatientName),
+           PatientBirthDate       = ISNULL(@patientBirthDate, PatientBirthDate),
+           ReferringPhysicianName = ISNULL(@referringPhysicianName, ReferringPhysicianName),
+           StudyDate              = ISNULL(@studyDate, StudyDate),
+           StudyDescription       = ISNULL(@studyDescription, StudyDescription),
+           AccessionNumber        = ISNULL(@accessionNumber, AccessionNumber)
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Study does not exist', 1;
+    COMMIT TRANSACTION;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeed
 @limit INT, @offset BIGINT
 AS
@@ -1789,27 +1806,6 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetInstancesByStudyAndWatermark
-@batchSize INT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @maxWatermark BIGINT=NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT   TOP (@batchSize) StudyInstanceUid,
-                              SeriesInstanceUid,
-                              SopInstanceUid,
-                              Watermark,
-                              OriginalWatermark,
-                              NewWatermark
-    FROM     dbo.Instance
-    WHERE    PartitionKey = @partitionKey
-             AND StudyInstanceUid = @studyInstanceUid
-             AND Watermark >= ISNULL(@maxWatermark, Watermark)
-             AND Status = 1
-    ORDER BY Watermark ASC;
-END
-
-GO
 CREATE OR ALTER PROCEDURE dbo.GetInstancesByWatermarkRange
 @startWatermark BIGINT, @endWatermark BIGINT, @status TINYINT
 AS
@@ -1873,6 +1869,29 @@ BEGIN
            Watermark,
            TransferSyntaxUid,
            HasFrameMetadata
+    FROM   dbo.Instance
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+           AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+           AND Status = @validStatus;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetInstanceWithPropertiesV32
+@validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark,
+           TransferSyntaxUid,
+           HasFrameMetadata,
+           OriginalWatermark,
+           NewWatermark
     FROM   dbo.Instance
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
@@ -2454,28 +2473,6 @@ BEGIN
                    AND PartitionKey = @partitionKey
                    AND etpn.TagValue <> input.TagValue;
         END
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceNewWatermark
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @newWatermark AS BIGINT;
-    SET @newWatermark =  NEXT VALUE FOR dbo.WatermarkSequence;
-    UPDATE dbo.Instance
-    SET    NewWatermark = @newWatermark
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = @seriesInstanceUid
-           AND SopInstanceUid = @sopInstanceUid
-           AND Status = 1;
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance does not exist', 1;
-    COMMIT TRANSACTION;
 END
 
 GO

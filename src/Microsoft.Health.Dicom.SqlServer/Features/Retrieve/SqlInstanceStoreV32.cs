@@ -8,6 +8,7 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -23,29 +24,39 @@ internal class SqlInstanceStoreV32 : SqlInstanceStoreV23
 
     public override SchemaVersion Version => SchemaVersion.V32;
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifiersInStudyByWatermarkAsync(int batchSize, int partitionKey, string studyInstanceUid, long? maxWatermark, CancellationToken cancellationToken = default)
+    public override async Task<IEnumerable<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.GetInstancesByStudyAndWatermark.PopulateCommand(
+            VLatest.GetInstanceWithPropertiesV32.PopulateCommand(
                 sqlCommandWrapper,
-                batchSize,
+                validStatus: (byte)IndexStatus.Created,
                 partitionKey,
                 studyInstanceUid,
-                maxWatermark);
+                seriesInstanceUid,
+                sopInstanceUid);
 
             using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
             {
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    (string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long watermark, long? originalWatermark, long? newWatermark) = reader.ReadRow(
+                    (string rStudyInstanceUid,
+                        string rSeriesInstanceUid,
+                        string rSopInstanceUid,
+                        long watermark,
+                        string rTransferSyntaxUid,
+                        bool rHasFrameMetadata,
+                        long? originalWatermark,
+                        long? newWatermark) = reader.ReadRow(
                        VLatest.Instance.StudyInstanceUid,
                        VLatest.Instance.SeriesInstanceUid,
                        VLatest.Instance.SopInstanceUid,
                        VLatest.Instance.Watermark,
+                       VLatest.Instance.TransferSyntaxUid,
+                       VLatest.Instance.HasFrameMetadata,
                        VLatest.Instance.OriginalWatermark,
                        VLatest.Instance.NewWatermark);
 
@@ -57,7 +68,13 @@ internal class SqlInstanceStoreV32 : SqlInstanceStoreV23
                                 rSopInstanceUid,
                                 watermark,
                                 partitionKey),
-                            new InstanceProperties() { OriginalVersion = originalWatermark, NewVersion = newWatermark }));
+                            new InstanceProperties()
+                            {
+                                TransferSyntaxUid = rTransferSyntaxUid,
+                                HasFrameMetadata = rHasFrameMetadata,
+                                OriginalVersion = originalWatermark,
+                                NewVersion = newWatermark
+                            }));
                 }
             }
         }

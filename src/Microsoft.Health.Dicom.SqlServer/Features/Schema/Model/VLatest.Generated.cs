@@ -36,7 +36,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static AddWorkitemProcedure AddWorkitem = new AddWorkitemProcedure();
         internal readonly static AddWorkitemV11Procedure AddWorkitemV11 = new AddWorkitemV11Procedure();
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
-        internal readonly static BulkUpdateStudyInstanceProcedure BulkUpdateStudyInstance = new BulkUpdateStudyInstanceProcedure();
+        internal readonly static BeginUpdateInstanceProcedure BeginUpdateInstance = new BeginUpdateInstanceProcedure();
         internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
@@ -45,6 +45,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteExtendedQueryTagV8Procedure DeleteExtendedQueryTagV8 = new DeleteExtendedQueryTagV8Procedure();
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static DeleteWorkitemProcedure DeleteWorkitem = new DeleteWorkitemProcedure();
+        internal readonly static EndUpdateInstanceProcedure EndUpdateInstance = new EndUpdateInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
@@ -60,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
         internal readonly static GetInstanceWithPropertiesProcedure GetInstanceWithProperties = new GetInstanceWithPropertiesProcedure();
-        internal readonly static GetInstancesByStudyAndWatermarkProcedure GetInstancesByStudyAndWatermark = new GetInstancesByStudyAndWatermarkProcedure();
+        internal readonly static GetInstanceWithPropertiesV32Procedure GetInstanceWithPropertiesV32 = new GetInstanceWithPropertiesV32Procedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
@@ -79,7 +80,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateIndexWorkitemInstanceCoreProcedure UpdateIndexWorkitemInstanceCore = new UpdateIndexWorkitemInstanceCoreProcedure();
-        internal readonly static UpdateInstanceNewWatermarkProcedure UpdateInstanceNewWatermark = new UpdateInstanceNewWatermarkProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpdateInstanceStatusV6Procedure UpdateInstanceStatusV6 = new UpdateInstanceStatusV6Procedure();
         internal readonly static UpdateWorkitemProcedureStepStateProcedure UpdateWorkitemProcedureStepState = new UpdateWorkitemProcedureStepStateProcedure();
@@ -297,7 +297,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyKey_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Watermark = new Index("IX_Instance_PartitionKey_Watermark");
-            internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark");
         }
 
@@ -763,38 +762,52 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<ExtendedQueryTagKeyTableTypeV1Row> ExtendedQueryTagKeys { get; }
         }
 
-        internal class BulkUpdateStudyInstanceProcedure : StoredProcedure
+        internal class BeginUpdateInstanceProcedure : StoredProcedure
         {
-            internal BulkUpdateStudyInstanceProcedure() : base("dbo.BulkUpdateStudyInstance")
+            internal BeginUpdateInstanceProcedure() : base("dbo.BeginUpdateInstance")
             {
             }
 
-            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _studyDescription = new ParameterDefinition<System.String>("@studyDescription", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
+            private readonly WatermarkTableTypeTableValuedParameterDefinition _watermarkTableType = new WatermarkTableTypeTableValuedParameterDefinition("@watermarkTableType");
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.Nullable<System.DateTime> patientBirthDate)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.BulkUpdateStudyInstance";
-                _batchSize.AddParameter(command.Parameters, batchSize);
+                command.CommandText = "dbo.BeginUpdateInstance";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _patientId.AddParameter(command.Parameters, patientId);
-                _patientName.AddParameter(command.Parameters, patientName);
-                _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
-                _studyDate.AddParameter(command.Parameters, studyDate);
-                _studyDescription.AddParameter(command.Parameters, studyDescription);
-                _accessionNumber.AddParameter(command.Parameters, accessionNumber);
-                _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
+                _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
             }
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, BeginUpdateInstanceTableValuedParameters tableValuedParameters)
+            {
+                PopulateCommand(command, partitionKey: partitionKey, watermarkTableType: tableValuedParameters.WatermarkTableType);
+            }
+        }
+
+        internal class BeginUpdateInstanceTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, BeginUpdateInstanceTableValuedParameters>
+        {
+            public BeginUpdateInstanceTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
+            {
+                this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
+            }
+
+            private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
+
+            public BeginUpdateInstanceTableValuedParameters Generate(TInput input)
+            {
+                return new BeginUpdateInstanceTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
+            }
+        }
+
+        internal struct BeginUpdateInstanceTableValuedParameters
+        {
+            internal BeginUpdateInstanceTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
+            {
+                this.WatermarkTableType = WatermarkTableType;
+            }
+
+            internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
         }
 
         internal class CompleteReindexingProcedure : StoredProcedure
@@ -986,6 +999,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.DeleteWorkitem";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _workitemUid.AddParameter(command.Parameters, workitemUid);
+            }
+        }
+
+        internal class EndUpdateInstanceProcedure : StoredProcedure
+        {
+            internal EndUpdateInstanceProcedure() : base("dbo.EndUpdateInstance")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
+            private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
+            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
+            private readonly ParameterDefinition<System.String> _studyDescription = new ParameterDefinition<System.String>("@studyDescription", global::System.Data.SqlDbType.NVarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
+            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.Nullable<System.DateTime> patientBirthDate)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.EndUpdateInstance";
+                _batchSize.AddParameter(command.Parameters, batchSize);
+                _partitionKey.AddParameter(command.Parameters, partitionKey);
+                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
+                _patientId.AddParameter(command.Parameters, patientId);
+                _patientName.AddParameter(command.Parameters, patientName);
+                _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
+                _studyDate.AddParameter(command.Parameters, studyDate);
+                _studyDescription.AddParameter(command.Parameters, studyDescription);
+                _accessionNumber.AddParameter(command.Parameters, accessionNumber);
+                _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
             }
         }
 
@@ -1295,25 +1342,27 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetInstancesByStudyAndWatermarkProcedure : StoredProcedure
+        internal class GetInstanceWithPropertiesV32Procedure : StoredProcedure
         {
-            internal GetInstancesByStudyAndWatermarkProcedure() : base("dbo.GetInstancesByStudyAndWatermark")
+            internal GetInstanceWithPropertiesV32Procedure() : base("dbo.GetInstanceWithPropertiesV32")
             {
             }
 
-            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Byte> _validStatus = new ParameterDefinition<System.Byte>("@validStatus", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Nullable<System.Int64>> _maxWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@maxWatermark", global::System.Data.SqlDbType.BigInt, true);
+            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
+            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 partitionKey, System.String studyInstanceUid, System.Nullable<System.Int64> maxWatermark)
+            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetInstancesByStudyAndWatermark";
-                _batchSize.AddParameter(command.Parameters, batchSize);
+                command.CommandText = "dbo.GetInstanceWithPropertiesV32";
+                _validStatus.AddParameter(command.Parameters, validStatus);
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _maxWatermark.AddParameter(command.Parameters, maxWatermark);
+                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
+                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
             }
         }
 
@@ -1906,28 +1955,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal global::System.Collections.Generic.IEnumerable<InsertStringExtendedQueryTagTableTypeV1Row> StringExtendedQueryTags { get; }
             internal global::System.Collections.Generic.IEnumerable<InsertDateTimeExtendedQueryTagTableTypeV2Row> DateTimeExtendedQueryTags { get; }
             internal global::System.Collections.Generic.IEnumerable<InsertPersonNameExtendedQueryTagTableTypeV1Row> PersonNameExtendedQueryTags { get; }
-        }
-
-        internal class UpdateInstanceNewWatermarkProcedure : StoredProcedure
-        {
-            internal UpdateInstanceNewWatermarkProcedure() : base("dbo.UpdateInstanceNewWatermark")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpdateInstanceNewWatermark";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
-                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-            }
         }
 
         internal class UpdateInstanceStatusProcedure : StoredProcedure

@@ -336,12 +336,12 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task BulkUpdateStudyInstanceAsync(int batchSize, int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+    public virtual Task BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task UpdateInstanceNewWatermarkAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
+    public virtual Task EndUpdateInstanceAsync(int batchSize, int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

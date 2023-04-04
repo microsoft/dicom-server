@@ -141,23 +141,6 @@ INCLUDE
 )
 WITH (DATA_COMPRESSION = PAGE)
 
--- Used in GetInstancesByStudyAndWatermarkRange
-CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark on dbo.Instance
-(
-    PartitionKey,
-    Status,
-    StudyInstanceUid,
-    Watermark
-)
-INCLUDE
-(
-    SeriesInstanceUid,
-    SopInstanceUid,
-    OriginalWatermark,
-    NewWatermark  
-)
-WITH (DATA_COMPRESSION = PAGE)
-
 --Used in Bulk update, also can be used in Cleanup job
 CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark on dbo.Instance
 (

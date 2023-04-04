@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     BulkUpdateStudyInstance
+--     EndUpdateInstance
 --
 -- DESCRIPTION
 --     Bulk update all instances in a study, and update extendedquerytag with new watermark.
@@ -33,7 +33,7 @@
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.BulkUpdateStudyInstance
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
     @batchSize                          INT,
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),

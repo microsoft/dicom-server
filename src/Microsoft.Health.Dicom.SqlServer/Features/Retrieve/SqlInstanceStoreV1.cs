@@ -120,9 +120,4 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
-
-    public virtual Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifiersInStudyByWatermarkAsync(int batchSize, int partitionKey, string studyInstanceUid, long? maxWatermark, CancellationToken cancellationToken = default)
-    {
-        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-    }
 }

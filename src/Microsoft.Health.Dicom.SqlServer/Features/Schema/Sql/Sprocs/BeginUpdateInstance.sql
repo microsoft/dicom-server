@@ -1,0 +1,41 @@
+﻿/*************************************************************
+    Stored procedures for updating an instance status.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     BeginUpdateInstance
+--
+-- DESCRIPTION
+--     Updates a DICOM instance NewWatermark
+--
+-- PARAMETERS
+--     @partitionKey
+--         * The system identified of the data partition.
+--     @watermarkTableType
+--         * The SOP instance watermark.
+--
+-- RETURN VALUE
+--     None
+--
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
+	@partitionKey       INT,
+	@watermarkTableType dbo.WatermarkTableType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
+
+    BEGIN TRANSACTION
+        
+        UPDATE i
+        SET NewWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+        FROM dbo.Instance i
+        JOIN @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
+        WHERE Status = 1
+
+        -- The instance does not exist.
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'Instance does not exist', 1
+
+    COMMIT TRANSACTION
+END

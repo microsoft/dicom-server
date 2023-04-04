@@ -19,48 +19,56 @@ BEGIN
 END
 GO
 
-/**************************************************************/
---
+/***************************************************************************************/
 -- STORED PROCEDURE
---     GetInstancesByStudyAndWatermark
+--     GetInstanceWithPropertiesV32
+--
+-- FIRST SCHEMA VERSION
+--     32
 --
 -- DESCRIPTION
---     Get instances by given minimum watermark in a study.
+--     Gets valid dicom instances at study/series/instance level with additional instance properties
 --
 -- PARAMETERS
---     @batchSize
---         * The desired number of instances per batch. Actual number may be smaller.
+--     @invalidStatus
+--         * Filter criteria to search only valid instances
 --     @partitionKey
---         * The system identified of the data partition.
+--         * The Partition key
 --     @studyInstanceUid
 --         * The study instance UID.
---     @maxWatermark
---         * The optional maxWatermark.
--- RETURN VALUE
---     The instance identifiers.
-------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.GetInstancesByStudyAndWatermark
-    @batchSize INT,
-    @partitionKey INT,
-    @studyInstanceUid VARCHAR(64),
-    @maxWatermark BIGINT = NULL
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetInstanceWithPropertiesV32 (
+    @validStatus        TINYINT,
+    @partitionKey       INT,
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64) = NULL,
+    @sopInstanceUid     VARCHAR(64) = NULL
+)
 AS
 BEGIN
-    SET NOCOUNT ON
-    SET XACT_ABORT ON
-    SELECT TOP (@batchSize)
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        Watermark,
-        OriginalWatermark,
-        NewWatermark
-    FROM dbo.Instance
-    WHERE PartitionKey = @partitionKey
-        AND StudyInstanceUid = @studyInstanceUid
-        AND Watermark >= ISNULL(@maxWatermark, Watermark)
-        AND Status = 1
-    ORDER BY Watermark ASC
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+
+    SELECT  StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            Watermark,
+            TransferSyntaxUid,
+            HasFrameMetadata,
+            OriginalWatermark,
+            NewWatermark
+    FROM    dbo.Instance
+    WHERE   PartitionKey            = @partitionKey
+            AND StudyInstanceUid    = @studyInstanceUid
+            AND SeriesInstanceUid   = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+            AND SopInstanceUid      = ISNULL(@sopInstanceUid, SopInstanceUid)
+            AND Status              = @validStatus
+
 END
 GO
 
@@ -69,7 +77,7 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     UpdateInstanceNewWatermark
+--     BeginUpdateInstance
 --
 -- DESCRIPTION
 --     Updates a DICOM instance NewWatermark
@@ -77,21 +85,15 @@ GO
 -- PARAMETERS
 --     @partitionKey
 --         * The system identified of the data partition.
---     @studyInstanceUid
---         * The study instance UID.
---     @seriesInstanceUid
---         * The series instance UID.
---     @sopInstanceUid
---         * The SOP instance UID.
+--     @watermarkTableType
+--         * The SOP instance watermark.
 --
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceNewWatermark
-    @partitionKey       INT,
-    @studyInstanceUid   VARCHAR(64),
-    @seriesInstanceUid  VARCHAR(64),
-    @sopInstanceUid     VARCHAR(64)
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
+	@partitionKey       INT,
+	@watermarkTableType dbo.WatermarkTableType READONLY
 AS
 BEGIN
     SET NOCOUNT ON
@@ -99,17 +101,11 @@ BEGIN
 
     BEGIN TRANSACTION
         
-        DECLARE @newWatermark BIGINT
-
-        SET @newWatermark = NEXT VALUE FOR dbo.WatermarkSequence
-
-        UPDATE dbo.Instance
-        SET NewWatermark = @newWatermark
-        WHERE PartitionKey = @partitionKey
-        AND StudyInstanceUid = @studyInstanceUid
-        AND SeriesInstanceUid = @seriesInstanceUid
-        AND SopInstanceUid = @sopInstanceUid
-        AND Status = 1
+        UPDATE i
+        SET NewWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+        FROM dbo.Instance i
+        JOIN @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
+        WHERE Status = 1
 
         -- The instance does not exist.
         IF @@ROWCOUNT = 0
@@ -124,7 +120,7 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     BulkUpdateStudyInstance
+--     EndUpdateInstance
 --
 -- DESCRIPTION
 --     Bulk update all instances in a study, and update extendedquerytag with new watermark.
@@ -154,7 +150,7 @@ GO
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.BulkUpdateStudyInstance
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
     @batchSize                          INT,
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
@@ -275,34 +271,6 @@ BEGIN
         THROW 50404, 'Study does not exist', 1
 
     COMMIT TRANSACTION
-END
-GO
-
-COMMIT TRANSACTION
-
-IF NOT EXISTS 
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark'
-        AND Object_id = OBJECT_ID('dbo.Instance')
-)
-BEGIN
-    CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_Watermark on dbo.Instance
-    (
-        PartitionKey,
-        Status,
-        StudyInstanceUid,
-        Watermark
-    )
-    INCLUDE
-    (
-        SeriesInstanceUid,
-        SopInstanceUid,
-        OriginalWatermark,
-        NewWatermark  
-    )
-    WITH (DATA_COMPRESSION = PAGE)
 END
 GO
 

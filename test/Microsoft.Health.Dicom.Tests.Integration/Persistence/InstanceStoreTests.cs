@@ -270,43 +270,6 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     }
 
     [Fact]
-    public async Task GivenInstances_WhenGetInstanceIdentifiersInStudyByWatermark_ThenItShouldReturnInstances()
-    {
-        var studyInstanceUID1 = TestUidGenerator.Generate();
-        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
-        DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
-
-        var instance1 = await CreateInstanceIndexAsync(dataset1);
-        var instance2 = await CreateInstanceIndexAsync(dataset2);
-
-        var studyInstanceUID2 = TestUidGenerator.Generate();
-        DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUID2);
-        DicomDataset dataset4 = Samples.CreateRandomInstanceDataset(studyInstanceUID2);
-        var instance3 = await CreateInstanceIndexAsync(dataset3);
-        var instance4 = await CreateInstanceIndexAsync(dataset4);
-
-        IReadOnlyList<InstanceMetadata> instances = await _instanceStore.GetInstanceIdentifiersInStudyByWatermarkAsync(
-            1,
-            DefaultPartition.Key,
-            studyInstanceUID1,
-            null);
-
-        Assert.Equal(instances.Select(x => x.VersionedInstanceIdentifier),
-            new[] { new VersionedInstanceIdentifier(
-                instance1.StudyInstanceUid, instance1.SeriesInstanceUid, instance1.SopInstanceUid, instance1.Watermark, instance1.PartitionKey) });
-
-        instances = await _instanceStore.GetInstanceIdentifiersInStudyByWatermarkAsync(
-            1,
-            DefaultPartition.Key,
-            studyInstanceUID1,
-            instance1.Watermark + 1);
-
-        Assert.Equal(instances.Select(x => x.VersionedInstanceIdentifier),
-                    new[] { new VersionedInstanceIdentifier(
-                instance2.StudyInstanceUid, instance2.SeriesInstanceUid, instance2.SopInstanceUid, instance2.Watermark, instance2.PartitionKey) });
-    }
-
-    [Fact]
     public async Task GivenInstances_WhenBulkUpdateInstancesInAStudy_ThenItShouldBeSuccessful()
     {
         var studyInstanceUID1 = TestUidGenerator.Generate();
@@ -331,26 +294,17 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
         // Update the instances with newWatermark
-        foreach (var instance in instances)
-        {
-            await _indexDataStore.UpdateInstanceNewWatermarkAsync(
-                new VersionedInstanceIdentifier(instance.StudyInstanceUid, instance.SeriesInstanceUid, instance.SopInstanceUid, instance.Watermark, instance.PartitionKey));
-        }
+        await _indexDataStore.BeginUpdateInstanceAsync(instance1.PartitionKey, instances.Select(x => x.Watermark).ToList());
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.BulkUpdateStudyInstanceAsync(2, DefaultPartition.Key, studyInstanceUID1, dicomDataset);
+        await _indexDataStore.EndUpdateInstanceAsync(2, DefaultPartition.Key, studyInstanceUID1, dicomDataset);
 
-        IReadOnlyList<InstanceMetadata> instanceMetadata = await _instanceStore.GetInstanceIdentifiersInStudyByWatermarkAsync(
-            4,
-            DefaultPartition.Key,
-            studyInstanceUID1,
-            null);
-
+        var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, studyInstanceUID1)).ToList();
 
         // Verify the instances are updated with updated information
-        Assert.Equal(instances.Count, instanceMetadata.Count);
+        Assert.Equal(instances.Count, instanceMetadata.Count());
 
         for (int i = 0; i < instances.Count; i++)
         {

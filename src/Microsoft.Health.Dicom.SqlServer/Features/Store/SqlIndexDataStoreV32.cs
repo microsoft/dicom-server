@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -10,7 +12,6 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -29,8 +30,33 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
     }
 
     public override SchemaVersion Version => SchemaVersion.V32;
+    public override async Task BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
+    {
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        {
+            List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
+            VLatest.BeginUpdateInstance.PopulateCommand(
+                sqlCommandWrapper,
+                partitionKey,
+                versionRows);
 
-    public override async Task BulkUpdateStudyInstanceAsync(
+            try
+            {
+                await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+            }
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
+                {
+                    SqlErrorCodes.NotFound => new InstanceNotFoundException(),
+                    _ => new DataStoreException(ex),
+                };
+            }
+        }
+    }
+
+    public override async Task EndUpdateInstanceAsync(
         int batchSize,
         int partitionKey,
         string studyInstanceUid,
@@ -42,7 +68,7 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.BulkUpdateStudyInstance.PopulateCommand(
+            VLatest.EndUpdateInstance.PopulateCommand(
                 sqlCommandWrapper,
                 batchSize,
                 partitionKey,
@@ -64,35 +90,6 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
                 throw ex.Number switch
                 {
                     SqlErrorCodes.NotFound => new StudyNotFoundException(),
-                    _ => new DataStoreException(ex),
-                };
-            }
-        }
-    }
-
-    public override async Task UpdateInstanceNewWatermarkAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
-        {
-            VLatest.UpdateInstanceNewWatermark.PopulateCommand(
-                sqlCommandWrapper,
-                versionedInstanceIdentifier.PartitionKey,
-                versionedInstanceIdentifier.StudyInstanceUid,
-                versionedInstanceIdentifier.SeriesInstanceUid,
-                versionedInstanceIdentifier.SopInstanceUid);
-
-            try
-            {
-                await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-            }
-            catch (SqlException ex)
-            {
-                throw ex.Number switch
-                {
-                    SqlErrorCodes.NotFound => new InstanceNotFoundException(),
                     _ => new DataStoreException(ex),
                 };
             }
