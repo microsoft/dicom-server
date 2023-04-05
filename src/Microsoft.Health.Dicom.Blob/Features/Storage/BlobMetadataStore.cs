@@ -80,7 +80,7 @@ public class BlobMetadataStore : IMetadataStore
         // Creates a copy of the dataset with bulk data removed.
         DicomDataset dicomDatasetWithoutBulkData = dicomDataset.CopyWithoutBulkDataItems();
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(dicomDatasetWithoutBulkData.ToVersionedInstanceIdentifier(version));
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         try
         {
@@ -109,23 +109,19 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteInstanceMetadataIfExistsAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task DeleteInstanceMetadataIfExistsAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
     }
 
     /// <inheritdoc />
-    public Task<DicomDataset> GetInstanceMetadataAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public Task<DicomDataset> GetInstanceMetadataAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
             return ExecuteAsync(async t =>
             {
                 // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
@@ -143,8 +139,8 @@ public class BlobMetadataStore : IMetadataStore
                 case ItemNotFoundException:
                     _logger.LogWarning(
                         ex,
-                        "The DICOM instance metadata file with '{DicomInstanceIdentifier}' does not exist.",
-                        versionedInstanceIdentifier);
+                        "The DICOM instance metadata file with '{Version}' does not exist.",
+                        version);
                     break;
                 case JsonException or NotSupportedException:
                     _blobRetrieveMeter.JsonDeserializationException.Add(1, new[] { new KeyValuePair<string, object>("JsonDeserializationExceptionTypeDimension", ex.GetType().FullName) });
@@ -156,24 +152,22 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public async Task DeleteInstanceFramesRangeAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(version);
 
         await ExecuteAsync(t => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task StoreInstanceFramesRangeAsync(
-            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            long version,
             IReadOnlyDictionary<int, FrameRange> framesRange,
             CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(framesRange, nameof(framesRange));
 
-        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(version);
 
         try
         {
@@ -199,10 +193,9 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, CancellationToken cancellationToken)
+    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-        BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(version);
 
         return ExecuteAsync(async t =>
         {
@@ -211,15 +204,15 @@ public class BlobMetadataStore : IMetadataStore
         }, cancellationToken);
     }
 
-    private BlockBlobClient GetInstanceFramesRangeBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceFramesRangeBlobClient(long version)
     {
-        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(versionedInstanceIdentifier);
+        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(version);
         return _container.GetBlockBlobClient(blobName);
     }
 
-    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
-        string blobName = _nameWithPrefix.GetMetadataFileName(versionedInstanceIdentifier);
+        string blobName = _nameWithPrefix.GetMetadataFileName(version);
 
         return _container.GetBlockBlobClient(blobName);
     }

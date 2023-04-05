@@ -52,14 +52,13 @@ public class BlobFileStore : IFileStore
 
     /// <inheritdoc />
     public async Task<Uri> StoreFileAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        long version,
         Stream stream,
         CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
 
@@ -77,15 +76,11 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken)
+    public async Task DeleteFileIfExistsAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
             await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
         }
@@ -96,15 +91,11 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken)
+    public async Task<Stream> GetFileAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
             Stream stream = null;
             var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -122,19 +113,15 @@ public class BlobFileStore : IFileStore
         }
         catch (ItemNotFoundException ex)
         {
-            _logger.LogWarning(ex, "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+            _logger.LogWarning(ex, "The DICOM instance file with '{Version}' does not exist.", version);
 
             throw;
         }
     }
 
-    public async Task<Stream> GetStreamingFileAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken)
+    public async Task<Stream> GetStreamingFileAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -148,15 +135,11 @@ public class BlobFileStore : IFileStore
         return stream;
     }
 
-    public async Task<FileProperties> GetFilePropertiesAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
-        CancellationToken cancellationToken)
+    public async Task<FileProperties> GetFilePropertiesAsync(long version, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
-
         try
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
             FileProperties fileProperties = null;
 
             await ExecuteAsync(async () =>
@@ -169,22 +152,18 @@ public class BlobFileStore : IFileStore
         }
         catch (ItemNotFoundException ex)
         {
-            _logger.LogWarning(ex, "The DICOM instance file with '{DicomInstanceIdentifier}' does not exist.", versionedInstanceIdentifier);
+            _logger.LogWarning(ex, "The DICOM instance file with '{Version}' does not exist.", version);
 
             throw;
         }
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileFrameAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
-        FrameRange range,
-        CancellationToken cancellationToken)
+    public async Task<Stream> GetFileFrameAsync(long version, FrameRange range, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(versionedInstanceIdentifier, nameof(versionedInstanceIdentifier));
         EnsureArg.IsNotNull(range, nameof(range));
 
-        BlockBlobClient blob = GetInstanceBlockBlobClient(versionedInstanceIdentifier);
+        BlockBlobClient blob = GetInstanceBlockBlobClient(version);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -199,9 +178,9 @@ public class BlobFileStore : IFileStore
     }
 
 
-    private BlockBlobClient GetInstanceBlockBlobClient(VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
-        string blobName = _nameWithPrefix.GetInstanceFileName(versionedInstanceIdentifier);
+        string blobName = _nameWithPrefix.GetInstanceFileName(version);
 
         return _container.GetBlockBlobClient(blobName);
     }

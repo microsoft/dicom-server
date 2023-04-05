@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -106,9 +106,9 @@ public class DeleteService : IDeleteService
                     {
                         Task[] tasks = new[]
                         {
-                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier, cancellationToken),
-                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier, cancellationToken),
-                            _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier, cancellationToken),
+                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.Version, cancellationToken),
+                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.Version, cancellationToken),
+                            _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier.Version, cancellationToken),
                         };
 
                         await Task.WhenAll(tasks);
