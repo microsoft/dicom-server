@@ -30,8 +30,6 @@ internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstan
         if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             throw new UnauthorizedDicomActionException(DataActions.Write);
 
-        UpdateRequestValidator.ValidateRequest(request);
-
         return new UpdateInstanceResponse(await _updateInstanceService.QueueUpdateOperationAsync(request.UpdateSpec, cancellationToken));
     }
 }

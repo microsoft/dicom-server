@@ -458,7 +458,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         List<string> studyInstanceUIDs = new List<string> { TestUidGenerator.Generate(), TestUidGenerator.Generate() };
         DicomDataset dataset = new DicomDataset(new DicomPersonName(DicomTag.PatientBirthName, "foo"));
 
-        using DicomWebResponse response = await _instancesManager.UpdateAsync(studyInstanceUIDs, dataset);
+        using DicomWebResponse response = await _instancesManager.UpdateStudyAsync(studyInstanceUIDs, dataset);
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }

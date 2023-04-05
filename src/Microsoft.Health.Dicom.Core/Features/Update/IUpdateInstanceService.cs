@@ -10,9 +10,19 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
+/// <summary>
+/// Provides functionality to queue the operation for updating the study attributes
+/// for a list of studyInstanceUids.
+/// </summary>
 public interface IUpdateInstanceService
 {
+    /// <summary>
+    /// Queues the operation for updating the <see cref="UpdateSpecification"/>.
+    /// </summary>
+    /// <param name="updateSpecification">Update spec that has the studyInstanceUids and DicomDataset</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous process operation.</returns>
     public Task<OperationReference> QueueUpdateOperationAsync(
-        UpdateSpecification spec,
+        UpdateSpecification updateSpecification,
         CancellationToken cancellationToken = default);
 }

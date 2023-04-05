@@ -647,4 +647,12 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ErrorMessageFormat" xml:space="preserve">
     <value>DICOM{0}: {1} - {2}</value>
   </data>
+  <data name="DicomUpdateTagValidationFailed" xml:space="preserve">
+    <value>Updating the following tags are not supported: {0}</value>
+    <comment>{0} comma separated list of tags that could not be updated.</comment>
+  </data>
+  <data name="DicomUpdateTagValueValidationFailed" xml:space="preserve">
+    <value>Validation failed for the values of following tags: {0}</value>
+    <comment>{0} comma separated list of tags that could not be updated.</comment>
+  </data>
 </root>

@@ -54,13 +54,14 @@ public class UpdateInstanceService : IUpdateInstanceService
     }
 
     public async Task<OperationReference> QueueUpdateOperationAsync(
-        UpdateSpecification spec,
+        UpdateSpecification updateSpecification,
         CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(spec, nameof(spec));
-        EnsureArg.IsNotNull(spec.ChangeDataset, nameof(spec.ChangeDataset));
+        EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
+        EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
 
-        UpdateRequestValidator.ValidateDicomDataset(spec.ChangeDataset);
+        UpdateRequestValidator.ValidateRequest(updateSpecification);
+        UpdateRequestValidator.ValidateDicomDataset(updateSpecification.ChangeDataset);
 
         OperationReference activeOperation = await _client
             .FindOperationsAsync(Query, cancellationToken)

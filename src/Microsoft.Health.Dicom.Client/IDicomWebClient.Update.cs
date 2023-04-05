@@ -12,5 +12,5 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
-    Task<DicomWebResponse> UpdateAsync(IReadOnlyList<string> studyInstanceUids, DicomDataset dataset, int partitionKey = default, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse> UpdateStudyAsync(IReadOnlyList<string> studyInstanceUids, DicomDataset dataset, int partitionKey = default, CancellationToken cancellationToken = default);
 }

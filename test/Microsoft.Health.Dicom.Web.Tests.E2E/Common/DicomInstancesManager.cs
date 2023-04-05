@@ -161,7 +161,7 @@ internal class DicomInstancesManager : IAsyncDisposable
             .ConfigureAwait(false);
     }
 
-    public async Task<DicomWebResponse> UpdateAsync(
+    public async Task<DicomWebResponse> UpdateStudyAsync(
         IReadOnlyList<string> studyInstanceUids,
         DicomDataset dataset,
         int partitionKey = default,
@@ -171,7 +171,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 
         return await _dicomWebClient
-            .UpdateAsync(studyInstanceUids, dataset, partitionKey, cancellationToken)
+            .UpdateStudyAsync(studyInstanceUids, dataset, partitionKey, cancellationToken)
             .ConfigureAwait(false);
     }
 }

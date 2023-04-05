@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Update;
-using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Xunit;
 
@@ -19,24 +18,24 @@ public class UpdateRequestValidatorTests
     [Fact]
     public void GivenNullRequestBody_WhenValidated_ThenBadRequestExceptionShouldBeThrown()
     {
-        UpdateInstanceRequest request = new UpdateInstanceRequest(null);
-        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateRequest(request));
+        UpdateSpecification updateSpecification = new UpdateSpecification(null, null);
+        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateRequest(updateSpecification));
     }
 
     [Theory]
     [MemberData(nameof(GetValidStudyInstanceUids))]
     public void GivenValidStudyInstanceIds_WhenValidated_ThenItShouldSucceed(IReadOnlyList<string> studyInstanceUids)
     {
-        UpdateInstanceRequest request = new UpdateInstanceRequest(new UpdateSpecification(studyInstanceUids, null));
-        UpdateRequestValidator.ValidateRequest(request);
+        UpdateSpecification updateSpecification = new UpdateSpecification(studyInstanceUids, null);
+        UpdateRequestValidator.ValidateRequest(updateSpecification);
     }
 
     [Theory]
     [MemberData(nameof(GetInvalidStudyInstanceUids))]
     public void GivenInvalidStudyInstanceIds_WhenValidated_ThenInvalidIdentifierExceptionShouldBeThrown(IReadOnlyList<string> studyInstanceUids)
     {
-        UpdateInstanceRequest request = new UpdateInstanceRequest(new UpdateSpecification(studyInstanceUids, null));
-        Assert.Throws<InvalidIdentifierException>(() => UpdateRequestValidator.ValidateRequest(request));
+        UpdateSpecification updateSpecification = new UpdateSpecification(studyInstanceUids, null);
+        Assert.Throws<InvalidIdentifierException>(() => UpdateRequestValidator.ValidateRequest(updateSpecification));
     }
 
     [Fact]
@@ -50,6 +49,13 @@ public class UpdateRequestValidatorTests
     public void GivenAValidDataset_WhenValidated_ThenItShouldSucceed(DicomDataset dataset)
     {
         UpdateRequestValidator.ValidateDicomDataset(dataset);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetInvalidDicomDataset))]
+    public void GivenAnInvalidDataset_WhenValidated_ThenExceptionShouldBeThrown(DicomDataset dataset)
+    {
+        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateDicomDataset(dataset));
     }
 
     public static IEnumerable<object[]> GetValidStudyInstanceUids()
@@ -73,5 +79,10 @@ public class UpdateRequestValidatorTests
                 { DicomTag.PatientID, "123" },
                 { DicomTag.PatientName, "Anonymous" }
             } };
+    }
+
+    public static IEnumerable<object[]> GetInvalidDicomDataset()
+    {
+        yield return new object[] { new DicomDataset(new DicomPersonName(DicomTag.IssuerOfPatientID, "Issuer")) };
     }
 }
