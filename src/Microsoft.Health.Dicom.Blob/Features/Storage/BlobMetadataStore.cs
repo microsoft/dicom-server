@@ -139,7 +139,7 @@ public class BlobMetadataStore : IMetadataStore
                 case ItemNotFoundException:
                     _logger.LogWarning(
                         ex,
-                        "The DICOM instance metadata file with '{Version}' does not exist.",
+                        "The DICOM instance metadata file with watermark '{Version}' does not exist.",
                         version);
                     break;
                 case JsonException or NotSupportedException:

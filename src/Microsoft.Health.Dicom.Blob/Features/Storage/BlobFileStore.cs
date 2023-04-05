@@ -113,7 +113,7 @@ public class BlobFileStore : IFileStore
         }
         catch (ItemNotFoundException ex)
         {
-            _logger.LogWarning(ex, "The DICOM instance file with '{Version}' does not exist.", version);
+            _logger.LogWarning(ex, "The DICOM instance file with watermark '{Version}' does not exist.", version);
 
             throw;
         }
@@ -152,7 +152,7 @@ public class BlobFileStore : IFileStore
         }
         catch (ItemNotFoundException ex)
         {
-            _logger.LogWarning(ex, "The DICOM instance file with '{Version}' does not exist.", version);
+            _logger.LogWarning(ex, "The DICOM instance file with watermark '{Version}' does not exist.", version);
 
             throw;
         }

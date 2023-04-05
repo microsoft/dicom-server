@@ -88,8 +88,8 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.True(success);
         Assert.Equal(1, retrievedInstanceCount);
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
-        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }
