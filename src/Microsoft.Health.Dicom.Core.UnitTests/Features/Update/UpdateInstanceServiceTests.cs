@@ -4,10 +4,12 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -42,7 +44,9 @@ public class UpdateInstanceServiceTests
     [Fact]
     public async Task WhenExistingOperationQueued_ThenExistingUpdateOperationExceptionShouldBeThrown()
     {
-        var updateSpec = new UpdateSpecification();
+        IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
+        DicomDataset changeDataset = new DicomDataset();
+        var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
         var id = Guid.NewGuid();
         var expected = new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute));
 
@@ -55,7 +59,9 @@ public class UpdateInstanceServiceTests
     [Fact]
     public async Task GivenValidInput_WhenNoExistingOperationQueued_ThenShouldSucceed()
     {
-        var updateSpec = new UpdateSpecification();
+        IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
+        DicomDataset changeDataset = new DicomDataset();
+        var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
         string href = "/operation";
         _urlResolver.ResolveOperationStatusUri(Arg.Any<Guid>()).Returns(new Uri(href, UriKind.Relative));
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)

@@ -4,8 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -35,17 +37,19 @@ public class UpdateInstanceHandlerTests
     }
 
     [Fact]
-    public async Task GivenNullRequestBody_WhenHandled_ThenArgumentNullExceptionShouldBeThrown()
+    public async Task GivenNullRequestBody_WhenHandled_ThenBadRequestExceptionShouldBeThrown()
     {
         var updateInstanceRequest = new UpdateInstanceRequest(null);
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.Write);
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
+        await Assert.ThrowsAsync<BadRequestException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
     }
 
     [Fact]
     public async Task GivenNoAccess_WhenHandlingRequest_ThenThrowUnauthorizedDicomActionException()
     {
-        var updateInstanceRequest = new UpdateInstanceRequest(new UpdateSpecification());
+        IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
+        DicomDataset changeDataset = new DicomDataset();
+        var updateInstanceRequest = new UpdateInstanceRequest(new UpdateSpecification(studyInstanceUids, changeDataset));
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.None);
         await Assert.ThrowsAsync<UnauthorizedDicomActionException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
 
@@ -58,7 +62,9 @@ public class UpdateInstanceHandlerTests
     {
         var id = Guid.NewGuid();
         IUrlResolver urlResolver = new MockUrlResolver();
-        var updateSpec = new UpdateSpecification();
+        IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
+        DicomDataset changeDataset = new DicomDataset();
+        var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
         var operation = new OperationReference(id, urlResolver.ResolveOperationStatusUri(id));
         var updateInstanceRequest = new UpdateInstanceRequest(updateSpec);
 
