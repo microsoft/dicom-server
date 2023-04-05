@@ -53,7 +53,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         _contextAccessor = contextAccessor;
     }
 
-    public async Task<OperationReference> UpdateInstanceAsync(
+    public async Task<OperationReference> QueueUpdateOperationAsync(
         UpdateSpecification spec,
         CancellationToken cancellationToken = default)
     {

@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 public interface IUpdateInstanceService
 {
-    public Task<OperationReference> UpdateInstanceAsync(
+    public Task<OperationReference> QueueUpdateOperationAsync(
         UpdateSpecification spec,
         CancellationToken cancellationToken = default);
 }

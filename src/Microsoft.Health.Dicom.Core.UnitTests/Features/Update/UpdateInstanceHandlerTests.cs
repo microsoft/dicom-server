@@ -54,7 +54,7 @@ public class UpdateInstanceHandlerTests
         await Assert.ThrowsAsync<UnauthorizedDicomActionException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
 
         await _auth.Received(1).CheckAccess(DataActions.Write, CancellationToken.None);
-        await _updateInstanceService.DidNotReceiveWithAnyArgs().UpdateInstanceAsync(default, default);
+        await _updateInstanceService.DidNotReceiveWithAnyArgs().QueueUpdateOperationAsync(default, default);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class UpdateInstanceHandlerTests
 
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.Write);
 
-        _updateInstanceService.UpdateInstanceAsync(updateSpec, CancellationToken.None).Returns(operation);
+        _updateInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None).Returns(operation);
 
         var response = await _handler.Handle(updateInstanceRequest, CancellationToken.None);
 

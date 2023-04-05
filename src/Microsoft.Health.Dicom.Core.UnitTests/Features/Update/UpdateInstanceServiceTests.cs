@@ -53,7 +53,7 @@ public class UpdateInstanceServiceTests
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(new OperationReference[] { expected }.ToAsyncEnumerable());
         await Assert.ThrowsAsync<ExistingUpdateOperationException>(() =>
-            _updateInstanceService.UpdateInstanceAsync(updateSpec, CancellationToken.None));
+            _updateInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class UpdateInstanceServiceTests
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(AsyncEnumerable.Empty<OperationReference>());
         _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
-        var response = await _updateInstanceService.UpdateInstanceAsync(updateSpec, CancellationToken.None);
+        var response = await _updateInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
         Assert.Equal(href, response.Href.ToString());
     }

@@ -32,6 +32,6 @@ internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstan
 
         UpdateRequestValidator.ValidateRequest(request);
 
-        return new UpdateInstanceResponse(await _updateInstanceService.UpdateInstanceAsync(request.UpdateSpec, cancellationToken));
+        return new UpdateInstanceResponse(await _updateInstanceService.QueueUpdateOperationAsync(request.UpdateSpec, cancellationToken));
     }
 }
