@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -66,11 +65,11 @@ public class ChangeFeedServiceTests
 
         if (includeMetadata)
         {
-            await _metadataStore.Received(limit - offset).GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+            await _metadataStore.Received(limit - offset).GetInstanceMetadataAsync(Arg.Any<long>(), default);
         }
         else
         {
-            await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+            await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<long>(), default);
         }
 
         Assert.Equal(_changeFeedEntries.Skip(offset).Take(limit), results);
@@ -87,11 +86,11 @@ public class ChangeFeedServiceTests
 
         if (includeMetadata)
         {
-            await _metadataStore.Received(1).GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+            await _metadataStore.Received(1).GetInstanceMetadataAsync(Arg.Any<long>(), default);
         }
         else
         {
-            await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+            await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<long>(), default);
         }
 
         Assert.Equal(_changeFeedEntries.Last(), result);
@@ -105,7 +104,7 @@ public class ChangeFeedServiceTests
         IReadOnlyCollection<ChangeFeedEntry> results = await _changeFeedService.GetChangeFeedAsync(0, 10, true, CancellationToken.None);
 
         await _changeFeedStore.Received(1).GetChangeFeedAsync(0, 10, CancellationToken.None);
-        await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+        await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<long>(), default);
 
         Assert.Empty(results);
     }
@@ -119,7 +118,7 @@ public class ChangeFeedServiceTests
         ChangeFeedEntry result = await _changeFeedService.GetChangeFeedLatestAsync(true, CancellationToken.None);
 
         await _changeFeedStore.Received(1).GetChangeFeedLatestAsync(CancellationToken.None);
-        await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+        await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<long>(), default);
 
         Assert.Null(result);
     }
@@ -132,7 +131,7 @@ public class ChangeFeedServiceTests
         IReadOnlyCollection<ChangeFeedEntry> results = await _changeFeedService.GetChangeFeedAsync(1, 10, true, CancellationToken.None);
 
         await _changeFeedStore.Received(1).GetChangeFeedAsync(1, 10, CancellationToken.None);
-        await _metadataStore.Received(9).GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+        await _metadataStore.Received(9).GetInstanceMetadataAsync(Arg.Any<long>(), default);
 
         Assert.Equal(_changeFeedEntries.Skip(1).Take(10), results);
     }
@@ -145,7 +144,7 @@ public class ChangeFeedServiceTests
         ChangeFeedEntry result = await _changeFeedService.GetChangeFeedLatestAsync(true, CancellationToken.None);
 
         await _changeFeedStore.Received(1).GetChangeFeedLatestAsync(CancellationToken.None);
-        await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), default);
+        await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(Arg.Any<long>(), default);
 
         Assert.Equal(_changeFeedEntries.Last(), result);
     }

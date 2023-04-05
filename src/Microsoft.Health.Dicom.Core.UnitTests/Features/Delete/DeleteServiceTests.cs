@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -135,11 +135,11 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, CancellationToken.None);
 
         await _metadataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteInstanceMetadataIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
+            .DeleteInstanceMetadataIfExistsAsync(version: default, CancellationToken.None);
 
         _transactionScope.Received(1).Complete();
     }
@@ -157,7 +157,7 @@ public class DeleteServiceTests
                 .ReturnsForAnyArgs(responseList);
 
             _fileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -181,7 +181,7 @@ public class DeleteServiceTests
             .ReturnsForAnyArgs(responseList);
 
         _metadataStore
-            .DeleteInstanceMetadataIfExistsAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>())
+            .DeleteInstanceMetadataIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -204,7 +204,7 @@ public class DeleteServiceTests
             .ReturnsForAnyArgs(responseList);
 
         _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>())
+            .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         _indexDataStore
@@ -245,7 +245,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, CancellationToken.None);
     }
 
     [Theory]
@@ -281,11 +281,11 @@ public class DeleteServiceTests
 
             await _metadataStore
                 .Received(1)
-                .DeleteInstanceMetadataIfExistsAsync(deletedVersion, CancellationToken.None);
+                .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, CancellationToken.None);
         }
 
         await _indexDataStore

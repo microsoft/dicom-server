@@ -99,7 +99,7 @@ public class StoreOrchestratorTests
     public async Task GivenFailedToStoreFile_WhenStoringFile_ThenCleanupShouldBeAttempted()
     {
         _fileStore.StoreFileAsync(
-            Arg.Is<VersionedInstanceIdentifier>(identifier => DefaultVersionedInstanceIdentifier.Equals(identifier)),
+            Arg.Is<long>(identifier => DefaultVersionedInstanceIdentifier.Equals(identifier)),
             _stream,
             cancellationToken: DefaultCancellationToken)
             .Throws(new Exception());
