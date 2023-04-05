@@ -922,6 +922,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; is missing or empty..
+        /// </summary>
+        internal static string MissingRequiredField {
+            get {
+                return ResourceManager.GetString("MissingRequiredField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
         /// </summary>
         internal static string MissingRequiredTag {

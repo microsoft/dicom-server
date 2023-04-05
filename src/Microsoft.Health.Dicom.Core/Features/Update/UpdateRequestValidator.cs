@@ -29,13 +29,9 @@ public static class UpdateRequestValidator
     public static void ValidateRequest(UpdateSpecification updateSpecification)
     {
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
-        if (updateSpecification == null)
+        if (updateSpecification.StudyInstanceUids == null || updateSpecification.StudyInstanceUids.Count == 0)
         {
-            throw new BadRequestException(DicomCoreResource.MissingRequestBody);
-        }
-        else if (updateSpecification.StudyInstanceUids == null)
-        {
-            throw new BadRequestException(DicomCoreResource.MissingRequiredTag);
+            throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.MissingRequiredField, nameof(updateSpecification.StudyInstanceUids)));
         }
         foreach (var StudyInstanceUid in updateSpecification.StudyInstanceUids)
         {

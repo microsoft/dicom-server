@@ -655,4 +655,8 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Validation failed for the values of following tags: {0}</value>
     <comment>{0} comma separated list of tags that could not be updated.</comment>
   </data>
+  <data name="MissingRequiredField" xml:space="preserve">
+    <value>The required field '{0}' is missing or empty.</value>
+    <comment>{0} is the required field in input. E.g., StudyInstanceUIDs.</comment>
+  </data>
 </root>
