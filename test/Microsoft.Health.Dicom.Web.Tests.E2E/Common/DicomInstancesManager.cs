@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -158,6 +158,20 @@ internal class DicomInstancesManager : IAsyncDisposable
 
         return await _dicomWebClient
             .UpdateWorkitemAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, transactionUid, partitionName, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<DicomWebResponse> UpdateAsync(
+        IReadOnlyList<string> studyInstanceUids,
+        DicomDataset dataset,
+        int partitionKey = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+
+        return await _dicomWebClient
+            .UpdateAsync(studyInstanceUids, dataset, partitionKey, cancellationToken)
             .ConfigureAwait(false);
     }
 }

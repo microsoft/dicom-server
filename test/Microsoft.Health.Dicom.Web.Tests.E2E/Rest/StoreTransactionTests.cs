@@ -452,6 +452,17 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
     }
 
+    [Fact]
+    public async Task GivenAValidUpdateAttributeRequest_WhenUpdating_ThenShouldSucceed()
+    {
+        List<string> studyInstanceUIDs = new List<string> { TestUidGenerator.Generate(), TestUidGenerator.Generate() };
+        DicomDataset dataset = new DicomDataset(new DicomPersonName(DicomTag.PatientBirthName, "foo"));
+
+        using DicomWebResponse response = await _instancesManager.UpdateAsync(studyInstanceUIDs, dataset);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+    }
+
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders
     {
         get
