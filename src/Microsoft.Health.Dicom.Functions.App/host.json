@@ -51,6 +51,16 @@
         "FirstRetryInterval": "00:01:00",
         "MaxNumberOfAttempts": 4
       }
+    },
+    "Update": {
+      "BatchSize": 100,
+      "MaxParallelThreads": 5,
+      "MaxParallelBatches": 10,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
     }
   },
   "Extensions": {

@@ -23,5 +23,10 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an export operation that copies data out of the DICOM server and into an external data store.
     /// </summary>
-    Export
+    Export,
+
+    /// <summary>
+    /// Specifies an update operation that updates instances in a study.
+    /// </summary>
+    Update
 }

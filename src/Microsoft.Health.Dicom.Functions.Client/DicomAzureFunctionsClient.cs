@@ -20,9 +20,11 @@ using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -170,6 +172,29 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             });
 
         _logger.LogInformation("Successfully started new export orchestration instance with ID '{InstanceId}'.", instanceId);
+
+        return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
+    }
+
+    /// <inheritdoc/>
+    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.Update.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new UpdateInput
+            {
+                Batching = _options.Update.Batching,
+                PartitionKey = partitionKey,
+                ChangeDataset = updateSpecification.ChangeDataset,
+                StudyInstanceUids = updateSpecification.StudyInstanceUids
+            });
+
+        _logger.LogInformation("Successfully started new update operation instance with ID '{InstanceId}'.", instanceId);
 
         return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
