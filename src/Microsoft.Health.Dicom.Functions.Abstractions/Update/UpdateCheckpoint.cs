@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Newtonsoft.Json;
@@ -18,7 +17,9 @@ namespace Microsoft.Health.Dicom.Functions.Update;
 /// </summary>
 public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 {
-    public WatermarkRange? Completed { get; set; }
+    public int NumberOfStudyCompleted { get; set; }
+
+    public int TotalNumberOfStudies { get; set; }
 
     /// <inheritdoc cref="IOperationCheckpoint.CreatedTime"/>
     public DateTime? CreatedTime { get; set; }
@@ -29,13 +30,7 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
     {
         get
         {
-            if (Completed.HasValue)
-            {
-                WatermarkRange range = Completed.GetValueOrDefault();
-                return range.End == 1 ? 100 : (int)((double)(range.End - range.Start + 1) / range.End * 100);
-            }
-
-            return 0;
+            return NumberOfStudyCompleted == TotalNumberOfStudies ? 100 : (int)((double)(TotalNumberOfStudies - NumberOfStudyCompleted + 1) / TotalNumberOfStudies * 100);
         }
     }
 

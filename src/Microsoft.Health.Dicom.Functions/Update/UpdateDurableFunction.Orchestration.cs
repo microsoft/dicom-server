@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -49,7 +50,7 @@ public partial class UpdateDurableFunction
             Size = _options.BatchSize,
         };
 
-        if (input.StudyInstanceUids.Any())
+        if (input.StudyInstanceUids.Count > 0)
         {
             string studyInstanceUid = input.StudyInstanceUids[0];
 
@@ -57,74 +58,47 @@ public partial class UpdateDurableFunction
                 nameof(GetInstanceWatermarksInStudyAsync),
                 _options.RetryOptions,
                 new GetInstanceArguments(input.PartitionKey, studyInstanceUid));
+
+            if (instanceWatermarks.Count > 0)
+            {
+                await context.CallActivityWithRetryAsync(
+                    nameof(UpdateInstanceBatchAsync),
+                    _options.RetryOptions,
+                    new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, _options.BatchSize));
+
+
+                await context.CallActivityWithRetryAsync(
+                    nameof(CompleteUpdateInstanceAsync),
+                    _options.RetryOptions,
+                    new CompleteInstanceArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset as DicomDataset));
+            }
+
+            var studyUids = input.StudyInstanceUids.Skip(1).ToList();
+
+            if (studyUids.Any())
+            {
+                logger.LogInformation("Completed updating the instances for a study. Continuing with new execution...");
+
+                context.ContinueAsNew(
+                        new UpdateCheckpoint
+                        {
+                            Batching = input.Batching,
+                            StudyInstanceUids = studyUids,
+                            ChangeDataset = input.ChangeDataset,
+                            PartitionKey = input.PartitionKey,
+                            TotalNumberOfStudies = input.TotalNumberOfStudies,
+                            NumberOfStudyCompleted = input.NumberOfStudyCompleted + 1,
+                            CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                        });
+            }
+            else
+            {
+                logger.LogInformation("Update operation completed successfully");
+            }
         }
         else
         {
-            // Completed
+            logger.LogInformation("Update operation completed successfully");
         }
-
-
-
-        //    // Fetch the set of query tags that require re-indexing
-        //    IReadOnlyList<ExtendedQueryTagStoreEntry> queryTags = await GetOperationQueryTagsAsync(context, input);
-        //    logger.LogInformation(
-        //        "Found {Count} extended query tag paths to re-index {{{TagPaths}}}.",
-        //        queryTags.Count,
-        //        string.Join(", ", queryTags.Select(x => x.Path)));
-
-        //    List<int> queryTagKeys = queryTags.Select(x => x.Key).ToList();
-        //    if (queryTags.Count > 0)
-        //    {
-        //        IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-        //            nameof(GetInstanceBatchesV2Async),
-        //            _options.RetryOptions,
-        //            new BatchCreationArguments(input.Completed?.Start - 1, input.Batching.Size, input.Batching.MaxParallelCount));
-
-        //        if (batches.Count > 0)
-        //        {
-        //            // Note that batches are in reverse order because we start from the highest watermark
-        //            var batchRange = new WatermarkRange(batches[^1].Start, batches[0].End);
-
-        //            logger.LogInformation("Beginning to re-index the range {Range}.", batchRange);
-        //            await Task.WhenAll(batches
-        //                .Select(x => context.CallActivityWithRetryAsync(
-        //                    nameof(ReindexBatchV2Async),
-        //                    _options.RetryOptions,
-        //                    new ReindexBatchArguments(queryTags, x))));
-
-        //            // Create a new orchestration with the same instance ID to process the remaining data
-        //            logger.LogInformation("Completed re-indexing the range {Range}. Continuing with new execution...", batchRange);
-
-        //            WatermarkRange completed = input.Completed.HasValue
-        //                ? new WatermarkRange(batchRange.Start, input.Completed.Value.End)
-        //                : batchRange;
-
-        //            context.ContinueAsNew(
-        //                new ReindexCheckpoint
-        //                {
-        //                    Batching = input.Batching,
-        //                    Completed = completed,
-        //                    CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
-        //                    QueryTagKeys = queryTagKeys,
-        //                });
-        //        }
-        //        else
-        //        {
-        //            IReadOnlyList<int> completed = await context.CallActivityWithRetryAsync<IReadOnlyList<int>>(
-        //                nameof(CompleteUpdateInstanceAsync),
-        //                _options.RetryOptions,
-        //                queryTagKeys);
-
-        //            logger.LogInformation(
-        //                "Completed re-indexing for the following extended query tags {{{QueryTagKeys}}}.",
-        //                string.Join(", ", completed));
-        //        }
-        //    }
-        //    else
-        //    {
-        //        logger.LogWarning(
-        //            "Could not find any query tags for the re-indexing operation '{OperationId}'.",
-        //            context.InstanceId);
-        //    }
-        //}
     }
+}

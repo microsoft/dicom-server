@@ -3,19 +3,20 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using FellowOakDicom;
+
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
 /// <summary>
-///  Represents input to <see cref="UpdateDurableFunction.GetInstanceWatermarksInStudyAsync"/>
+///  Represents input to <see cref="UpdateDurableFunction.CompleteUpdateInstanceAsync"/>
 /// </summary>
-public class GetInstanceArguments
+public sealed class CompleteInstanceArguments : GetInstanceArguments
 {
-    public int PartitionKey { get; }
-    public string StudyInstanceUid { get; }
+    public DicomDataset Dataset { get; }
 
-    public GetInstanceArguments(int partitionKey, string studyInstanceUid)
+    public CompleteInstanceArguments(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset)
+        : base(partitionKey, studyInstanceUid)
     {
-        PartitionKey = partitionKey;
-        StudyInstanceUid = studyInstanceUid;
+        Dataset = dicomDataset;
     }
 }

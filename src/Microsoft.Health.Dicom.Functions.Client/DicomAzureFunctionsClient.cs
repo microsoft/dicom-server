@@ -191,7 +191,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 Batching = _options.Update.Batching,
                 PartitionKey = partitionKey,
                 ChangeDataset = updateSpecification.ChangeDataset,
-                StudyInstanceUids = updateSpecification.StudyInstanceUids
+                StudyInstanceUids = updateSpecification.StudyInstanceUids,
             });
 
         _logger.LogInformation("Successfully started new update operation instance with ID '{InstanceId}'.", instanceId);

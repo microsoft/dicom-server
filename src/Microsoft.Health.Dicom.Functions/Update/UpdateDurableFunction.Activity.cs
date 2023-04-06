@@ -21,7 +21,7 @@ public partial class UpdateDurableFunction
     /// <summary>
     /// Asynchronously retrieves the query tags that have been associated with the operation.
     /// </summary>
-    /// <param name="context">The context for the activity.</param>
+    /// <param name="arguments">Get instance argument.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
     /// A task representing the <see cref="GetInstanceWatermarksInStudyAsync"/> operation.
@@ -29,55 +29,97 @@ public partial class UpdateDurableFunction
     /// that have been associated the operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(GetInstanceWatermarksInStudyAsync))]
     public async Task<IReadOnlyList<long>> GetInstanceWatermarksInStudyAsync(
-        [ActivityTrigger] IDurableActivityContext context,
+        [ActivityTrigger] GetInstanceArguments arguments,
         ILogger logger)
     {
-        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         logger.LogInformation("Fetching all the instances in a study.");
 
-        var inputArgument = context.GetInput<GetInstanceArguments>();
-
         var instanceMetadata = await _instanceStore.GetInstanceIdentifiersInStudyAsync(
-            inputArgument.PartitionKey,
-            inputArgument.StudyInstanceUid,
+            arguments.PartitionKey,
+            arguments.StudyInstanceUid,
             cancellationToken: CancellationToken.None);
 
         return instanceMetadata.Select(x => x.Version).ToList();
     }
 
-    /// <summary>
-    /// Asynchronously completes the operation by removing the association between the tags and the operation.
-    /// </summary>
-    /// <param name="context">The context for the activity.</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CompleteUpdateInstanceAsync"/> operation.
-    /// The value of its <see cref="Task{TResult}.Result"/> property contains the set of extended query tags
-    /// whose re-indexing should be considered completed.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    //[FunctionName(nameof(CompleteUpdateInstanceAsync))]
-    //public Task CompleteUpdateInstanceAsync(
-    //    [ActivityTrigger] IDurableActivityContext context,
-    //    ILogger logger)
-    //{
-    //    EnsureArg.IsNotNull(context, nameof(context));
-    //    EnsureArg.IsNotNull(logger, nameof(logger));
+    [FunctionName(nameof(UpdateInstanceBatchAsync))]
+    public async Task UpdateInstanceBatchAsync([ActivityTrigger] BatchUpdateArguments arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.InstanceWatermarks, nameof(arguments.InstanceWatermarks));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
-    //    IReadOnlyList<int> tagKeys = context.GetInput<IReadOnlyList<int>>();
-    //    logger.LogInformation("Completing the re-indexing operation {OperationId} for {Count} query tags {{{TagKeys}}}",
-    //        context.InstanceId,
-    //        tagKeys.Count,
-    //        string.Join(", ", tagKeys));
+        logger.LogInformation("");
 
-    //    return _extendedQueryTagStore.CompleteReindexingAsync(tagKeys, CancellationToken.None);
-    //}
+        int processed = 0;
+
+        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
+
+        while (processed < arguments.InstanceWatermarks.Count)
+        {
+            int batchSize = Math.Min(arguments.BatchSize, arguments.InstanceWatermarks.Count - processed);
+            var batch = arguments.InstanceWatermarks.Skip(processed).Take(batchSize).ToList();
+
+            if (batch.Count > 0)
+            {
+                logger.LogInformation("Beginning to update instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+                await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, batch);
+
+                logger.LogInformation("Completed updating instance with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+                logger.LogInformation("Beginning to update instance blobs starting with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+                await Parallel.ForEachAsync(
+                    batch,
+                    new ParallelOptions
+                    {
+                        CancellationToken = default,
+                        MaxDegreeOfParallelism = _options.MaxParallelThreads,
+                    },
+                    async (watermark, token) =>
+                    {
+                        // TODO: Copy and update DICOM file
+                        // TODO: Copy and update metadata file
+                        await Task.CompletedTask;
+                    });
+
+                logger.LogInformation("Completed updating instance blobs starting with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+                processed += batchSize;
+            }
+        }
+
+        logger.LogInformation("Completed updating all instance blobs");
+    }
+
+    [FunctionName(nameof(CompleteUpdateInstanceAsync))]
+    public Task CompleteUpdateInstanceAsync([ActivityTrigger] CompleteInstanceArguments arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        logger.LogInformation("Completing updating operation for study.");
+
+        return _indexStore.EndUpdateInstanceAsync(_options.BatchSize, arguments.PartitionKey, arguments.StudyInstanceUid, arguments.Dataset, CancellationToken.None);
+    }
 }
