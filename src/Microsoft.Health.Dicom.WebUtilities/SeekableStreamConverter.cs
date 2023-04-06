@@ -25,7 +25,7 @@ public abstract class SeekableStreamConverter : ISeekableStreamConverter
     }
 
     /// <inheritdoc />
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Caller will dipose of Stream.")]
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Caller will dispose of Stream.")]
     public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
@@ -48,7 +48,7 @@ public abstract class SeekableStreamConverter : ISeekableStreamConverter
             {
                 memoryBufferThreshold = 0;
             }
-            _logger.LogInformation("Request content length {requestContentLength}", contentLength);
+            _logger.LogInformation("Request content length {RequestContentLength}", contentLength);
             seekableStream = new FileBufferingReadStream(stream, memoryBufferThreshold, bufferLimit, GetTempDirectory());
             RegisterForDispose(seekableStream);
             await seekableStream.DrainAsync(cancellationToken);

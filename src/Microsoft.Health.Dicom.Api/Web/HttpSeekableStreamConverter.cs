@@ -17,7 +17,8 @@ public class HttpSeekableStreamConverter : SeekableStreamConverter
     private string _tempDirectory;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public HttpSeekableStreamConverter(IHttpContextAccessor httpContextAccessor, ILogger<SeekableStreamConverter> logger) : base(logger)
+    public HttpSeekableStreamConverter(IHttpContextAccessor httpContextAccessor, ILogger<SeekableStreamConverter> logger)
+        : base(logger)
     {
         _httpContextAccessor = EnsureArg.IsNotNull(httpContextAccessor, nameof(httpContextAccessor));
     }
