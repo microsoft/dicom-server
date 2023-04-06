@@ -186,8 +186,6 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
     {
         long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
-        var versionedInstanceIdentifier = dataset.ToVersionedInstanceIdentifier(version);
-
         if (flagToStoreInstance)
         {
             var dicomFile = new DicomFile(dataset);
@@ -199,7 +197,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             dicomFile.Save(stream);
             stream.Position = 0;
             await _fileStore.StoreFileAsync(
-                versionedInstanceIdentifier,
+                version,
                 stream);
         }
 
