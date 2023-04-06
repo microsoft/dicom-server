@@ -32,12 +32,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageVersion Include="Microsoft.Azure.ServiceBus" Version="5.2.0" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.36" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.37" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="5.0.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.1.1" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.9.2" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.9.3" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.0" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.6.3" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(SdkPackageVersion)" />

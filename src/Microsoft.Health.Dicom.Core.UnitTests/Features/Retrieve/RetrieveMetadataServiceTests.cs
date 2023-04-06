@@ -127,8 +127,8 @@ public class RetrieveMetadataServiceTests
     {
         List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
 
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), Arg.Any<CancellationToken>()).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().Version, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().Version, Arg.Any<CancellationToken>()).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
@@ -141,8 +141,8 @@ public class RetrieveMetadataServiceTests
     {
         List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
 
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), DefaultCancellationToken).Returns(new DicomDataset());
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().Version, DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().Version, DefaultCancellationToken).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, DefaultCancellationToken);
@@ -156,8 +156,8 @@ public class RetrieveMetadataServiceTests
     {
         List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
 
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), Arg.Any<CancellationToken>()).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().Version, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().Version, Arg.Any<CancellationToken>()).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
@@ -170,8 +170,8 @@ public class RetrieveMetadataServiceTests
     {
         List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
 
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First(), DefaultCancellationToken).Returns(new DicomDataset());
-        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last(), DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().Version, DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().Version, DefaultCancellationToken).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, DefaultCancellationToken);
@@ -185,7 +185,7 @@ public class RetrieveMetadataServiceTests
     {
         VersionedInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
 
-        _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
+        _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier.Version, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, ifNoneMatch, DefaultCancellationToken);
@@ -198,7 +198,7 @@ public class RetrieveMetadataServiceTests
     {
         VersionedInstanceIdentifier sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
 
-        _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier, DefaultCancellationToken).Returns(new DicomDataset());
+        _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier.Version, DefaultCancellationToken).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, ifNoneMatch, DefaultCancellationToken);
