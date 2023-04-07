@@ -75,6 +75,56 @@ public class BlobFileStore : IFileStore
         }
     }
 
+    public async Task<Uri> StoreFileInBlocksAsync(
+        long version,
+        Stream stream,
+        int initialBlockLength,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(stream, nameof(stream));
+
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+
+        const int stagedBlockSize = 4 * 1024 * 1024;
+
+        try
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+
+            long fileSize = stream.Length - initialBlockLength;
+            int numStages = (int)Math.Ceiling((double)fileSize / stagedBlockSize) + 1;
+            string[] blockIds = new string[numStages];
+
+            long bytesRead = 0;
+            for (int i = 0; i < numStages; i++)
+            {
+                long blockSize = i == 0 ? initialBlockLength : Math.Min(stagedBlockSize, stream.Length - bytesRead);
+
+                byte[] blockData = new byte[blockSize];
+
+                await stream.ReadAsync(blockData.AsMemory(0, (int)blockSize), cancellationToken);
+
+                string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+                using (MemoryStream blockStream = new MemoryStream(blockData))
+                {
+                    await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
+                }
+
+                blockIds[i] = blockId;
+                bytesRead += blockSize;
+            }
+
+            await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
+
+            return blobClient.Uri;
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
+    }
+
     /// <inheritdoc />
     public async Task DeleteFileIfExistsAsync(long version, CancellationToken cancellationToken)
     {
