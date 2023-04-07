@@ -38,4 +38,16 @@ BEGIN
             THROW 50404, 'Instance does not exist', 1
 
     COMMIT TRANSACTION
+
+    SELECT  StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        i.Watermark,
+        TransferSyntaxUid,
+        HasFrameMetadata,
+        OriginalWatermark,
+        NewWatermark
+    FROM dbo.Instance i
+    JOIN @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
+    WHERE Status = 1
 END

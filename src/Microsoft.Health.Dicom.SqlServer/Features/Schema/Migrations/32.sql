@@ -943,6 +943,20 @@ BEGIN
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
     COMMIT TRANSACTION;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           i.Watermark,
+           TransferSyntaxUid,
+           HasFrameMetadata,
+           OriginalWatermark,
+           NewWatermark
+    FROM   dbo.Instance AS i
+           INNER JOIN
+           @watermarkTableType AS input
+           ON i.Watermark = input.Watermark
+              AND i.PartitionKey = @partitionKey
+    WHERE  Status = 1;
 END
 
 GO
