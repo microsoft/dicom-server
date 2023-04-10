@@ -64,7 +64,7 @@ public partial class UpdateDurableFunction
                 await context.CallActivityWithRetryAsync(
                     nameof(UpdateInstanceBatchAsync),
                     _options.RetryOptions,
-                    new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, _options.BatchSize));
+                    new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, _options.BatchSize, input.ChangeDataset));
 
 
                 await context.CallActivityWithRetryAsync(

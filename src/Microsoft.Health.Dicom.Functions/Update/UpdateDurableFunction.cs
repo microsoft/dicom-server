@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Update;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
 
@@ -22,18 +23,21 @@ public partial class UpdateDurableFunction
     private readonly UpdateOptions _options;
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
+    private readonly IUpdateInstanceService _updateInstanceService;
 
     public UpdateDurableFunction(
         IIndexDataStore indexStore,
         IInstanceStore instanceStore,
         IOptions<UpdateOptions> configOptions,
         IMetadataStore metadataStore,
-        IFileStore fileStore)
+        IFileStore fileStore,
+        IUpdateInstanceService updateInstanceService)
     {
         _indexStore = EnsureArg.IsNotNull(indexStore, nameof(indexStore));
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+        _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }

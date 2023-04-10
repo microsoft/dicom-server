@@ -19,10 +19,13 @@ public sealed class BatchUpdateArguments
 
     public IReadOnlyList<long> InstanceWatermarks { get; }
 
-    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, int batchSize)
+    public object ChangeDataset { get; set; }
+
+    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, int batchSize, object changeDataset)
     {
         PartitionKey = partitionKey;
         BatchSize = EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
+        ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }
 }

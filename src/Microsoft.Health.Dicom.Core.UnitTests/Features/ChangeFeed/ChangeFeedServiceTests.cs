@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -50,7 +51,7 @@ public class ChangeFeedServiceTests
             .ReturnsForAnyArgs(callInfo => _changeFeedEntries.Last());
 
         _metadataStore = Substitute.For<IMetadataStore>();
-        _changeFeedService = new ChangeFeedService(_changeFeedStore, _metadataStore);
+        _changeFeedService = new ChangeFeedService(_changeFeedStore, _metadataStore, Substitute.For<IUpdateInstanceService>());
     }
 
     [InlineData(0, 10, true)]

@@ -4,13 +4,17 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Update;
+using Microsoft.Health.Dicom.Core.Models.Update;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
@@ -19,11 +23,13 @@ public class ChangeFeedService : IChangeFeedService
     private const int MaxLimit = 100;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
+    private readonly IUpdateInstanceService _updateInstanceService;
 
-    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore)
+    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateInstanceService updateInstanceService)
     {
         EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
 
         _changeFeedStore = changeFeedStore;
         _metadataStore = metadataStore;
@@ -66,6 +72,19 @@ public class ChangeFeedService : IChangeFeedService
         {
             await PopulateMetadata(result, cancellationToken);
         }
+
+        var ds = new DicomDataset
+        {
+            { DicomTag.PatientName, "Patient Name" }
+        };
+
+        var updateSpec = new UpdateSpecification
+        {
+            StudyInstanceUids = new List<string> { "" },
+            ChangeDataset = ds
+        };
+
+        await _updateInstanceService.QueueUpdateOperationAsync(updateSpec, cancellationToken);
 
         return result;
     }

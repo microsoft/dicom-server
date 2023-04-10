@@ -9,9 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
@@ -74,7 +76,7 @@ public partial class UpdateDurableFunction
                     batch[^1],
                     batchSize);
 
-                await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, batch);
+                IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, batch);
 
                 logger.LogInformation("Completed updating instance with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
                     batch[0],
@@ -86,19 +88,24 @@ public partial class UpdateDurableFunction
                     batch[^1],
                     batchSize);
 
-                await Parallel.ForEachAsync(
-                    batch,
-                    new ParallelOptions
-                    {
-                        CancellationToken = default,
-                        MaxDegreeOfParallelism = _options.MaxParallelThreads,
-                    },
-                    async (watermark, token) =>
-                    {
-                        // TODO: Copy and update DICOM file
-                        // TODO: Copy and update metadata file
-                        await Task.CompletedTask;
-                    });
+                foreach (InstanceMetadata instance in instanceMetadata)
+                {
+                    await _updateInstanceService.UpdateInstanceBlobAsync(instance, arguments.ChangeDataset as DicomDataset);
+                }
+
+                //await Parallel.ForEachAsync(
+                //    batch,
+                //    new ParallelOptions
+                //    {
+                //        CancellationToken = default,
+                //        MaxDegreeOfParallelism = _options.MaxParallelThreads,
+                //    },
+                //    async (watermark, token) =>
+                //    {
+                //        // TODO: Copy and update DICOM file
+                //        // TODO: Copy and update metadata file
+                //        await Task.CompletedTask;
+                //    });
 
                 logger.LogInformation("Completed updating instance blobs starting with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
                     batch[0],

@@ -3,12 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models.Update;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 public interface IUpdateInstanceService
 {
-    public Task UpdateInstanceBlobAsync(long fileIdentifier, long newFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
+    public Task UpdateInstanceBlobAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
+    public Task QueueUpdateOperationAsync(UpdateSpecification updateSpecification, CancellationToken cancellationToken = default);
 }

@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -75,49 +77,72 @@ public class BlobFileStore : IFileStore
         }
     }
 
+    /// <inheritdoc />
     public async Task<Uri> StoreFileInBlocksAsync(
         long version,
         Stream stream,
-        int initialBlockLength,
+        IDictionary<string, long> blockLengths,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNull(blockLengths, nameof(blockLengths));
+        EnsureArg.IsGte(blockLengths.Count, 0, nameof(blockLengths.Count));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
-
-        const int stagedBlockSize = 4 * 1024 * 1024;
 
         try
         {
             stream.Seek(0, SeekOrigin.Begin);
 
-            long fileSize = stream.Length - initialBlockLength;
-            int numStages = (int)Math.Ceiling((double)fileSize / stagedBlockSize) + 1;
-            string[] blockIds = new string[numStages];
-
-            long bytesRead = 0;
-            for (int i = 0; i < numStages; i++)
+            foreach (string blockId in blockLengths.Keys)
             {
-                long blockSize = i == 0 ? initialBlockLength : Math.Min(stagedBlockSize, stream.Length - bytesRead);
-
+                long blockSize = blockLengths[blockId];
                 byte[] blockData = new byte[blockSize];
 
                 await stream.ReadAsync(blockData.AsMemory(0, (int)blockSize), cancellationToken);
 
-                string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-
-                using (MemoryStream blockStream = new MemoryStream(blockData))
-                {
-                    await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
-                }
-
-                blockIds[i] = blockId;
-                bytesRead += blockSize;
+                using var blockStream = new MemoryStream(blockData);
+                await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
             }
 
-            await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
+            await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
 
             return blobClient.Uri;
+        }
+        catch (Exception ex)
+        {
+            throw new DataStoreException(ex);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateFileBlockAsync(
+        long version,
+        string blockId,
+        Stream stream,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
+
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+
+        BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+
+        IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
+
+        string blockToUpdate = blockIds.Where(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase)).First();
+
+        if (blockToUpdate == null)
+            throw new ItemNotFoundException(null);
+
+        try
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+
+            await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
+
+            await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
         }
         catch (Exception ex)
         {
@@ -169,6 +194,7 @@ public class BlobFileStore : IFileStore
         }
     }
 
+    /// <inheritdoc />
     public async Task<Stream> GetStreamingFileAsync(long version, CancellationToken cancellationToken)
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
@@ -185,6 +211,7 @@ public class BlobFileStore : IFileStore
         return stream;
     }
 
+    /// <inheritdoc />
     public async Task<FileProperties> GetFilePropertiesAsync(long version, CancellationToken cancellationToken)
     {
         try
@@ -209,7 +236,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileFrameAsync(long version, FrameRange range, CancellationToken cancellationToken)
+    public async Task<Stream> GetFileInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 
@@ -227,6 +254,32 @@ public class BlobFileStore : IFileStore
         return stream;
     }
 
+    /// <inheritdoc />
+    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, CancellationToken cancellationToken = default)
+    {
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+
+        BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+
+        if (!blockList.CommittedBlocks.Any())
+            throw new ItemNotFoundException(null);
+
+        BlobBlock firstBlock = blockList.CommittedBlocks.FirstOrDefault();
+        return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
+    }
+
+    /// <inheritdoc />
+    public async Task CopyFileAsync(long originalVersion, long newVersion, CancellationToken cancellationToken)
+    {
+        var blobClient = GetInstanceBlockBlobClient(originalVersion);
+        var copyBlobClient = GetInstanceBlockBlobClient(newVersion);
+
+        if (!await copyBlobClient.ExistsAsync(cancellationToken))
+        {
+            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
 
     private BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
