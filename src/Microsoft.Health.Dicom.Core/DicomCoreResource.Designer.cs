@@ -223,6 +223,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to StudyInstanceUids count exceeded maximum length &apos;{0}&apos;.
+        /// </summary>
+        internal static string DicomUpdateStudyInstanceUidsExceedMaxCount {
+            get {
+                return ResourceManager.GetString("DicomUpdateStudyInstanceUidsExceedMaxCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating the following tags are not supported: {0}.
         /// </summary>
         internal static string DicomUpdateTagValidationFailed {

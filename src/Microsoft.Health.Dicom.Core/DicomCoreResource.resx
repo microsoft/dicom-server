@@ -659,4 +659,8 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>The required field '{0}' is missing or empty.</value>
     <comment>{0} is the required field in input. E.g., StudyInstanceUIDs.</comment>
   </data>
+  <data name="DicomUpdateStudyInstanceUidsExceedMaxCount" xml:space="preserve">
+    <value>StudyInstanceUids count exceeded maximum length '{0}'</value>
+    <comment>{0} StudyInstanceUids max allowed count</comment>
+  </data>
 </root>
