@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
@@ -55,7 +54,7 @@ public class UpdateInstanceService : IUpdateInstanceService
 
     public async Task<OperationReference> QueueUpdateOperationAsync(
         UpdateSpecification updateSpecification,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
         EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
@@ -71,10 +70,7 @@ public class UpdateInstanceService : IUpdateInstanceService
             throw new ExistingUpdateOperationException(activeOperation);
 
         var operationId = _guidFactory.Create();
-        var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
-
         var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
-
         return operation;
     }
 }

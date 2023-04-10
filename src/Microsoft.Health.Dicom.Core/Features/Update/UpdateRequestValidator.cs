@@ -41,7 +41,7 @@ public static class UpdateRequestValidator
         }
         foreach (var StudyInstanceUid in updateSpecification.StudyInstanceUids)
         {
-            UidValidation.Validate(StudyInstanceUid, nameof(StudyInstanceUid), allowEmpty: true);
+            UidValidation.Validate(StudyInstanceUid, nameof(StudyInstanceUid));
         }
     }
 

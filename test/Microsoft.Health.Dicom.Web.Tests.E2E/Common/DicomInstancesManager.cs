@@ -164,14 +164,14 @@ internal class DicomInstancesManager : IAsyncDisposable
     public async Task<DicomWebResponse> UpdateStudyAsync(
         IReadOnlyList<string> studyInstanceUids,
         DicomDataset dataset,
-        int partitionKey = default,
+        string partitionName = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));
         EnsureArg.IsNotNull(dataset, nameof(dataset));
 
         return await _dicomWebClient
-            .UpdateStudyAsync(studyInstanceUids, dataset, partitionKey, cancellationToken)
+            .UpdateStudyAsync(studyInstanceUids, dataset, partitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 }

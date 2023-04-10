@@ -93,7 +93,7 @@ public class StoreController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.PartitionedUpdateInstance)]
     [VersionedRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.UpdateInstance)]
-    [AuditEventType(AuditEventSubType.UpdateInstance)]
+    [AuditEventType(AuditEventSubType.UpdateStudy)]
     public async Task<IActionResult> UpdateAsync([FromBody][Required] UpdateSpecification updateSpecification)
     {
         if (!_dicomUpdateEnabled)

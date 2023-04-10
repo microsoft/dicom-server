@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
@@ -216,6 +217,19 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         using DicomWebResponse response = await _client.AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid, TestUidGenerator.Generate());
 
         Assert.True(response.IsSuccessStatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt-dp")]
+    public async Task GivenAValidUpdateAttributeRequest_WhenUpdating_ThenShouldSucceed()
+    {
+        var partitionName = "partition1";
+        List<string> studyInstanceUIDs = new List<string> { TestUidGenerator.Generate(), TestUidGenerator.Generate() };
+        DicomDataset dataset = new DicomDataset(new DicomPersonName(DicomTag.PatientBirthName, "foo"));
+
+        using DicomWebResponse response = await _instancesManager.UpdateStudyAsync(studyInstanceUIDs, dataset, partitionName);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

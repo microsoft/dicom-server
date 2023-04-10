@@ -20,7 +20,7 @@ public partial class DicomWebClient : IDicomWebClient
     public async Task<DicomWebResponse> UpdateStudyAsync(
         IReadOnlyList<string> studyInstanceUids,
         DicomDataset dataset,
-        int partitionKey = default,
+        string partitionName = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));
@@ -30,7 +30,7 @@ public partial class DicomWebClient : IDicomWebClient
             new UpdateSpecification(studyInstanceUids, dataset),
             JsonSerializerOptions);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, GenerateUpdateRequestUri());
+        using var request = new HttpRequestMessage(HttpMethod.Post, GenerateUpdateRequestUri(partitionName));
         {
             request.Content = new StringContent(jsonString);
             request.Content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationJson;
