@@ -57,13 +57,16 @@ public static class UpdateRequestValidator
             {
                 invalidTags.Add(item.Tag.ToString());
             }
-            try
+            else
             {
-                item.Validate();
-            }
-            catch (DicomValidationException)
-            {
-                invalidTagValues.Add(item.Tag.ToString());
+                try
+                {
+                    item.Validate();
+                }
+                catch (DicomValidationException)
+                {
+                    invalidTagValues.Add(item.Tag.ToString());
+                }
             }
         }
         if (invalidTags.Count > 0)
