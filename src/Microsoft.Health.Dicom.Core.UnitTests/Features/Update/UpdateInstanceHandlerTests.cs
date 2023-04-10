@@ -37,11 +37,11 @@ public class UpdateInstanceHandlerTests
     }
 
     [Fact]
-    public async Task GivenNullRequestBody_WhenHandled_ThenBadRequestExceptionShouldBeThrown()
+    public async Task GivenNullRequestBody_WhenHandled_ThenArgumentNullExceptionShouldBeThrown()
     {
         var updateInstanceRequest = new UpdateInstanceRequest(null);
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.Write);
-        await Assert.ThrowsAsync<BadRequestException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
     }
 
     [Fact]

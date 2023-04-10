@@ -15,19 +15,20 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Update;
 
 public class UpdateRequestValidatorTests
 {
-    [Fact]
-    public void GivenNullRequestBody_WhenValidated_ThenBadRequestExceptionShouldBeThrown()
-    {
-        UpdateSpecification updateSpecification = new UpdateSpecification(null, null);
-        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateRequest(updateSpecification));
-    }
-
     [Theory]
     [MemberData(nameof(GetValidStudyInstanceUids))]
     public void GivenValidStudyInstanceIds_WhenValidated_ThenItShouldSucceed(IReadOnlyList<string> studyInstanceUids)
     {
         UpdateSpecification updateSpecification = new UpdateSpecification(studyInstanceUids, null);
         UpdateRequestValidator.ValidateRequest(updateSpecification);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetEmptyStudyInstanceUids))]
+    public void GivenEmptyStudyInstanceUids_WhenValidated_ThenBadRequestExceptionShouldBeThrown(IReadOnlyList<string> studyInstanceUids)
+    {
+        UpdateSpecification updateSpecification = new UpdateSpecification(studyInstanceUids, null);
+        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateRequest(updateSpecification));
     }
 
     [Theory]
@@ -60,7 +61,6 @@ public class UpdateRequestValidatorTests
 
     public static IEnumerable<object[]> GetValidStudyInstanceUids()
     {
-        yield return new object[] { new List<string>() };
         yield return new object[] { new List<string>() { "1.2.3.4" } };
         yield return new object[] { new List<string>() { "1.2.3.4", "1.2.3.5" } };
     }
@@ -69,6 +69,12 @@ public class UpdateRequestValidatorTests
     {
         yield return new object[] { new List<string>() { "1.a1.2" } };
         yield return new object[] { new List<string>() { "invalid" } };
+    }
+
+    public static IEnumerable<object[]> GetEmptyStudyInstanceUids()
+    {
+        yield return new object[] { null };
+        yield return new object[] { new List<string>() };
     }
 
     public static IEnumerable<object[]> GetValidDicomDataset()
