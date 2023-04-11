@@ -44,7 +44,7 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Fetching all the instances in a study.");
 
-        var instanceMetadata = await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(
+        IEnumerable<InstanceMetadata> instanceMetadata = await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(
             arguments.PartitionKey,
             arguments.StudyInstanceUid,
             cancellationToken: CancellationToken.None);
@@ -79,7 +79,7 @@ public partial class UpdateDurableFunction
 
         while (processed < arguments.InstanceWatermarks.Count)
         {
-            int batchSize = Math.Min(arguments.BatchSize, arguments.InstanceWatermarks.Count - processed);
+            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceWatermarks.Count - processed);
             var batch = arguments.InstanceWatermarks.Skip(processed).Take(batchSize).ToList();
 
             if (batch.Count > 0)

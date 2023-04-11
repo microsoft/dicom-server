@@ -15,16 +15,13 @@ public sealed class BatchUpdateArguments
 {
     public int PartitionKey { get; }
 
-    public int BatchSize { get; }
-
     public IReadOnlyList<long> InstanceWatermarks { get; }
 
     public string ChangeDataset { get; set; }
 
-    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, int batchSize, string changeDataset)
+    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, string changeDataset)
     {
         PartitionKey = partitionKey;
-        BatchSize = EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
         ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }

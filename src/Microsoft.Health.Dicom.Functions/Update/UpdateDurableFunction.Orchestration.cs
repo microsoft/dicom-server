@@ -53,22 +53,35 @@ public partial class UpdateDurableFunction
         {
             string studyInstanceUid = input.StudyInstanceUids[0];
 
+            logger.LogInformation("Beginning to get all instances in a study.");
+
             IReadOnlyList<(long Version, long? OriginalVersion)> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<(long Version, long? OriginalVersion)>>(
                 nameof(GetInstanceWatermarksInStudyAsync),
                 _options.RetryOptions,
                 new GetInstanceArguments(input.PartitionKey, studyInstanceUid));
 
+            logger.LogInformation("Getting all instances completed {TotalCount}", instanceWatermarks.Count);
+
             if (instanceWatermarks.Count > 0)
             {
-                await context.CallActivityWithRetryAsync(
-                    nameof(UpdateInstanceBatchAsync),
-                    _options.RetryOptions,
-                    new BatchUpdateArguments(input.PartitionKey, instanceWatermarks.Select(x => x.Version).ToList(), _options.BatchSize, input.ChangeDataset));
+                try
+                {
+                    await context.CallActivityWithRetryAsync(
+                        nameof(UpdateInstanceBatchAsync),
+                        _options.RetryOptions,
+                        new BatchUpdateArguments(input.PartitionKey, instanceWatermarks.Select(x => x.Version).ToList(), input.ChangeDataset));
 
-                await context.CallActivityWithRetryAsync(
-                    nameof(CompleteUpdateInstanceAsync),
-                    _options.RetryOptions,
-                    new CompleteInstanceArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                    await context.CallActivityWithRetryAsync(
+                        nameof(CompleteUpdateInstanceAsync),
+                        _options.RetryOptions,
+                        new CompleteInstanceArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                }
+                catch (FunctionFailedException ex)
+                {
+                    // TODO: Need to call cleanup orchestration on failure after retries.
+                    logger.LogError(ex, "Failed to update instances for study", ex);
+                    throw;
+                }
             }
 
             var studyUids = input.StudyInstanceUids.Where(x => !x.Equals(studyInstanceUid, StringComparison.OrdinalIgnoreCase)).ToList();
