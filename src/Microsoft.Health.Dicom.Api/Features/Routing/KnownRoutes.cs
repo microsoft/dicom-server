@@ -25,6 +25,7 @@ public static class KnownRoutes
     private const string SeriesInstanceUidRouteSegment = "{" + KnownActionParameterNames.SeriesInstanceUid + "}";
     private const string SopInstanceUidRouteSegment = "{" + KnownActionParameterNames.SopInstanceUid + "}";
     private const string FrameIdsRouteSegment = "{" + KnownActionParameterNames.Frames + "}";
+    private const string SingleFrameIdRouteSegment = "{" + KnownActionParameterNames.Frame + "}";
 
     private const string ExtendedQueryTagPathRouteSegment = "{" + KnownActionParameterNames.TagPath + "}";
 
@@ -50,7 +51,7 @@ public static class KnownRoutes
     public const string InstanceMetadataRoute = InstanceRoute + "/" + MetadataSegment;
 
     public const string InstanceRenderedRoute = InstanceRoute + "/" + RenderedSegment;
-    public const string FrameRenderedRoute = InstanceRoute + "/frames/" + FrameIdsRouteSegment + "/" + RenderedSegment;
+    public const string FrameRenderedRoute = InstanceRoute + "/frame/" + SingleFrameIdRouteSegment + "/" + RenderedSegment;
 
     public const string QueryAllStudiesRoute = StudiesRouteSegment;
     public const string QueryAllSeriesRoute = SeriesRouteSegment;

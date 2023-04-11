@@ -171,7 +171,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for instance received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -237,12 +237,12 @@ public class RetrieveController : ControllerBase
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
-        int frames)
+        int frame)
     {
-        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}', frame '{Frames}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, frames);
+        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}', frame '{Frames}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, frame);
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted, frame);
 
         return CreateResult(response);
     }

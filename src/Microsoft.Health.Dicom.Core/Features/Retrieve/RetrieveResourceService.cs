@@ -122,7 +122,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await CheckFileSize(instance, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
                 Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
@@ -206,7 +206,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
 
         _logger.LogInformation("Downloading the entire instance for frame parsing");
-        FileProperties fileProperties = await CheckFileSize(instance, cancellationToken);
+        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
         Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
@@ -235,19 +235,6 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         _dicomRequestContextAccessor.RequestContext.IsTranscodeRequested = true;
         _dicomRequestContextAccessor.RequestContext.BytesTranscoded = bytesTranscoded;
-    }
-
-    private async Task<FileProperties> CheckFileSize(InstanceMetadata instance, CancellationToken cancellationToken)
-    {
-        FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier, cancellationToken);
-
-        // limit the file size that can be read in memory
-        if (fileProperties.ContentLength > _retrieveConfiguration.MaxDicomFileSize)
-        {
-            throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceFileTooBig, _retrieveConfiguration.MaxDicomFileSize));
-        }
-
-        return fileProperties;
     }
 
     private static string GetResponseTransferSyntax(bool isOriginalTransferSyntaxRequested, string requestedTransferSyntax, InstanceMetadata instanceMetadata)

@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,6 +14,9 @@ using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -20,6 +24,8 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.IO;
 using SixLabors.ImageSharp;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -28,22 +34,30 @@ public class RetrieveRenderedService : IRetrieveRenderedService
     private readonly IFileStore _blobDataStore;
     private readonly IInstanceStore _instanceStore;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly ILogger<RetrieveResourceService> _logger;
+    private readonly RetrieveConfiguration _retrieveConfiguration;
+    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private readonly ILogger<RetrieveRenderedService> _logger;
 
     public RetrieveRenderedService(
         IInstanceStore instanceStore,
         IFileStore blobDataStore,
         IDicomRequestContextAccessor dicomRequestContextAccessor,
-        ILogger<RetrieveResourceService> logger)
+        IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
+        RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+        ILogger<RetrieveRenderedService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
+        EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
+        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _instanceStore = instanceStore;
         _blobDataStore = blobDataStore;
         _dicomRequestContextAccessor = dicomRequestContextAccessor;
+        _retrieveConfiguration = retrieveConfiguration?.Value;
+        _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
         _logger = logger;
     }
 
@@ -54,26 +68,33 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
         try
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
+
             // this call throws NotFound when zero instance found
-            IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken);
+            InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
+                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken)).First();
 
-            InstanceMetadata instance = retrieveInstances.First();
-
-            _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
-
+            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
             Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
-
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
+            DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
-            var dicomImage = new DicomImage(dicomFile.Dataset);
+            DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
             using var img = dicomImage.RenderImage(request.FrameNumber);
             using var sharpImage = img.AsSharpImage();
-            Stream imageFormat = new MemoryStream();
-            sharpImage.SaveAsJpeg(imageFormat, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
-            imageFormat.Position = 0;
+            MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+            await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
+            resultStream.Position = 0;
 
-            return new RetrieveRenderedResponse(new RetrieveResourceInstance(imageFormat, streamLength: imageFormat.Length), "image/jpeg");
+            string outputContentType = returnHeader.MediaType.ToString();
+
+            sw.Stop();
+            _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed frame size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, dicomPixelData.UncompressedFrameSize, resultStream.Length, sw.ElapsedMilliseconds);
+
+            return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
         }
         catch (IndexOutOfRangeException e)
         {
@@ -86,5 +107,21 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             throw;
         }
+    }
+
+    private static AcceptHeader GetValidRenderAcceptHeader(IReadOnlyCollection<AcceptHeader> acceptHeaders)
+    {
+        EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
+
+        if (acceptHeaders.Count > 1)
+        {
+            throw new NotAcceptableException(DicomCoreResource.MultipleAcceptHeadersNotSupported);
+        }
+        else if (acceptHeaders.Count == 1 && acceptHeaders.First().MediaType != null && !StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+        }
+
+        return new AcceptHeader(KnownContentTypes.ImageJpeg, PayloadTypes.SinglePart);
     }
 }
