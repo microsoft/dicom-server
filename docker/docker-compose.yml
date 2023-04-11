@@ -55,10 +55,10 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite:3.22.0@sha256:f7d8c2250b282ef1e7179eef5473ecabfd1d9ea3ade2c2b35eea5150dfe44c90
     # # These port bindings [source]:[dest] can be uncommented to connect to the storage emulator via Microsoft Azure Storage Explorer
     # # Note that the source ports may need to change if a storage emulator is already running on localhost
-    # ports:
-    #   - "10001:10001"
-    #   - "10000:10000"
-    #   - "10002:10002"
+    ports:
+      - "10001:10001"
+      - "10000:10000"
+      - "10002:10002"
   sql:
     build:
       context: ./..

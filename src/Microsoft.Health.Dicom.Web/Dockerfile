@@ -2,12 +2,14 @@
 
 # Define the "runtime" image which will run the DICOM Server
 FROM mcr.microsoft.com/dotnet/aspnet:7.0.4-alpine3.16-amd64@sha256:d048cef2148336758fd5902b362be885674e28cf39d0e5a19d0eb1ac7c834a35 AS runtime
+
 RUN set -x && \
     # See https://www.abhith.net/blog/docker-sql-error-on-aspnet-core-alpine/
     apk update && \
     apk add --no-cache icu-libs && \
     addgroup nonroot && \
     adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
+
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     ASPNETCORE_URLS=http://+:8080 \
     # Explicitly set locale to be en_US for DICOM Web

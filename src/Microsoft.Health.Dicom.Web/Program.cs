@@ -15,7 +15,10 @@ public static class Program
     {
         IWebHost host = WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostContext, builder) => builder.AddDevelopmentAuthEnvironmentIfConfigured(builder.Build(), "DicomServer"))
-            .ConfigureKestrel(option => option.Limits.MaxRequestBodySize = int.MaxValue) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
+            .ConfigureKestrel(option =>
+            {
+                option.Limits.MaxRequestBodySize = int.MaxValue;
+            }) // When hosted on Kestrel, it's allowed to upload >2GB file, set to 2GB by default
             .UseStartup<Startup>()
             .Build();
 

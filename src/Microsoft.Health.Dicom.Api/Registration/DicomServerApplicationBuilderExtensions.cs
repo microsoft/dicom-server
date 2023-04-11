@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Api.Registration;
+// using Microsoft.Health.Api.Registration;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Api.Registration;
 using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.AspNetCore.Builder;
@@ -32,6 +33,7 @@ public static class DicomServerApplicationBuilderExtensions
 
         app.UseMvc();
 
+        // todo needs to come before http redirect?
         app.UseHealthChecksExtension(new PathString(KnownRoutes.HealthCheck));
 
         // Update Fellow Oak DICOM services to use ASP.NET Core's service container
