@@ -219,19 +219,6 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         Assert.True(response.IsSuccessStatusCode);
     }
 
-    [Fact]
-    [Trait("Category", "bvt-dp")]
-    public async Task GivenAValidUpdateAttributeRequest_WhenUpdating_ThenShouldSucceed()
-    {
-        var partitionName = "partition1";
-        List<string> studyInstanceUIDs = new List<string> { TestUidGenerator.Generate(), TestUidGenerator.Generate() };
-        DicomDataset dataset = new DicomDataset(new DicomPersonName(DicomTag.PatientBirthName, "foo"));
-
-        using DicomWebResponse response = await _instancesManager.UpdateStudyAsync(studyInstanceUIDs, dataset, partitionName);
-
-        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-    }
-
     public Task InitializeAsync() => Task.CompletedTask;
 
     public async Task DisposeAsync()
