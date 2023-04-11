@@ -109,4 +109,5 @@ public interface IInstanceStore
         string seriesInstanceUid = null,
         string sopInstanceUid = null,
         CancellationToken cancellationToken = default);
+
 }

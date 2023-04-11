@@ -117,10 +117,6 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
                 studyInstanceUid,
                 dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),
                 dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientName),
-                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.ReferringPhysicianName),
-                dicomDataset.GetStringDateAsDate(DicomTag.StudyDate),
-                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.StudyDescription),
-                dicomDataset.GetFirstValueOrDefault<string>(DicomTag.AccessionNumber),
                 dicomDataset.GetStringDateAsDate(DicomTag.PatientBirthDate));
 
             try

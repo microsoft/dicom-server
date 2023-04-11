@@ -13,10 +13,6 @@
 --         * The system identified of the data partition.
 --     @watermarkTableType
 --         * The SOP instance watermark.
---
--- RETURN VALUE
---     None
---
 CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
 	@partitionKey       INT,
 	@watermarkTableType dbo.WatermarkTableType READONLY
