@@ -57,7 +57,7 @@ public interface IFileStore
     /// <param name="range">Byte range in Httprange format with offset and length</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Stream representing the bytes requested</returns>
-    Task<Stream> GetFileInRangeAsync(
+    Task<Stream> GetFrameInRangeAsync(
         long version,
         FrameRange range,
         CancellationToken cancellationToken = default);
@@ -79,6 +79,15 @@ public interface IFileStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous Store operation.</returns>
     Task<Uri> StoreFileInBlocksAsync(long version, Stream stream, IDictionary<string, long> blockLengths, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously gets a file content from the file store. The file content will be in memory. Use only for small files
+    /// </summary>
+    /// <param name="version">The DICOM instance version.</param>
+    /// <param name="range">Byte range in Httprange format with offset and length</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    Task<BinaryData> GetFileInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken);
 
     /// <summary>
     /// Asynchronously updates a block in a blob.

@@ -236,7 +236,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
+    public async Task<Stream> GetFrameInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 
@@ -252,6 +252,28 @@ public class BlobFileStore : IFileStore
             stream = result.Value.Content;
         });
         return stream;
+    }
+
+    /// <inheritdoc />
+    public async Task<BinaryData> GetFileInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(range, nameof(range));
+
+        BlockBlobClient blob = GetInstanceBlockBlobClient(version);
+
+        BinaryData data = null;
+        var blobDownloadOptions = new BlobDownloadOptions
+        {
+            Range = new HttpRange(range.Offset, range.Length)
+        };
+
+        await ExecuteAsync(async () =>
+        {
+            Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
+            data = result.Value.Content;
+        });
+
+        return data;
     }
 
     /// <inheritdoc />

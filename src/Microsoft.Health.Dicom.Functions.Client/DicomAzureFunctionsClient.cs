@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -40,6 +41,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private readonly IDicomOperationsResourceStore _resourceStore;
     private readonly DicomFunctionOptions _options;
     private readonly ILogger _logger;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DicomAzureFunctionsClient"/> class.
@@ -48,6 +50,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     /// <param name="urlResolver">A helper for building URLs for other APIs.</param>
     /// <param name="resourceStore">A store for resolving DICOM resources that are the subject of operations.</param>
     /// <param name="options">Options for configuring the functions.</param>
+    /// <param name="jsonSerializerOptions">Json serialization options</param>
     /// <param name="logger">A logger for diagnostic information.</param>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="durableClientFactory"/>, <paramref name="urlResolver"/>, or
@@ -58,12 +61,14 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         IUrlResolver urlResolver,
         IDicomOperationsResourceStore resourceStore,
         IOptions<DicomFunctionOptions> options,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
         ILogger<DicomAzureFunctionsClient> logger)
     {
         _durableClient = EnsureArg.IsNotNull(durableClientFactory, nameof(durableClientFactory)).CreateClient();
         _urlResolver = EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
         _resourceStore = EnsureArg.IsNotNull(resourceStore, nameof(resourceStore));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
@@ -183,6 +188,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        string datasetToUpdate = JsonSerializer.Serialize(updateSpecification.ChangeDataset, _jsonSerializerOptions);
         string instanceId = await _durableClient.StartNewAsync(
             _options.Update.Name,
             operationId.ToString(OperationId.FormatSpecifier),
@@ -190,7 +196,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             {
                 Batching = _options.Update.Batching,
                 PartitionKey = partitionKey,
-                ChangeDataset = updateSpecification.ChangeDataset,
+                ChangeDataset = datasetToUpdate,
                 StudyInstanceUids = updateSpecification.StudyInstanceUids,
             });
 

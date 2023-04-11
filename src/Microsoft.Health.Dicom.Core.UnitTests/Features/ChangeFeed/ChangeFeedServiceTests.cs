@@ -51,7 +51,7 @@ public class ChangeFeedServiceTests
             .ReturnsForAnyArgs(callInfo => _changeFeedEntries.Last());
 
         _metadataStore = Substitute.For<IMetadataStore>();
-        _changeFeedService = new ChangeFeedService(_changeFeedStore, _metadataStore, Substitute.For<IUpdateInstanceService>());
+        _changeFeedService = new ChangeFeedService(_changeFeedStore, _metadataStore, Substitute.For<IUpdateInstanceOperationService>());
     }
 
     [InlineData(0, 10, true)]

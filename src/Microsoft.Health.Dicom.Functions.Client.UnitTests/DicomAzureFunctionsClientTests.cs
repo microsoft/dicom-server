@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -72,6 +73,7 @@ public class DicomAzureFunctionsClientTests
             _urlResolver,
             _resourceStore,
             Options.Create(_options),
+            Options.Create(new JsonSerializerOptions()),
             NullLogger<DicomAzureFunctionsClient>.Instance);
     }
 
@@ -83,21 +85,22 @@ public class DicomAzureFunctionsClientTests
         IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
         IDicomOperationsResourceStore resourceStore = Substitute.For<IDicomOperationsResourceStore>();
         var options = Options.Create(new DicomFunctionOptions());
+        var jsonOptions = Options.Create(new JsonSerializerOptions());
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(null, urlResolver, resourceStore, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(null, urlResolver, resourceStore, options, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, null, resourceStore, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, null, resourceStore, options, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, null, options, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, null, options, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, null, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, null, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, options, null));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, options, jsonOptions, null));
     }
 
     [Fact]

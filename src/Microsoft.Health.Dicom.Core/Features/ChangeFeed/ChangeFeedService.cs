@@ -23,13 +23,13 @@ public class ChangeFeedService : IChangeFeedService
     private const int MaxLimit = 100;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
-    private readonly IUpdateInstanceService _updateInstanceService;
+    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
 
-    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateInstanceService updateInstanceService)
+    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateInstanceOperationService updateInstanceOperationService)
     {
         EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-        _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
+        _updateInstanceOperationService = EnsureArg.IsNotNull(updateInstanceOperationService, nameof(updateInstanceOperationService));
 
         _changeFeedStore = changeFeedStore;
         _metadataStore = metadataStore;
@@ -80,11 +80,11 @@ public class ChangeFeedService : IChangeFeedService
 
         var updateSpec = new UpdateSpecification
         {
-            StudyInstanceUids = new List<string> { "" },
+            StudyInstanceUids = new List<string> { "1.113654.3.13.1026" },
             ChangeDataset = ds
         };
 
-        await _updateInstanceService.QueueUpdateOperationAsync(updateSpec, cancellationToken);
+        await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, cancellationToken);
 
         return result;
     }

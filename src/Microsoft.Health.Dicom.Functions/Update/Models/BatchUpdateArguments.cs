@@ -19,9 +19,9 @@ public sealed class BatchUpdateArguments
 
     public IReadOnlyList<long> InstanceWatermarks { get; }
 
-    public object ChangeDataset { get; set; }
+    public string ChangeDataset { get; set; }
 
-    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, int batchSize, object changeDataset)
+    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, int batchSize, string changeDataset)
     {
         PartitionKey = partitionKey;
         BatchSize = EnsureArg.IsGte(batchSize, 1, nameof(batchSize));

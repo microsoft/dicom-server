@@ -16,8 +16,6 @@ using FellowOakDicom.IO.Writer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
@@ -28,39 +26,21 @@ public class UpdateInstanceService : IUpdateInstanceService
     private readonly ILogger<UpdateInstanceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private const int LargeObjectsizeInBytes = 1024 * 1024;
-    private const int StageBlockSizeInBytes = 4 * 1024 * 1024;
-    private readonly IDicomOperationsClient _client;
-    private readonly IGuidFactory _guidFactory;
+    private const int StageBlockSizeInBytes = 4 * 1024 * 1024; // TODO: Should this be in configuration
 
     public UpdateInstanceService(
         IFileStore fileStore,
         IMetadataStore metadataStore,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-        ILogger<UpdateInstanceService> logger,
-        IDicomOperationsClient client,
-        IGuidFactory guidFactory)
+        ILogger<UpdateInstanceService> logger)
     {
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
-        _client = EnsureArg.IsNotNull(client, nameof(client));
-        _guidFactory = EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
     }
 
-    public async Task QueueUpdateOperationAsync(
-        UpdateSpecification updateSpecification,
-        CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
-        EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
-
-        var operationId = _guidFactory.Create();
-        var partitionKey = 1;
-
-        await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
-    }
-
+    /// <inheritdoc />
     public async Task UpdateInstanceBlobAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(datasetToUpdate, nameof(datasetToUpdate));
@@ -70,6 +50,19 @@ public class UpdateInstanceService : IUpdateInstanceService
         Task updateInstanceFileTask = UpdateInstanceFileAsync(instanceMetadata, datasetToUpdate, cancellationToken);
         Task updateInstanceMetadataTask = UpdateInstanceMetadataAsync(instanceMetadata, datasetToUpdate, cancellationToken);
         await Task.WhenAll(updateInstanceFileTask, updateInstanceMetadataTask);
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteInstanceBlobAsync(long fileIdentifier, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Begin deleting instance blob {FileIdentifier}.", fileIdentifier);
+
+        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, cancellationToken);
+        Task metadataTask = _metadataStore.DeleteInstanceMetadataIfExistsAsync(fileIdentifier, cancellationToken);
+
+        await Task.WhenAll(fileTask, metadataTask);
+
+        _logger.LogInformation("Deleting instance blob {FileIdentifier} completed successfully.", fileIdentifier);
     }
 
     private async Task UpdateInstanceFileAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
@@ -82,30 +75,39 @@ public class UpdateInstanceService : IUpdateInstanceService
         // If the file is already updated, then we can copy the file and just update the first block
         if (instanceMetadata.InstanceProperties.OriginalVersion.HasValue)
         {
+            _logger.LogInformation("Begin copying instance file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
             await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, cancellationToken);
         }
         else
         {
-            Stream stream = await _fileStore.GetStreamingFileAsync(originFileIdentifier, cancellationToken);
+            _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
+
+            Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, cancellationToken);
             DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
 
             long firstBlockLength = stream.Length;
             // If the file is greater than 1MB try to upload in different blocks
             if (stream.Length > LargeObjectsizeInBytes)
             {
-                _ = GetDatasetSize(dcmFile.Dataset, out DicomItem largeDicomItem);
+                _logger.LogInformation("Found bigger DICOM item, splitting the file into multiple blocks. {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
+
+                _ = TryGetLargeDicomItem(dcmFile.Dataset, out DicomItem largeDicomItem);
 
                 if (largeDicomItem != null)
                     RemoveItemsFromDataset(dcmFile.Dataset, largeDicomItem);
 
-                firstBlockLength = await GetFirstBlockLengthAsync(dcmFile);
+                firstBlockLength = await GetDatasetLengthAsync(dcmFile);
             }
 
             IDictionary<string, long> blockLengths = GetBlockLengths(stream.Length, firstBlockLength);
 
+            _logger.LogInformation("Begin uploading instance file in blocks {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
+
             await _fileStore.StoreFileInBlocksAsync(newFileIdentifier, stream, blockLengths, cancellationToken);
 
             block = blockLengths.First();
+
+            _logger.LogInformation("Uploading instance file in blocks {FileIdentifier} completed successfully", newFileIdentifier);
         }
 
         await UpdateDatasetInFileAsync(newFileIdentifier, datasetToUpdate, block, cancellationToken);
@@ -116,29 +118,38 @@ public class UpdateInstanceService : IUpdateInstanceService
         long originFileIdentifier = instanceMetadata.VersionedInstanceIdentifier.Version;
         long newFileIdentifier = instanceMetadata.InstanceProperties.NewVersion.Value;
 
+        _logger.LogInformation("Begin downloading original file metdata {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
+
         DicomDataset metadata = await _metadataStore.GetInstanceMetadataAsync(originFileIdentifier, cancellationToken);
         metadata.AddOrUpdate(datasetToUpdate);
 
         await _metadataStore.StoreInstanceMetadataAsync(metadata, newFileIdentifier, cancellationToken);
+
+        _logger.LogInformation("Updating metadata file {OrignalFileIdentifier} - {NewFileIdentifier} completed successfully", originFileIdentifier, newFileIdentifier);
     }
 
     private async Task UpdateDatasetInFileAsync(long newFileIdentifier, DicomDataset datasetToUpdate, KeyValuePair<string, long> block = default, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Begin updating new file {NewFileIdentifier}", newFileIdentifier);
+
         // If the block is not provided, then we need to get the first block to update the dataset
         if (block.Key is null)
         {
             block = await _fileStore.GetFirstBlockPropertyAsync(newFileIdentifier, cancellationToken);
         }
 
-        Stream stream = await _fileStore.GetFileInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
+        BinaryData data = await _fileStore.GetFileInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
 
+        MemoryStream stream = _recyclableMemoryStreamManager.GetStream(data);
         DicomFile dicomFile = await DicomFile.OpenAsync(stream);
         dicomFile.Dataset.AddOrUpdate(datasetToUpdate);
 
         MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
         await dicomFile.SaveAsync(resultStream);
 
-        await _fileStore.UpdateFileBlockAsync(newFileIdentifier, block.Key, stream, cancellationToken);
+        await _fileStore.UpdateFileBlockAsync(newFileIdentifier, block.Key, resultStream, cancellationToken);
+
+        _logger.LogInformation("Updating new file {NewFileIdentifier} completed successfully", newFileIdentifier);
     }
 
     private static IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength)
@@ -159,7 +170,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         return blockLengths;
     }
 
-    private static long GetDatasetSize(DicomDataset dataset, out DicomItem largeDicomItem)
+    private static long TryGetLargeDicomItem(DicomDataset dataset, out DicomItem largeDicomItem)
     {
         long totalSize = 0;
         largeDicomItem = null;
@@ -200,7 +211,7 @@ public class UpdateInstanceService : IUpdateInstanceService
                 long sequenceSize = 0;
                 foreach (var sequenceItem in sequence)
                 {
-                    sequenceSize += GetDatasetSize(sequenceItem, out largeDicomItem);
+                    sequenceSize += TryGetLargeDicomItem(sequenceItem, out largeDicomItem);
                     totalSize += sequenceSize;
                 }
 
@@ -215,7 +226,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         return totalSize;
     }
 
-    private async Task<long> GetFirstBlockLengthAsync(DicomFile dcmFile)
+    private async Task<long> GetDatasetLengthAsync(DicomFile dcmFile)
     {
         DicomDataset dataset = dcmFile.Dataset;
 
