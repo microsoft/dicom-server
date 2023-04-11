@@ -125,7 +125,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
+                Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
@@ -189,7 +189,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             // get frame range
             IReadOnlyDictionary<int, FrameRange> framesRange = await _framesRangeCache.GetAsync(
                 instance.VersionedInstanceIdentifier.Version,
-                instance.VersionedInstanceIdentifier,
+                instance.VersionedInstanceIdentifier.Version,
                 _metadataStore.GetInstanceFramesRangeAsync,
                 cancellationToken);
 
@@ -209,7 +209,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
-        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
+        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,
@@ -275,8 +275,8 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
-            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
-            Stream stream = await _blobDataStore.GetStreamingFileAsync(instanceMetadata.VersionedInstanceIdentifier, cancellationToken);
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(instanceMetadata.VersionedInstanceIdentifier.Version, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,
@@ -330,7 +330,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier, frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier.Version, frameRange, cancellationToken);
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
