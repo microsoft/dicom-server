@@ -1013,13 +1013,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
             private readonly ParameterDefinition<System.String> _patientId = new ParameterDefinition<System.String>("@patientId", global::System.Data.SqlDbType.NVarChar, true, 64);
             private readonly ParameterDefinition<System.String> _patientName = new ParameterDefinition<System.String>("@patientName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.String> _referringPhysicianName = new ParameterDefinition<System.String>("@referringPhysicianName", global::System.Data.SqlDbType.NVarChar, true, 325);
-            private readonly ParameterDefinition<System.Nullable<System.DateTime>> _studyDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@studyDate", global::System.Data.SqlDbType.Date, true);
-            private readonly ParameterDefinition<System.String> _studyDescription = new ParameterDefinition<System.String>("@studyDescription", global::System.Data.SqlDbType.NVarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _accessionNumber = new ParameterDefinition<System.String>("@accessionNumber", global::System.Data.SqlDbType.NVarChar, true, 64);
             private readonly ParameterDefinition<System.Nullable<System.DateTime>> _patientBirthDate = new ParameterDefinition<System.Nullable<System.DateTime>>("@patientBirthDate", global::System.Data.SqlDbType.Date, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.String referringPhysicianName, System.Nullable<System.DateTime> studyDate, System.String studyDescription, System.String accessionNumber, System.Nullable<System.DateTime> patientBirthDate)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.Nullable<System.DateTime> patientBirthDate)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.EndUpdateInstance";
@@ -1028,10 +1024,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _patientId.AddParameter(command.Parameters, patientId);
                 _patientName.AddParameter(command.Parameters, patientName);
-                _referringPhysicianName.AddParameter(command.Parameters, referringPhysicianName);
-                _studyDate.AddParameter(command.Parameters, studyDate);
-                _studyDescription.AddParameter(command.Parameters, studyDescription);
-                _accessionNumber.AddParameter(command.Parameters, accessionNumber);
                 _patientBirthDate.AddParameter(command.Parameters, patientBirthDate);
             }
         }

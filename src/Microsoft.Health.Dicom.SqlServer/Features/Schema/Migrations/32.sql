@@ -1412,7 +1412,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
-@batchSize INT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @patientBirthDate DATE=NULL
+@batchSize INT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1442,7 +1442,7 @@ BEGIN
             UPDATE TOP (@batchSize)
              dbo.Instance
             SET    LastStatusUpdatedDate = @currentDate,
-                   OriginalWatermark     = Watermark,
+                   OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
                    Watermark             = NewWatermark,
                    NewWatermark          = NULL
             OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.StudyKey, deleted.SeriesKey, deleted.InstanceKey, deleted.NewWatermark INTO @updatedInstances
@@ -1451,56 +1451,6 @@ BEGIN
                    AND Status = 1
                    AND NewWatermark IS NOT NULL;
             SET @rowsUpdated = @rowsUpdated + @@ROWCOUNT;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagString AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagLong AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagDouble AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagDateTime AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
-            UPDATE EQT
-            SET    Watermark = U.Watermark
-            FROM   ExtendedQueryTagPersonName AS EQT
-                   INNER JOIN
-                   @updatedInstances AS U
-                   ON EQT.SopInstanceKey1 = U.StudyKey
-                      AND EQT.SopInstanceKey2 = U.SeriesKey
-                      AND EQT.SopInstanceKey3 = U.InstanceKey
-                      AND EQT.PartitionKey = @partitionKey
-                      AND EQT.ResourceType = @imageResourceType;
             INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark)
             SELECT @currentDate,
                    2,
@@ -1513,13 +1463,9 @@ BEGIN
             FROM   @updatedInstances;
         END
     UPDATE dbo.Study
-    SET    PatientId              = ISNULL(@patientId, PatientId),
-           PatientName            = ISNULL(@patientName, PatientName),
-           PatientBirthDate       = ISNULL(@patientBirthDate, PatientBirthDate),
-           ReferringPhysicianName = ISNULL(@referringPhysicianName, ReferringPhysicianName),
-           StudyDate              = ISNULL(@studyDate, StudyDate),
-           StudyDescription       = ISNULL(@studyDescription, StudyDescription),
-           AccessionNumber        = ISNULL(@accessionNumber, AccessionNumber)
+    SET    PatientId        = ISNULL(@patientId, PatientId),
+           PatientName      = ISNULL(@patientName, PatientName),
+           PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid;
     IF @@ROWCOUNT = 0

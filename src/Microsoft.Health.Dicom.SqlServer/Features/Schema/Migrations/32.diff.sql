@@ -87,10 +87,6 @@ GO
 --         * The system identified of the data partition.
 --     @watermarkTableType
 --         * The SOP instance watermark.
---
--- RETURN VALUE
---     None
---
 CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
 	@partitionKey       INT,
 	@watermarkTableType dbo.WatermarkTableType READONLY
@@ -135,7 +131,7 @@ GO
 --     EndUpdateInstance
 --
 -- DESCRIPTION
---     Bulk update all instances in a study, and update extendedquerytag with new watermark.
+--     Bulk update all instances in a study, creates new entry in changefeed.
 --
 -- PARAMETERS
 --     @batchSize
@@ -148,14 +144,6 @@ GO
 --         * The Id of the patient.
 --     @patientName
 --         * The name of the patient.
---     @referringPhysicianName
---         * The referring physician name.
---     @studyDate
---         * The study date.
---     @studyDescription
---         * The study description.
---     @accessionNumber
---         * The accession number associated for the study.
 --     @patientBirthDate
 --         * The patient's birth date.
 --
@@ -168,10 +156,6 @@ CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
     @studyInstanceUid                   VARCHAR(64),
     @patientId                          NVARCHAR(64) = NULL,
     @patientName                        NVARCHAR(325) = NULL,
-    @referringPhysicianName             NVARCHAR(325) = NULL,
-    @studyDate                          DATE = NULL,
-    @studyDescription                   NVARCHAR(64) = NULL,
-    @accessionNumber                    NVARCHAR(64) = NULL,
     @patientBirthDate                   DATE = NULL
 AS
 BEGIN
@@ -201,7 +185,7 @@ BEGIN
         DELETE FROM @updatedInstances
 
         UPDATE TOP (@batchSize) dbo.Instance
-        SET LastStatusUpdatedDate = @currentDate, OriginalWatermark = Watermark, Watermark = NewWatermark, NewWatermark = NULL
+        SET LastStatusUpdatedDate = @currentDate, OriginalWatermark = ISNULL(OriginalWatermark, Watermark), Watermark = NewWatermark, NewWatermark = NULL
         OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.StudyKey, deleted.SeriesKey, deleted.InstanceKey, deleted.NewWatermark  INTO @updatedInstances
         WHERE PartitionKey = @partitionKey
             AND StudyInstanceUid = @studyInstanceUid
@@ -210,56 +194,6 @@ BEGIN
 
         SET @rowsUpdated = @rowsUpdated + @@ROWCOUNT;
 
-        UPDATE EQT
-        SET Watermark = U.Watermark
-        FROM ExtendedQueryTagString EQT
-        JOIN @updatedInstances U 
-        ON EQT.SopInstanceKey1 = U.StudyKey
-        AND EQT.SopInstanceKey2 = U.SeriesKey
-        AND EQT.SopInstanceKey3 = U.InstanceKey
-        AND EQT.PartitionKey = @partitionKey
-        AND EQT.ResourceType = @imageResourceType
-
-        UPDATE EQT
-        SET Watermark = U.Watermark
-        FROM ExtendedQueryTagLong EQT
-        JOIN @updatedInstances U 
-        ON EQT.SopInstanceKey1 = U.StudyKey
-        AND EQT.SopInstanceKey2 = U.SeriesKey
-        AND EQT.SopInstanceKey3 = U.InstanceKey
-        AND EQT.PartitionKey = @partitionKey
-        AND EQT.ResourceType = @imageResourceType
-
-        UPDATE EQT
-        SET Watermark = U.Watermark
-        FROM ExtendedQueryTagDouble EQT
-        JOIN @updatedInstances U 
-        ON EQT.SopInstanceKey1 = U.StudyKey
-        AND EQT.SopInstanceKey2 = U.SeriesKey
-        AND EQT.SopInstanceKey3 = U.InstanceKey
-        AND EQT.PartitionKey = @partitionKey
-        AND EQT.ResourceType = @imageResourceType
-
-        UPDATE EQT
-        SET Watermark = U.Watermark
-        FROM ExtendedQueryTagDateTime EQT
-        JOIN @updatedInstances U 
-        ON EQT.SopInstanceKey1 = U.StudyKey
-        AND EQT.SopInstanceKey2 = U.SeriesKey
-        AND EQT.SopInstanceKey3 = U.InstanceKey
-        AND EQT.PartitionKey = @partitionKey
-        AND EQT.ResourceType = @imageResourceType
-
-        UPDATE EQT
-        SET Watermark = U.Watermark
-        FROM ExtendedQueryTagPersonName EQT
-        JOIN @updatedInstances U 
-        ON EQT.SopInstanceKey1 = U.StudyKey
-        AND EQT.SopInstanceKey2 = U.SeriesKey
-        AND EQT.SopInstanceKey3 = U.InstanceKey
-        AND EQT.PartitionKey = @partitionKey
-        AND EQT.ResourceType = @imageResourceType
-
         -- Insert into change feed table for update action type
         INSERT INTO dbo.ChangeFeed
         (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark)
@@ -267,14 +201,11 @@ BEGIN
         FROM @updatedInstances
     END
 
+    -- Only updating patient information in a study
     UPDATE dbo.Study
     SET PatientId = ISNULL(@patientId, PatientId), 
         PatientName = ISNULL(@patientName, PatientName), 
-        PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate), 
-        ReferringPhysicianName = ISNULL(@referringPhysicianName, ReferringPhysicianName), 
-        StudyDate = ISNULL(@studyDate, StudyDate), 
-        StudyDescription = ISNULL(@studyDescription, StudyDescription), 
-        AccessionNumber = ISNULL(@accessionNumber, AccessionNumber)
+        PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
     WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid 
 
