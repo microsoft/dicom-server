@@ -20,7 +20,7 @@ public static class RetrieveHelpers
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
         EnsureArg.IsNotNull(instance, nameof(instance));
 
-        FileProperties fileProperties = await blobDataStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier, cancellationToken);
+        FileProperties fileProperties = await blobDataStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
 
         // limit the file size that can be read in memory
         if (fileProperties.ContentLength > maxDicomFileSize)
