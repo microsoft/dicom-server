@@ -61,24 +61,26 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         _logger = logger;
     }
 
-    public async Task<RetrieveRenderedResponse> RetrieveRenderedImageAsync(RetrieveRenderedRequest request, CancellationToken cancellationToken = default)
+    public async Task<RetrieveRenderedResponse> RetrieveRenderedImageAsync(RetrieveRenderedRequest request, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(request, nameof(request));
-        var partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
+
+        // To keep track of how long render operation is taking
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+
+        int partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
+        AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
 
         try
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
-            AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
-
             // this call throws NotFound when zero instance found
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken)).First();
 
             FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
             Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier, cancellationToken);
+
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
             DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
@@ -87,18 +89,20 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             using var sharpImage = img.AsSharpImage();
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
             await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
-            resultStream.Position = 0;
 
+            resultStream.Position = 0;
             string outputContentType = returnHeader.MediaType.ToString();
 
             sw.Stop();
-            _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed frame size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, dicomPixelData.UncompressedFrameSize, resultStream.Length, sw.ElapsedMilliseconds);
+            _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
 
             return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
         }
-        catch (IndexOutOfRangeException e)
+        catch (DicomImagingException e)
         {
-            throw new FrameNotFoundException(e);
+            _logger.LogError(e, "Error rendering dicom resource. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+
+            throw new DicomImageException();
         }
         catch (DataStoreException e)
         {
@@ -107,6 +111,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             throw;
         }
+
     }
 
     private static AcceptHeader GetValidRenderAcceptHeader(IReadOnlyCollection<AcceptHeader> acceptHeaders)

@@ -93,7 +93,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
         return new List<AcceptHeaderDescriptor>
         {
             new AcceptHeaderDescriptor(
-            payloadType: payloadTypes,
+                payloadType: payloadTypes,
                 mediaType: KnownContentTypes.ApplicationDicom,
                 isTransferSyntaxMandatory: false,
                 transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,

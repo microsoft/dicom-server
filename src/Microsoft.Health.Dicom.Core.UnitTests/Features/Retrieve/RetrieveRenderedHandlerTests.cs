@@ -42,7 +42,7 @@ public class RetrieveRenderedHandlerTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
         var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
     }
@@ -58,7 +58,7 @@ public class RetrieveRenderedHandlerTests
         string studyInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
         var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
     }
@@ -73,9 +73,24 @@ public class RetrieveRenderedHandlerTests
         string studyInstanceUid = TestUidGenerator.Generate();
         string seriesInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
         var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
+    }
+
+    [Theory]
+    [InlineData(-10)]
+    [InlineData(-3)]
+    public async Task GivenARequestWithInvalidFramNumber_WhenHandlerIsExecuted_ThenBadRequestExceptionIsThrown(int frame)
+    {
+        string error = "The specified frames value is not valid. At least one frame must be present, and all requested frames must have value greater than 0.";
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string seriesInstanceUid = TestUidGenerator.Generate();
+        string sopInstanceUid = TestUidGenerator.Generate();
+
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, frame, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
+        Assert.Equal(error, ex.Message);
     }
 
     [Fact]
@@ -89,32 +104,4 @@ public class RetrieveRenderedHandlerTests
         await _retrieveRenderedHandler.Handle(request, CancellationToken.None);
     }
 
-
-    [Fact]
-    public async Task GivenARequestWithMultipleAcceptHeaders_WhenHandlerIsExecuted_ThenNotAcceptableExceptionExceptionIsThrown()
-    {
-        const string expectedErrorMessage = "The request contains multiple accept headers, which is not supported.";
-
-        string studyInstanceUid = TestUidGenerator.Generate();
-        string seriesInstanceUid = TestUidGenerator.Generate();
-        string sopInstanceUid = TestUidGenerator.Generate();
-
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader(), AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
-        var ex = await Assert.ThrowsAsync<NotAcceptableException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
-        Assert.Equal(expectedErrorMessage, ex.Message);
-    }
-
-    [Fact]
-    public async Task GivenARequestWithInvalidAcceptHeader_WhenHandlerIsExecuted_ThenNotAcceptableExceptionExceptionIsThrown()
-    {
-        const string expectedErrorMessage = "The request headers are not acceptable";
-
-        string studyInstanceUid = TestUidGenerator.Generate();
-        string seriesInstanceUid = TestUidGenerator.Generate();
-        string sopInstanceUid = TestUidGenerator.Generate();
-
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() });
-        var ex = await Assert.ThrowsAsync<NotAcceptableException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
-        Assert.Equal(expectedErrorMessage, ex.Message);
-    }
 }

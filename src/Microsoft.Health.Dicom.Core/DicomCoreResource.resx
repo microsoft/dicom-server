@@ -640,4 +640,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ErrorMessageFormat" xml:space="preserve">
     <value>DICOM{0}: {1} - {2}</value>
   </data>
+  <data name="DicomImageConversionFailed" xml:space="preserve">
+    <value>An error was encountered when attempting to convert the dicom file into an image</value>
+  </data>
 </root>

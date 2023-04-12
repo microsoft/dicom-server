@@ -214,6 +214,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error was encountered when attempting to convert the dicom file into an image.
+        /// </summary>
+        internal static string DicomImageConversionFailed {
+            get {
+                return ResourceManager.GetString("DicomImageConversionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
         /// </summary>
         internal static string DisallowedSeriesInstanceUIDAttribute {
