@@ -10,7 +10,7 @@ USER nonroot
 EXPOSE 8080
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:7.0.202-alpine3.16-amd64@sha256:43df28f252cdd29256c36150a3411e2d35fed46fe30a1363b8b8a0ba516c96dc AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.202-alpine3.16-amd64@sha256:0d198a00142e7e91d114ea3a74b13c617fe3d1290165b73fbb1f72e39792c1e2 AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 

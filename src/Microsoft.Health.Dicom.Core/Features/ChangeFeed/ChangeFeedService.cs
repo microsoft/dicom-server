@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -85,7 +85,7 @@ public class ChangeFeedService : IChangeFeedService
         }
 
         var identifier = new VersionedInstanceIdentifier(entry.StudyInstanceUid, entry.SeriesInstanceUid, entry.SopInstanceUid, entry.CurrentVersion.Value);
-        entry.Metadata = await _metadataStore.GetInstanceMetadataAsync(identifier, cancellationToken);
+        entry.Metadata = await _metadataStore.GetInstanceMetadataAsync(identifier.Version, cancellationToken);
         entry.IncludeMetadata = true;
     }
 }
