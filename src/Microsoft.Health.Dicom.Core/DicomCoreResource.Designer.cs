@@ -1057,7 +1057,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header..
+        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header instead of attempting to transcode or render..
         /// </summary>
         internal static string RetrieveServiceFileTooBig {
             get {
