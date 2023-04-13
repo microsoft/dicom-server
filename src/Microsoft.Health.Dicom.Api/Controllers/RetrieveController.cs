@@ -168,7 +168,7 @@ public class RetrieveController : ControllerBase
         string seriesInstanceUid,
         string sopInstanceUid)
     {
-        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for instance received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for instance received");
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
             studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
@@ -239,7 +239,7 @@ public class RetrieveController : ControllerBase
         string sopInstanceUid,
         int frame)
     {
-        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}', frame '{Frames}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid, frame);
+        _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received");
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
             studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted, frame);

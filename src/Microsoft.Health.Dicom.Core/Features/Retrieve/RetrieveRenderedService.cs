@@ -100,14 +100,14 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         }
         catch (DicomImagingException e)
         {
-            _logger.LogError(e, "Error rendering dicom resource. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+            _logger.LogError(e, "Error rendering dicom resource.");
 
             throw new DicomImageException();
         }
         catch (DataStoreException e)
         {
             // Log request details associated with exception. Note that the details are not for the store call that failed but for the request only.
-            _logger.LogError(e, "Error retrieving dicom resource to render. StudyInstanceUid: {StudyInstanceUid} SeriesInstanceUid: {SeriesInstanceUid} SopInstanceUid: {SopInstanceUid}", request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid);
+            _logger.LogError(e, "Error retrieving dicom resource to render");
 
             throw;
         }
