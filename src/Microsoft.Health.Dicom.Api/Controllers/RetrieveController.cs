@@ -153,7 +153,7 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
-    [Produces(KnownContentTypes.ImageJpeg)]
+    [Produces(KnownContentTypes.ImageJpeg, KnownContentTypes.ImagePng)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -223,7 +223,7 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
-    [Produces(KnownContentTypes.ImageJpeg)]
+    [Produces(KnownContentTypes.ImageJpeg, KnownContentTypes.ImagePng)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]

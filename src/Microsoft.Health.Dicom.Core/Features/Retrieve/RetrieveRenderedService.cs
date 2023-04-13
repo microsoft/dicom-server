@@ -88,10 +88,19 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             using var img = dicomImage.RenderImage(request.FrameNumber);
             using var sharpImage = img.AsSharpImage();
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-            await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
+
+            string outputContentType = returnHeader.MediaType.ToString();
+
+            if (outputContentType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
+            {
+                await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await sharpImage.SaveAsPngAsync(resultStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), cancellationToken: cancellationToken);
+            }
 
             resultStream.Position = 0;
-            string outputContentType = returnHeader.MediaType.ToString();
 
             sw.Stop();
             _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
@@ -124,7 +133,14 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         }
         else if (acceptHeaders.Count == 1 && acceptHeaders.First().MediaType != null && !StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
         {
-            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            if (StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImagePng, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new AcceptHeader(KnownContentTypes.ImagePng, PayloadTypes.SinglePart);
+            }
+            else if (!StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
+            {
+                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            }
         }
 
         return new AcceptHeader(KnownContentTypes.ImageJpeg, PayloadTypes.SinglePart);
