@@ -35,7 +35,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(GetInstanceWatermarksInStudyAsync))]
-    public async Task<IReadOnlyList<(long Version, long? OriginalVersion)>> GetInstanceWatermarksInStudyAsync(
+    public async Task<IReadOnlyList<InstanceFileIdentifier>> GetInstanceWatermarksInStudyAsync(
         [ActivityTrigger] GetInstanceArguments arguments,
         ILogger logger)
     {
@@ -49,7 +49,84 @@ public partial class UpdateDurableFunction
             arguments.StudyInstanceUid,
             cancellationToken: CancellationToken.None);
 
-        return instanceMetadata.Select(x => (x.VersionedInstanceIdentifier.Version, x.InstanceProperties.OriginalVersion)).ToList();
+        return instanceMetadata.Select(x =>
+            new InstanceFileIdentifier
+            {
+                Version = x.VersionedInstanceIdentifier.Version,
+                OriginalVersion = x.InstanceProperties.OriginalVersion,
+                NewVersion = x.InstanceProperties.NewVersion
+            }).ToList();
+    }
+
+    /// <summary>
+    /// Asynchronously batches the instance watermarks and calls the update instance.
+    /// </summary>
+    /// <param name="arguments">BatchUpdateArguments</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="UpdateInstanceWatermarkAsync"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(UpdateInstanceWatermarkAsync))]
+    public async Task<IReadOnlyList<InstanceFileIdentifier>> UpdateInstanceWatermarkAsync([ActivityTrigger] BatchUpdateArguments arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.InstanceWatermarks, nameof(arguments.InstanceWatermarks));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        var updatedInstanceWatermarks = new List<InstanceFileIdentifier>();
+        int processed = 0;
+
+        logger.LogInformation("Beginning to update all instance watermarks, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
+
+        var instanceWatermarks = arguments.InstanceWatermarks.Select(x => x.Version).ToList();
+        while (processed < instanceWatermarks.Count)
+        {
+            int batchSize = Math.Min(_options.BatchSize, instanceWatermarks.Count - processed);
+            var batch = instanceWatermarks.Skip(processed).Take(batchSize).ToList();
+
+            if (batch.Count > 0)
+            {
+                logger.LogInformation("Beginning to update instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+                IEnumerable<InstanceMetadata> instanceMetadata = null;
+
+                try
+                {
+                    instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, batch);
+                    updatedInstanceWatermarks.AddRange(instanceMetadata.Select(x =>
+                        new InstanceFileIdentifier
+                        {
+                            Version = x.VersionedInstanceIdentifier.Version,
+                            OriginalVersion = x.InstanceProperties.OriginalVersion,
+                            NewVersion = x.InstanceProperties.NewVersion
+                        }));
+                }
+                catch (InstanceNotFoundException)
+                {
+                    // This is unusual scenario but could occur if the instances are deleted
+                    logger.LogWarning("Error updating instances, possibly deleted with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.");
+                    continue;
+                }
+
+                logger.LogInformation("Completed updating instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+
+                processed += batchSize;
+            }
+        }
+
+        logger.LogInformation("Completed updating all instance watermarks");
+
+        return updatedInstanceWatermarks;
     }
 
     /// <summary>
@@ -84,36 +161,13 @@ public partial class UpdateDurableFunction
 
             if (batch.Count > 0)
             {
-                logger.LogInformation("Beginning to update instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
-                IEnumerable<InstanceMetadata> instanceMetadata = null;
-
-                try
-                {
-                    instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, batch);
-                }
-                catch (InstanceNotFoundException)
-                {
-                    // This is unusual scenario but could occur if the instances are deleted
-                    logger.LogWarning("Error updating instances, possibly deleted with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.");
-                    return;
-                }
-
-                logger.LogInformation("Completed updating instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
                 logger.LogInformation("Beginning to update instance blobs starting with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
                     batch[0],
                     batch[^1],
                     batchSize);
 
                 await Parallel.ForEachAsync(
-                    instanceMetadata,
+                    batch,
                     new ParallelOptions
                     {
                         CancellationToken = default,
@@ -173,11 +227,10 @@ public partial class UpdateDurableFunction
             // TODO: Study deleted, we need to cleanup all the newly updated blobs.
             logger.LogWarning("Failed to update to study. Possibly deleted.");
         }
-
     }
 
     /// <summary>
-    /// Asynchronously delete all the old blobs
+    /// Asynchronously delete all the old blobs if it has more than 2 version.
     /// </summary>
     /// <param name="context">Activity context which has list of watermarks to cleanup</param>
     /// <param name="logger">A diagnostic logger.</param>
@@ -193,7 +246,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(context, nameof(context));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        IReadOnlyList<(long Version, long? OriginalVersion)> fileIdentifiers = context.GetInput<IReadOnlyList<(long Version, long? OriginalVersion)>>();
+        IReadOnlyList<InstanceFileIdentifier> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileIdentifier>>();
 
         logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileIdentifiers.Count);
 

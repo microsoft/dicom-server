@@ -41,14 +41,14 @@ public class UpdateInstanceService : IUpdateInstanceService
     }
 
     /// <inheritdoc />
-    public async Task UpdateInstanceBlobAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
+    public async Task UpdateInstanceBlobAsync(InstanceFileIdentifier instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(datasetToUpdate, nameof(datasetToUpdate));
-        EnsureArg.IsNotNull(instanceMetadata, nameof(instanceMetadata));
-        EnsureArg.IsTrue(instanceMetadata.InstanceProperties.NewVersion.HasValue, nameof(instanceMetadata.InstanceProperties.NewVersion.HasValue));
+        EnsureArg.IsNotNull(instanceFileIdentifier, nameof(instanceFileIdentifier));
+        EnsureArg.IsTrue(instanceFileIdentifier.NewVersion.HasValue, nameof(instanceFileIdentifier.NewVersion.HasValue));
 
-        Task updateInstanceFileTask = UpdateInstanceFileAsync(instanceMetadata, datasetToUpdate, cancellationToken);
-        Task updateInstanceMetadataTask = UpdateInstanceMetadataAsync(instanceMetadata, datasetToUpdate, cancellationToken);
+        Task updateInstanceFileTask = UpdateInstanceFileAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
+        Task updateInstanceMetadataTask = UpdateInstanceMetadataAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
         await Task.WhenAll(updateInstanceFileTask, updateInstanceMetadataTask);
     }
 
@@ -65,15 +65,15 @@ public class UpdateInstanceService : IUpdateInstanceService
         _logger.LogInformation("Deleting instance blob {FileIdentifier} completed successfully.", fileIdentifier);
     }
 
-    private async Task UpdateInstanceFileAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
+    private async Task UpdateInstanceFileAsync(InstanceFileIdentifier instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
     {
-        long originFileIdentifier = instanceMetadata.VersionedInstanceIdentifier.Version;
-        long newFileIdentifier = instanceMetadata.InstanceProperties.NewVersion.Value;
+        long originFileIdentifier = instanceFileIdentifier.Version;
+        long newFileIdentifier = instanceFileIdentifier.NewVersion.Value;
 
         KeyValuePair<string, long> block = default;
 
         // If the file is already updated, then we can copy the file and just update the first block
-        if (instanceMetadata.InstanceProperties.OriginalVersion.HasValue)
+        if (instanceFileIdentifier.OriginalVersion.HasValue)
         {
             _logger.LogInformation("Begin copying instance file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
             await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, cancellationToken);
@@ -113,10 +113,10 @@ public class UpdateInstanceService : IUpdateInstanceService
         await UpdateDatasetInFileAsync(newFileIdentifier, datasetToUpdate, block, cancellationToken);
     }
 
-    private async Task UpdateInstanceMetadataAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
+    private async Task UpdateInstanceMetadataAsync(InstanceFileIdentifier instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
     {
-        long originFileIdentifier = instanceMetadata.VersionedInstanceIdentifier.Version;
-        long newFileIdentifier = instanceMetadata.InstanceProperties.NewVersion.Value;
+        long originFileIdentifier = instanceFileIdentifier.Version;
+        long newFileIdentifier = instanceFileIdentifier.NewVersion.Value;
 
         _logger.LogInformation("Begin downloading original file metdata {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 

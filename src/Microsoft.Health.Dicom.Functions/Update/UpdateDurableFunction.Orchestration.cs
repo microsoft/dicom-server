@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -49,27 +50,36 @@ public partial class UpdateDurableFunction
             Size = _options.BatchSize,
         };
 
+        input.TotalNumberOfStudies ??= input.StudyInstanceUids.Count;
+
         if (input.StudyInstanceUids.Count > 0)
         {
             string studyInstanceUid = input.StudyInstanceUids[0];
 
             logger.LogInformation("Beginning to get all instances in a study.");
 
-            IReadOnlyList<(long Version, long? OriginalVersion)> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<(long Version, long? OriginalVersion)>>(
+            IReadOnlyList<InstanceFileIdentifier> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
                 nameof(GetInstanceWatermarksInStudyAsync),
                 _options.RetryOptions,
                 new GetInstanceArguments(input.PartitionKey, studyInstanceUid));
 
-            logger.LogInformation("Getting all instances completed {TotalCount}", instanceWatermarks.Count);
+            int instancesToUpdate = instanceWatermarks.Count;
 
-            if (instanceWatermarks.Count > 0)
+            logger.LogInformation("Getting all instances completed {TotalCount}", instancesToUpdate);
+
+            if (instancesToUpdate > 0)
             {
+                instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+                    nameof(UpdateInstanceWatermarkAsync),
+                    _options.RetryOptions,
+                    new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
+
                 try
                 {
                     await context.CallActivityWithRetryAsync(
                         nameof(UpdateInstanceBatchAsync),
                         _options.RetryOptions,
-                        new BatchUpdateArguments(input.PartitionKey, instanceWatermarks.Select(x => x.Version).ToList(), input.ChangeDataset));
+                        new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
 
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateInstanceAsync),
@@ -80,7 +90,15 @@ public partial class UpdateDurableFunction
                 {
                     // TODO: Need to call cleanup orchestration on failure after retries.
                     logger.LogError(ex, "Failed to update instances for study", ex);
-                    throw;
+                    var errors = new List<string>
+                    {
+                        $"Failed to update instances for study. Reason {ex.InnerException.Message}",
+                    };
+
+                    if (input.Errors != null)
+                        errors.AddRange(errors);
+
+                    input.Errors = errors;
                 }
             }
 
@@ -99,6 +117,9 @@ public partial class UpdateDurableFunction
                         PartitionKey = input.PartitionKey,
                         TotalNumberOfStudies = input.TotalNumberOfStudies,
                         NumberOfStudyCompleted = input.NumberOfStudyCompleted + 1,
+                        TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
+                        TotalNumberOfInstanceFailed = input.TotalNumberOfInstanceFailed + (instancesToUpdate - instanceWatermarks.Count),
+                        Errors = input.Errors,
                         CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                     });
             }
@@ -109,7 +130,17 @@ public partial class UpdateDurableFunction
                     _options.RetryOptions,
                     instanceWatermarks);
 
-                logger.LogInformation("Update operation completed successfully");
+                if (input.Errors != null && input.Errors.Count > 0)
+                {
+                    logger.LogInformation("Update operation completed with errors.");
+
+                    // Throwing the exception so that it can set the operation status to Failed
+                    throw new OperationErrorException("Update operation completed with errors.");
+                }
+                else
+                {
+                    logger.LogInformation("Update operation completed successfully");
+                }
             }
         }
         else

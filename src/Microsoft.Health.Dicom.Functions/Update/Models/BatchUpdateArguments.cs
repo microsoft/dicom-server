@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
@@ -15,11 +16,11 @@ public sealed class BatchUpdateArguments
 {
     public int PartitionKey { get; }
 
-    public IReadOnlyList<long> InstanceWatermarks { get; }
+    public IReadOnlyList<InstanceFileIdentifier> InstanceWatermarks { get; }
 
     public string ChangeDataset { get; set; }
 
-    public BatchUpdateArguments(int partitionKey, IReadOnlyList<long> instanceWatermarks, string changeDataset)
+    public BatchUpdateArguments(int partitionKey, IReadOnlyList<InstanceFileIdentifier> instanceWatermarks, string changeDataset)
     {
         PartitionKey = partitionKey;
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));

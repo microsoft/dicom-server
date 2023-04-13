@@ -15,14 +15,14 @@ public interface IUpdateInstanceService
     /// <summary>
     /// Asynchronously update instance blobs
     /// </summary>
-    /// <param name="instanceMetadata">Instance metadata</param>
+    /// <param name="instanceFileIdentifier">Instance watermark version combinations</param>
     /// <param name="datasetToUpdate">Dataset to update</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous UpdateInstanceBlobAsync operation</returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="instanceMetadata"/> or <paramref name="datasetToUpdate"/> is <see langword="null"/>.
+    /// <paramref name="datasetToUpdate"/> is <see langword="null"/>.
     /// </exception>
-    public Task UpdateInstanceBlobAsync(InstanceMetadata instanceMetadata, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
+    public Task UpdateInstanceBlobAsync(InstanceFileIdentifier instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes old blob
