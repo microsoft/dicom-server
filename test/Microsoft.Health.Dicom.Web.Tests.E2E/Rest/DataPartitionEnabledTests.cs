@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -108,6 +109,29 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         Assert.True(response3.IsSuccessStatusCode);
 
         using DicomWebResponse<DicomFile> response4 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+        Assert.True(response4.IsSuccessStatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt-dp")]
+    public async Task WhenRendereingWithPartitionName_TheServerShouldReturnOnlyTheSpecifiedPartition()
+    {
+        var newPartition1 = "partition1";
+        var newPartition2 = "partition2";
+
+        string studyInstanceUID = TestUidGenerator.Generate();
+        string seriesInstanceUID = TestUidGenerator.Generate();
+        string sopInstanceUID = TestUidGenerator.Generate();
+
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 3);
+
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+
+        using DicomWebResponse<Stream> response3 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1);
+        Assert.True(response3.IsSuccessStatusCode);
+
+        using DicomWebResponse<Stream> response4 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
         Assert.True(response4.IsSuccessStatusCode);
     }
 
