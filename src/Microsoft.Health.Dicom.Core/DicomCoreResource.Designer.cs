@@ -214,6 +214,42 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dicom update feature is disabled..
+        /// </summary>
+        internal static string DicomUpdateFeatureDisabled {
+            get {
+                return ResourceManager.GetString("DicomUpdateFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StudyInstanceUids count exceeded maximum length &apos;{0}&apos;.
+        /// </summary>
+        internal static string DicomUpdateStudyInstanceUidsExceedMaxCount {
+            get {
+                return ResourceManager.GetString("DicomUpdateStudyInstanceUidsExceedMaxCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the following tags are not supported: {0}.
+        /// </summary>
+        internal static string DicomUpdateTagValidationFailed {
+            get {
+                return ResourceManager.GetString("DicomUpdateTagValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validation failed for the values of following tags: {0}.
+        /// </summary>
+        internal static string DicomUpdateTagValueValidationFailed {
+            get {
+                return ResourceManager.GetString("DicomUpdateTagValueValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
         /// </summary>
         internal static string DisallowedSeriesInstanceUIDAttribute {
@@ -418,6 +454,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ExistingReindexOperation {
             get {
                 return ResourceManager.GetString("ExistingReindexOperation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is already an active update operation with ID &apos;{0}&apos;..
+        /// </summary>
+        internal static string ExistingUpdateOperation {
+            get {
+                return ResourceManager.GetString("ExistingUpdateOperation", resourceCulture);
             }
         }
         
@@ -882,6 +927,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string MissingRequestBody {
             get {
                 return ResourceManager.GetString("MissingRequestBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; is missing or empty..
+        /// </summary>
+        internal static string MissingRequiredField {
+            get {
+                return ResourceManager.GetString("MissingRequiredField", resourceCulture);
             }
         }
         
