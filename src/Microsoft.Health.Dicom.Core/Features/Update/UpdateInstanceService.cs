@@ -18,7 +18,7 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
-public class UpdateInstanceService : IUpdateInstanceService
+public class UpdateOperationInstanceService : IUpdateOperationInstanceService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
@@ -35,7 +35,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         }
     };
 
-    public UpdateInstanceService(
+    public UpdateOperationInstanceService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IUrlResolver iUrlResolver,

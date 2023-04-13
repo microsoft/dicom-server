@@ -20,7 +20,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Update;
 /// </summary>
 public static class UpdateRequestValidator
 {
-    private const int MaxStudyInstanceUids = 50;
+    private const int QueryLimit = 50;
 
     /// <summary>
     /// Validates an <see cref="UpdateSpecification"/>.
@@ -35,9 +35,9 @@ public static class UpdateRequestValidator
         {
             throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.MissingRequiredField, nameof(updateSpecification.StudyInstanceUids)));
         }
-        else if (updateSpecification.StudyInstanceUids.Count > MaxStudyInstanceUids)
+        else if (updateSpecification.StudyInstanceUids.Count > QueryLimit)
         {
-            throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateStudyInstanceUidsExceedMaxCount, MaxStudyInstanceUids));
+            throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateStudyInstanceUidsExceedMaxCount, QueryLimit));
         }
         foreach (var StudyInstanceUid in updateSpecification.StudyInstanceUids)
         {
@@ -59,7 +59,7 @@ public static class UpdateRequestValidator
 
         foreach (DicomItem item in dataset)
         {
-            if (!UpdateTags.UpdateFilterTags.Contains(item.Tag))
+            if (!UpdateTags.UpdateStudyFilterTags.Contains(item.Tag))
             {
                 invalidTags.Add(item.Tag.ToString());
             }

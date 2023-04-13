@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client.Models;
-using Microsoft.Health.Dicom.Core.Models.Update;
 
 namespace Microsoft.Health.Dicom.Client;
 

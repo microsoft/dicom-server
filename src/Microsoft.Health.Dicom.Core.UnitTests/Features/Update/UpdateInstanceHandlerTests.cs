@@ -26,14 +26,14 @@ public class UpdateInstanceHandlerTests
 {
     private const string DefaultContentType = "application/json";
     private readonly UpdateInstanceHandler _handler;
-    private readonly IUpdateInstanceService _updateInstanceService;
+    private readonly IUpdateOperationInstanceService _updateOperationInstanceService;
     private readonly IAuthorizationService<DataActions> _auth;
 
     public UpdateInstanceHandlerTests()
     {
-        _updateInstanceService = Substitute.For<IUpdateInstanceService>();
+        _updateOperationInstanceService = Substitute.For<IUpdateOperationInstanceService>();
         _auth = Substitute.For<IAuthorizationService<DataActions>>();
-        _handler = new UpdateInstanceHandler(_auth, _updateInstanceService);
+        _handler = new UpdateInstanceHandler(_auth, _updateOperationInstanceService);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class UpdateInstanceHandlerTests
         await Assert.ThrowsAsync<UnauthorizedDicomActionException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
 
         await _auth.Received(1).CheckAccess(DataActions.Write, CancellationToken.None);
-        await _updateInstanceService.DidNotReceiveWithAnyArgs().QueueUpdateOperationAsync(default, default);
+        await _updateOperationInstanceService.DidNotReceiveWithAnyArgs().QueueUpdateOperationAsync(default, default);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class UpdateInstanceHandlerTests
 
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.Write);
 
-        _updateInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None).Returns(operation);
+        _updateOperationInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None).Returns(operation);
 
         var response = await _handler.Handle(updateInstanceRequest, CancellationToken.None);
 

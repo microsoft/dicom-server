@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 internal static class UpdateTags
 {
-    public static readonly HashSet<DicomTag> UpdateFilterTags = new HashSet<DicomTag>()
+    public static readonly HashSet<DicomTag> UpdateStudyFilterTags = new HashSet<DicomTag>()
     {
         DicomTag.PatientName,
         DicomTag.PatientID,

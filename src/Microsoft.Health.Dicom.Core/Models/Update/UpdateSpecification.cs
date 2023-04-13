@@ -16,7 +16,7 @@ public class UpdateSpecification
         ChangeDataset = changeDataset;
     }
 
-    public IReadOnlyList<string> StudyInstanceUids { get; set; }
+    public IReadOnlyList<string> StudyInstanceUids { get; }
 
-    public DicomDataset ChangeDataset { get; set; }
+    public DicomDataset ChangeDataset { get; }
 }
