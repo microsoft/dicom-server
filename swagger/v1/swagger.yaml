@@ -1872,6 +1872,123 @@ paths:
                 type: string
         '304':
           description: Not Modified
+  '/v1/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/rendered':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: No Content
+          content:
+            image/jpeg:
+              schema:
+                type: string
+            image/png:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/rendered':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: No Content
+          content:
+            image/jpeg:
+              schema:
+                type: string
+            image/png:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
   '/v1/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/metadata':
     get:
       tags:
@@ -2078,6 +2195,135 @@ paths:
           description: Success
           content:
             multipart/related: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frame/{frame}/rendered':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: frame
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: No Content
+          content:
+            image/jpeg:
+              schema:
+                type: string
+            image/png:
+              schema:
+                type: string
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: string
+        '406':
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                type: string
+  '/v1/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frame/{frame}/rendered':
+    get:
+      tags:
+        - Retrieve
+      parameters:
+        - name: studyInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: seriesInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sopInstanceUid
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: frame
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
+      responses:
+        '200':
+          description: Success
+        '204':
+          description: No Content
+          content:
+            image/jpeg:
+              schema:
+                type: string
+            image/png:
+              schema:
+                type: string
         '400':
           description: Bad Request
           content:
