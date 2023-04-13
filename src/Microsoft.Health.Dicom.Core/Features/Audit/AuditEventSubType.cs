@@ -57,4 +57,6 @@ public static class AuditEventSubType
     public const string UpdateExtendedQueryTag = "update-extended-query-tag";
 
     public const string BulkImportStore = "bulk-import-store";
+
+    public const string UpdateStudy = "update-study";
 }

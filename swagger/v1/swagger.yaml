@@ -2357,6 +2357,44 @@ paths:
       responses:
         '200':
           description: Success
+  '/v1/partitions/{partitionName}/studies/$bulkUpdate':
+    post:
+      tags:
+        - Store
+      operationId: PartitionedUpdateInstance
+      parameters:
+        - name: partitionName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSpecification'
+        required: true
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
+  /v1/studies/$bulkUpdate:
+    post:
+      tags:
+        - Store
+      operationId: UpdateInstance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSpecification'
+        required: true
+      responses:
+        '202':
+          description: Accepted
+        '400':
+          description: Bad Request
   '/v1/partitions/{partitionName}/workitems':
     post:
       tags:
@@ -2972,6 +3010,7 @@ components:
         - unknown
         - reindex
         - export
+        - update
       type: string
     DicomOperationIOperationState:
       type: object
@@ -3233,3 +3272,17 @@ components:
         queryStatus:
           $ref: '#/components/schemas/QueryStatus'
       additionalProperties: { }
+    UpdateSpecification:
+      type: object
+      properties:
+        studyInstanceUids:
+          type: array
+          items:
+            type: string
+          nullable: true
+        changeDataset:
+          type: array
+          items:
+            $ref: '#/components/schemas/DicomItem'
+          nullable: true
+      additionalProperties: false

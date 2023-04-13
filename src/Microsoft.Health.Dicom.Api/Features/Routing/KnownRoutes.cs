@@ -74,4 +74,6 @@ public static class KnownRoutes
     public const string HealthCheck = "/health/check";
 
     public const string OperationInstanceRoute = OperationsSegment + "/{" + KnownActionParameterNames.OperationId + "}";
+
+    public const string UpdateInstanceRoute = StudiesRouteSegment + "/$bulkUpdate";
 }

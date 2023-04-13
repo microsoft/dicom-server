@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Messages.Partition;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using ResourceType = Microsoft.Health.Dicom.Core.Messages.ResourceType;
@@ -304,5 +305,14 @@ public static class DicomMediatorExtensions
 
         // Not validating transaction Uid as it can be null if the procedure step state is in SCHEDULED state.
         return mediator.Send(new UpdateWorkitemRequest(dicomDataset, requestContentType, workitemInstanceUid, transactionUid), cancellationToken);
+    }
+
+    public static Task<UpdateInstanceResponse> UpdateInstanceAsync(
+       this IMediator mediator,
+       UpdateSpecification updateSpecification,
+       CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        return mediator.Send(new UpdateInstanceRequest(updateSpecification), cancellationToken);
     }
 }
