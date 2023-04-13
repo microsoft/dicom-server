@@ -77,14 +77,14 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken)).First();
 
-            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, cancellationToken);
+            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, true, cancellationToken);
             Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
             sw.Start();
 
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
             DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
-            Stream resultStream = await convertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), cancellationToken);
+            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), cancellationToken);
             string outputContentType = returnHeader.MediaType.ToString();
 
             sw.Stop();
@@ -102,7 +102,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
     }
 
-    private async Task<Stream> convertToImage(DicomFile dicomFile, int frameNumber, string mediaType, CancellationToken cancellationToken)
+    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, CancellationToken cancellationToken)
     {
         try
         {

@@ -1039,6 +1039,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0} for rendering. Please retrieve the whole file in the original transfer syntax instead of rendering to image media type..
+        /// </summary>
+        internal static string RenderFileTooLarge {
+            get {
+                return ResourceManager.GetString("RenderFileTooLarge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The request exceeded the allowed limit of {0} bytes..
         /// </summary>
         internal static string RequestLengthLimitExceeded {
@@ -1057,7 +1066,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header instead of attempting to transcode or render..
+        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying &apos;transfer-syntax=*&apos; in the Accept header..
         /// </summary>
         internal static string RetrieveServiceFileTooBig {
             get {

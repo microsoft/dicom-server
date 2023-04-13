@@ -532,7 +532,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} is the DICOM tag name.</comment>
   </data>
   <data name="RetrieveServiceFileTooBig" xml:space="preserve">
-    <value>Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying 'transfer-syntax=*' in the Accept header instead of attempting to transcode or render.</value>
+    <value>Requested DICOM instance size is above the supported limit of {0}. The entire instance can be retrieved with the original transfer syntax by specifying 'transfer-syntax=*' in the Accept header.</value>
     <comment>{0} bytes representing the support max file size</comment>
   </data>
   <data name="RetrieveServiceMultiInstanceTranscodingNotSupported" xml:space="preserve">
@@ -642,5 +642,9 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="DicomImageConversionFailed" xml:space="preserve">
     <value>An error was encountered when attempting to convert the dicom file into an image</value>
+  </data>
+  <data name="RenderFileTooLarge" xml:space="preserve">
+    <value>Requested DICOM instance size is above the supported limit of {0} for rendering. Please retrieve the whole file in the original transfer syntax instead of rendering to image media type.</value>
+    <comment>{0} bytes representing the support max file size</comment>
   </data>
 </root>
