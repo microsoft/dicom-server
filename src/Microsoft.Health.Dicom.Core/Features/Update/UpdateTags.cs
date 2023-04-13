@@ -10,7 +10,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 internal static class UpdateTags
 {
-    public const int QueryLimit = 50;
+    public const int MaxStudyInstanceUidLimit = 50;
 
     public static readonly HashSet<DicomTag> UpdateStudyFilterTags = new HashSet<DicomTag>()
     {

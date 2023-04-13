@@ -33,9 +33,9 @@ public static class UpdateRequestValidator
         {
             throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.MissingRequiredField, nameof(updateSpecification.StudyInstanceUids)));
         }
-        else if (updateSpecification.StudyInstanceUids.Count > UpdateTags.QueryLimit)
+        else if (updateSpecification.StudyInstanceUids.Count > UpdateTags.MaxStudyInstanceUidLimit)
         {
-            throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateStudyInstanceUidsExceedMaxCount, UpdateTags.QueryLimit));
+            throw new BadRequestException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateStudyInstanceUidsExceedMaxCount, UpdateTags.MaxStudyInstanceUidLimit));
         }
         foreach (var StudyInstanceUid in updateSpecification.StudyInstanceUids)
         {
