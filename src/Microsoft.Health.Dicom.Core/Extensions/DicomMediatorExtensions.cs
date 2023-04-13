@@ -25,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Models.Export;
+using Microsoft.Health.Dicom.Core.Models.Update;
 using ResourceType = Microsoft.Health.Dicom.Core.Messages.ResourceType;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
