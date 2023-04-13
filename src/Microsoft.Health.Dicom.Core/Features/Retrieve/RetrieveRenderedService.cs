@@ -27,6 +27,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 public class RetrieveRenderedService : IRetrieveRenderedService
@@ -72,6 +73,11 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         int partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
         AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
 
+        if (request.Quality < 1 || request.Quality > 100)
+        {
+            throw new BadRequestException(DicomCoreResource.InvalidImageQuality);
+        }
+
         try
         {
             // this call throws NotFound when zero instance found
@@ -93,7 +99,9 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             if (outputContentType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
             {
-                await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
+                JpegEncoder jpegEncoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
+                jpegEncoder.Quality = request.Quality;
+                await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, cancellationToken: cancellationToken);
             }
             else
             {

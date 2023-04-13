@@ -56,6 +56,15 @@ public static class AcceptHeaderHelpers
           quality: quality);
     }
 
+    public static AcceptHeader CreateRenderPngAcceptHeader(string transferSyntax = "*", string mediaType = KnownContentTypes.ImagePng, double? quality = null, PayloadTypes payloadType = PayloadTypes.SinglePart)
+    {
+        return CreateAcceptHeader(
+          transferSyntax: transferSyntax,
+          payloadType: payloadType,
+          mediaType: mediaType,
+          quality: quality);
+    }
+
 
     public static AcceptHeader CreateAcceptHeader(string transferSyntax = "*", PayloadTypes payloadType = PayloadTypes.MultipartRelated, string mediaType = KnownContentTypes.ApplicationOctetStream, double? quality = null)
     {

@@ -27,6 +27,7 @@ using Microsoft.IO;
 using NSubstitute;
 using Xunit;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveRenderedServiceTests
@@ -78,7 +79,7 @@ public class RetrieveRenderedServiceTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader(), AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader(), AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
         var ex = await Assert.ThrowsAsync<NotAcceptableException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(request, CancellationToken.None));
         Assert.Equal(expectedErrorMessage, ex.Message);
     }
@@ -92,7 +93,7 @@ public class RetrieveRenderedServiceTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() });
         var ex = await Assert.ThrowsAsync<NotAcceptableException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(request, CancellationToken.None));
         Assert.Equal(expectedErrorMessage, ex.Message);
     }
@@ -103,8 +104,25 @@ public class RetrieveRenderedServiceTests
         _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
-            new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() }),
+            new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() }),
             DefaultCancellationToken));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-10)]
+    [InlineData(101)]
+    public async Task GivenInvalidQuality_RenderForInstance_ThenBadRequestThrown(int quality)
+    {
+        const string expectedErrorMessage = "Image quality must be between 1 and 100 inclusive";
+
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string seriesInstanceUid = TestUidGenerator.Generate();
+        string sopInstanceUid = TestUidGenerator.Generate();
+
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, quality, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(request, CancellationToken.None));
+        Assert.Equal(expectedErrorMessage, ex.Message);
     }
 
     [Fact]
@@ -116,7 +134,7 @@ public class RetrieveRenderedServiceTests
 
         await Assert.ThrowsAsync<NotAcceptableException>(() =>
         _retrieveRenderedService.RetrieveRenderedImageAsync(
-              new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() }),
+              new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() }),
               DefaultCancellationToken));
 
     }
@@ -131,7 +149,7 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamOfStoredFiles);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamOfStoredFiles.Length });
 
-        var retrieveRenderRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 4, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 4, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
 
         await Assert.ThrowsAsync<FrameNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderRequest,
@@ -142,7 +160,7 @@ public class RetrieveRenderedServiceTests
     }
 
     [Fact]
-    public async Task GivenStoredInstancesWithFrames_WhenRetrieveRenderedForFrames_ThenEachFrameRenderedSuccesfully()
+    public async Task GivenStoredInstancesWithFramesJpeg_WhenRetrieveRenderedForFrames_ThenEachFrameRenderedSuccesfully()
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
 
@@ -150,7 +168,7 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
-        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
@@ -162,12 +180,12 @@ public class RetrieveRenderedServiceTests
         using var img = dicomImage.RenderImage(0);
         using var sharpImage = img.AsSharpImage();
         MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-        await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), DefaultCancellationToken);
+        await sharpImage.SaveAsJpegAsync(resultStream, new JpegEncoder(), DefaultCancellationToken);
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
 
-        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
         streamAndStoredFile.Value.Position = 0;
 
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
@@ -178,10 +196,103 @@ public class RetrieveRenderedServiceTests
         using var img2 = dicomImage.RenderImage(1);
         using var sharpImage2 = img2.AsSharpImage();
         MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
-        await sharpImage2.SaveAsJpegAsync(resultStream2, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), DefaultCancellationToken);
+        await sharpImage2.SaveAsJpegAsync(resultStream2, new JpegEncoder(), DefaultCancellationToken);
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+
+        streamAndStoredFile.Value.Dispose();
+
+    }
+
+    [Fact]
+    public async Task GivenStoredInstancesWithFramesJpeg_WhenRetrieveRenderedForFramesDifferentQuality_ThenEachFrameRenderedSuccesfully()
+    {
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+        _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
+
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 50, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+
+        RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
+               retrieveRenderedRequest,
+               DefaultCancellationToken);
+        JpegEncoder jpegEncoder = new JpegEncoder();
+        jpegEncoder.Quality = 50;
+        streamAndStoredFile.Value.Position = 0;
+        DicomFile dicomFile = await DicomFile.OpenAsync(streamAndStoredFile.Value, FileReadOption.ReadLargeOnDemand);
+        DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
+        using var img = dicomImage.RenderImage(0);
+        using var sharpImage = img.AsSharpImage();
+        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, DefaultCancellationToken);
+        resultStream.Position = 0;
+        AssertStreamsEqual(resultStream, response.ResponseStream);
+        Assert.Equal("image/jpeg", response.ContentType);
+
+        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 20, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        streamAndStoredFile.Value.Position = 0;
+
+        RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
+               retrieveRenderedRequest2,
+               DefaultCancellationToken);
+        jpegEncoder.Quality = 20;
+        streamAndStoredFile.Value.Position = 0;
+        using var img2 = dicomImage.RenderImage(1);
+        using var sharpImage2 = img2.AsSharpImage();
+        MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage2.SaveAsJpegAsync(resultStream2, jpegEncoder, DefaultCancellationToken);
+        resultStream2.Position = 0;
+        AssertStreamsEqual(resultStream2, response2.ResponseStream);
+        Assert.Equal("image/jpeg", response.ContentType);
+
+        streamAndStoredFile.Value.Dispose();
+
+    }
+
+    [Fact]
+    public async Task GivenStoredInstancesWithFramesPNG_WhenRetrieveRenderedForFrames_ThenEachFrameRenderedSuccesfully()
+    {
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+        _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
+
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderPngAcceptHeader() });
+
+        RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
+               retrieveRenderedRequest,
+               DefaultCancellationToken);
+
+        streamAndStoredFile.Value.Position = 0;
+        DicomFile dicomFile = await DicomFile.OpenAsync(streamAndStoredFile.Value, FileReadOption.ReadLargeOnDemand);
+        DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
+        using var img = dicomImage.RenderImage(0);
+        using var sharpImage = img.AsSharpImage();
+        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage.SaveAsPngAsync(resultStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), DefaultCancellationToken);
+        resultStream.Position = 0;
+        AssertStreamsEqual(resultStream, response.ResponseStream);
+        Assert.Equal("image/png", response.ContentType);
+
+        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderPngAcceptHeader() });
+        streamAndStoredFile.Value.Position = 0;
+
+        RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
+               retrieveRenderedRequest2,
+               DefaultCancellationToken);
+
+        streamAndStoredFile.Value.Position = 0;
+        using var img2 = dicomImage.RenderImage(1);
+        using var sharpImage2 = img2.AsSharpImage();
+        MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage2.SaveAsPngAsync(resultStream2, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), DefaultCancellationToken);
+        resultStream2.Position = 0;
+        AssertStreamsEqual(resultStream2, response2.ResponseStream);
+        Assert.Equal("image/png", response.ContentType);
 
         streamAndStoredFile.Value.Dispose();
 
@@ -197,7 +308,7 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
 
-        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, new List<AcceptHeader>());
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, 75, new List<AcceptHeader>());
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
@@ -209,7 +320,7 @@ public class RetrieveRenderedServiceTests
         using var img = dicomImage.RenderImage(0);
         using var sharpImage = img.AsSharpImage();
         MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-        await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), DefaultCancellationToken);
+        await sharpImage.SaveAsJpegAsync(resultStream, new JpegEncoder(), DefaultCancellationToken);
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);

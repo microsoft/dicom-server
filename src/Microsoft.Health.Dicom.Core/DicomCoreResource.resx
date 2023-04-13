@@ -643,4 +643,7 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DicomImageConversionFailed" xml:space="preserve">
     <value>An error was encountered when attempting to convert the dicom file into an image</value>
   </data>
+  <data name="InvalidImageQuality" xml:space="preserve">
+    <value>Image quality must be between 1 and 100 inclusive</value>
+  </data>
 </root>
