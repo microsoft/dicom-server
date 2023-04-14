@@ -506,11 +506,8 @@ public class DicomAzureFunctionsClientTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        var updateSpec = new UpdateSpecification
-        {
-            StudyInstanceUids = studyUids,
-            ChangeDataset = ds
-        };
+        var updateSpec = new UpdateSpecification(studyUids, ds);
+
         var uri = new Uri("http://my-operation/" + operationId);
 
         using var source = new CancellationTokenSource();

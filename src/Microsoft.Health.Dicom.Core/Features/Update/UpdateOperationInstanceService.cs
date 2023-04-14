@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
     private readonly IDicomOperationsClient _client;
     private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly ILogger<UpdateInstanceOperationService> _logger;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -39,7 +41,8 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IUrlResolver iUrlResolver,
-        IDicomRequestContextAccessor contextAccessor)
+        IDicomRequestContextAccessor contextAccessor,
+        ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
@@ -70,7 +73,20 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
             throw new ExistingUpdateOperationException(activeOperation);
 
         var operationId = _guidFactory.Create();
-        var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
-        return operation;
+
+        EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
+        EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
+
+        var partitionKey = 1;
+
+        try
+        {
+            return await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to start update operation");
+            throw;
+        }
     }
 }

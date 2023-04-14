@@ -23,9 +23,9 @@ public class ChangeFeedService : IChangeFeedService
     private const int MaxLimit = 100;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
-    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
+    private readonly IUpdateOperationInstanceService _updateInstanceOperationService;
 
-    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateInstanceOperationService updateInstanceOperationService)
+    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateOperationInstanceService updateInstanceOperationService)
     {
         EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
@@ -78,11 +78,7 @@ public class ChangeFeedService : IChangeFeedService
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        var updateSpec = new UpdateSpecification
-        {
-            StudyInstanceUids = new List<string> { "1.113654.3.13.1026" },
-            ChangeDataset = ds
-        };
+        var updateSpec = new UpdateSpecification(new List<string> { "1.113654.3.13.1026" }, ds);
 
         await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, cancellationToken);
 

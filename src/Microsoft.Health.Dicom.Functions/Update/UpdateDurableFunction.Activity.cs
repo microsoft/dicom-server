@@ -59,7 +59,7 @@ public partial class UpdateDurableFunction
     }
 
     /// <summary>
-    /// Asynchronously batches the instance watermarks and calls the update instance.
+    /// Asynchronously update instance new watermark.
     /// </summary>
     /// <param name="arguments">BatchUpdateArguments</param>
     /// <param name="logger">A diagnostic logger.</param>
@@ -76,57 +76,21 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments.InstanceWatermarks, nameof(arguments.InstanceWatermarks));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        var updatedInstanceWatermarks = new List<InstanceFileIdentifier>();
-        int processed = 0;
-
         logger.LogInformation("Beginning to update all instance watermarks, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
 
         var instanceWatermarks = arguments.InstanceWatermarks.Select(x => x.Version).ToList();
-        while (processed < instanceWatermarks.Count)
-        {
-            int batchSize = Math.Min(_options.BatchSize, instanceWatermarks.Count - processed);
-            var batch = instanceWatermarks.Skip(processed).Take(batchSize).ToList();
 
-            if (batch.Count > 0)
+        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, instanceWatermarks);
+
+        logger.LogInformation("Completed updating all instance watermarks, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
+
+        return instanceMetadata.Select(x =>
+            new InstanceFileIdentifier
             {
-                logger.LogInformation("Beginning to update instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
-                IEnumerable<InstanceMetadata> instanceMetadata = null;
-
-                try
-                {
-                    instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, batch);
-                    updatedInstanceWatermarks.AddRange(instanceMetadata.Select(x =>
-                        new InstanceFileIdentifier
-                        {
-                            Version = x.VersionedInstanceIdentifier.Version,
-                            OriginalVersion = x.InstanceProperties.OriginalVersion,
-                            NewVersion = x.InstanceProperties.NewVersion
-                        }));
-                }
-                catch (InstanceNotFoundException)
-                {
-                    // This is unusual scenario but could occur if the instances are deleted
-                    logger.LogWarning("Error updating instances, possibly deleted with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.");
-                    continue;
-                }
-
-                logger.LogInformation("Completed updating instance watermark with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
-
-                processed += batchSize;
-            }
-        }
-
-        logger.LogInformation("Completed updating all instance watermarks");
-
-        return updatedInstanceWatermarks;
+                Version = x.VersionedInstanceIdentifier.Version,
+                OriginalVersion = x.InstanceProperties.OriginalVersion,
+                NewVersion = x.InstanceProperties.NewVersion
+            }).ToList();
     }
 
     /// <summary>
@@ -214,7 +178,6 @@ public partial class UpdateDurableFunction
         try
         {
             await _indexStore.EndUpdateInstanceAsync(
-                _options.BatchSize,
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
                 GetDeserialzedDataset(arguments.ChangeDataset),
