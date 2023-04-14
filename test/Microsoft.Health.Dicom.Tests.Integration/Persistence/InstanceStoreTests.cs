@@ -292,7 +292,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(2, DefaultPartition.Key, studyInstanceUID1, dicomDataset);
+        await _indexDataStore.EndUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUID1, dicomDataset);
 
         var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, studyInstanceUID1)).ToList();
 

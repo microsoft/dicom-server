@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using FellowOakDicom;
 
-namespace Microsoft.Health.Dicom.Core.Models.Update;
+namespace Microsoft.Health.Dicom.Client.Models;
 
 public class UpdateSpecification
 {

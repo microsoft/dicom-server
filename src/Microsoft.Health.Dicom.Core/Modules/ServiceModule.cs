@@ -175,6 +175,11 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<UpdateOperationInstanceService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
         services.AddSingleton<DeleteMeter>();
         services.AddSingleton<RetrieveMeter>();
         services.AddSingleton<StoreMeter>();

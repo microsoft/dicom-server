@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -48,4 +48,7 @@ internal static class KnownRouteNames
 
     internal const string PartitionedCancelWorkitemInstance = nameof(PartitionedCancelWorkitemInstance);
     internal const string CancelWorkitemInstance = nameof(CancelWorkitemInstance);
+
+    internal const string PartitionedUpdateInstance = nameof(PartitionedUpdateInstance);
+    internal const string UpdateInstance = nameof(UpdateInstance);
 }

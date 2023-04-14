@@ -26,7 +26,7 @@ public enum DicomOperation
     Export,
 
     /// <summary>
-    /// Specifies an update operation that updates the DICOM instances.
+    /// Specifies an update operation that updates the Dicom attributes.
     /// </summary>
-    Update
+    Update,
 }
