@@ -68,7 +68,6 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
         // To keep track of how long render operation is taking
         Stopwatch sw = new Stopwatch();
-        sw.Start();
 
         int partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
         AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
@@ -84,20 +83,41 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken)).First();
 
-            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance, cancellationToken);
-            Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, true, cancellationToken);
+            using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+            sw.Start();
 
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
             DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
+            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), cancellationToken);
+            string outputContentType = returnHeader.MediaType.ToString();
+
+            sw.Stop();
+            _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
+
+            return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
+        }
+
+        catch (DataStoreException e)
+        {
+            // Log request details associated with exception. Note that the details are not for the store call that failed but for the request only.
+            _logger.LogError(e, "Error retrieving dicom resource to render");
+            throw;
+        }
+
+    }
+
+    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, CancellationToken cancellationToken)
+    {
+        try
+        {
             DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
-            using var img = dicomImage.RenderImage(request.FrameNumber);
+            using var img = dicomImage.RenderImage(frameNumber);
             using var sharpImage = img.AsSharpImage();
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
 
-            string outputContentType = returnHeader.MediaType.ToString();
-
-            if (outputContentType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
+            if (mediaType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
             {
                 JpegEncoder jpegEncoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
                 jpegEncoder.Quality = request.Quality;
@@ -110,25 +130,13 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             resultStream.Position = 0;
 
-            sw.Stop();
-            _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
-
-            return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
+            return resultStream;
         }
-        catch (DicomImagingException e)
+        catch (Exception e)
         {
-            _logger.LogError(e, "Error rendering dicom resource.");
-
+            _logger.LogError(e, "Error rendering dicom file into {OutputConentType} media type", mediaType);
             throw new DicomImageException();
         }
-        catch (DataStoreException e)
-        {
-            // Log request details associated with exception. Note that the details are not for the store call that failed but for the request only.
-            _logger.LogError(e, "Error retrieving dicom resource to render");
-
-            throw;
-        }
-
     }
 
     private static AcceptHeader GetValidRenderAcceptHeader(IReadOnlyCollection<AcceptHeader> acceptHeaders)

@@ -10,21 +10,23 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
-public static class RetrieveHelpers
+internal static class RetrieveHelpers
 {
-    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, InstanceMetadata instance, CancellationToken cancellationToken)
+    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, bool render, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
-        EnsureArg.IsNotNull(instance, nameof(instance));
 
-        FileProperties fileProperties = await blobDataStore.GetFilePropertiesAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+        FileProperties fileProperties = await blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
 
         // limit the file size that can be read in memory
         if (fileProperties.ContentLength > maxDicomFileSize)
         {
+            if (render)
+            {
+                throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RenderFileTooLarge, maxDicomFileSize));
+            }
             throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceFileTooBig, maxDicomFileSize));
         }
 

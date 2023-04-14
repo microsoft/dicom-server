@@ -21,8 +21,7 @@ public static class DicomWebConstants
     public const string BaseRetrieveInstanceThumbnailUriFormat = BaseInstanceUriFormat + "/thumbnail";
     public const string BaseRetrieveInstanceMetadataUriFormat = BaseInstanceUriFormat + "/metadata";
     public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
-    public const string BaseRetrieveFrameUriFormat = BaseInstanceUriFormat + "/frame/{3}";
-    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFrameUriFormat + "/rendered?quality={4}";
+    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered?quality={4}";
     public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
     public const string PartitionsUriString = "/partitions";
     public const string StudiesUriString = "/studies";
@@ -40,6 +39,7 @@ public static class DicomWebConstants
     public const string ExportUriString = "/export";
     public const string ChangeWorkitemStateUriFormat = $"{BaseWorkitemUriFormat}/state";
     public const string UpdateWorkitemUriFormat = "/workitems/{0}?{1}";
+    public const string UpdateAttributeUriString = StudiesUriString + "/$bulkupdate";
 
     public const string LimitParameter = "limit";
     public const string OffsetParameter = "offset";

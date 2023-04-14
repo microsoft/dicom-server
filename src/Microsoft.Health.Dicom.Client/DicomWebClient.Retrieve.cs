@@ -97,13 +97,13 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     public async Task<DicomWebResponse<Stream>> RetrieveRenderedInstanceAsync(
-    string studyInstanceUid,
-    string seriesInstanceUid,
-    string sopInstanceUid,
-    int quality = 100,
-    string mediaType = DicomWebConstants.ImageJpegMediaType,
-    string partitionName = default,
-    CancellationToken cancellationToken = default)
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        int quality = 100,
+        string mediaType = DicomWebConstants.ImageJpegMediaType,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -159,14 +159,14 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     public async Task<DicomWebResponse<Stream>> RetrieveRenderedFrameAsync(
-    string studyInstanceUid,
-    string seriesInstanceUid,
-    string sopInstanceUid,
-    int frame,
-    int quality = 100,
-    string mediaType = DicomWebConstants.ImageJpegMediaType,
-    string partitionName = default,
-    CancellationToken cancellationToken = default)
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        int frame,
+        int quality = 100,
+        string mediaType = DicomWebConstants.ImageJpegMediaType,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -251,9 +251,9 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     private async Task<DicomWebResponse<Stream>> RetrieveRenderedAsync(
-    Uri requestUri,
-    string mediaType,
-    CancellationToken cancellationToken)
+        Uri requestUri,
+        string mediaType,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(requestUri, nameof(requestUri));
 

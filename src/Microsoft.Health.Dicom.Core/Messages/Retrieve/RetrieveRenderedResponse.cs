@@ -17,9 +17,6 @@ public class RetrieveRenderedResponse
         ResponseLength = responseLength;
     }
 
-    /// <summary>
-    /// Stream used in response
-    /// </summary>
     public Stream ResponseStream { get; }
 
     public long ResponseLength { get; }

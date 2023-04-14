@@ -51,7 +51,7 @@ public static class KnownRoutes
     public const string InstanceMetadataRoute = InstanceRoute + "/" + MetadataSegment;
 
     public const string InstanceRenderedRoute = InstanceRoute + "/" + RenderedSegment;
-    public const string FrameRenderedRoute = InstanceRoute + "/frame/" + SingleFrameIdRouteSegment + "/" + RenderedSegment;
+    public const string FrameRenderedRoute = InstanceRoute + "/frames/" + SingleFrameIdRouteSegment + "/" + RenderedSegment;
 
     public const string QueryAllStudiesRoute = StudiesRouteSegment;
     public const string QueryAllSeriesRoute = SeriesRouteSegment;
@@ -74,4 +74,6 @@ public static class KnownRoutes
     public const string HealthCheck = "/health/check";
 
     public const string OperationInstanceRoute = OperationsSegment + "/{" + KnownActionParameterNames.OperationId + "}";
+
+    public const string UpdateInstanceRoute = StudiesRouteSegment + "/$bulkUpdate";
 }
