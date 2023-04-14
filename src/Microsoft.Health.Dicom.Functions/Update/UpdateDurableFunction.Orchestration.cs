@@ -92,7 +92,7 @@ public partial class UpdateDurableFunction
                     logger.LogError(ex, "Failed to update instances for study", ex);
                     var errors = new List<string>
                     {
-                        $"Failed to update instances for study. Reason {ex.InnerException.Message}",
+                        $"Failed to update instances for study.",
                     };
 
                     if (input.Errors != null)

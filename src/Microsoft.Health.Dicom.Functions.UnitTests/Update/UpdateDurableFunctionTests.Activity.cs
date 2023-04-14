@@ -3,13 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 
-internal static class FunctionNames
+public partial class UpdateDurableFunctionTests
 {
-    public const string ExportDicomFiles = "ExportDicomFiles";
 
-    public const string ReindexInstances = "ReindexInstances";
-
-    public const string UpdateInstances = "UpdateInstances";
 }
