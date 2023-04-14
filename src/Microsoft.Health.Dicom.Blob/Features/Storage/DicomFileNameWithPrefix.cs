@@ -26,6 +26,8 @@ public class DicomFileNameWithPrefix : IDicomFileNameBuilder
         return $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}_frames_range.json";
     }
 
+    // This method is used for the fallback logic to get the blob file with space in between
+    // that was introduced in a recent regression.
     public string GetInstanceFramesRangeFileNameWithSpace(long version)
     {
         return $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_ {version}_frames_range.json";
