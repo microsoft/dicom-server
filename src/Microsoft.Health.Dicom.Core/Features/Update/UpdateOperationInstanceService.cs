@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -19,7 +20,7 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
-public class UpdateOperationInstanceService : IUpdateOperationInstanceService
+public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
@@ -37,7 +38,7 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         }
     };
 
-    public UpdateOperationInstanceService(
+    public UpdateInstanceOperationService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IUrlResolver iUrlResolver,
@@ -48,11 +49,13 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(iUrlResolver, nameof(iUrlResolver));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
         _client = client;
         _urlResolver = iUrlResolver;
         _contextAccessor = contextAccessor;
+        _logger = logger;
     }
 
     public async Task<OperationReference> QueueUpdateOperationAsync(

@@ -23,9 +23,9 @@ public class ChangeFeedService : IChangeFeedService
     private const int MaxLimit = 100;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
-    private readonly IUpdateOperationInstanceService _updateInstanceOperationService;
+    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
 
-    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateOperationInstanceService updateInstanceOperationService)
+    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateInstanceOperationService updateInstanceOperationService)
     {
         EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));

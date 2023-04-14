@@ -26,12 +26,12 @@ public class UpdateInstanceHandlerTests
 {
     private const string DefaultContentType = "application/json";
     private readonly UpdateInstanceHandler _handler;
-    private readonly IUpdateOperationInstanceService _updateOperationInstanceService;
+    private readonly IUpdateInstanceOperationService _updateOperationInstanceService;
     private readonly IAuthorizationService<DataActions> _auth;
 
     public UpdateInstanceHandlerTests()
     {
-        _updateOperationInstanceService = Substitute.For<IUpdateOperationInstanceService>();
+        _updateOperationInstanceService = Substitute.For<IUpdateInstanceOperationService>();
         _auth = Substitute.For<IAuthorizationService<DataActions>>();
         _handler = new UpdateInstanceHandler(_auth, _updateOperationInstanceService);
     }
