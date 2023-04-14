@@ -940,8 +940,6 @@ BEGIN
            ON i.Watermark = input.Watermark
               AND i.PartitionKey = @partitionKey
     WHERE  Status = 1;
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'Instance does not exist', 1;
     COMMIT TRANSACTION;
     SELECT StudyInstanceUid,
            SeriesInstanceUid,
@@ -1412,56 +1410,48 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
-@batchSize INT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
-    DECLARE @rowsUpdated AS INT = 0;
-    DECLARE @imageResourceType AS TINYINT = 0;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @updatedInstances AS TABLE (
         PartitionKey      INT         ,
         StudyInstanceUid  VARCHAR (64),
         SeriesInstanceUid VARCHAR (64),
         SopInstanceUid    VARCHAR (64),
-        StudyKey          BIGINT      ,
-        SeriesKey         BIGINT      ,
-        InstanceKey       BIGINT      ,
         Watermark         BIGINT      );
-    DECLARE @totalCount AS INT = (SELECT COUNT(*)
-                                  FROM   dbo.Instance
-                                  WHERE  PartitionKey = @partitionKey
-                                         AND StudyInstanceUid = @studyInstanceUid
-                                         AND Status = 1
-                                         AND NewWatermark IS NOT NULL);
-    WHILE (@rowsUpdated < @totalCount)
-        BEGIN
-            DELETE @updatedInstances;
-            UPDATE TOP (@batchSize)
-             dbo.Instance
-            SET    LastStatusUpdatedDate = @currentDate,
-                   OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
-                   Watermark             = NewWatermark,
-                   NewWatermark          = NULL
-            OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.StudyKey, deleted.SeriesKey, deleted.InstanceKey, deleted.NewWatermark INTO @updatedInstances
-            WHERE  PartitionKey = @partitionKey
-                   AND StudyInstanceUid = @studyInstanceUid
-                   AND Status = 1
-                   AND NewWatermark IS NOT NULL;
-            SET @rowsUpdated = @rowsUpdated + @@ROWCOUNT;
-            INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark)
-            SELECT @currentDate,
-                   2,
-                   PartitionKey,
-                   StudyInstanceUid,
-                   SeriesInstanceUid,
-                   SopInstanceUid,
-                   Watermark,
-                   Watermark
-            FROM   @updatedInstances;
-        END
+    DELETE @updatedInstances;
+    UPDATE dbo.Instance
+    SET    LastStatusUpdatedDate = @currentDate,
+           OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
+           Watermark             = NewWatermark,
+           NewWatermark          = NULL
+    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark INTO @updatedInstances
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1
+           AND NewWatermark IS NOT NULL;
+    INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @currentDate,
+           2,
+           PartitionKey,
+           StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark
+    FROM   @updatedInstances;
+    UPDATE C
+    SET    CurrentWatermark = U.Watermark
+    FROM   dbo.ChangeFeed AS C
+           INNER JOIN
+           @updatedInstances AS U
+           ON C.PartitionKey = U.PartitionKey
+              AND C.StudyInstanceUid = U.StudyInstanceUid
+              AND C.SeriesInstanceUid = U.SeriesInstanceUid
+              AND C.SopInstanceUid = U.SopInstanceUid;
     UPDATE dbo.Study
     SET    PatientId        = ISNULL(@patientId, PatientId),
            PatientName      = ISNULL(@patientName, PatientName),

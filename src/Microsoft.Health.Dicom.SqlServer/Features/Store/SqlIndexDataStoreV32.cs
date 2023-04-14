@@ -99,7 +99,6 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
     }
 
     public override async Task EndUpdateInstanceAsync(
-        int batchSize,
         int partitionKey,
         string studyInstanceUid,
         DicomDataset dicomDataset,
@@ -112,7 +111,6 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
         {
             VLatest.EndUpdateInstance.PopulateCommand(
                 sqlCommandWrapper,
-                batchSize,
                 partitionKey,
                 studyInstanceUid,
                 dicomDataset.GetFirstValueOrDefault<string>(DicomTag.PatientID),

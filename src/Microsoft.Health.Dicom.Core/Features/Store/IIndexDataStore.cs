@@ -138,11 +138,10 @@ public interface IIndexDataStore
     /// Asynchronously bulk update all instances in a study, and update extendedquerytag with new watermark.
     /// Also creates new changefeed entry
     /// </summary>
-    /// <param name="batchSize"></param>
     /// <param name="partitionKey">The partition key.</param>
     /// <param name="studyInstanceUid"></param>
     /// <param name="dicomDataset">The DICOM dataset to index.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task EndUpdateInstanceAsync(int batchSize, int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default);
+    Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default);
 }

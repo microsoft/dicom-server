@@ -14,8 +14,8 @@
 --     @watermarkTableType
 --         * The SOP instance watermark.
 CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
-	@partitionKey       INT,
-	@watermarkTableType dbo.WatermarkTableType READONLY
+    @partitionKey       INT,
+    @watermarkTableType dbo.WatermarkTableType READONLY
 AS
 BEGIN
     SET NOCOUNT ON
@@ -29,13 +29,9 @@ BEGIN
         JOIN @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
         WHERE Status = 1
 
-        -- The instance does not exist.
-        IF @@ROWCOUNT = 0
-            THROW 50404, 'Instance does not exist', 1
-
     COMMIT TRANSACTION
 
-    SELECT  StudyInstanceUid,
+    SELECT StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
         i.Watermark,
