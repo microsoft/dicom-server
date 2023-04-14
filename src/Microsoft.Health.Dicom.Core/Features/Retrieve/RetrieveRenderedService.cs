@@ -90,7 +90,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
             DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
-            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), cancellationToken);
+            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), request.Quality, cancellationToken);
             string outputContentType = returnHeader.MediaType.ToString();
 
             sw.Stop();
@@ -108,7 +108,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
     }
 
-    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, CancellationToken cancellationToken)
+    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, int quality, CancellationToken cancellationToken)
     {
         try
         {
@@ -120,7 +120,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             if (mediaType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
             {
                 JpegEncoder jpegEncoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
-                jpegEncoder.Quality = request.Quality;
+                jpegEncoder.Quality = quality;
                 await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, cancellationToken: cancellationToken);
             }
             else

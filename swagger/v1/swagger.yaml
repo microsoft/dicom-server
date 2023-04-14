@@ -2213,7 +2213,7 @@ paths:
             application/json:
               schema:
                 type: string
-  '/v1/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frame/{frame}/rendered':
+  '/v1/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frame}/rendered':
     get:
       tags:
         - Retrieve
@@ -2280,7 +2280,7 @@ paths:
             application/json:
               schema:
                 type: string
-  '/v1/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frame/{frame}/rendered':
+  '/v1/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frame}/rendered':
     get:
       tags:
         - Retrieve

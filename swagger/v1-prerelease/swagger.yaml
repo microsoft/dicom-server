@@ -2169,7 +2169,7 @@ paths:
             application/json:
               schema:
                 type: string
-  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frame/{frame}/rendered':
+  '/v1-prerelease/partitions/{partitionName}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frame}/rendered':
     get:
       tags:
         - Retrieve
@@ -2236,7 +2236,7 @@ paths:
             application/json:
               schema:
                 type: string
-  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frame/{frame}/rendered':
+  '/v1-prerelease/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}/frames/{frame}/rendered':
     get:
       tags:
         - Retrieve
