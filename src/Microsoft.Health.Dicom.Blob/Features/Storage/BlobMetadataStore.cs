@@ -207,6 +207,8 @@ public class BlobMetadataStore : IMetadataStore
         }
         catch (ItemNotFoundException)
         {
+            // With recent regression, there is a space in the blob file name, so falling back to the blob with file name if the original
+            // file was not found.
             cloudBlockBlob = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
             return ExecuteAsync(async t =>
             {
