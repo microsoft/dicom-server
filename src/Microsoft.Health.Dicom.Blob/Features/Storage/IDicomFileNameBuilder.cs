@@ -9,4 +9,8 @@ public interface IDicomFileNameBuilder
     string GetInstanceFileName(long version);
 
     string GetMetadataFileName(long version);
+
+    string GetInstanceFramesRangeFileName(long version);
+
+    string GetInstanceFramesRangeFileNameWithSpace(long version);
 }

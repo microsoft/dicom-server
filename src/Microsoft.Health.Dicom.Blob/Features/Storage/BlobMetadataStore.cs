@@ -197,16 +197,28 @@ public class BlobMetadataStore : IMetadataStore
     {
         BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(version);
 
-        return ExecuteAsync(async t =>
+        try
         {
-            BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
-            return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
-        }, cancellationToken);
+            return ExecuteAsync(async t =>
+            {
+                BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+                return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
+            }, cancellationToken);
+        }
+        catch (ItemNotFoundException)
+        {
+            cloudBlockBlob = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
+            return ExecuteAsync(async t =>
+            {
+                BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+                return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
+            }, cancellationToken);
+        }
     }
 
-    private BlockBlobClient GetInstanceFramesRangeBlobClient(long version)
+    private BlockBlobClient GetInstanceFramesRangeBlobClient(long version, bool fallBackClient = false)
     {
-        var blobName = DicomFileNameWithPrefix.GetInstanceFramesRangeFileName(version);
+        var blobName = fallBackClient ? _nameWithPrefix.GetInstanceFramesRangeFileNameWithSpace(version) : _nameWithPrefix.GetInstanceFramesRangeFileName(version);
         return _container.GetBlockBlobClient(blobName);
     }
 
