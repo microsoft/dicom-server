@@ -193,13 +193,13 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(long version, CancellationToken cancellationToken)
+    public async Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(long version, CancellationToken cancellationToken)
     {
         BlockBlobClient cloudBlockBlob = GetInstanceFramesRangeBlobClient(version);
 
         try
         {
-            return ExecuteAsync(async t =>
+            return await ExecuteAsync(async t =>
             {
                 BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
                 return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
@@ -210,7 +210,7 @@ public class BlobMetadataStore : IMetadataStore
             // With recent regression, there is a space in the blob file name, so falling back to the blob with file name if the original
             // file was not found.
             cloudBlockBlob = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
-            return ExecuteAsync(async t =>
+            return await ExecuteAsync(async t =>
             {
                 BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
                 return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
