@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -40,6 +41,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly RetrieveMeter _retrieveMeter;
+    private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
@@ -53,7 +55,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _eTagGenerator = Substitute.For<IETagGenerator>();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _retrieveMeter = new RetrieveMeter();
-
+        _nameWithPrefix = storagefixture.NameWithPrefix;
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
         _retrieveMetadataService = new RetrieveMetadataService(
@@ -149,6 +151,14 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         string ifNoneMatch = null;
         RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
         await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
+    }
+
+    [Fact]
+    public async Task GivenFileIdentifier_WhenGetInstanceFramesRangeWithInvalidVersion_ShouldThrowExceptionAndAttemptTwice()
+    {
+        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _metadataStore.GetInstanceFramesRangeAsync(1, CancellationToken.None));
+        _nameWithPrefix.Received(1).GetInstanceFramesRangeFileNameWithSpace(1);
+        _nameWithPrefix.Received(1).GetInstanceFramesRangeFileName(1);
     }
 
     // Note that tests must use unique watermarks to ensure their metadata files do not collide with each other

@@ -142,7 +142,6 @@ public class RetrieveResourceServiceTests
             _fileStore.GetStreamingFileAsync(count, DefaultCancellationToken).Returns(file.Value);
             count++;
         }
-        // streamsAndStoredFiles.ForEach(x => );
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
