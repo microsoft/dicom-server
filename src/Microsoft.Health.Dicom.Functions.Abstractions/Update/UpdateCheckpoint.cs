@@ -34,7 +34,14 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
     {
         get
         {
-            return NumberOfStudyCompleted == TotalNumberOfStudies.Value ? 100 : (int)((double)(TotalNumberOfStudies.Value - NumberOfStudyCompleted + 1) / TotalNumberOfStudies.Value * 100);
+            if (TotalNumberOfStudies.HasValue)
+            {
+                return NumberOfStudyCompleted == TotalNumberOfStudies.Value ? 100 : (int)((double)(TotalNumberOfStudies.Value - NumberOfStudyCompleted + 1) / TotalNumberOfStudies.Value * 100);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 

@@ -256,6 +256,8 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 }
 
                 return tagPaths;
+            case DicomOperation.Update:
+                return null;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type));
         }
@@ -269,6 +271,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         {
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
+            DicomOperation.Update => status.Input?.ToObject<UpdateCheckpoint>() ?? new UpdateCheckpoint(),
             _ => NullOrchestrationCheckpoint.Value,
         };
 

@@ -108,20 +108,6 @@ public partial class UpdateDurableFunction
             if (studyUids.Any())
             {
                 logger.LogInformation("Completed updating the instances for a study. {TotalInstanceUpdatedInaStudy}. Continuing with new execution...", instanceWatermarks.Count);
-
-                context.ContinueAsNew(
-                    new UpdateCheckpoint
-                    {
-                        Batching = input.Batching,
-                        StudyInstanceUids = studyUids,
-                        ChangeDataset = input.ChangeDataset,
-                        PartitionKey = input.PartitionKey,
-                        TotalNumberOfStudies = input.TotalNumberOfStudies,
-                        NumberOfStudyCompleted = input.NumberOfStudyCompleted + 1,
-                        TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
-                        Errors = input.Errors,
-                        CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
-                    });
             }
             else
             {
@@ -129,23 +115,35 @@ public partial class UpdateDurableFunction
                     nameof(DeleteOldVersionBlobAsync),
                     _options.RetryOptions,
                     instanceWatermarks);
-
-                if (input.Errors != null && input.Errors.Count > 0)
-                {
-                    logger.LogInformation("Update operation completed with errors.");
-
-                    // Throwing the exception so that it can set the operation status to Failed
-                    throw new OperationErrorException("Update operation completed with errors.");
-                }
-                else
-                {
-                    logger.LogInformation("Update operation completed successfully");
-                }
             }
+
+            context.ContinueAsNew(
+                new UpdateCheckpoint
+                {
+                    Batching = input.Batching,
+                    StudyInstanceUids = studyUids,
+                    ChangeDataset = input.ChangeDataset,
+                    PartitionKey = input.PartitionKey,
+                    TotalNumberOfStudies = input.TotalNumberOfStudies,
+                    NumberOfStudyCompleted = input.NumberOfStudyCompleted + 1,
+                    TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
+                    Errors = input.Errors,
+                    CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                });
         }
         else
         {
-            logger.LogInformation("No study found. Update operation completed successfully");
+            if (input.Errors != null && input.Errors.Count > 0)
+            {
+                logger.LogInformation("Update operation completed with errors.");
+
+                // Throwing the exception so that it can set the operation status to Failed
+                throw new OperationErrorException("Update operation completed with errors.");
+            }
+            else
+            {
+                logger.LogInformation("Update operation completed successfully");
+            }
         }
     }
 }
