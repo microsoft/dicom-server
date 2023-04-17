@@ -57,7 +57,7 @@ public interface IFileStore
     /// <param name="range">Byte range in Httprange format with offset and length</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Stream representing the bytes requested</returns>
-    Task<Stream> GetFrameInRangeAsync(
+    Task<Stream> GetFileFrameAsync(
         long version,
         FrameRange range,
         CancellationToken cancellationToken = default);

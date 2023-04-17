@@ -236,7 +236,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFrameInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
+    public async Task<Stream> GetFileFrameAsync(long version, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 

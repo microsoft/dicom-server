@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
@@ -75,12 +76,12 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         if (activeOperation != null)
             throw new ExistingUpdateOperationException(activeOperation);
 
-        var operationId = _guidFactory.Create();
+        Guid operationId = _guidFactory.Create();
 
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
         EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
 
-        var partitionKey = 1;
+        int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
         try
         {

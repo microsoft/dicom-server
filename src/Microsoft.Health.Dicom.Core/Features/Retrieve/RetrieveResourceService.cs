@@ -343,7 +343,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFrameInRangeAsync(identifier.Version, frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier.Version, frameRange, cancellationToken);
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
