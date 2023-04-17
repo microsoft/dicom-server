@@ -221,6 +221,14 @@ public class UpdateInstanceService : IUpdateInstanceService
                     break;
                 }
             }
+
+            // If the total size is greater than the max block size, we will return the last dicom item
+            // so that we wont store too much in memory and we will be able parse the first block dataset correctly
+            if (totalSize >= StageBlockSizeInBytes)
+            {
+                largeDicomItem = item;
+                break;
+            }
         }
 
         return totalSize;
