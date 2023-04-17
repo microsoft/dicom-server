@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Operations;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
@@ -229,7 +228,7 @@ public partial class UpdateDurableFunctionTests
                 _options.RetryOptions,
                 Arg.Any<CompleteInstanceArguments>());
         context
-            .DidNotReceive()
+            .Received(1)
             .ContinueAsNew(
                 Arg.Any<UpdateCheckpoint>(),
                 false);
@@ -249,35 +248,11 @@ public partial class UpdateDurableFunctionTests
         {
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
-            StudyInstanceUids = new List<string> {
-                TestUidGenerator.Generate()
-            },
+            StudyInstanceUids = new List<string>(),
             CreatedTime = createdTime,
-        };
-
-        var expectedInstances = new List<InstanceFileIdentifier>
-        {
-            new InstanceFileIdentifier
+            Errors = new List<string>()
             {
-                Version = 1
-            },
-            new InstanceFileIdentifier
-            {
-                Version = 2
-            }
-        };
-
-        var expectedInstancesWithNewWatermark = new List<InstanceFileIdentifier>
-        {
-            new InstanceFileIdentifier
-            {
-                Version = 1,
-                NewVersion = 3,
-            },
-            new InstanceFileIdentifier
-            {
-                Version = 2,
-                NewVersion = 4,
+                "Failed Study"
             }
         };
 
@@ -288,36 +263,6 @@ public partial class UpdateDurableFunctionTests
         context
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedInput);
-        context
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
-                nameof(UpdateDurableFunction.GetInstanceWatermarksInStudyAsync),
-                _options.RetryOptions,
-                Arg.Any<GetInstanceArguments>())
-            .Returns(expectedInstances);
-        context
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
-                _options.RetryOptions,
-                Arg.Any<BatchUpdateArguments>())
-            .Returns(expectedInstancesWithNewWatermark);
-        context
-            .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBatchAsync),
-                _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
-            .Throws(new FunctionFailedException("Blob storage not avaiable"));
-        context
-            .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateInstanceAsync),
-                _options.RetryOptions,
-                Arg.Any<CompleteInstanceArguments>())
-            .Returns(Task.CompletedTask);
-        context
-            .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
-                _options.RetryOptions,
-                expectedInstances)
-            .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
         await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance));
@@ -327,23 +272,17 @@ public partial class UpdateDurableFunctionTests
             .Received(1)
             .GetInput<UpdateCheckpoint>();
         await context
-            .Received(1)
+            .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
                 nameof(UpdateDurableFunction.GetInstanceWatermarksInStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<GetInstanceArguments>());
         await context
-            .Received(1)
+            .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<BatchUpdateArguments>());
-        await context
-            .Received(1)
-            .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBatchAsync),
-                _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(

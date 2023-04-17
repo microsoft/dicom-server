@@ -80,7 +80,7 @@ public partial class UpdateDurableFunction
 
         var instanceWatermarks = arguments.InstanceWatermarks.Select(x => x.Version).ToList();
 
-        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, instanceWatermarks);
+        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, instanceWatermarks, CancellationToken.None);
 
         logger.LogInformation("Completed updating all instance watermarks, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
 

@@ -70,11 +70,12 @@ public partial class UpdateDurableFunctionTests
             }).ToList();
 
         var versions = expected.Select(x => x.Version).ToList();
+        var dataset = "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}";
 
         _indexStore.BeginUpdateInstanceAsync(DefaultPartition.Key, versions, CancellationToken.None).Returns(identifiers);
 
         IReadOnlyList<InstanceFileIdentifier> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
-            new BatchUpdateArguments(DefaultPartition.Key, expected, null),
+            new BatchUpdateArguments(DefaultPartition.Key, expected, dataset),
             NullLogger.Instance);
 
         for (int i = 0; i < expected.Count; i++)
