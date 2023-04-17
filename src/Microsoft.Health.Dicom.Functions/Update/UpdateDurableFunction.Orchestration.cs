@@ -63,17 +63,18 @@ public partial class UpdateDurableFunction
                 _options.RetryOptions,
                 new GetInstanceArguments(input.PartitionKey, studyInstanceUid));
 
-            int instancesToUpdate = instanceWatermarks.Count;
+            logger.LogInformation("Getting all instances completed {TotalCount}", instanceWatermarks.Count);
 
-            logger.LogInformation("Getting all instances completed {TotalCount}", instancesToUpdate);
-
-            if (instancesToUpdate > 0)
+            if (instanceWatermarks.Count > 0)
             {
                 instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
-                    nameof(UpdateInstanceWatermarkAsync),
-                    _options.RetryOptions,
-                    new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
+                        nameof(UpdateInstanceWatermarkAsync),
+                        _options.RetryOptions,
+                        new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
+            }
 
+            if (instanceWatermarks.Count > 0)
+            {
                 try
                 {
                     await context.CallActivityWithRetryAsync(
@@ -92,7 +93,7 @@ public partial class UpdateDurableFunction
                     logger.LogError(ex, "Failed to update instances for study", ex);
                     var errors = new List<string>
                     {
-                        $"Failed to update instances for study.",
+                        $"Failed to update instances for study {studyInstanceUid}",
                     };
 
                     if (input.Errors != null)
@@ -106,7 +107,7 @@ public partial class UpdateDurableFunction
 
             if (studyUids.Any())
             {
-                logger.LogInformation("Completed updating the instances for a study. Continuing with new execution...");
+                logger.LogInformation("Completed updating the instances for a study. {TotalInstanceUpdatedInaStudy}. Continuing with new execution...", instanceWatermarks.Count);
 
                 context.ContinueAsNew(
                     new UpdateCheckpoint
@@ -118,7 +119,6 @@ public partial class UpdateDurableFunction
                         TotalNumberOfStudies = input.TotalNumberOfStudies,
                         NumberOfStudyCompleted = input.NumberOfStudyCompleted + 1,
                         TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
-                        TotalNumberOfInstanceFailed = input.TotalNumberOfInstanceFailed + (instancesToUpdate - instanceWatermarks.Count),
                         Errors = input.Errors,
                         CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                     });
@@ -145,7 +145,7 @@ public partial class UpdateDurableFunction
         }
         else
         {
-            logger.LogInformation("Update operation completed successfully");
+            logger.LogInformation("No study found. Update operation completed successfully");
         }
     }
 }

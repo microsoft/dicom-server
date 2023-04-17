@@ -9,12 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Update;
-using Microsoft.Health.Dicom.Core.Models.Update;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
@@ -23,13 +20,11 @@ public class ChangeFeedService : IChangeFeedService
     private const int MaxLimit = 100;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
-    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
 
-    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore, IUpdateInstanceOperationService updateInstanceOperationService)
+    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore)
     {
         EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-        _updateInstanceOperationService = EnsureArg.IsNotNull(updateInstanceOperationService, nameof(updateInstanceOperationService));
 
         _changeFeedStore = changeFeedStore;
         _metadataStore = metadataStore;
@@ -72,15 +67,6 @@ public class ChangeFeedService : IChangeFeedService
         {
             await PopulateMetadata(result, cancellationToken);
         }
-
-        var ds = new DicomDataset
-        {
-            { DicomTag.PatientName, "Patient Name" }
-        };
-
-        var updateSpec = new UpdateSpecification(new List<string> { "1.113654.3.13.1026" }, ds);
-
-        await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, cancellationToken);
 
         return result;
     }

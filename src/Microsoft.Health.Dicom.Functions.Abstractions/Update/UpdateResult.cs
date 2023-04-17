@@ -12,15 +12,12 @@ public class UpdateResult
 
     public long InstanceUpdated { get; }
 
-    public long InstanceFailed { get; }
-
     public IReadOnlyList<string> Errors { get; }
 
-    public UpdateResult(int studyUpdated, long instanceUpdated, long instanceFailed, IReadOnlyList<string> errors)
+    public UpdateResult(int studyUpdated, long instanceUpdated, IReadOnlyList<string> errors)
     {
         StudyUpdated = studyUpdated;
         InstanceUpdated = instanceUpdated;
-        InstanceFailed = instanceFailed;
         Errors = errors;
     }
 }

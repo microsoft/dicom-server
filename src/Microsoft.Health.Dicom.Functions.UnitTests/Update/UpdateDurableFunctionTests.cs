@@ -4,11 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Text.Json;
+using FellowOakDicom.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Update;
+using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
@@ -35,6 +37,8 @@ public partial class UpdateDurableFunctionTests
         _updateInstanceService = Substitute.For<IUpdateInstanceService>();
         _options = new UpdateOptions { RetryOptions = new ActivityRetryOptions() };
         _jsonSerializerOptions = new JsonSerializerOptions();
+        _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
+        _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
         _updateDurableFunction = new UpdateDurableFunction(
             _indexStore,
             _instanceStore,

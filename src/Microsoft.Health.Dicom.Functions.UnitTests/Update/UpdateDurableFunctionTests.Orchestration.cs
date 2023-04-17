@@ -504,7 +504,6 @@ public partial class UpdateDurableFunctionTests
     private static Expression<Predicate<UpdateCheckpoint>> GetPredicate(long instanceUpdated, long instanceFailed, int studyCompleted)
     {
         return r => r.TotalNumberOfInstanceUpdated == instanceUpdated
-        && r.TotalNumberOfInstanceFailed == instanceFailed
         && r.NumberOfStudyCompleted == studyCompleted;
     }
 }

@@ -23,8 +23,6 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 
     public int TotalNumberOfInstanceUpdated { get; set; }
 
-    public int TotalNumberOfInstanceFailed { get; set; }
-
     public IReadOnlyList<string> Errors { get; set; }
 
     /// <inheritdoc cref="IOperationCheckpoint.CreatedTime"/>
@@ -42,5 +40,5 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 
     public IReadOnlyCollection<string> ResourceIds => null;
 
-    public object GetResults(JToken output) => new UpdateResult(NumberOfStudyCompleted, TotalNumberOfInstanceUpdated, TotalNumberOfInstanceFailed, Errors);
+    public object GetResults(JToken output) => new UpdateResult(NumberOfStudyCompleted, TotalNumberOfInstanceUpdated, Errors);
 }

@@ -26,7 +26,7 @@ public class UpdateInstanceService : IUpdateInstanceService
     private readonly ILogger<UpdateInstanceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private const int LargeObjectsizeInBytes = 1024 * 1024;
-    private const int StageBlockSizeInBytes = 4 * 1024 * 1024; // TODO: Should this be in configuration
+    private const int StageBlockSizeInBytes = 4 * 1024 * 1024;
 
     public UpdateInstanceService(
         IFileStore fileStore,
@@ -82,7 +82,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         {
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
-            Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, cancellationToken);
+            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, cancellationToken);
             DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
 
             long firstBlockLength = stream.Length;
@@ -140,11 +140,11 @@ public class UpdateInstanceService : IUpdateInstanceService
 
         BinaryData data = await _fileStore.GetFileInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
 
-        MemoryStream stream = _recyclableMemoryStreamManager.GetStream(data);
+        using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(data);
         DicomFile dicomFile = await DicomFile.OpenAsync(stream);
         dicomFile.Dataset.AddOrUpdate(datasetToUpdate);
 
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
         await dicomFile.SaveAsync(resultStream);
 
         await _fileStore.UpdateFileBlockAsync(newFileIdentifier, block.Key, resultStream, cancellationToken);
@@ -231,12 +231,12 @@ public class UpdateInstanceService : IUpdateInstanceService
         DicomDataset dataset = dcmFile.Dataset;
 
         var writeOptions = new DicomWriteOptions();
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
 
         var target = new StreamByteTarget(resultStream);
-
         var writer = new DicomFileWriter(writeOptions);
         await writer.WriteAsync(target, dcmFile.FileMetaInfo, dataset);
+
         return resultStream.Length;
     }
 
