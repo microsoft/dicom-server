@@ -24,5 +24,7 @@ public class DicomFileNameWithPrefixTests
         var version = 1;
         Assert.Equal($"{HashingHelper.ComputeXXHash(version, 3)}_{version}.dcm", _nameWithPrefix.GetInstanceFileName(version));
         Assert.Equal($"{HashingHelper.ComputeXXHash(version, 3)}_{version}_metadata.json", _nameWithPrefix.GetMetadataFileName(version));
+        Assert.Equal($"{HashingHelper.ComputeXXHash(version, 3)}_{version}_frames_range.json", _nameWithPrefix.GetInstanceFramesRangeFileName(version));
+        Assert.Equal($"{HashingHelper.ComputeXXHash(version, 3)}_ {version}_frames_range.json", _nameWithPrefix.GetInstanceFramesRangeFileNameWithSpace(version));
     }
 }

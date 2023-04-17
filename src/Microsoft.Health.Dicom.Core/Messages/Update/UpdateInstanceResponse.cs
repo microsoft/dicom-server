@@ -3,14 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Blob.Features.Storage;
-public interface IDicomFileNameBuilder
+using EnsureThat;
+using Microsoft.Health.Operations;
+
+namespace Microsoft.Health.Dicom.Core.Messages.Update;
+
+public class UpdateInstanceResponse
 {
-    string GetInstanceFileName(long version);
+    public UpdateInstanceResponse(OperationReference operationReference)
+    {
+        Operation = EnsureArg.IsNotNull(operationReference);
+    }
 
-    string GetMetadataFileName(long version);
-
-    string GetInstanceFramesRangeFileName(long version);
-
-    string GetInstanceFramesRangeFileNameWithSpace(long version);
+    public OperationReference Operation { get; }
 }
