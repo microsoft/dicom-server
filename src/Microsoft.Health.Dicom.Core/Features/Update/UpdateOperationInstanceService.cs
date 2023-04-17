@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
@@ -25,7 +24,6 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
-    private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly ILogger<UpdateInstanceOperationService> _logger;
 
@@ -42,19 +40,16 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     public UpdateInstanceOperationService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
-        IUrlResolver iUrlResolver,
         IDicomRequestContextAccessor contextAccessor,
         ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(iUrlResolver, nameof(iUrlResolver));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
         _client = client;
-        _urlResolver = iUrlResolver;
         _contextAccessor = contextAccessor;
         _logger = logger;
     }

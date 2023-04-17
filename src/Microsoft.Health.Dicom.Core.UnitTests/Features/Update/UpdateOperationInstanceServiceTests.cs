@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -30,16 +29,14 @@ public class UpdateOperationInstanceServiceTests
     private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
-    private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
 
     public UpdateOperationInstanceServiceTests()
     {
         _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
-        _urlResolver = Substitute.For<IUrlResolver>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _urlResolver, _contextAccessor, NullLogger<UpdateInstanceOperationService>.Instance);
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, NullLogger<UpdateInstanceOperationService>.Instance);
     }
 
     [Fact]
@@ -64,7 +61,6 @@ public class UpdateOperationInstanceServiceTests
         DicomDataset changeDataset = new DicomDataset();
         var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
         string href = "/operation";
-        _urlResolver.ResolveOperationStatusUri(Arg.Any<Guid>()).Returns(new Uri(href, UriKind.Relative));
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(AsyncEnumerable.Empty<OperationReference>());
         _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;

@@ -83,7 +83,7 @@
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
     "Statuses": [ "Completed" ],
-    "ExcludeFunctions": [ ]
+    "ExcludeFunctions": [ "UpdateInstancesAsync" ]
   },
   "SqlServer": {
     "Retry": {
