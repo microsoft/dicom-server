@@ -97,6 +97,9 @@ public class ExceptionHandlingMiddleware
             case TranscodingException:
                 statusCode = HttpStatusCode.NotAcceptable;
                 break;
+            case DicomImageException:
+                statusCode = HttpStatusCode.NotAcceptable;
+                break;
             case DataStoreException:
                 statusCode = HttpStatusCode.ServiceUnavailable;
                 break;

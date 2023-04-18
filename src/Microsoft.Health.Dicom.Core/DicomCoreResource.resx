@@ -262,7 +262,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ErrorMessageDateIsInvalid" xml:space="preserve">
     <value>Value cannot be parsed as a valid date.</value>
   </data>
-  <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
+  <data name="MultipleAcceptHeadersNotSupported" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
   <data name="DuplicateExtendedQueryTag" xml:space="preserve">
@@ -646,6 +646,13 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="ErrorMessageFormat" xml:space="preserve">
     <value>DICOM{0}: {1} - {2}</value>
+  </data>
+  <data name="DicomImageConversionFailed" xml:space="preserve">
+    <value>An error was encountered when attempting to convert the dicom file into an image</value>
+  </data>
+  <data name="RenderFileTooLarge" xml:space="preserve">
+    <value>Requested DICOM instance size is above the supported limit of {0} for rendering. Please retrieve the whole file in the original transfer syntax instead of rendering to image media type.</value>
+    <comment>{0} bytes representing the support max file size</comment>
   </data>
   <data name="DicomUpdateTagValidationFailed" xml:space="preserve">
     <value>Updating the following tags are not supported: {0}</value>

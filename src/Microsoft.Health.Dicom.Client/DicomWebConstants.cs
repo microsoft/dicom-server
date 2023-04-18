@@ -21,7 +21,7 @@ public static class DicomWebConstants
     public const string BaseRetrieveInstanceThumbnailUriFormat = BaseInstanceUriFormat + "/thumbnail";
     public const string BaseRetrieveInstanceMetadataUriFormat = BaseInstanceUriFormat + "/metadata";
     public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
-    public const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
+    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
     public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
     public const string PartitionsUriString = "/partitions";
     public const string StudiesUriString = "/studies";
