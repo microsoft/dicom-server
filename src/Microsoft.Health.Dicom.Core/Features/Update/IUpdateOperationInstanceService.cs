@@ -5,8 +5,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Update;
-using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
@@ -22,7 +22,7 @@ public interface IUpdateOperationInstanceService
     /// <param name="updateSpecification">Update spec that has the studyInstanceUids and DicomDataset</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous process operation.</returns>
-    public Task<OperationReference> QueueUpdateOperationAsync(
+    public Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
         UpdateSpecification updateSpecification,
         CancellationToken cancellationToken = default);
 }

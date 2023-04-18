@@ -26,10 +26,11 @@ internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstan
     public async Task<UpdateInstanceResponse> Handle(UpdateInstanceRequest request, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(request, nameof(request));
+        EnsureArg.IsNotNull(request.UpdateSpec, nameof(request.UpdateSpec));
 
         if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             throw new UnauthorizedDicomActionException(DataActions.Write);
 
-        return new UpdateInstanceResponse(await _updateOperationInstanceService.QueueUpdateOperationAsync(request.UpdateSpec, cancellationToken));
+        return await _updateOperationInstanceService.QueueUpdateOperationAsync(request.UpdateSpec, cancellationToken);
     }
 }

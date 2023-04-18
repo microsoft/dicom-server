@@ -25,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Health.Operations;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
@@ -89,8 +90,8 @@ public class StoreController : ControllerBase
 
     [HttpPost]
     [Consumes(KnownContentTypes.ApplicationJson)]
-    [ProducesResponseType((int)HttpStatusCode.Accepted)]
-    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.BadRequest)]
     [VersionedPartitionRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.PartitionedUpdateInstance)]
     [VersionedRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.UpdateInstance)]
     [AuditEventType(AuditEventSubType.UpdateStudy)]
@@ -101,7 +102,7 @@ public class StoreController : ControllerBase
             throw new DicomUpdateFeatureDisabledException();
         }
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);
-        return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
+        return StatusCode(response.StatusCode, response.FailedDataset != null ? response.FailedDataset : response.Operation);
     }
 
     private async Task<IActionResult> PostAsync(string studyInstanceUid)

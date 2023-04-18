@@ -54,9 +54,11 @@ public class UpdateRequestValidatorTests
 
     [Theory]
     [MemberData(nameof(GetInvalidDicomDataset))]
-    public void GivenAnInvalidDataset_WhenValidated_ThenExceptionShouldBeThrown(DicomDataset dataset)
+    public void GivenAnInvalidDataset_WhenValidated_ThenSucceedsWithErrorsInFailedAttributesSequence(DicomDataset dataset)
     {
-        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateDicomDataset(dataset));
+        DicomDataset failedSop = UpdateRequestValidator.ValidateDicomDataset(dataset);
+        DicomSequence failedAttributeSequence = failedSop.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedAttributeSequence);
     }
 
     public static IEnumerable<object[]> GetValidStudyInstanceUids()
