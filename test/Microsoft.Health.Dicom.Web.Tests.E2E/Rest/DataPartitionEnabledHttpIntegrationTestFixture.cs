@@ -14,7 +14,6 @@ public class DataPartitionEnabledHttpIntegrationTestFixture<TStartup> : HttpInte
         {
             Common.TestServerFeatureSettingType.EnableLatestApiVersion,
             Common.TestServerFeatureSettingType.DataPartition,
-            Common.TestServerFeatureSettingType.DicomUpdate
         })
     { }
 }

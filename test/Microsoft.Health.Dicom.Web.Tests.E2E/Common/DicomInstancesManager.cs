@@ -15,7 +15,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Microsoft.Health.Operations;
 using Xunit;
@@ -90,7 +89,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
     }
 
-    public async Task<OperationStatus> UpdateStudyAsync(List<string> studyInstanceUids, DicomDataset dicomDataset, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
+    public async Task<OperationStatus> UpdateStudyAsync(List<string> studyInstanceUids, DicomDataset dicomDataset, string partitionName = default, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

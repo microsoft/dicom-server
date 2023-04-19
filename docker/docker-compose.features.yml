@@ -5,4 +5,3 @@ services:
     environment:
       DicomServer__Features__EnableDataPartitions: "true"
       DicomServer__Features__EnableLatestApiVersion: "true"
-      DicomServer__Features__EnableDicomUpdate: "true"
