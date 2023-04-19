@@ -26,6 +26,7 @@ using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Update;
+using ResourceType = Microsoft.Health.Dicom.Core.Messages.ResourceType;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
 
@@ -76,6 +77,15 @@ public static class DicomMediatorExtensions
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
             new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, acceptHeaders),
+            cancellationToken);
+    }
+
+    public static Task<RetrieveRenderedResponse> RetrieveRenderedDicomInstanceAsync(
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken, int frameNumber = 0)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        return mediator.Send(
+            new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, resourceType, frameNumber, acceptHeaders),
             cancellationToken);
     }
 

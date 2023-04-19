@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -96,6 +96,24 @@ public partial class DicomWebClient : IDicomWebClient
             cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<DicomWebResponse<Stream>> RetrieveRenderedInstanceAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        string mediaType = DicomWebConstants.ImageJpegMediaType,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+
+        return await RetrieveRenderedAsync(
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+            mediaType,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<DicomWebAsyncEnumerableResponse<DicomDataset>> RetrieveInstanceMetadataAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -138,6 +156,26 @@ public partial class DicomWebClient : IDicomWebClient
             partitionName);
         return await RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, cancellationToken).ConfigureAwait(false);
     }
+
+    public async Task<DicomWebResponse<Stream>> RetrieveRenderedFrameAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        int frame,
+        string mediaType = DicomWebConstants.ImageJpegMediaType,
+        string partitionName = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+
+        return await RetrieveRenderedAsync(
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveFrameRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frame), partitionName),
+            mediaType,
+            cancellationToken).ConfigureAwait(false);
+    }
+
 
     public async Task<DicomWebResponse<Stream>> RetrieveSingleFrameAsync(
         string studyInstanceUid,
@@ -207,6 +245,36 @@ public partial class DicomWebClient : IDicomWebClient
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 return await DicomFile.OpenAsync(memoryStream).ConfigureAwait(false);
+            });
+    }
+
+    private async Task<DicomWebResponse<Stream>> RetrieveRenderedAsync(
+        Uri requestUri,
+        string mediaType,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(requestUri, nameof(requestUri));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+        request.Headers.TryAddWithoutValidation(
+            "Accept",
+            mediaType);
+
+        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+
+        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+        return new DicomWebResponse<Stream>(
+            response,
+            async content =>
+            {
+                MemoryStream memoryStream = GetMemoryStream();
+                await content.CopyToAsync(memoryStream).ConfigureAwait(false);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                return memoryStream;
             });
     }
 

@@ -24,6 +24,8 @@ public static class AuditEventSubType
 
     public const string RetrieveMetadata = "retrieve-metadata";
 
+    public const string RetrieveRendered = "retrieve-rendered";
+
     public const string Store = "store";
 
     public const string Export = "export";

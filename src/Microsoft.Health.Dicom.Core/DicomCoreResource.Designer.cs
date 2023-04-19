@@ -214,6 +214,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error was encountered when attempting to convert the dicom file into an image.
+        /// </summary>
+        internal static string DicomImageConversionFailed {
+            get {
+                return ResourceManager.GetString("DicomImageConversionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dicom update feature is disabled..
         /// </summary>
         internal static string DicomUpdateFeatureDisabled {
@@ -967,6 +976,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
+        /// </summary>
+        internal static string MultipleAcceptHeadersNotSupported {
+            get {
+                return ResourceManager.GetString("MultipleAcceptHeadersNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nested Dicom sequence tags are currently not supported..
         /// </summary>
         internal static string NestedSequencesNotSupported {
@@ -981,15 +999,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string NotAcceptableHeaders {
             get {
                 return ResourceManager.GetString("NotAcceptableHeaders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
-        /// </summary>
-        internal static string NotSupportMultipleAcceptHeaders {
-            get {
-                return ResourceManager.GetString("NotSupportMultipleAcceptHeaders", resourceCulture);
             }
         }
         
@@ -1080,6 +1089,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string QueryTagAlreadySupported {
             get {
                 return ResourceManager.GetString("QueryTagAlreadySupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0} for rendering. Please retrieve the whole file in the original transfer syntax instead of rendering to image media type..
+        /// </summary>
+        internal static string RenderFileTooLarge {
+            get {
+                return ResourceManager.GetString("RenderFileTooLarge", resourceCulture);
             }
         }
         
