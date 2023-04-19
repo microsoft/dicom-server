@@ -14,6 +14,11 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
+using Microsoft.Health.Operations;
+using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
@@ -83,6 +88,25 @@ internal class DicomInstancesManager : IAsyncDisposable
             _instanceIds.Add(instanceId);
         }
         return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
+    }
+
+    public async Task<OperationStatus> UpdateStudyAsync(List<string> studyInstanceUids, DicomDataset dicomDataset, string partitionName = DefaultPartition.Name, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));
+        EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        DicomWebResponse<DicomOperationReference> response = await _dicomWebClient.UpdateStudyAsync(studyInstanceUids, dicomDataset, partitionName, cancellationToken);
+        DicomOperationReference operation = await response.GetValueAsync();
+
+        IOperationState<DicomOperation> result = await _dicomWebClient.WaitForCompletionAsync(operation.Id);
+
+        // Check reference
+        DicomWebResponse<IOperationState<DicomOperation>> actualResponse = await _dicomWebClient.ResolveReferenceAsync(operation, cancellationToken);
+        IOperationState<DicomOperation> actual = await actualResponse.GetValueAsync();
+        Assert.Equal(result.OperationId, actual.OperationId);
+        Assert.Equal(result.Status, actual.Status);
+
+        return result.Status;
     }
 
     public async Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets,

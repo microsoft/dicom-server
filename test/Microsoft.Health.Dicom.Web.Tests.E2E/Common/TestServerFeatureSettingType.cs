@@ -19,5 +19,6 @@ public enum TestServerFeatureSettingType : byte
 
     // Enable Data Partition
     DataPartition = 1,
-    EnableLatestApiVersion = 2
+    EnableLatestApiVersion = 2,
+    DicomUpdate = 3,
 }
