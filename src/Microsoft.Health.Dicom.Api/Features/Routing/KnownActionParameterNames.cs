@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -15,6 +15,7 @@ internal static class KnownActionParameterNames
     internal const string WorkItemInstanceUid = "workitemInstanceUid";
     internal const string TransactionUid = "transactionUid";
     internal const string Frames = "frames";
+    internal const string Frame = "frame";
     internal const string TagPath = "tagPath";
     internal const string OperationId = "operationId";
 }

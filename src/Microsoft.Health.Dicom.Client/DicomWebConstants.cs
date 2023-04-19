@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ public static class DicomWebConstants
     public const string BaseRetrieveInstanceThumbnailUriFormat = BaseInstanceUriFormat + "/thumbnail";
     public const string BaseRetrieveInstanceMetadataUriFormat = BaseInstanceUriFormat + "/metadata";
     public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
-    public const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
+    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
     public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
     public const string PartitionsUriString = "/partitions";
     public const string StudiesUriString = "/studies";
@@ -39,6 +39,7 @@ public static class DicomWebConstants
     public const string ExportUriString = "/export";
     public const string ChangeWorkitemStateUriFormat = $"{BaseWorkitemUriFormat}/state";
     public const string UpdateWorkitemUriFormat = "/workitems/{0}?{1}";
+    public const string UpdateAttributeUriString = StudiesUriString + "/$bulkupdate";
 
     public const string LimitParameter = "limit";
     public const string OffsetParameter = "offset";

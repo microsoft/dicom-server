@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -82,6 +83,11 @@ public class ServiceModule : IStartupModule
             .AsImplementedInterfaces();
 
         services.Add<RetrieveResourceService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<RetrieveRenderedService>()
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
@@ -161,6 +167,11 @@ public class ServiceModule : IStartupModule
 
         services.Add<FramesRangeCache>()
             .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
+        services.Add<UpdateOperationInstanceService>()
+            .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
 
