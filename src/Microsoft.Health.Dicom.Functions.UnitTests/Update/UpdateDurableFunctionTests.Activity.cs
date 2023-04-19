@@ -70,13 +70,18 @@ public partial class UpdateDurableFunctionTests
             }).ToList();
 
         var versions = expected.Select(x => x.Version).ToList();
+
         var dataset = "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}";
 
-        _indexStore.BeginUpdateInstanceAsync(DefaultPartition.Key, versions, CancellationToken.None).Returns(identifiers);
+        _indexStore.BeginUpdateInstanceAsync(DefaultPartition.Key, Arg.Is<IReadOnlyCollection<long>>(x => x.Count == versions.Count), CancellationToken.None).Returns(identifiers);
 
         IReadOnlyList<InstanceFileIdentifier> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
             new BatchUpdateArguments(DefaultPartition.Key, expected, dataset),
             NullLogger.Instance);
+
+        await _indexStore
+           .Received(1)
+           .BeginUpdateInstanceAsync(DefaultPartition.Key, Arg.Is<IReadOnlyCollection<long>>(x => x.Count == versions.Count), cancellationToken: CancellationToken.None);
 
         for (int i = 0; i < expected.Count; i++)
         {
@@ -84,10 +89,6 @@ public partial class UpdateDurableFunctionTests
             Assert.Equal(expected[i].OriginalVersion, actual[i].OriginalVersion);
             Assert.Equal(expected[i].NewVersion, actual[i].NewVersion);
         }
-
-        await _indexStore
-            .Received(1)
-            .BeginUpdateInstanceAsync(DefaultPartition.Key, versions, cancellationToken: CancellationToken.None);
     }
 
     [Fact]

@@ -60,13 +60,24 @@ public class UpdateOperationInstanceServiceTests
         IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
         DicomDataset changeDataset = new DicomDataset();
         var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
-        string href = "/operation";
+        var operationId = Guid.NewGuid();
+        var expected = new OperationReference(operationId, new Uri("https://dicom.contoso.io/unit/test/Operations/" + operationId, UriKind.Absolute));
+
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(AsyncEnumerable.Empty<OperationReference>());
+
+        _client
+           .StartUpdateOperationAsync(
+               Arg.Any<Guid>(),
+               Arg.Any<UpdateSpecification>(),
+               PartitionEntry.Default.PartitionKey,
+               CancellationToken.None)
+           .Returns(expected);
+
         _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         var response = await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
-        Assert.Equal(href, response.Href.ToString());
+        Assert.Equal(expected.Href.ToString(), response.Href.ToString());
     }
 
     private static Expression<Predicate<OperationQueryCondition<DicomOperation>>> GetOperationPredicate()
