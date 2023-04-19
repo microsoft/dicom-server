@@ -22,7 +22,7 @@ public class DicomFileExtensionsTests
             { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
             { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
             { DicomTag.PatientName, "Test^Patient" }
-    };
+        };
         var dcmFile = new DicomFile(dataset);
 
         var recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
