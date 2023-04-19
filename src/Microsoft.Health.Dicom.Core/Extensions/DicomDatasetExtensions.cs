@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -572,6 +572,85 @@ public static class DicomDatasetExtensions
             case FinalStateRequirementCode.O:
                 break;
         }
+    }
+
+    /// <summary>
+    /// Returns a dicom item if it matches a large object size criteria.
+    /// </summary>
+    /// <param name="dataset"></param>
+    /// <param name="minLargeObjectsizeInBytes"></param>
+    /// <param name="maxLargeObjectsizeInBytes"></param>
+    /// <param name="largeDicomItem"></param>
+    /// <returns>dicom item</returns>
+    public static long TryGetLargeDicomItem(
+        this DicomDataset dataset,
+        int minLargeObjectsizeInBytes,
+        int maxLargeObjectsizeInBytes,
+        out DicomItem largeDicomItem)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsGte(minLargeObjectsizeInBytes, 0, nameof(minLargeObjectsizeInBytes));
+        EnsureArg.IsGte(maxLargeObjectsizeInBytes, 0, nameof(maxLargeObjectsizeInBytes));
+
+        long totalSize = 0;
+        largeDicomItem = null;
+
+        foreach (var item in dataset)
+        {
+            if (item is DicomElement)
+            {
+                var dicomElement = (DicomElement)item;
+                totalSize += dicomElement.Buffer.Size;
+
+                if (dicomElement.Buffer.Size > minLargeObjectsizeInBytes)
+                {
+                    largeDicomItem = item;
+                    break;
+                }
+            }
+            else if (item is DicomFragmentSequence)
+            {
+                var fragmentSequence = item as DicomFragmentSequence;
+                long fragmentSize = 0;
+                foreach (var fragmentItem in fragmentSequence)
+                {
+                    fragmentSize += fragmentItem.Size;
+                }
+
+                totalSize += fragmentSize;
+
+                if (fragmentSize > minLargeObjectsizeInBytes)
+                {
+                    largeDicomItem = item;
+                    break;
+                }
+            }
+            else if (item is DicomSequence)
+            {
+                var sequence = item as DicomSequence;
+                long sequenceSize = 0;
+                foreach (var sequenceItem in sequence)
+                {
+                    sequenceSize += TryGetLargeDicomItem(sequenceItem, minLargeObjectsizeInBytes, maxLargeObjectsizeInBytes, out largeDicomItem);
+                    totalSize += sequenceSize;
+                }
+
+                if (sequenceSize > minLargeObjectsizeInBytes)
+                {
+                    largeDicomItem = item;
+                    break;
+                }
+            }
+
+            // If the total size is greater than the max block size, we will return the last dicom item
+            if (totalSize >= maxLargeObjectsizeInBytes)
+            {
+                largeDicomItem = item;
+                break;
+            }
+        }
+
+        return totalSize;
     }
 
     private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, RequirementCode requirementCode)

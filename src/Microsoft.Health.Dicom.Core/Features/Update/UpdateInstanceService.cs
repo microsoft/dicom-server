@@ -11,12 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.IO;
-using FellowOakDicom.IO.Writer;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.IO;
+using DicomFileExtensions = Microsoft.Health.Dicom.Core.Features.Retrieve.DicomFileExtensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 public class UpdateInstanceService : IUpdateInstanceService
@@ -91,12 +91,12 @@ public class UpdateInstanceService : IUpdateInstanceService
             {
                 _logger.LogInformation("Found bigger DICOM item, splitting the file into multiple blocks. {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
-                _ = TryGetLargeDicomItem(dcmFile.Dataset, out DicomItem largeDicomItem);
+                _ = dcmFile.Dataset.TryGetLargeDicomItem(LargeObjectsizeInBytes, StageBlockSizeInBytes, out DicomItem largeDicomItem);
 
                 if (largeDicomItem != null)
                     RemoveItemsFromDataset(dcmFile.Dataset, largeDicomItem);
 
-                firstBlockLength = await GetDatasetLengthAsync(dcmFile);
+                firstBlockLength = await DicomFileExtensions.GetDatasetLengthAsync(dcmFile, _recyclableMemoryStreamManager);
             }
 
             IDictionary<string, long> blockLengths = GetBlockLengths(stream.Length, firstBlockLength);
@@ -168,84 +168,6 @@ public class UpdateInstanceService : IUpdateInstanceService
         }
 
         return blockLengths;
-    }
-
-    private static long TryGetLargeDicomItem(DicomDataset dataset, out DicomItem largeDicomItem)
-    {
-        long totalSize = 0;
-        largeDicomItem = null;
-
-        foreach (var item in dataset)
-        {
-            if (item is DicomElement)
-            {
-                var dicomElement = (DicomElement)item;
-                totalSize += dicomElement.Buffer.Size;
-
-                if (dicomElement.Buffer.Size > LargeObjectsizeInBytes)
-                {
-                    largeDicomItem = item;
-                    break;
-                }
-            }
-            else if (item is DicomFragmentSequence)
-            {
-                var fragmentSequence = item as DicomFragmentSequence;
-                long fragmentSize = 0;
-                foreach (var fragmentItem in fragmentSequence)
-                {
-                    fragmentSize += fragmentItem.Size;
-                }
-
-                totalSize += fragmentSize;
-
-                if (fragmentSize > LargeObjectsizeInBytes)
-                {
-                    largeDicomItem = item;
-                    break;
-                }
-            }
-            else if (item is DicomSequence)
-            {
-                var sequence = item as DicomSequence;
-                long sequenceSize = 0;
-                foreach (var sequenceItem in sequence)
-                {
-                    sequenceSize += TryGetLargeDicomItem(sequenceItem, out largeDicomItem);
-                    totalSize += sequenceSize;
-                }
-
-                if (sequenceSize > LargeObjectsizeInBytes)
-                {
-                    largeDicomItem = item;
-                    break;
-                }
-            }
-
-            // If the total size is greater than the max block size, we will return the last dicom item
-            // so that we wont store too much in memory and we will be able parse the first block dataset correctly
-            if (totalSize >= StageBlockSizeInBytes)
-            {
-                largeDicomItem = item;
-                break;
-            }
-        }
-
-        return totalSize;
-    }
-
-    private async Task<long> GetDatasetLengthAsync(DicomFile dcmFile)
-    {
-        DicomDataset dataset = dcmFile.Dataset;
-
-        var writeOptions = new DicomWriteOptions();
-        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-
-        var target = new StreamByteTarget(resultStream);
-        var writer = new DicomFileWriter(writeOptions);
-        await writer.WriteAsync(target, dcmFile.FileMetaInfo, dataset);
-
-        return resultStream.Length;
     }
 
     private static void RemoveItemsFromDataset(DicomDataset dataset, DicomItem largeDicomItem)
