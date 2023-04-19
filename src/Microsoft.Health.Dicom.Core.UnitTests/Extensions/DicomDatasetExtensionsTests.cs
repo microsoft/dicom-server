@@ -621,7 +621,6 @@ public class DicomDatasetExtensionsTests
     [Fact]
     public void GivenInputWithLargeItem_WhenTryGetLargeDicomItemIsCalled_ReturnLargeItem()
     {
-        // Arrange
         var buffer = new byte[5000];
         var dataset = new DicomDataset
         {
@@ -630,10 +629,8 @@ public class DicomDatasetExtensionsTests
         };
         DicomItem largeDicomItem;
 
-        // Act
         var result = dataset.TryGetLargeDicomItem(1000, 10000, out largeDicomItem);
 
-        // Assert
         Assert.Equal(5000 + 4, result);
         Assert.NotNull(largeDicomItem);
     }
@@ -641,7 +638,6 @@ public class DicomDatasetExtensionsTests
     [Fact]
     public void GivenInputWithNoLargeItem_WhenTryGetLargeDicomItemIsCalled_ReturnLargeItemWhichMatchMaxLargeSize()
     {
-        // Arrange
         var buffer = new byte[500];
         var dataset = new DicomDataset
         {
@@ -650,10 +646,8 @@ public class DicomDatasetExtensionsTests
         };
         DicomItem largeDicomItem;
 
-        // Act
         var result = dataset.TryGetLargeDicomItem(100, 501, out largeDicomItem);
 
-        // Assert
         Assert.Equal(500 + 4, result);
         Assert.NotNull(largeDicomItem);
         Assert.Equal(DicomTag.PixelData, largeDicomItem.Tag);

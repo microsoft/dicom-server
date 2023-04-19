@@ -13,7 +13,7 @@ public class DataPartitionEnabledHttpIntegrationTestFixture<TStartup> : HttpInte
         : base(new[]
         {
             Common.TestServerFeatureSettingType.EnableLatestApiVersion,
-            Common.TestServerFeatureSettingType.DataPartition,
+            Common.TestServerFeatureSettingType.DataPartition
         })
     { }
 }
