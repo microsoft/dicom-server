@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -14,28 +15,7 @@ using DicomFileExtensions = Microsoft.Health.Dicom.Core.Features.Retrieve.DicomF
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions;
 public class DicomFileExtensionsTests
 {
-    [Fact]
-    public async Task GivenValidInput_WhenGetDatasetLengthAsyncIsCalled_ReturnsCorrectLength()
-    {
-        var dataset = new DicomDataset
-        {
-            { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
-            { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() },
-            { DicomTag.PatientName, "Test^Patient" }
-        };
-        var dcmFile = new DicomFile(dataset);
-
-        var recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-
-        var length = await DicomFileExtensions.GetDatasetLengthAsync(dcmFile, recyclableMemoryStreamManager);
-
-        // 128 bytes is the length of the header
-        // 4 bytes is the length of the preamble
-        // 212 bytes is the length of the file meta info
-        // 44 bytes is each item value length + 8 bytes is the tag length
-        // For patientName, 8 bytes is the tag length + 12 is the value length
-        Assert.Equal(464, length);
-    }
+    private static DirectoryInfo TestDataDirectory => new DirectoryInfo(Path.Combine(".", "TestFiles"));
 
     [Fact]
     public async Task GivenNullDicomFile_WhenGetDatasetLengthAsyncIsCalled_ThrowsArgumentNullException()
@@ -60,26 +40,27 @@ public class DicomFileExtensionsTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => DicomFileExtensions.GetDatasetLengthAsync(dcmFile, recyclableMemoryStreamManager));
     }
 
-    [Fact]
-    public async Task Given_LargeDataset_WhenGetDatasetLengthAsyncIsCalled_ReturnsCorrectLength()
+    [Theory]
+    [InlineData("input1.dcm")]
+    [InlineData("input2.dcm")]
+    [InlineData("input3.dcm")]
+    public async Task GivenDicomFile_WhenGetDatasetLengthAsyncIsCalled_LengthShouldMatch(string fileName)
     {
-        var dataset = new DicomDataset
+        long expectedLength = 0;
+
+        var inFile = DicomFile.Open(Resolve(fileName));
+        using (var file = inFile.File.OpenRead())
         {
-            { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
-            { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() }
-        };
-        dataset.AddOrUpdate(DicomTag.PixelData, new byte[100000]);
-        var dcmFile = new DicomFile(dataset);
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                expectedLength = stream.Length;
+            }
+        }
 
-        var recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-
-        var length = await DicomFileExtensions.GetDatasetLengthAsync(dcmFile, recyclableMemoryStreamManager);
-
-        // 128 bytes is the length of the header
-        // 4 bytes is the length of the preamble
-        // 212 bytes is the length of the file meta info
-        // 52 bytes is each item length
-        // 100000 bytes is the length of the pixel data
-        Assert.Equal(100456, length);
+        var length = await DicomFileExtensions.GetDatasetLengthAsync(inFile, new RecyclableMemoryStreamManager());
+        Assert.Equal(expectedLength, length);
     }
+
+    private static string Resolve(string path) => Path.Combine(TestDataDirectory.FullName, path);
 }
