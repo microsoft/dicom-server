@@ -614,7 +614,7 @@ public class DicomDatasetExtensionsTests
 
         var result = dataset.TryGetLargeDicomItem(1000, 10000, out largeDicomItem);
 
-        Assert.Equal(12, result);
+        Assert.False(result);
         Assert.Null(largeDicomItem);
     }
 
@@ -631,7 +631,7 @@ public class DicomDatasetExtensionsTests
 
         var result = dataset.TryGetLargeDicomItem(1000, 10000, out largeDicomItem);
 
-        Assert.Equal(5000 + 4, result);
+        Assert.True(result);
         Assert.NotNull(largeDicomItem);
     }
 
@@ -648,7 +648,7 @@ public class DicomDatasetExtensionsTests
 
         var result = dataset.TryGetLargeDicomItem(100, 501, out largeDicomItem);
 
-        Assert.Equal(500 + 4, result);
+        Assert.True(result);
         Assert.NotNull(largeDicomItem);
         Assert.Equal(DicomTag.PixelData, largeDicomItem.Tag);
     }
@@ -671,9 +671,9 @@ public class DicomDatasetExtensionsTests
         var maxLargeObjectsizeInBytes = 100;
         DicomItem largeDicomItem;
 
-        var totalSize = dataset.TryGetLargeDicomItem(minLargeObjectsizeInBytes, maxLargeObjectsizeInBytes, out largeDicomItem);
+        var result = dataset.TryGetLargeDicomItem(minLargeObjectsizeInBytes, maxLargeObjectsizeInBytes, out largeDicomItem);
 
-        Assert.Equal(26, totalSize);
+        Assert.True(result);
         Assert.Equal(dicomItem, largeDicomItem);
     }
 

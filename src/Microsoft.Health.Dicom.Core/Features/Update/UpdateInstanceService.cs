@@ -86,15 +86,20 @@ public class UpdateInstanceService : IUpdateInstanceService
             DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
 
             long firstBlockLength = stream.Length;
-            // If the file is greater than 1MB try to upload in different blocks
+
+            // If the file is greater than 1MB try to upload in different blocks.
+            // Since we are supporting updating only Patient demographic and identification module,
+            // we assume patient attributes are at the very beginning of the dataset.
+            // If in future, we support updating other attributes like private tags, which could appear at the end
+            // We need to read the whole file instead of first block.
             if (stream.Length > LargeObjectsizeInBytes)
             {
                 _logger.LogInformation("Found bigger DICOM item, splitting the file into multiple blocks. {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
-                _ = dcmFile.Dataset.TryGetLargeDicomItem(LargeObjectsizeInBytes, StageBlockSizeInBytes, out DicomItem largeDicomItem);
-
-                if (largeDicomItem != null)
+                if (dcmFile.Dataset.TryGetLargeDicomItem(LargeObjectsizeInBytes, StageBlockSizeInBytes, out DicomItem largeDicomItem))
+                {
                     RemoveItemsFromDataset(dcmFile.Dataset, largeDicomItem);
+                }
 
                 firstBlockLength = await DicomFileExtensions.GetDatasetLengthAsync(dcmFile, _recyclableMemoryStreamManager);
             }

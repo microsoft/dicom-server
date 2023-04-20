@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -582,7 +583,7 @@ public static class DicomDatasetExtensions
     /// <param name="maxLargeObjectsizeInBytes"></param>
     /// <param name="largeDicomItem"></param>
     /// <returns>dicom item</returns>
-    public static long TryGetLargeDicomItem(
+    public static bool TryGetLargeDicomItem(
         this DicomDataset dataset,
         int minLargeObjectsizeInBytes,
         int maxLargeObjectsizeInBytes,
@@ -595,62 +596,28 @@ public static class DicomDatasetExtensions
         long totalSize = 0;
         largeDicomItem = null;
 
+        var calculator = new DicomWriteLengthCalculator(dataset.InternalTransferSyntax, DicomWriteOptions.Default);
+
         foreach (var item in dataset)
         {
-            if (item is DicomElement)
+            long length = calculator.Calculate(item);
+            if (length >= minLargeObjectsizeInBytes)
             {
-                var dicomElement = (DicomElement)item;
-                totalSize += dicomElement.Buffer.Size;
-
-                if (dicomElement.Buffer.Size > minLargeObjectsizeInBytes)
-                {
-                    largeDicomItem = item;
-                    break;
-                }
+                largeDicomItem = item;
+                return true;
             }
-            else if (item is DicomFragmentSequence)
-            {
-                var fragmentSequence = item as DicomFragmentSequence;
-                long fragmentSize = 0;
-                foreach (var fragmentItem in fragmentSequence)
-                {
-                    fragmentSize += fragmentItem.Size;
-                }
 
-                totalSize += fragmentSize;
-
-                if (fragmentSize > minLargeObjectsizeInBytes)
-                {
-                    largeDicomItem = item;
-                    break;
-                }
-            }
-            else if (item is DicomSequence)
-            {
-                var sequence = item as DicomSequence;
-                long sequenceSize = 0;
-                foreach (var sequenceItem in sequence)
-                {
-                    sequenceSize += TryGetLargeDicomItem(sequenceItem, minLargeObjectsizeInBytes, maxLargeObjectsizeInBytes, out largeDicomItem);
-                    totalSize += sequenceSize;
-                }
-
-                if (sequenceSize > minLargeObjectsizeInBytes)
-                {
-                    largeDicomItem = item;
-                    break;
-                }
-            }
+            totalSize += length;
 
             // If the total size is greater than the max block size, we will return the last dicom item
             if (totalSize >= maxLargeObjectsizeInBytes)
             {
                 largeDicomItem = item;
-                break;
+                return true;
             }
         }
 
-        return totalSize;
+        return false;
     }
 
     private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, RequirementCode requirementCode)
