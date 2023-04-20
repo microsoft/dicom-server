@@ -11,21 +11,17 @@ namespace Microsoft.Health.Dicom.Core.Messages.Update;
 
 public class UpdateInstanceResponse
 {
-    public UpdateInstanceResponse(OperationReference operationReference, int statusCode)
+    public UpdateInstanceResponse(OperationReference operationReference)
     {
         Operation = EnsureArg.IsNotNull(operationReference);
-        StatusCode = statusCode;
     }
 
-    public UpdateInstanceResponse(DicomDataset dataset, int statusCode)
+    public UpdateInstanceResponse(DicomDataset dataset)
     {
         FailedDataset = EnsureArg.IsNotNull(dataset);
-        StatusCode = statusCode;
     }
 
     public OperationReference Operation { get; }
 
     public DicomDataset FailedDataset { get; }
-
-    public int StatusCode { get; }
 }

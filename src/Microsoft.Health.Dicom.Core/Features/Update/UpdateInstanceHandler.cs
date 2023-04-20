@@ -17,11 +17,11 @@ namespace Microsoft.Health.Dicom.Core.Features.Update;
 
 internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstanceRequest, UpdateInstanceResponse>
 {
-    private readonly IUpdateOperationInstanceService _updateOperationInstanceService;
+    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
 
-    public UpdateInstanceHandler(IAuthorizationService<DataActions> authorizationService, IUpdateOperationInstanceService updateOperationInstanceService)
+    public UpdateInstanceHandler(IAuthorizationService<DataActions> authorizationService, IUpdateInstanceOperationService updateOperationInstanceService)
         : base(authorizationService)
-        => _updateOperationInstanceService = EnsureArg.IsNotNull(updateOperationInstanceService, nameof(updateOperationInstanceService));
+        => _updateInstanceOperationService = EnsureArg.IsNotNull(updateOperationInstanceService, nameof(updateOperationInstanceService));
 
     public async Task<UpdateInstanceResponse> Handle(UpdateInstanceRequest request, CancellationToken cancellationToken = default)
     {
@@ -31,6 +31,6 @@ internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstan
         if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
             throw new UnauthorizedDicomActionException(DataActions.Write);
 
-        return await _updateOperationInstanceService.QueueUpdateOperationAsync(request.UpdateSpec, cancellationToken);
+        return await _updateInstanceOperationService.QueueUpdateOperationAsync(request.UpdateSpec, cancellationToken);
     }
 }

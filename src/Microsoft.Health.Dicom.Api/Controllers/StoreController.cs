@@ -102,7 +102,11 @@ public class StoreController : ControllerBase
             throw new DicomUpdateFeatureDisabledException();
         }
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);
-        return StatusCode(response.StatusCode, response.FailedDataset != null ? response.FailedDataset : response.Operation);
+        if (response.FailedDataset != null)
+        {
+            return StatusCode((int)HttpStatusCode.BadRequest, response.FailedDataset);
+        }
+        return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
     }
 
     private async Task<IActionResult> PostAsync(string studyInstanceUid)

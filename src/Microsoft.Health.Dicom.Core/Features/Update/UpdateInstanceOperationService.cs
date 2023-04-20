@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -21,7 +20,7 @@ using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
-public class UpdateOperationInstanceService : IUpdateOperationInstanceService
+public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
@@ -38,7 +37,7 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         }
     };
 
-    public UpdateOperationInstanceService(
+    public UpdateInstanceOperationService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IUrlResolver iUrlResolver,
@@ -67,7 +66,7 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
 
         if (failedSop.Any())
         {
-            return new UpdateInstanceResponse(failedSop, (int)HttpStatusCode.BadRequest);
+            return new UpdateInstanceResponse(failedSop);
         }
 
         OperationReference activeOperation = await _client
@@ -79,6 +78,6 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
 
         var operationId = _guidFactory.Create();
         var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
-        return new UpdateInstanceResponse(operation, (int)HttpStatusCode.Accepted);
+        return new UpdateInstanceResponse(operation);
     }
 }

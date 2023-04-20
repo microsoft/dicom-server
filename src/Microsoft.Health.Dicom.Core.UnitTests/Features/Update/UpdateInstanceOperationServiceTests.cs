@@ -24,21 +24,21 @@ using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Update;
-public class UpdateOperationInstanceServiceTests
+public class UpdateInstanceOperationServiceTests
 {
-    private readonly IUpdateOperationInstanceService _updateOperationInstanceService;
+    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
 
-    public UpdateOperationInstanceServiceTests()
+    public UpdateInstanceOperationServiceTests()
     {
         _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
         _urlResolver = Substitute.For<IUrlResolver>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _updateOperationInstanceService = new UpdateOperationInstanceService(_guidFactory, _client, _urlResolver, _contextAccessor);
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _urlResolver, _contextAccessor);
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public class UpdateOperationInstanceServiceTests
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(new OperationReference[] { expected }.ToAsyncEnumerable());
         await Assert.ThrowsAsync<ExistingUpdateOperationException>(() =>
-            _updateOperationInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None));
+            _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class UpdateOperationInstanceServiceTests
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(AsyncEnumerable.Empty<OperationReference>());
         _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
-        var response = await _updateOperationInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
+        var response = await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
         Assert.Equal(href, response.Operation.Href.ToString());
     }

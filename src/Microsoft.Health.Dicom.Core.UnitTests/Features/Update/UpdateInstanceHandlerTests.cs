@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -27,14 +26,14 @@ public class UpdateInstanceHandlerTests
 {
     private const string DefaultContentType = "application/json";
     private readonly UpdateInstanceHandler _handler;
-    private readonly IUpdateOperationInstanceService _updateOperationInstanceService;
+    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
     private readonly IAuthorizationService<DataActions> _auth;
 
     public UpdateInstanceHandlerTests()
     {
-        _updateOperationInstanceService = Substitute.For<IUpdateOperationInstanceService>();
+        _updateInstanceOperationService = Substitute.For<IUpdateInstanceOperationService>();
         _auth = Substitute.For<IAuthorizationService<DataActions>>();
-        _handler = new UpdateInstanceHandler(_auth, _updateOperationInstanceService);
+        _handler = new UpdateInstanceHandler(_auth, _updateInstanceOperationService);
     }
 
     [Fact]
@@ -55,7 +54,7 @@ public class UpdateInstanceHandlerTests
         await Assert.ThrowsAsync<UnauthorizedDicomActionException>(() => _handler.Handle(updateInstanceRequest, CancellationToken.None));
 
         await _auth.Received(1).CheckAccess(DataActions.Write, CancellationToken.None);
-        await _updateOperationInstanceService.DidNotReceiveWithAnyArgs().QueueUpdateOperationAsync(default, default);
+        await _updateInstanceOperationService.DidNotReceiveWithAnyArgs().QueueUpdateOperationAsync(default, default);
     }
 
     [Fact]
@@ -68,10 +67,10 @@ public class UpdateInstanceHandlerTests
         var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
         var operation = new OperationReference(id, urlResolver.ResolveOperationStatusUri(id));
         var updateInstanceRequest = new UpdateInstanceRequest(updateSpec);
-        var updateInstanceResponse = new UpdateInstanceResponse(operation, (int)HttpStatusCode.Accepted);
+        var updateInstanceResponse = new UpdateInstanceResponse(operation);
         _auth.CheckAccess(DataActions.Write, CancellationToken.None).Returns(DataActions.Write);
 
-        _updateOperationInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None).Returns(updateInstanceResponse);
+        _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None).Returns(updateInstanceResponse);
 
         var response = await _handler.Handle(updateInstanceRequest, CancellationToken.None);
 

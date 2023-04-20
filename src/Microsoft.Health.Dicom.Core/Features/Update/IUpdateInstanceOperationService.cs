@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Update;
 /// Provides functionality to queue the operation for updating the study attributes
 /// for a list of studyInstanceUids.
 /// </summary>
-public interface IUpdateOperationInstanceService
+public interface IUpdateInstanceOperationService
 {
     /// <summary>
     /// Queues the operation for updating the <see cref="UpdateSpecification"/>.
