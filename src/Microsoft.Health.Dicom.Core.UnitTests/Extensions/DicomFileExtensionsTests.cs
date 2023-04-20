@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -15,7 +16,7 @@ using DicomFileExtensions = Microsoft.Health.Dicom.Core.Features.Retrieve.DicomF
 namespace Microsoft.Health.Dicom.Core.UnitTests.Extensions;
 public class DicomFileExtensionsTests
 {
-    private static DirectoryInfo TestDataDirectory => new DirectoryInfo(Path.Combine(".", "TestFiles"));
+    private const string TestDataRootFolder = "TranscodingSamples";
 
     [Fact]
     public async Task GivenNullDicomFile_WhenGetDatasetLengthAsyncIsCalled_ThrowsArgumentNullException()
@@ -41,26 +42,27 @@ public class DicomFileExtensionsTests
     }
 
     [Theory]
-    [InlineData("input1.dcm")]
-    [InlineData("input2.dcm")]
-    [InlineData("input3.dcm")]
+    [MemberData(nameof(GetAllTestDatas))]
     public async Task GivenDicomFile_WhenGetDatasetLengthAsyncIsCalled_LengthShouldMatch(string fileName)
     {
         long expectedLength = 0;
+        var inFile = DicomFile.Open(fileName);
 
-        var inFile = DicomFile.Open(Resolve(fileName));
-        using (var file = inFile.File.OpenRead())
+        using (var stream = new MemoryStream())
         {
-            using (var stream = new MemoryStream())
-            {
-                await file.CopyToAsync(stream);
-                expectedLength = stream.Length;
-            }
+            await inFile.SaveAsync(stream);
+            expectedLength = stream.Length;
         }
 
         var length = await DicomFileExtensions.GetDatasetLengthAsync(inFile, new RecyclableMemoryStreamManager());
         Assert.Equal(expectedLength, length);
     }
 
-    private static string Resolve(string path) => Path.Combine(TestDataDirectory.FullName, path);
+    public static IEnumerable<object[]> GetAllTestDatas()
+    {
+        foreach (string path in Directory.EnumerateFiles(TestDataRootFolder, "*", SearchOption.AllDirectories))
+        {
+            yield return new object[] { path };
+        }
+    }
 }
