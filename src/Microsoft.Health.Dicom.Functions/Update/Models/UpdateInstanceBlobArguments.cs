@@ -10,17 +10,17 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
 /// <summary>
-///  Represents input to <see cref="UpdateDurableFunction.UpdateInstanceBatchAsync"/>
+/// Represents input to <see cref="UpdateDurableFunction.UpdateInstanceBlobsAsync"/>
 /// </summary>
-public sealed class BatchUpdateArguments
+public sealed class UpdateInstanceBlobArguments
 {
     public int PartitionKey { get; }
 
     public IReadOnlyList<InstanceFileIdentifier> InstanceWatermarks { get; }
 
-    public string ChangeDataset { get; set; }
+    public string ChangeDataset { get; }
 
-    public BatchUpdateArguments(int partitionKey, IReadOnlyList<InstanceFileIdentifier> instanceWatermarks, string changeDataset)
+    public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileIdentifier> instanceWatermarks, string changeDataset)
     {
         PartitionKey = partitionKey;
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));

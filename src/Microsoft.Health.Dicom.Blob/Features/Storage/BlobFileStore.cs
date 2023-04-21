@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -90,19 +91,21 @@ public class BlobFileStore : IFileStore
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
+        int maxBufferSize = (int)blockLengths.Max(x => x.Value);
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
+
         try
         {
-            stream.Seek(0, SeekOrigin.Begin);
-
             foreach (string blockId in blockLengths.Keys)
             {
                 long blockSize = blockLengths[blockId];
-                byte[] blockData = new byte[blockSize];
 
-                await stream.ReadAsync(blockData.AsMemory(0, (int)blockSize), cancellationToken);
+                await stream.ReadAsync(buffer.AsMemory(0, (int)blockSize), cancellationToken);
 
-                using var blockStream = new MemoryStream(blockData);
+                using var blockStream = new MemoryStream(buffer);
                 await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
+
+                Array.Clear(buffer);
             }
 
             await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
@@ -112,6 +115,10 @@ public class BlobFileStore : IFileStore
         catch (Exception ex)
         {
             throw new DataStoreException(ex);
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
         }
     }
 
@@ -131,10 +138,10 @@ public class BlobFileStore : IFileStore
 
         IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
 
-        string blockToUpdate = blockIds.Where(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase)).First();
+        string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
 
         if (blockToUpdate == null)
-            throw new ItemNotFoundException(null);
+            throw new DataStoreException(DicomBlobResource.BlockNotFound);
 
         try
         {
@@ -284,7 +291,7 @@ public class BlobFileStore : IFileStore
         BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
         if (!blockList.CommittedBlocks.Any())
-            throw new ItemNotFoundException(null);
+            throw new DataStoreException(DicomBlobResource.BlockListNotFound);
 
         BlobBlock firstBlock = blockList.CommittedBlocks.FirstOrDefault();
         return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);

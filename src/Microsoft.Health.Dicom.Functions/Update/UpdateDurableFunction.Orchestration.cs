@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -43,49 +42,32 @@ public partial class UpdateDurableFunction
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
 
-        // Backfill batching options
-        input.Batching ??= new BatchingOptions
+        if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
         {
-            MaxParallelCount = _options.MaxParallelBatches,
-            Size = _options.BatchSize,
-        };
+            string studyInstanceUid = input.StudyInstanceUids[input.NumberOfStudyCompleted];
 
-        input.TotalNumberOfStudies ??= input.StudyInstanceUids.Count;
-
-        if (input.StudyInstanceUids.Count > 0)
-        {
-            string studyInstanceUid = input.StudyInstanceUids[0];
-
-            logger.LogInformation("Beginning to get all instances in a study.");
+            logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
             IReadOnlyList<InstanceFileIdentifier> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
-                nameof(GetInstanceWatermarksInStudyAsync),
+                nameof(UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
-                new GetInstanceArguments(input.PartitionKey, studyInstanceUid));
+                new UpdateInstanceWatermarkArguments(input.PartitionKey, studyInstanceUid));
 
-            logger.LogInformation("Getting all instances completed {TotalCount}", instanceWatermarks.Count);
-
-            if (instanceWatermarks.Count > 0)
-            {
-                instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
-                        nameof(UpdateInstanceWatermarkAsync),
-                        _options.RetryOptions,
-                        new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
-            }
+            logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instanceWatermarks.Count);
 
             if (instanceWatermarks.Count > 0)
             {
                 try
                 {
                     await context.CallActivityWithRetryAsync(
-                        nameof(UpdateInstanceBatchAsync),
+                        nameof(UpdateInstanceBlobsAsync),
                         _options.RetryOptions,
-                        new BatchUpdateArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
+                        new UpdateInstanceBlobArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
 
                     await context.CallActivityWithRetryAsync(
-                        nameof(CompleteUpdateInstanceAsync),
+                        nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
-                        new CompleteInstanceArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                        new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
                 }
                 catch (FunctionFailedException ex)
                 {
@@ -103,9 +85,9 @@ public partial class UpdateDurableFunction
                 }
             }
 
-            var studyUids = input.StudyInstanceUids.Where(x => !x.Equals(studyInstanceUid, StringComparison.OrdinalIgnoreCase)).ToList();
+            var numberOfStudyCompleted = input.NumberOfStudyCompleted + 1;
 
-            if (studyUids.Any())
+            if (input.TotalNumberOfStudies != numberOfStudyCompleted)
             {
                 logger.LogInformation("Completed updating the instances for a study. {TotalInstanceUpdatedInaStudy}. Continuing with new execution...", instanceWatermarks.Count);
             }
@@ -121,11 +103,10 @@ public partial class UpdateDurableFunction
                 new UpdateCheckpoint
                 {
                     Batching = input.Batching,
-                    StudyInstanceUids = studyUids,
+                    StudyInstanceUids = input.StudyInstanceUids,
                     ChangeDataset = input.ChangeDataset,
                     PartitionKey = input.PartitionKey,
-                    TotalNumberOfStudies = input.TotalNumberOfStudies,
-                    NumberOfStudyCompleted = input.NumberOfStudyCompleted + 1,
+                    NumberOfStudyCompleted = numberOfStudyCompleted,
                     TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),

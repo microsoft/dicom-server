@@ -135,6 +135,15 @@ public interface IIndexDataStore
     Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Asynchronously updates a DICOM instance NewWatermark
+    /// </summary>
+    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="studyInstanceUid">StudyInstanceUID to update</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that with list of instance metadata with new watermark.</returns>
+    Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Asynchronously bulk update all instances in a study, and update extendedquerytag with new watermark.
     /// Also creates new changefeed entry
     /// </summary>

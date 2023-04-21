@@ -24,7 +24,7 @@ public class DicomFileExtensionsTests
         DicomFile dcmFile = null;
         var recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => DicomFileExtensions.GetDatasetLengthAsync(dcmFile, recyclableMemoryStreamManager));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => DicomFileExtensions.GetByteLengthAsync(dcmFile, recyclableMemoryStreamManager));
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class DicomFileExtensionsTests
         var dcmFile = new DicomFile(dataset);
         RecyclableMemoryStreamManager recyclableMemoryStreamManager = null;
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => DicomFileExtensions.GetDatasetLengthAsync(dcmFile, recyclableMemoryStreamManager));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => DicomFileExtensions.GetByteLengthAsync(dcmFile, recyclableMemoryStreamManager));
     }
 
     [Theory]
@@ -54,7 +54,7 @@ public class DicomFileExtensionsTests
             expectedLength = stream.Length;
         }
 
-        var length = await DicomFileExtensions.GetDatasetLengthAsync(inFile, new RecyclableMemoryStreamManager());
+        var length = await DicomFileExtensions.GetByteLengthAsync(inFile, new RecyclableMemoryStreamManager());
         Assert.Equal(expectedLength, length);
     }
 

@@ -183,7 +183,7 @@ public class UpdateInstanceServiceTests
         await updateInstanceService.UpdateInstanceBlobAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
 
         streamAndStoredFile.Key.Dataset.Remove(DicomTag.PixelData);
-        var firstBlockLength = await DicomFileExtensions.GetDatasetLengthAsync(streamAndStoredFile.Key, new RecyclableMemoryStreamManager());
+        var firstBlockLength = await DicomFileExtensions.GetByteLengthAsync(streamAndStoredFile.Key, new RecyclableMemoryStreamManager());
         await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, cancellationToken);
         await _fileStore.Received(1).GetFileAsync(fileIdentifier, cancellationToken);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
@@ -220,7 +220,7 @@ public class UpdateInstanceServiceTests
                 rows: 200,
                 columns: 200,
                 frames: 100).Result;
-        var firstBlockLength = await DicomFileExtensions.GetDatasetLengthAsync(streamAndStoredFile.Key, new RecyclableMemoryStreamManager());
+        var firstBlockLength = await DicomFileExtensions.GetByteLengthAsync(streamAndStoredFile.Key, new RecyclableMemoryStreamManager());
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
         await streamAndStoredFile.Value.CopyToAsync(copyStream);

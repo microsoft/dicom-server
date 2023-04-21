@@ -10,6 +10,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
+
 public interface IUpdateInstanceService
 {
     /// <summary>

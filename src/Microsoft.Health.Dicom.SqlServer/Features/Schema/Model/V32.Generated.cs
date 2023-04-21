@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V32
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -37,7 +37,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static AddWorkitemV11Procedure AddWorkitemV11 = new AddWorkitemV11Procedure();
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
         internal readonly static BeginUpdateInstanceProcedure BeginUpdateInstance = new BeginUpdateInstanceProcedure();
-        internal readonly static BeginUpdateInstanceV33Procedure BeginUpdateInstanceV33 = new BeginUpdateInstanceV33Procedure();
         internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
@@ -809,24 +808,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
 
             internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
-        }
-
-        internal class BeginUpdateInstanceV33Procedure : StoredProcedure
-        {
-            internal BeginUpdateInstanceV33Procedure() : base("dbo.BeginUpdateInstanceV33")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.BeginUpdateInstanceV33";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-            }
         }
 
         internal class CompleteReindexingProcedure : StoredProcedure

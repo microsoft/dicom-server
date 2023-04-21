@@ -19,6 +19,7 @@ using Microsoft.IO;
 using DicomFileExtensions = Microsoft.Health.Dicom.Core.Features.Retrieve.DicomFileExtensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
+
 public class UpdateInstanceService : IUpdateInstanceService
 {
     private readonly IFileStore _fileStore;
@@ -98,15 +99,17 @@ public class UpdateInstanceService : IUpdateInstanceService
 
                 if (dcmFile.Dataset.TryGetLargeDicomItem(LargeObjectsizeInBytes, StageBlockSizeInBytes, out DicomItem largeDicomItem))
                 {
-                    RemoveItemsFromDataset(dcmFile.Dataset, largeDicomItem);
+                    RemoveItemsAfter(dcmFile.Dataset, largeDicomItem.Tag);
                 }
 
-                firstBlockLength = await DicomFileExtensions.GetDatasetLengthAsync(dcmFile, _recyclableMemoryStreamManager);
+                firstBlockLength = await DicomFileExtensions.GetByteLengthAsync(dcmFile, _recyclableMemoryStreamManager);
             }
 
             IDictionary<string, long> blockLengths = GetBlockLengths(stream.Length, firstBlockLength);
 
             _logger.LogInformation("Begin uploading instance file in blocks {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
+
+            stream.Seek(0, SeekOrigin.Begin);
 
             await _fileStore.StoreFileInBlocksAsync(newFileIdentifier, stream, blockLengths, cancellationToken);
 
@@ -175,14 +178,15 @@ public class UpdateInstanceService : IUpdateInstanceService
         return blockLengths;
     }
 
-    private static void RemoveItemsFromDataset(DicomDataset dataset, DicomItem largeDicomItem)
+    // Removes all items in the list after the specified item tag
+    private static void RemoveItemsAfter(DicomDataset dataset, DicomTag tag)
     {
         bool toRemove = false;
         var dicomTags = new List<DicomTag>();
 
         foreach (var item in dataset)
         {
-            if (item.Tag == largeDicomItem.Tag)
+            if (item.Tag == tag)
             {
                 toRemove = true;
             }
