@@ -90,6 +90,10 @@ public class ExceptionHandlingMiddleware
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;
                 break;
+            case DataStoreException ex when ex.IsExternal == true:
+            case ItemNotFoundException e when e.IsExternal == true:
+                statusCode = HttpStatusCode.FailedDependency;
+                break;
             case ResourceNotFoundException:
                 statusCode = HttpStatusCode.NotFound;
                 break;

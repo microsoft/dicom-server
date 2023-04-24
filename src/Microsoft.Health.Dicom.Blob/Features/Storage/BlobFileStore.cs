@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
@@ -26,28 +25,21 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobFileStore : IFileStore
 {
-    private readonly BlobContainerClient _container;
+    private readonly IBlobClient _blobClient;
     private readonly BlobOperationOptions _options;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobFileStore> _logger;
 
     public BlobFileStore(
-        BlobServiceClient client,
+        IBlobClient blobClient,
         DicomFileNameWithPrefix nameWithPrefix,
-        IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
         ILogger<BlobFileStore> logger)
     {
-        EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-
-        BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
-            .Get(Constants.BlobContainerConfigurationName);
-
-        _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
+        _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
 
     /// <inheritdoc />
@@ -71,7 +63,7 @@ public class BlobFileStore : IFileStore
         }
         catch (Exception ex)
         {
-            throw new DataStoreException(ex);
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }
 
@@ -86,7 +78,7 @@ public class BlobFileStore : IFileStore
         }
         catch (Exception ex)
         {
-            throw new DataStoreException(ex);
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }
 
@@ -182,10 +174,10 @@ public class BlobFileStore : IFileStore
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
 
-        return _container.GetBlockBlobClient(blobName);
+        return _blobClient.BlobContainerClient.GetBlockBlobClient(blobName);
     }
 
-    private static async Task ExecuteAsync(Func<Task> action)
+    private async Task ExecuteAsync(Func<Task> action)
     {
         try
         {
@@ -193,11 +185,13 @@ public class BlobFileStore : IFileStore
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
-            throw new ItemNotFoundException(ex);
+            _logger.LogError(ex, message: "Access to storage account failed.");
+            throw new ItemNotFoundException(ex, _blobClient.IsExternal);
         }
         catch (Exception ex)
         {
-            throw new DataStoreException(ex);
+            _logger.LogError(ex, message: "Access to storage account failed.");
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }
 }

@@ -12,7 +12,9 @@ using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -36,6 +38,28 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         serverBuilder.Services
             .AddOptions<BlobOperationOptions>()
             .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
+
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
+        configuration.GetSection("DicomServer:Features").Bind(featureConfiguration);
+
+        if (featureConfiguration.EnableExternalStore)
+        {
+            ExternalBlobDataStoreConfiguration externalBlobData = new ExternalBlobDataStoreConfiguration();
+            configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName).Bind(externalBlobData);
+            serverBuilder.Services.AddSingleton(Options.Options.Create(externalBlobData));
+
+            serverBuilder.Services.Add<ExternalBlobClient>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+        }
+        else
+        {
+            serverBuilder.Services.Add<InternalBlobClient>()
+            .Singleton()
+            .AsSelf()
+            .AsImplementedInterfaces();
+        }
 
         serverBuilder
             .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore>(

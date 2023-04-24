@@ -36,4 +36,6 @@ public class FeatureConfiguration
     /// Enables Dicom update feature
     /// </summary>
     public bool EnableDicomUpdate { get; set; }
+
+    public bool EnableExternalStore { get; set; }
 }

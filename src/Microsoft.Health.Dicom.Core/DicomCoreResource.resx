@@ -670,4 +670,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>StudyInstanceUids count exceeded maximum length '{0}'</value>
     <comment>{0} StudyInstanceUids max allowed count</comment>
   </data>
+  <data name="ExternalDataStoreOperationFailed" xml:space="preserve">
+    <value>Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
+  </data>
 </root>

@@ -521,6 +521,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}.
+        /// </summary>
+        internal static string ExternalDataStoreOperationFailed {
+            get {
+                return ResourceManager.GetString("ExternalDataStoreOperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Authorization failed..
         /// </summary>
         internal static string Forbidden {
