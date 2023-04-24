@@ -289,7 +289,9 @@ CREATE TABLE dbo.Instance (
     CreatedDate           DATETIME2 (7) NOT NULL,
     PartitionKey          INT           DEFAULT 1 NOT NULL,
     TransferSyntaxUid     VARCHAR (64)  NULL,
-    HasFrameMetadata      BIT           DEFAULT 0 NOT NULL
+    HasFrameMetadata      BIT           DEFAULT 0 NOT NULL,
+    OriginalWatermark     BIGINT        NULL,
+    NewWatermark          BIGINT        NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -323,6 +325,10 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyKey_Series
 CREATE UNIQUE NONCLUSTERED INDEX IX_Instance_PartitionKey_Watermark
     ON dbo.Instance(PartitionKey, Watermark)
     INCLUDE(StudyKey, SeriesKey, StudyInstanceUid) WITH (DATA_COMPRESSION = PAGE);
+
+CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark
+    ON dbo.Instance(PartitionKey, Status, StudyInstanceUid, NewWatermark)
+    INCLUDE(SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
@@ -919,6 +925,39 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstance
+@partitionKey INT, @watermarkTableType dbo.WatermarkTableType READONLY
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    UPDATE i
+    SET    NewWatermark =  NEXT VALUE FOR dbo.WatermarkSequence
+    FROM   dbo.Instance AS i
+           INNER JOIN
+           @watermarkTableType AS input
+           ON i.Watermark = input.Watermark
+              AND i.PartitionKey = @partitionKey
+    WHERE  Status = 1;
+    COMMIT TRANSACTION;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           i.Watermark,
+           TransferSyntaxUid,
+           HasFrameMetadata,
+           OriginalWatermark,
+           NewWatermark
+    FROM   dbo.Instance AS i
+           INNER JOIN
+           @watermarkTableType AS input
+           ON i.Watermark = input.Watermark
+              AND i.PartitionKey = @partitionKey
+    WHERE  Status = 1;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.CompleteReindexing
 @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
 AS
@@ -1370,6 +1409,61 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @updatedInstances AS TABLE (
+        PartitionKey      INT         ,
+        StudyInstanceUid  VARCHAR (64),
+        SeriesInstanceUid VARCHAR (64),
+        SopInstanceUid    VARCHAR (64),
+        Watermark         BIGINT      );
+    DELETE @updatedInstances;
+    UPDATE dbo.Instance
+    SET    LastStatusUpdatedDate = @currentDate,
+           OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
+           Watermark             = NewWatermark,
+           NewWatermark          = NULL
+    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark INTO @updatedInstances
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1
+           AND NewWatermark IS NOT NULL;
+    INSERT INTO dbo.ChangeFeed (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT @currentDate,
+           2,
+           PartitionKey,
+           StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark
+    FROM   @updatedInstances;
+    UPDATE C
+    SET    CurrentWatermark = U.Watermark
+    FROM   dbo.ChangeFeed AS C
+           INNER JOIN
+           @updatedInstances AS U
+           ON C.PartitionKey = U.PartitionKey
+              AND C.StudyInstanceUid = U.StudyInstanceUid
+              AND C.SeriesInstanceUid = U.SeriesInstanceUid
+              AND C.SopInstanceUid = U.SopInstanceUid;
+    UPDATE dbo.Study
+    SET    PatientId        = ISNULL(@patientId, PatientId),
+           PatientName      = ISNULL(@patientName, PatientName),
+           PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid;
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Study does not exist', 1;
+    COMMIT TRANSACTION;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeed
 @limit INT, @offset BIGINT
 AS
@@ -1725,6 +1819,29 @@ BEGIN
            Watermark,
            TransferSyntaxUid,
            HasFrameMetadata
+    FROM   dbo.Instance
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+           AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+           AND Status = @validStatus;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetInstanceWithPropertiesV32
+@validStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark,
+           TransferSyntaxUid,
+           HasFrameMetadata,
+           OriginalWatermark,
+           NewWatermark
     FROM   dbo.Instance
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid

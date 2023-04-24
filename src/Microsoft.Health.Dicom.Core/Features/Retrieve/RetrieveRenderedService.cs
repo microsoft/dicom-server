@@ -155,8 +155,8 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             }
             else if (!StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
             {
-            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
-        }
+                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            }
         }
 
         return new AcceptHeader(KnownContentTypes.ImageJpeg, PayloadTypes.SinglePart);

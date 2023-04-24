@@ -168,46 +168,52 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
+        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(copyStream);
+        copyStream.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
+        MemoryStream streamAndStoredFileForFrame2 = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
+        streamAndStoredFileForFrame2.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
                DefaultCancellationToken);
 
-        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
-        await streamAndStoredFile.Value.CopyToAsync(copyStream);
-        copyStream.Position = 0;
-        streamAndStoredFile.Value.Position = 0;
         DicomFile dicomFile = await DicomFile.OpenAsync(copyStream, FileReadOption.ReadLargeOnDemand);
         DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
         using var img = dicomImage.RenderImage(0);
         using var sharpImage = img.AsSharpImage();
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-        await sharpImage.SaveAsJpegAsync(resultStream, new JpegEncoder(), DefaultCancellationToken);
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), DefaultCancellationToken);
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
-        MemoryStream streamAndStoredFileForFrame2 = _recyclableMemoryStreamManager.GetStream();
-        await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
-        streamAndStoredFileForFrame2.Position = 0;
-        streamAndStoredFile.Value.Position = 0;
 
+        _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFileForFrame2);
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest2,
                DefaultCancellationToken);
 
-        streamAndStoredFile.Value.Position = 0;
+        copyStream.Position = 0;
         using var img2 = dicomImage.RenderImage(1);
         using var sharpImage2 = img2.AsSharpImage();
-        MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
-        await sharpImage2.SaveAsJpegAsync(resultStream2, new JpegEncoder(), DefaultCancellationToken);
+        using MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage2.SaveAsJpegAsync(resultStream2, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), DefaultCancellationToken);
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
 
-        streamAndStoredFile.Value.Dispose();
+        copyStream.Dispose();
+        streamAndStoredFileForFrame2.Dispose();
+        response.ResponseStream.Dispose();
+        response2.ResponseStream.Dispose();
 
     }
 
@@ -220,40 +226,48 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
+        JpegEncoder jpegEncoder = new JpegEncoder();
+        jpegEncoder.Quality = 50;
+        streamAndStoredFile.Value.Position = 0;
+
+        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(copyStream);
+        copyStream.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
+        MemoryStream streamAndStoredFileForFrame2 = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
+        streamAndStoredFileForFrame2.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 50, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
                DefaultCancellationToken);
-        JpegEncoder jpegEncoder = new JpegEncoder();
-        jpegEncoder.Quality = 50;
-        streamAndStoredFile.Value.Position = 0;
-        DicomFile dicomFile = await DicomFile.OpenAsync(streamAndStoredFile.Value, FileReadOption.ReadLargeOnDemand);
 
         DicomFile dicomFile = await DicomFile.OpenAsync(copyStream, FileReadOption.ReadLargeOnDemand);
         DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
         using var img = dicomImage.RenderImage(0);
         using var sharpImage = img.AsSharpImage();
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
         await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, DefaultCancellationToken);
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 20, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
-        streamAndStoredFile.Value.Position = 0;
 
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFileForFrame2);
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest2,
                DefaultCancellationToken);
-        jpegEncoder.Quality = 20;
-        streamAndStoredFile.Value.Position = 0;
 
         copyStream.Position = 0;
         using var img2 = dicomImage.RenderImage(1);
         using var sharpImage2 = img2.AsSharpImage();
-        MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
+        jpegEncoder.Quality = 20;
         await sharpImage2.SaveAsJpegAsync(resultStream2, jpegEncoder, DefaultCancellationToken);
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
@@ -274,43 +288,52 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
+        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(copyStream);
+        copyStream.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
+        MemoryStream streamAndStoredFileForFrame2 = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(streamAndStoredFileForFrame2);
+        streamAndStoredFileForFrame2.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderPngAcceptHeader() });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
                DefaultCancellationToken);
 
-        streamAndStoredFile.Value.Position = 0;
-        DicomFile dicomFile = await DicomFile.OpenAsync(streamAndStoredFile.Value, FileReadOption.ReadLargeOnDemand);
+        DicomFile dicomFile = await DicomFile.OpenAsync(copyStream, FileReadOption.ReadLargeOnDemand);
         DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
         using var img = dicomImage.RenderImage(0);
         using var sharpImage = img.AsSharpImage();
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
         await sharpImage.SaveAsPngAsync(resultStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), DefaultCancellationToken);
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/png", response.ContentType);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderPngAcceptHeader() });
-        streamAndStoredFile.Value.Position = 0;
 
+        _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFileForFrame2);
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest2,
                DefaultCancellationToken);
-        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
-        await streamAndStoredFile.Value.CopyToAsync(copyStream);
-        copyStream.Position = 0;
 
-        streamAndStoredFile.Value.Position = 0;
+        copyStream.Position = 0;
         using var img2 = dicomImage.RenderImage(1);
         using var sharpImage2 = img2.AsSharpImage();
-        MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream2 = _recyclableMemoryStreamManager.GetStream();
         await sharpImage2.SaveAsPngAsync(resultStream2, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), DefaultCancellationToken);
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/png", response.ContentType);
 
-        streamAndStoredFile.Value.Dispose();
+        copyStream.Dispose();
+        streamAndStoredFileForFrame2.Dispose();
+        response.ResponseStream.Dispose();
+        response2.ResponseStream.Dispose();
 
     }
 
@@ -320,9 +343,15 @@ public class RetrieveRenderedServiceTests
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+
+        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(copyStream);
+        copyStream.Position = 0;
+
+        streamAndStoredFile.Value.Position = 0;
+
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
-
 
         var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, 75, new List<AcceptHeader>());
 
@@ -330,13 +359,12 @@ public class RetrieveRenderedServiceTests
                retrieveRenderedRequest,
                DefaultCancellationToken);
 
-        streamAndStoredFile.Value.Position = 0;
         DicomFile dicomFile = await DicomFile.OpenAsync(copyStream, FileReadOption.ReadLargeOnDemand);
         DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
         using var img = dicomImage.RenderImage(0);
         using var sharpImage = img.AsSharpImage();
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-        await sharpImage.SaveAsJpegAsync(resultStream, new JpegEncoder(), DefaultCancellationToken);
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), DefaultCancellationToken);
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
