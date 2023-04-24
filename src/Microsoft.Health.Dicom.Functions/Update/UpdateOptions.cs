@@ -19,7 +19,6 @@ public class UpdateOptions
     /// <summary>
     /// Gets or sets the number of DICOM instances updated in a single batch inside a activity.
     /// </summary>
-    [Range(1, int.MaxValue)]
     public int BatchSize { get; set; } = 100;
 
     /// <summary>
