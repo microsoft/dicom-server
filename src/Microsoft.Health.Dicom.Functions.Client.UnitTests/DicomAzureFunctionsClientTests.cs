@@ -516,7 +516,7 @@ public class DicomAzureFunctionsClientTests
             .StartNewAsync(
                 FunctionNames.MigrateFiles,
                 instanceId,
-               Arg.Is<MigratingFilesInput>(x => x.StartFilterTimeStamp == now && x.EndFilterTimeStamp == now.AddDays(1)));
+                Arg.Is<MigratingFilesInput>(x => x.StartFilterTimeStamp == now && x.EndFilterTimeStamp == now.AddDays(1)));
         _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
     }
 }

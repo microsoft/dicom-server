@@ -35,6 +35,9 @@
     <None Include="Indexing\ReindexDurableFunctionTests.*.cs">
       <DependentUpon>ReindexDurableFunctionTests.cs</DependentUpon>
     </None>
+    <None Include="Indexing\MigrationDurableFunctionTests.*.cs">
+      <DependentUpon>MigrationDurableFunctionTests.cs</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>
