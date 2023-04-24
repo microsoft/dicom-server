@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -55,6 +56,7 @@ public static class ServiceCollectionExtensions
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
+            .AddFunctionsOptions<MigrationFilesOptions>(configuration, MigrationFilesOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .ConfigureDurableFunctionSerialization()

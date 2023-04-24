@@ -3,15 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+using System;
 
-internal static class FunctionNames
+namespace Microsoft.Health.Dicom.Functions.Migration;
+
+public class MigratingFilesInput
 {
-    public const string DeleteMigratedFiles = "DeleteMigratedFiles";
+    public BatchingOptions Batching { get; set; }
 
-    public const string ExportDicomFiles = "ExportDicomFiles";
+    public DateTime StartFilterTimeStamp { get; set; }
 
-    public const string MigrateFiles = "MigrateFiles";
-
-    public const string ReindexInstances = "ReindexInstances";
+    public DateTime EndFilterTimeStamp { get; set; }
 }
