@@ -28,6 +28,7 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an migrate files operation that copies frame range file from one format to another.
     /// </summary>
+    [IgnoreEnum]
     Migrate,
 
     /// <summary>
