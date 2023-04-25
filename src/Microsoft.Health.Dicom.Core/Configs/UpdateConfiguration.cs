@@ -15,5 +15,5 @@ public class UpdateConfiguration
     /// <summary>
     /// Max size of a large DICOM item. 1MB by default
     /// </summary>
-    public int LargeObjectsizeInBytes { get; set; } = 1024 * 1024;
+    public int LargeDicomItemsizeInBytes { get; set; } = 1024 * 1024;
 }

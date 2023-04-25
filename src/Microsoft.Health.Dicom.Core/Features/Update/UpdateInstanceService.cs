@@ -29,8 +29,9 @@ public class UpdateInstanceService : IUpdateInstanceService
     private readonly IMetadataStore _metadataStore;
     private readonly ILogger<UpdateInstanceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private readonly int _largeObjectsizeInBytes;
+    private readonly int _largeDicomItemSizeInBytes;
     private readonly int _stageBlockSizeInBytes;
+    private const int LargeObjectSizeInBytes = 1000;
 
     public UpdateInstanceService(
         IFileStore fileStore,
@@ -44,7 +45,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
         var configuration = EnsureArg.IsNotNull(updateConfiguration?.Value, nameof(updateConfiguration));
-        _largeObjectsizeInBytes = configuration.LargeObjectsizeInBytes;
+        _largeDicomItemSizeInBytes = configuration.LargeDicomItemsizeInBytes;
         _stageBlockSizeInBytes = configuration.StageBlockSizeInBytes;
     }
 
@@ -93,7 +94,7 @@ public class UpdateInstanceService : IUpdateInstanceService
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, cancellationToken);
-            DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand, _largeObjectsizeInBytes);
+            DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand, LargeObjectSizeInBytes);
 
             long firstBlockLength = stream.Length;
 
@@ -102,11 +103,11 @@ public class UpdateInstanceService : IUpdateInstanceService
             // we assume patient attributes are at the very beginning of the dataset.
             // If in future, we support updating other attributes like private tags, which could appear at the end
             // We need to read the whole file instead of first block.
-            if (stream.Length > _largeObjectsizeInBytes)
+            if (stream.Length > _largeDicomItemSizeInBytes)
             {
                 _logger.LogInformation("Found bigger DICOM item, splitting the file into multiple blocks. {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
-                if (dcmFile.Dataset.TryGetLargeDicomItem(_largeObjectsizeInBytes, _stageBlockSizeInBytes, out DicomItem largeDicomItem))
+                if (dcmFile.Dataset.TryGetLargeDicomItem(_largeDicomItemSizeInBytes, _stageBlockSizeInBytes, out DicomItem largeDicomItem))
                 {
                     RemoveItemsAfter(dcmFile.Dataset, largeDicomItem.Tag);
                 }
