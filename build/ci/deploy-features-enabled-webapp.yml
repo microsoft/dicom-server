@@ -58,3 +58,4 @@ jobs:
       webAppName: '$(deploymentName)-featuresenabled'
       package: '$(System.ArtifactsDirectory)/deploy/Microsoft.Health.Dicom.Web.zip'
       takeAppOfflineFlag: true
+      deploymentType: zipDeploy
