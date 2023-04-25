@@ -39,10 +39,11 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
-  <Target Name="SwaggerPostBuildTarget" AfterTargets="DispatchtoInnerBuilds" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
+  <Target Name="SwaggerPostBuildTarget" AfterTargets="Build" Condition="'$(ContinuousIntegrationBuild)' != 'true'">
     <Exec Command="dotnet tool restore"></Exec>
     <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1"></Exec>
     <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v1-prerelease\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v1-prerelease"></Exec>
+    <Exec Command="dotnet swagger tofile  --yaml --output ..\..\swagger\v2\swagger.yaml $(OutputPath)\Microsoft.Health.Dicom.Web.dll v2"></Exec>
   </Target>
 
 </Project>
