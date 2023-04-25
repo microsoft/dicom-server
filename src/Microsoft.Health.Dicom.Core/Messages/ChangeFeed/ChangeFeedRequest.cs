@@ -1,20 +1,24 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using MediatR;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
 public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
 {
-    public ChangeFeedRequest(long offset, int limit, bool includeMetadata)
+    public ChangeFeedRequest(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata)
     {
+        Range = range;
         Offset = offset;
         Limit = limit;
         IncludeMetadata = includeMetadata;
     }
+
+    public DateTimeOffsetRange Range { get; }
 
     public int Limit { get; }
 

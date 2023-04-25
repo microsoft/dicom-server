@@ -18,51 +18,13 @@ using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
-
-internal class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV4
+internal class SqlChangeFeedStoreV33 : SqlChangeFeedStoreV6
 {
-    public override SchemaVersion Version => SchemaVersion.V6;
+    public override SchemaVersion Version => SchemaVersion.V33;
 
-    public SqlChangeFeedStoreV6(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlChangeFeedStoreV33(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
        : base(sqlConnectionWrapperFactory)
     {
-    }
-
-    public override async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
-    {
-        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
-
-        VLatest.GetChangeFeedLatestV6.PopulateCommand(sqlCommandWrapper);
-
-        using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
-        if (await reader.ReadAsync(cancellationToken))
-        {
-            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader.ReadRow(
-                VLatest.ChangeFeed.Sequence,
-                VLatest.ChangeFeed.Timestamp,
-                VLatest.ChangeFeed.Action,
-                VLatest.Partition.PartitionName,
-                VLatest.ChangeFeed.StudyInstanceUid,
-                VLatest.ChangeFeed.SeriesInstanceUid,
-                VLatest.ChangeFeed.SopInstanceUid,
-                VLatest.ChangeFeed.OriginalWatermark,
-                VLatest.ChangeFeed.CurrentWatermark);
-
-            return new ChangeFeedEntry(
-                    rSeq,
-                    rTimestamp,
-                    (ChangeFeedAction)rAction,
-                    rStudyInstanceUid,
-                    rSeriesInstanceUid,
-                    rSopInstanceUid,
-                    oWatermark,
-                    cWatermark,
-                    ConvertWatermarkToCurrentState(oWatermark, cWatermark),
-                    rPartitionName);
-        }
-
-        return null;
     }
 
     public override async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
@@ -75,7 +37,7 @@ internal class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV4
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetChangeFeedV6.PopulateCommand(sqlCommandWrapper, limit, offset);
+        VLatest.GetChangeFeedV33.PopulateCommand(sqlCommandWrapper, range.Start, range.End, limit, offset);
 
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))

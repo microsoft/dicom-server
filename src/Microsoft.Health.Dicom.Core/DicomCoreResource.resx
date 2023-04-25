@@ -670,4 +670,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>StudyInstanceUids count exceeded maximum length '{0}'</value>
     <comment>{0} StudyInstanceUids max allowed count</comment>
   </data>
+  <data name="TimeRangeEndBeforeStart" xml:space="preserve">
+    <value>The end time must occur strictly after the start time.</value>
+  </data>
 </root>

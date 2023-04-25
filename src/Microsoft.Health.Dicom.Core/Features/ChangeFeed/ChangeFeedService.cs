@@ -3,52 +3,47 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
 public class ChangeFeedService : IChangeFeedService
 {
-    private const int MaxLimit = 100;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
 
     public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore)
     {
-        EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
-        EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-
-        _changeFeedStore = changeFeedStore;
-        _metadataStore = metadataStore;
+        _changeFeedStore = EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
+        _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
     }
 
-    public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(long offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
     {
         if (offset < 0)
         {
-            throw new InvalidChangeFeedOffsetException();
+            throw new ArgumentOutOfRangeException(nameof(offset));
         }
 
-        if (limit < 1 || limit > MaxLimit)
+        if (limit < 1)
         {
-            throw new ChangeFeedLimitOutOfRangeException(MaxLimit);
+            throw new ArgumentOutOfRangeException(nameof(limit));
         }
 
-        IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(offset, limit, cancellationToken);
+        IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, cancellationToken);
 
-        if (!includeMetadata)
+        if (includeMetadata)
         {
-            return changeFeedEntries;
+            await PopulateMetadata(changeFeedEntries, cancellationToken);
         }
-
-        await PopulateMetadata(changeFeedEntries, cancellationToken);
 
         return changeFeedEntries;
     }
@@ -72,14 +67,12 @@ public class ChangeFeedService : IChangeFeedService
 
     private async Task PopulateMetadata(IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries, CancellationToken cancellationToken)
     {
-        await Task.WhenAll(
-                    changeFeedEntries
-                    .Select(x => PopulateMetadata(x, cancellationToken)));
+        await Task.WhenAll(changeFeedEntries.Select(x => PopulateMetadata(x, cancellationToken)));
     }
 
     private async Task PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)
     {
-        if (entry.State == ChangeFeedState.Deleted || entry.CurrentVersion == null)
+        if (entry.CurrentVersion == null)
         {
             return;
         }

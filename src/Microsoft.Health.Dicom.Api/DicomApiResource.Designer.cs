@@ -106,6 +106,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The value is not a valid ISO 8601 timestamp..
+        /// </summary>
+        internal static string InvalidIso8601DateTime {
+            get {
+                return ResourceManager.GetString("InvalidIso8601DateTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error reading the multipart request..
         /// </summary>
         internal static string InvalidMultipartBodyPart {

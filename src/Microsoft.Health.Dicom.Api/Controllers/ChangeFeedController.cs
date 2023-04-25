@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -13,9 +15,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Api.Models.Binding;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -44,13 +50,27 @@ public class ChangeFeedController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ChangeFeed)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
-    public async Task<IActionResult> GetChangeFeed([FromQuery] long offset = 0, [FromQuery] int limit = 10, [FromQuery] bool includeMetadata = true)
+    public async Task<IActionResult> GetChangeFeed(
+        [FromQuery][Range(0, int.MaxValue)] long offset = 0,
+        [FromQuery][Range(1, int.MaxValue)] int? limit = null,
+        [FromQuery][ModelBinder(typeof(Iso8601Binder))] DateTimeOffset? startTime = null,
+        [FromQuery][ModelBinder(typeof(Iso8601Binder))] DateTimeOffset? endTime = null,
+        [FromQuery] bool includeMetadata = true)
     {
-        _logger.LogInformation("Change feed was read with an offset of {Offset} and limit of {Limit} and metadata is {Metadata} included.", offset, limit, includeMetadata ? string.Empty : "not");
+        int updatedLimit = GetLimit(limit, HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 0);
+        var range = new DateTimeOffsetRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
 
-        var response = await _mediator.GetChangeFeed(
+        _logger.LogInformation(
+            "Change feed was read for {Window} with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",
+            range,
             offset,
-            limit,
+            updatedLimit,
+            includeMetadata ? "included" : "not included");
+
+        ChangeFeedResponse response = await _mediator.GetChangeFeed(
+            range,
+            offset,
+            updatedLimit,
             includeMetadata,
             cancellationToken: HttpContext.RequestAborted);
 
@@ -68,10 +88,26 @@ public class ChangeFeedController : ControllerBase
     {
         _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
 
-        var response = await _mediator.GetChangeFeedLatest(
+        ChangeFeedLatestResponse response = await _mediator.GetChangeFeedLatest(
             includeMetadata,
             cancellationToken: HttpContext.RequestAborted);
 
         return StatusCode((int)HttpStatusCode.OK, response.Entry);
+    }
+
+    private static int GetLimit(int? userValue, int majorVersion)
+    {
+        // Default limit for v2 and beyond aligns with QIDO while previous versions used 10
+        const int OldDefault = 10;
+        const int NewDefault = 100;
+        const int OldMax = 100;
+
+        if (majorVersion >= 2)
+            return userValue ?? NewDefault;
+
+        if (userValue >= OldMax)
+            throw new ChangeFeedLimitOutOfRangeException(OldMax);
+
+        return userValue ?? OldDefault;
     }
 }

@@ -1228,6 +1228,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The end time must occur strictly after the start time..
+        /// </summary>
+        internal static string TimeRangeEndBeforeStart {
+            get {
+                return ResourceManager.GetString("TimeRangeEndBeforeStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The transaction UID is missing..
         /// </summary>
         internal static string TransactionUIDAbsent {
