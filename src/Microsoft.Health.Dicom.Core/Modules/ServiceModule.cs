@@ -170,7 +170,7 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.Add<UpdateOperationInstanceService>()
+        services.Add<UpdateInstanceOperationService>()
             .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
