@@ -92,34 +92,33 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         int maxBufferSize = (int)blockLengths.Max(x => x.Value);
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
 
-        try
+        await ExecuteAsync(async () =>
         {
-            foreach (string blockId in blockLengths.Keys)
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
+            try
             {
-                long blockSize = blockLengths[blockId];
+                foreach (string blockId in blockLengths.Keys)
+                {
+                    long blockSize = blockLengths[blockId];
 
-                await stream.ReadAsync(buffer.AsMemory(0, (int)blockSize), cancellationToken);
+                    await stream.ReadAsync(buffer.AsMemory(0, (int)blockSize), cancellationToken);
 
-                using var blockStream = new MemoryStream(buffer);
-                await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
+                    using var blockStream = new MemoryStream(buffer);
+                    await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
 
-                Array.Clear(buffer);
+                    Array.Clear(buffer);
+                }
+
+                await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
             }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+            }
+        });
 
-            await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
-
-            return blobClient.Uri;
-        }
-        catch (Exception ex)
-        {
-            throw new DataStoreException(ex);
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
-        }
+        return blobClient.Uri;
     }
 
     /// <inheritdoc />
@@ -143,18 +142,13 @@ public class BlobFileStore : IFileStore
         if (blockToUpdate == null)
             throw new DataStoreException(DicomBlobResource.BlockNotFound);
 
-        try
-        {
-            stream.Seek(0, SeekOrigin.Begin);
+        stream.Seek(0, SeekOrigin.Begin);
 
+        await ExecuteAsync(async () =>
+        {
             await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
-
             await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            throw new DataStoreException(ex);
-        }
+        });
     }
 
     /// <inheritdoc />
@@ -262,7 +256,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<BinaryData> GetFileInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
+    public async Task<BinaryData> GetFileContentInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 
@@ -287,14 +281,20 @@ public class BlobFileStore : IFileStore
     public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, CancellationToken cancellationToken = default)
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        KeyValuePair<string, long> result = new KeyValuePair<string, long>();
 
-        BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+        await ExecuteAsync(async () =>
+        {
+            BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
-        if (!blockList.CommittedBlocks.Any())
-            throw new DataStoreException(DicomBlobResource.BlockListNotFound);
+            if (!blockList.CommittedBlocks.Any())
+                throw new DataStoreException(DicomBlobResource.BlockListNotFound);
 
-        BlobBlock firstBlock = blockList.CommittedBlocks.FirstOrDefault();
-        return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
+            BlobBlock firstBlock = blockList.CommittedBlocks.First();
+            result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
+        });
+
+        return result;
     }
 
     /// <inheritdoc />

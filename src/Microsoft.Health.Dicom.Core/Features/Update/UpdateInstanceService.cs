@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,8 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -26,19 +29,23 @@ public class UpdateInstanceService : IUpdateInstanceService
     private readonly IMetadataStore _metadataStore;
     private readonly ILogger<UpdateInstanceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private const int LargeObjectsizeInBytes = 1024 * 1024;
-    private const int StageBlockSizeInBytes = 4 * 1024 * 1024;
+    private readonly int _largeObjectsizeInBytes;
+    private readonly int _stageBlockSizeInBytes;
 
     public UpdateInstanceService(
         IFileStore fileStore,
         IMetadataStore metadataStore,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+        IOptions<UpdateConfiguration> updateConfiguration,
         ILogger<UpdateInstanceService> logger)
     {
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        var configuration = EnsureArg.IsNotNull(updateConfiguration?.Value, nameof(updateConfiguration));
+        _largeObjectsizeInBytes = configuration.LargeObjectsizeInBytes;
+        _stageBlockSizeInBytes = configuration.StageBlockSizeInBytes;
     }
 
     /// <inheritdoc />
@@ -70,6 +77,7 @@ public class UpdateInstanceService : IUpdateInstanceService
     {
         long originFileIdentifier = instanceFileIdentifier.Version;
         long newFileIdentifier = instanceFileIdentifier.NewVersion.Value;
+        var stopwatch = new Stopwatch();
 
         KeyValuePair<string, long> block = default;
 
@@ -81,10 +89,11 @@ public class UpdateInstanceService : IUpdateInstanceService
         }
         else
         {
+            stopwatch.Start();
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, cancellationToken);
-            DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
+            DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand, _largeObjectsizeInBytes);
 
             long firstBlockLength = stream.Length;
 
@@ -93,11 +102,11 @@ public class UpdateInstanceService : IUpdateInstanceService
             // we assume patient attributes are at the very beginning of the dataset.
             // If in future, we support updating other attributes like private tags, which could appear at the end
             // We need to read the whole file instead of first block.
-            if (stream.Length > LargeObjectsizeInBytes)
+            if (stream.Length > _largeObjectsizeInBytes)
             {
                 _logger.LogInformation("Found bigger DICOM item, splitting the file into multiple blocks. {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
-                if (dcmFile.Dataset.TryGetLargeDicomItem(LargeObjectsizeInBytes, StageBlockSizeInBytes, out DicomItem largeDicomItem))
+                if (dcmFile.Dataset.TryGetLargeDicomItem(_largeObjectsizeInBytes, _stageBlockSizeInBytes, out DicomItem largeDicomItem))
                 {
                     RemoveItemsAfter(dcmFile.Dataset, largeDicomItem.Tag);
                 }
@@ -115,7 +124,9 @@ public class UpdateInstanceService : IUpdateInstanceService
 
             block = blockLengths.First();
 
-            _logger.LogInformation("Uploading instance file in blocks {FileIdentifier} completed successfully", newFileIdentifier);
+            stopwatch.Stop();
+
+            _logger.LogInformation("Uploading instance file in blocks {FileIdentifier} completed successfully. {TotalTimeTakenInMs}", newFileIdentifier, stopwatch.ElapsedMilliseconds);
         }
 
         await UpdateDatasetInFileAsync(newFileIdentifier, datasetToUpdate, block, cancellationToken);
@@ -138,15 +149,17 @@ public class UpdateInstanceService : IUpdateInstanceService
 
     private async Task UpdateDatasetInFileAsync(long newFileIdentifier, DicomDataset datasetToUpdate, KeyValuePair<string, long> block = default, CancellationToken cancellationToken = default)
     {
+        var stopwatch = new Stopwatch();
         _logger.LogInformation("Begin updating new file {NewFileIdentifier}", newFileIdentifier);
 
+        stopwatch.Start();
         // If the block is not provided, then we need to get the first block to update the dataset
         if (block.Key is null)
         {
             block = await _fileStore.GetFirstBlockPropertyAsync(newFileIdentifier, cancellationToken);
         }
 
-        BinaryData data = await _fileStore.GetFileInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
+        BinaryData data = await _fileStore.GetFileContentInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
 
         using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(data);
         DicomFile dicomFile = await DicomFile.OpenAsync(stream);
@@ -157,19 +170,21 @@ public class UpdateInstanceService : IUpdateInstanceService
 
         await _fileStore.UpdateFileBlockAsync(newFileIdentifier, block.Key, resultStream, cancellationToken);
 
-        _logger.LogInformation("Updating new file {NewFileIdentifier} completed successfully", newFileIdentifier);
+        stopwatch.Stop();
+
+        _logger.LogInformation("Updating new file {NewFileIdentifier} completed successfully. {TotalTimeTakenInMs}", newFileIdentifier, stopwatch.ElapsedMilliseconds);
     }
 
-    private static IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength)
+    private IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength)
     {
         var blockLengths = new Dictionary<string, long>();
         long fileSizeWithoutFirstBlock = streamLength - initialBlockLength;
-        int numStagesWithoutFirstBlock = (int)Math.Ceiling((double)fileSizeWithoutFirstBlock / StageBlockSizeInBytes) + 1;
+        int numStagesWithoutFirstBlock = (int)Math.Ceiling((double)fileSizeWithoutFirstBlock / _stageBlockSizeInBytes) + 1;
 
         long bytesRead = 0;
         for (int i = 0; i < numStagesWithoutFirstBlock; i++)
         {
-            long blockSize = i == 0 ? initialBlockLength : Math.Min(StageBlockSizeInBytes, streamLength - bytesRead);
+            long blockSize = i == 0 ? initialBlockLength : Math.Min(_stageBlockSizeInBytes, streamLength - bytesRead);
             string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
             blockLengths.Add(blockId, blockSize);
             bytesRead += blockSize;

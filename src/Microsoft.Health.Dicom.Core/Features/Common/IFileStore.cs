@@ -87,7 +87,7 @@ public interface IFileStore
     /// <param name="range">Byte range in Httprange format with offset and length</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    Task<BinaryData> GetFileInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken);
+    Task<BinaryData> GetFileContentInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken);
 
     /// <summary>
     /// Asynchronously updates a block in a blob.
