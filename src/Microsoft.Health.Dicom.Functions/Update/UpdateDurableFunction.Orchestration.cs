@@ -86,6 +86,7 @@ public partial class UpdateDurableFunction
                         nameof(CompleteUpdateInstanceAsync),
                         _options.RetryOptions,
                         new CompleteInstanceArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                    _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
                 }
                 catch (FunctionFailedException ex)
                 {

@@ -140,7 +140,6 @@ public partial class UpdateDurableFunction
                     async (instance, token) =>
                     {
                         await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, token);
-                        _updateMeter.UpdatedInstances.Add(1);
                     });
 
                 logger.LogInformation("Completed updating instance blobs starting with {StartingRange} and {EndingRange}. Total batchSize {BatchSize}.",
