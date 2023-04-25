@@ -47,22 +47,20 @@ public static class AcceptHeaderHelpers
           quality: quality);
     }
 
-    public static AcceptHeader CreateRenderJpegAcceptHeader(string transferSyntax = "*", string mediaType = KnownContentTypes.ImageJpeg, double? quality = null, PayloadTypes payloadType = PayloadTypes.SinglePart)
+    public static AcceptHeader CreateRenderJpegAcceptHeader(string transferSyntax = "*", string mediaType = KnownContentTypes.ImageJpeg, PayloadTypes payloadType = PayloadTypes.SinglePart)
     {
         return CreateAcceptHeader(
           transferSyntax: transferSyntax,
           payloadType: payloadType,
-          mediaType: mediaType,
-          quality: quality);
+          mediaType: mediaType);
     }
 
-    public static AcceptHeader CreateRenderPngAcceptHeader(string transferSyntax = "*", string mediaType = KnownContentTypes.ImagePng, double? quality = null, PayloadTypes payloadType = PayloadTypes.SinglePart)
+    public static AcceptHeader CreateRenderPngAcceptHeader(string transferSyntax = "*", string mediaType = KnownContentTypes.ImagePng, PayloadTypes payloadType = PayloadTypes.SinglePart)
     {
         return CreateAcceptHeader(
           transferSyntax: transferSyntax,
           payloadType: payloadType,
-          mediaType: mediaType,
-          quality: quality);
+          mediaType: mediaType);
     }
 
 
