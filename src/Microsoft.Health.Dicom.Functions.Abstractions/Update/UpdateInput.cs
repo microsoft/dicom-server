@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
+
 public class UpdateInput
 {
     public int PartitionKey { get; set; }

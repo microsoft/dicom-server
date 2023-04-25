@@ -41,18 +41,7 @@
     <None Include="Indexing\ReindexDurableFunction.*.cs">
       <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Update\ReindexDurableFunction.Activity.cs" />
-    <Compile Remove="Update\ReindexDurableFunction.Orchestration.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Update\UpdateDurableFunction.Activity.cs">
-      <DependentUpon>UpdateDurableFunction.cs</DependentUpon>
-    </None>
-    <None Include="Update\UpdateDurableFunction.Orchestration.cs">
+    <None Include="Update\UpdateDurableFunction.*.cs">
       <DependentUpon>UpdateDurableFunction.cs</DependentUpon>
     </None>
   </ItemGroup>

@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
+
 public class UpdateResult
 {
     public int StudyUpdated { get; }

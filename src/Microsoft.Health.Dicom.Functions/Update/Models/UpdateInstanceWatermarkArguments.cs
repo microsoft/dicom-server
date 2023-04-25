@@ -6,14 +6,14 @@
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
 /// <summary>
-///  Represents input to <see cref="UpdateDurableFunction.GetInstanceWatermarksInStudyAsync"/>
+/// Represents input to <see cref="UpdateDurableFunction.UpdateInstanceWatermarkAsync"/>
 /// </summary>
-public class GetInstanceArguments
+public class UpdateInstanceWatermarkArguments
 {
     public int PartitionKey { get; }
     public string StudyInstanceUid { get; }
 
-    public GetInstanceArguments(int partitionKey, string studyInstanceUid)
+    public UpdateInstanceWatermarkArguments(int partitionKey, string studyInstanceUid)
     {
         PartitionKey = partitionKey;
         StudyInstanceUid = studyInstanceUid;

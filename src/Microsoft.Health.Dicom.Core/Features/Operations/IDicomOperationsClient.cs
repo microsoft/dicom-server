@@ -114,7 +114,7 @@ public interface IDicomOperationsClient
     /// to the newly started operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="updateSpecification"/> or <paramref name="partitionKey"/> is <see langword="null"/>.
+    /// <paramref name="updateSpecification"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default);

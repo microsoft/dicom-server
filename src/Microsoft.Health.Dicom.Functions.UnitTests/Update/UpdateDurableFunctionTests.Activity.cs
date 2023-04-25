@@ -22,41 +22,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 public partial class UpdateDurableFunctionTests
 {
     [Fact]
-    public async Task GivenInstanceMetadata_WhenGettingInstances_ThenShouldMatchCorrectly()
-    {
-        var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid);
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(
-            DefaultPartition.Key,
-            studyInstanceUid,
-            cancellationToken: CancellationToken.None)
-            .Returns(identifiers);
-
-        IReadOnlyList<InstanceFileIdentifier> expected = identifiers.Select(x =>
-            new InstanceFileIdentifier
-            {
-                Version = x.VersionedInstanceIdentifier.Version,
-                OriginalVersion = x.InstanceProperties.OriginalVersion,
-                NewVersion = x.InstanceProperties.NewVersion
-            }).ToList();
-
-        IReadOnlyList<InstanceFileIdentifier> actual = await _updateDurableFunction.GetInstanceWatermarksInStudyAsync(
-            new GetInstanceArguments(DefaultPartition.Key, studyInstanceUid),
-            NullLogger.Instance);
-
-        for (int i = 0; i < expected.Count; i++)
-        {
-            Assert.Equal(expected[i].Version, actual[i].Version);
-            Assert.Equal(expected[i].OriginalVersion, actual[i].OriginalVersion);
-            Assert.Equal(expected[i].NewVersion, actual[i].NewVersion);
-        }
-
-        await _instanceStore
-            .Received(1)
-            .GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, studyInstanceUid, cancellationToken: CancellationToken.None);
-    }
-
-    [Fact]
     public async Task GivenInstanceMetadata_WhenUpdatingInstanceWatermark_ThenShouldMatchCorrectly()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
@@ -71,17 +36,15 @@ public partial class UpdateDurableFunctionTests
 
         var versions = expected.Select(x => x.Version).ToList();
 
-        var dataset = "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}";
-
-        _indexStore.BeginUpdateInstanceAsync(DefaultPartition.Key, Arg.Is<IReadOnlyCollection<long>>(x => x.Count == versions.Count), CancellationToken.None).Returns(identifiers);
+        _indexStore.BeginUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
         IReadOnlyList<InstanceFileIdentifier> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
-            new BatchUpdateArguments(DefaultPartition.Key, expected, dataset),
+            new UpdateInstanceWatermarkArguments(DefaultPartition.Key, studyInstanceUid),
             NullLogger.Instance);
 
         await _indexStore
            .Received(1)
-           .BeginUpdateInstanceAsync(DefaultPartition.Key, Arg.Is<IReadOnlyCollection<long>>(x => x.Count == versions.Count), cancellationToken: CancellationToken.None);
+           .BeginUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUid, cancellationToken: CancellationToken.None);
 
         for (int i = 0; i < expected.Count; i++)
         {
@@ -117,8 +80,8 @@ public partial class UpdateDurableFunctionTests
                 .Returns(Task.CompletedTask);
         }
 
-        await _updateDurableFunction.UpdateInstanceBatchAsync(
-            new BatchUpdateArguments(DefaultPartition.Key, expected, dataset),
+        await _updateDurableFunction.UpdateInstanceBlobsAsync(
+            new UpdateInstanceBlobArguments(DefaultPartition.Key, expected, dataset),
             NullLogger.Instance);
 
         foreach (var instance in expected)
@@ -144,8 +107,8 @@ public partial class UpdateDurableFunctionTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        await _updateDurableFunction.CompleteUpdateInstanceAsync(
-            new CompleteInstanceArguments(DefaultPartition.Key, studyInstanceUid, "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}"),
+        await _updateDurableFunction.CompleteUpdateStudyAsync(
+            new CompleteStudyArguments(DefaultPartition.Key, studyInstanceUid, "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}"),
             NullLogger.Instance);
 
         await _indexStore

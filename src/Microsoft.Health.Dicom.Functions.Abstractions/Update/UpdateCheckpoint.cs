@@ -13,13 +13,13 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.Health.Dicom.Functions.Update;
 
 /// <summary>
-/// Represents the state of the reindexing orchestration that is serialized in the input.
+/// Represents the state of the update orchestration that is serialized in the input.
 /// </summary>
 public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 {
     public int NumberOfStudyCompleted { get; set; }
 
-    public int? TotalNumberOfStudies { get; set; }
+    public int TotalNumberOfStudies => StudyInstanceUids?.Count ?? 0;
 
     public int TotalNumberOfInstanceUpdated { get; set; }
 
@@ -34,14 +34,12 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
     {
         get
         {
-            if (TotalNumberOfStudies.HasValue)
+            if (NumberOfStudyCompleted > 0)
             {
-                return NumberOfStudyCompleted == TotalNumberOfStudies.Value ? 100 : (int)(((double)(NumberOfStudyCompleted) / TotalNumberOfStudies.Value) * 100);
+                return NumberOfStudyCompleted == TotalNumberOfStudies ? 100 : (int)(((double)(NumberOfStudyCompleted) / TotalNumberOfStudies) * 100);
             }
-            else
-            {
-                return 0;
-            }
+
+            return 0;
         }
     }
 
