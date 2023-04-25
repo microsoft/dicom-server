@@ -71,7 +71,7 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         var studyInstanceUid1 = TestUidGenerator.Generate();
         var studyInstanceUid2 = TestUidGenerator.Generate();
 
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1);
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 200, columns: 200, frames: 10);
         DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid1);
         DicomFile dicomFile3 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid2);
 
@@ -100,16 +100,28 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
             Assert.Equal("New^PatientName", dicomDataset.GetSingleValue<string>(DicomTag.PatientName));
         }
 
-        // Verify instance
+        await VerifyInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
+
+        // Update again to ensure DICOM file is not corrupted after update
+        datasetToUpdate.AddOrUpdate(DicomTag.PatientName, "New^PatientName1");
+#pragma warning disable CS0618
+        Assert.Equal(OperationStatus.Completed, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid1 }, datasetToUpdate));
+#pragma warning restore CS0618
+
+        await VerifyInstance(studyInstanceUid1, dicomFile1, "New^PatientName1");
+    }
+
+    private async Task VerifyInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName)
+    {
         using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
-            studyInstanceUid1,
-            dicomFile1.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
-            dicomFile1.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+            studyInstanceUid,
+            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             dicomTransferSyntax: "*");
 
         DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
 
-        Assert.Equal("New^PatientName", retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
+        Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
