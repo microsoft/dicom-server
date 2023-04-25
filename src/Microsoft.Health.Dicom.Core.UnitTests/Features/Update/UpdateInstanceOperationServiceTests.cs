@@ -77,7 +77,7 @@ public class UpdateInstanceOperationServiceTests
         _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         var response = await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
-        Assert.Equal(expected.Href.ToString(), response.Href.ToString());
+        Assert.Equal(expected.Href.ToString(), response.Operation.Href.ToString());
     }
 
     private static Expression<Predicate<OperationQueryCondition<DicomOperation>>> GetOperationPredicate()
