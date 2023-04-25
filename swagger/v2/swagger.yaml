@@ -625,50 +625,6 @@ paths:
             application/json:
               schema:
                 type: string
-  /v2/export:
-    post:
-      tags:
-        - Export
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ExportSpecification'
-        required: true
-      responses:
-        '202':
-          description: Accepted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationReference'
-        '400':
-          description: Bad Request
-  '/v2/partitions/{partitionName}/export':
-    post:
-      tags:
-        - Export
-      parameters:
-        - name: partitionName
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ExportSpecification'
-        required: true
-      responses:
-        '202':
-          description: Accepted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OperationReference'
-        '400':
-          description: Bad Request
   /v2/extendedquerytags:
     post:
       tags:
@@ -3156,39 +3112,6 @@ components:
           type: integer
           format: int32
           readOnly: true
-      additionalProperties: false
-    ExportDestinationType:
-      enum:
-        - unknown
-        - azureBlob
-      type: string
-    ExportDestinationTypeExportDataOptions:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/ExportDestinationType'
-      additionalProperties: false
-    ExportSourceType:
-      enum:
-        - unknown
-        - identifiers
-      type: string
-    ExportSourceTypeExportDataOptions:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/ExportSourceType'
-      additionalProperties: false
-    ExportSpecification:
-      required:
-        - destination
-        - source
-      type: object
-      properties:
-        source:
-          $ref: '#/components/schemas/ExportSourceTypeExportDataOptions'
-        destination:
-          $ref: '#/components/schemas/ExportDestinationTypeExportDataOptions'
       additionalProperties: false
     ExtendedQueryTagError:
       type: object

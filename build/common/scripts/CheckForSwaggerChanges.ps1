@@ -35,8 +35,8 @@ foreach ($Version in $Versions)
         Write-Host "Directory $ProjectSwaggerDir did not exist. Directory created."
     }
 
-    Write-Host "Generating swagger yaml file for $Version"
     $WritePath=(Join-Path -Path "$SwaggerDir" -ChildPath "$Version.yaml")
+    Write-Host "Generating swagger yaml file for $Version to path $WritePath"
 
     dotnet swagger tofile --yaml --output $WritePath "$AssemblyDir" $Version
 
