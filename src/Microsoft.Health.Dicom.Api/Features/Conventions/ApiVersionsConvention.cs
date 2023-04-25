@@ -38,7 +38,7 @@ internal class ApiVersionsConvention : IControllerConvention
     /// When upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove from here.
     /// </summary>
     private static readonly IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>()
-    {};
+    { };
 
     private const int CurrentVersion = 2;
     private readonly bool _isLatestApiVersionEnabled;
