@@ -7,18 +7,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Routing;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
-public class UpdateOperationInstanceService : IUpdateOperationInstanceService
+public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
@@ -35,7 +37,7 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         }
     };
 
-    public UpdateOperationInstanceService(
+    public UpdateInstanceOperationService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IUrlResolver iUrlResolver,
@@ -52,7 +54,7 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         _contextAccessor = contextAccessor;
     }
 
-    public async Task<OperationReference> QueueUpdateOperationAsync(
+    public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
         UpdateSpecification updateSpecification,
         CancellationToken cancellationToken)
     {
@@ -60,7 +62,12 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
         EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
 
         UpdateRequestValidator.ValidateRequest(updateSpecification);
-        UpdateRequestValidator.ValidateDicomDataset(updateSpecification.ChangeDataset);
+        DicomDataset failedSop = UpdateRequestValidator.ValidateDicomDataset(updateSpecification.ChangeDataset);
+
+        if (failedSop.Any())
+        {
+            return new UpdateInstanceResponse(failedSop);
+        }
 
         OperationReference activeOperation = await _client
             .FindOperationsAsync(Query, cancellationToken)
@@ -71,6 +78,6 @@ public class UpdateOperationInstanceService : IUpdateOperationInstanceService
 
         var operationId = _guidFactory.Create();
         var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
-        return operation;
+        return new UpdateInstanceResponse(operation);
     }
 }
