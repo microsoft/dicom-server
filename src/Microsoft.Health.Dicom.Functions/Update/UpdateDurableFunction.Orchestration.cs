@@ -69,7 +69,7 @@ public partial class UpdateDurableFunction
                         _options.RetryOptions,
                         new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
 
-                    _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
+                    _updateMeter.UpdatedInstances.Add(1);
                 }
                 catch (FunctionFailedException ex)
                 {
