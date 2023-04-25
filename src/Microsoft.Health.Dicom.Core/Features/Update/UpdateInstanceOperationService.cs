@@ -8,12 +8,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
@@ -54,7 +56,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         _logger = logger;
     }
 
-    public async Task<OperationReference> QueueUpdateOperationAsync(
+    public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
         UpdateSpecification updateSpecification,
         CancellationToken cancellationToken)
     {
@@ -62,7 +64,12 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
 
         UpdateRequestValidator.ValidateRequest(updateSpecification);
-        UpdateRequestValidator.ValidateDicomDataset(updateSpecification.ChangeDataset);
+        DicomDataset failedSop = UpdateRequestValidator.ValidateDicomDataset(updateSpecification.ChangeDataset);
+
+        if (failedSop.Any())
+        {
+            return new UpdateInstanceResponse(failedSop);
+        }
 
         OperationReference activeOperation = await _client
             .FindOperationsAsync(Query, cancellationToken)
@@ -80,7 +87,8 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 
         try
         {
-            return await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)
         {

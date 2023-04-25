@@ -24,14 +24,14 @@ using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Update;
-public class UpdateOperationInstanceServiceTests
+public class UpdateInstanceOperationServiceTests
 {
     private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IDicomRequestContextAccessor _contextAccessor;
 
-    public UpdateOperationInstanceServiceTests()
+    public UpdateInstanceOperationServiceTests()
     {
         _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
