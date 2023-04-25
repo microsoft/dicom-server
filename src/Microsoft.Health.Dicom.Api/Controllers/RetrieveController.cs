@@ -172,7 +172,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for instance received");
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, HttpContext.Request.GetAcceptHeaders(), quality, HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, HttpContext.Request.GetAcceptHeaders(), jpegQuality, HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -244,7 +244,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received");
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, HttpContext.Request.GetAcceptHeaders(), quality, HttpContext.RequestAborted, frame);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, HttpContext.Request.GetAcceptHeaders(), jpegQuality, HttpContext.RequestAborted, frame);
 
         return CreateResult(response);
     }

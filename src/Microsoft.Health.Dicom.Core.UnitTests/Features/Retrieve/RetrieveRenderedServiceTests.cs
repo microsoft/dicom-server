@@ -71,7 +71,7 @@ public class RetrieveRenderedServiceTests
     }
 
     [Fact]
-    public async Task GivenARequestWithMultipleAcceptHeaders_WhenHandlerIsExecuted_ThenNotAcceptableExceptionExceptionIsThrown()
+    public async Task GivenARequestWithMultipleAcceptHeaders_WhenServiceIsExecuted_ThenNotAcceptableExceptionExceptionIsThrown()
     {
         const string expectedErrorMessage = "The request contains multiple accept headers, which is not supported.";
 
@@ -85,7 +85,7 @@ public class RetrieveRenderedServiceTests
     }
 
     [Fact]
-    public async Task GivenARequestWithInvalidAcceptHeader_WhenHandlerIsExecuted_ThenNotAcceptableExceptionExceptionIsThrown()
+    public async Task GivenARequestWithInvalidAcceptHeader_WhenServiceIsExecuted_ThenNotAcceptableExceptionExceptionIsThrown()
     {
         const string expectedErrorMessage = "The request headers are not acceptable";
 
