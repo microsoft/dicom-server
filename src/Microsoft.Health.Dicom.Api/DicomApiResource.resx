@@ -136,7 +136,8 @@
     <comment>{0} valid value set.</comment>
   </data>
   <data name="InvalidIso8601DateTime" xml:space="preserve">
-    <value>The value is not a valid ISO 8601 timestamp.</value>
+    <value>The value '{0}' is not a valid ISO 8601 timestamp.</value>
+    <comment>{0} value</comment>
   </data>
   <data name="InvalidMultipartBodyPart" xml:space="preserve">
     <value>There was an error reading the multipart request.</value>

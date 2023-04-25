@@ -24,10 +24,16 @@ internal class Iso8601Binder : IModelBinder
             bindingContext.ModelState.SetModelValue(modelName, result);
 
             string value = result.FirstValue;
-            if (DateTimeOffset.TryParseExact(value, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset dto))
+            if (DateTimeOffset.TryParseExact(value, "O", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset dto))
+            {
                 bindingContext.Result = ModelBindingResult.Success(dto);
+            }
             else
-                bindingContext.ModelState.TryAddModelError(modelName, DicomApiResource.InvalidIso8601DateTime);
+            {
+                bindingContext.ModelState.TryAddModelError(
+                    modelName,
+                    string.Format(CultureInfo.CurrentCulture, DicomApiResource.InvalidIso8601DateTime, value));
+            }
         }
 
         return Task.CompletedTask;

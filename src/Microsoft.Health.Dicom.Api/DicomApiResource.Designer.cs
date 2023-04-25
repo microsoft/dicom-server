@@ -106,7 +106,7 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The value is not a valid ISO 8601 timestamp..
+        ///   Looks up a localized string similar to The value &apos;{0}&apos; is not a valid ISO 8601 timestamp..
         /// </summary>
         internal static string InvalidIso8601DateTime {
             get {
