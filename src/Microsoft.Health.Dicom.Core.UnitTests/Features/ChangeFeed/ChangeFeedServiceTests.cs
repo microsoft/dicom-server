@@ -56,9 +56,9 @@ public class ChangeFeedServiceTests
         var range = new DateTimeOffsetRange(DateTimeOffset.UtcNow, DateTime.UtcNow.AddHours(1));
         var expected = new List<ChangeFeedEntry>
         {
-            new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, 1, ChangeFeedState.Current),
-            new ChangeFeedEntry(2, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 2, 2, ChangeFeedState.Deleted),
-            new ChangeFeedEntry(3, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 3, 4, ChangeFeedState.Replaced),
+            new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, 101, ChangeFeedState.Current),
+            new ChangeFeedEntry(2, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 102, null, ChangeFeedState.Deleted),
+            new ChangeFeedEntry(3, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 103, 104, ChangeFeedState.Replaced),
         };
         var expectedDataset1 = new DicomDataset();
         var expectedDataset3 = new DicomDataset();
@@ -66,15 +66,15 @@ public class ChangeFeedServiceTests
         using var tokenSource = new CancellationTokenSource();
 
         _changeFeedStore.GetChangeFeedAsync(range, offset, limit, tokenSource.Token).Returns(expected);
-        _metadataStore.GetInstanceMetadataAsync(1, tokenSource.Token).Returns(expectedDataset1);
-        _metadataStore.GetInstanceMetadataAsync(3, tokenSource.Token).Returns(expectedDataset3);
+        _metadataStore.GetInstanceMetadataAsync(101, tokenSource.Token).Returns(expectedDataset1);
+        _metadataStore.GetInstanceMetadataAsync(104, tokenSource.Token).Returns(expectedDataset3);
 
-        IReadOnlyCollection<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, false, tokenSource.Token);
+        IReadOnlyCollection<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, true, tokenSource.Token);
 
         await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, tokenSource.Token);
-        await _metadataStore.Received(1).GetInstanceMetadataAsync(1, tokenSource.Token);
-        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(2, tokenSource.Token);
-        await _metadataStore.Received(1).GetInstanceMetadataAsync(3, tokenSource.Token);
+        await _metadataStore.Received(1).GetInstanceMetadataAsync(101, tokenSource.Token);
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(102, tokenSource.Token);
+        await _metadataStore.Received(1).GetInstanceMetadataAsync(104, tokenSource.Token);
 
         Assert.Same(expected, actual);
         Assert.Same(expectedDataset1, expected[0].Metadata);
@@ -85,7 +85,7 @@ public class ChangeFeedServiceTests
     [Fact]
     public async Task GivenChangeFeed_WhenFetchingLatestWithoutMetadata_ThenOnlyCheckStore()
     {
-        var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, 1, ChangeFeedState.Current);
+        var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, 101, ChangeFeedState.Current);
         using var tokenSource = new CancellationTokenSource();
 
         _changeFeedStore.GetChangeFeedLatestAsync(tokenSource.Token).Returns(expected);
@@ -101,7 +101,7 @@ public class ChangeFeedServiceTests
     [Fact]
     public async Task GivenChangeFeed_WhenFetchingLatestDeletedWithMetadata_ThenSkipMetadata()
     {
-        var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, null, ChangeFeedState.Deleted);
+        var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, null, ChangeFeedState.Deleted);
         using var tokenSource = new CancellationTokenSource();
 
         _changeFeedStore.GetChangeFeedLatestAsync(tokenSource.Token).Returns(expected);

@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;

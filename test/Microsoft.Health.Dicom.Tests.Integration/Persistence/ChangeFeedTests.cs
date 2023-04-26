@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -55,6 +56,30 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         // delete and validate
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateNoChangeFeed(dicomInstanceIdentifier);
+    }
+
+    [Fact]
+    public async Task GivenRecords_WhenQueryWithWindows_ThenScopeResults()
+    {
+        // Insert data over time
+        DateTimeOffset start = DateTimeOffset.UtcNow;
+        await Task.Delay(1000);
+
+        DateTimeOffset middle = DateTimeOffset.UtcNow;
+        var instance1 = await CreateInstance();
+        await Task.Delay(1000);
+
+        DateTimeOffset end = DateTimeOffset.UtcNow;
+        var instance2 = await CreateInstance();
+        var instance3 = await CreateInstance();
+
+        // Fetch changes outside of the range
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(DateTimeOffsetRange.Before(start), 0, 100));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(new DateTimeOffsetRange(middle, middle.AddMilliseconds(1)), 1, 100));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(DateTimeOffsetRange.After(end.AddMinutes(1)), 0, 100));
+
+        // TODO: Write more scenarios
+
     }
 
     private async Task ValidateInsertFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)

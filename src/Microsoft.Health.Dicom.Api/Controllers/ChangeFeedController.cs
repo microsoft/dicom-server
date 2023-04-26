@@ -50,14 +50,14 @@ public class ChangeFeedController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ChangeFeed)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
-    public async Task<IActionResult> GetChangeFeed(
+    public async Task<IActionResult> GetChangeFeedAsync(
         [FromQuery][Range(0, int.MaxValue)] long offset = 0,
         [FromQuery][Range(1, int.MaxValue)] int? limit = null,
         [FromQuery][ModelBinder(typeof(Iso8601Binder))] DateTimeOffset? startTime = null,
         [FromQuery][ModelBinder(typeof(Iso8601Binder))] DateTimeOffset? endTime = null,
         [FromQuery] bool includeMetadata = true)
     {
-        int updatedLimit = GetLimit(limit, HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 0);
+        int updatedLimit = GetLimit(limit, HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1);
         var range = new DateTimeOffsetRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
 
         _logger.LogInformation(
@@ -84,7 +84,7 @@ public class ChangeFeedController : ControllerBase
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.ChangeFeedLatest)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
-    public async Task<IActionResult> GetChangeFeedLatest([FromQuery] bool includeMetadata = true)
+    public async Task<IActionResult> GetChangeFeedLatestAsync([FromQuery] bool includeMetadata = true)
     {
         _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
 
@@ -101,13 +101,17 @@ public class ChangeFeedController : ControllerBase
         const int OldDefault = 10;
         const int NewDefault = 100;
         const int OldMax = 100;
+        const int NewMax = 200;
 
-        if (majorVersion >= 2)
-            return userValue ?? NewDefault;
+        (int defaultValue, int maxValue) = majorVersion switch
+        {
+            1 => (OldDefault, OldMax),
+            _ => (NewDefault, NewMax),
+        };
 
-        if (userValue >= OldMax)
-            throw new ChangeFeedLimitOutOfRangeException(OldMax);
+        if (userValue > maxValue)
+            throw new ChangeFeedLimitOutOfRangeException(maxValue);
 
-        return userValue ?? OldDefault;
+        return userValue ?? defaultValue;
     }
 }

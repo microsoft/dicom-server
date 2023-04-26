@@ -41,4 +41,10 @@ public readonly struct DateTimeOffsetRange : IEquatable<DateTimeOffsetRange>
 
     public static bool operator !=(DateTimeOffsetRange left, DateTimeOffsetRange right)
         => !left.Equals(right);
+
+    public static DateTimeOffsetRange After(DateTimeOffset start)
+        => new DateTimeOffsetRange(start, DateTimeOffset.MaxValue);
+
+    public static DateTimeOffsetRange Before(DateTimeOffset end)
+        => new DateTimeOffsetRange(DateTimeOffset.MinValue, end);
 }
