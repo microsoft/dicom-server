@@ -98,23 +98,21 @@ public class BlobFileStore : IFileStore
             byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
             try
             {
-                foreach (string blockId in blockLengths.Keys)
+                foreach ((string blockId, long blockSize) in blockLengths)
                 {
-                    long blockSize = blockLengths[blockId];
+#pragma warning disable CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+                    await stream.ReadAsync(buffer, 0, (int)blockSize, cancellationToken);
+#pragma warning restore CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
 
-                    await stream.ReadAsync(buffer.AsMemory(0, (int)blockSize), cancellationToken);
-
-                    using var blockStream = new MemoryStream(buffer);
+                    using var blockStream = new MemoryStream(buffer, 0, (int)blockSize);
                     await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
-
-                    Array.Clear(buffer);
                 }
 
                 await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+                ArrayPool<byte>.Shared.Return(buffer);
             }
         });
 

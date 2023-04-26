@@ -16,11 +16,11 @@ public sealed class UpdateInstanceBlobArguments
 {
     public int PartitionKey { get; }
 
-    public IReadOnlyList<InstanceFileIdentifier> InstanceWatermarks { get; }
+    public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
 
     public string ChangeDataset { get; }
 
-    public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileIdentifier> instanceWatermarks, string changeDataset)
+    public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
     {
         PartitionKey = partitionKey;
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));

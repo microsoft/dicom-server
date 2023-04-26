@@ -14,6 +14,4 @@ public class UpdateInput
     public IReadOnlyList<string> StudyInstanceUids { get; set; }
 
     public string ChangeDataset { get; set; }
-
-    public BatchingOptions Batching { get; set; }
 }

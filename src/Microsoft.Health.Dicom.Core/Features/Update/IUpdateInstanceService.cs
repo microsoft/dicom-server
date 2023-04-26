@@ -23,7 +23,7 @@ public interface IUpdateInstanceService
     /// <exception cref="ArgumentNullException">
     /// <paramref name="datasetToUpdate"/> is <see langword="null"/>.
     /// </exception>
-    public Task UpdateInstanceBlobAsync(InstanceFileIdentifier instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
+    public Task UpdateInstanceBlobAsync(InstanceFileState instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes old blob

@@ -194,7 +194,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             operationId.ToString(OperationId.FormatSpecifier),
             new UpdateInput
             {
-                Batching = _options.Update.Batching,
                 PartitionKey = partitionKey,
                 ChangeDataset = datasetToUpdate,
                 StudyInstanceUids = updateSpecification.StudyInstanceUids,

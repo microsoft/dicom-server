@@ -286,7 +286,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
         // Update the instances with newWatermark
-        await _indexDataStore.BeginUpdateInstanceAsync(instance1.PartitionKey, studyInstanceUID1);
+        await _indexDataStore.BeginUpdateInstancesAsync(instance1.PartitionKey, studyInstanceUID1);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");

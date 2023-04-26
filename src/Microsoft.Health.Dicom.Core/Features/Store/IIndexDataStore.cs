@@ -141,7 +141,7 @@ public interface IIndexDataStore
     /// <param name="studyInstanceUid">StudyInstanceUID to update</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that with list of instance metadata with new watermark.</returns>
-    Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously bulk update all instances in a study, and update extendedquerytag with new watermark.

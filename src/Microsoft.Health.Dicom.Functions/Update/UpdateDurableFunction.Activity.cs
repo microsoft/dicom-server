@@ -34,7 +34,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceWatermarkAsync))]
-    public async Task<IReadOnlyList<InstanceFileIdentifier>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
+    public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
@@ -42,12 +42,12 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
-        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstanceAsync(arguments.PartitionKey, arguments.StudyInstanceUid, CancellationToken.None);
+        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstancesAsync(arguments.PartitionKey, arguments.StudyInstanceUid, CancellationToken.None);
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
         return instanceMetadata.Select(x =>
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = x.VersionedInstanceIdentifier.Version,
                 OriginalVersion = x.InstanceProperties.OriginalVersion,
@@ -85,32 +85,29 @@ public partial class UpdateDurableFunction
             int batchSize = Math.Min(_options.BatchSize, arguments.InstanceWatermarks.Count - processed);
             var batch = arguments.InstanceWatermarks.Skip(processed).Take(batchSize).ToList();
 
-            if (batch.Count > 0)
-            {
-                logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
+            logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
                     batch[0],
                     batch[^1],
                     batchSize);
 
-                await Parallel.ForEachAsync(
-                    batch,
-                    new ParallelOptions
-                    {
-                        CancellationToken = default,
-                        MaxDegreeOfParallelism = _options.MaxParallelThreads,
-                    },
-                    async (instance, token) =>
-                    {
-                        await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, token);
-                    });
+            await Parallel.ForEachAsync(
+                batch,
+                new ParallelOptions
+                {
+                    CancellationToken = default,
+                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
+                },
+                async (instance, token) =>
+                {
+                    await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, token);
+                });
 
-                logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
+            logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
+                batch[0],
+                batch[^1],
+                batchSize);
 
-                processed += batchSize;
-            }
+            processed += batchSize;
         }
 
         logger.LogInformation("Completed updating all instance blobs");
@@ -171,7 +168,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(context, nameof(context));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        IReadOnlyList<InstanceFileIdentifier> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileIdentifier>>();
+        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
 
         logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileIdentifiers.Count);
 

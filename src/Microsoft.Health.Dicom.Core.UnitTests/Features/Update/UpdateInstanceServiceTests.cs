@@ -26,6 +26,7 @@ using Xunit;
 using DicomFileExtensions = Microsoft.Health.Dicom.Core.Features.Retrieve.DicomFileExtensions;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Update;
+
 public class UpdateInstanceServiceTests
 {
     private readonly IFileStore _fileStore;
@@ -33,7 +34,6 @@ public class UpdateInstanceServiceTests
     private readonly IMetadataStore _metadataStore;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly UpdateInstanceService _updateInstanceService;
-    private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
     public UpdateInstanceServiceTests()
     {
@@ -54,7 +54,7 @@ public class UpdateInstanceServiceTests
     [Fact]
     public async Task GivenDatasetToUpdateIsNull_WhenCalled_ThrowsArgumentNullException()
     {
-        InstanceFileIdentifier instanceFileIdentifier = new InstanceFileIdentifier();
+        InstanceFileState instanceFileIdentifier = new InstanceFileState();
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _updateInstanceService.UpdateInstanceBlobAsync(instanceFileIdentifier, null, CancellationToken.None));
     }
@@ -70,7 +70,7 @@ public class UpdateInstanceServiceTests
     [Fact]
     public async Task GivenNewVersionIsNull_WhenCalled_ThrowsArgumentException()
     {
-        InstanceFileIdentifier instanceFileIdentifier = new InstanceFileIdentifier
+        InstanceFileState instanceFileIdentifier = new InstanceFileState
         {
             NewVersion = null
         };
@@ -94,7 +94,7 @@ public class UpdateInstanceServiceTests
         long fileIdentifier = 123;
         long newFileIdentifier = 456;
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier);
-        var instanceFileIdentifier = new InstanceFileIdentifier { Version = fileIdentifier, NewVersion = newFileIdentifier };
+        var instanceFileIdentifier = new InstanceFileState { Version = fileIdentifier, NewVersion = newFileIdentifier };
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
@@ -149,7 +149,7 @@ public class UpdateInstanceServiceTests
         long fileIdentifier = 123;
         long newFileIdentifier = 456;
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier);
-        var instanceFileIdentifier = new InstanceFileIdentifier { Version = fileIdentifier, NewVersion = newFileIdentifier };
+        var instanceFileIdentifier = new InstanceFileState { Version = fileIdentifier, NewVersion = newFileIdentifier };
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
@@ -195,7 +195,7 @@ public class UpdateInstanceServiceTests
         await _fileStore.Received(1).StoreFileInBlocksAsync(
             newFileIdentifier,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 2),
+            Arg.Is<IDictionary<string, long>>(x => x.Count == 2 && x.Sum(y => y.Value) == copyStream.Length),
             cancellationToken);
 
         streamAndStoredFile.Value.Dispose();
@@ -210,7 +210,7 @@ public class UpdateInstanceServiceTests
         long newFileIdentifier = 789;
 
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier);
-        var instanceFileIdentifier = new InstanceFileIdentifier { Version = fileIdentifier, NewVersion = newFileIdentifier, OriginalVersion = originalFileIdentifier };
+        var instanceFileIdentifier = new InstanceFileState { Version = fileIdentifier, NewVersion = newFileIdentifier, OriginalVersion = originalFileIdentifier };
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
@@ -265,7 +265,7 @@ public class UpdateInstanceServiceTests
         await _fileStore.DidNotReceive().StoreFileInBlocksAsync(
             newFileIdentifier,
             Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 2),
+            Arg.Is<IDictionary<string, long>>(x => x.Count == 2 && x.Sum(y => y.Value) == copyStream.Length),
             cancellationToken);
         await _fileStore.Received(1).GetFirstBlockPropertyAsync(newFileIdentifier, cancellationToken);
 

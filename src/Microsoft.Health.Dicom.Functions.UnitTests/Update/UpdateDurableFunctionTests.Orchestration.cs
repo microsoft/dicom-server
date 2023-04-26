@@ -32,26 +32,26 @@ public partial class UpdateDurableFunctionTests
 
         var expectedInput = GetUpdateCheckpoint();
 
-        var expectedInstances = new List<InstanceFileIdentifier>
+        var expectedInstances = new List<InstanceFileState>
         {
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 1
             },
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 2
             }
         };
 
-        var expectedInstancesWithNewWatermark = new List<InstanceFileIdentifier>
+        var expectedInstancesWithNewWatermark = new List<InstanceFileState>
         {
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 1,
                 NewVersion = 3,
             },
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 2,
                 NewVersion = 4,
@@ -66,7 +66,7 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedInput);
         context
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
@@ -99,7 +99,7 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>();
         await context
             .Received(1)
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
@@ -140,9 +140,9 @@ public partial class UpdateDurableFunctionTests
             CreatedTime = createdTime,
         };
 
-        var expectedInstances = new List<InstanceFileIdentifier>();
+        var expectedInstances = new List<InstanceFileState>();
 
-        var expectedInstancesWithNewWatermark = new List<InstanceFileIdentifier>();
+        var expectedInstancesWithNewWatermark = new List<InstanceFileState>();
 
         // Arrange the input
         string operationId = OperationId.Generate();
@@ -152,7 +152,7 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedInput);
         context
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
@@ -185,7 +185,7 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>();
         await context
             .Received(1)
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
@@ -246,13 +246,13 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>();
         await context
             .DidNotReceive()
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
             .DidNotReceive()
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceBlobArguments>());
@@ -279,26 +279,26 @@ public partial class UpdateDurableFunctionTests
 
         var expectedInput = GetUpdateCheckpoint();
 
-        var expectedInstances = new List<InstanceFileIdentifier>
+        var expectedInstances = new List<InstanceFileState>
         {
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 1
             },
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 2
             }
         };
 
-        var expectedInstancesWithNewWatermark = new List<InstanceFileIdentifier>
+        var expectedInstancesWithNewWatermark = new List<InstanceFileState>
         {
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 1,
                 NewVersion = 3,
             },
-            new InstanceFileIdentifier
+            new InstanceFileState
             {
                 Version = 2,
                 NewVersion = 4,
@@ -313,7 +313,7 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedInput);
         context
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
@@ -346,7 +346,7 @@ public partial class UpdateDurableFunctionTests
             .GetInput<UpdateCheckpoint>();
         await context
             .Received(1)
-            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
@@ -393,7 +393,7 @@ public partial class UpdateDurableFunctionTests
         return context;
     }
 
-    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(int partitionKey, IReadOnlyList<InstanceFileIdentifier> instanceWatermarks, string changeDataset)
+    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
     {
         return x => x.PartitionKey == partitionKey
             && x.InstanceWatermarks == instanceWatermarks

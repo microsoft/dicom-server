@@ -48,7 +48,7 @@ public partial class UpdateDurableFunction
 
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
-            IReadOnlyList<InstanceFileIdentifier> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileIdentifier>>(
+            IReadOnlyList<InstanceFileState> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 new UpdateInstanceWatermarkArguments(input.PartitionKey, studyInstanceUid));
@@ -89,7 +89,7 @@ public partial class UpdateDurableFunction
 
             if (input.TotalNumberOfStudies != numberOfStudyCompleted)
             {
-                logger.LogInformation("Completed updating the instances for a study. {TotalInstanceUpdatedInaStudy}. Continuing with new execution...", instanceWatermarks.Count);
+                logger.LogInformation("Completed updating the instances for a study. {Updated}. Continuing with new execution...", instanceWatermarks.Count);
             }
             else
             {
@@ -102,7 +102,6 @@ public partial class UpdateDurableFunction
             context.ContinueAsNew(
                 new UpdateCheckpoint
                 {
-                    Batching = input.Batching,
                     StudyInstanceUids = input.StudyInstanceUids,
                     ChangeDataset = input.ChangeDataset,
                     PartitionKey = input.PartitionKey,
@@ -114,7 +113,7 @@ public partial class UpdateDurableFunction
         }
         else
         {
-            if (input.Errors != null && input.Errors.Count > 0)
+            if (input.Errors?.Count > 0)
             {
                 logger.LogInformation("Update operation completed with errors.");
 

@@ -26,8 +26,8 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
         var identifiers = GetInstanceIdentifiersList(studyInstanceUid);
-        IReadOnlyList<InstanceFileIdentifier> expected = identifiers.Select(x =>
-            new InstanceFileIdentifier
+        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
+            new InstanceFileState
             {
                 Version = x.VersionedInstanceIdentifier.Version,
                 OriginalVersion = x.InstanceProperties.OriginalVersion,
@@ -36,15 +36,15 @@ public partial class UpdateDurableFunctionTests
 
         var versions = expected.Select(x => x.Version).ToList();
 
-        _indexStore.BeginUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUid, CancellationToken.None).Returns(identifiers);
+        _indexStore.BeginUpdateInstancesAsync(DefaultPartition.Key, studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
-        IReadOnlyList<InstanceFileIdentifier> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
+        IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
             new UpdateInstanceWatermarkArguments(DefaultPartition.Key, studyInstanceUid),
             NullLogger.Instance);
 
         await _indexStore
            .Received(1)
-           .BeginUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUid, cancellationToken: CancellationToken.None);
+           .BeginUpdateInstancesAsync(DefaultPartition.Key, studyInstanceUid, cancellationToken: CancellationToken.None);
 
         for (int i = 0; i < expected.Count; i++)
         {
@@ -59,8 +59,8 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
         var identifiers = GetInstanceIdentifiersList(studyInstanceUid);
-        IReadOnlyList<InstanceFileIdentifier> expected = identifiers.Select(x =>
-            new InstanceFileIdentifier
+        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
+            new InstanceFileState
             {
                 Version = x.VersionedInstanceIdentifier.Version,
                 OriginalVersion = x.InstanceProperties.OriginalVersion,
@@ -121,8 +121,8 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
         var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { OriginalVersion = 1 });
-        IReadOnlyList<InstanceFileIdentifier> expected = identifiers.Select(x =>
-            new InstanceFileIdentifier
+        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
+            new InstanceFileState
             {
                 Version = x.VersionedInstanceIdentifier.Version,
                 OriginalVersion = x.InstanceProperties.OriginalVersion,
@@ -131,7 +131,7 @@ public partial class UpdateDurableFunctionTests
 
         // Arrange input
         IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.GetInput<IReadOnlyList<InstanceFileIdentifier>>().Returns(expected);
+        context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
 
         _updateInstanceService
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
@@ -143,7 +143,7 @@ public partial class UpdateDurableFunctionTests
             NullLogger.Instance);
 
         // Assert behavior
-        context.Received(1).GetInput<IReadOnlyList<InstanceFileIdentifier>>();
+        context.Received(1).GetInput<IReadOnlyList<InstanceFileState>>();
         await _updateInstanceService
             .Received(1)
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());

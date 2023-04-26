@@ -28,7 +28,7 @@ internal class SqlIndexDataStoreV33 : SqlIndexDataStoreV32
     }
 
     public override SchemaVersion Version => SchemaVersion.V33;
-    public override async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 

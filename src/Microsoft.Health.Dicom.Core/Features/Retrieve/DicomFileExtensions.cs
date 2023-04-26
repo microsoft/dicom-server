@@ -76,7 +76,7 @@ public static class DicomFileExtensions
     /// <param name="dcmFile"> Dicom file</param>
     /// <param name="recyclableMemoryStreamManager">RecyclableMemoryStreamManager to get Memory stream</param>
     /// <returns>Dataset size</returns>
-    public static async Task<long> GetByteLengthAsync(DicomFile dcmFile, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+    public static async Task<long> GetByteLengthAsync(this DicomFile dcmFile, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
     {
         EnsureArg.IsNotNull(dcmFile, nameof(dcmFile));
         EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));

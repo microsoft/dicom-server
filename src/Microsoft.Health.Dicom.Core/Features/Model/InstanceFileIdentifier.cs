@@ -8,7 +8,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Model;
 /// <summary>
 /// Represents a file identifier for an instance.
 /// </summary>
-public class InstanceFileIdentifier
+public class InstanceFileState
 {
     /// <summary>
     /// This corresponds to the current version of the instance

@@ -11,6 +11,7 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 public class UpdateInstanceWatermarkArguments
 {
     public int PartitionKey { get; }
+
     public string StudyInstanceUid { get; }
 
     public UpdateInstanceWatermarkArguments(int partitionKey, string studyInstanceUid)
