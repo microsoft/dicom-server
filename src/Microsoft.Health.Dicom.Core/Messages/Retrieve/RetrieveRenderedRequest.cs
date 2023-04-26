@@ -16,7 +16,7 @@ public class RetrieveRenderedRequest : IRequest<RetrieveRenderedResponse>
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
         ResourceType = resourceType;
-        FrameNumber = frameNumber;
+        FrameNumber = frameNumber - 1;
         Quality = quality;
         AcceptHeaders = acceptHeaders;
     }

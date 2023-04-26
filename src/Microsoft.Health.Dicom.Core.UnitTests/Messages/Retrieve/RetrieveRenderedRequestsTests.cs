@@ -19,7 +19,7 @@ public class RetrieveRenderedRequestsTests
         string studyInstanceUid = Guid.NewGuid().ToString();
         string seriesInstanceUid = Guid.NewGuid().ToString();
         string sopInstanceUid = Guid.NewGuid().ToString();
-        var request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         Assert.Equal(studyInstanceUid, request.StudyInstanceUid);
         Assert.Equal(seriesInstanceUid, request.SeriesInstanceUid);
         Assert.Equal(sopInstanceUid, request.SopInstanceUid);
@@ -34,7 +34,7 @@ public class RetrieveRenderedRequestsTests
         string studyInstanceUid = Guid.NewGuid().ToString();
         string seriesInstanceUid = Guid.NewGuid().ToString();
         string sopInstanceUid = Guid.NewGuid().ToString();
-        var request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 6, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         Assert.Equal(studyInstanceUid, request.StudyInstanceUid);
         Assert.Equal(seriesInstanceUid, request.SeriesInstanceUid);
         Assert.Equal(sopInstanceUid, request.SopInstanceUid);

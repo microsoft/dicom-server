@@ -81,7 +81,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveRenderedResponse> RetrieveRenderedDicomInstanceAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders, int quality, CancellationToken cancellationToken, int frameNumber = 0)
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders, int quality, CancellationToken cancellationToken, int frameNumber = 1)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(

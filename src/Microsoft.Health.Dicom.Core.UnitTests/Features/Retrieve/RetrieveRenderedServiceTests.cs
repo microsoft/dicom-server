@@ -28,6 +28,7 @@ using NSubstitute;
 using Xunit;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using Microsoft.Health.Dicom.Core.Web;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveRenderedServiceTests
@@ -79,7 +80,7 @@ public class RetrieveRenderedServiceTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader(), AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(), AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<NotAcceptableException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(request, CancellationToken.None));
         Assert.Equal(expectedErrorMessage, ex.Message);
     }
@@ -104,7 +105,7 @@ public class RetrieveRenderedServiceTests
         _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
-            new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() }),
+            new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() }),
             DefaultCancellationToken));
     }
 
@@ -120,7 +121,7 @@ public class RetrieveRenderedServiceTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, quality, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, quality, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(request, CancellationToken.None));
         Assert.Equal(expectedErrorMessage, ex.Message);
     }
@@ -134,7 +135,7 @@ public class RetrieveRenderedServiceTests
 
         await Assert.ThrowsAsync<NotAcceptableException>(() =>
         _retrieveRenderedService.RetrieveRenderedImageAsync(
-              new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() }),
+              new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() }),
               DefaultCancellationToken));
 
     }
@@ -149,7 +150,7 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamOfStoredFiles);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamOfStoredFiles.Length });
 
-        var retrieveRenderRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 4, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
         await Assert.ThrowsAsync<FrameNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderRequest,
@@ -178,7 +179,7 @@ public class RetrieveRenderedServiceTests
         streamAndStoredFileForFrame2.Position = 0;
         streamAndStoredFile.Value.Position = 0;
 
-        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
@@ -194,7 +195,7 @@ public class RetrieveRenderedServiceTests
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
 
-        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFileForFrame2);
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
@@ -240,7 +241,7 @@ public class RetrieveRenderedServiceTests
         streamAndStoredFileForFrame2.Position = 0;
         streamAndStoredFile.Value.Position = 0;
 
-        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 50, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 50, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
@@ -256,7 +257,7 @@ public class RetrieveRenderedServiceTests
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
 
-        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 20, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 20, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFileForFrame2);
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
@@ -298,7 +299,7 @@ public class RetrieveRenderedServiceTests
         streamAndStoredFileForFrame2.Position = 0;
         streamAndStoredFile.Value.Position = 0;
 
-        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderPngAcceptHeader() });
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(mediaType: KnownContentTypes.ImagePng) });
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
@@ -314,7 +315,7 @@ public class RetrieveRenderedServiceTests
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/png", response.ContentType);
 
-        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderPngAcceptHeader() });
+        var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(mediaType: KnownContentTypes.ImagePng) });
 
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFileForFrame2);
         RetrieveRenderedResponse response2 = await _retrieveRenderedService.RetrieveRenderedImageAsync(
@@ -353,7 +354,7 @@ public class RetrieveRenderedServiceTests
         _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
 
-        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 0, 75, new List<AcceptHeader>());
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 1, 75, new List<AcceptHeader>());
 
         RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
                retrieveRenderedRequest,
