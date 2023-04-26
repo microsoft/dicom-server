@@ -229,7 +229,7 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
 
         using (DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }))
         {
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         }
 
         return dicomFile.Dataset;
