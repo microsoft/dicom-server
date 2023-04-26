@@ -286,7 +286,9 @@ In the case that no `Accept` header is specified the service will render an `ima
 
 The service only supports rendering of a single frame. If rendering is requested for an instance with multiple frames then only the first frame will be rendered as an image by default.
 
-The `quality` query parameter is also supported. An integer value between `1-100` inclusive (1 being worst quality, and 100 being best quality) may be passed as the value for the query paramater. This will only be used for images rendered as `jpeg`, and will be ignored for `png` render requests.
+When specifying a particular frame to return, frame indexing starts at 1.
+
+The `quality` query parameter is also supported. An integer value between `1-100` inclusive (1 being worst quality, and 100 being best quality) may be passed as the value for the query paramater. This will only be used for images rendered as `jpeg`, and will be ignored for `png` render requests. If not specified will default to `100`.
 
 
 ### Retrieve Response Status Codes
