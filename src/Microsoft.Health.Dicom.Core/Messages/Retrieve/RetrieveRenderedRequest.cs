@@ -16,7 +16,11 @@ public class RetrieveRenderedRequest : IRequest<RetrieveRenderedResponse>
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
         ResourceType = resourceType;
-        FrameNumber = frameNumber - 1;
+
+        // Per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
+        // frame number in the URI is 1-based, unlike fo-dicom representation where it's 0-based.
+        FrameNumber = frameNumber - 1
+
         Quality = quality;
         AcceptHeaders = acceptHeaders;
     }
