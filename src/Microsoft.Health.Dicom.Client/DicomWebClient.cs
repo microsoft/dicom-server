@@ -39,7 +39,7 @@ public partial class DicomWebClient : IDicomWebClient
     /// </summary>
     /// <param name="httpClient">HttpClient</param>
     /// <param name="apiVersion">Pin the DicomWebClient to a specific server API version.</param>
-    public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.V1)
+    public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.V2)
     {
         EnsureArg.IsNotNull(httpClient, nameof(httpClient));
 
