@@ -33,7 +33,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     public StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient();
+        _client = fixture.GetDicomWebClient(DicomApiVersions.V1);
         _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _instancesManager = new DicomInstancesManager(_client);
         _instancesManagerV2 = new DicomInstancesManager(_clientV2);
