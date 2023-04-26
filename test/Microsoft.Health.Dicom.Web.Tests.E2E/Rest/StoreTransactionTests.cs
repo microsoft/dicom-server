@@ -41,17 +41,12 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     }
 
     [Fact]
-    public async Task GivenV2NotEnabled_WhenAttemptingToUseV2_TheExpectUnsupportedApiVersionExceptionThrown()
+    public async Task GivenV2Enabled_WhenAttemptingToUseV2_TheExpectUnsupportedApiVersionExceptionNotThrown()
     {
         var studyInstanceUID1 = TestUidGenerator.Generate();
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
 
-        DicomWebException exception =
-            await Assert.ThrowsAsync<DicomWebException>(() => _clientV2.StoreAsync(dicomFile1));
-
-        Assert.Contains(
-            """BadRequest: {"error":{"code":"UnsupportedApiVersion""",
-            exception.Message);
+        await _clientV2.StoreAsync(dicomFile1);
     }
 
     [Fact]
