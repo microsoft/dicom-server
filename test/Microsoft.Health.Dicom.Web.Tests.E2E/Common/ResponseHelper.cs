@@ -53,11 +53,11 @@ public static class ResponseHelper
     {
         if (partition != null)
         {
-            return $"{DicomApiVersions.Latest}/partitions/{partition}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+            return $"{DicomApiVersions.V1}/partitions/{partition}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
         }
         else
         {
-            return $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+            return $"{DicomApiVersions.V1}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
         }
     }
 
