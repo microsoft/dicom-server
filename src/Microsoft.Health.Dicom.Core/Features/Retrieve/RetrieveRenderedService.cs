@@ -97,7 +97,6 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             sw.Stop();
             _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
 
-            _dicomRequestContextAccessor.RequestContext.IsRenderedRequested = true;
             _dicomRequestContextAccessor.RequestContext.BytesRendered = resultStream.Length;
 
             return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);

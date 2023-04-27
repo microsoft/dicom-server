@@ -20,8 +20,6 @@ public interface IDicomRequestContext : IRequestContext
 
     long BytesTranscoded { get; set; }
 
-    public bool IsRenderedRequested { get; set; }
-
     public long BytesRendered { get; set; }
 
     int PartCount { get; set; }
