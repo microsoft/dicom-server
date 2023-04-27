@@ -14,5 +14,5 @@ public interface IChangeFeedStore
 {
     Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken = default);
 }

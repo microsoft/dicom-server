@@ -26,7 +26,7 @@ internal class SqlChangeFeedStoreV34 : SqlChangeFeedStoreV6
     {
     }
 
-    public override async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
+    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
     {
         var results = new List<ChangeFeedEntry>();
 

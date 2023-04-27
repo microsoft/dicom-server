@@ -26,41 +26,31 @@ public class ChangeFeedService : IChangeFeedService
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
     }
 
-    public async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
     {
         if (offset < 0)
-        {
             throw new ArgumentOutOfRangeException(nameof(offset));
-        }
 
         if (limit < 1)
-        {
             throw new ArgumentOutOfRangeException(nameof(limit));
-        }
 
-        IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, cancellationToken);
+        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, cancellationToken);
 
         if (includeMetadata)
-        {
             await PopulateMetadata(changeFeedEntries, cancellationToken);
-        }
 
         return changeFeedEntries;
     }
 
     public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, CancellationToken cancellationToken = default)
     {
-        var result = await _changeFeedStore.GetChangeFeedLatestAsync(cancellationToken);
+        ChangeFeedEntry result = await _changeFeedStore.GetChangeFeedLatestAsync(cancellationToken);
 
         if (result == null)
-        {
             return null;
-        }
 
         if (includeMetadata)
-        {
             await PopulateMetadata(result, cancellationToken);
-        }
 
         return result;
     }
@@ -73,9 +63,7 @@ public class ChangeFeedService : IChangeFeedService
     private async Task PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)
     {
         if (entry.CurrentVersion == null)
-        {
             return;
-        }
 
         var identifier = new VersionedInstanceIdentifier(entry.StudyInstanceUid, entry.SeriesInstanceUid, entry.SopInstanceUid, entry.CurrentVersion.Value);
         entry.Metadata = await _metadataStore.GetInstanceMetadataAsync(identifier.Version, cancellationToken);

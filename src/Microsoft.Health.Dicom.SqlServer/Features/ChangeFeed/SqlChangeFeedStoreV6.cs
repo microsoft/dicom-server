@@ -65,7 +65,7 @@ internal class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV4
         return null;
     }
 
-    public override async Task<IReadOnlyCollection<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
+    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
     {
         if (range != DateTimeOffsetRange.MaxValue)
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);

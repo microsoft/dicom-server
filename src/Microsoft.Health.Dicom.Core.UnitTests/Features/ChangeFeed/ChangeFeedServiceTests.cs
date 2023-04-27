@@ -40,7 +40,7 @@ public class ChangeFeedServiceTests
 
         _changeFeedStore.GetChangeFeedAsync(range, offset, limit, tokenSource.Token).Returns(expected);
 
-        IReadOnlyCollection<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, false, tokenSource.Token);
+        IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, false, tokenSource.Token);
 
         await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, tokenSource.Token);
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
@@ -69,7 +69,7 @@ public class ChangeFeedServiceTests
         _metadataStore.GetInstanceMetadataAsync(101, tokenSource.Token).Returns(expectedDataset1);
         _metadataStore.GetInstanceMetadataAsync(104, tokenSource.Token).Returns(expectedDataset3);
 
-        IReadOnlyCollection<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, true, tokenSource.Token);
+        IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, true, tokenSource.Token);
 
         await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, tokenSource.Token);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(101, tokenSource.Token);
