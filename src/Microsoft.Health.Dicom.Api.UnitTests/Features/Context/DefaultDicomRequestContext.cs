@@ -26,6 +26,11 @@ public class DefaultDicomRequestContext : IDicomRequestContext
 
     public long BytesTranscoded { get; set; }
 
+    public bool IsRenderedRequested { get; set; }
+
+    public long BytesRendered { get; set; }
+
+
     public long ResponseSize { get; set; }
 
     public int PartCount { get; set; }
