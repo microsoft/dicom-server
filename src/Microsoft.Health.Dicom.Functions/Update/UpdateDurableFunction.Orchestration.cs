@@ -68,7 +68,6 @@ public partial class UpdateDurableFunction
                         nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
                         new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
-                    _updateMeter.UpdatedInstances.Add(1);
                 }
                 catch (FunctionFailedException ex)
                 {
@@ -111,6 +110,7 @@ public partial class UpdateDurableFunction
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 });
+            _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
         }
         else
         {
