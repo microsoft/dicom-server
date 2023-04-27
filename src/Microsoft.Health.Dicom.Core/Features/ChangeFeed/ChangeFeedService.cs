@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
@@ -26,7 +27,7 @@ public class ChangeFeedService : IChangeFeedService
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
     }
 
-    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
         if (offset < 0)
             throw new ArgumentOutOfRangeException(nameof(offset));
@@ -34,7 +35,7 @@ public class ChangeFeedService : IChangeFeedService
         if (limit < 1)
             throw new ArgumentOutOfRangeException(nameof(limit));
 
-        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, cancellationToken);
+        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, order, cancellationToken);
 
         if (includeMetadata)
             await PopulateMetadata(changeFeedEntries, cancellationToken);
@@ -42,9 +43,9 @@ public class ChangeFeedService : IChangeFeedService
         return changeFeedEntries;
     }
 
-    public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, CancellationToken cancellationToken = default)
+    public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
-        ChangeFeedEntry result = await _changeFeedStore.GetChangeFeedLatestAsync(cancellationToken);
+        ChangeFeedEntry result = await _changeFeedStore.GetChangeFeedLatestAsync(order, cancellationToken);
 
         if (result == null)
             return null;

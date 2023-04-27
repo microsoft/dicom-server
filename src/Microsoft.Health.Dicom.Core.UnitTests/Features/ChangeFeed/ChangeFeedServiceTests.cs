@@ -11,6 +11,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
 using Xunit;
@@ -33,16 +34,17 @@ public class ChangeFeedServiceTests
     {
         const int offset = 10;
         const int limit = 50;
-        var range = new DateTimeOffsetRange(DateTimeOffset.UtcNow, DateTime.UtcNow.AddHours(1));
+        const ChangeFeedOrder order = ChangeFeedOrder.Sequence;
+        DateTimeOffsetRange range = DateTimeOffsetRange.MaxValue;
         var expected = new List<ChangeFeedEntry>();
 
         using var tokenSource = new CancellationTokenSource();
 
-        _changeFeedStore.GetChangeFeedAsync(range, offset, limit, tokenSource.Token).Returns(expected);
+        _changeFeedStore.GetChangeFeedAsync(range, offset, limit, order, tokenSource.Token).Returns(expected);
 
-        IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, false, tokenSource.Token);
+        IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, false, order, tokenSource.Token);
 
-        await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, tokenSource.Token);
+        await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, order, tokenSource.Token);
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
 
         Assert.Same(expected, actual);
@@ -53,6 +55,7 @@ public class ChangeFeedServiceTests
     {
         const int offset = 10;
         const int limit = 50;
+        const ChangeFeedOrder order = ChangeFeedOrder.Timestamp;
         var range = new DateTimeOffsetRange(DateTimeOffset.UtcNow, DateTime.UtcNow.AddHours(1));
         var expected = new List<ChangeFeedEntry>
         {
@@ -65,13 +68,13 @@ public class ChangeFeedServiceTests
 
         using var tokenSource = new CancellationTokenSource();
 
-        _changeFeedStore.GetChangeFeedAsync(range, offset, limit, tokenSource.Token).Returns(expected);
+        _changeFeedStore.GetChangeFeedAsync(range, offset, limit, order, tokenSource.Token).Returns(expected);
         _metadataStore.GetInstanceMetadataAsync(101, tokenSource.Token).Returns(expectedDataset1);
         _metadataStore.GetInstanceMetadataAsync(104, tokenSource.Token).Returns(expectedDataset3);
 
-        IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, true, tokenSource.Token);
+        IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, true, order, tokenSource.Token);
 
-        await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, tokenSource.Token);
+        await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, order, tokenSource.Token);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(101, tokenSource.Token);
         await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(102, tokenSource.Token);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(104, tokenSource.Token);
@@ -85,14 +88,15 @@ public class ChangeFeedServiceTests
     [Fact]
     public async Task GivenChangeFeed_WhenFetchingLatestWithoutMetadata_ThenOnlyCheckStore()
     {
+        const ChangeFeedOrder order = ChangeFeedOrder.Sequence;
         var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, 101, ChangeFeedState.Current);
         using var tokenSource = new CancellationTokenSource();
 
-        _changeFeedStore.GetChangeFeedLatestAsync(tokenSource.Token).Returns(expected);
+        _changeFeedStore.GetChangeFeedLatestAsync(order, tokenSource.Token).Returns(expected);
 
-        ChangeFeedEntry actual = await _changeFeedService.GetChangeFeedLatestAsync(false, tokenSource.Token);
+        ChangeFeedEntry actual = await _changeFeedService.GetChangeFeedLatestAsync(false, order, tokenSource.Token);
 
-        await _changeFeedStore.Received(1).GetChangeFeedLatestAsync(tokenSource.Token);
+        await _changeFeedStore.Received(1).GetChangeFeedLatestAsync(order, tokenSource.Token);
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
 
         Assert.Same(expected, actual);
@@ -101,14 +105,15 @@ public class ChangeFeedServiceTests
     [Fact]
     public async Task GivenChangeFeed_WhenFetchingLatestDeletedWithMetadata_ThenSkipMetadata()
     {
+        const ChangeFeedOrder order = ChangeFeedOrder.Timestamp;
         var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, null, ChangeFeedState.Deleted);
         using var tokenSource = new CancellationTokenSource();
 
-        _changeFeedStore.GetChangeFeedLatestAsync(tokenSource.Token).Returns(expected);
+        _changeFeedStore.GetChangeFeedLatestAsync(order, tokenSource.Token).Returns(expected);
 
-        ChangeFeedEntry actual = await _changeFeedService.GetChangeFeedLatestAsync(true, tokenSource.Token);
+        ChangeFeedEntry actual = await _changeFeedService.GetChangeFeedLatestAsync(true, order, tokenSource.Token);
 
-        await _changeFeedStore.Received(1).GetChangeFeedLatestAsync(tokenSource.Token);
+        await _changeFeedStore.Received(1).GetChangeFeedLatestAsync(order, tokenSource.Token);
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
 
         Assert.Same(expected, actual);

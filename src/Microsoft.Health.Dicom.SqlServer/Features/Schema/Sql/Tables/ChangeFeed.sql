@@ -33,3 +33,9 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInst
     SeriesInstanceUid,
     SopInstanceUid
 ) WITH (DATA_COMPRESSION = PAGE)
+
+-- Used to query the change feed for a particular time range
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Timestamp ON dbo.ChangeFeed
+(
+    Timestamp
+) WITH (DATA_COMPRESSION = PAGE)

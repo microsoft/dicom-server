@@ -35,7 +35,7 @@ public class ChangeFeedHandler : BaseHandler, IRequestHandler<ChangeFeedRequest,
             throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Range, request.Offset, request.Limit, request.IncludeMetadata, cancellationToken);
+        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Range, request.Offset, request.Limit, request.IncludeMetadata, request.Order, cancellationToken);
 
         return new ChangeFeedResponse(changeFeedEntries);
     }

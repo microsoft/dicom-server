@@ -13,6 +13,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -31,8 +32,11 @@ internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
         SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
     }
 
-    public virtual async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
+    public virtual async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(ChangeFeedOrder order, CancellationToken cancellationToken)
     {
+        if (order != ChangeFeedOrder.Sequence)
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
@@ -52,24 +56,27 @@ internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
                 VLatest.ChangeFeed.CurrentWatermark);
 
             return new ChangeFeedEntry(
-                    rSeq,
-                    rTimestamp,
-                    (ChangeFeedAction)rAction,
-                    rStudyInstanceUid,
-                    rSeriesInstanceUid,
-                    rSopInstanceUid,
-                    oWatermark,
-                    cWatermark,
-                    ConvertWatermarkToCurrentState(oWatermark, cWatermark));
+                rSeq,
+                rTimestamp,
+                (ChangeFeedAction)rAction,
+                rStudyInstanceUid,
+                rSeriesInstanceUid,
+                rSopInstanceUid,
+                oWatermark,
+                cWatermark,
+                ConvertWatermarkToCurrentState(oWatermark, cWatermark));
         }
 
         return null;
     }
 
-    public virtual async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
+    public virtual async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
-        if (range != DateTimeOffsetRange.MaxValue)
+        if (order != ChangeFeedOrder.Sequence)
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+
+        if (range != DateTimeOffsetRange.MaxValue)
+            throw new ArgumentException(DicomSqlServerResource.InvalidChangeFeedOrderFilter, nameof(range));
 
         var results = new List<ChangeFeedEntry>();
 
@@ -92,15 +99,15 @@ internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
                 VLatest.ChangeFeed.CurrentWatermark);
 
             results.Add(new ChangeFeedEntry(
-                    rSeq,
-                    rTimestamp,
-                    (ChangeFeedAction)rAction,
-                    rStudyInstanceUid,
-                    rSeriesInstanceUid,
-                    rSopInstanceUid,
-                    oWatermark,
-                    cWatermark,
-                    ConvertWatermarkToCurrentState(oWatermark, cWatermark)));
+                rSeq,
+                rTimestamp,
+                (ChangeFeedAction)rAction,
+                rStudyInstanceUid,
+                rSeriesInstanceUid,
+                rSopInstanceUid,
+                oWatermark,
+                cWatermark,
+                ConvertWatermarkToCurrentState(oWatermark, cWatermark)));
         }
 
         return results;

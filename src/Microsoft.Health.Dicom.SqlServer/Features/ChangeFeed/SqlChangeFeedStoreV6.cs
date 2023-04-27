@@ -12,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -28,8 +29,11 @@ internal class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV4
     {
     }
 
-    public override async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
+    public override async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(ChangeFeedOrder order, CancellationToken cancellationToken)
     {
+        if (order != ChangeFeedOrder.Sequence)
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
@@ -65,10 +69,13 @@ internal class SqlChangeFeedStoreV6 : SqlChangeFeedStoreV4
         return null;
     }
 
-    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, CancellationToken cancellationToken)
+    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
-        if (range != DateTimeOffsetRange.MaxValue)
+        if (order != ChangeFeedOrder.Sequence)
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+
+        if (range != DateTimeOffsetRange.MaxValue)
+            throw new ArgumentException(DicomSqlServerResource.InvalidChangeFeedOrderFilter, nameof(range));
 
         var results = new List<ChangeFeedEntry>();
 

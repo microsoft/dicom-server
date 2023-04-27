@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -57,7 +58,8 @@ public class ChangeFeedController : ControllerBase
         [FromQuery][ModelBinder(typeof(Iso8601Binder))] DateTimeOffset? endTime = null,
         [FromQuery] bool includeMetadata = true)
     {
-        int updatedLimit = GetLimit(limit, HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1);
+        int majorVersion = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
+        int updatedLimit = GetLimit(limit, majorVersion);
         var range = new DateTimeOffsetRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
 
         _logger.LogInformation(
@@ -72,6 +74,7 @@ public class ChangeFeedController : ControllerBase
             offset,
             updatedLimit,
             includeMetadata,
+            majorVersion == 1 ? ChangeFeedOrder.Sequence : ChangeFeedOrder.Timestamp,
             cancellationToken: HttpContext.RequestAborted);
 
         return StatusCode((int)HttpStatusCode.OK, response.Entries);
@@ -86,10 +89,12 @@ public class ChangeFeedController : ControllerBase
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedLatestAsync([FromQuery] bool includeMetadata = true)
     {
+        int majorVersion = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
         _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
 
         ChangeFeedLatestResponse response = await _mediator.GetChangeFeedLatest(
             includeMetadata,
+            majorVersion == 1 ? ChangeFeedOrder.Sequence : ChangeFeedOrder.Timestamp,
             cancellationToken: HttpContext.RequestAborted);
 
         return StatusCode((int)HttpStatusCode.OK, response.Entry);

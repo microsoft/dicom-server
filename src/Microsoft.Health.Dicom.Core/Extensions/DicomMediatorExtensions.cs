@@ -25,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using ResourceType = Microsoft.Health.Dicom.Core.Messages.ResourceType;
@@ -143,19 +144,21 @@ public static class DicomMediatorExtensions
         long offset,
         int limit,
         bool includeMetadata,
+        ChangeFeedOrder order,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ChangeFeedRequest(range, offset, limit, includeMetadata), cancellationToken);
+        return mediator.Send(new ChangeFeedRequest(range, offset, limit, includeMetadata, order), cancellationToken);
     }
 
     public static Task<ChangeFeedLatestResponse> GetChangeFeedLatest(
         this IMediator mediator,
         bool includeMetadata,
+        ChangeFeedOrder order,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
+        return mediator.Send(new ChangeFeedLatestRequest(includeMetadata, order), cancellationToken);
     }
 
     public static Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(

@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using NSubstitute;
 using Xunit;
 
@@ -35,11 +36,11 @@ public class ChangeFeedControllerTests
     }
 
     [Theory]
-    [InlineData(null, 10)]
-    [InlineData(1, 10)]
-    [InlineData(2, 100)]
-    [InlineData(3, 100)]
-    public async Task GivenApiVersion_WhenFetchingChangeFeed_ThenUseProperDefaults(int? version, int expectedDefaultLimit)
+    [InlineData(null, 10, ChangeFeedOrder.Sequence)]
+    [InlineData(1, 10, ChangeFeedOrder.Sequence)]
+    [InlineData(2, 100, ChangeFeedOrder.Timestamp)]
+    [InlineData(3, 100, ChangeFeedOrder.Timestamp)]
+    public async Task GivenApiVersion_WhenFetchingChangeFeed_ThenUseProperDefaults(int? version, int expectedDefaultLimit, ChangeFeedOrder order)
     {
         if (version.HasValue)
             _apiVersion.RequestedApiVersion.Returns(new ApiVersion(version.GetValueOrDefault(), 0));
@@ -49,7 +50,12 @@ public class ChangeFeedControllerTests
         _controller.HttpContext.Features.Set(_apiVersion);
         _mediator
             .Send(
-                Arg.Is<ChangeFeedRequest>(x => x.Range == DateTimeOffsetRange.MaxValue && x.Offset == 0 && x.Limit == expectedDefaultLimit && x.IncludeMetadata),
+                Arg.Is<ChangeFeedRequest>(x =>
+                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Offset == 0 &&
+                    x.Limit == expectedDefaultLimit &&
+                    x.IncludeMetadata &&
+                    x.Order == order),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
@@ -60,7 +66,12 @@ public class ChangeFeedControllerTests
         await _mediator
             .Received(1)
             .Send(
-                Arg.Is<ChangeFeedRequest>(x => x.Range == DateTimeOffsetRange.MaxValue && x.Offset == 0 && x.Limit == expectedDefaultLimit && x.IncludeMetadata),
+                Arg.Is<ChangeFeedRequest>(x =>
+                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Offset == 0 &&
+                    x.Limit == expectedDefaultLimit &&
+                    x.IncludeMetadata &&
+                    x.Order == order),
                 _controller.HttpContext.RequestAborted);
     }
 
@@ -74,13 +85,18 @@ public class ChangeFeedControllerTests
         DateTimeOffset? startTime = start != null ? DateTimeOffset.Parse(start, CultureInfo.InvariantCulture) : null;
         DateTimeOffset? endTime = end != null ? DateTimeOffset.Parse(end, CultureInfo.InvariantCulture) : null;
         var expectedRange = new DateTimeOffsetRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
-
         var expected = new List<ChangeFeedEntry>();
 
+        _apiVersion.RequestedApiVersion.Returns(new ApiVersion(2, 0));
         _controller.HttpContext.Features.Set(_apiVersion);
         _mediator
             .Send(
-                Arg.Is<ChangeFeedRequest>(x => x.Range == expectedRange && x.Offset == offset && x.Limit == limit && x.IncludeMetadata == includeMetadata),
+                Arg.Is<ChangeFeedRequest>(x =>
+                    x.Range == expectedRange &&
+                    x.Offset == offset &&
+                    x.Limit == limit &&
+                    x.IncludeMetadata == includeMetadata &&
+                    x.Order == ChangeFeedOrder.Timestamp),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
@@ -91,7 +107,12 @@ public class ChangeFeedControllerTests
         await _mediator
             .Received(1)
             .Send(
-                Arg.Is<ChangeFeedRequest>(x => x.Range == expectedRange && x.Offset == offset && x.Limit == limit && x.IncludeMetadata == includeMetadata),
+                Arg.Is<ChangeFeedRequest>(x =>
+                    x.Range == expectedRange &&
+                    x.Offset == offset &&
+                    x.Limit == limit &&
+                    x.IncludeMetadata == includeMetadata &&
+                    x.Order == ChangeFeedOrder.Timestamp),
                 _controller.HttpContext.RequestAborted);
     }
 

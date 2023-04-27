@@ -95,6 +95,9 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
     ON dbo.ChangeFeed(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Timestamp
+    ON dbo.ChangeFeed(Timestamp) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TABLE dbo.DeletedInstance (
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
     SeriesInstanceUid VARCHAR (64)       NOT NULL,
@@ -1530,6 +1533,28 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestTimestamp
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT   TOP (1) Sequence,
+                     Timestamp,
+                     Action,
+                     PartitionName,
+                     StudyInstanceUid,
+                     SeriesInstanceUid,
+                     SopInstanceUid,
+                     OriginalWatermark,
+                     CurrentWatermark
+    FROM     dbo.ChangeFeed AS c
+             INNER JOIN
+             dbo.Partition AS p
+             ON p.PartitionKey = c.PartitionKey
+    ORDER BY Timestamp DESC;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV6
 AS
 BEGIN
@@ -1552,14 +1577,8 @@ BEGIN
 END
 
 GO
-SET XACT_ABORT ON;
-
-BEGIN TRANSACTION;
-
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV34
-@startTime DATETIMEOFFSET (7), @endTime DATETIMEOFFSET (7), @limit INT, @offset BIGINT
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedPage
+@startTime DATETIMEOFFSET (7), @endTime DATETIMEOFFSET (7), @offset BIGINT, @limit INT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1579,13 +1598,9 @@ BEGIN
              ON p.PartitionKey = c.PartitionKey
     WHERE    c.Timestamp >= @startTime
              AND c.Timestamp < @endTime
-    ORDER BY Sequence ASC
+    ORDER BY Timestamp ASC
     OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
-
-
-GO
-COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV6
