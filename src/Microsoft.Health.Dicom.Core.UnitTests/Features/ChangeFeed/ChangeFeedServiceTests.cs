@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Models;
@@ -26,7 +28,10 @@ public class ChangeFeedServiceTests
 
     public ChangeFeedServiceTests()
     {
-        _changeFeedService = new ChangeFeedService(_changeFeedStore, _metadataStore);
+        _changeFeedService = new ChangeFeedService(
+            _changeFeedStore,
+            _metadataStore,
+            Options.Create(new RetrieveConfiguration { MaxDegreeOfParallelism = 1 }));
     }
 
     [Fact]
