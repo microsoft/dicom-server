@@ -7,8 +7,6 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 
 internal static class FunctionNames
 {
-    public const string DeleteMigratedFiles = "DeleteMigratedFiles";
-
     public const string ExportDicomFiles = "ExportDicomFiles";
 
     public const string MigrateFiles = "MigrateFiles";
