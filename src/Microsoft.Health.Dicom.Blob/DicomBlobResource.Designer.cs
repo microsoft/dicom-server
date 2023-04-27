@@ -10,7 +10,6 @@
 
 namespace Microsoft.Health.Dicom.Blob {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.Health.Dicom.Blob {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.Blob.DicomBlobResource", typeof(DicomBlobResource).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.Blob.DicomBlobResource", typeof(DicomBlobResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -94,6 +93,24 @@ namespace Microsoft.Health.Dicom.Blob {
         internal static string BlobStorageRequestFailure {
             get {
                 return ResourceManager.GetString("BlobStorageRequestFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The blob does not contain commited blocks..
+        /// </summary>
+        internal static string BlockListNotFound {
+            get {
+                return ResourceManager.GetString("BlockListNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified block not found..
+        /// </summary>
+        internal static string BlockNotFound {
+            get {
+                return ResourceManager.GetString("BlockNotFound", resourceCulture);
             }
         }
         
