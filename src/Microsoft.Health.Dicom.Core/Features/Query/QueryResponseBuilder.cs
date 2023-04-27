@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Query;
 
-internal class QueryResponseBuilder
+public class QueryResponseBuilder
 {
     internal static readonly HashSet<DicomTag> DefaultStudyTags = new HashSet<DicomTag>()
     {
