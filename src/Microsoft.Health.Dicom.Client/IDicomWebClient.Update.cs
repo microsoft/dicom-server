@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Client.Models;
 
 namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
-    Task<DicomWebResponse> UpdateStudyAsync(IReadOnlyList<string> studyInstanceUids, DicomDataset dataset, string partitionName = default, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<DicomOperationReference>> UpdateStudyAsync(IReadOnlyList<string> studyInstanceUids, DicomDataset dataset, string partitionName = default, CancellationToken cancellationToken = default);
 }

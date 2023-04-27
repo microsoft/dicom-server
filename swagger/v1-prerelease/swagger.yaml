@@ -2333,8 +2333,24 @@ paths:
       responses:
         '202':
           description: Accepted
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OperationReference'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationReference'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OperationReference'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
   /v1-prerelease/studies/$bulkUpdate:
     post:
       tags:
@@ -2349,8 +2365,24 @@ paths:
       responses:
         '202':
           description: Accepted
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/OperationReference'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationReference'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/OperationReference'
         '400':
           description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DicomItem'
   '/v1-prerelease/partitions/{partitionName}/workitems':
     post:
       tags:

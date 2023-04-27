@@ -10,12 +10,12 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -24,21 +24,19 @@ using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Update;
-public class UpdateOperationInstanceServiceTests
+public class UpdateInstanceOperationServiceTests
 {
-    private readonly IUpdateOperationInstanceService _updateOperationInstanceService;
+    private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
-    private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
 
-    public UpdateOperationInstanceServiceTests()
+    public UpdateInstanceOperationServiceTests()
     {
         _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
-        _urlResolver = Substitute.For<IUrlResolver>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _updateOperationInstanceService = new UpdateOperationInstanceService(_guidFactory, _client, _urlResolver, _contextAccessor);
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, NullLogger<UpdateInstanceOperationService>.Instance);
     }
 
     [Fact]
@@ -53,7 +51,7 @@ public class UpdateOperationInstanceServiceTests
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(new OperationReference[] { expected }.ToAsyncEnumerable());
         await Assert.ThrowsAsync<ExistingUpdateOperationException>(() =>
-            _updateOperationInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None));
+            _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None));
     }
 
     [Fact]
@@ -62,14 +60,24 @@ public class UpdateOperationInstanceServiceTests
         IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
         DicomDataset changeDataset = new DicomDataset();
         var updateSpec = new UpdateSpecification(studyInstanceUids, changeDataset);
-        string href = "/operation";
-        _urlResolver.ResolveOperationStatusUri(Arg.Any<Guid>()).Returns(new Uri(href, UriKind.Relative));
+        var operationId = Guid.NewGuid();
+        var expected = new OperationReference(operationId, new Uri("https://dicom.contoso.io/unit/test/Operations/" + operationId, UriKind.Absolute));
+
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(AsyncEnumerable.Empty<OperationReference>());
-        _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
-        var response = await _updateOperationInstanceService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
-        Assert.Equal(href, response.Href.ToString());
+        _client
+           .StartUpdateOperationAsync(
+               Arg.Any<Guid>(),
+               Arg.Any<UpdateSpecification>(),
+               PartitionEntry.Default.PartitionKey,
+               CancellationToken.None)
+           .Returns(expected);
+
+        _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        var response = await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
+
+        Assert.Equal(expected.Href.ToString(), response.Operation.Href.ToString());
     }
 
     private static Expression<Predicate<OperationQueryCondition<DicomOperation>>> GetOperationPredicate()

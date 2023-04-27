@@ -655,12 +655,7 @@ For details on valid range queries, please refer to Search Matching section in C
     <comment>{0} bytes representing the support max file size</comment>
   </data>
   <data name="DicomUpdateTagValidationFailed" xml:space="preserve">
-    <value>Updating the following tags are not supported: {0}</value>
-    <comment>{0} comma separated list of tags that could not be updated.</comment>
-  </data>
-  <data name="DicomUpdateTagValueValidationFailed" xml:space="preserve">
-    <value>Validation failed for the values of following tags: {0}</value>
-    <comment>{0} comma separated list of tags that could not be updated.</comment>
+    <value>Updating the tag is not supported</value>
   </data>
   <data name="MissingRequiredField" xml:space="preserve">
     <value>The required field '{0}' is missing or empty.</value>
