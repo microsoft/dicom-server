@@ -18,13 +18,13 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 
-internal class SqlInstanceStoreV33 : SqlInstanceStoreV32
+internal class SqlInstanceStoreV34 : SqlInstanceStoreV33
 {
     public SqlInstanceStoreV33(SqlConnectionWrapperFactory sqlConnectionWrapperFactory) : base(sqlConnectionWrapperFactory)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V33;
+    public override SchemaVersion Version => SchemaVersion.V34;
 
     public override async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesByTimeStampAsync(
         int batchSize,
