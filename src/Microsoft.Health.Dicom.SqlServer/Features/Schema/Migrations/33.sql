@@ -958,6 +958,34 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstanceV33
+@partitionKey INT, @studyInstanceUid VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    UPDATE dbo.Instance
+    SET    NewWatermark =  NEXT VALUE FOR dbo.WatermarkSequence
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1;
+    COMMIT TRANSACTION;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark,
+           TransferSyntaxUid,
+           HasFrameMetadata,
+           OriginalWatermark,
+           NewWatermark
+    FROM   dbo.Instance
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.CompleteReindexing
 @extendedQueryTagKeys dbo.ExtendedQueryTagKeyTableType_1 READONLY
 AS
@@ -1521,32 +1549,6 @@ BEGIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence DESC;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV33
-@startTime DATETIMEOFFSET (7), @endTime DATETIMEOFFSET (7), @limit INT, @offset BIGINT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT   Sequence,
-             Timestamp,
-             Action,
-             PartitionName,
-             StudyInstanceUid,
-             SeriesInstanceUid,
-             SopInstanceUid,
-             OriginalWatermark,
-             CurrentWatermark
-    FROM     dbo.ChangeFeed AS c
-             INNER JOIN
-             dbo.Partition AS p
-             ON p.PartitionKey = c.PartitionKey
-    WHERE    c.Timestamp >= @startTime
-             AND c.Timestamp < @endTime
-    ORDER BY Sequence ASC
-    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
 
 GO

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -572,6 +573,51 @@ public static class DicomDatasetExtensions
             case FinalStateRequirementCode.O:
                 break;
         }
+    }
+
+    /// <summary>
+    /// Returns a dicom item if it matches a large object size criteria.
+    /// </summary>
+    /// <param name="dataset"></param>
+    /// <param name="minLargeObjectsizeInBytes"></param>
+    /// <param name="maxLargeObjectsizeInBytes"></param>
+    /// <param name="largeDicomItem"></param>
+    /// <returns>dicom item</returns>
+    public static bool TryGetLargeDicomItem(
+        this DicomDataset dataset,
+        int minLargeObjectsizeInBytes,
+        int maxLargeObjectsizeInBytes,
+        out DicomItem largeDicomItem)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsGte(minLargeObjectsizeInBytes, 0, nameof(minLargeObjectsizeInBytes));
+        EnsureArg.IsGte(maxLargeObjectsizeInBytes, 0, nameof(maxLargeObjectsizeInBytes));
+
+        long totalSize = 0;
+        largeDicomItem = null;
+
+        var calculator = new DicomWriteLengthCalculator(dataset.InternalTransferSyntax, DicomWriteOptions.Default);
+
+        foreach (var item in dataset)
+        {
+            long length = calculator.Calculate(item);
+            if (length >= minLargeObjectsizeInBytes)
+            {
+                largeDicomItem = item;
+                return true;
+            }
+
+            totalSize += length;
+
+            // If the total size is greater than the max block size, we will return the last dicom item
+            if (totalSize >= maxLargeObjectsizeInBytes)
+            {
+                largeDicomItem = item;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static void ValidateRequiredAttribute(this DicomDataset dataset, DicomTag tag, RequirementCode requirementCode)

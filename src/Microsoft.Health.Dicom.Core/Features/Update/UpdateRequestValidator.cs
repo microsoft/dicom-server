@@ -9,6 +9,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -48,18 +49,16 @@ public static class UpdateRequestValidator
     /// </summary>
     /// <param name="dataset">The Dicom dataset to validate.</param>
     /// <exception cref="BadRequestException">Thrown when dicom tag or value validation fails</exception>
-    public static void ValidateDicomDataset(DicomDataset dataset)
+    public static DicomDataset ValidateDicomDataset(DicomDataset dataset)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
-        List<string> invalidTags = new List<string>();
-        List<string> invalidTagValues = new List<string>();
-        string errorString = string.Empty;
-
+        var errors = new List<string>();
         foreach (DicomItem item in dataset)
         {
             if (!UpdateTags.UpdateStudyFilterTags.Contains(item.Tag))
             {
-                invalidTags.Add(item.Tag.ToString());
+                var message = string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateTagValidationFailed, item.Tag.ToString());
+                errors.Add(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageFormat, ErrorNumbers.ValidationFailure, item.Tag.ToString(), message));
             }
             else
             {
@@ -67,24 +66,20 @@ public static class UpdateRequestValidator
                 {
                     item.Validate();
                 }
-                catch (DicomValidationException)
+                catch (DicomValidationException ex)
                 {
-                    invalidTagValues.Add(item.Tag.ToString());
+                    errors.Add(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageFormat, ErrorNumbers.ValidationFailure, item.Tag.ToString(), ex.Message));
                 }
             }
         }
-        if (invalidTags.Count > 0)
+        var failedSop = new DicomDataset();
+        if (errors.Count > 0)
         {
-            errorString = string.Concat(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateTagValidationFailed, GetCommaSeparatedTags(invalidTags)), "\n");
+            var failedAttributes = errors.Select(error => new DicomDataset(new DicomLongString(DicomTag.ErrorComment, error))).ToArray();
+            var failedAttributeSequence = new DicomSequence(DicomTag.FailedAttributesSequence, failedAttributes);
+            failedSop.Add(failedAttributeSequence);
         }
-        if (invalidTagValues.Count > 0)
-        {
-            errorString = string.Concat(errorString, string.Format(CultureInfo.CurrentCulture, DicomCoreResource.DicomUpdateTagValueValidationFailed, GetCommaSeparatedTags(invalidTagValues)));
-        }
-        if (!string.IsNullOrEmpty(errorString))
-        {
-            throw new BadRequestException(errorString);
-        }
+        return failedSop;
     }
 
     private static string GetCommaSeparatedTags(List<string> tags)

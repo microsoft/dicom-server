@@ -117,12 +117,12 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public Task<DicomDataset> GetInstanceMetadataAsync(long version, CancellationToken cancellationToken)
+    public async Task<DicomDataset> GetInstanceMetadataAsync(long version, CancellationToken cancellationToken)
     {
         try
         {
             BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
-            return ExecuteAsync(async t =>
+            return await ExecuteAsync(async t =>
             {
                 // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
                 BlobDownloadResult result = await blobClient.DownloadContentAsync(t);

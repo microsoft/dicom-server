@@ -1,57 +1,53 @@
-SET XACT_ABORT ON
+﻿SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 GO
 
-/***************************************************************************************/
--- STORED PROCEDURE
---     GetChangeFeed33
+/*************************************************************
+    Stored procedures for updating an instance status.
+**************************************************************/
 --
--- FIRST SCHEMA VERSION
---     33
+-- STORED PROCEDURE
+--     BeginUpdateInstance
 --
 -- DESCRIPTION
---     Gets a stream of dicom changes (instance adds and deletes)
+--     Updates a DICOM instance NewWatermark for a given study
 --
 -- PARAMETERS
---     @limit
---         * Max rows to return
---     @offet
---         * Rows to skip
---     @startTime
---         * Optional inclusive timestamp start
---     @endTime
---         * Optional exclusive timestamp end
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV33 (
-    @startTime DATETIMEOFFSET(7),
-    @endTime   DATETIMEOFFSET(7),
-    @limit     INT,
-    @offset    BIGINT)
+--     @partitionKey
+--         * The system identified of the data partition.
+--     @studyInstanceUid
+--         * The study instance uid.
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstanceV33
+    @partitionKey       INT,
+    @studyInstanceUid   VARCHAR(64)
 AS
 BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
+    SET NOCOUNT ON
+    SET XACT_ABORT ON
 
-    SELECT
-        Sequence,
-        Timestamp,
-        Action,
-        PartitionName,
-        StudyInstanceUid,
+    BEGIN TRANSACTION
+        
+        UPDATE dbo.Instance
+        SET NewWatermark = NEXT VALUE FOR dbo.WatermarkSequence
+        WHERE PartitionKey            = @partitionKey
+              AND StudyInstanceUid    = @studyInstanceUid
+              AND Status              = 1
+
+    COMMIT TRANSACTION
+
+    SELECT StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
+        Watermark,
+        TransferSyntaxUid,
+        HasFrameMetadata,
         OriginalWatermark,
-        CurrentWatermark
-    FROM dbo.ChangeFeed c
-    INNER JOIN dbo.Partition p
-    ON p.PartitionKey = c.PartitionKey
-    WHERE c.Timestamp >= @startTime AND c.Timestamp <@endTime
-    ORDER BY Sequence ASC
-    OFFSET @offset ROWS
-    FETCH NEXT @limit ROWS ONLY
+        NewWatermark
+    FROM dbo.Instance
+    WHERE PartitionKey            = @partitionKey
+          AND StudyInstanceUid    = @studyInstanceUid
+          AND Status              = 1
 END
 GO
-
 COMMIT TRANSACTION
-GO

@@ -54,9 +54,13 @@ public class UpdateRequestValidatorTests
 
     [Theory]
     [MemberData(nameof(GetInvalidDicomDataset))]
-    public void GivenAnInvalidDataset_WhenValidated_ThenExceptionShouldBeThrown(DicomDataset dataset)
+    public void GivenAnInvalidDataset_WhenValidated_ThenSucceedsWithErrorsInFailedAttributesSequence(DicomDataset dataset)
     {
-        Assert.Throws<BadRequestException>(() => UpdateRequestValidator.ValidateDicomDataset(dataset));
+        string errorComment = "DICOM100: (0010,0021) - Updating the tag is not supported";
+        DicomDataset failedSop = UpdateRequestValidator.ValidateDicomDataset(dataset);
+        DicomSequence failedAttributeSequence = failedSop.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Single(failedAttributeSequence);
+        Assert.Equal(errorComment, failedAttributeSequence.Items[0].GetString(DicomTag.ErrorComment));
     }
 
     public static IEnumerable<object[]> GetValidStudyInstanceUids()

@@ -17,11 +17,11 @@ using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
-internal class SqlChangeFeedStoreV33 : SqlChangeFeedStoreV6
+internal class SqlChangeFeedStoreV34 : SqlChangeFeedStoreV6
 {
-    public override SchemaVersion Version => SchemaVersion.V33;
+    public override SchemaVersion Version => SchemaVersion.V34;
 
-    public SqlChangeFeedStoreV33(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlChangeFeedStoreV34(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
        : base(sqlConnectionWrapperFactory)
     {
     }
@@ -33,7 +33,7 @@ internal class SqlChangeFeedStoreV33 : SqlChangeFeedStoreV6
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetChangeFeedV33.PopulateCommand(sqlCommandWrapper, range.Start, range.End, limit, offset);
+        VLatest.GetChangeFeedV34.PopulateCommand(sqlCommandWrapper, range.Start, range.End, limit, offset);
 
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))

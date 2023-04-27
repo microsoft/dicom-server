@@ -1,24 +1,29 @@
+SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeed33
+--     GetChangeFeed34
 --
 -- FIRST SCHEMA VERSION
---     33
+--     34
 --
 -- DESCRIPTION
 --     Gets a stream of dicom changes (instance adds and deletes)
 --
 -- PARAMETERS
---     @limit
---         * Max rows to return
---     @offet
---         * Rows to skip
 --     @startTime
 --         * Optional inclusive timestamp start
 --     @endTime
 --         * Optional exclusive timestamp end
+--     @limit
+--         * Max rows to return
+--     @offet
+--         * Rows to skip
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV33 (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV34 (
     @startTime DATETIMEOFFSET(7),
     @endTime   DATETIMEOFFSET(7),
     @limit     INT,
@@ -41,8 +46,12 @@ BEGIN
     FROM dbo.ChangeFeed c
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
-    WHERE c.Timestamp >= @startTime AND c.Timestamp <@endTime
+    WHERE c.Timestamp >= @startTime AND c.Timestamp < @endTime
     ORDER BY Sequence ASC
     OFFSET @offset ROWS
     FETCH NEXT @limit ROWS ONLY
 END
+GO
+
+COMMIT TRANSACTION
+GO
