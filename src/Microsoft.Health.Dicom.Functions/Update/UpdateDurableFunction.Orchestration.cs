@@ -68,6 +68,7 @@ public partial class UpdateDurableFunction
                         nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
                         new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                    _updateMeter.UpdatedInstances.Add(1);
                 }
                 catch (FunctionFailedException ex)
                 {

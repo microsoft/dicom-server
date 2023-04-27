@@ -8,4 +8,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
 public static class OpenTelemetryLabels
 {
     public const string BaseMeterName = "Microsoft.Health.Dicom";
+    public const string PlatformBaseMeterName = "Microsoft.Health.Platform.Dicom";
 }
