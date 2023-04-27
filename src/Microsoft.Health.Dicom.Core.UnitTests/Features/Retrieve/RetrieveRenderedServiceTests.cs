@@ -194,6 +194,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.True(_dicomRequestContextAccessor.RequestContext.IsRenderedRequested);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -210,6 +212,8 @@ public class RetrieveRenderedServiceTests
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.True(_dicomRequestContextAccessor.RequestContext.IsRenderedRequested);
+        Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -256,6 +260,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.True(_dicomRequestContextAccessor.RequestContext.IsRenderedRequested);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 20, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -273,6 +279,8 @@ public class RetrieveRenderedServiceTests
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.True(_dicomRequestContextAccessor.RequestContext.IsRenderedRequested);
+        Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -314,6 +322,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/png", response.ContentType);
+        Assert.True(_dicomRequestContextAccessor.RequestContext.IsRenderedRequested);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(mediaType: KnownContentTypes.ImagePng) });
 
@@ -369,6 +379,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.True(_dicomRequestContextAccessor.RequestContext.IsRenderedRequested);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         response.ResponseStream.Dispose();
         copyStream.Dispose();
