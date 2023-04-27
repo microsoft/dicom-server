@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -205,6 +205,7 @@ public static class Samples
         ds.Add(DicomTag.BitsAllocated, (ushort)8);
         ds.Add(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
         ds.Add(DicomTag.PatientID, patientId ?? TestUidGenerator.Generate());
+        ds.Add(DicomTag.PatientName, TestUidGenerator.Generate());
         return ds;
     }
 

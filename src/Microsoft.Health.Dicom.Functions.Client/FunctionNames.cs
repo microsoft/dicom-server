@@ -7,13 +7,9 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 
 internal static class FunctionNames
 {
-    public const string CopyFiles = "CopyFiles";
-
-    public const string CleanupDeletedFiles = "CleanupDeletedFiles";
-
-    public const string DeleteMigratedFiles = "DeleteMigratedFiles";
-
     public const string ExportDicomFiles = "ExportDicomFiles";
 
     public const string ReindexInstances = "ReindexInstances";
+
+    public const string UpdateInstances = "UpdateInstances";
 }

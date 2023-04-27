@@ -35,5 +35,5 @@ public class FeatureConfiguration
     /// <summary>
     /// Enables Dicom update feature
     /// </summary>
-    public bool EnableDicomUpdate { get; set; }
+    public bool EnableUpdate { get; set; }
 }

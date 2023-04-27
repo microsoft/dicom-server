@@ -47,7 +47,7 @@ public class StoreController : ControllerBase
 
         _mediator = mediator;
         _logger = logger;
-        _dicomUpdateEnabled = featureConfiguration.Value.EnableDicomUpdate;
+        _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]

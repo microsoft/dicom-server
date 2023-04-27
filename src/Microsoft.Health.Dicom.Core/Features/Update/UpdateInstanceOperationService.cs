@@ -3,16 +3,18 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -24,8 +26,8 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
-    private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly ILogger<UpdateInstanceOperationService> _logger;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -40,18 +42,18 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     public UpdateInstanceOperationService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
-        IUrlResolver iUrlResolver,
-        IDicomRequestContextAccessor contextAccessor)
+        IDicomRequestContextAccessor contextAccessor,
+        ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(iUrlResolver, nameof(iUrlResolver));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
         _client = client;
-        _urlResolver = iUrlResolver;
         _contextAccessor = contextAccessor;
+        _logger = logger;
     }
 
     public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
@@ -76,8 +78,22 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         if (activeOperation != null)
             throw new ExistingUpdateOperationException(activeOperation);
 
-        var operationId = _guidFactory.Create();
-        var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
-        return new UpdateInstanceResponse(operation);
+        Guid operationId = _guidFactory.Create();
+
+        EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
+        EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
+
+        int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+        try
+        {
+            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            return new UpdateInstanceResponse(operation);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to start update operation");
+            throw;
+        }
     }
 }

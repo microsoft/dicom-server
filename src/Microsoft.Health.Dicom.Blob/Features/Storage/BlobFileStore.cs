@@ -4,7 +4,10 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -76,6 +79,77 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
+    public async Task<Uri> StoreFileInBlocksAsync(
+        long version,
+        Stream stream,
+        IDictionary<string, long> blockLengths,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNull(blockLengths, nameof(blockLengths));
+        EnsureArg.IsGte(blockLengths.Count, 0, nameof(blockLengths.Count));
+
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+
+        int maxBufferSize = (int)blockLengths.Max(x => x.Value);
+
+        await ExecuteAsync(async () =>
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
+            try
+            {
+                foreach ((string blockId, long blockSize) in blockLengths)
+                {
+#pragma warning disable CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+                    await stream.ReadAsync(buffer, 0, (int)blockSize, cancellationToken);
+#pragma warning restore CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
+
+                    using var blockStream = new MemoryStream(buffer, 0, (int)blockSize);
+                    await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
+                }
+
+                await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+        });
+
+        return blobClient.Uri;
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateFileBlockAsync(
+        long version,
+        string blockId,
+        Stream stream,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
+
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+
+        BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+
+        IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
+
+        string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
+
+        if (blockToUpdate == null)
+            throw new DataStoreException(DicomBlobResource.BlockNotFound);
+
+        stream.Seek(0, SeekOrigin.Begin);
+
+        await ExecuteAsync(async () =>
+        {
+            await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
+            await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
+        });
+    }
+
+    /// <inheritdoc />
     public async Task DeleteFileIfExistsAsync(long version, CancellationToken cancellationToken)
     {
         try
@@ -119,6 +193,7 @@ public class BlobFileStore : IFileStore
         }
     }
 
+    /// <inheritdoc />
     public async Task<Stream> GetStreamingFileAsync(long version, CancellationToken cancellationToken)
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
@@ -135,6 +210,7 @@ public class BlobFileStore : IFileStore
         return stream;
     }
 
+    /// <inheritdoc />
     public async Task<FileProperties> GetFilePropertiesAsync(long version, CancellationToken cancellationToken)
     {
         try
@@ -177,6 +253,60 @@ public class BlobFileStore : IFileStore
         return stream;
     }
 
+    /// <inheritdoc />
+    public async Task<BinaryData> GetFileContentInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(range, nameof(range));
+
+        BlockBlobClient blob = GetInstanceBlockBlobClient(version);
+
+        BinaryData data = null;
+        var blobDownloadOptions = new BlobDownloadOptions
+        {
+            Range = new HttpRange(range.Offset, range.Length)
+        };
+
+        await ExecuteAsync(async () =>
+        {
+            Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
+            data = result.Value.Content;
+        });
+
+        return data;
+    }
+
+    /// <inheritdoc />
+    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, CancellationToken cancellationToken = default)
+    {
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        KeyValuePair<string, long> result = new KeyValuePair<string, long>();
+
+        await ExecuteAsync(async () =>
+        {
+            BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+
+            if (!blockList.CommittedBlocks.Any())
+                throw new DataStoreException(DicomBlobResource.BlockListNotFound);
+
+            BlobBlock firstBlock = blockList.CommittedBlocks.First();
+            result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
+        });
+
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task CopyFileAsync(long originalVersion, long newVersion, CancellationToken cancellationToken)
+    {
+        var blobClient = GetInstanceBlockBlobClient(originalVersion);
+        var copyBlobClient = GetInstanceBlockBlobClient(newVersion);
+
+        if (!await copyBlobClient.ExistsAsync(cancellationToken))
+        {
+            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
 
     private BlockBlobClient GetInstanceBlockBlobClient(long version)
     {

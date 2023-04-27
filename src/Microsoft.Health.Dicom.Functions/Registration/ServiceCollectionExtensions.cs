@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Registration;
+using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Microsoft.Health.Operations.Functions.Management;
@@ -57,6 +58,7 @@ public static class ServiceCollectionExtensions
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
+            .AddFunctionsOptions<UpdateOptions>(configuration, UpdateOptions.SectionName)
             .ConfigureDurableFunctionSerialization()
             .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
     }
