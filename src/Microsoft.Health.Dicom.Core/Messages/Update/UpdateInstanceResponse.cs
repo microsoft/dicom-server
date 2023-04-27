@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using EnsureThat;
+using FellowOakDicom;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Update;
@@ -15,5 +16,12 @@ public class UpdateInstanceResponse
         Operation = EnsureArg.IsNotNull(operationReference);
     }
 
+    public UpdateInstanceResponse(DicomDataset dataset)
+    {
+        FailedDataset = EnsureArg.IsNotNull(dataset);
+    }
+
     public OperationReference Operation { get; }
+
+    public DicomDataset FailedDataset { get; }
 }

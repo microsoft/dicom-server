@@ -145,6 +145,16 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<UpdateInstanceOperationService>()
+           .Scoped()
+           .AsSelf()
+           .AsImplementedInterfaces();
+
+        services.Add<UpdateInstanceService>()
+           .Scoped()
+           .AsSelf()
+           .AsImplementedInterfaces();
+
         services.AddSingleton<IGuidFactory>(GuidFactory.Default);
 
         services.AddScoped<IDicomOperationsResourceStore, DicomOperationsResourceStore>();
@@ -167,11 +177,6 @@ public class ServiceModule : IStartupModule
 
         services.Add<FramesRangeCache>()
             .Singleton()
-            .AsSelf()
-            .AsImplementedInterfaces();
-
-        services.Add<UpdateOperationInstanceService>()
-            .Scoped()
             .AsSelf()
             .AsImplementedInterfaces();
 

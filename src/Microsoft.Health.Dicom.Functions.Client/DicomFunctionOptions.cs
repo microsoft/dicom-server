@@ -23,4 +23,7 @@ internal class DicomFunctionOptions
 
     [Required]
     public FanOutFunctionOptions Migration { get; set; }
+
+    [Required]
+    public FanOutFunctionOptions Update { get; set; }
 }

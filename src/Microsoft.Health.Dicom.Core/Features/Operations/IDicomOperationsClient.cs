@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
+using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations;
@@ -99,6 +100,23 @@ public interface IDicomOperationsClient
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Asynchronously begins the update operation in the given <paramref name="updateSpecification"/>.
+    /// </summary>
+    /// <param name="operationId">The desired ID for the long-running update operation.</param>
+    /// <param name="updateSpecification">The specification that details the update changed dataset for updating studies</param>
+    /// <param name="partitionKey">The partition containing the data to update.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>
+    /// A task representing the <see cref="StartUpdateOperationAsync"/>
+    /// operation. The value of its <see cref="Task{TResult}.Result"/> property contains a reference
+    /// to the newly started operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="updateSpecification"/> is <see langword="null"/>.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously migrating instance frame range files.

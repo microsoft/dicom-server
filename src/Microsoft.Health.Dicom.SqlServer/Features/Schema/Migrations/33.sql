@@ -330,10 +330,6 @@ CREATE NONCLUSTERED INDEX IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWa
     ON dbo.Instance(PartitionKey, Status, StudyInstanceUid, NewWatermark)
     INCLUDE(SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_Instance_Watermark_Status_CreatedDate
-    ON dbo.Instance(Watermark, Status, CreatedDate)
-    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
-
 CREATE TABLE dbo.Partition (
     PartitionKey  INT           NOT NULL,
     PartitionName VARCHAR (64)  NOT NULL,
@@ -959,6 +955,34 @@ BEGIN
            ON i.Watermark = input.Watermark
               AND i.PartitionKey = @partitionKey
     WHERE  Status = 1;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.BeginUpdateInstanceV33
+@partitionKey INT, @studyInstanceUid VARCHAR (64)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRANSACTION;
+    UPDATE dbo.Instance
+    SET    NewWatermark =  NEXT VALUE FOR dbo.WatermarkSequence
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1;
+    COMMIT TRANSACTION;
+    SELECT StudyInstanceUid,
+           SeriesInstanceUid,
+           SopInstanceUid,
+           Watermark,
+           TransferSyntaxUid,
+           HasFrameMetadata,
+           OriginalWatermark,
+           NewWatermark
+    FROM   dbo.Instance
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND Status = 1;
 END
 
 GO
@@ -1755,25 +1779,6 @@ BEGIN
               FROM   dbo.Instance
               WHERE  Watermark <= ISNULL(@maxWatermark, Watermark)
                      AND Status = @status) AS I
-    GROUP BY Batch
-    ORDER BY Batch ASC;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetInstanceBatchesByTimeStamp
-@batchSize INT, @batchCount INT, @status TINYINT, @startTimeStamp DATETIME, @endTimeStamp DATETIME, @maxWatermark BIGINT=NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT   MIN(Watermark) AS MinWatermark,
-             MAX(Watermark) AS MaxWatermark
-    FROM     (SELECT TOP (@batchSize * @batchCount) Watermark,
-                                                    (ROW_NUMBER() OVER (ORDER BY Watermark DESC) - 1) / @batchSize AS Batch
-              FROM   dbo.Instance
-              WHERE  Watermark <= ISNULL(@maxWatermark, Watermark)
-                     AND Status = @status
-                     AND CreatedDate >= @startTimeStamp
-                     AND CreatedDate <= @endTimeStamp) AS I
     GROUP BY Batch
     ORDER BY Batch ASC;
 END

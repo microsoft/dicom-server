@@ -18,9 +18,9 @@ using Microsoft.Health.SqlServer.Features.Client;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Retrieve;
 
-internal class SqlInstanceStoreV34 : SqlInstanceStoreV33
+internal class SqlInstanceStoreV34 : SqlInstanceStoreV32
 {
-    public SqlInstanceStoreV33(SqlConnectionWrapperFactory sqlConnectionWrapperFactory) : base(sqlConnectionWrapperFactory)
+    public SqlInstanceStoreV34(SqlConnectionWrapperFactory sqlConnectionWrapperFactory) : base(sqlConnectionWrapperFactory)
     {
     }
 
