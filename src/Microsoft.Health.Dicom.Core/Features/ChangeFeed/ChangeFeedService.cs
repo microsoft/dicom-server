@@ -5,10 +5,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -20,11 +21,16 @@ public class ChangeFeedService : IChangeFeedService
 {
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly IMetadataStore _metadataStore;
+    private readonly RetrieveConfiguration _options;
 
-    public ChangeFeedService(IChangeFeedStore changeFeedStore, IMetadataStore metadataStore)
+    public ChangeFeedService(
+        IChangeFeedStore changeFeedStore,
+        IMetadataStore metadataStore,
+        IOptions<RetrieveConfiguration> options)
     {
         _changeFeedStore = EnsureArg.IsNotNull(changeFeedStore, nameof(changeFeedStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(metadataStore));
     }
 
     public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default)
@@ -38,7 +44,16 @@ public class ChangeFeedService : IChangeFeedService
         IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, order, cancellationToken);
 
         if (includeMetadata)
-            await PopulateMetadata(changeFeedEntries, cancellationToken);
+        {
+            await Parallel.ForEachAsync(
+                changeFeedEntries,
+                new ParallelOptions
+                {
+                    CancellationToken = cancellationToken,
+                    MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism,
+                },
+                PopulateMetadata);
+        }
 
         return changeFeedEntries;
     }
@@ -56,12 +71,7 @@ public class ChangeFeedService : IChangeFeedService
         return result;
     }
 
-    private async Task PopulateMetadata(IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries, CancellationToken cancellationToken)
-    {
-        await Task.WhenAll(changeFeedEntries.Select(x => PopulateMetadata(x, cancellationToken)));
-    }
-
-    private async Task PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)
+    private async ValueTask PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)
     {
         if (entry.CurrentVersion == null)
             return;
