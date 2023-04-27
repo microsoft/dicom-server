@@ -100,6 +100,7 @@ public partial class DicomWebClient : IDicomWebClient
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
+        int quality = 100,
         string mediaType = DicomWebConstants.ImageJpegMediaType,
         string partitionName = default,
         CancellationToken cancellationToken = default)
@@ -109,7 +110,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
         return await RetrieveRenderedAsync(
-            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, quality), partitionName),
             mediaType,
             cancellationToken).ConfigureAwait(false);
     }
@@ -162,6 +163,7 @@ public partial class DicomWebClient : IDicomWebClient
         string seriesInstanceUid,
         string sopInstanceUid,
         int frame,
+        int quality = 100,
         string mediaType = DicomWebConstants.ImageJpegMediaType,
         string partitionName = default,
         CancellationToken cancellationToken = default)
@@ -171,7 +173,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
 
         return await RetrieveRenderedAsync(
-            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveFrameRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frame), partitionName),
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveFrameRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frame, quality), partitionName),
             mediaType,
             cancellationToken).ConfigureAwait(false);
     }
