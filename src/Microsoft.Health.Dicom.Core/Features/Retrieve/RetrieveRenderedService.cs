@@ -27,6 +27,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 public class RetrieveRenderedService : IRetrieveRenderedService
@@ -65,6 +66,11 @@ public class RetrieveRenderedService : IRetrieveRenderedService
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
+        if (request.Quality < 1 || request.Quality > 100)
+        {
+            throw new BadRequestException(DicomCoreResource.InvalidImageQuality);
+        }
+
         // To keep track of how long render operation is taking
         Stopwatch sw = new Stopwatch();
 
@@ -85,7 +91,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
             DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
-            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), cancellationToken);
+            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), request.Quality, cancellationToken);
             string outputContentType = returnHeader.MediaType.ToString();
 
             sw.Stop();
@@ -106,7 +112,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
     }
 
-    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, CancellationToken cancellationToken)
+    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, int quality, CancellationToken cancellationToken)
     {
         try
         {
@@ -114,7 +120,18 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             using var img = dicomImage.RenderImage(frameNumber);
             using var sharpImage = img.AsSharpImage();
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-            await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
+
+            if (mediaType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
+            {
+                JpegEncoder jpegEncoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
+                jpegEncoder.Quality = quality;
+                await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await sharpImage.SaveAsPngAsync(resultStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), cancellationToken: cancellationToken);
+            }
+
             resultStream.Position = 0;
 
             return resultStream;
@@ -134,9 +151,20 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         {
             throw new NotAcceptableException(DicomCoreResource.MultipleAcceptHeadersNotSupported);
         }
-        else if (acceptHeaders.Count == 1 && acceptHeaders.First().MediaType != null && !StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
+
+        if (acceptHeaders.Count == 1)
         {
-            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            var mediaType = acceptHeaders.First()?.MediaType;
+
+            if (mediaType == null || (!StringSegment.Equals(mediaType.ToString(), KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase) && !StringSegment.Equals(mediaType.ToString(), KnownContentTypes.ImagePng, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            }
+
+            if (StringSegment.Equals(mediaType.ToString(), KnownContentTypes.ImagePng, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new AcceptHeader(KnownContentTypes.ImagePng, PayloadTypes.SinglePart);
+            }
         }
 
         return new AcceptHeader(KnownContentTypes.ImageJpeg, PayloadTypes.SinglePart);
