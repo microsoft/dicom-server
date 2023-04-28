@@ -31,7 +31,7 @@ public class ChangeFeedServiceTests
         _changeFeedService = new ChangeFeedService(
             _changeFeedStore,
             _metadataStore,
-            Options.Create(new RetrieveConfiguration { MaxDegreeOfParallelism = 1 }));
+            Options.Create(new RetrieveConfiguration { MaxDegreeOfParallelism = -1 }));
     }
 
     [Fact]
@@ -73,16 +73,17 @@ public class ChangeFeedServiceTests
 
         using var tokenSource = new CancellationTokenSource();
 
+        // Note: Parallel.ForEachAsync uses its own CancellationToken
         _changeFeedStore.GetChangeFeedAsync(range, offset, limit, order, tokenSource.Token).Returns(expected);
-        _metadataStore.GetInstanceMetadataAsync(101, tokenSource.Token).Returns(expectedDataset1);
-        _metadataStore.GetInstanceMetadataAsync(104, tokenSource.Token).Returns(expectedDataset3);
+        _metadataStore.GetInstanceMetadataAsync(101, Arg.Any<CancellationToken>()).Returns(expectedDataset1);
+        _metadataStore.GetInstanceMetadataAsync(104, Arg.Any<CancellationToken>()).Returns(expectedDataset3);
 
         IReadOnlyList<ChangeFeedEntry> actual = await _changeFeedService.GetChangeFeedAsync(range, offset, limit, true, order, tokenSource.Token);
 
         await _changeFeedStore.Received(1).GetChangeFeedAsync(range, offset, limit, order, tokenSource.Token);
-        await _metadataStore.Received(1).GetInstanceMetadataAsync(101, tokenSource.Token);
+        await _metadataStore.Received(1).GetInstanceMetadataAsync(101, Arg.Any<CancellationToken>());
         await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(102, tokenSource.Token);
-        await _metadataStore.Received(1).GetInstanceMetadataAsync(104, tokenSource.Token);
+        await _metadataStore.Received(1).GetInstanceMetadataAsync(104, Arg.Any<CancellationToken>());
 
         Assert.Same(expected, actual);
         Assert.Same(expectedDataset1, expected[0].Metadata);
