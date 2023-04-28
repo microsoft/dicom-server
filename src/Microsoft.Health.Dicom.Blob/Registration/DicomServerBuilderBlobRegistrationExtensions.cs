@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -39,10 +40,8 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddOptions<BlobOperationOptions>()
             .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
-        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
-        configuration.GetSection("DicomServer:Features").Bind(featureConfiguration);
-
-        if (featureConfiguration.EnableExternalStore)
+        IOptions<FeatureConfiguration> featureConfiguration = serverBuilder.Services.BuildServiceProvider().GetRequiredService<IOptions<FeatureConfiguration>>();
+        if (featureConfiguration.Value.EnableExternalStore)
         {
             ExternalBlobDataStoreConfiguration externalBlobData = new ExternalBlobDataStoreConfiguration();
             configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName).Bind(externalBlobData);
