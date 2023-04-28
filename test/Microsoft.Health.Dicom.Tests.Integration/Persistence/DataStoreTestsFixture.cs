@@ -75,7 +75,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
 
         await blobClientInitializer.InitializeDataStoreAsync(new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-        FileStore = new BlobFileStore(null, Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), NullLogger<BlobFileStore>.Instance);
+        FileStore = new BlobFileStore(Substitute.For<IBlobClient>(), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), NullLogger<BlobFileStore>.Instance);
         MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, NameWithPrefix, optionsMonitor, Options.Create(AppSerializerOptions.Json), new BlobStoreMeter(), new BlobRetrieveMeter(), NullLogger<BlobMetadataStore>.Instance);
     }
 

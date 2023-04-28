@@ -130,7 +130,7 @@ public class BlobFileStore : IFileStore
         string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
 
         if (blockToUpdate == null)
-            throw new DataStoreException(DicomBlobResource.BlockNotFound);
+            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal);
 
         stream.Seek(0, SeekOrigin.Begin);
 
@@ -278,7 +278,7 @@ public class BlobFileStore : IFileStore
             BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
             if (!blockList.CommittedBlocks.Any())
-                throw new DataStoreException(DicomBlobResource.BlockListNotFound);
+                throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
 
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
             result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);

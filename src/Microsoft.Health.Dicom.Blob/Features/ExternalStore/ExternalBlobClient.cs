@@ -5,24 +5,36 @@
 
 
 using Azure;
+using Azure.Core;
 using Azure.Storage.Blobs;
+using EnsureThat;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Extensions.Options;
+using System;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 internal class ExternalBlobClient : IBlobClient
 {
     private readonly object _lockObj = new object();
-    private BlobContainerClient _azureBlobServiceClient;
-    private readonly ExternalBlobDataStoreConfiguration _options;
+    private readonly BlobServiceClientOptions _blobClientOptions;
+    private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
+    private readonly IExternalOperationCredentialProvider _credentialProvider;
+    private BlobContainerClient _blobContainerClient;
 
     public ExternalBlobClient(
-        IOptions<ExternalBlobDataStoreConfiguration> options)
+        IExternalOperationCredentialProvider credentialProvider,
+        IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions,
+        IOptions<BlobServiceClientOptions> blobClientOptions)
     {
-        _options = options.Value;
+        _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
+        _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
+        _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
     }
+
 
     public bool IsExternal
     {
@@ -36,30 +48,37 @@ internal class ExternalBlobClient : IBlobClient
     {
         get
         {
-            if (_azureBlobServiceClient == null)
+            if (_blobContainerClient == null)
             {
                 lock (_lockObj)
                 {
-                    if (_azureBlobServiceClient == null)
+                    if (_blobContainerClient == null)
                     {
-                        // todo use external MI
-                        // IExternalOperationCredentialProvider credentialProvider
-                        //TokenCredential credential = credentialProvider.GetTokenCredential();
-                        //return new BlobContainerClient(exportOptions.BlobContainerUri, credential);
-
                         try
                         {
-                            _azureBlobServiceClient = new BlobContainerClient(_options.ConnectionString, _options.ContainerName);
+                            if (_externalStoreOptions.UseManagedIdentity)
+                            {
+                                TokenCredential credential = _credentialProvider.GetTokenCredential();
+                                if (credential == null)
+                                {
+                                    throw new InvalidOperationException(DicomBlobResource.MissingServerIdentity);
+                                }
+
+                                _blobContainerClient = new BlobContainerClient(_externalStoreOptions.BlobContainerUri, credential, _blobClientOptions);
+                            }
+                            else
+                            {
+                                _blobContainerClient = new BlobContainerClient(_externalStoreOptions.ConnectionString, _externalStoreOptions.ContainerName, _blobClientOptions);
+                            }
                         }
                         catch (RequestFailedException ex)
                         {
-                            throw new DataStoreException(ex, isExternal: true);
+                            throw new DataStoreException(ex, isExternal: IsExternal);
                         }
                     }
-
                 }
             }
-            return _azureBlobServiceClient;
+            return _blobContainerClient;
         }
     }
 }
