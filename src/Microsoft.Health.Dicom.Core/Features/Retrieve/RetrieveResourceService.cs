@@ -186,17 +186,21 @@ public class RetrieveResourceService : IRetrieveResourceService
         {
             _logger.LogInformation("Executing fast frame get.");
 
+            // To get frame range metadata file, we use the original version of the instance, since we are not changing the pixel data
+            // else we use the current version.
+            long version = instance.InstanceProperties.OriginalVersion ?? instance.VersionedInstanceIdentifier.Version;
+
             // get frame range
             IReadOnlyDictionary<int, FrameRange> framesRange = await _framesRangeCache.GetAsync(
-                instance.VersionedInstanceIdentifier.Version,
-                instance.VersionedInstanceIdentifier.Version,
+                version,
+                version,
                 _metadataStore.GetInstanceFramesRangeAsync,
                 cancellationToken);
 
             string responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
             IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
-                instance.VersionedInstanceIdentifier,
+                version,
                 framesRange,
                 message.Frames,
                 responseTransferSyntax,
@@ -314,7 +318,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     }
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(
-        VersionedInstanceIdentifier identifier,
+        long version,
         IReadOnlyDictionary<int, FrameRange> framesRange,
         IReadOnlyCollection<int> frames,
         string responseTransferSyntax,
@@ -330,7 +334,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier.Version, frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, frameRange, cancellationToken);
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }

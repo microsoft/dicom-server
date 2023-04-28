@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -121,6 +121,26 @@ public partial class RetrieveTransactionResourceTests
         await _instancesManager.StoreAsync(new[] { dicomFile });
 
         using DicomWebResponse<DicomFile> instancesInStudy = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*");
+        Assert.Equal(dicomFile.ToByteArray(), (await instancesInStudy.GetValueAsync()).ToByteArray());
+    }
+
+    [Fact]
+    public async Task GivenSupportedInternalTransferSyntax_WhenRetrieveInstanceWithOriginalTransferSyntax_ThenServerShouldReturnOriginalContent()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var seriesInstanceUid = TestUidGenerator.Generate();
+        var sopInstanceUid = TestUidGenerator.Generate();
+
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWith8BitPixelData(
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            transferSyntax: DicomTransferSyntax.ImplicitVRLittleEndian.UID.UID,
+            encode: false);
+
+        await _instancesManager.StoreAsync(new[] { dicomFile });
+
+        using DicomWebResponse<DicomFile> instancesInStudy = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: DicomTransferSyntax.JPEG2000Lossless.UID.UID);
         Assert.Equal(dicomFile.ToByteArray(), (await instancesInStudy.GetValueAsync()).ToByteArray());
     }
 
