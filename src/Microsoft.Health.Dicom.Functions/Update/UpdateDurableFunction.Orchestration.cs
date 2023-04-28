@@ -99,6 +99,10 @@ public partial class UpdateDurableFunction
                     instanceWatermarks);
             }
 
+            if (instanceWatermarks.Count > 0)
+            {
+                _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
+            }
             context.ContinueAsNew(
                 new UpdateCheckpoint
                 {
@@ -110,7 +114,6 @@ public partial class UpdateDurableFunction
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 });
-            _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
         }
         else
         {

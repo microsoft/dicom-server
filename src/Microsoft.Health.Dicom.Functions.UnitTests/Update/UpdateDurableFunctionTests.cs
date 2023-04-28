@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Text.Json;
 using FellowOakDicom.Serialization;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,8 @@ using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
+using OpenTelemetry;
+using OpenTelemetry.Metrics;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 
@@ -29,6 +32,8 @@ public partial class UpdateDurableFunctionTests
     private readonly IUpdateInstanceService _updateInstanceService;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly UpdateMeter _updateMeter;
+    private MeterProvider _meterProvider;
+    private List<Metric> _exportedItems;
 
     public UpdateDurableFunctionTests()
     {
@@ -51,5 +56,15 @@ public partial class UpdateDurableFunctionTests
             _updateInstanceService,
             Options.Create(_jsonSerializerOptions),
             _updateMeter);
+        InitializeMetricExporter();
+    }
+
+    private void InitializeMetricExporter()
+    {
+        _exportedItems = new List<Metric>();
+        _meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter($"{OpenTelemetryLabels.PlatformBaseMeterName}.*")
+            .AddInMemoryExporter(_exportedItems)
+            .Build();
     }
 }
