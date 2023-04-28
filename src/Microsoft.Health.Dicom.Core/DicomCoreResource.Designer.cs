@@ -694,6 +694,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Image quality must be between 1 and 100 inclusive.
+        /// </summary>
+        internal static string InvalidImageQuality {
+            get {
+                return ResourceManager.GetString("InvalidImageQuality", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: cannot specify included fields in addition to &apos;all&apos;..
         /// </summary>
         internal static string InvalidIncludeAllFields {
