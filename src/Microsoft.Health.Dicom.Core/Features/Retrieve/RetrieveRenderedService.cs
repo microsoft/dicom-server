@@ -75,6 +75,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         Stopwatch sw = new Stopwatch();
 
         int partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
+        _dicomRequestContextAccessor.RequestContext.PartCount = 1;
         AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
 
         try
@@ -95,6 +96,8 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             sw.Stop();
             _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
+
+            _dicomRequestContextAccessor.RequestContext.BytesRendered = resultStream.Length;
 
             return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
         }
