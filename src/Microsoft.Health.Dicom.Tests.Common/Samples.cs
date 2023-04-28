@@ -141,14 +141,15 @@ public static class Samples
     }
 
     public static DicomFile CreateRandomDicomFileWithPixelData(
-    string studyInstanceUid = null,
-    string seriesInstanceUid = null,
-    string sopInstanceUid = null,
-    int rows = 50,
-    int columns = 50,
-    int frames = 1)
+        string studyInstanceUid = null,
+        string seriesInstanceUid = null,
+        string sopInstanceUid = null,
+        int rows = 50,
+        int columns = 50,
+        int frames = 1,
+        DicomTransferSyntax dicomTransferSyntax = null)
     {
-        var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+        var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: dicomTransferSyntax));
         AppendRandomPixelData(rows, columns, frames, result);
         return result;
     }

@@ -1892,6 +1892,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
         - name: partitionName
           in: path
           required: true
@@ -1904,6 +1910,9 @@ paths:
           description: No Content
           content:
             image/jpeg:
+              schema:
+                type: string
+            image/png:
               schema:
                 type: string
         '400':
@@ -1944,6 +1953,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
       responses:
         '200':
           description: Success
@@ -1951,6 +1966,9 @@ paths:
           description: No Content
           content:
             image/jpeg:
+              schema:
+                type: string
+            image/png:
               schema:
                 type: string
         '400':
@@ -2221,6 +2239,12 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
         - name: partitionName
           in: path
           required: true
@@ -2233,6 +2257,9 @@ paths:
           description: No Content
           content:
             image/jpeg:
+              schema:
+                type: string
+            image/png:
               schema:
                 type: string
         '400':
@@ -2279,6 +2306,12 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: quality
+          in: query
+          schema:
+            type: integer
+            format: int32
+            default: 100
       responses:
         '200':
           description: Success
@@ -2286,6 +2319,9 @@ paths:
           description: No Content
           content:
             image/jpeg:
+              schema:
+                type: string
+            image/png:
               schema:
                 type: string
         '400':
