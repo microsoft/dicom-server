@@ -129,5 +129,5 @@ public interface IDicomOperationsClient
     /// A task representing the <see cref="StartMigratingFrameRangeBlobAsync"/> operation.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartMigratingFrameRangeBlobAsync(Guid operationId, DateTime startFilterTimeStamp, DateTime endFilterTimeStamp, CancellationToken cancellationToken = default);
+    Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTime startFilterTimeStamp, DateTime endFilterTimeStamp, CancellationToken cancellationToken = default);
 }

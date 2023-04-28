@@ -205,7 +205,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
-    public async Task<OperationReference> StartMigratingFrameRangeBlobAsync(Guid operationId, DateTime startFilterTimeStamp, DateTime endFilterTimeStamp, CancellationToken cancellationToken = default)
+    public async Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTime startFilterTimeStamp, DateTime endFilterTimeStamp, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -220,8 +220,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             });
 
         _logger.LogInformation("Successfully started migration operation with ID '{InstanceId}'.", instanceId);
-
-        return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
     private async Task<T> GetStateAsync<T>(

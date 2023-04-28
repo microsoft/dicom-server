@@ -564,9 +564,7 @@ public class DicomAzureFunctionsClientTests
 
         _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
-        OperationReference actual = await _client.StartMigratingFrameRangeBlobAsync(operationId, startTimeStamp, endTimeStamp, source.Token);
-        Assert.Equal(operationId, actual.Id);
-        Assert.Equal(uri, actual.Href);
+        await _client.StartMigratingFrameRangeBlobAsync(operationId, startTimeStamp, endTimeStamp, source.Token);
 
         await _durableClient
             .Received(1)
@@ -574,6 +572,5 @@ public class DicomAzureFunctionsClientTests
                 FunctionNames.MigrateFiles,
                 instanceId,
                 Arg.Is<MigratingFilesInput>(x => x.StartFilterTimeStamp == now && x.EndFilterTimeStamp == now.AddDays(1)));
-        _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
     }
 }
