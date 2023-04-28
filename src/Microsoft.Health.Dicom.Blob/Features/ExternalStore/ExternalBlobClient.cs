@@ -17,6 +17,8 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using System;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
+
+/// Represents the blob container created by the user and initialized JIT
 internal class ExternalBlobClient : IBlobClient
 {
     private readonly object _lockObj = new object();

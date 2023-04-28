@@ -8,6 +8,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
+
+/// <summary>
+/// Represents the blob container created by the service and initialized during app startup
+/// </summary>
 internal class InternalBlobClient : IBlobClient
 {
     private readonly BlobServiceClient _client;
