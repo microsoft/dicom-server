@@ -106,6 +106,7 @@ public class ExceptionHandlingMiddleware
             case InstanceAlreadyExistsException:
             case ExtendedQueryTagsAlreadyExistsException:
             case ExtendedQueryTagsOutOfDateException:
+            case ExistingUpdateOperationException:
                 statusCode = HttpStatusCode.Conflict;
                 break;
             case PayloadTooLargeException:
