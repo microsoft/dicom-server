@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -71,7 +72,7 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         var studyInstanceUid1 = TestUidGenerator.Generate();
         var studyInstanceUid2 = TestUidGenerator.Generate();
 
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 200, columns: 200, frames: 10);
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 200, columns: 200, frames: 10, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
         DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid1);
         DicomFile dicomFile3 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid2);
 
@@ -100,7 +101,7 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
             Assert.Equal("New^PatientName", dicomDataset.GetSingleValue<string>(DicomTag.PatientName));
         }
 
-        await VerifyInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName");
 
         // Update again to ensure DICOM file is not corrupted after update
         datasetToUpdate.AddOrUpdate(DicomTag.PatientName, "New^PatientName1");
@@ -108,16 +109,44 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         Assert.Equal(OperationStatus.Completed, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid1 }, datasetToUpdate));
 #pragma warning restore CS0618
 
-        await VerifyInstance(studyInstanceUid1, dicomFile1, "New^PatientName1");
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1");
+        await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1");
+
+        await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
     }
 
-    private async Task VerifyInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName)
+    private async Task VerifyRetrieveInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName)
     {
         using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
             studyInstanceUid,
             dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
             dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             dicomTransferSyntax: "*");
+
+        DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
+
+        Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
+    }
+
+    private async Task VerifyRetrieveFrame(string studyInstanceUid, DicomFile dicomFile)
+    {
+        using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
+            studyInstanceUid,
+            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+            1);
+        Stream frameStream = await response.GetValueAsync();
+        Assert.NotNull(frameStream);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private async Task VerifyRetrieveInstanceWithTranscoding(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName)
+    {
+        using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
+            studyInstanceUid,
+            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+            dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+            dicomTransferSyntax: DicomTransferSyntax.JPEG2000Lossless.UID.UID);
 
         DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
 
