@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
@@ -20,17 +19,21 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
+    private readonly Action<QueryResource, DicomDataset, DicomDataset> _validateResponseDataset;
 
     public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
-        EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient();
+        _client = GetClient(fixture);
         _instancesManager = new DicomInstancesManager(_client);
+        _validateResponseDataset = GetValidateResponseDataset();
     }
+
+    protected abstract IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture);
+    protected abstract Action<QueryResource, DicomDataset, DicomDataset> GetValidateResponseDataset();
 
     [Fact]
     public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()
@@ -70,7 +73,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.NotEmpty(datasets);
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
         Assert.NotNull(testDataResponse);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
+        _validateResponseDataset(QueryResource.AllStudies, matchInstance, testDataResponse);
     }
 
     [Fact]
@@ -152,7 +155,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomDataset[] datasets = await response.ToArrayAsync();
 
         Assert.Single(datasets);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.StudySeries, matchInstance, datasets[0]);
+        _validateResponseDataset(QueryResource.StudySeries, matchInstance, datasets[0]);
     }
 
     [Fact]
@@ -172,7 +175,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.NotNull(datasets);
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.SeriesInstanceUID) == seriesId);
         Assert.NotNull(testDataResponse);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
+        _validateResponseDataset(QueryResource.AllSeries, matchInstance, testDataResponse);
     }
 
     [Fact]
@@ -226,7 +229,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomDataset[] datasets = await response.ToArrayAsync();
 
         Assert.Single(datasets);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.StudyInstances, matchInstance, datasets[0]);
+        _validateResponseDataset(QueryResource.StudyInstances, matchInstance, datasets[0]);
     }
 
     [Fact]
@@ -248,7 +251,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomDataset[] datasets = await response.ToArrayAsync();
 
         Assert.Single(datasets);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, datasets[0]);
+        _validateResponseDataset(QueryResource.StudySeriesInstances, matchInstance, datasets[0]);
     }
 
     [Fact]
@@ -268,7 +271,7 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.NotNull(datasets);
         DicomDataset testDataResponse = datasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId);
         Assert.NotNull(testDataResponse);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
+        _validateResponseDataset(QueryResource.AllInstances, matchInstance, testDataResponse);
     }
 
     [Fact]
@@ -309,11 +312,11 @@ public class QueryTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         }
 
         Assert.NotNull(testDataResponse1);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance1, testDataResponse1);
+        _validateResponseDataset(QueryResource.AllStudies, matchInstance1, testDataResponse1);
 
         DicomDataset testDataResponse2 = responseDatasets.FirstOrDefault(ds => ds.GetSingleValue<string>(DicomTag.StudyInstanceUID) == studyId2);
         Assert.NotNull(testDataResponse2);
-        ValidationHelpers.ValidateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
+        _validateResponseDataset(QueryResource.AllStudies, matchInstance2, testDataResponse2);
     }
 
     [Fact]
