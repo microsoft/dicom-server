@@ -4,6 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
@@ -25,7 +28,7 @@ public abstract class SeekableStreamConverter : ISeekableStreamConverter
     }
 
     /// <inheritdoc />
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Caller will dispose of Stream.")]
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Implementation of RegisterForDispose will dispose of Stream.")]
     public async Task<Stream> ConvertAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
