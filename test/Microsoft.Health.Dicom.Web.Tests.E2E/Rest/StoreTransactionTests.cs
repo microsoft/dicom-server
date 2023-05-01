@@ -460,5 +460,6 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     public async Task DisposeAsync()
     {
         await _instancesManager.DisposeAsync();
+        await _instancesManagerV2.DisposeAsync();
     }
 }

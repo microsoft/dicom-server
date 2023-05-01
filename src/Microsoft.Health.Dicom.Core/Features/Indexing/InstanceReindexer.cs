@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -25,18 +24,15 @@ public class InstanceReindexer : IInstanceReindexer
     private readonly IMetadataStore _metadataStore;
     private readonly IIndexDataStore _indexDataStore;
     private readonly IReindexDatasetValidator _dicomDatasetReindexValidator;
-    private readonly ILogger _logger;
 
     public InstanceReindexer(
         IMetadataStore metadataStore,
         IIndexDataStore indexDataStore,
-        IReindexDatasetValidator dicomDatasetReindexValidator,
-        ILogger<InstanceReindexer> logger)
+        IReindexDatasetValidator dicomDatasetReindexValidator)
     {
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         _dicomDatasetReindexValidator = EnsureArg.IsNotNull(dicomDatasetReindexValidator, nameof(dicomDatasetReindexValidator));
-        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     public async Task ReindexInstanceAsync(
