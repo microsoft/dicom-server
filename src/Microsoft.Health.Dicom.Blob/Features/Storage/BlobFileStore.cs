@@ -61,7 +61,6 @@ public class BlobFileStore : IFileStore
         await ExecuteAsync(async () =>
         {
             await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
-
         });
 
         return blobClient.Uri;
@@ -303,12 +302,17 @@ public class BlobFileStore : IFileStore
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
-            _logger.LogError(ex, message: "Access to storage account failed.");
+            _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
             throw new ItemNotFoundException(ex, _blobClient.IsExternal);
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, message: "Access to storage account failed.");
+            _logger.LogError(ex, "Access to storage account failed");
             throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }

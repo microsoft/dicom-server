@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using System;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 
@@ -38,13 +37,7 @@ internal class ExternalBlobClient : IBlobClient
     }
 
 
-    public bool IsExternal
-    {
-        get
-        {
-            return true;
-        }
-    }
+    public bool IsExternal => true;
 
     public BlobContainerClient BlobContainerClient
     {
@@ -61,11 +54,6 @@ internal class ExternalBlobClient : IBlobClient
                             if (_externalStoreOptions.UseManagedIdentity)
                             {
                                 TokenCredential credential = _credentialProvider.GetTokenCredential();
-                                if (credential == null)
-                                {
-                                    throw new InvalidOperationException(DicomBlobResource.MissingServerIdentity);
-                                }
-
                                 _blobContainerClient = new BlobContainerClient(_externalStoreOptions.BlobContainerUri, credential, _blobClientOptions);
                             }
                             else

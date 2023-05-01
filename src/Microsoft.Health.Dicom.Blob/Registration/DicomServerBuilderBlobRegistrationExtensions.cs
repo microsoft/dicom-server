@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Export;
@@ -18,7 +19,6 @@ using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -43,9 +43,7 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         IOptions<FeatureConfiguration> featureConfiguration = serverBuilder.Services.BuildServiceProvider().GetRequiredService<IOptions<FeatureConfiguration>>();
         if (featureConfiguration.Value.EnableExternalStore)
         {
-            ExternalBlobDataStoreConfiguration externalBlobData = new ExternalBlobDataStoreConfiguration();
-            configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName).Bind(externalBlobData);
-            serverBuilder.Services.AddSingleton(Options.Options.Create(externalBlobData));
+            serverBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 
             serverBuilder.Services.Add<ExternalBlobClient>()
             .Singleton()

@@ -62,9 +62,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
         IOptions<FeatureConfiguration> featureConfiguration = functionsBuilder.Services.BuildServiceProvider().GetRequiredService<IOptions<FeatureConfiguration>>();
         if (featureConfiguration.Value.EnableExternalStore)
         {
-            ExternalBlobDataStoreConfiguration externalBlobData = new ExternalBlobDataStoreConfiguration();
-            configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName).Bind(externalBlobData);
-            functionsBuilder.Services.AddSingleton(Options.Options.Create(externalBlobData));
+            functionsBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 
             functionsBuilder.Services.Add<ExternalBlobClient>()
             .Singleton()

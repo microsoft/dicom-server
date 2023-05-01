@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Storage.Blobs;
+using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 
@@ -16,21 +17,14 @@ internal class InternalBlobClient : IBlobClient
 {
     private readonly BlobServiceClient _client;
     private readonly string _containerName;
-    public InternalBlobClient(BlobServiceClient client,
+    public InternalBlobClient(BlobServiceClient blobServiceClient,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor)
     {
-        _client = client;
-        _containerName = namedBlobContainerConfigurationAccessor
-           .Get(Constants.BlobContainerConfigurationName).ContainerName;
+        _client = EnsureArg.IsNotNull(blobServiceClient, nameof(blobServiceClient));
+        _containerName = EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor.Get(Constants.BlobContainerConfigurationName).ContainerName, nameof(namedBlobContainerConfigurationAccessor));
     }
 
-    public bool IsExternal
-    {
-        get
-        {
-            return false;
-        }
-    }
+    public bool IsExternal => false;
 
     public BlobContainerClient BlobContainerClient
     {
