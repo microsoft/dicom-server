@@ -25,8 +25,8 @@ public partial class UpdateDurableFunction
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly UpdateMeter _updateMeter;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateDurableFunction(
         IIndexDataStore indexStore,
@@ -35,8 +35,8 @@ public partial class UpdateDurableFunction
         IMetadataStore metadataStore,
         IFileStore fileStore,
         IUpdateInstanceService updateInstanceService,
-        IOptions<JsonSerializerOptions> jsonSerializerOptions,
-        UpdateMeter updateMeter)
+        UpdateMeter updateMeter,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
         _indexStore = EnsureArg.IsNotNull(indexStore, nameof(indexStore));
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -44,7 +44,7 @@ public partial class UpdateDurableFunction
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
-        _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
         _updateMeter = EnsureArg.IsNotNull(updateMeter, nameof(updateMeter));
+        _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }

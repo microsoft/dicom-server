@@ -30,8 +30,8 @@ public partial class UpdateDurableFunctionTests
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly UpdateMeter _updateMeter;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private MeterProvider _meterProvider;
     private List<Metric> _exportedItems;
 
@@ -45,8 +45,8 @@ public partial class UpdateDurableFunctionTests
         _options = new UpdateOptions { RetryOptions = new ActivityRetryOptions() };
         _jsonSerializerOptions = new JsonSerializerOptions();
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
-        _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
         _updateMeter = new UpdateMeter();
+        _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
         _updateDurableFunction = new UpdateDurableFunction(
             _indexStore,
             _instanceStore,
@@ -54,8 +54,8 @@ public partial class UpdateDurableFunctionTests
             _metadataStore,
             _fileStore,
             _updateInstanceService,
-            Options.Create(_jsonSerializerOptions),
-            _updateMeter);
+            _updateMeter,
+            Options.Create(_jsonSerializerOptions));
         InitializeMetricExporter();
     }
 
@@ -63,7 +63,7 @@ public partial class UpdateDurableFunctionTests
     {
         _exportedItems = new List<Metric>();
         _meterProvider = Sdk.CreateMeterProviderBuilder()
-            .AddMeter($"{OpenTelemetryLabels.PlatformBaseMeterName}.*")
+            .AddMeter($"{OpenTelemetryLabels.BaseMeterName}.Update")
             .AddInMemoryExporter(_exportedItems)
             .Build();
     }
