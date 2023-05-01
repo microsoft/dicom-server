@@ -85,7 +85,7 @@ public static class ValidationHelpers
         }
     }
 
-    public static void ValidateResponseDataset(
+    public static void ValidateResponseDatasetV2(
         QueryResource resource,
         DicomDataset storedInstance,
         DicomDataset responseInstance)
@@ -97,6 +97,74 @@ public static class ValidationHelpers
             return !returnTags.Contains(di.Tag);
         });
 
+        // Compare result datasets by serializing.
+        Assert.Equal(
+            JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
+            JsonSerializer.Serialize(responseInstance, AppSerializerOptions.Json));
+        Assert.Equal(expectedDataset.Count(), responseInstance.Count());
+    }
+
+    public static void ValidateResponseDataset(
+        QueryResource resource,
+        DicomDataset storedInstance,
+        DicomDataset responseInstance)
+    {
+        DicomDataset expectedDataset = storedInstance.Clone();
+
+        HashSet<DicomTag> levelTags = new HashSet<DicomTag>();
+        switch (resource)
+        {
+            case QueryResource.AllStudies:
+                levelTags.Add(DicomTag.StudyInstanceUID);
+                levelTags.Add(DicomTag.PatientID);
+                levelTags.Add(DicomTag.PatientName);
+                levelTags.Add(DicomTag.StudyDate);
+                break;
+            case QueryResource.AllSeries:
+                levelTags.Add(DicomTag.StudyInstanceUID);
+                levelTags.Add(DicomTag.PatientID);
+                levelTags.Add(DicomTag.PatientName);
+                levelTags.Add(DicomTag.StudyDate);
+                levelTags.Add(DicomTag.SeriesInstanceUID);
+                levelTags.Add(DicomTag.Modality);
+                break;
+            case QueryResource.AllInstances:
+                levelTags.Add(DicomTag.StudyInstanceUID);
+                levelTags.Add(DicomTag.PatientID);
+                levelTags.Add(DicomTag.PatientName);
+                levelTags.Add(DicomTag.StudyDate);
+                levelTags.Add(DicomTag.SeriesInstanceUID);
+                levelTags.Add(DicomTag.Modality);
+                levelTags.Add(DicomTag.SOPInstanceUID);
+                levelTags.Add(DicomTag.SOPClassUID);
+                levelTags.Add(DicomTag.BitsAllocated);
+                break;
+            case QueryResource.StudySeries:
+                levelTags.Add(DicomTag.StudyInstanceUID);
+                levelTags.Add(DicomTag.SeriesInstanceUID);
+                levelTags.Add(DicomTag.Modality);
+                break;
+            case QueryResource.StudyInstances:
+                levelTags.Add(DicomTag.StudyInstanceUID);
+                levelTags.Add(DicomTag.SeriesInstanceUID);
+                levelTags.Add(DicomTag.Modality);
+                levelTags.Add(DicomTag.SOPInstanceUID);
+                levelTags.Add(DicomTag.SOPClassUID);
+                levelTags.Add(DicomTag.BitsAllocated);
+                break;
+            case QueryResource.StudySeriesInstances:
+                levelTags.Add(DicomTag.StudyInstanceUID);
+                levelTags.Add(DicomTag.SeriesInstanceUID);
+                levelTags.Add(DicomTag.SOPInstanceUID);
+                levelTags.Add(DicomTag.SOPClassUID);
+                levelTags.Add(DicomTag.BitsAllocated);
+                break;
+        }
+
+        expectedDataset.Remove((di) =>
+        {
+            return !levelTags.Contains(di.Tag);
+        });
         // Compare result datasets by serializing.
         Assert.Equal(
             JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
