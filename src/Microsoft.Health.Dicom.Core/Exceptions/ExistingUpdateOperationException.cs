@@ -13,20 +13,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// <summary>
 /// The exception that is thrown when a Dicom update operation request is submitted while one is already active.
 /// </summary>
-public sealed class ExistingUpdateOperationException : Exception
+public sealed class ExistingUpdateOperationException : ExistingOperationException
 {
-    /// <summary>
-    /// Gets the reference to the existing update operation.
-    /// </summary>
-    /// <value>The <see cref="OperationReference"/> for the existing operation, if specified.</value>
-    public OperationReference ExistingOperation { get; }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ExistingUpdateOperationException"/> class.
-    /// </summary>
-    public ExistingUpdateOperationException()
-    { }
-
     /// <summary>
     /// Initializes a new instance of the <see cref="ExistingUpdateOperationException"/> class.
     /// </summary>
@@ -34,11 +22,10 @@ public sealed class ExistingUpdateOperationException : Exception
     /// <exception cref="ArgumentNullException"><paramref name="operation"/> is <see langword="null"/>.</exception>
     public ExistingUpdateOperationException(OperationReference operation)
         : base(
+            operation,
             string.Format(
                 CultureInfo.CurrentCulture,
                 DicomCoreResource.ExistingUpdateOperation,
                 EnsureArg.IsNotNull(operation, nameof(operation)).Id.ToString(OperationId.FormatSpecifier)))
-    {
-        ExistingOperation = operation;
-    }
+    { }
 }
