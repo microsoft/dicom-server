@@ -42,7 +42,7 @@ public class RetrieveRenderedHandlerTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
     }
@@ -58,7 +58,7 @@ public class RetrieveRenderedHandlerTests
         string studyInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
     }
@@ -73,7 +73,7 @@ public class RetrieveRenderedHandlerTests
         string studyInstanceUid = TestUidGenerator.Generate();
         string seriesInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, 0, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<InvalidIdentifierException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(ValidationErrorCode.UidIsInvalid, ex.ErrorCode);
     }
@@ -88,7 +88,7 @@ public class RetrieveRenderedHandlerTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, frame, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, frame, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         var ex = await Assert.ThrowsAsync<BadRequestException>(() => _retrieveRenderedHandler.Handle(request, CancellationToken.None));
         Assert.Equal(error, ex.Message);
     }
@@ -100,7 +100,7 @@ public class RetrieveRenderedHandlerTests
         string seriesInstanceUid = TestUidGenerator.Generate();
         string sopInstanceUid = TestUidGenerator.Generate();
 
-        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, new[] { AcceptHeaderHelpers.CreateRenderJpegAcceptHeader() });
+        RetrieveRenderedRequest request = new RetrieveRenderedRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, 5, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
         await _retrieveRenderedHandler.Handle(request, CancellationToken.None);
     }
 

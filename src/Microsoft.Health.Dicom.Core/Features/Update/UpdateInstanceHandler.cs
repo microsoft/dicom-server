@@ -19,9 +19,9 @@ internal class UpdateInstanceHandler : BaseHandler, IRequestHandler<UpdateInstan
 {
     private readonly IUpdateInstanceOperationService _updateInstanceOperationService;
 
-    public UpdateInstanceHandler(IAuthorizationService<DataActions> authorizationService, IUpdateInstanceOperationService updateOperationInstanceService)
+    public UpdateInstanceHandler(IAuthorizationService<DataActions> authorizationService, IUpdateInstanceOperationService updateInstanceOperationService)
         : base(authorizationService)
-        => _updateInstanceOperationService = EnsureArg.IsNotNull(updateOperationInstanceService, nameof(updateOperationInstanceService));
+        => _updateInstanceOperationService = EnsureArg.IsNotNull(updateInstanceOperationService, nameof(updateInstanceOperationService));
 
     public async Task<UpdateInstanceResponse> Handle(UpdateInstanceRequest request, CancellationToken cancellationToken = default)
     {
