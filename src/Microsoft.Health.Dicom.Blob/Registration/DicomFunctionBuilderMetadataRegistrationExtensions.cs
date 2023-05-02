@@ -63,12 +63,15 @@ public static class DicomFunctionsBuilderRegistrationExtensions
         configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
         if (featureConfiguration.EnableExternalStore)
         {
-            functionsBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
+            functionsBuilder.Services.Configure<ExternalBlobDataStoreConfiguration>(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 
             functionsBuilder.Services.Add<ExternalBlobClient>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            functionsBuilder.Services
+                .AddPersistence<IFileStore, BlobFileStore>();
         }
         else
         {
@@ -76,14 +79,14 @@ public static class DicomFunctionsBuilderRegistrationExtensions
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
-        }
 
-        functionsBuilder.Services
-            .AddSingleton<BlobStoreConfigurationSection>()
-            .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
-            .AddPersistence<IFileStore, BlobFileStore>()
-            .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
-            .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
+            functionsBuilder.Services
+                .AddSingleton<BlobStoreConfigurationSection>()
+                .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
+                .AddPersistence<IFileStore, BlobFileStore>()
+                .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
+                .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
+        }
 
         // Export
         functionsBuilder.Services

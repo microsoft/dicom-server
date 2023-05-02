@@ -6,16 +6,16 @@
 using System;
 
 namespace Microsoft.Health.Dicom.Blob.Utilities;
+
 internal class ExternalBlobDataStoreConfiguration
 {
     public const string SectionName = "ExternalBlobStore";
 
     public Uri BlobContainerUri { get; set; }
 
-    public bool UseManagedIdentity { get; set; }
-
     // use for local testing with Azurite
     public string ConnectionString { get; set; }
 
+    // use for local testing with Azurite
     public string ContainerName { get; set; }
 }

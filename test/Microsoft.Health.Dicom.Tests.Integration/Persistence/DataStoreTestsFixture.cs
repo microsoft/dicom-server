@@ -98,7 +98,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
             BlobContainerClient = blobClient.GetBlobContainerClient(containerName);
         }
 
-        public virtual BlobContainerClient BlobContainerClient { get; private set; }
+        public virtual BlobContainerClient BlobContainerClient { get; }
 
         public bool IsExternal => false;
     }

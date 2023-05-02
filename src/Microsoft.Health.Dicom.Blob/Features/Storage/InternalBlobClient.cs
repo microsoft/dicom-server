@@ -19,10 +19,10 @@ internal class InternalBlobClient : IBlobClient
     private readonly string _containerName;
 
     public InternalBlobClient(BlobServiceClient blobServiceClient,
-        IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor)
+        IOptionsMonitor<BlobContainerConfiguration> optionsMonitor)
     {
         _client = EnsureArg.IsNotNull(blobServiceClient, nameof(blobServiceClient));
-        _containerName = EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor.Get(Constants.BlobContainerConfigurationName).ContainerName, nameof(namedBlobContainerConfigurationAccessor));
+        _containerName = EnsureArg.IsNotNull(optionsMonitor.Get(Constants.BlobContainerConfigurationName).ContainerName, nameof(optionsMonitor));
     }
 
     public bool IsExternal => false;

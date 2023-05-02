@@ -50,7 +50,7 @@ internal class ExternalBlobClient : IBlobClient
                     {
                         try
                         {
-                            if (_externalStoreOptions.UseManagedIdentity)
+                            if (_externalStoreOptions.BlobContainerUri != null)
                             {
                                 TokenCredential credential = _credentialProvider.GetTokenCredential();
                                 _blobContainerClient = new BlobContainerClient(_externalStoreOptions.BlobContainerUri, credential, _blobClientOptions);

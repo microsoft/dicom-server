@@ -43,12 +43,15 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
         if (featureConfiguration.EnableExternalStore)
         {
-            serverBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
+            serverBuilder.Services.Configure<ExternalBlobDataStoreConfiguration>(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 
             serverBuilder.Services.Add<ExternalBlobClient>()
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            serverBuilder.Services
+                .AddPersistence<IFileStore, BlobFileStore>();
         }
         else
         {
@@ -56,12 +59,14 @@ public static class DicomServerBuilderBlobRegistrationExtensions
                 .Singleton()
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            serverBuilder
+                .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore>(
+                    configuration,
+                    "DcmHealthCheck");
         }
 
         serverBuilder
-            .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore>(
-                configuration,
-                "DcmHealthCheck")
             .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore>(
                 configuration,
                 "MetadataHealthCheck")
