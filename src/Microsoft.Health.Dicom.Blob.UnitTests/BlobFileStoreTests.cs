@@ -23,7 +23,7 @@ using Azure;
 
 namespace Microsoft.Health.Dicom.Blob.UnitTests;
 
-public class BlobFileTests
+public class BlobFileStoreTests
 {
     [Fact]
     public async Task GivenExternalStore_WhenUploadFails_ThenThrowExceptionWithRightMessageAndProperty()

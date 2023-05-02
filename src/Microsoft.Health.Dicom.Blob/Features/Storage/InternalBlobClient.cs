@@ -17,6 +17,7 @@ internal class InternalBlobClient : IBlobClient
 {
     private readonly BlobServiceClient _client;
     private readonly string _containerName;
+
     public InternalBlobClient(BlobServiceClient blobServiceClient,
         IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor)
     {
