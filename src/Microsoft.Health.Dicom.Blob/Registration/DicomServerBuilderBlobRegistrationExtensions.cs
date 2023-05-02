@@ -46,16 +46,16 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             serverBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 
             serverBuilder.Services.Add<ExternalBlobClient>()
-            .Singleton()
-            .AsSelf()
-            .AsImplementedInterfaces();
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
         else
         {
             serverBuilder.Services.Add<InternalBlobClient>()
-            .Singleton()
-            .AsSelf()
-            .AsImplementedInterfaces();
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
         }
 
         serverBuilder
