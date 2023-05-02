@@ -3,7 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -14,7 +16,6 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
-using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
@@ -26,15 +27,15 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
-[ApiVersionRange(start: 2)]
+[ApiVersionRange(end: 1)]
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
-public class ChangeFeedController : ControllerBase
+public class ChangeFeedV1Controller : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<ChangeFeedController> _logger;
+    private readonly ILogger<ChangeFeedV1Controller> _logger;
 
-    public ChangeFeedController(IMediator mediator, ILogger<ChangeFeedController> logger)
+    public ChangeFeedV1Controller(IMediator mediator, ILogger<ChangeFeedV1Controller> logger)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         EnsureArg.IsNotNull(logger, nameof(logger));
@@ -51,25 +52,22 @@ public class ChangeFeedController : ControllerBase
     [VersionedRoute(KnownRoutes.ChangeFeed)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedAsync(
-        [FromQuery] WindowedPaginationOptions options,
+        [FromQuery][Range(0, int.MaxValue)] long offset = 0,
+        [FromQuery][Range(1, 100)] int limit = 10,
         [FromQuery] bool includeMetadata = true)
     {
-        EnsureArg.IsNotNull(options, nameof(options));
-        DateTimeOffsetRange window = options.Window;
-
         _logger.LogInformation(
-            "Change feed was read for {Window} with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",
-            window,
-            options.Offset,
-            options.Limit,
+            "Change feed was read with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",
+            offset,
+            limit,
             includeMetadata ? "included" : "not included");
 
         ChangeFeedResponse response = await _mediator.GetChangeFeed(
-            window,
-            options.Offset,
-            options.Limit,
+            DateTimeOffsetRange.MaxValue,
+            offset,
+            limit,
             includeMetadata,
-            ChangeFeedOrder.Timestamp,
+            ChangeFeedOrder.Sequence,
             cancellationToken: HttpContext.RequestAborted);
 
         return StatusCode((int)HttpStatusCode.OK, response.Entries);
@@ -88,7 +86,7 @@ public class ChangeFeedController : ControllerBase
 
         ChangeFeedLatestResponse response = await _mediator.GetChangeFeedLatest(
             includeMetadata,
-            ChangeFeedOrder.Timestamp,
+            ChangeFeedOrder.Sequence,
             cancellationToken: HttpContext.RequestAborted);
 
         return StatusCode((int)HttpStatusCode.OK, response.Entry);

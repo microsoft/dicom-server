@@ -30,14 +30,10 @@ public class ApiVersionsConventionTests
         var convention = new ApiVersionsConvention(featuresOptions);
 
         // act
-        var applied = convention.Apply(controller, controllerModel);
+        convention.Apply(controller, controllerModel);
 
         // assert
-        ImmutableHashSet<ApiVersion> supportedVersions = ImmutableHashSet.Create<ApiVersion>
-         (
-             new ApiVersion(1, 0, "prerelease"),
-             new ApiVersion(1, 0)
-         );
+        var supportedVersions = ImmutableHashSet.Create(new ApiVersion(1, 0, "prerelease"), new ApiVersion(1, 0));
         controller.Received().HasApiVersions(supportedVersions);
     }
 
@@ -46,20 +42,17 @@ public class ApiVersionsConventionTests
     {
         // arrange
         var controllerType = new TestController();
-        var attributes = new object[] { new IntroducedInApiVersionAttribute(1) };
+        var attributes = new object[] { new ApiVersionRangeAttribute(1) };
         var controllerModel = new ControllerModel(controllerType.GetTypeInfo(), attributes);
         var controller = Substitute.For<IControllerConventionBuilder>();
         var featuresOptions = Options.Create(new FeatureConfiguration());
         var convention = new ApiVersionsConvention(featuresOptions);
 
         // act
-        var applied = convention.Apply(controller, controllerModel);
+        convention.Apply(controller, controllerModel);
 
         // assert
-        ImmutableHashSet<ApiVersion> supportedVersions = ImmutableHashSet.Create<ApiVersion>
-         (
-             new ApiVersion(1, 0)
-         );
+        var supportedVersions = ImmutableHashSet.Create(new ApiVersion(1, 0));
         controller.Received().HasApiVersions(supportedVersions);
     }
 
@@ -68,21 +61,17 @@ public class ApiVersionsConventionTests
     {
         // arrange
         var controllerType = new TestController();
-        var attributes = new object[] { new IntroducedInApiVersionAttribute(1) };
+        var attributes = new object[] { new ApiVersionRangeAttribute(1) };
         var controllerModel = new ControllerModel(controllerType.GetTypeInfo(), attributes);
         var controller = Substitute.For<IControllerConventionBuilder>();
         var featuresOptions = Options.Create(new FeatureConfiguration { EnableLatestApiVersion = true });
         var convention = new ApiVersionsConvention(featuresOptions);
 
         // act
-        var applied = convention.Apply(controller, controllerModel);
+        convention.Apply(controller, controllerModel);
 
         // assert
-        ImmutableHashSet<ApiVersion> supportedVersions = ImmutableHashSet.Create<ApiVersion>
-         (
-             new ApiVersion(1, 0),
-             new ApiVersion(2, 0)
-         );
+        var supportedVersions = ImmutableHashSet.Create(new ApiVersion(1, 0), new ApiVersion(2, 0));
         controller.Received().HasApiVersions(supportedVersions);
     }
 
@@ -98,15 +87,10 @@ public class ApiVersionsConventionTests
         var convention = new ApiVersionsConvention(featuresOptions);
 
         // act
-        var applied = convention.Apply(controller, controllerModel);
+        convention.Apply(controller, controllerModel);
 
         // assert
-        ImmutableHashSet<ApiVersion> supportedVersions = ImmutableHashSet.Create<ApiVersion>
-         (
-             new ApiVersion(1, 0, "prerelease"),
-             new ApiVersion(1, 0),
-             new ApiVersion(2, 0)
-         );
+        var supportedVersions = ImmutableHashSet.Create(new ApiVersion(1, 0, "prerelease"), new ApiVersion(1, 0), new ApiVersion(2, 0));
         controller.Received().HasApiVersions(supportedVersions);
     }
     private class TestController : TypeDelegator

@@ -3,18 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Api.Controllers;
-using Microsoft.Health.Dicom.Api.Models;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
@@ -24,14 +18,14 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers;
 
-public class ChangeFeedControllerTests
+public class ChangeFeedV1ControllerTests
 {
-    private readonly ChangeFeedController _controller;
+    private readonly ChangeFeedV1Controller _controller;
     private readonly IMediator _mediator = Substitute.For<IMediator>();
 
-    public ChangeFeedControllerTests()
+    public ChangeFeedV1ControllerTests()
     {
-        _controller = new ChangeFeedController(_mediator, NullLogger<ChangeFeedController>.Instance);
+        _controller = new ChangeFeedV1Controller(_mediator, NullLogger<ChangeFeedV1Controller>.Instance);
     }
 
     [Fact]
@@ -44,13 +38,13 @@ public class ChangeFeedControllerTests
                 Arg.Is<ChangeFeedRequest>(x =>
                     x.Range == DateTimeOffsetRange.MaxValue &&
                     x.Offset == 0L &&
-                    x.Limit == 100 &&
+                    x.Limit == 10 &&
                     x.IncludeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.Order == ChangeFeedOrder.Sequence),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
-        IActionResult result = await _controller.GetChangeFeedAsync(new WindowedPaginationOptions());
+        IActionResult result = await _controller.GetChangeFeedAsync();
         var actual = result as ObjectResult;
         Assert.Same(expected, actual.Value);
 
@@ -60,44 +54,31 @@ public class ChangeFeedControllerTests
                 Arg.Is<ChangeFeedRequest>(x =>
                     x.Range == DateTimeOffsetRange.MaxValue &&
                     x.Offset == 0L &&
-                    x.Limit == 100 &&
+                    x.Limit == 10 &&
                     x.IncludeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.Order == ChangeFeedOrder.Sequence),
                 _controller.HttpContext.RequestAborted);
     }
 
     [Theory]
-    [InlineData(0, 5, null, null, false)]
-    [InlineData(5, 25, "2023-04-26T14:50:55.0596678-07:00", null, true)]
-    [InlineData(25, 1, null, "2023-04-26T14:50:55.0596678-07:00", false)]
-    [InlineData(int.MaxValue + 10L, 3, "2023-04-26T14:50:55.0596678-07:00", "2023-04-26T14:54:18.6773316-07:00", true)]
-    public async Task GivenParameters_WhenFetchingChangeFeed_ThenPassValues(long offset, int limit, string start, string end, bool includeMetadata)
+    [InlineData(0, 5, false)]
+    [InlineData(int.MaxValue + 1L, 25, true)]
+    public async Task GivenParameters_WhenFetchingChangeFeed_ThenPassValues(long offset, int limit, bool includeMetadata)
     {
-        DateTimeOffset? startTime = start != null ? DateTimeOffset.Parse(start, CultureInfo.InvariantCulture) : null;
-        DateTimeOffset? endTime = end != null ? DateTimeOffset.Parse(end, CultureInfo.InvariantCulture) : null;
-        var expectedRange = new DateTimeOffsetRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
         var expected = new List<ChangeFeedEntry>();
 
         _mediator
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == expectedRange &&
+                    x.Range == DateTimeOffsetRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
                     x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.Order == ChangeFeedOrder.Sequence),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
-        var options = new WindowedPaginationOptions
-        {
-            EndTime = endTime,
-            Limit = limit,
-            Offset = offset,
-            StartTime = startTime,
-        };
-
-        IActionResult result = await _controller.GetChangeFeedAsync(options, includeMetadata);
+        IActionResult result = await _controller.GetChangeFeedAsync(offset, limit, includeMetadata);
         var actual = result as ObjectResult;
         Assert.Same(expected, actual.Value);
 
@@ -105,26 +86,11 @@ public class ChangeFeedControllerTests
             .Received(1)
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == expectedRange &&
+                    x.Range == DateTimeOffsetRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
                     x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.Order == ChangeFeedOrder.Sequence),
                 _controller.HttpContext.RequestAborted);
-    }
-
-    [Theory]
-    [InlineData(null, 101)]
-    [InlineData(1, 200)]
-    [InlineData(2, 201)]
-    [InlineData(3, 300)]
-    public async Task GivenApiVersion_WhenFetchingChangeFeed_ThenUseProperMaxLimit(int? version, int limit)
-    {
-        if (version.HasValue)
-            _apiVersion.RequestedApiVersion.Returns(new ApiVersion(version.GetValueOrDefault(), 0));
-
-        _controller.HttpContext.Features.Set(_apiVersion);
-
-        await Assert.ThrowsAsync<ChangeFeedLimitOutOfRangeException>(() => _controller.GetChangeFeedAsync(offset: 0, limit: limit));
     }
 }

@@ -160,6 +160,15 @@ namespace Microsoft.Health.Dicom.Api {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The start time &apos;{0:O}&apos; must occur strictly before the end time &apos;{1:O}&apos;..
+        /// </summary>
+        internal static string InvalidTimeRange {
+            get {
+                return ResourceManager.GetString("InvalidTimeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute..
         /// </summary>
         internal static string MissingAuditInformation {

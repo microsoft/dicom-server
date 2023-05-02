@@ -32,8 +32,8 @@ public class ControllerMetadataTests
     public void GivenExportControllers_WhenQueryingApiVersion_ThenSupportedfromV1()
     {
         var expectedStartedVersion = 1;
-        int? actualStartedVersion = Attribute.GetCustomAttributes(typeof(ExportController), typeof(IntroducedInApiVersionAttribute))
-             .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
+        int? actualStartedVersion = Attribute.GetCustomAttributes(typeof(ExportController), typeof(ApiVersionRangeAttribute))
+             .Select(a => ((ApiVersionRangeAttribute)a).Start)
              .SingleOrDefault();
         Assert.Equal(expectedStartedVersion, actualStartedVersion);
     }

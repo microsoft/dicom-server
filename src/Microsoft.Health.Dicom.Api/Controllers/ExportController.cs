@@ -32,7 +32,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 /// <summary>
 /// Represents an API controller for export operations.
 /// </summary>
-[IntroducedInApiVersion(1)]
+[ApiVersionRange(start: 1)]
 [ServiceFilter(typeof(Features.Audit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
 public class ExportController : ControllerBase

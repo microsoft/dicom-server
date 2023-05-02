@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ public class BaseQueryExpression
         QueryIncludeField includeFields,
         bool fuzzyMatching,
         int limit,
-        int offset,
+        long offset,
         IReadOnlyCollection<QueryFilterCondition> filterConditions)
     {
         IncludeFields = includeFields;
@@ -46,7 +46,7 @@ public class BaseQueryExpression
     /// <summary>
     /// Query result skip offset count
     /// </summary>
-    public int Offset { get; }
+    public long Offset { get; }
 
     /// <summary>
     /// List of filter conditions to find the DICOM objects

@@ -14,7 +14,7 @@ public readonly struct DateTimeOffsetRange : IEquatable<DateTimeOffsetRange>
     public DateTimeOffsetRange(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         if (endTime <= startTime)
-            throw new ArgumentOutOfRangeException(nameof(startTime), DicomCoreResource.TimeRangeEndBeforeStart);
+            throw new ArgumentOutOfRangeException(nameof(startTime));
 
         Start = startTime;
         End = endTime;

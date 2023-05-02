@@ -157,6 +157,10 @@
   <data name="InvalidSyntax" xml:space="preserve">
     <value>The syntax of the request body is invalid.</value>
   </data>
+  <data name="InvalidTimeRange" xml:space="preserve">
+    <value>The start time '{0:O}' must occur strictly before the end time '{1:O}'.</value>
+    <comment>{0} is start. {1} is end.</comment>
+  </data>
   <data name="MissingAuditInformation" xml:space="preserve">
     <value>The audit information is missing for Controller: {0} and Action: {1}. This usually means the action is not marked with appropriate attribute.</value>
     <comment>{0} is the controller name and {1} is the action name.</comment>
