@@ -59,8 +59,9 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.Metadata);
 
         // Blob Files
-        IOptions<FeatureConfiguration> featureConfiguration = functionsBuilder.Services.BuildServiceProvider().GetRequiredService<IOptions<FeatureConfiguration>>();
-        if (featureConfiguration.Value.EnableExternalStore)
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
+        configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
+        if (featureConfiguration.EnableExternalStore)
         {
             functionsBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 
@@ -76,6 +77,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
                 .AsSelf()
                 .AsImplementedInterfaces();
         }
+
         functionsBuilder.Services
             .AddSingleton<BlobStoreConfigurationSection>()
             .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())

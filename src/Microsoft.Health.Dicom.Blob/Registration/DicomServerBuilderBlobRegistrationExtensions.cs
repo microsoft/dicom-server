@@ -5,7 +5,6 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Export;
@@ -40,8 +39,9 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddOptions<BlobOperationOptions>()
             .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
-        IOptions<FeatureConfiguration> featureConfiguration = serverBuilder.Services.BuildServiceProvider().GetRequiredService<IOptions<FeatureConfiguration>>();
-        if (featureConfiguration.Value.EnableExternalStore)
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
+        configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
+        if (featureConfiguration.EnableExternalStore)
         {
             serverBuilder.Services.AddOptions<ExternalBlobDataStoreConfiguration>().Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
 

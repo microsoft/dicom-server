@@ -26,11 +26,5 @@ internal class InternalBlobClient : IBlobClient
 
     public bool IsExternal => false;
 
-    public BlobContainerClient BlobContainerClient
-    {
-        get
-        {
-            return _client.GetBlobContainerClient(_containerName);
-        }
-    }
+    public BlobContainerClient BlobContainerClient => _client.GetBlobContainerClient(_containerName);
 }

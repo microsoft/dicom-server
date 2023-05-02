@@ -36,7 +36,6 @@ internal class ExternalBlobClient : IBlobClient
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
     }
 
-
     public bool IsExternal => true;
 
     public BlobContainerClient BlobContainerClient

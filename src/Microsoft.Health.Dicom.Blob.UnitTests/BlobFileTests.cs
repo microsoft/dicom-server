@@ -99,18 +99,11 @@ public class BlobFileTests
             BlobContainerClient = Substitute.For<BlobContainerClient>();
             BlockBlobClient = Substitute.For<BlockBlobClient>();
             BlobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(BlockBlobClient);
-
         }
 
         public virtual BlobContainerClient BlobContainerClient { get; private set; }
 
-        public bool IsExternal
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool IsExternal => true;
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
@@ -122,18 +115,11 @@ public class BlobFileTests
             BlobContainerClient = Substitute.For<BlobContainerClient>();
             BlockBlobClient = Substitute.For<BlockBlobClient>();
             BlobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(BlockBlobClient);
-
         }
 
         public virtual BlobContainerClient BlobContainerClient { get; private set; }
 
-        public bool IsExternal
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsExternal => false;
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
