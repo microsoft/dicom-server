@@ -22,7 +22,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public class StoreTransactionTestsV1 : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
     private readonly IDicomWebClient _clientV2;
@@ -30,7 +30,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     private readonly DicomInstancesManager _instancesManager;
     private readonly DicomInstancesManager _instancesManagerV2;
 
-    public StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+    public StoreTransactionTestsV1(HttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient(DicomApiVersions.V1);
