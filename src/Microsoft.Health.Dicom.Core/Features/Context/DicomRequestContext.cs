@@ -73,6 +73,8 @@ public class DicomRequestContext : IDicomRequestContext
 
     public long BytesTranscoded { get; set; }
 
+    public long BytesRendered { get; set; }
+
     public long ResponseSize { get; set; }
 
     public int PartCount { get; set; }
