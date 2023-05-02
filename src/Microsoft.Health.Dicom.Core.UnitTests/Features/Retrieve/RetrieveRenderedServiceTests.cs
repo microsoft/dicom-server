@@ -388,6 +388,44 @@ public class RetrieveRenderedServiceTests
         copyStream.Dispose();
     }
 
+    [Fact]
+    public async Task GivenStoredInstances_WhenRetrieveRenderedWithOriginalVersion_ThenSuccesfully()
+    {
+        _dicomRequestContextAccessor.RequestContext.IsOriginalRequested = true;
+
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(instanceProperty: new InstanceProperties() { OriginalVersion = 5 });
+
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+
+        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(copyStream);
+        copyStream.Position = 0;
+
+        streamAndStoredFile.Value.Position = 0;
+
+        _fileStore.GetFileAsync(5, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.GetFilePropertiesAsync(5, DefaultCancellationToken).Returns(new FileProperties() { ContentLength = streamAndStoredFile.Value.Length });
+
+        var retrieveRenderedRequest = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 1, 75, new List<AcceptHeader>());
+
+        RetrieveRenderedResponse response = await _retrieveRenderedService.RetrieveRenderedImageAsync(
+               retrieveRenderedRequest,
+               DefaultCancellationToken);
+
+        await _fileStore
+            .Received(1)
+            .GetFileAsync(Arg.Is<long>(x => x == 5), DefaultCancellationToken);
+
+
+
+        await _fileStore
+            .Received(1)
+            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 5), DefaultCancellationToken);
+
+        response.ResponseStream.Dispose();
+        copyStream.Dispose();
+    }
+
     private List<InstanceMetadata> SetupInstanceIdentifiersList(int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();

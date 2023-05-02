@@ -35,5 +35,9 @@ public class MvcModule : IStartupModule
         services.Add<PopulateDataPartitionFilterAttribute>()
             .Scoped()
             .AsSelf();
+
+        services.Add<PopulateOriginalRequestFilterAttribute>()
+            .Scoped()
+            .AsSelf();
     }
 }

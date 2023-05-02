@@ -51,4 +51,6 @@ public class DefaultDicomRequestContext : IDicomRequestContext
     public IDictionary<string, StringValues> ResponseHeaders { get; set; }
 
     public int? Version { get; set; }
+
+    public bool IsOriginalRequested { get; set; }
 }

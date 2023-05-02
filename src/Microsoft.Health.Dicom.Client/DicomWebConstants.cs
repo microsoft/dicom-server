@@ -48,6 +48,8 @@ public static class DicomWebConstants
 
     public const string TransferSyntaxHeaderName = "transfer-syntax";
 
+    public const string RequestOriginalVersion = "msdicom-request-original";
+
     public const string ApplicationDicomMediaType = "application/dicom";
     public const string ApplicationDicomJsonMediaType = "application/dicom+json";
     public const string ApplicationOctetStreamMediaType = "application/octet-stream";
@@ -65,5 +67,6 @@ public static class DicomWebConstants
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomMediaType);
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamMediaType);
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonMediaType);
+    public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJsonWithOriginalVersion = new MediaTypeWithQualityHeaderValue($"{ApplicationDicomJsonMediaType};{RequestOriginalVersion}");
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationJson = new MediaTypeWithQualityHeaderValue(ApplicationJsonMediaType);
 }

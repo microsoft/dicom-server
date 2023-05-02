@@ -107,6 +107,8 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
+            long version = RetrieveHelpers.GetVersion(instance, _dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
+
             bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
@@ -122,10 +124,10 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+                Stream stream = await _blobDataStore.GetFileAsync(version, cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
@@ -279,8 +281,9 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
-            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, cancellationToken);
-            Stream stream = await _blobDataStore.GetStreamingFileAsync(instanceMetadata.VersionedInstanceIdentifier.Version, cancellationToken);
+            long version = RetrieveHelpers.GetVersion(instanceMetadata, _dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,

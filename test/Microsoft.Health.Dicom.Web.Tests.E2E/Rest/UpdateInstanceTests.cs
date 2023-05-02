@@ -109,13 +109,13 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         Assert.Equal(OperationStatus.Completed, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid1 }, datasetToUpdate));
 #pragma warning restore CS0618
 
-        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1");
-        await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1");
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
+        await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
 
-        await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
+        await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1, true);
     }
 
-    private async Task VerifyRetrieveInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName)
+    private async Task VerifyRetrieveInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName, bool requestOriginalVersion = default)
     {
         using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
             studyInstanceUid,
@@ -126,21 +126,47 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
 
         Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
+
+        if (requestOriginalVersion)
+        {
+            using DicomWebResponse<DicomFile> instanceRetrieve1 = await _client.RetrieveInstanceAsync(
+                studyInstanceUid,
+                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+                dicomTransferSyntax: "*",
+                requestOriginalVersion: true);
+
+            DicomFile retrievedDicomFile1 = await instanceRetrieve1.GetValueAsync();
+            Assert.NotNull(retrievedDicomFile);
+        }
     }
 
-    private async Task VerifyRetrieveFrame(string studyInstanceUid, DicomFile dicomFile)
+    private async Task VerifyRetrieveFrame(string studyInstanceUid, DicomFile dicomFile, bool requestOriginalVersion = default)
     {
         using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
             studyInstanceUid,
             dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
             dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             1);
-        Stream frameStream = await response.GetValueAsync();
+        using Stream frameStream = await response.GetValueAsync();
         Assert.NotNull(frameStream);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        if (requestOriginalVersion)
+        {
+            using DicomWebResponse<Stream> response1 = await _client.RetrieveSingleFrameAsync(
+                studyInstanceUid,
+                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+                1,
+                requestOriginalVersion: true);
+            using Stream frameStream1 = await response1.GetValueAsync();
+            Assert.NotNull(frameStream);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
     }
 
-    private async Task VerifyRetrieveInstanceWithTranscoding(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName)
+    private async Task VerifyRetrieveInstanceWithTranscoding(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName, bool requestOriginalVersion = default)
     {
         using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
             studyInstanceUid,
@@ -151,6 +177,18 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         DicomFile retrievedDicomFile = await instanceRetrieve.GetValueAsync();
 
         Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
+
+        if (requestOriginalVersion)
+        {
+            using DicomWebResponse<DicomFile> instanceRetrieve1 = await _client.RetrieveInstanceAsync(
+                studyInstanceUid,
+                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID),
+                dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
+                dicomTransferSyntax: DicomTransferSyntax.JPEG2000Lossless.UID.UID,
+                requestOriginalVersion: true);
+            DicomFile retrievedDicomFile1 = await instanceRetrieve1.GetValueAsync();
+            Assert.NotNull(retrievedDicomFile1);
+        }
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

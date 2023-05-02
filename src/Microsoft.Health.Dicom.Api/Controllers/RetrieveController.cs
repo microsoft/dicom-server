@@ -33,6 +33,7 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
+[ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
 public class RetrieveController : ControllerBase
 {
     private readonly IMediator _mediator;

@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.Health.Dicom.Api.Extensions;
@@ -41,5 +43,19 @@ public static class HttpRequestExtensions
             host = host + ":";
         }
         return host;
+    }
+
+    public static bool IsOriginalVersionRequested(this HttpRequest httpRequest)
+    {
+        EnsureArg.IsNotNull(httpRequest, nameof(httpRequest));
+
+        IList<MediaTypeHeaderValue> acceptHeaders = httpRequest.GetTypedHeaders().Accept;
+
+        foreach (MediaTypeHeaderValue header in acceptHeaders)
+        {
+            return header.Parameters.Any(parameter => StringSegment.Equals(parameter.Name, AcceptHeaderParameterNames.RequestOriginal, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -66,5 +66,29 @@ public class HttpRequestExtensionsTests
         var httpRequest = Substitute.For<HttpRequest>();
         httpRequest.Host.Returns(new HostString(host));
         Assert.Equal(host, httpRequest.GetHost(dicomStandards: false));
+    }
+
+    [Fact]
+    public void GivenHttpRequestWithOriginalHeader_WhenGetIsOriginalVersionRequested_ThenShouldReturnExpectedValue()
+    {
+        HttpRequest httpRequest = Substitute.For<HttpRequest>();
+        IHeaderDictionary headers = new HeaderDictionary
+        {
+            { "accept", "application/dicom;msdicom-request-original" }
+        };
+        httpRequest.Headers.Returns(headers);
+        Assert.True(httpRequest.IsOriginalVersionRequested());
+    }
+
+    [Fact]
+    public void GivenHttpRequestWithNoOriginalHeader_WhenGetIsOriginalVersionRequested_ThenShouldReturnExpectedValue()
+    {
+        HttpRequest httpRequest = Substitute.For<HttpRequest>();
+        IHeaderDictionary headers = new HeaderDictionary
+        {
+            { "accept", "application/dicom" }
+        };
+        httpRequest.Headers.Returns(headers);
+        Assert.False(httpRequest.IsOriginalVersionRequested());
     }
 }

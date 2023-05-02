@@ -49,7 +49,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
 
     public async Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(string studyInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+        IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
             ResourceType.Study,
             GetPartitionKey(),
             studyInstanceUid,
@@ -64,7 +64,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
 
     public async Task<RetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+        IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Series,
                 GetPartitionKey(),
                 studyInstanceUid,
@@ -79,7 +79,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
 
     public async Task<RetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch = null, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<VersionedInstanceIdentifier> retrieveInstances = await _instanceStore.GetInstancesToRetrieve(
+        IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
             ResourceType.Instance,
             GetPartitionKey(),
             studyInstanceUid,
@@ -92,7 +92,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         return RetrieveMetadata(retrieveInstances, isCacheValid, eTag, cancellationToken);
     }
 
-    private RetrieveMetadataResponse RetrieveMetadata(IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve, bool isCacheValid, string eTag, CancellationToken cancellationToken)
+    private RetrieveMetadataResponse RetrieveMetadata(IReadOnlyList<InstanceMetadata> instancesToRetrieve, bool isCacheValid, string eTag, CancellationToken cancellationToken)
     {
         _contextAccessor.RequestContext.PartCount = instancesToRetrieve.Count;
         _retrieveMeter.RetrieveInstanceCount.Add(instancesToRetrieve.Count);
@@ -101,7 +101,9 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IAsyncEnumerable<DicomDataset> instanceMetadata = isCacheValid
             ? AsyncEnumerable.Empty<DicomDataset>()
             : instancesToRetrieve.SelectParallel(
-                (x, t) => new ValueTask<DicomDataset>(_metadataStore.GetInstanceMetadataAsync(x.Version, t)),
+                (x, t) => new ValueTask<DicomDataset>(
+                    _metadataStore.GetInstanceMetadataAsync(
+                        RetrieveHelpers.GetVersion(x, _contextAccessor.RequestContext.IsOriginalRequested), t)),
                 new ParallelEnumerationOptions { MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism },
                 cancellationToken);
 

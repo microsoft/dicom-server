@@ -28,4 +28,6 @@ public interface IDicomRequestContext : IRequestContext
 
     // Opportunity for the core to change based on the caller version
     int? Version { get; set; }
+
+    bool IsOriginalRequested { get; set; }
 }
