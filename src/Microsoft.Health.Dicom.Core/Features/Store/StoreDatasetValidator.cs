@@ -6,10 +6,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -31,6 +33,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly IQueryTagService _queryTagService;
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly ILogger<StoreDatasetValidator> _logger;
 
     private static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
@@ -46,7 +49,8 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
         StoreMeter storeMeter,
-        IDicomRequestContextAccessor dicomRequestContextAccessor)
+        IDicomRequestContextAccessor dicomRequestContextAccessor,
+        ILogger<StoreDatasetValidator> logger)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -58,6 +62,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc/>
@@ -82,7 +87,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         // validate input data elements
         if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
         {
-            ValidateAllItems(dicomDataset, validationResultBuilder);
+            await ValidateAllItems(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -180,10 +185,12 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private void ValidateAllItems(
+    private async Task ValidateAllItems(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
     {
+        IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
+        var indexableTags = queryTags.Select(t => t.Tag);
         foreach (DicomItem item in dicomDataset)
         {
             try
@@ -202,15 +209,25 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                     {
                         validationResultBuilder.Add(ex, item.Tag);
                     }
+
+                    bool isIndexableTag = indexableTags.Contains(item.Tag);
                     _storeMeter.ValidateAllValidationError.Add(
                         1,
                         new[]
                         {
-                            new KeyValuePair<string, object>("ExceptionContent", ex.Content),
                             new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
                             new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
-                            new KeyValuePair<string, object>("Tag", item.Tag.ToString())
+                            new KeyValuePair<string, object>("Tag", item.Tag.ToString()),
+                            new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
                         });
+
+                    _logger.LogInformation(
+                        "Validation error for tag {Tag} {TagKeyword} with VR {VR}, IsIndexable: {IsIndexable}. Content: {Content}.",
+                        item.Tag.ToString(),
+                        item.Tag.DictionaryEntry.Keyword,
+                        item.ValueRepresentation.ToString(),
+                        ex.Content,
+                        isIndexableTag.ToString());
                 }
                 else
                 {
