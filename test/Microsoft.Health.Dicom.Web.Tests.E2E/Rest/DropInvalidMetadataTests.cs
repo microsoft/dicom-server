@@ -155,7 +155,7 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
         DicomSequence failedSOPSequence = ex.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
         DicomSequence failedAttributesSequence = failedSOPSequence.Items[0].GetSequence(DicomTag.FailedAttributesSequence);
         Assert.Equal(
-            """DICOM100: (0010,0020) - Content "Before Null Character,  " does not validate VR LO: value contains invalid character""",
+            """DICOM100: (0010,0020) - Content "Before Null Character, " does not validate VR LO: value contains invalid character""",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
     }
 
@@ -190,5 +190,4 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
                 ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
         return matchedInstances;
     }
-
 }
