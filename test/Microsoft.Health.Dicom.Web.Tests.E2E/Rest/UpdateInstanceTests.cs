@@ -15,16 +15,18 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Operations;
 using Xunit;
+using FunctionsStartup = Microsoft.Health.Dicom.Functions.App.Startup;
+using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 [Trait("Category", "dicomupdate")]
-public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
 
-    public UpdateInstanceTests(HttpIntegrationTestFixture<Startup> fixture)
+    public UpdateInstanceTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();

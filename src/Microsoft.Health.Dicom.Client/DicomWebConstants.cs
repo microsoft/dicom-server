@@ -67,6 +67,5 @@ public static class DicomWebConstants
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicom = new MediaTypeWithQualityHeaderValue(ApplicationDicomMediaType);
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationOctetStream = new MediaTypeWithQualityHeaderValue(ApplicationOctetStreamMediaType);
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJson = new MediaTypeWithQualityHeaderValue(ApplicationDicomJsonMediaType);
-    public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationDicomJsonWithOriginalVersion = new MediaTypeWithQualityHeaderValue($"{ApplicationDicomJsonMediaType};{RequestOriginalVersion}");
     public static readonly MediaTypeWithQualityHeaderValue MediaTypeApplicationJson = new MediaTypeWithQualityHeaderValue(ApplicationJsonMediaType);
 }

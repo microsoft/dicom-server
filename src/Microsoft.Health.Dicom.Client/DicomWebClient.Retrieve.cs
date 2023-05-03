@@ -361,11 +361,9 @@ public partial class DicomWebClient : IDicomWebClient
 
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
-        var header = requestOriginalVersion
-            ? DicomWebConstants.MediaTypeApplicationDicomJsonWithOriginalVersion
-            : DicomWebConstants.MediaTypeApplicationDicomJson;
-
-        request.Headers.Accept.Add(header);
+        request.Headers.TryAddWithoutValidation(
+            "Accept",
+            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicomJson, null, requestOriginalVersion));
 
         if (!string.IsNullOrEmpty(ifNoneMatch))
         {
