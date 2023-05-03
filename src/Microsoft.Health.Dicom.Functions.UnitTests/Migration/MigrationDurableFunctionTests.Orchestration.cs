@@ -63,7 +63,7 @@ public partial class MigrationDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(MigrationFilesDurableFunction.MigrateFrameRangeFilesAsync),
                 _options.RetryOptions,
-                Arg.Any<MigrationFilesBatchArguments>())
+                Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
@@ -85,7 +85,7 @@ public partial class MigrationDurableFunctionTests
                 .CallActivityWithRetryAsync(
                     nameof(MigrationFilesDurableFunction.MigrateFrameRangeFilesAsync),
                     _options.RetryOptions,
-                    Arg.Any<MigrationFilesBatchArguments>());
+                    Arg.Any<WatermarkRange>());
 
         context
             .Received(1)
@@ -138,7 +138,7 @@ public partial class MigrationDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(MigrationFilesDurableFunction.MigrateFrameRangeFilesAsync),
                 _options.RetryOptions,
-                Arg.Any<MigrationFilesBatchArguments>())
+                Arg.Any<WatermarkRange>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
@@ -160,7 +160,7 @@ public partial class MigrationDurableFunctionTests
                 .CallActivityWithRetryAsync(
                     nameof(MigrationFilesDurableFunction.MigrateFrameRangeFilesAsync),
                     _options.RetryOptions,
-                    Arg.Any<MigrationFilesBatchArguments>());
+                    Arg.Any<WatermarkRange>());
 
         context
             .DidNotReceive()

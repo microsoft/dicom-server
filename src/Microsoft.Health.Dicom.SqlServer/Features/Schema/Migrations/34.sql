@@ -1789,7 +1789,7 @@ END
 
 GO
 CREATE OR ALTER PROCEDURE dbo.GetInstanceBatchesByTimeStamp
-@batchSize INT, @batchCount INT, @status TINYINT, @startTimeStamp DATETIME, @endTimeStamp DATETIME, @maxWatermark BIGINT=NULL
+@batchSize INT, @batchCount INT, @status TINYINT, @startTimeStamp DATETIMEOFFSET (0), @endTimeStamp DATETIMEOFFSET (0), @maxWatermark BIGINT=NULL
 AS
 BEGIN
     SET NOCOUNT ON;

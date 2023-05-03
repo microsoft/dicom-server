@@ -26,8 +26,8 @@ CREATE OR ALTER PROCEDURE dbo.GetInstanceBatchesByTimeStamp
     @batchSize INT,
     @batchCount INT,
     @status TINYINT,
-    @startTimeStamp DATETIME,
-    @endTimeStamp DATETIME,
+    @startTimeStamp DATETIMEOFFSET(0),
+    @endTimeStamp DATETIMEOFFSET(0),
     @maxWatermark BIGINT = NULL
 AS
 BEGIN

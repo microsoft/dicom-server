@@ -1314,11 +1314,11 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.DateTime> _startTimeStamp = new ParameterDefinition<System.DateTime>("@startTimeStamp", global::System.Data.SqlDbType.DateTime, false);
-            private readonly ParameterDefinition<System.DateTime> _endTimeStamp = new ParameterDefinition<System.DateTime>("@endTimeStamp", global::System.Data.SqlDbType.DateTime, false);
+            private readonly ParameterDefinition<System.DateTimeOffset> _startTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@startTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+            private readonly ParameterDefinition<System.DateTimeOffset> _endTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@endTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
             private readonly ParameterDefinition<System.Nullable<System.Int64>> _maxWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@maxWatermark", global::System.Data.SqlDbType.BigInt, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Byte status, System.DateTime startTimeStamp, System.DateTime endTimeStamp, System.Nullable<System.Int64> maxWatermark)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Byte status, System.DateTimeOffset startTimeStamp, System.DateTimeOffset endTimeStamp, System.Nullable<System.Int64> maxWatermark)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetInstanceBatchesByTimeStamp";

@@ -73,7 +73,7 @@ public partial class MigrationDurableFunctionTests
     [Fact]
     public async Task GivenBatch_WhenMigrating_ThenShouldMigrateEachInstance()
     {
-        var args = new MigrationFilesBatchArguments(new WatermarkRange(3, 10));
+        var args = new WatermarkRange(3, 10);
 
         var expected = new List<VersionedInstanceIdentifier>
         {
@@ -88,7 +88,7 @@ public partial class MigrationDurableFunctionTests
 
         // Arrange input
         _instanceStore
-            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, Arg.Any<CancellationToken>())
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args, IndexStatus.Created, Arg.Any<CancellationToken>())
             .Returns(expected);
 
         foreach (VersionedInstanceIdentifier identifier in expected)
@@ -103,7 +103,7 @@ public partial class MigrationDurableFunctionTests
         // Assert behavior
         await _instanceStore
             .Received(1)
-            .GetInstanceIdentifiersByWatermarkRangeAsync(args.WatermarkRange, IndexStatus.Created, CancellationToken.None);
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args, IndexStatus.Created, CancellationToken.None);
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {

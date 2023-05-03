@@ -30,5 +30,6 @@ public class MigratingFilesCheckpoint : MigratingFilesInput, IOrchestrationCheck
         }
     }
     public IReadOnlyCollection<string> ResourceIds => null;
+
     public object GetResults(JToken output) => null;
 }

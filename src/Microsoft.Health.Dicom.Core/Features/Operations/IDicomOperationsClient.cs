@@ -119,9 +119,9 @@ public interface IDicomOperationsClient
     Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously migrating instance frame range files.
+    /// Asynchronously migrate instance frame range files.
     /// </summary>
-    /// <param name="operationId">The desired ID for the clenup operation.</param>
+    /// <param name="operationId">The desired ID for the cleanup operation.</param>
     /// <param name="startFilterTimeStamp">Start timestamp to filter instances.</param>
     /// <param name="endFilterTimeStamp">End timestamp to filter instances.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
@@ -129,5 +129,5 @@ public interface IDicomOperationsClient
     /// A task representing the <see cref="StartMigratingFrameRangeBlobAsync"/> operation.
     /// </returns>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTime startFilterTimeStamp, DateTime endFilterTimeStamp, CancellationToken cancellationToken = default);
+    Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default);
 }

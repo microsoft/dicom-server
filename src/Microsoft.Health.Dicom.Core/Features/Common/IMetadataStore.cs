@@ -85,7 +85,7 @@ public interface IMetadataStore
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
     Task CopyInstanceFramesRangeAsync(
         long version,
         CancellationToken cancellationToken = default);

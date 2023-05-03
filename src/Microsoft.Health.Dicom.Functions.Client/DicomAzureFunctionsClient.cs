@@ -205,8 +205,10 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
-    public async Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTime startFilterTimeStamp, DateTime endFilterTimeStamp, CancellationToken cancellationToken = default)
+    public async Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsTrue(endFilterTimeStamp > startFilterTimeStamp, nameof(endFilterTimeStamp));
+
         cancellationToken.ThrowIfCancellationRequested();
 
         string instanceId = await _durableClient.StartNewAsync(

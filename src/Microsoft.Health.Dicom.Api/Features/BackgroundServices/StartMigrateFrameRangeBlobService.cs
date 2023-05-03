@@ -53,11 +53,11 @@ public class StartMigrateFrameRangeBlobService : BackgroundService
 
             if (existingInstance == null)
             {
-                _logger.LogDebug("No existing migration operation.");
+                _logger.LogInformation("No existing migration operation.");
             }
             else
             {
-                _logger.LogDebug("Existing migration is in status: '{Status}'", existingInstance.Status);
+                _logger.LogInformation("Existing migration is in status: '{Status}'", existingInstance.Status);
             }
 
             if (IsOperationInterruptedOrNull(existingInstance))

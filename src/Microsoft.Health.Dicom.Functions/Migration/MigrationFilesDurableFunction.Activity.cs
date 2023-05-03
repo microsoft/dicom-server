@@ -62,20 +62,19 @@ public partial class MigrationFilesDurableFunction
     /// <summary>
     /// Asynchronously migrate frame range files
     /// </summary>
-    /// <param name="arguments">The options that include the instances to re-index and the query tags.</param>
+    /// <param name="watermarkRange">The options that include the instances to re-index and the query tags.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>A task representing the <see cref="MigrateFrameRangeFilesAsync"/> operation.</returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(MigrateFrameRangeFilesAsync))]
-    public async Task MigrateFrameRangeFilesAsync([ActivityTrigger] MigrationFilesBatchArguments arguments, ILogger logger)
+    public async Task MigrateFrameRangeFilesAsync([ActivityTrigger] WatermarkRange watermarkRange, ILogger logger)
     {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         IReadOnlyList<VersionedInstanceIdentifier> instanceIdentifiers =
-            await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(arguments.WatermarkRange, IndexStatus.Created);
+            await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(watermarkRange, IndexStatus.Created);
 
         var versions = instanceIdentifiers.Select(x => x.Version).ToList();
 
@@ -86,12 +85,12 @@ public partial class MigrationFilesDurableFunction
                 CancellationToken = default,
                 MaxDegreeOfParallelism = _options.MaxParallelThreads,
             },
-            async (version, token) =>
+            (version, token) =>
             {
-                await _metadataStore.CopyInstanceFramesRangeAsync(version, token);
+                return new ValueTask(_metadataStore.CopyInstanceFramesRangeAsync(version, token));
             });
 
-        logger.LogInformation("Completed copying frame range files in the range {Range}.", arguments.WatermarkRange);
+        logger.LogInformation("Completed copying frame range files in the range {Range}.", watermarkRange);
 
         await Parallel.ForEachAsync(
             versions,
@@ -100,11 +99,11 @@ public partial class MigrationFilesDurableFunction
                 CancellationToken = default,
                 MaxDegreeOfParallelism = _options.MaxParallelThreads,
             },
-            async (version, token) =>
+            (version, token) =>
             {
-                await _metadataStore.DeleteMigratedFramesRangeIfExistsAsync(version, token);
+                return new ValueTask(_metadataStore.DeleteMigratedFramesRangeIfExistsAsync(version, token));
             });
 
-        logger.LogInformation("Completed deleting frame range files with space in the range {Range}.", arguments.WatermarkRange);
+        logger.LogInformation("Completed deleting frame range files with space in the range {Range}.", watermarkRange);
     }
 }

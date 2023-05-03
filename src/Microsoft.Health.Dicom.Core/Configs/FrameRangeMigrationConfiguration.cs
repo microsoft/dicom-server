@@ -17,10 +17,10 @@ public class FrameRangeMigrationConfiguration
     /// <summary>
     /// Gets or sets the start time stamp for migration
     /// </summary>
-    public DateTime StartTimeStamp { get; set; } = new DateTime(2023, 04, 10, 0, 0, 0);
+    public DateTimeOffset StartTimeStamp { get; set; } = new DateTime(2023, 04, 10, 0, 0, 0);
 
     /// <summary>
     /// Gets or sets the end time stamp for migration
     /// </summary>
-    public DateTime EndTimeStamp { get; set; } = new DateTime(2023, 04, 17, 0, 0, 0);
+    public DateTimeOffset EndTimeStamp { get; set; } = new DateTime(2023, 04, 17, 0, 0, 0);
 }

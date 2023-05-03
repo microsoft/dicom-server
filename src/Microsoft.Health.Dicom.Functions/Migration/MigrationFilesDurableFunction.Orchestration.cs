@@ -63,7 +63,7 @@ public partial class MigrationFilesDurableFunction
                 .Select(x => context.CallActivityWithRetryAsync(
                     nameof(MigrateFrameRangeFilesAsync),
                     _options.RetryOptions,
-                    new MigrationFilesBatchArguments(x))));
+                    x)));
 
             // Create a new orchestration with the same instance ID to process the remaining data
             logger.LogInformation("Completed migrating frame range files in the range {Range}. Continuing with new execution...", batchRange);

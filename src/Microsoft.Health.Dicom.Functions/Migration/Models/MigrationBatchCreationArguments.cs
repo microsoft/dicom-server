@@ -31,12 +31,12 @@ public sealed class MigrationBatchCreationArguments
     /// <summary>
     /// Gets or sets the start filter stamp
     /// </summary>
-    public DateTime StartFilterTimeStamp { get; set; }
+    public DateTimeOffset StartFilterTimeStamp { get; set; }
 
     /// <summary>
     /// Gets or sets the end filter stamp
     /// </summary>
-    public DateTime EndFilterTimeStamp { get; set; }
+    public DateTimeOffset EndFilterTimeStamp { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MigrationBatchCreationArguments"/> class with the specified values.
@@ -51,7 +51,7 @@ public sealed class MigrationBatchCreationArguments
     /// <para>-or-</para>
     /// <para><paramref name="maxParallelBatches"/> is less than <c>1</c>.</para>
     /// </exception>
-    public MigrationBatchCreationArguments(long? maxWatermark, int batchSize, int maxParallelBatches, DateTime startTimeStamp, DateTime endTimeStamp)
+    public MigrationBatchCreationArguments(long? maxWatermark, int batchSize, int maxParallelBatches, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp)
     {
         EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
         EnsureArg.IsGte(maxParallelBatches, 1, nameof(maxParallelBatches));

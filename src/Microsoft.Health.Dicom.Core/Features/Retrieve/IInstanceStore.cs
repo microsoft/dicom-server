@@ -135,8 +135,8 @@ public interface IInstanceStore
         int batchSize,
         int batchCount,
         IndexStatus indexStatus,
-        DateTime startTimeStamp,
-        DateTime endTimeStamp,
+        DateTimeOffset startTimeStamp,
+        DateTimeOffset endTimeStamp,
         long? maxWatermark = null,
         CancellationToken cancellationToken = default);
 

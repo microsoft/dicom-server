@@ -30,8 +30,8 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV32
         int batchSize,
         int batchCount,
         IndexStatus indexStatus,
-        DateTime startTimeStamp,
-        DateTime endTimeStamp,
+        DateTimeOffset startTimeStamp,
+        DateTimeOffset endTimeStamp,
         long? maxWatermark = null,
         CancellationToken cancellationToken = default)
     {

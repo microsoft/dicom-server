@@ -11,7 +11,7 @@ public class MigratingFilesInput
 {
     public BatchingOptions Batching { get; set; }
 
-    public DateTime StartFilterTimeStamp { get; set; }
+    public DateTimeOffset StartFilterTimeStamp { get; set; }
 
-    public DateTime EndFilterTimeStamp { get; set; }
+    public DateTimeOffset EndFilterTimeStamp { get; set; }
 }
