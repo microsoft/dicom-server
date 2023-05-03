@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 
-using Azure;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using EnsureThat;
@@ -14,6 +13,7 @@ using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using System;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 
@@ -60,7 +60,7 @@ internal class ExternalBlobClient : IBlobClient
                                 _blobContainerClient = new BlobContainerClient(_externalStoreOptions.ConnectionString, _externalStoreOptions.ContainerName, _blobClientOptions);
                             }
                         }
-                        catch (RequestFailedException ex)
+                        catch (Exception ex)
                         {
                             throw new DataStoreException(ex, isExternal: IsExternal);
                         }
