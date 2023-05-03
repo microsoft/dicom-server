@@ -5,13 +5,16 @@
 
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob;
 using Microsoft.Health.Dicom.Blob.Features.Export;
+using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Registration;
 
@@ -56,12 +59,34 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.Metadata);
 
         // Blob Files
-        functionsBuilder.Services
-            .AddSingleton<BlobStoreConfigurationSection>()
-            .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
-            .AddPersistence<IFileStore, BlobFileStore>()
-            .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
-            .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
+        configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
+        if (featureConfiguration.EnableExternalStore)
+        {
+            functionsBuilder.Services.Configure<ExternalBlobDataStoreConfiguration>(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
+
+            functionsBuilder.Services.Add<ExternalBlobClient>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            functionsBuilder.Services
+                .AddPersistence<IFileStore, BlobFileStore>();
+        }
+        else
+        {
+            functionsBuilder.Services.Add<InternalBlobClient>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            functionsBuilder.Services
+                .AddSingleton<BlobStoreConfigurationSection>()
+                .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<BlobStoreConfigurationSection>())
+                .AddPersistence<IFileStore, BlobFileStore>()
+                .AddOptions<BlobContainerConfiguration>(Constants.BlobContainerConfigurationName)
+                .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.File);
+        }
 
         // Export
         functionsBuilder.Services

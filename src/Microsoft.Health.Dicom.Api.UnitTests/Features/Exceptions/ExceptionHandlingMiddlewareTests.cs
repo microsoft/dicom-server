@@ -57,6 +57,8 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new TaskCanceledException(), HttpStatusCode.BadRequest };
         yield return new object[] { new InvalidOperationException(), HttpStatusCode.BadRequest };
         yield return new object[] { new PayloadTooLargeException(1), HttpStatusCode.RequestEntityTooLarge };
+        yield return new object[] { new DataStoreException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
+        yield return new object[] { new ItemNotFoundException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
     }
 
     [Theory]
