@@ -56,10 +56,12 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
+        internal readonly static GetExtendedQueryTagErrorsV34Procedure GetExtendedQueryTagErrorsV34 = new GetExtendedQueryTagErrorsV34Procedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
+        internal readonly static GetExtendedQueryTagsV34Procedure GetExtendedQueryTagsV34 = new GetExtendedQueryTagsV34Procedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
@@ -1197,6 +1199,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetExtendedQueryTagErrorsV34Procedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagErrorsV34Procedure() : base("dbo.GetExtendedQueryTagErrorsV34")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagErrorsV34";
+                _tagPath.AddParameter(command.Parameters, tagPath);
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
         internal class GetExtendedQueryTagErrorsV6Procedure : StoredProcedure
         {
             internal GetExtendedQueryTagErrorsV6Procedure() : base("dbo.GetExtendedQueryTagErrorsV6")
@@ -1294,6 +1316,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagsByOperation";
                 _operationId.AddParameter(command.Parameters, operationId);
+            }
+        }
+
+        internal class GetExtendedQueryTagsV34Procedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagsV34Procedure() : base("dbo.GetExtendedQueryTagsV34")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagsV34";
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
             }
         }
 

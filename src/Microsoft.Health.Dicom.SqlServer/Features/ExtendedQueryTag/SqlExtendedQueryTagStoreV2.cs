@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -81,9 +81,9 @@ internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
             }
         }
     }
-    public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, long offset, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsGte(offset, 0, nameof(offset));
+        EnsureArg.IsInRange(offset, 0, int.MaxValue, nameof(offset));
         EnsureArg.IsGte(limit, 1, nameof(limit));
 
         var tags = await GetAllExtendedQueryTagsAsync(cancellationToken);
@@ -92,8 +92,9 @@ internal class SqlExtendedQueryTagStoreV2 : SqlExtendedQueryTagStoreV1
             return Array.Empty<ExtendedQueryTagStoreJoinEntry>();
         }
 
+        int o = (int)offset;
         tags.Sort((entry1, entry2) => entry1.Key - entry2.Key);
-        return tags.GetRange(offset, Math.Min(limit, tags.Count - offset));
+        return tags.GetRange(o, Math.Min(limit, tags.Count - o));
     }
 
     public override async Task<ExtendedQueryTagStoreJoinEntry> GetExtendedQueryTagAsync(string tagPath, CancellationToken cancellationToken = default)

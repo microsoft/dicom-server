@@ -1697,6 +1697,38 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV34
+@tagPath VARCHAR (64), @limit INT, @offset BIGINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    DECLARE @tagKey AS INT;
+    SELECT @tagKey = TagKey
+    FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK)
+    WHERE  dbo.ExtendedQueryTag.TagPath = @tagPath;
+    IF (@@ROWCOUNT = 0)
+        THROW 50404, 'extended query tag not found', 1;
+    SELECT   TagKey,
+             ErrorCode,
+             CreatedTime,
+             PartitionName,
+             StudyInstanceUid,
+             SeriesInstanceUid,
+             SopInstanceUid
+    FROM     dbo.ExtendedQueryTagError AS XQTE
+             INNER JOIN
+             dbo.Instance AS I
+             ON XQTE.Watermark = I.Watermark
+             INNER JOIN
+             dbo.Partition AS P
+             ON P.PartitionKey = I.PartitionKey
+    WHERE    XQTE.TagKey = @tagKey
+    ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
+    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV6
 @tagPath VARCHAR (64), @limit INT, @offset INT
 AS
@@ -1797,6 +1829,30 @@ BEGIN
            dbo.ExtendedQueryTagOperation AS XQTO
            ON XQT.TagKey = XQTO.TagKey
     WHERE  OperationId = @operationId;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV34
+@limit INT, @offset BIGINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT   XQT.TagKey,
+             TagPath,
+             TagVR,
+             TagPrivateCreator,
+             TagLevel,
+             TagStatus,
+             QueryStatus,
+             ErrorCount,
+             OperationId
+    FROM     dbo.ExtendedQueryTag AS XQT
+             LEFT OUTER JOIN
+             dbo.ExtendedQueryTagOperation AS XQTO
+             ON XQT.TagKey = XQTO.TagKey
+    ORDER BY XQT.TagKey ASC
+    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
 
 GO

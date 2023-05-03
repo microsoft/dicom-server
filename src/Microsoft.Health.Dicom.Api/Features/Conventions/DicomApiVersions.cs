@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Conventions;
 internal static class DicomApiVersions
 {
     public static readonly ApiVersion V1Prelease = ApiVersion.Parse("1.0-prerelease");
-    public static readonly ApiVersion V1 = new ApiVersion(2, 0);
+    public static readonly ApiVersion V1 = new ApiVersion(1, 0);
     public static readonly ApiVersion V2 = new ApiVersion(2, 0);
 
     public static readonly ApiVersion Earliest = V1Prelease;

@@ -69,7 +69,7 @@ internal class DicomTagsManager : IAsyncDisposable
         return await response.GetValueAsync();
     }
 
-    public async Task<IReadOnlyList<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<GetExtendedQueryTagEntry>> GetTagsAsync(int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsGte(limit, 1, nameof(limit));
         EnsureArg.IsGte(offset, 0, nameof(offset));
@@ -78,7 +78,7 @@ internal class DicomTagsManager : IAsyncDisposable
         return await response.GetValueAsync();
     }
 
-    public async Task<IReadOnlyList<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ExtendedQueryTagError>> GetTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(tagPath, nameof(tagPath));
         EnsureArg.IsGte(limit, 1, nameof(limit));

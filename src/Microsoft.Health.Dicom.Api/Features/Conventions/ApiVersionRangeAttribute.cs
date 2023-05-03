@@ -31,10 +31,10 @@ internal sealed class ApiVersionRangeAttribute : Attribute
         start ??= DicomApiVersions.Earliest;
         end ??= DicomApiVersions.Latest;
 
-        if (start < DicomApiVersions.Earliest || start >= end)
+        if (start < DicomApiVersions.Earliest || start > end)
             throw new ArgumentOutOfRangeException(nameof(start));
 
-        if (end < DicomApiVersions.Earliest || end >= DicomApiVersions.Latest)
+        if (end < DicomApiVersions.Earliest || end > DicomApiVersions.Latest)
             throw new ArgumentOutOfRangeException(nameof(end));
 
         Start = start;

@@ -26,16 +26,15 @@ public class ControllerMetadataTests
 
     [Fact]
     public void GivenApi_WhenCountingControllers_ThenFindExpectedNumber()
-        => Assert.Equal(10, _controllerTypes.Count);
+        => Assert.Equal(11, _controllerTypes.Count);
 
     [Fact]
     public void GivenExportControllers_WhenQueryingApiVersion_ThenSupportedfromV1()
     {
-        var expectedStartedVersion = 1;
-        int? actualStartedVersion = Attribute.GetCustomAttributes(typeof(ExportController), typeof(ApiVersionRangeAttribute))
+        ApiVersion actualStartedVersion = Attribute.GetCustomAttributes(typeof(ExportController), typeof(ApiVersionRangeAttribute))
              .Select(a => ((ApiVersionRangeAttribute)a).Start)
              .SingleOrDefault();
-        Assert.Equal(expectedStartedVersion, actualStartedVersion);
+        Assert.Equal(new ApiVersion(1, 0), actualStartedVersion);
     }
 
     [Fact]

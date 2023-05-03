@@ -8,13 +8,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Api.Models;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
@@ -111,20 +108,5 @@ public class ChangeFeedControllerTests
                     x.IncludeMetadata == includeMetadata &&
                     x.Order == ChangeFeedOrder.Timestamp),
                 _controller.HttpContext.RequestAborted);
-    }
-
-    [Theory]
-    [InlineData(null, 101)]
-    [InlineData(1, 200)]
-    [InlineData(2, 201)]
-    [InlineData(3, 300)]
-    public async Task GivenApiVersion_WhenFetchingChangeFeed_ThenUseProperMaxLimit(int? version, int limit)
-    {
-        if (version.HasValue)
-            _apiVersion.RequestedApiVersion.Returns(new ApiVersion(version.GetValueOrDefault(), 0));
-
-        _controller.HttpContext.Features.Set(_apiVersion);
-
-        await Assert.ThrowsAsync<ChangeFeedLimitOutOfRangeException>(() => _controller.GetChangeFeedAsync(offset: 0, limit: limit));
     }
 }

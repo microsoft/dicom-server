@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -36,17 +36,17 @@ internal class SqlExtendedQueryTagStoreV4 : SqlExtendedQueryTagStoreV2
 
     public override SchemaVersion Version => SchemaVersion.V4;
 
-    public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, long offset = 0, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsGte(limit, 1, nameof(limit));
-        EnsureArg.IsGte(offset, 0, nameof(offset));
+        EnsureArg.IsInRange(offset, 0, int.MaxValue, nameof(offset));
 
         var results = new List<ExtendedQueryTagStoreJoinEntry>();
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.GetExtendedQueryTags.PopulateCommand(sqlCommandWrapper, limit, offset);
+            VLatest.GetExtendedQueryTags.PopulateCommand(sqlCommandWrapper, limit, (int)offset);
 
             var executionTimeWatch = Stopwatch.StartNew();
             using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))

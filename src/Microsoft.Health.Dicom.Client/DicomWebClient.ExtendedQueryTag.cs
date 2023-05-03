@@ -50,7 +50,7 @@ public partial class DicomWebClient : IDicomWebClient
         return new DicomWebResponse(response);
     }
 
-    public async Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsGte(limit, 1, nameof(limit));
         EnsureArg.IsGte(offset, 0, nameof(offset));
@@ -74,7 +74,7 @@ public partial class DicomWebClient : IDicomWebClient
         return new DicomWebResponse<GetExtendedQueryTagEntry>(response, ValueFactory<GetExtendedQueryTagEntry>);
     }
 
-    public async Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
         EnsureArg.IsGte(limit, 1, nameof(limit));

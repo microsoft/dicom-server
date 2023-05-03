@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ public interface IExtendedQueryTagStore
     /// <para>-or-</para>
     /// <para><paramref name="offset"/> is less than <c>0</c>.</para>
     /// </exception>
-    Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, long offset = 0, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets extended query tags by keys.

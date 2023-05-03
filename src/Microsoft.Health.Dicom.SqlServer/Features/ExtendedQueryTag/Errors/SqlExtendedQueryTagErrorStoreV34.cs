@@ -23,28 +23,26 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 
-internal class SqlExtendedQueryTagErrorStoreV6 : SqlExtendedQueryTagErrorStoreV4
+internal class SqlExtendedQueryTagErrorStoreV34 : SqlExtendedQueryTagErrorStoreV6
 {
-    public SqlExtendedQueryTagErrorStoreV6(
-       SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-       ILogger<SqlExtendedQueryTagErrorStoreV6> logger)
+    public SqlExtendedQueryTagErrorStoreV34(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagErrorStoreV34> logger)
         : base(sqlConnectionWrapperFactory, logger)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V6;
+    public override SchemaVersion Version => SchemaVersion.V34;
 
     public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsGte(limit, 1, nameof(limit));
-        EnsureArg.IsInRange(offset, 0, int.MaxValue, nameof(offset));
+        EnsureArg.IsGte(offset, 0, nameof(offset));
 
         List<ExtendedQueryTagError> results = new List<ExtendedQueryTagError>();
 
         using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetExtendedQueryTagErrorsV6.PopulateCommand(sqlCommandWrapper, tagPath, limit, (int)offset);
+        VLatest.GetExtendedQueryTagErrorsV34.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
 
         try
         {

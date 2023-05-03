@@ -190,7 +190,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(
-        this IMediator mediator, string extendedQueryTagPath, int limit, int offset, CancellationToken cancellationToken)
+        this IMediator mediator, string extendedQueryTagPath, int limit, long offset, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(new GetExtendedQueryTagErrorsRequest(extendedQueryTagPath, limit, offset), cancellationToken);

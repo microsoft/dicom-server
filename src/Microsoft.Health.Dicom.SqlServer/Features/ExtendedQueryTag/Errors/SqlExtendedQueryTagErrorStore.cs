@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ internal sealed class SqlExtendedQueryTagErrorStore : IExtendedQueryTagErrorStor
             cancellationToken);
     }
 
-    public async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         ISqlExtendedQueryTagErrorStore store = await _cache.GetAsync(cancellationToken);
         return await store.GetExtendedQueryTagErrorsAsync(tagPath, limit, offset, cancellationToken);

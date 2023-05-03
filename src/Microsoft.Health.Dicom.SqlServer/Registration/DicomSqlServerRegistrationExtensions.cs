@@ -137,6 +137,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV4>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV8>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV16>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagStore, SqlExtendedQueryTagStoreV34>());
 
         return services;
     }
@@ -148,6 +149,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV1>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV4>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV6>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlExtendedQueryTagErrorStore, SqlExtendedQueryTagErrorStoreV34>());
 
         return services;
     }
