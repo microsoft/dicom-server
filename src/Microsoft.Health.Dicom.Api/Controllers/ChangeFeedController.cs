@@ -49,7 +49,7 @@ public class ChangeFeedController : ControllerBase
     [VersionedRoute(KnownRoutes.ChangeFeed)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedAsync(
-        [FromQuery][Range(0, int.MaxValue)] long offset = 0,
+        [FromQuery][Range(0, long.MaxValue)] long offset = 0,
         [FromQuery][Range(1, 100)] int limit = 10,
         [FromQuery] bool includeMetadata = true)
     {
