@@ -8,13 +8,10 @@ using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-public class ItemNotFoundException : DicomServerException
+public class ItemNotFoundException : ConditionalExternalException
 {
     public ItemNotFoundException(Exception innerException, bool isExternal = false)
-        : base(isExternal ? string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, innerException?.Message) : DicomCoreResource.ItemNotFound, innerException)
+        : base(isExternal ? string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, innerException?.Message) : DicomCoreResource.ItemNotFound, innerException, isExternal)
     {
-        IsExternal = isExternal;
     }
-
-    public bool IsExternal { get; }
 }

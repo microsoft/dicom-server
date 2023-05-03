@@ -8,7 +8,7 @@ using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-public class DataStoreException : DicomServerException
+public class DataStoreException : ConditionalExternalException
 {
     public DataStoreException(Exception innerException, bool isExternal = false)
        : this(isExternal ? string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, innerException?.Message) : DicomCoreResource.DataStoreOperationFailed, innerException, null, isExternal)
@@ -21,13 +21,10 @@ public class DataStoreException : DicomServerException
     }
 
     public DataStoreException(string message, Exception innerException, ushort? failureCode = null, bool isExternal = false)
-       : base(message, innerException)
+       : base(message, innerException, isExternal)
     {
         FailureCode = failureCode;
-        IsExternal = isExternal;
     }
 
     public ushort? FailureCode { get; }
-
-    public bool IsExternal { get; }
 }
