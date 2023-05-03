@@ -8,21 +8,21 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Api.Models.Binding;
+using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Models.Binding;
 
-public class Iso8601BinderTests
+public class MandatoryTimeZoneBinderTests
 {
     private const string ModelName = "Timestamp";
 
-    private readonly Iso8601Binder _binder = new Iso8601Binder();
+    private readonly MandatoryTimeZoneBinder _binder = new MandatoryTimeZoneBinder();
     private readonly DefaultModelBindingContext _bindingContext = new DefaultModelBindingContext();
     private readonly IValueProvider _valueProvider = Substitute.For<IValueProvider>();
 
-    public Iso8601BinderTests()
+    public MandatoryTimeZoneBinderTests()
     {
         _bindingContext.ModelState = new ModelStateDictionary();
         _bindingContext.ValueProvider = _valueProvider;
@@ -44,29 +44,12 @@ public class Iso8601BinderTests
 
     [Theory]
     [InlineData("2023-04-26T11:23:40.9025193-07:00")]
-    [InlineData("2023-04-26T11:23:40.902519-07:00")]
-    [InlineData("2023-04-26T11:23:40.90251-07:00")]
-    [InlineData("2023-04-26T11:23:40.9025-07:00")]
-    [InlineData("2023-04-26T11:23:40.902-07:00")]
-    [InlineData("2023-04-26T11:23:40.90-07:00")]
-    [InlineData("2023-04-26T11:23:40.9-07:00")]
-    [InlineData("2023-04-26T11:23:40-07:00")]
-    [InlineData("2023-04-26T11:23:40.9025193-07")]
-    [InlineData("2023-04-26T11:23:40.902519-07")]
+    [InlineData("2023-04-26T11:23:40.902519-07:0")]
     [InlineData("2023-04-26T11:23:40.90251-07")]
-    [InlineData("2023-04-26T11:23:40.9025-07")]
-    [InlineData("2023-04-26T11:23:40.902-07")]
-    [InlineData("2023-04-26T11:23:40.90-07")]
-    [InlineData("2023-04-26T11:23:40.9-07")]
-    [InlineData("2023-04-26T11:23:40-07")]
-    [InlineData("2023-04-26T11:23:40.9025193Z")]
-    [InlineData("2023-04-26T11:23:40.902519Z")]
-    [InlineData("2023-04-26T11:23:40.90251Z")]
-    [InlineData("2023-04-26T11:23:40.9025Z")]
-    [InlineData("2023-04-26T11:23:40.902Z")]
-    [InlineData("2023-04-26T11:23:40.90Z")]
+    [InlineData("2023-04-26T11:23:40.9025+7:00")]
+    [InlineData("2023-04-26T11:23:40.902+7:0")]
+    [InlineData("2023-04-26T11:23:40.90+7")]
     [InlineData("2023-04-26T11:23:40.9Z")]
-    [InlineData("2023-04-26T11:23:40Z")]
     public async Task GivenValidString_WhenBinding_ThenSucceed(string input)
     {
         _bindingContext.ModelName = ModelName;
@@ -85,13 +68,6 @@ public class Iso8601BinderTests
     [InlineData("foo")]
     [InlineData("4/26/2023 5:38:06 PM")]
     [InlineData("2023-04-26T11:23:40.9025193")]
-    [InlineData("2023-04-26T11:23:40.902519")]
-    [InlineData("2023-04-26T11:23:40.90251")]
-    [InlineData("2023-04-26T11:23:40.9025")]
-    [InlineData("2023-04-26T11:23:40.902")]
-    [InlineData("2023-04-26T11:23:40.90")]
-    [InlineData("2023-04-26T11:23:40.9")]
-    [InlineData("2023-04-26T11:23:40")]
     public async Task GivenInvalidString_WhenBinding_ThenFail(string input)
     {
         _bindingContext.ModelName = ModelName;

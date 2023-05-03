@@ -7,14 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Api.Models;
 
 public class WindowedPaginationOptions : PaginationOptions, IValidatableObject
 {
+    [ModelBinder(typeof(MandatoryTimeZoneBinder))]
     public DateTimeOffset? StartTime { get; set; }
 
+    [ModelBinder(typeof(MandatoryTimeZoneBinder))]
     public DateTimeOffset? EndTime { get; set; }
 
     public DateTimeOffsetRange Window => new DateTimeOffsetRange(StartTime.GetValueOrDefault(DateTimeOffset.MinValue), EndTime.GetValueOrDefault(DateTimeOffset.MaxValue));

@@ -135,10 +135,6 @@
     <value>The value is not valid. It need to be one of "{0}".</value>
     <comment>{0} valid value set.</comment>
   </data>
-  <data name="InvalidIso8601DateTime" xml:space="preserve">
-    <value>The value '{0}' is not a valid ISO 8601 timestamp.</value>
-    <comment>{0} value</comment>
-  </data>
   <data name="InvalidMultipartBodyPart" xml:space="preserve">
     <value>There was an error reading the multipart request.</value>
   </data>
@@ -167,6 +163,9 @@
   </data>
   <data name="StartParameterIsNotSupported" xml:space="preserve">
     <value>The start parameter in multipart/related request is not supported.</value>
+  </data>
+  <data name="TimeZoneRequired" xml:space="preserve">
+    <value>Date and time value must specify a time zone.</value>
   </data>
   <data name="TooManyCustomAuditHeaders" xml:space="preserve">
     <value>The maximum number of custom audit headers allowed is {0}. The number of custom audit headers supplied is {1}.</value>

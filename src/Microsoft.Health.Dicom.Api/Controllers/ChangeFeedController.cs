@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -11,7 +12,6 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
-using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
@@ -26,7 +26,6 @@ using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
 
-[ApiVersionRange(start: 2)]
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
 public class ChangeFeedController : ControllerBase
@@ -36,14 +35,13 @@ public class ChangeFeedController : ControllerBase
 
     public ChangeFeedController(IMediator mediator, ILogger<ChangeFeedController> logger)
     {
-        EnsureArg.IsNotNull(mediator, nameof(mediator));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        _mediator = mediator;
-        _logger = logger;
+        _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     [HttpGet]
+    [MapToApiVersion("1.0-prerelease")]
+    [MapToApiVersion("1.0")]
     [Produces(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(IEnumerable<ChangeFeedEntry>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -51,6 +49,36 @@ public class ChangeFeedController : ControllerBase
     [VersionedRoute(KnownRoutes.ChangeFeed)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedAsync(
+        [FromQuery][Range(0, int.MaxValue)] long offset = 0,
+        [FromQuery][Range(1, 100)] int limit = 10,
+        [FromQuery] bool includeMetadata = true)
+    {
+        _logger.LogInformation(
+            "Change feed was read with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",
+            offset,
+            limit,
+            includeMetadata ? "included" : "not included");
+
+        ChangeFeedResponse response = await _mediator.GetChangeFeed(
+            DateTimeOffsetRange.MaxValue,
+            offset,
+            limit,
+            includeMetadata,
+            ChangeFeedOrder.Sequence,
+            cancellationToken: HttpContext.RequestAborted);
+
+        return StatusCode((int)HttpStatusCode.OK, response.Entries);
+    }
+
+    [HttpGet]
+    [MapToApiVersion("2.0")]
+    [Produces(KnownContentTypes.ApplicationJson)]
+    [ProducesResponseType(typeof(IEnumerable<ChangeFeedEntry>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [VersionedRoute(KnownRoutes.ChangeFeed)]
+    [AuditEventType(AuditEventSubType.ChangeFeed)]
+    public async Task<IActionResult> GetWindowedChangeFeedAsync(
         [FromQuery] WindowedPaginationOptions options,
         [FromQuery] bool includeMetadata = true)
     {
@@ -76,6 +104,8 @@ public class ChangeFeedController : ControllerBase
     }
 
     [HttpGet]
+    [MapToApiVersion("1.0-prerelease")]
+    [MapToApiVersion("1.0")]
     [Produces(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(ChangeFeedEntry), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -83,6 +113,26 @@ public class ChangeFeedController : ControllerBase
     [VersionedRoute(KnownRoutes.ChangeFeedLatest)]
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedLatestAsync([FromQuery] bool includeMetadata = true)
+    {
+        _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
+
+        ChangeFeedLatestResponse response = await _mediator.GetChangeFeedLatest(
+            includeMetadata,
+            ChangeFeedOrder.Sequence,
+            cancellationToken: HttpContext.RequestAborted);
+
+        return StatusCode((int)HttpStatusCode.OK, response.Entry);
+    }
+
+    [HttpGet]
+    [MapToApiVersion("2.0")]
+    [Produces(KnownContentTypes.ApplicationJson)]
+    [ProducesResponseType(typeof(ChangeFeedEntry), (int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    [VersionedRoute(KnownRoutes.ChangeFeedLatest)]
+    [AuditEventType(AuditEventSubType.ChangeFeed)]
+    public async Task<IActionResult> GetChangeFeedLatestTimestampAsync([FromQuery] bool includeMetadata = true)
     {
         _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
 
