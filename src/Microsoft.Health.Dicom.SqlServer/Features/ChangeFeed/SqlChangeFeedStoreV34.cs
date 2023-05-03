@@ -75,7 +75,7 @@ internal class SqlChangeFeedStoreV34 : SqlChangeFeedStoreV6
         return null;
     }
 
-    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
         var results = new List<ChangeFeedEntry>();
 
@@ -85,7 +85,7 @@ internal class SqlChangeFeedStoreV34 : SqlChangeFeedStoreV6
         switch (order)
         {
             case ChangeFeedOrder.Sequence:
-                if (range != DateTimeOffsetRange.MaxValue)
+                if (range != TimeRange.MaxValue)
                     throw new ArgumentException(DicomSqlServerResource.InvalidChangeFeedOrderFilter, nameof(range));
 
                 VLatest.GetChangeFeedV6.PopulateCommand(sqlCommandWrapper, limit, offset);

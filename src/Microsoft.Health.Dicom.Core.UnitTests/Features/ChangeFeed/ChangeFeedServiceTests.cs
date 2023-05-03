@@ -40,7 +40,7 @@ public class ChangeFeedServiceTests
         const int offset = 10;
         const int limit = 50;
         const ChangeFeedOrder order = ChangeFeedOrder.Sequence;
-        DateTimeOffsetRange range = DateTimeOffsetRange.MaxValue;
+        TimeRange range = TimeRange.MaxValue;
         var expected = new List<ChangeFeedEntry>();
 
         using var tokenSource = new CancellationTokenSource();
@@ -61,7 +61,7 @@ public class ChangeFeedServiceTests
         const int offset = 10;
         const int limit = 50;
         const ChangeFeedOrder order = ChangeFeedOrder.Timestamp;
-        var range = new DateTimeOffsetRange(DateTimeOffset.UtcNow, DateTime.UtcNow.AddHours(1));
+        var range = new TimeRange(DateTimeOffset.UtcNow, DateTime.UtcNow.AddHours(1));
         var expected = new List<ChangeFeedEntry>
         {
             new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, 101, ChangeFeedState.Current),

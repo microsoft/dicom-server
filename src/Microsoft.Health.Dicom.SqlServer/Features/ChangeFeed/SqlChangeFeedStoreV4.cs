@@ -70,12 +70,12 @@ internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
         return null;
     }
 
-    public virtual async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
         if (order != ChangeFeedOrder.Sequence)
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
 
-        if (range != DateTimeOffsetRange.MaxValue)
+        if (range != TimeRange.MaxValue)
             throw new ArgumentException(DicomSqlServerResource.InvalidChangeFeedOrderFilter, nameof(range));
 
         var results = new List<ChangeFeedEntry>();

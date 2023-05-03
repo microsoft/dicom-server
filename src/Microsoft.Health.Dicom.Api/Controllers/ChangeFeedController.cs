@@ -60,7 +60,7 @@ public class ChangeFeedController : ControllerBase
             includeMetadata ? "included" : "not included");
 
         ChangeFeedResponse response = await _mediator.GetChangeFeed(
-            DateTimeOffsetRange.MaxValue,
+            TimeRange.MaxValue,
             offset,
             limit,
             includeMetadata,
@@ -83,7 +83,7 @@ public class ChangeFeedController : ControllerBase
         [FromQuery] bool includeMetadata = true)
     {
         EnsureArg.IsNotNull(options, nameof(options));
-        DateTimeOffsetRange window = options.Window;
+        TimeRange window = options.Window;
 
         _logger.LogInformation(
             "Change feed was read for {Window} with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",

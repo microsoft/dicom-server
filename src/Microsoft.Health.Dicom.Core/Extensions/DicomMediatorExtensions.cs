@@ -140,7 +140,7 @@ public static class DicomMediatorExtensions
 
     public static Task<ChangeFeedResponse> GetChangeFeed(
         this IMediator mediator,
-        DateTimeOffsetRange range,
+        TimeRange range,
         long offset,
         int limit,
         bool includeMetadata,

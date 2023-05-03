@@ -28,15 +28,38 @@ public class MandatoryTimeZoneBinderTests
         _bindingContext.ValueProvider = _valueProvider;
     }
 
-    [Fact]
-    public async Task GivenNoInput_WhenBinding_ThenSkip()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task GivenNoInput_WhenBinding_ThenSkip(bool isNull)
     {
+        ValueProviderResult result = isNull
+            ? new ValueProviderResult(new StringValues((string)null))
+            : ValueProviderResult.None;
+
         _bindingContext.ModelName = ModelName;
-        _valueProvider.GetValue(ModelName).Returns(ValueProviderResult.None);
+        _valueProvider.GetValue(ModelName).Returns(result);
 
         await _binder.BindModelAsync(_bindingContext);
         Assert.False(_bindingContext.Result.IsModelSet);
         Assert.True(_bindingContext.ModelState.IsValid);
+        Assert.Null(_bindingContext.Result.Model);
+
+        _valueProvider.Received(1).GetValue(ModelName);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("\t")]
+    public async Task GivenBlankInput_WhenBinding_ThenSkip(string input)
+    {
+        _bindingContext.ModelName = ModelName;
+        _valueProvider.GetValue(ModelName).Returns(new ValueProviderResult(new StringValues(input)));
+
+        await _binder.BindModelAsync(_bindingContext);
+        Assert.False(_bindingContext.Result.IsModelSet);
+        Assert.False(_bindingContext.ModelState.IsValid);
         Assert.Null(_bindingContext.Result.Model);
 
         _valueProvider.Received(1).GetValue(ModelName);
@@ -64,10 +87,10 @@ public class MandatoryTimeZoneBinderTests
     }
 
     [Theory]
-    [InlineData("")]
     [InlineData("foo")]
     [InlineData("4/26/2023 5:38:06 PM")]
     [InlineData("2023-04-26T11:23:40.9025193")]
+    [InlineData("2023-04-26")]
     public async Task GivenInvalidString_WhenBinding_ThenFail(string input)
     {
         _bindingContext.ModelName = ModelName;

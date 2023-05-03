@@ -43,7 +43,7 @@ public class ChangeFeedControllerTests
         _mediator
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 10 &&
                     x.IncludeMetadata &&
@@ -59,7 +59,7 @@ public class ChangeFeedControllerTests
             .Received(1)
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 10 &&
                     x.IncludeMetadata &&
@@ -77,7 +77,7 @@ public class ChangeFeedControllerTests
         _mediator
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
                     x.IncludeMetadata == includeMetadata &&
@@ -93,7 +93,7 @@ public class ChangeFeedControllerTests
             .Received(1)
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
                     x.IncludeMetadata == includeMetadata &&
@@ -109,7 +109,7 @@ public class ChangeFeedControllerTests
         _mediator
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 100 &&
                     x.IncludeMetadata &&
@@ -125,7 +125,7 @@ public class ChangeFeedControllerTests
             .Received(1)
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == DateTimeOffsetRange.MaxValue &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 100 &&
                     x.IncludeMetadata &&
@@ -142,7 +142,7 @@ public class ChangeFeedControllerTests
     {
         DateTimeOffset? startTime = start != null ? DateTimeOffset.Parse(start, CultureInfo.InvariantCulture) : null;
         DateTimeOffset? endTime = end != null ? DateTimeOffset.Parse(end, CultureInfo.InvariantCulture) : null;
-        var expectedRange = new DateTimeOffsetRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
+        var expectedRange = new TimeRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
         var expected = new List<ChangeFeedEntry>();
 
         _mediator

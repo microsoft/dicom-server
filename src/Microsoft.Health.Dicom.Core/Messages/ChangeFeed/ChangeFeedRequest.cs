@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
 public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
 {
-    public ChangeFeedRequest(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order)
+    public ChangeFeedRequest(TimeRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order)
     {
         Range = range;
         Offset = offset;
@@ -20,7 +20,7 @@ public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
         Order = order;
     }
 
-    public DateTimeOffsetRange Range { get; }
+    public TimeRange Range { get; }
 
     public int Limit { get; }
 

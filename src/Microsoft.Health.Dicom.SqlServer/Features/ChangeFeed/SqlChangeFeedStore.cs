@@ -27,7 +27,7 @@ internal class SqlChangeFeedStore : IChangeFeedStore
         return await store.GetChangeFeedLatestAsync(order, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
         ISqlChangeFeedStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetChangeFeedAsync(range, offset, limit, order, cancellationToken);

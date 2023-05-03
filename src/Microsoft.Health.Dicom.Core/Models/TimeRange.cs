@@ -7,11 +7,11 @@ using System;
 
 namespace Microsoft.Health.Dicom.Core.Models;
 
-public readonly struct DateTimeOffsetRange : IEquatable<DateTimeOffsetRange>
+public readonly struct TimeRange : IEquatable<TimeRange>
 {
-    public static readonly DateTimeOffsetRange MaxValue = new DateTimeOffsetRange(DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
+    public static readonly TimeRange MaxValue = new TimeRange(DateTimeOffset.MinValue, DateTimeOffset.MaxValue);
 
-    public DateTimeOffsetRange(DateTimeOffset startTime, DateTimeOffset endTime)
+    public TimeRange(DateTimeOffset startTime, DateTimeOffset endTime)
     {
         if (endTime <= startTime)
             throw new ArgumentOutOfRangeException(nameof(startTime));
@@ -25,9 +25,9 @@ public readonly struct DateTimeOffsetRange : IEquatable<DateTimeOffsetRange>
     public DateTimeOffset End { get; }
 
     public override bool Equals(object obj)
-        => obj is DateTimeOffsetRange other && Equals(other);
+        => obj is TimeRange other && Equals(other);
 
-    public bool Equals(DateTimeOffsetRange other)
+    public bool Equals(TimeRange other)
         => Start == other.Start && End == other.End;
 
     public override int GetHashCode()
@@ -36,15 +36,15 @@ public readonly struct DateTimeOffsetRange : IEquatable<DateTimeOffsetRange>
     public override string ToString()
         => $"[{Start:O}, {End:O})";
 
-    public static bool operator ==(DateTimeOffsetRange left, DateTimeOffsetRange right)
+    public static bool operator ==(TimeRange left, TimeRange right)
         => left.Equals(right);
 
-    public static bool operator !=(DateTimeOffsetRange left, DateTimeOffsetRange right)
+    public static bool operator !=(TimeRange left, TimeRange right)
         => !left.Equals(right);
 
-    public static DateTimeOffsetRange After(DateTimeOffset start)
-        => new DateTimeOffsetRange(start, DateTimeOffset.MaxValue);
+    public static TimeRange After(DateTimeOffset start)
+        => new TimeRange(start, DateTimeOffset.MaxValue);
 
-    public static DateTimeOffsetRange Before(DateTimeOffset end)
-        => new DateTimeOffsetRange(DateTimeOffset.MinValue, end);
+    public static TimeRange Before(DateTimeOffset end)
+        => new TimeRange(DateTimeOffset.MinValue, end);
 }

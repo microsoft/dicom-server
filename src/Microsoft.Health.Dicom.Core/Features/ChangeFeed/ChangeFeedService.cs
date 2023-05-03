@@ -33,7 +33,7 @@ public class ChangeFeedService : IChangeFeedService
         _options = EnsureArg.IsNotNull(options?.Value, nameof(metadataStore));
     }
 
-    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(DateTimeOffsetRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
         if (offset < 0)
             throw new ArgumentOutOfRangeException(nameof(offset));

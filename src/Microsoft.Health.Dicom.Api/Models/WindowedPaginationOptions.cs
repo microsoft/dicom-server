@@ -21,7 +21,7 @@ public class WindowedPaginationOptions : PaginationOptions, IValidatableObject
     [ModelBinder(typeof(MandatoryTimeZoneBinder))]
     public DateTimeOffset? EndTime { get; set; }
 
-    public DateTimeOffsetRange Window => new DateTimeOffsetRange(StartTime.GetValueOrDefault(DateTimeOffset.MinValue), EndTime.GetValueOrDefault(DateTimeOffset.MaxValue));
+    public TimeRange Window => new TimeRange(StartTime.GetValueOrDefault(DateTimeOffset.MinValue), EndTime.GetValueOrDefault(DateTimeOffset.MaxValue));
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
