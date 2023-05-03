@@ -8,7 +8,6 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -114,7 +113,6 @@ public partial class DicomWebClient : IDicomWebClient
         int quality = 100,
         string mediaType = DicomWebConstants.ImageJpegMediaType,
         string partitionName = default,
-        bool requestOriginalVersion = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
@@ -124,7 +122,6 @@ public partial class DicomWebClient : IDicomWebClient
         return await RetrieveRenderedAsync(
             GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveInstanceRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, quality), partitionName),
             mediaType,
-            requestOriginalVersion,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -182,7 +179,6 @@ public partial class DicomWebClient : IDicomWebClient
         int quality = 100,
         string mediaType = DicomWebConstants.ImageJpegMediaType,
         string partitionName = default,
-        bool requestOriginalVersion = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
@@ -192,7 +188,6 @@ public partial class DicomWebClient : IDicomWebClient
         return await RetrieveRenderedAsync(
             GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseRetrieveFrameRenderedUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid, frame, quality), partitionName),
             mediaType,
-            requestOriginalVersion,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -273,7 +268,6 @@ public partial class DicomWebClient : IDicomWebClient
     private async Task<DicomWebResponse<Stream>> RetrieveRenderedAsync(
         Uri requestUri,
         string mediaType,
-        bool requestOriginalVersion,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(requestUri, nameof(requestUri));
@@ -282,7 +276,7 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.TryAddWithoutValidation(
             "Accept",
-            CreateAcceptHeader(new MediaTypeWithQualityHeaderValue(mediaType), null, requestOriginalVersion));
+            mediaType);
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
