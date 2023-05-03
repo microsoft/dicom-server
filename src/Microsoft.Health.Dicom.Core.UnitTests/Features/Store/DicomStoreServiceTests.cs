@@ -12,6 +12,7 @@ using FellowOakDicom;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -123,7 +124,8 @@ public class DicomStoreServiceTests
             new ElementMinimumValidator(),
             queryTagService,
             storeMeter,
-            contextAccessor);
+            contextAccessor,
+            Substitute.For<ILogger<StoreDatasetValidator>>());
         return validator;
     }
 
