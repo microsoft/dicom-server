@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// <summary>
 /// The exception that is thrown when a Dicom update operation request is submitted while one is already active.
 /// </summary>
-public sealed class ExistingUpdateOperationException : InvalidOperationException
+public sealed class ExistingUpdateOperationException : Exception
 {
     /// <summary>
     /// Gets the reference to the existing update operation.

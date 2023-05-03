@@ -13,7 +13,7 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// <summary>
 /// The exception that is thrown when a re-index request is submitted while one is already active.
 /// </summary>
-public sealed class ExistingReindexException : InvalidOperationException
+public sealed class ExistingReindexException : Exception
 {
     /// <summary>
     /// Gets the reference to the existing re-index operation.
