@@ -104,7 +104,7 @@ internal class ApiVersionsConvention : IControllerConvention
         if (actionVersions.Count == 0)
             return true;
 
-        foreach (ApiVersion version in actionVersions)
+        foreach (ApiVersion version in enabled)
         {
             if (actionVersions.Contains(version))
                 return true;
