@@ -110,3 +110,10 @@ stages:
   - BuildDotNet
   jobs:
   - template: pr/run-e2e-features-enabled-tests.yml
+
+- stage: RunE2ExternalStoreEnabledTests
+  displayName: 'Run E2E tests with external store'
+  dependsOn:
+    - BuildDotNet
+  jobs:
+    - template: pr/run-e2e-external-store-enabled-tests.yml
