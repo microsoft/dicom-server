@@ -1,20 +1,24 @@
 SET XACT_ABORT ON
 
-IF NOT EXISTS
-(
-    SELECT *
-    FROM    sys.indexes
-    WHERE   NAME = 'IX_ChangeFeed_Timestamp'
-        AND Object_id = OBJECT_ID('dbo.ChangeFeed')
-)
-BEGIN
+BEGIN TRANSACTION
 
-    CREATE NONCLUSTERED INDEX IX_ChangeFeed_Timestamp ON dbo.ChangeFeed
+    DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
+
+    DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+
+    CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     (
-        Timestamp
+        Timestamp,
+        Sequence
+    )
+
+    -- Used for fetching the latest using the v1 APIs
+    CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+    (
+        Sequence
     ) WITH (DATA_COMPRESSION = PAGE)
 
-END
+COMMIT TRANSACTION
 GO
 
 BEGIN TRANSACTION

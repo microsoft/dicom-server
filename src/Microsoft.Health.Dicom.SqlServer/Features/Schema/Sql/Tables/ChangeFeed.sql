@@ -20,8 +20,10 @@ CREATE TABLE dbo.ChangeFeed (
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Change feed is cross partition
+-- Note: While the Change Feed is unique on Sequence, Timestamp is included to alter the physical sort order
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
 (
+    Timestamp,
     Sequence
 )
 
@@ -34,8 +36,8 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInst
     SopInstanceUid
 ) WITH (DATA_COMPRESSION = PAGE)
 
--- Used to query the change feed for a particular time range
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Timestamp ON dbo.ChangeFeed
+-- Used for fetching the latest using the v1 APIs
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
 (
-    Timestamp
+    Sequence
 ) WITH (DATA_COMPRESSION = PAGE)

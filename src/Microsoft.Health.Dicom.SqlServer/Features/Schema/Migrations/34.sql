@@ -90,13 +90,13 @@ CREATE TABLE dbo.ChangeFeed (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed
-    ON dbo.ChangeFeed(Sequence);
+    ON dbo.ChangeFeed(Timestamp, Sequence);
 
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
     ON dbo.ChangeFeed(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Timestamp
-    ON dbo.ChangeFeed(Timestamp) WITH (DATA_COMPRESSION = PAGE);
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence
+    ON dbo.ChangeFeed(Sequence) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.DeletedInstance (
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
