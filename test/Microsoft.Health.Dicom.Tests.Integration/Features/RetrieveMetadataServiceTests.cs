@@ -45,6 +45,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
+    private readonly int _firstOriginalVersion;
+    private readonly int _secondOriginalVersion;
 
     public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
     {
@@ -65,6 +67,9 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
             _dicomRequestContextAccessor,
             _retrieveMeter,
             Options.Create(new RetrieveConfiguration()));
+
+        _firstOriginalVersion = storagefixture.NextWatermark;
+        _secondOriginalVersion = storagefixture.NextWatermark;
     }
 
     [Fact]
@@ -161,45 +166,67 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _nameWithPrefix.Received(1).GetInstanceFramesRangeFileName(1);
     }
 
+    [Fact]
+    public async Task GivenRetrieveMetadataRequestForStudyWithOriginalVersion_WhenIsSuccessful_ThenInstanceMetadataIsRetrievedSuccessfully()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
+        string ifNoneMatch = null;
+        _dicomRequestContextAccessor.RequestContext.IsOriginalRequested = true;
+
+        // Add metadata for all instances in the given list
+        await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.OriginalVersion);
+        await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.OriginalVersion);
+
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
+    }
+
     // Note that tests must use unique watermarks to ensure their metadata files do not collide with each other
     private (VersionedDicomDataset First, VersionedDicomDataset Second) SetupDatasetList(
         ResourceType resourceType,
         int partitionKey = DefaultPartition.Key,
         CancellationToken cancellationToken = default)
     {
+        var instanceProperty1 = new InstanceProperties { OriginalVersion = _firstOriginalVersion };
+        var instanceProperty2 = new InstanceProperties { OriginalVersion = _secondOriginalVersion };
+
         var seriesInstanceUid = resourceType == ResourceType.Study ? TestUidGenerator.Generate() : _seriesInstanceUid;
         var result1 = new VersionedDicomDataset
         {
             Dataset = CreateValidMetadataDataset(_studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()),
             Version = _getNextWatermark(),
+            OriginalVersion = _firstOriginalVersion,
         };
 
         var result2 = new VersionedDicomDataset
         {
             Dataset = CreateValidMetadataDataset(_studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()),
             Version = _getNextWatermark(),
+            OriginalVersion = _secondOriginalVersion,
         };
 
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
-                    new List<VersionedInstanceIdentifier>
+                    new List<InstanceMetadata>
                     {
-                        result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version),
-                        result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
                     });
         }
         else
         {
             _instanceStore
-                .GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
-                    new List<VersionedInstanceIdentifier>
+                    new List<InstanceMetadata>
                     {
-                        result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version),
-                        result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
                     });
         }
 
@@ -233,5 +260,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         public DicomDataset Dataset { get; init; }
 
         public int Version { get; init; }
+
+        public int OriginalVersion { get; init; }
     }
 }
