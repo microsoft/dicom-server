@@ -190,7 +190,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         StoreValidationResultBuilder validationResultBuilder)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
-        var indexableTags = queryTags.Select(t => t.Tag);
+        var indexableTags = queryTags.Select(t => t.Tag).ToList();
         foreach (DicomItem item in dicomDataset)
         {
             try
