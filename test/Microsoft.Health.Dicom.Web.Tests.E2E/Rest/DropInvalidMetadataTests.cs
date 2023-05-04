@@ -54,8 +54,7 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
         // run
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManagerV1.StoreAsync(
             new[] { dicomFile },
-            partitionName: _partition)
-        );
+            partitionName: _partition));
 
         // assert
         Assert.Equal("Conflict", exception.Message);
@@ -86,7 +85,6 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
             partitionName: _partition);
 
         // assertions
-
         using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
@@ -117,7 +115,7 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
 
         // attempting to query with invalid attr produces a BadRequest
         DicomWebException caughtException = await Assert.ThrowsAsync<DicomWebException>(
-            async () => await GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
+            () => GetInstanceByAttribute(dicomFile, DicomTag.StudyDate));
 
         Assert.Contains(
             "BadRequest: Invalid query: specified Date value 'NotAValidStudyDate' is invalid for attribute 'StudyDate'" +
@@ -137,9 +135,8 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
 
         // expect comment sequence has single warning about single invalid attribute
         Assert.Equal(
-            """DICOM100: (0008,0020) - Content "NotAValidStudyDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""",
-            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment)
-        );
+            "DICOM100: (0008,0020) - Content \"NotAValidStudyDate\" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD",
+            failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
     }
 
     [Fact]
@@ -155,7 +152,7 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
         DicomSequence failedSOPSequence = ex.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
         DicomSequence failedAttributesSequence = failedSOPSequence.Items[0].GetSequence(DicomTag.FailedAttributesSequence);
         Assert.Equal(
-            """DICOM100: (0010,0020) - Content "Before Null Character, " does not validate VR LO: value contains invalid character""",
+            "DICOM100: (0010,0020) - Content \"Before Null Character, \0\" does not validate VR LO: value contains invalid character",
             failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
     }
 
@@ -168,26 +165,22 @@ public class DropInvalidMetadataTests : IClassFixture<FeatureEnabledTestFixture<
 
     private static DicomFile GenerateDicomFile()
     {
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
+        return Samples.CreateRandomDicomFile(
             studyInstanceUid: TestUidGenerator.Generate(),
             seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-        );
-        return dicomFile;
+            sopInstanceUid: TestUidGenerator.Generate());
     }
 
     private async Task<IEnumerable<DicomDataset>> GetInstanceByAttribute(DicomFile dicomFile, DicomTag searchTag)
     {
         using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync(
             $"{searchTag.DictionaryEntry.Keyword}={dicomFile.Dataset.GetString(searchTag)}",
-            partitionName: _partition
-        );
+            partitionName: _partition);
         Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
         DicomDataset[] datasets = await response.ToArrayAsync();
 
         IEnumerable<DicomDataset> matchedInstances = datasets.Where(
-            ds =>
-                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+            ds => ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
         return matchedInstances;
     }
 }
