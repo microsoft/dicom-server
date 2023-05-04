@@ -42,7 +42,7 @@ BEGIN
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     WHERE c.Timestamp >= @startTime AND c.Timestamp < @endTime
-    ORDER BY Timestamp ASC
+    ORDER BY Timestamp, Sequence
     OFFSET @offset ROWS
     FETCH NEXT @limit ROWS ONLY
 END
