@@ -80,9 +80,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
 
         // validate input data elements
-        if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
+        if (_enableFullDicomItemValidation)
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
+        }
+        else if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
+        {
+            ValidateAllItemsWithLeniency(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -180,7 +184,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private void ValidateAllItems(
+    private static void ValidateAllItems(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
     {
@@ -192,30 +196,47 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
+                validationResultBuilder.Add(ex, item.Tag);
+            }
+        }
+    }
+
+    private void ValidateAllItemsWithLeniency(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder)
+    {
+        foreach (DicomItem item in dicomDataset)
+        {
+            try
+            {
+                var value = dicomDataset.GetString(item.Tag);
+                // check for null padding and validate without it
+                if (value.EndsWith('\0'))
                 {
-                    if (RequiredCoreTags.Contains(item.Tag))
-                    {
-                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: true);
-                    }
-                    else
-                    {
-                        validationResultBuilder.Add(ex, item.Tag);
-                    }
-                    _storeMeter.ValidateAllValidationError.Add(
-                        1,
-                        new[]
+                    // we still want to save the original value when validation passes so create new ds to validate with
+                    var newValue = value.TrimEnd('\0');
+                    DicomDataset ds = new DicomDataset().NotValidated();
+                    ds.AddOrUpdate(item.Tag, newValue);
+                    ds.GetDicomItem<DicomItem>(item.Tag).Validate();
+                }
+                else
+                {
+                    item.Validate();
+                }
+            }
+            catch (DicomValidationException ex)
+            {
+                validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
+
+                _storeMeter.ValidateAllValidationError.Add(
+                    1,
+                    new[]
                         {
                             new KeyValuePair<string, object>("ExceptionContent", ex.Content),
                             new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
                             new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
                             new KeyValuePair<string, object>("Tag", item.Tag.ToString())
                         });
-                }
-                else
-                {
-                    validationResultBuilder.Add(ex, item.Tag);
-                }
             }
         }
     }

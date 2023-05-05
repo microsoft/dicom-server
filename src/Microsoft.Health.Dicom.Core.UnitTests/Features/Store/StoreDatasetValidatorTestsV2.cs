@@ -1,0 +1,135 @@
+﻿// -------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
+// -------------------------------------------------------------------------------------------------
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
+using Microsoft.Health.Dicom.Core.Features.Validation;
+using Microsoft.Health.Dicom.Tests.Common;
+using NSubstitute;
+using Xunit;
+
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
+
+// Run these tests exclusively serial since they change the global autovalidation
+[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+public class StoreDatasetValidatorTestsV2
+{
+    private readonly IStoreDatasetValidator _dicomDatasetValidator;
+    private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
+    private readonly IQueryTagService _queryTagService;
+    private readonly List<QueryTag> _queryTags;
+    private readonly StoreMeter _storeMeter;
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
+    private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
+
+
+    public StoreDatasetValidatorTestsV2()
+    {
+        var featureConfiguration = Options.Create(new FeatureConfiguration() { EnableFullDicomItemValidation = false });
+        _queryTagService = Substitute.For<IQueryTagService>();
+        _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
+        _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
+        _storeMeter = new StoreMeter();
+        _dicomRequestContextV2.Version.Returns(2);
+        _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
+    }
+
+    [Fact]
+    public async Task GivenFullValidation_WhenPatientIDInvalid_ExpectErrorProduced()
+    {
+        // Even when V2 api is requested, if full validation is enabled, we will validate and generate warnings on invalid tags
+        var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration { EnableFullDicomItemValidation = true, });
+
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            patientId: "Before Null Character, \0");
+
+        var validator = new StoreDatasetValidator(
+            featureConfigurationEnableFullValidation,
+            _minimumValidator,
+            _queryTagService,
+            _storeMeter,
+            _dicomRequestContextAccessorV2);
+
+        var result = await validator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Contains(
+            """does not validate VR LO: value contains invalid character""",
+            result.InvalidTagErrors[DicomTag.PatientID].Error);
+
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenNonCoreTagInvalid_ExpectTagValidatedAndErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.ReviewDate, "NotAValidReviewDate");
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.True(result.InvalidTagErrors.Any());
+        Assert.Single(result.InvalidTagErrors);
+        Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenNonCoreTagPaddedWithNull_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.Modality, "X\0");
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenPatientIDPAddedWithNull_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            patientId: "Before Null Character, \0");
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+
+    [Fact]
+    public async Task GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
+    {
+        var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
+
+        Assert.Empty(result.InvalidTagErrors);
+        Assert.Equal(ValidationWarnings.None, result.WarningCodes);
+    }
+}
