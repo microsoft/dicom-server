@@ -92,4 +92,17 @@ public class HttpRequestExtensionsTests
         httpRequest.Headers.Returns(headers);
         Assert.False(httpRequest.IsOriginalVersionRequested());
     }
+
+    [Fact]
+    public void GivenHttpRequestWithEmptyOriginalHeader_WhenGetIsOriginalVersionRequested_ThenShouldReturnExpectedValue()
+    {
+        HttpRequest httpRequest = Substitute.For<HttpRequest>();
+        IHeaderDictionary headers = new HeaderDictionary
+        {
+            { "accept", "application/dicom" },
+            { "msdicom-request-original", string.Empty }
+        };
+        httpRequest.Headers.Returns(headers);
+        Assert.False(httpRequest.IsOriginalVersionRequested());
+    }
 }

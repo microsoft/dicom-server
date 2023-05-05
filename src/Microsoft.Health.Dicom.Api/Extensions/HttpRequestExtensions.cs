@@ -50,6 +50,6 @@ public static class HttpRequestExtensions
         EnsureArg.IsNotNull(httpRequest, nameof(httpRequest));
 
         return httpRequest.Headers.TryGetValue(OtherHeaderParameterNames.RequestOriginal, out StringValues stringValues)
-            && stringValues.First().Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
+            && stringValues.Count > 0 && stringValues.First().Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
     }
 }
