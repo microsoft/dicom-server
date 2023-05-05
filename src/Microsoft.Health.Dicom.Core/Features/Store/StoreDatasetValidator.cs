@@ -87,7 +87,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
         else if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
         {
-            ValidateAllItemsWithLeniencyAsync(dicomDataset, validationResultBuilder);
+            await ValidateAllItemsWithLeniencyAsync(dicomDataset, validationResultBuilder);
         }
         else
         {
