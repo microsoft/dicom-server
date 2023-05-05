@@ -83,7 +83,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         // validate input data elements
         if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
         {
-            await ValidateAllItems(dicomDataset, validationResultBuilder);
+            await ValidateAllItemsAsync(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -181,12 +181,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private async Task ValidateAllItems(
+    private async Task ValidateAllItemsAsync(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
-        var indexableTags = queryTags.Select(t => t.Tag).ToList();
         foreach (DicomItem item in dicomDataset)
         {
             try
@@ -206,7 +205,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         validationResultBuilder.Add(ex, item.Tag);
                     }
 
-                    bool isIndexableTag = indexableTags.Contains(item.Tag);
+                    bool isIndexableTag = queryTags.Any(x => x.Tag == item.Tag);
                     _storeMeter.ValidateAllValidationError.Add(
                         1,
                         new[]
