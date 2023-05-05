@@ -210,14 +210,9 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             try
             {
                 var value = dicomDataset.GetString(item.Tag);
-                // check for null padding and validate without it
                 if (value.EndsWith('\0'))
                 {
-                    // we still want to save the original value when validation passes so create new ds to validate with
-                    var newValue = value.TrimEnd('\0');
-                    DicomDataset ds = new DicomDataset().NotValidated();
-                    ds.AddOrUpdate(item.Tag, newValue);
-                    ds.GetDicomItem<DicomItem>(item.Tag).Validate();
+                    ValidateWithoutNullPadding(value, item);
                 }
                 else
                 {
@@ -239,6 +234,15 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         });
             }
         }
+    }
+
+    private static void ValidateWithoutNullPadding(string value, DicomItem item)
+    {
+        // we still want to save the original value when validation passes so create new ds to validate with
+        var newValue = value.TrimEnd('\0');
+        DicomDataset ds = new DicomDataset().NotValidated();
+        ds.AddOrUpdate(item.Tag, newValue);
+        ds.GetDicomItem<DicomItem>(item.Tag).Validate();
     }
 
     private static bool EnableDropMetadata(int? version)
