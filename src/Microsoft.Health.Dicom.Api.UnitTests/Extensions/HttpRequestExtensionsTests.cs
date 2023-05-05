@@ -74,7 +74,8 @@ public class HttpRequestExtensionsTests
         HttpRequest httpRequest = Substitute.For<HttpRequest>();
         IHeaderDictionary headers = new HeaderDictionary
         {
-            { "accept", "application/dicom;msdicom-request-original" }
+            { "accept", "application/dicom" },
+            { "msdicom-request-original", bool.TrueString }
         };
         httpRequest.Headers.Returns(headers);
         Assert.True(httpRequest.IsOriginalVersionRequested());

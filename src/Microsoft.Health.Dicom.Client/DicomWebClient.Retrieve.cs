@@ -153,7 +153,6 @@ public partial class DicomWebClient : IDicomWebClient
         string mediaType = DicomWebConstants.ApplicationOctetStreamMediaType,
         string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
         string partitionName = default,
-        bool requestOriginalVersion = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
@@ -168,7 +167,7 @@ public partial class DicomWebClient : IDicomWebClient
                 sopInstanceUid,
                 string.Join("%2C", frames)),
             partitionName);
-        return await RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, requestOriginalVersion, cancellationToken).ConfigureAwait(false);
+        return await RetrieveFramesAsync(requestUri, mediaType, dicomTransferSyntax, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse<Stream>> RetrieveRenderedFrameAsync(
@@ -198,7 +197,6 @@ public partial class DicomWebClient : IDicomWebClient
         string sopInstanceUid,
         int frame,
         string partitionName = default,
-        bool requestOriginalVersion = default,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
@@ -217,7 +215,7 @@ public partial class DicomWebClient : IDicomWebClient
         using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         request.Headers.TryAddWithoutValidation(
             "Accept",
-            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationOctetStream, DicomWebConstants.OriginalDicomTransferSyntax, requestOriginalVersion));
+            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationOctetStream, DicomWebConstants.OriginalDicomTransferSyntax));
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
@@ -246,7 +244,12 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.TryAddWithoutValidation(
             "Accept",
-            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax, requestOriginalVersion));
+            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax));
+
+        if (requestOriginalVersion)
+        {
+            request.Headers.TryAddWithoutValidation(DicomWebConstants.RequestOriginalVersion, bool.TrueString);
+        }
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
@@ -307,7 +310,12 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.TryAddWithoutValidation(
             "Accept",
-            CreateAcceptHeader(CreateMultipartMediaTypeHeader(DicomWebConstants.ApplicationDicomMediaType), dicomTransferSyntax, requestOriginalVersion));
+            CreateAcceptHeader(CreateMultipartMediaTypeHeader(DicomWebConstants.ApplicationDicomMediaType), dicomTransferSyntax));
+
+        if (requestOriginalVersion)
+        {
+            request.Headers.TryAddWithoutValidation(DicomWebConstants.RequestOriginalVersion, bool.TrueString);
+        }
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
@@ -323,7 +331,6 @@ public partial class DicomWebClient : IDicomWebClient
         Uri requestUri,
         string mediaType,
         string dicomTransferSyntax,
-        bool requestOriginalVersion,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(requestUri, nameof(requestUri));
@@ -333,7 +340,7 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.TryAddWithoutValidation(
             "Accept",
-            CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax, requestOriginalVersion));
+            CreateAcceptHeader(CreateMultipartMediaTypeHeader(mediaType), dicomTransferSyntax));
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
@@ -357,7 +364,12 @@ public partial class DicomWebClient : IDicomWebClient
 
         request.Headers.TryAddWithoutValidation(
             "Accept",
-            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicomJson, null, requestOriginalVersion));
+            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicomJson, null));
+
+        if (requestOriginalVersion)
+        {
+            request.Headers.TryAddWithoutValidation(DicomWebConstants.RequestOriginalVersion, bool.TrueString);
+        }
 
         if (!string.IsNullOrEmpty(ifNoneMatch))
         {

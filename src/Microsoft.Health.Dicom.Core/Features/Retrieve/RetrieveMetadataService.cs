@@ -103,7 +103,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
             : instancesToRetrieve.SelectParallel(
                 (x, t) => new ValueTask<DicomDataset>(
                     _metadataStore.GetInstanceMetadataAsync(
-                        RetrieveHelpers.GetVersion(x, _contextAccessor.RequestContext.IsOriginalRequested), t)),
+                        x.GetVersion(_contextAccessor.RequestContext.IsOriginalRequested), t)),
                 new ParallelEnumerationOptions { MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism },
                 cancellationToken);
 

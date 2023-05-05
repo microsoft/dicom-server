@@ -5,9 +5,7 @@
 
 namespace Microsoft.Health.Dicom.Core.Web;
 
-public static class AcceptHeaderParameterNames
+public static class OtherHeaderParameterNames
 {
-    public const string Type = "type";
-    public const string TransferSyntax = "transfer-syntax";
-    public const string Quality = "q";
+    public const string RequestOriginal = "msdicom-request-original";
 }

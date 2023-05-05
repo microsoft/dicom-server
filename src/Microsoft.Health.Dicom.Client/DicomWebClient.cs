@@ -93,13 +93,11 @@ public partial class DicomWebClient : IDicomWebClient
     private static string FormatQueryString(string queryString)
         => string.IsNullOrWhiteSpace(queryString) ? string.Empty : "?" + queryString;
 
-    private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax, bool requestOriginalVersion = default)
+    private static string CreateAcceptHeader(MediaTypeWithQualityHeaderValue mediaTypeHeader, string dicomTransferSyntax)
     {
         string transferSyntaxHeader = dicomTransferSyntax == null ? string.Empty : $";{DicomWebConstants.TransferSyntaxHeaderName}=\"{dicomTransferSyntax}\"";
 
-        string requestOriginal = requestOriginalVersion ? $";{DicomWebConstants.RequestOriginalVersion}" : string.Empty;
-
-        return $"{mediaTypeHeader}{transferSyntaxHeader}{requestOriginal}";
+        return $"{mediaTypeHeader}{transferSyntaxHeader}";
     }
 
     private static MediaTypeWithQualityHeaderValue CreateMultipartMediaTypeHeader(string contentType)

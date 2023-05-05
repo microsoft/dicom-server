@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters;
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Method)]
 public sealed class PopulateOriginalRequestFilterAttribute : ActionFilterAttribute
 {
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;

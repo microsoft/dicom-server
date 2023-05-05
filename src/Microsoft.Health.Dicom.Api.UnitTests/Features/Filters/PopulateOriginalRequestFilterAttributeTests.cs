@@ -80,7 +80,8 @@ public class PopulateOriginalRequestFilterAttributeTests
         _featureConfiguration.Value.EnableUpdate = false;
         _filterAttribute = CreateFilter(_dicomRequestContextAccessor, _featureConfiguration);
 
-        _actionExecutingContext.HttpContext.Request.Headers.TryAdd(HeaderNames.Accept, "application/dicom;msdicom-request-original");
+        _actionExecutingContext.HttpContext.Request.Headers.TryAdd(HeaderNames.Accept, "application/dicom");
+        _actionExecutingContext.HttpContext.Request.Headers.TryAdd("msdicom-request-original", "true");
         Assert.ThrowsAsync<DicomUpdateFeatureDisabledException>(async () => await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate));
     }
 

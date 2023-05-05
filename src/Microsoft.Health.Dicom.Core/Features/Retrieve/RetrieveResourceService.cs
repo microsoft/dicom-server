@@ -107,7 +107,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
-            long version = RetrieveHelpers.GetVersion(instance, _dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
+            long version = instance.GetVersion(_dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
 
             bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
@@ -281,7 +281,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
-            long version = RetrieveHelpers.GetVersion(instanceMetadata, _dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
+            long version = instanceMetadata.GetVersion(_dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
             Stream stream = await _blobDataStore.GetStreamingFileAsync(version, cancellationToken);
             yield return

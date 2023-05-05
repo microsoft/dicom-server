@@ -49,13 +49,7 @@ public static class HttpRequestExtensions
     {
         EnsureArg.IsNotNull(httpRequest, nameof(httpRequest));
 
-        IList<MediaTypeHeaderValue> acceptHeaders = httpRequest.GetTypedHeaders().Accept;
-
-        foreach (MediaTypeHeaderValue header in acceptHeaders)
-        {
-            return header.Parameters.Any(parameter => StringSegment.Equals(parameter.Name, AcceptHeaderParameterNames.RequestOriginal, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return false;
+        return httpRequest.Headers.TryGetValue(OtherHeaderParameterNames.RequestOriginal, out StringValues stringValues)
+            && stringValues.First().Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -33,7 +33,6 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [QueryModelStateValidator]
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
 [ServiceFilter(typeof(PopulateDataPartitionFilterAttribute))]
-[ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
 public class RetrieveController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -61,6 +60,7 @@ public class RetrieveController : ControllerBase
     [VersionedPartitionRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.PartitionRetrieveStudy)]
     [VersionedRoute(KnownRoutes.StudyRoute, Name = KnownRouteNames.RetrieveStudy)]
     [AuditEventType(AuditEventSubType.Retrieve)]
+    [ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
     public async Task<IActionResult> GetStudyAsync(string studyInstanceUid)
     {
         _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
@@ -81,6 +81,7 @@ public class RetrieveController : ControllerBase
     [VersionedPartitionRoute(KnownRoutes.StudyMetadataRoute)]
     [VersionedRoute(KnownRoutes.StudyMetadataRoute)]
     [AuditEventType(AuditEventSubType.RetrieveMetadata)]
+    [ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
     public async Task<IActionResult> GetStudyMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid)
     {
         _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
@@ -99,6 +100,7 @@ public class RetrieveController : ControllerBase
     [VersionedPartitionRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.PartitionRetrieveSeries)]
     [VersionedRoute(KnownRoutes.SeriesRoute, Name = KnownRouteNames.RetrieveSeries)]
     [AuditEventType(AuditEventSubType.Retrieve)]
+    [ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
     public async Task<IActionResult> GetSeriesAsync(
         string studyInstanceUid,
         string seriesInstanceUid)
@@ -122,6 +124,7 @@ public class RetrieveController : ControllerBase
     [VersionedPartitionRoute(KnownRoutes.SeriesMetadataRoute)]
     [VersionedRoute(KnownRoutes.SeriesMetadataRoute)]
     [AuditEventType(AuditEventSubType.RetrieveMetadata)]
+    [ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
     public async Task<IActionResult> GetSeriesMetadataAsync([FromHeader(Name = IfNoneMatch)] string ifNoneMatch, string studyInstanceUid, string seriesInstanceUid)
     {
         _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
@@ -141,6 +144,7 @@ public class RetrieveController : ControllerBase
     [VersionedPartitionRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.PartitionRetrieveInstance)]
     [VersionedRoute(KnownRoutes.InstanceRoute, Name = KnownRouteNames.RetrieveInstance)]
     [AuditEventType(AuditEventSubType.Retrieve)]
+    [ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
     public async Task<IActionResult> GetInstanceAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -189,6 +193,7 @@ public class RetrieveController : ControllerBase
     [VersionedPartitionRoute(KnownRoutes.InstanceMetadataRoute)]
     [VersionedRoute(KnownRoutes.InstanceMetadataRoute)]
     [AuditEventType(AuditEventSubType.RetrieveMetadata)]
+    [ServiceFilter(typeof(PopulateOriginalRequestFilterAttribute))]
     public async Task<IActionResult> GetInstanceMetadataAsync(
         [FromHeader(Name = IfNoneMatch)] string ifNoneMatch,
         string studyInstanceUid,

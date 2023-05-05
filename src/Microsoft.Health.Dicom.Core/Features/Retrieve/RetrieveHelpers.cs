@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 internal static class RetrieveHelpers
@@ -32,17 +31,5 @@ internal static class RetrieveHelpers
         }
 
         return fileProperties;
-    }
-
-    public static long GetVersion(InstanceMetadata instance, bool isOriginalVersionRequested)
-    {
-        EnsureArg.IsNotNull(instance, nameof(instance));
-
-        if (isOriginalVersionRequested && instance.InstanceProperties.OriginalVersion.HasValue)
-        {
-            return instance.InstanceProperties.OriginalVersion.Value;
-        }
-
-        return instance.VersionedInstanceIdentifier.Version;
     }
 }
