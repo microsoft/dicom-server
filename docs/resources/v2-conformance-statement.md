@@ -347,7 +347,7 @@ Retrieving metadata will not return attributes with the following value represen
 | OW      | Other Word             |
 | UN      | Unknown                |
 
-Retrieved metadata will include an invalid character when the attribute was padded with nulls and stored as is.
+Retrieved metadata will include the null character when the attribute was padded with nulls and stored as is.
 
 ### Retrieve Metadata Cache Validation (for Study, Series, or Instance)
 
