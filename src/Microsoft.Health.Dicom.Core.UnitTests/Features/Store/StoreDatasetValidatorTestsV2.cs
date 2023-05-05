@@ -94,11 +94,14 @@ public class StoreDatasetValidatorTestsV2
         _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
-    [Fact]
-    public async Task GivenV2Enabled_WhenNonCoreTagPaddedWithNull_ExpectTagValidatedAndNoErrorProduced()
+    [Theory]
+    [InlineData("X\0\0\0\0")]
+    [InlineData("\0")]
+    [InlineData("X")]
+    public async Task GivenV2Enabled_WhenNonCoreTagPaddedWithNNulls_ExpectTagValidatedAndNoErrorProduced(string value)
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
-        dicomDataset.Add(DicomTag.Modality, "X\0");
+        dicomDataset.Add(DicomTag.Modality, value);
 
         var result = await _dicomDatasetValidator.ValidateAsync(
             dicomDataset,
@@ -108,12 +111,15 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
-    [Fact]
-    public async Task GivenV2Enabled_WhenPatientIDPAddedWithNull_ExpectTagValidatedAndNoErrorProduced()
+    [Theory]
+    [InlineData("Before Null Character, \0\0\0\0")]
+    [InlineData("Before Null Character, \0")]
+    [InlineData("Before Null Character")]
+    public async Task GivenV2Enabled_WhenPatientIDPAddedWithNNulls_ExpectTagValidatedAndNoErrorProduced(string value)
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
             validateItems: false,
-            patientId: "Before Null Character, \0");
+            patientId: value);
 
         var result = await _dicomDatasetValidator.ValidateAsync(
             dicomDataset,
