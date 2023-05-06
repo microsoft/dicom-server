@@ -94,6 +94,15 @@ public interface IIndexDataStore
     Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Return a collection of deleted instances with properties.
+    /// </summary>
+    /// <param name="batchSize">The number of entries to return.</param>
+    /// <param name="maxRetries">The maximum number of times a cleanup should be attempted.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A collection of deleted instances to cleanup.</returns>
+    Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Removes an item from the list of deleted entries that need to be cleaned up.
     /// </summary>
     /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>

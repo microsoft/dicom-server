@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>34</LatestSchemaVersion>
+    <LatestSchemaVersion>35</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -69,7 +69,10 @@
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
     <None Remove="Features\Schema\Migrations\33.diff.sql" />
+    <None Remove="Features\Schema\Migrations\35.diff.sql" />
     <None Remove="Features\Schema\Sql\Sprocs\BeginUpdateInstanceV33.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\DeleteInstanceV35.sql" />
+    <None Remove="Features\Schema\Sql\Sprocs\RetrieveDeletedInstanceV35.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 

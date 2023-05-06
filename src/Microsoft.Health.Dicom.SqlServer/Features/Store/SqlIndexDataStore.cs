@@ -82,6 +82,12 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.RetrieveDeletedInstancesWithPropertiesAsync(batchSize, maxRetries, cancellationToken);
+    }
+
     public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);

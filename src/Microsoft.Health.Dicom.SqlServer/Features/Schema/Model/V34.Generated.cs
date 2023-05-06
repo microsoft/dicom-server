@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V34
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -44,7 +44,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteExtendedQueryTagProcedure DeleteExtendedQueryTag = new DeleteExtendedQueryTagProcedure();
         internal readonly static DeleteExtendedQueryTagV16Procedure DeleteExtendedQueryTagV16 = new DeleteExtendedQueryTagV16Procedure();
         internal readonly static DeleteExtendedQueryTagV8Procedure DeleteExtendedQueryTagV8 = new DeleteExtendedQueryTagV8Procedure();
-        internal readonly static DeleteInstanceV35Procedure DeleteInstanceV35 = new DeleteInstanceV35Procedure();
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static DeleteWorkitemProcedure DeleteWorkitem = new DeleteWorkitemProcedure();
         internal readonly static EndUpdateInstanceProcedure EndUpdateInstance = new EndUpdateInstanceProcedure();
@@ -80,7 +79,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static IncrementDeletedInstanceRetryV6Procedure IncrementDeletedInstanceRetryV6 = new IncrementDeletedInstanceRetryV6Procedure();
         internal readonly static IndexInstanceV6Procedure IndexInstanceV6 = new IndexInstanceV6Procedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
-        internal readonly static RetrieveDeletedInstanceV35Procedure RetrieveDeletedInstanceV35 = new RetrieveDeletedInstanceV35Procedure();
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateIndexWorkitemInstanceCoreProcedure UpdateIndexWorkitemInstanceCore = new UpdateIndexWorkitemInstanceCoreProcedure();
@@ -124,7 +122,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly NullableBigIntColumn OriginalWatermark = new NullableBigIntColumn("OriginalWatermark");
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
@@ -979,32 +976,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandText = "dbo.DeleteExtendedQueryTagV8";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _dataType.AddParameter(command.Parameters, dataType);
-            }
-        }
-
-        internal class DeleteInstanceV35Procedure : StoredProcedure
-        {
-            internal DeleteInstanceV35Procedure() : base("dbo.DeleteInstanceV35")
-            {
-            }
-
-            private readonly ParameterDefinition<System.DateTimeOffset> _cleanupAfter = new ParameterDefinition<System.DateTimeOffset>("@cleanupAfter", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
-            private readonly ParameterDefinition<System.Byte> _createdStatus = new ParameterDefinition<System.Byte>("@createdStatus", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset cleanupAfter, System.Byte createdStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.DeleteInstanceV35";
-                _cleanupAfter.AddParameter(command.Parameters, cleanupAfter);
-                _createdStatus.AddParameter(command.Parameters, createdStatus);
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
-                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
             }
         }
 
@@ -1920,24 +1891,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.RetrieveDeletedInstance";
-                _count.AddParameter(command.Parameters, count);
-                _maxRetries.AddParameter(command.Parameters, maxRetries);
-            }
-        }
-
-        internal class RetrieveDeletedInstanceV35Procedure : StoredProcedure
-        {
-            internal RetrieveDeletedInstanceV35Procedure() : base("dbo.RetrieveDeletedInstanceV35")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _count = new ParameterDefinition<System.Int32>("@count", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _maxRetries = new ParameterDefinition<System.Int32>("@maxRetries", global::System.Data.SqlDbType.Int, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 count, System.Int32 maxRetries)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.RetrieveDeletedInstanceV35";
                 _count.AddParameter(command.Parameters, count);
                 _maxRetries.AddParameter(command.Parameters, maxRetries);
             }
