@@ -163,8 +163,6 @@ public class RetrieveResourceServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithOriginalVersion_WhenRetrieveRequestForStudyForOriginal_ThenInstancesInStudyAreRetrievedSuccesfully()
     {
-        _dicomRequestContextAccessor.RequestContext.IsOriginalRequested = true;
-
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Study,
@@ -173,7 +171,7 @@ public class RetrieveResourceServiceTests
         _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), DefaultCancellationToken).Returns(new FileProperties() { ContentLength = 1000 });
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-               new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
+               new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }, isOriginalVersionRequested: true),
                DefaultCancellationToken);
 
         await response.GetStreamsAsync();
@@ -190,8 +188,6 @@ public class RetrieveResourceServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithOriginalVersion_WhenRetrieveRequestForStudyForLatest_ThenInstancesInStudyAreRetrievedSuccesfully()
     {
-        _dicomRequestContextAccessor.RequestContext.IsOriginalRequested = false;
-
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Study,
@@ -217,8 +213,6 @@ public class RetrieveResourceServiceTests
     [Fact]
     public async Task GivenInstancesWithOriginalVersion_WhenRetrieveRequestForStudyForOriginalWithTranscoding_ThenInstancesAreReturned()
     {
-        _dicomRequestContextAccessor.RequestContext.IsOriginalRequested = true;
-
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Instance,
@@ -233,7 +227,12 @@ public class RetrieveResourceServiceTests
         _retrieveTranscoder.TranscodeFileAsync(Arg.Any<Stream>(), Arg.Any<string>()).Returns(streamsAndStoredFiles.First().Value);
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
-               new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy("1.2.840.10008.1.2.1") }),
+               new RetrieveResourceRequest(
+                   _studyInstanceUid,
+                   _firstSeriesInstanceUid,
+                   _sopInstanceUid,
+                   new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy("1.2.840.10008.1.2.1") },
+                   isOriginalVersionRequested: true),
                DefaultCancellationToken);
 
         await response.GetStreamsAsync();

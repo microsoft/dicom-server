@@ -83,7 +83,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         // Add metadata for only one instance in the given list
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -95,7 +95,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -111,7 +111,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.Version);
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 
@@ -126,7 +126,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         // Add metadata for only one instance in the given list
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -138,7 +138,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         SetupDatasetList(ResourceType.Series, cancellationToken: tokenSource.Token);
 
         string ifNoneMatch = null;
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -154,7 +154,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
         string ifNoneMatch = null;
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 
@@ -173,13 +173,12 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
 
         (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
-        _dicomRequestContextAccessor.RequestContext.IsOriginalRequested = true;
 
         // Add metadata for all instances in the given list
         await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.OriginalVersion);
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.OriginalVersion);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, isOriginalVersionRequested: true, tokenSource.Token);
         await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 

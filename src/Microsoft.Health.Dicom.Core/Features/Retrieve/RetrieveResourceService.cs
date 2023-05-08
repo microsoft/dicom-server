@@ -107,7 +107,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
-            long version = instance.GetVersion(_dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
+            long version = instance.GetVersion(message.IsOriginalVersionRequested);
 
             bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
@@ -143,7 +143,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, cancellationToken);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, cancellationToken);
             return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
@@ -277,11 +277,12 @@ public class RetrieveResourceService : IRetrieveResourceService
         IEnumerable<InstanceMetadata> instanceMetadatas,
         bool isOriginalTransferSyntaxRequested,
         string requestedTransferSyntax,
+        bool isOriginalVersionRequested,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
-            long version = instanceMetadata.GetVersion(_dicomRequestContextAccessor.RequestContext.IsOriginalRequested);
+            long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
             Stream stream = await _blobDataStore.GetStreamingFileAsync(version, cancellationToken);
             yield return
