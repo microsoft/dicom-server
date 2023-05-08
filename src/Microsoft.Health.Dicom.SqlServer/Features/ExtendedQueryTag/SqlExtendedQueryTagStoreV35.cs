@@ -39,7 +39,7 @@ internal class SqlExtendedQueryTagStoreV35 : SqlExtendedQueryTagStoreV16
         using (SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.GetExtendedQueryTagsV34.PopulateCommand(sqlCommandWrapper, limit, offset);
+            VLatest.GetExtendedQueryTagsV35.PopulateCommand(sqlCommandWrapper, limit, offset);
 
             var executionTimeWatch = Stopwatch.StartNew();
             using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))

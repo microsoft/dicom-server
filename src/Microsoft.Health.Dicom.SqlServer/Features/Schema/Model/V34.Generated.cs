@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V34
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -49,19 +49,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static EndUpdateInstanceProcedure EndUpdateInstance = new EndUpdateInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
-        internal readonly static GetChangeFeedLatestTimestampProcedure GetChangeFeedLatestTimestamp = new GetChangeFeedLatestTimestampProcedure();
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
-        internal readonly static GetChangeFeedPageProcedure GetChangeFeedPage = new GetChangeFeedPageProcedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
-        internal readonly static GetExtendedQueryTagErrorsV35Procedure GetExtendedQueryTagErrorsV35 = new GetExtendedQueryTagErrorsV35Procedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
-        internal readonly static GetExtendedQueryTagsV35Procedure GetExtendedQueryTagsV35 = new GetExtendedQueryTagsV35Procedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceBatchesByTimeStampProcedure GetInstanceBatchesByTimeStamp = new GetInstanceBatchesByTimeStampProcedure();
@@ -110,7 +106,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
-            internal readonly Index IX_ChangeFeed_Sequence = new Index("IX_ChangeFeed_Sequence");
         }
 
         internal class DeletedInstanceTable : Table
@@ -1083,19 +1078,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetChangeFeedLatestTimestampProcedure : StoredProcedure
-        {
-            internal GetChangeFeedLatestTimestampProcedure() : base("dbo.GetChangeFeedLatestTimestamp")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetChangeFeedLatestTimestamp";
-            }
-        }
-
         internal class GetChangeFeedLatestV6Procedure : StoredProcedure
         {
             internal GetChangeFeedLatestV6Procedure() : base("dbo.GetChangeFeedLatestV6")
@@ -1106,28 +1088,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetChangeFeedLatestV6";
-            }
-        }
-
-        internal class GetChangeFeedPageProcedure : StoredProcedure
-        {
-            internal GetChangeFeedPageProcedure() : base("dbo.GetChangeFeedPage")
-            {
-            }
-
-            private readonly ParameterDefinition<System.DateTimeOffset> _startTime = new ParameterDefinition<System.DateTimeOffset>("@startTime", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
-            private readonly ParameterDefinition<System.DateTimeOffset> _endTime = new ParameterDefinition<System.DateTimeOffset>("@endTime", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
-            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset startTime, System.DateTimeOffset endTime, System.Int64 offset, System.Int32 limit)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetChangeFeedPage";
-                _startTime.AddParameter(command.Parameters, startTime);
-                _endTime.AddParameter(command.Parameters, endTime);
-                _offset.AddParameter(command.Parameters, offset);
-                _limit.AddParameter(command.Parameters, limit);
             }
         }
 
@@ -1195,26 +1155,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagErrors";
-                _tagPath.AddParameter(command.Parameters, tagPath);
-                _limit.AddParameter(command.Parameters, limit);
-                _offset.AddParameter(command.Parameters, offset);
-            }
-        }
-
-        internal class GetExtendedQueryTagErrorsV35Procedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagErrorsV35Procedure() : base("dbo.GetExtendedQueryTagErrorsV35")
-            {
-            }
-
-            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Int32 limit, System.Int64 offset)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagErrorsV35";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _limit.AddParameter(command.Parameters, limit);
                 _offset.AddParameter(command.Parameters, offset);
@@ -1318,24 +1258,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagsByOperation";
                 _operationId.AddParameter(command.Parameters, operationId);
-            }
-        }
-
-        internal class GetExtendedQueryTagsV35Procedure : StoredProcedure
-        {
-            internal GetExtendedQueryTagsV35Procedure() : base("dbo.GetExtendedQueryTagsV35")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagsV35";
-                _limit.AddParameter(command.Parameters, limit);
-                _offset.AddParameter(command.Parameters, offset);
             }
         }
 

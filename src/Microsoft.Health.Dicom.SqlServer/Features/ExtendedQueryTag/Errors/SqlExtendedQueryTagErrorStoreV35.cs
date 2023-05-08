@@ -42,7 +42,7 @@ internal class SqlExtendedQueryTagErrorStoreV35 : SqlExtendedQueryTagErrorStoreV
         using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetExtendedQueryTagErrorsV34.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
+        VLatest.GetExtendedQueryTagErrorsV35.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
 
         try
         {
