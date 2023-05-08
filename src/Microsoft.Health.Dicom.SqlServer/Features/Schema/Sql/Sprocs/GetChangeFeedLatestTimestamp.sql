@@ -3,7 +3,7 @@
 --     GetChangeFeedLatestTimestamp
 --
 -- FIRST SCHEMA VERSION
---     34
+--     35
 --
 -- DESCRIPTION
 --     Gets the dicom change with the latest timestamp

@@ -1697,7 +1697,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV34
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV35
 @tagPath VARCHAR (64), @limit INT, @offset BIGINT
 AS
 BEGIN
@@ -1832,7 +1832,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV34
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV35
 @limit INT, @offset BIGINT
 AS
 BEGIN

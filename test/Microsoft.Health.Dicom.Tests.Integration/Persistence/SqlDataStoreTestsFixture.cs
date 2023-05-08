@@ -158,7 +158,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
                 new SqlExtendedQueryTagStoreV8(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV8>.Instance),
                 new SqlExtendedQueryTagStoreV16(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV16>.Instance),
-                new SqlExtendedQueryTagStoreV34(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV34>.Instance),
+                new SqlExtendedQueryTagStoreV35(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV35>.Instance),
             }));
 
         ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
@@ -168,7 +168,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlExtendedQueryTagErrorStoreV1(),
                 new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
                 new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
-                new SqlExtendedQueryTagErrorStoreV34(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV34>.Instance),
+                new SqlExtendedQueryTagErrorStoreV35(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV35>.Instance),
            }));
 
         IndexWorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
@@ -186,7 +186,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             {
                 new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
-                new SqlChangeFeedStoreV34(SqlConnectionWrapperFactory),
+                new SqlChangeFeedStoreV35(SqlConnectionWrapperFactory),
             }));
 
         QueryStore = new SqlQueryStore(new VersionedCache<ISqlQueryStore>(

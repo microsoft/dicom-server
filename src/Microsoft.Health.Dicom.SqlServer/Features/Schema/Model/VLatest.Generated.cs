@@ -61,7 +61,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
-        internal readonly static GetExtendedQueryTagsV34Procedure GetExtendedQueryTagsV34 = new GetExtendedQueryTagsV34Procedure();
+        internal readonly static GetExtendedQueryTagsV35Procedure GetExtendedQueryTagsV35 = new GetExtendedQueryTagsV35Procedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
@@ -1319,9 +1319,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetExtendedQueryTagsV34Procedure : StoredProcedure
+        internal class GetExtendedQueryTagsV35Procedure : StoredProcedure
         {
-            internal GetExtendedQueryTagsV34Procedure() : base("dbo.GetExtendedQueryTagsV34")
+            internal GetExtendedQueryTagsV35Procedure() : base("dbo.GetExtendedQueryTagsV35")
             {
             }
 
@@ -1331,7 +1331,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetExtendedQueryTagsV34";
+                command.CommandText = "dbo.GetExtendedQueryTagsV35";
                 _limit.AddParameter(command.Parameters, limit);
                 _offset.AddParameter(command.Parameters, offset);
             }

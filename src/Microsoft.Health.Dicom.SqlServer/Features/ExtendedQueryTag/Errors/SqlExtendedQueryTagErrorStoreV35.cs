@@ -23,14 +23,14 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag.Errors;
 
-internal class SqlExtendedQueryTagErrorStoreV34 : SqlExtendedQueryTagErrorStoreV6
+internal class SqlExtendedQueryTagErrorStoreV35 : SqlExtendedQueryTagErrorStoreV6
 {
-    public SqlExtendedQueryTagErrorStoreV34(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagErrorStoreV34> logger)
+    public SqlExtendedQueryTagErrorStoreV35(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagErrorStoreV35> logger)
         : base(sqlConnectionWrapperFactory, logger)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V34;
+    public override SchemaVersion Version => SchemaVersion.V35;
 
     public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {

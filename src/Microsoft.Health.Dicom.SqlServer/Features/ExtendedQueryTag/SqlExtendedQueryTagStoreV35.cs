@@ -20,14 +20,14 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 
-internal class SqlExtendedQueryTagStoreV34 : SqlExtendedQueryTagStoreV16
+internal class SqlExtendedQueryTagStoreV35 : SqlExtendedQueryTagStoreV16
 {
-    public SqlExtendedQueryTagStoreV34(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagStoreV34> logger)
+    public SqlExtendedQueryTagStoreV35(SqlConnectionWrapperFactory sqlConnectionWrapperFactory, ILogger<SqlExtendedQueryTagStoreV35> logger)
         : base(sqlConnectionWrapperFactory, logger)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V34;
+    public override SchemaVersion Version => SchemaVersion.V35;
 
     public override async Task<IReadOnlyList<ExtendedQueryTagStoreJoinEntry>> GetExtendedQueryTagsAsync(int limit, long offset = 0, CancellationToken cancellationToken = default)
     {

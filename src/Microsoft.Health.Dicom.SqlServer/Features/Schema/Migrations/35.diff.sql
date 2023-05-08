@@ -29,7 +29,7 @@ GO
 --     GetChangeFeedLatestTimestamp
 --
 -- FIRST SCHEMA VERSION
---     34
+--     35
 --
 -- DESCRIPTION
 --     Gets the dicom change with the latest timestamp
@@ -62,7 +62,7 @@ GO
 --     GetChangeFeedPage
 --
 -- FIRST SCHEMA VERSION
---     34
+--     35
 --
 -- DESCRIPTION
 --     Gets a subset of dicom changes within a given time range
@@ -109,10 +109,10 @@ GO
 
 /***************************************************************************************/
 --STORED PROCEDURE
---     GetExtendedQueryTagsV34
+--     GetExtendedQueryTagsV35
 --
 -- FIRST SCHEMA VERSION
---     34
+--     35
 --
 -- DESCRIPTION
 --     Gets a possibly paginated set of query tags as indicated by the parameters
@@ -126,7 +126,7 @@ GO
 -- RETURN VALUE
 --     The set of query tags.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV34
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV35
     @limit  INT,
     @offset BIGINT
 AS
@@ -153,10 +153,10 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetExtendedQueryTagErrorsV34
+--     GetExtendedQueryTagErrorsV35
 --
 -- FIRST SCHEMA VERSION
---     34
+--     35
 --
 -- DESCRIPTION
 --     Gets the extended query tag errors by tag path.
@@ -172,7 +172,7 @@ GO
 -- RETURN VALUE
 --     The tag error fields and the corresponding instance UIDs.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV34
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagErrorsV35
     @tagPath VARCHAR(64),
     @limit   INT,
     @offset  BIGINT
