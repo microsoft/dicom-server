@@ -207,7 +207,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
 
     public async Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsTrue(endFilterTimeStamp > startFilterTimeStamp, nameof(endFilterTimeStamp));
+        EnsureArg.IsGt(endFilterTimeStamp, startFilterTimeStamp, nameof(endFilterTimeStamp));
 
         cancellationToken.ThrowIfCancellationRequested();
 
