@@ -23,8 +23,7 @@ public partial class MigrationDurableFunctionTests
     public async Task GivenNewOrchestrationWithInput_WhenMigratingInstances_ThenDivideAndMigrateBatches()
     {
         const int batchSize = 5;
-        _options.BatchSize = batchSize;
-        _options.MaxParallelBatches = 3;
+        const int maxParallelBatches = 3;
 
         var now = DateTime.UtcNow;
         var startTimeStamp = now;
@@ -34,8 +33,8 @@ public partial class MigrationDurableFunctionTests
 
         var batching = new BatchingOptions
         {
-            MaxParallelCount = _options.MaxParallelBatches,
-            Size = _options.BatchSize,
+            MaxParallelCount = maxParallelBatches,
+            Size = batchSize,
         };
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(50);
@@ -98,8 +97,7 @@ public partial class MigrationDurableFunctionTests
     public async Task GivenNewOrchestrationWithNoBatches_WhenMigratingInstances_ThenDivideAndMigrateBatches()
     {
         const int batchSize = 5;
-        _options.BatchSize = batchSize;
-        _options.MaxParallelBatches = 3;
+        const int maxParallelBatches = 3;
 
         var now = DateTime.UtcNow;
         var startTimeStamp = now;
@@ -109,8 +107,8 @@ public partial class MigrationDurableFunctionTests
 
         var batching = new BatchingOptions
         {
-            MaxParallelCount = _options.MaxParallelBatches,
-            Size = _options.BatchSize,
+            MaxParallelCount = maxParallelBatches,
+            Size = batchSize,
         };
 
         IReadOnlyList<WatermarkRange> expectedBatches = CreateBatches(0);
@@ -176,15 +174,15 @@ public partial class MigrationDurableFunctionTests
         return context;
     }
 
-    private IReadOnlyList<WatermarkRange> CreateBatches(long end)
+    private static IReadOnlyList<WatermarkRange> CreateBatches(long end, int batchSize = 5, int maxParallelBatches = 3)
     {
         var batches = new List<WatermarkRange>();
 
         long current = end;
-        for (int i = 0; i < _options.MaxParallelBatches && current > 0; i++)
+        for (int i = 0; i < maxParallelBatches && current > 0; i++)
         {
-            batches.Add(new WatermarkRange(Math.Max(1, current - _options.BatchSize + 1), current));
-            current -= _options.BatchSize;
+            batches.Add(new WatermarkRange(Math.Max(1, current - batchSize + 1), current));
+            current -= batchSize;
         }
 
         return batches;
