@@ -212,7 +212,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             try
             {
                 string value = dicomDataset.GetString(item.Tag);
-                if (dicomDataset.GetString(item.Tag).EndsWith('\0'))
+                if (value.EndsWith('\0'))
                 {
                     ValidateWithoutNullPadding(value, item, queryTags);
                 }
@@ -233,21 +233,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    /// <summary>
-    /// Creates new DicomItem with trimmed value and validates it, allowing us to validate without null padding
-    /// and capture all other validation errors.
-    /// </summary>
-    /// <param name="value">Null padded value</param>
-    /// <param name="item">DicomItem to use to understand new instance type to create for validation</param>
-    /// <param name="queryTags">Searchable tags used for telemetry to understand if validated item had null padding and
-    /// still passed validation</param>
     private void ValidateWithoutNullPadding(string value, DicomItem item, IReadOnlyCollection<QueryTag> queryTags)
     {
-        // we still want to save the original value when validation passes so create new item to validate with
+        // we still want to save the original value when validation passes so create new ds to validate with
         var newValue = value.TrimEnd('\0');
-        DicomItem instance = (DicomItem)Activator.CreateInstance(item.GetType(), item.Tag, newValue);
-        instance.Validate();
-
+        DicomDataset ds = new DicomDataset().NotValidated();
+        ds.AddOrUpdate(item.Tag, newValue);
+        ds.GetDicomItem<DicomItem>(item.Tag).Validate();
         bool isIndexableTag = queryTags.Any(x => x.Tag == item.Tag);
         _storeMeter.V2ValidationNullPaddedPassing.Add(
             1,
