@@ -153,6 +153,23 @@ public class UpdateInstanceTests : IClassFixture<HttpIntegrationTestFixture<Star
         Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
     }
 
+    private async Task VerifyDeleteStudyAsync(string studyInstanceUid, DicomFile dicomFile)
+    {
+        var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+        var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+        using (DicomWebResponse response = await _client.DeleteStudyAsync(studyInstanceUid))
+        {
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        DicomWebException exception1 = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUID, sopInstanceUID));
+        Assert.Equal(HttpStatusCode.NotFound, exception1.StatusCode);
+
+        DicomWebException exception2 = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUID, sopInstanceUID/*, requestOriginalVersion: requestOriginalVersion*/));
+        Assert.Equal(HttpStatusCode.NotFound, exception2.StatusCode);
+    }
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public async Task DisposeAsync()
