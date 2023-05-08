@@ -31,12 +31,12 @@ public sealed class MigrationBatchCreationArguments
     /// <summary>
     /// Gets or sets the start filter stamp
     /// </summary>
-    public DateTimeOffset StartFilterTimeStamp { get; set; }
+    public DateTimeOffset StartFilterTimeStamp { get; }
 
     /// <summary>
     /// Gets or sets the end filter stamp
     /// </summary>
-    public DateTimeOffset EndFilterTimeStamp { get; set; }
+    public DateTimeOffset EndFilterTimeStamp { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MigrationBatchCreationArguments"/> class with the specified values.
@@ -44,14 +44,14 @@ public sealed class MigrationBatchCreationArguments
     /// <param name="maxWatermark">The optional inclusive maximum watermark.</param>
     /// <param name="batchSize">The number of DICOM instances processed by a single activity.</param>
     /// <param name="maxParallelBatches">The maximum number of concurrent batches processed at a given time.</param>
-    /// <param name="startTimeStamp">Start filter stamp</param>
-    /// <param name="endTimeStamp">End filter stamp</param>
+    /// <param name="startFilterTimeStamp">Start filter stamp</param>
+    /// <param name="endFilterTimeStamp">End filter stamp</param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <para><paramref name="batchSize"/> is less than <c>1</c>.</para>
     /// <para>-or-</para>
     /// <para><paramref name="maxParallelBatches"/> is less than <c>1</c>.</para>
     /// </exception>
-    public MigrationBatchCreationArguments(long? maxWatermark, int batchSize, int maxParallelBatches, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp)
+    public MigrationBatchCreationArguments(long? maxWatermark, int batchSize, int maxParallelBatches, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp)
     {
         EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
         EnsureArg.IsGte(maxParallelBatches, 1, nameof(maxParallelBatches));
@@ -59,7 +59,7 @@ public sealed class MigrationBatchCreationArguments
         BatchSize = batchSize;
         MaxParallelBatches = maxParallelBatches;
         MaxWatermark = maxWatermark;
-        StartFilterTimeStamp = startTimeStamp;
-        EndFilterTimeStamp = endTimeStamp;
+        StartFilterTimeStamp = startFilterTimeStamp;
+        EndFilterTimeStamp = endFilterTimeStamp;
     }
 }

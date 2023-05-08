@@ -15,6 +15,7 @@ using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Health.Dicom.WebUtilities;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -32,7 +33,7 @@ public class AspNetCoreMultipartReaderTests
 
     public AspNetCoreMultipartReaderTests()
     {
-        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), NullLogger<SeekableStreamConverter>.Instance);
+        _seekableStreamConverter = new HttpSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), NullLogger<SeekableStreamConverter>.Instance);
     }
 
     [Fact]

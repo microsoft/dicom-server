@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -82,7 +83,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         // validate input data elements
         if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
         {
-            ValidateAllItems(dicomDataset, validationResultBuilder);
+            await ValidateAllItemsAsync(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -180,10 +181,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private void ValidateAllItems(
+    private async Task ValidateAllItemsAsync(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
     {
+        IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
         foreach (DicomItem item in dicomDataset)
         {
             try
@@ -202,14 +204,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                     {
                         validationResultBuilder.Add(ex, item.Tag);
                     }
+
+                    bool isIndexableTag = queryTags.Any(x => x.Tag == item.Tag);
                     _storeMeter.ValidateAllValidationError.Add(
                         1,
                         new[]
                         {
-                            new KeyValuePair<string, object>("ExceptionContent", ex.Content),
                             new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
                             new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
-                            new KeyValuePair<string, object>("Tag", item.Tag.ToString())
+                            new KeyValuePair<string, object>("Tag", item.Tag.ToString()),
+                            new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
                         });
                 }
                 else
