@@ -93,102 +93,90 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             { DicomIdentifier.ForInstance(instance9), instance9 },
         };
 
-        BlobContainerClient containerClient = CreateContainerClient();
-
         // Upload files
         await Task.WhenAll(instances.Select(x => _instanceManager.StoreAsync(new DicomFile(x.Value))));
 
-        // Create new container if necessary
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+        // Begin Export
+        DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
+            ExportSource.ForIdentifiers(
+                DicomIdentifier.ForStudy(studyUid1),
+                DicomIdentifier.ForSeries(studyUid2, seriesUid2),
+                DicomIdentifier.ForInstance(instance7),
+                DicomIdentifier.ForInstance(unknownStudyUid1, unknownSeriesUid1, unknownSopInstanceUid1),
+                DicomIdentifier.ForSeries(unknownStudyUid2, unknownSeriesUid2),
+                DicomIdentifier.ForInstance(instance8),
+                DicomIdentifier.ForInstance(instance9),
+                DicomIdentifier.ForStudy(unknownStudyUid3)),
+            _options.Destination);
 
-        try
-        {
-            // Begin Export
-            DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
-                ExportSource.ForIdentifiers(
-                    DicomIdentifier.ForStudy(studyUid1),
-                    DicomIdentifier.ForSeries(studyUid2, seriesUid2),
-                    DicomIdentifier.ForInstance(instance7),
-                    DicomIdentifier.ForInstance(unknownStudyUid1, unknownSeriesUid1, unknownSopInstanceUid1),
-                    DicomIdentifier.ForSeries(unknownStudyUid2, unknownSeriesUid2),
-                    DicomIdentifier.ForInstance(instance8),
-                    DicomIdentifier.ForInstance(instance9),
-                    DicomIdentifier.ForStudy(unknownStudyUid3)),
-                _options.Destination);
-
-            // Wait for the operation to complete
-            DicomOperationReference operation = await response.GetValueAsync();
-            IOperationState<DicomOperation> state = await _client.WaitForCompletionAsync(operation.Id);
+        // Wait for the operation to complete
+        DicomOperationReference operation = await response.GetValueAsync();
+        IOperationState<DicomOperation> state = await _client.WaitForCompletionAsync(operation.Id);
 #pragma warning disable CS0618
-            Assert.Equal(OperationStatus.Completed, state.Status);
+        Assert.Equal(OperationStatus.Completed, state.Status);
 #pragma warning restore CS0618
 
-            string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/errors.log";
-            var results = state.Results as ExportResults;
-            Assert.NotNull(results);
-            Assert.EndsWith(expectedErrorLog, results.ErrorHref.AbsoluteUri, StringComparison.Ordinal);
-            Assert.Equal(instances.Count, results.Exported);
-            Assert.Equal(3, results.Skipped);
+        string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/errors.log";
+        var results = state.Results as ExportResults;
+        Assert.NotNull(results);
+        Assert.EndsWith(expectedErrorLog, results.ErrorHref.AbsoluteUri, StringComparison.Ordinal);
+        Assert.Equal(instances.Count, results.Exported);
+        Assert.Equal(3, results.Skipped);
 
-            // Validate the export by querying the blob container
-            List<BlobItem> actual = await containerClient
-                .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
-                .Where(x => x.Name.EndsWith(".dcm"))
-                .ToListAsync();
+        // Validate the export by querying the blob container
+        BlobContainerClient containerClient = CreateContainerClient();
 
-            Assert.Equal(instances.Count, actual.Count);
-            foreach (BlobItem blob in actual)
-            {
-                BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
-                using Stream data = await blobClient.OpenReadAsync();
-                DicomFile file = await GetDicomFileAsync(data);
+        List<BlobItem> actual = await containerClient
+            .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
+            .Where(x => x.Name.EndsWith(".dcm"))
+            .ToListAsync();
 
-                DicomIdentifier identifier = DicomIdentifier.ForInstance(file.Dataset);
-                Assert.True(instances.TryGetValue(identifier, out DicomDataset expected));
-                Assert.Equal(GetExpectedPath(operation.Id, identifier), blob.Name);
-
-                await AssertEqualBinaryAsync(expected, data);
-                instances.Remove(identifier);
-            }
-
-            // Check for errors
-            BlobClient errorBlobClient = containerClient.GetBlobClient(expectedErrorLog);
-            using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
-
-            var errors = new List<JsonElement>();
-
-            string line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                errors.Add(JsonSerializer.Deserialize<JsonElement>(line));
-            }
-
-            Assert.True(errors.Count >= 3); // Duplicate scheduling may append error multiple times
-            Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}");
-            Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid2}/{unknownSeriesUid2}");
-            Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid3}");
-
-            // Make sure there aren't any unknown identifiers!
-            Assert.All(
-                errors.Select(e => e.GetProperty("identifier").GetString()),
-                id => Assert.True(
-                    id == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}" ||
-                    id == $"{unknownStudyUid2}/{unknownSeriesUid2}" ||
-                    id == $"{unknownStudyUid3}"));
-
-        }
-        finally
+        Assert.Equal(instances.Count, actual.Count);
+        foreach (BlobItem blob in actual)
         {
-            // Clean up test container
-            await containerClient.DeleteAsync();
+            BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
+            using Stream data = await blobClient.OpenReadAsync();
+            DicomFile file = await GetDicomFileAsync(data);
+
+            DicomIdentifier identifier = DicomIdentifier.ForInstance(file.Dataset);
+            Assert.True(instances.TryGetValue(identifier, out DicomDataset expected));
+            Assert.Equal(GetExpectedPath(operation.Id, identifier), blob.Name);
+
+            await AssertEqualBinaryAsync(expected, data);
+            instances.Remove(identifier);
         }
+
+        // Check for errors
+        BlobClient errorBlobClient = containerClient.GetBlobClient(expectedErrorLog);
+        using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
+
+        var errors = new List<JsonElement>();
+
+        string line;
+        while ((line = reader.ReadLine()) != null)
+        {
+            errors.Add(JsonSerializer.Deserialize<JsonElement>(line));
+        }
+
+        Assert.True(errors.Count >= 3); // Duplicate scheduling may append error multiple times
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}");
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid2}/{unknownSeriesUid2}");
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid3}");
+
+        // Make sure there aren't any unknown identifiers!
+        Assert.All(
+            errors.Select(e => e.GetProperty("identifier").GetString()),
+            id => Assert.True(
+                id == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}" ||
+                id == $"{unknownStudyUid2}/{unknownSeriesUid2}" ||
+                id == $"{unknownStudyUid3}"));
     }
 
     public Task InitializeAsync()
-        => Task.CompletedTask;
+        => CreateContainerClient().CreateIfNotExistsAsync(PublicAccessType.None);
 
     public Task DisposeAsync()
-        => _instanceManager.DisposeAsync().AsTask();
+        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteAsync());
 
     private BlobContainerClient CreateContainerClient()
     {
