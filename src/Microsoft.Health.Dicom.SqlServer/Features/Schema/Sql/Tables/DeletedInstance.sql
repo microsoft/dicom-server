@@ -23,10 +23,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
     SopInstanceUid,
     Watermark
 )
-INCLUDE
-(
-    OriginalWatermark
-)
 
 -- Used in RetrieveDeletedInstance, cross partition based on cleanupAfter
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
@@ -40,7 +36,8 @@ INCLUDE
     StudyInstanceUid,
     SeriesInstanceUid,
     SopInstanceUid,
-    Watermark
+    Watermark,
+    OriginalWatermark
 )
 WITH (DATA_COMPRESSION = PAGE)
 

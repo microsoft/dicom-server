@@ -24,22 +24,24 @@ IF EXISTS
 (
     SELECT *
     FROM    sys.indexes
-    WHERE   NAME = 'IXC_DeletedInstance'
+    WHERE   NAME = 'IX_DeletedInstance_RetryCount_CleanupAfter'
         AND Object_id = OBJECT_ID('dbo.DeletedInstance')
 )
 BEGIN
-    CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
+    (
+        RetryCount,
+        CleanupAfter
+    )
+    INCLUDE
     (
         PartitionKey,
         StudyInstanceUid,
         SeriesInstanceUid,
         SopInstanceUid,
-        Watermark
-    )
-    INCLUDE
-    (
+        Watermark,
         OriginalWatermark
     )
-    WITH (DROP_EXISTING=ON, ONLINE=ON)
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
 END
 GO
