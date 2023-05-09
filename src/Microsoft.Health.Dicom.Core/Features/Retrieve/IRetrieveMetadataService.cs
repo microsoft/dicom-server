@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,12 +14,14 @@ public interface IRetrieveMetadataService
     Task<RetrieveMetadataResponse> RetrieveStudyInstanceMetadataAsync(
        string studyInstanceUid,
        string ifNoneMatch = null,
+       bool isOriginalVersionRequested = false,
        CancellationToken cancellationToken = default);
 
     Task<RetrieveMetadataResponse> RetrieveSeriesInstanceMetadataAsync(
        string studyInstanceUid,
        string seriesInstanceUid,
        string ifNoneMatch = null,
+       bool isOriginalVersionRequested = false,
        CancellationToken cancellationToken = default);
 
     Task<RetrieveMetadataResponse> RetrieveSopInstanceMetadataAsync(
@@ -27,5 +29,6 @@ public interface IRetrieveMetadataService
        string seriesInstanceUid,
        string sopInstanceUid,
        string ifNoneMatch = null,
+       bool isOriginalVersionRequested = false,
        CancellationToken cancellationToken = default);
 }

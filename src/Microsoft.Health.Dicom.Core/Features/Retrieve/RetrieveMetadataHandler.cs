@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -43,13 +43,13 @@ internal class RetrieveMetadataHandler : BaseHandler, IRequestHandler<RetrieveMe
         switch (request.ResourceType)
         {
             case ResourceType.Study:
-                metadataResponse = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(request.StudyInstanceUid, request.IfNoneMatch, cancellationToken);
+                metadataResponse = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(request.StudyInstanceUid, request.IfNoneMatch, request.IsOriginalVersionRequested, cancellationToken);
                 break;
             case ResourceType.Series:
-                metadataResponse = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.IfNoneMatch, cancellationToken);
+                metadataResponse = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.IfNoneMatch, request.IsOriginalVersionRequested, cancellationToken);
                 break;
             case ResourceType.Instance:
-                metadataResponse = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, request.IfNoneMatch, cancellationToken);
+                metadataResponse = await _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, request.IfNoneMatch, request.IsOriginalVersionRequested, cancellationToken);
                 break;
             default:
                 Debug.Fail($"Unknown retrieve metadata transaction type: {request.ResourceType}", nameof(request));
