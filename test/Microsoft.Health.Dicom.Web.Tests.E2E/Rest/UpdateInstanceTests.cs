@@ -135,9 +135,8 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
         Assert.Equal(expectedPatientNames.Length, datasets.Length);
         string[] actualPatientNames = datasets.Select(x => x.GetSingleValue<string>(DicomTag.PatientName)).ToArray();
-        Array.Sort(actualPatientNames);
 
-        Assert.Equal(expectedPatientNames, actualPatientNames);
+        Assert.True(expectedPatientNames.All(x => actualPatientNames.Contains(x)));
     }
 
     private async Task VerifyRetrieveFrame(string studyInstanceUid, DicomFile dicomFile)
