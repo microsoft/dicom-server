@@ -43,8 +43,8 @@ jobs:
         $blobContainerName = (New-Guid).ToString('D')
         $connectionString = "BlobEndpoint=https://$(azureStorageAccountName).blob.core.windows.net;SharedAccessSignature=$token"
 
-        Write-Host "##vso[task.setvariable variable=Tests__Export__ConnectionString]$blobContainerName"
-        Write-Host "##vso[task.setvariable variable=Tests__Export__BlobContainerName]$connectionString"
+        Write-Host "##vso[task.setvariable variable=Tests__Export__BlobContainerName]$blobContainerName"
+        Write-Host "##vso[task.setvariable variable=Tests__Export__ConnectionString]$connectionString"
 
   - bash: |
       echo "##vso[task.setvariable variable=testEnvironmentUrl]$(testServerUrl)"
