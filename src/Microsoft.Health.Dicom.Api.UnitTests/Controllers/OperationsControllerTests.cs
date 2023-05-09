@@ -168,12 +168,12 @@ public class OperationsControllerTests
 #pragma warning restore CS0618 // Type or member is obsolete
     [InlineData(2, OperationStatus.Succeeded)]
     [InlineData(3, OperationStatus.Succeeded)]
-    public async Task GivenSucceededState_WhenGettingState_ThenReturnProperDoneStatus(int? version, OperationStatus expectedStatus)
+    public async Task GivenSucceededState_WhenGettingState_ThenReturnProperDoneStatus(int? apiVersion, OperationStatus expectedStatus)
     {
         Guid id = Guid.NewGuid();
         DateTime utcNow = DateTime.UtcNow;
 
-        _apiVersion.RequestedApiVersion.Returns(version.HasValue ? new ApiVersion(version.GetValueOrDefault(), 0) : null);
+        _apiVersion.RequestedApiVersion.Returns(apiVersion.HasValue ? new ApiVersion(apiVersion.GetValueOrDefault(), 0) : null);
 
         var expected = new OperationState<DicomOperation, object>
         {
