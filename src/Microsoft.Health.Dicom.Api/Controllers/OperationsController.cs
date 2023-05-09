@@ -105,7 +105,6 @@ public class OperationsController : ControllerBase
         return StatusCode((int)statusCode, UpdateOperationState(state));
     }
 
-    // TODO #94762: After v1, we can use Succeeded instead of Completed
     private IOperationState<DicomOperation> UpdateOperationState(IOperationState<DicomOperation> operationState)
     {
         int version = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
