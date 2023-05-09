@@ -139,8 +139,8 @@ public partial class UpdateDurableFunctionTests
         {
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
-            StudyInstanceUids = new List<string> {
-                TestUidGenerator.Generate()
+            StudyInstanceUids = new Dictionary<string, string>() {
+                {  TestUidGenerator.Generate(), TestUidGenerator.Generate() }
             },
             CreatedTime = createdTime,
         };
@@ -229,7 +229,7 @@ public partial class UpdateDurableFunctionTests
         {
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
-            StudyInstanceUids = new List<string>(),
+            StudyInstanceUids = new Dictionary<string, string>(),
             CreatedTime = createdTime,
             Errors = new List<string>()
             {
@@ -392,10 +392,10 @@ public partial class UpdateDurableFunctionTests
         {
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
-            StudyInstanceUids = new List<string> {
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate()
+            StudyInstanceUids = new Dictionary<string, string>() {
+                { TestUidGenerator.Generate(), TestUidGenerator.Generate() },
+                { TestUidGenerator.Generate(), TestUidGenerator.Generate() },
+                { TestUidGenerator.Generate(), TestUidGenerator.Generate() },
             },
             CreatedTime = DateTime.UtcNow,
         };

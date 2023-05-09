@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
@@ -44,7 +45,8 @@ public partial class UpdateDurableFunction
 
         if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
         {
-            string studyInstanceUid = input.StudyInstanceUids[input.NumberOfStudyCompleted];
+            string studyInstanceUid = input.StudyInstanceUids.ElementAt(input.NumberOfStudyCompleted).Value;
+            string studyInstanceUniqueKey = input.StudyInstanceUids.ElementAt(input.NumberOfStudyCompleted).Key;
 
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
@@ -101,7 +103,8 @@ public partial class UpdateDurableFunction
 
             if (instanceWatermarks.Count > 0)
             {
-                _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
+                _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count,
+                    new KeyValuePair<string, object>("StudyInstanceKey", studyInstanceUniqueKey));
             }
             context.ContinueAsNew(
                 new UpdateCheckpoint

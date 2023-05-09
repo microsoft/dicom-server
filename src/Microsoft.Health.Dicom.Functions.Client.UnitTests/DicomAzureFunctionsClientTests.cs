@@ -516,7 +516,7 @@ public class DicomAzureFunctionsClientTests
             .StartNewAsync(
                 FunctionNames.UpdateInstances,
                 instanceId,
-                Arg.Is<UpdateInput>(x => x.StudyInstanceUids.SequenceEqual(studyUids)))
+                Arg.Is<UpdateInput>(x => x.StudyInstanceUids.Values.ToList().SequenceEqual(studyUids)))
             .Returns(instanceId);
         _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
@@ -529,7 +529,7 @@ public class DicomAzureFunctionsClientTests
             .StartNewAsync(
                 FunctionNames.UpdateInstances,
                 instanceId,
-                Arg.Is<UpdateInput>(x => x.StudyInstanceUids.SequenceEqual(studyUids)));
+                Arg.Is<UpdateInput>(x => x.StudyInstanceUids.Values.ToList().SequenceEqual(studyUids)));
         _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
     }
 }
