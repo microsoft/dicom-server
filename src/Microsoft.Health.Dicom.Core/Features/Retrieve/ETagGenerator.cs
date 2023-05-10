@@ -14,7 +14,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public class ETagGenerator : IETagGenerator
 {
-    public string GetETag(ResourceType resourceType, IReadOnlyCollection<VersionedInstanceIdentifier> retrieveInstances)
+    public string GetETag(ResourceType resourceType, IReadOnlyList<InstanceMetadata> retrieveInstances)
     {
         EnsureArg.IsTrue(
             resourceType == ResourceType.Study ||
@@ -24,7 +24,7 @@ public class ETagGenerator : IETagGenerator
         EnsureArg.HasItems(retrieveInstances);
 
         string eTag = string.Empty;
-        long maxWatermark = retrieveInstances.Max(ri => ri.Version);
+        long maxWatermark = retrieveInstances.Max(ri => ri.VersionedInstanceIdentifier.Version);
 
         switch (resourceType)
         {

@@ -42,43 +42,49 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomStudyAsync(
-        this IMediator mediator, string studyInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, bool isOriginalVersionRequested, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
-            new RetrieveResourceRequest(studyInstanceUid, acceptHeaders),
+            new RetrieveResourceRequest(studyInstanceUid, acceptHeaders, isOriginalVersionRequested),
             cancellationToken);
     }
 
     public static Task<RetrieveMetadataResponse> RetrieveDicomStudyMetadataAsync(
-        this IMediator mediator, string studyInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, string ifNoneMatch, bool isOriginalVersionRequested, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch), cancellationToken);
+        return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, ifNoneMatch, isOriginalVersionRequested), cancellationToken);
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomSeriesAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, bool isOriginalVersionRequested, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
-            new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, acceptHeaders),
+            new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, acceptHeaders, isOriginalVersionRequested),
             cancellationToken);
     }
 
     public static Task<RetrieveMetadataResponse> RetrieveDicomSeriesMetadataAsync(
-       this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
+       this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string ifNoneMatch, bool isOriginalVersionRequested, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch), cancellationToken);
+        return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, ifNoneMatch, isOriginalVersionRequested), cancellationToken);
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomInstanceAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, CancellationToken cancellationToken)
+        this IMediator mediator,
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        IReadOnlyCollection<AcceptHeader> acceptHeaders,
+        bool isOriginalVersionRequested,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(
-            new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, acceptHeaders),
+            new RetrieveResourceRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, acceptHeaders, isOriginalVersionRequested),
             cancellationToken);
     }
 
@@ -92,10 +98,10 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<RetrieveMetadataResponse> RetrieveDicomInstanceMetadataAsync(
-        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch, CancellationToken cancellationToken)
+        this IMediator mediator, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string ifNoneMatch, bool isOriginalVersionRequested, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch), cancellationToken);
+        return mediator.Send(new RetrieveMetadataRequest(studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, isOriginalVersionRequested), cancellationToken);
     }
 
     public static Task<RetrieveResourceResponse> RetrieveDicomFramesAsync(

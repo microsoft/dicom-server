@@ -26,5 +26,5 @@ public interface IETagGenerator
     /// <param name="resourceType">Resource Type.</param>
     /// <param name="retrieveInstances">Retrieve Instances.</param>
     /// <returns>ETag.</returns>
-    string GetETag(ResourceType resourceType, IReadOnlyCollection<VersionedInstanceIdentifier> retrieveInstances);
+    string GetETag(ResourceType resourceType, IReadOnlyList<InstanceMetadata> retrieveInstances);
 }
