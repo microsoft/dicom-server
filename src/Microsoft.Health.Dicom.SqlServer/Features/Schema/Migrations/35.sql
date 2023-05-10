@@ -2386,8 +2386,7 @@ BEGIN
     SELECT TOP (@count) StudyInstanceUid,
                         SeriesInstanceUid,
                         SopInstanceUid,
-                        Watermark,
-                        OriginalWatermark
+                        Watermark
     FROM   dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE  RetryCount <= @maxRetries
            AND CleanupAfter < SYSUTCDATETIME();
@@ -2403,7 +2402,8 @@ BEGIN
                         StudyInstanceUid,
                         SeriesInstanceUid,
                         SopInstanceUid,
-                        Watermark
+                        Watermark,
+                        OriginalWatermark
     FROM   dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE  RetryCount <= @maxRetries
            AND CleanupAfter < SYSUTCDATETIME();
