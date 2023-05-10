@@ -130,6 +130,24 @@ public class StoreDatasetValidatorTestsV2
     }
 
 
+
+    [Theory]
+    [InlineData("123,345")]
+    public async Task GivenV2Enabled_WhenPatientIDPAddedWithComma_ExpectTagValidatedAndNoErrorProduced(string value)
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            patientId: value);
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+
     [Fact]
     public async Task GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
     {
