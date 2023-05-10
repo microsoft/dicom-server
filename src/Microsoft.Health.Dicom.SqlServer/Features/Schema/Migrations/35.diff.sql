@@ -20,10 +20,10 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstanceV35
+--     DeleteInstanceV6
 --
 -- FIRST SCHEMA VERSION
---     35
+--     6
 --
 -- DESCRIPTION
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
@@ -42,7 +42,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV35
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @partitionKey       INT,
@@ -288,7 +288,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     RetrieveDeletedInstanceV35
+--     RetrieveDeletedInstance
 --
 -- FIRST SCHEMA VERSION
 --     35
@@ -302,7 +302,7 @@ GO
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV35
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstance
     @count          INT,
     @maxRetries     INT
 AS

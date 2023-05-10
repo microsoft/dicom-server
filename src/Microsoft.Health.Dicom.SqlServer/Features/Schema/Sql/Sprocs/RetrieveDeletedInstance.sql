@@ -18,7 +18,7 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    SELECT  TOP (@count) StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark
     FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()
