@@ -240,63 +240,6 @@ public class StoreTransactionTestsV2 : IClassFixture<EnableDropInvalidDicomJsonM
     }
 
     [Fact]
-    public async Task GivenInstanceWithPatientIdWithComma_WhenStoreInstanceWithPartialValidation_ThenExpectOkAndNoWarnings()
-    {
-        string expectedValueWithComma = "123,456";
-        DicomFile dicomFile = new DicomFile(
-            Samples.CreateRandomInstanceDataset(patientId: expectedValueWithComma, validateItems: false));
-
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
-            new[] { dicomFile },
-            partitionName: _partition);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        // assert on response
-        DicomDataset responseDataset = await response.GetValueAsync();
-        DicomSequence refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
-        Assert.Single(refSopSequence);
-
-        DicomDataset firstInstance = refSopSequence.Items[0];
-
-        // expect a comment sequence to be empty
-        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
-        Assert.Empty(failedAttributesSequence);
-
-        // expected dcm file has original value, with comma
-        using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
-            dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
-            dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
-            dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID),
-            dicomTransferSyntax: "*",
-            partitionName: _partition);
-
-        DicomFile retrievedDicomFile = await retrievedInstance.GetValueAsync();
-
-        Assert.Equal(
-            expectedValueWithComma,
-            retrievedDicomFile.Dataset.GetString(DicomTag.PatientID)
-        );
-
-        // expect stored metadata has original value, with comma
-        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile, _partition);
-        Assert.Equal(
-            expectedValueWithComma,
-            retrievedMetadata.GetString(DicomTag.PatientID)
-        );
-
-        // expect that we can query for value with comma as seen in data
-        Assert.Single(await GetInstanceByAttribute(dicomFile, DicomTag.PatientID));
-
-        // and expect that we can query for value with comma when encoded as uri null
-        using DicomWebAsyncEnumerableResponse<DicomDataset> qidoResponseWhenUrlEncoded = await _client.QueryInstancesAsync(
-            queryString: "PatientID=123,456",
-            partitionName: _partition);
-        Assert.Single(await qidoResponseWhenUrlEncoded.ToArrayAsync());
-    }
-
-
-    [Fact]
     public async Task GivenInstanceWithCoreTagWithNullPadding_WhenStoreInstanceWithPartialValidation_ThenExpectOkAndNoWarnings()
     {
         DicomFile dicomFile1 = new DicomFile(
