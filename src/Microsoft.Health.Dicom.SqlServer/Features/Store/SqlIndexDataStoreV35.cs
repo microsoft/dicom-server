@@ -36,7 +36,7 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV33
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.RetrieveDeletedInstance.PopulateCommand(
+            VLatest.RetrieveDeletedInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
                 batchSize,
                 maxRetries);
