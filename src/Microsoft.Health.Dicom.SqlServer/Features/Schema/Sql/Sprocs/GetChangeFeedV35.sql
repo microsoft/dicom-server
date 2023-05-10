@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedPage
+--     GetChangeFeedV35
 --
 -- FIRST SCHEMA VERSION
 --     35
@@ -18,7 +18,7 @@
 --     @limit
 --         * Max rows to return
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedPage (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV35 (
     @startTime DATETIMEOFFSET(7),
     @endTime   DATETIMEOFFSET(7),
     @offset    BIGINT,

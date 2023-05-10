@@ -4,19 +4,11 @@ BEGIN TRANSACTION
 
     DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
 
-    DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-
     CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     (
         Timestamp,
         Sequence
     )
-
-    -- Used for fetching the latest using the v1 APIs
-    CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-    (
-        Sequence
-    ) WITH (DATA_COMPRESSION = PAGE)
 
 COMMIT TRANSACTION
 GO
@@ -26,15 +18,15 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedLatestTimestamp
+--     GetChangeFeedLatestV35
 --
 -- FIRST SCHEMA VERSION
 --     35
 --
 -- DESCRIPTION
---     Gets the dicom change with the latest timestamp
+--     Gets the latest dicom change by timestamp
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestTimestamp
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV35
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -59,7 +51,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedPage
+--     GetChangeFeedV35
 --
 -- FIRST SCHEMA VERSION
 --     35
@@ -77,7 +69,7 @@ GO
 --     @limit
 --         * Max rows to return
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedPage (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV35 (
     @startTime DATETIMEOFFSET(7),
     @endTime   DATETIMEOFFSET(7),
     @offset    BIGINT,

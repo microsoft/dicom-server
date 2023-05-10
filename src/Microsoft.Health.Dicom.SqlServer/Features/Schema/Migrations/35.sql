@@ -95,9 +95,6 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
     ON dbo.ChangeFeed(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence
-    ON dbo.ChangeFeed(Sequence) WITH (DATA_COMPRESSION = PAGE);
-
 CREATE TABLE dbo.DeletedInstance (
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
     SeriesInstanceUid VARCHAR (64)       NOT NULL,
@@ -1537,7 +1534,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestTimestamp
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV35
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1581,7 +1578,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedPage
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV35
 @startTime DATETIMEOFFSET (7), @endTime DATETIMEOFFSET (7), @offset BIGINT, @limit INT
 AS
 BEGIN

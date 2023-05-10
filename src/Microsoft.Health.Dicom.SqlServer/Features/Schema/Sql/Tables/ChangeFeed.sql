@@ -35,9 +35,3 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInst
     SeriesInstanceUid,
     SopInstanceUid
 ) WITH (DATA_COMPRESSION = PAGE)
-
--- Used for fetching the latest using the v1 APIs
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-(
-    Sequence
-) WITH (DATA_COMPRESSION = PAGE)

@@ -14,7 +14,6 @@ using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -71,18 +70,18 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         // Get all creation events
         var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
-        IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(testRange, 0, 10, ChangeFeedOrder.Timestamp);
+        IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(testRange, 0, 10);
         Assert.Equal(3, changes.Count);
         Assert.Equal(instance1.Version, changes[0].CurrentVersion);
         Assert.Equal(instance2.Version, changes[1].CurrentVersion);
         Assert.Equal(instance3.Version, changes[2].CurrentVersion);
 
         // Fetch changes outside of the range
-        IReadOnlyList<ChangeFeedEntry> existingEvents = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.Before(changes[0].Timestamp), 0, 100, ChangeFeedOrder.Timestamp);
+        IReadOnlyList<ChangeFeedEntry> existingEvents = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.Before(changes[0].Timestamp), 0, 100);
         Assert.DoesNotContain(existingEvents, x => changes.Any(y => y.Sequence == x.Sequence));
 
-        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[1].Timestamp), 2, 100, ChangeFeedOrder.Timestamp));
-        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[2].Timestamp.AddMilliseconds(1)), 0, 100, ChangeFeedOrder.Timestamp));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[1].Timestamp), 2, 100));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[2].Timestamp.AddMilliseconds(1)), 0, 100));
 
         // Fetch changes limited to window
         await ValidateSubsetAsync(testRange, changes[0], changes[1], changes[2]);
@@ -142,13 +141,13 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
     {
         for (int i = 0; i < expected.Length; i++)
         {
-            IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, i, 1, ChangeFeedOrder.Timestamp);
+            IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, i, 1);
 
             Assert.Single(changes);
             Assert.Equal(expected[i].Sequence, changes.Single().Sequence);
         }
 
-        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, expected.Length, 1, ChangeFeedOrder.Timestamp));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, expected.Length, 1));
     }
 
     private async Task<VersionedInstanceIdentifier> CreateInstanceAsync(

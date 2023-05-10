@@ -1,14 +1,14 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedLatestTimestamp
+--     GetChangeFeedLatestV35
 --
 -- FIRST SCHEMA VERSION
 --     35
 --
 -- DESCRIPTION
---     Gets the dicom change with the latest timestamp
+--     Gets the latest dicom change by timestamp
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestTimestamp
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV35
 AS
 BEGIN
     SET NOCOUNT     ON

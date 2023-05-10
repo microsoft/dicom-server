@@ -7,13 +7,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
 public interface IChangeFeedService
 {
-    public Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default);
+    public Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken = default);
 
-    public Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, ChangeFeedOrder order, CancellationToken cancellationToken = default);
+    public Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, CancellationToken cancellationToken = default);
 }

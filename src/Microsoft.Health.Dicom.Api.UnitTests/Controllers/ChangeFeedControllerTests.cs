@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
-using Microsoft.Health.Dicom.Core.Models.ChangeFeed;
 using NSubstitute;
 using Xunit;
 
@@ -46,8 +45,7 @@ public class ChangeFeedControllerTests
                     x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 10 &&
-                    x.IncludeMetadata &&
-                    x.Order == ChangeFeedOrder.Sequence),
+                    x.IncludeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
@@ -62,8 +60,7 @@ public class ChangeFeedControllerTests
                     x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 10 &&
-                    x.IncludeMetadata &&
-                    x.Order == ChangeFeedOrder.Sequence),
+                    x.IncludeMetadata),
                 _controller.HttpContext.RequestAborted);
     }
 
@@ -80,8 +77,7 @@ public class ChangeFeedControllerTests
                     x.Range == TimeRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Sequence),
+                    x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
@@ -96,8 +92,7 @@ public class ChangeFeedControllerTests
                     x.Range == TimeRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Sequence),
+                    x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted);
     }
 
@@ -112,12 +107,11 @@ public class ChangeFeedControllerTests
                     x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 100 &&
-                    x.IncludeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.IncludeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
-        IActionResult result = await _controller.GetWindowedChangeFeedAsync(new WindowedPaginationOptions());
+        IActionResult result = await _controller.GetChangeFeedAsync(new WindowedPaginationOptions());
         var actual = result as ObjectResult;
         Assert.Same(expected, actual.Value);
 
@@ -128,8 +122,7 @@ public class ChangeFeedControllerTests
                     x.Range == TimeRange.MaxValue &&
                     x.Offset == 0L &&
                     x.Limit == 100 &&
-                    x.IncludeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.IncludeMetadata),
                 _controller.HttpContext.RequestAborted);
     }
 
@@ -151,8 +144,7 @@ public class ChangeFeedControllerTests
                     x.Range == expectedRange &&
                     x.Offset == offset &&
                     x.Limit == limit &&
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
@@ -164,7 +156,7 @@ public class ChangeFeedControllerTests
             StartTime = startTime,
         };
 
-        IActionResult result = await _controller.GetWindowedChangeFeedAsync(options, includeMetadata);
+        IActionResult result = await _controller.GetChangeFeedAsync(options, includeMetadata);
         var actual = result as ObjectResult;
         Assert.Same(expected, actual.Value);
 
@@ -175,8 +167,7 @@ public class ChangeFeedControllerTests
                     x.Range == expectedRange &&
                     x.Offset == offset &&
                     x.Limit == limit &&
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                    x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted);
     }
 
@@ -189,9 +180,7 @@ public class ChangeFeedControllerTests
 
         _mediator
             .Send(
-                Arg.Is<ChangeFeedLatestRequest>(x =>
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Sequence),
+                Arg.Is<ChangeFeedLatestRequest>(x => x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedLatestResponse(expected));
 
@@ -202,37 +191,7 @@ public class ChangeFeedControllerTests
         await _mediator
             .Received(1)
             .Send(
-                Arg.Is<ChangeFeedLatestRequest>(x =>
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Sequence),
-                _controller.HttpContext.RequestAborted);
-    }
-
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GivenParameters_WhenFetchingLatestChangeFeedByTimestamp_ThenPassValues(bool includeMetadata)
-    {
-        var expected = new ChangeFeedEntry(1, DateTimeOffset.UtcNow, ChangeFeedAction.Create, "1", "2", "3", 1, 1, ChangeFeedState.Current);
-
-        _mediator
-            .Send(
-                Arg.Is<ChangeFeedLatestRequest>(x =>
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
-                _controller.HttpContext.RequestAborted)
-            .Returns(new ChangeFeedLatestResponse(expected));
-
-        IActionResult result = await _controller.GetChangeFeedLatestTimestampAsync(includeMetadata);
-        var actual = result as ObjectResult;
-        Assert.Same(expected, actual.Value);
-
-        await _mediator
-            .Received(1)
-            .Send(
-                Arg.Is<ChangeFeedLatestRequest>(x =>
-                    x.IncludeMetadata == includeMetadata &&
-                    x.Order == ChangeFeedOrder.Timestamp),
+                Arg.Is<ChangeFeedLatestRequest>(x => x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted);
     }
 }

@@ -88,15 +88,6 @@ namespace Microsoft.Health.Dicom.SqlServer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change feed cannot be ordered by sequence when filtered by timestamp..
-        /// </summary>
-        internal static string InvalidChangeFeedOrderFilter {
-            get {
-                return ResourceManager.GetString("InvalidChangeFeedOrderFilter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded..
         /// </summary>
         internal static string SchemaVersionNeedsToBeUpgraded {
