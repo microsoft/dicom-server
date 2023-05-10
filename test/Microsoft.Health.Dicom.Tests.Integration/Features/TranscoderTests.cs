@@ -7,12 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.Imaging.NativeCodec;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
@@ -35,6 +37,7 @@ public class TranscoderTests
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _transcoder = new Transcoder(_recyclableMemoryStreamManager, NullLogger<Transcoder>.Instance);
 
+        CustomDicomImplementation.SetFellowOakDicomImplementation();
         new DicomSetupBuilder()
             .RegisterServices(s => s.AddTranscoderManager<NativeTranscoderManager>())
             .Build();
@@ -98,12 +101,15 @@ public class TranscoderTests
         Assert.Equal(outputFile.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.OutputSyntaxUid);
 
         // Verify file metainfo
-        VerifyDicomItems(inputFile.FileMetaInfo, outputFile.FileMetaInfo, DicomTag.FileMetaInformationGroupLength, DicomTag.TransferSyntaxUID, DicomTag.ImplementationVersionName);
+        VerifyDicomItems(inputFile.FileMetaInfo, outputFile.FileMetaInfo, DicomTag.FileMetaInformationGroupLength, DicomTag.TransferSyntaxUID, DicomTag.ImplementationVersionName, DicomTag.ImplementationClassUID);
 
         // Verify dataset
-        VerifyDicomItems(inputFile.Dataset, outputFile.Dataset, DicomTag.PixelData, DicomTag.PhotometricInterpretation, DicomTag.ImplementationVersionName);
+        VerifyDicomItems(inputFile.Dataset, outputFile.Dataset, DicomTag.PixelData, DicomTag.PhotometricInterpretation, DicomTag.ImplementationVersionName, DicomTag.ImplementationClassUID);
 
         VerifyFrames(outputFile, testData);
+
+        VerifyImplementationClassUID(outputFile);
+
         return outputFile;
     }
 
@@ -138,6 +144,16 @@ public class TranscoderTests
     {
         Assert.Equal(actual.Dataset.InternalTransferSyntax.UID.UID, testData.MetaData.OutputSyntaxUid);
         Assert.Equal(testData.MetaData.OutputFramesHashCode, GetFramesHashCode(actual));
+    }
+
+    private static void VerifyImplementationClassUID(DicomFile actual)
+    {
+        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
+        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
+        var expectedUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
+
+        Assert.Equal(expectedUID, actual.FileMetaInfo.ImplementationClassUID);
+        Assert.Equal(expectedVersion, actual.FileMetaInfo.ImplementationVersionName);
     }
 
     private static string GetFramesHashCode(DicomFile dicomFile)

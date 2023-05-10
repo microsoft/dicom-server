@@ -30,6 +30,7 @@ using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Api.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -152,6 +153,8 @@ public static class DicomServerServiceCollectionExtensions
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
+
+        CustomDicomImplementation.SetFellowOakDicomImplementation();
 
         return new DicomServerBuilder(services);
     }
