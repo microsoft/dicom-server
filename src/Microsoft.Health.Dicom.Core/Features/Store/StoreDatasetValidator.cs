@@ -207,43 +207,42 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         StoreValidationResultBuilder validationResultBuilder)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
-        foreach (DicomItem item in dicomDataset)
+        foreach (DicomElement de in dicomDataset)
         {
             try
             {
-                string value = dicomDataset.GetString(item.Tag);
+                string value = dicomDataset.GetString(de.Tag);
                 if (value.EndsWith('\0'))
                 {
-                    ValidateWithoutNullPadding(value, item, queryTags);
+                    ValidateWithoutNullPadding(value, de, queryTags);
                 }
                 else
                 {
-                    item.Validate();
+                    de.Validate();
                 }
             }
             catch (DicomValidationException ex)
             {
-                validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
+                validationResultBuilder.Add(ex, de.Tag, isCoreTag: RequiredCoreTags.Contains(de.Tag));
 
-                bool isIndexableTag = queryTags.Any(x => x.Tag == item.Tag);
                 _storeMeter.V2ValidationError.Add(
                     1,
-                    TelemetryDimension(item, isIndexableTag));
+                    TelemetryDimension(de, IsIndexableTag(queryTags, de)));
             }
         }
     }
 
-    private void ValidateWithoutNullPadding(string value, DicomItem item, IReadOnlyCollection<QueryTag> queryTags)
+    private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomElement de)
     {
-        // we still want to save the original value when validation passes so create new ds to validate with
-        var newValue = value.TrimEnd('\0');
-        DicomDataset ds = new DicomDataset().NotValidated();
-        ds.AddOrUpdate(item.Tag, newValue);
-        ds.GetDicomItem<DicomItem>(item.Tag).Validate();
-        bool isIndexableTag = queryTags.Any(x => x.Tag == item.Tag);
+        return queryTags.Any(x => x.Tag == de.Tag);
+    }
+
+    private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    {
+        de.ValueRepresentation.ValidateString(value.TrimEnd('\0'));
         _storeMeter.V2ValidationNullPaddedPassing.Add(
             1,
-            TelemetryDimension(item, isIndexableTag));
+            TelemetryDimension(de, IsIndexableTag(queryTags, de)));
     }
 
     private static KeyValuePair<string, object>[] TelemetryDimension(DicomItem item, bool isIndexableTag) =>
