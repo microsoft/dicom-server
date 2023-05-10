@@ -288,10 +288,10 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     RetrieveDeletedInstance
+--     RetrieveDeletedInstanceV6
 --
 -- FIRST SCHEMA VERSION
---     35
+--     6
 --
 -- DESCRIPTION
 --     Retrieves deleted instances where the cleanupAfter is less than the current date in and the retry count hasn't been exceeded
@@ -302,7 +302,7 @@ GO
 --     @maxRetries
 --         * The maximum number of times to retry a cleanup
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstance
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV6
     @count          INT,
     @maxRetries     INT
 AS
