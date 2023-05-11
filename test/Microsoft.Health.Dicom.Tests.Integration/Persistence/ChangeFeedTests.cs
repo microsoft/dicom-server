@@ -21,6 +21,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 
+[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
 public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 {
     private readonly ChangeFeedTestsFixture _fixture;
@@ -86,6 +87,29 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         // Fetch changes limited to window
         await ValidateSubsetAsync(testRange, changes[0], changes[1], changes[2]);
         await ValidateSubsetAsync(new TimeRange(changes[0].Timestamp, changes[2].Timestamp), changes[0], changes[1]);
+    }
+
+    [Fact]
+    public async Task GivenPreviousChangeFeedLogic_WhenFetchingChangeFeeds_ThenResultsAreTheSame()
+    {
+        await CreateInstanceAsync();
+        await CreateInstanceAsync();
+        await CreateInstanceAsync();
+        await CreateInstanceAsync();
+        await CreateInstanceAsync();
+
+        // Check Change Feed
+        IReadOnlyList<ChangeFeedEntry> current = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.MaxValue, 0, int.MaxValue);
+        IReadOnlyList<ChangeFeedEntry> previous = await _fixture.PreviousDicomChangeFeedStore.GetChangeFeedAsync(TimeRange.MaxValue, 0, int.MaxValue);
+
+        Assert.Equal(current.Count, previous.Count);
+        Assert.True(current.Zip(previous).All(p => p.First.Sequence == p.Second.Sequence));
+
+        // Check Latest Change Feed Entry
+        ChangeFeedEntry currentLatest = await _fixture.DicomChangeFeedStore.GetChangeFeedLatestAsync();
+        ChangeFeedEntry previousLatest = await _fixture.PreviousDicomChangeFeedStore.GetChangeFeedLatestAsync();
+
+        Assert.Equal(currentLatest.Sequence, previousLatest.Sequence);
     }
 
     private async Task ValidateInsertFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)

@@ -27,7 +27,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
 public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
-    protected readonly IDicomWebClient _client;
+    private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
 
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)

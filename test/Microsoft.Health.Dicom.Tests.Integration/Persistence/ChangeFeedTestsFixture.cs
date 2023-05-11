@@ -6,6 +6,7 @@
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
@@ -17,11 +18,14 @@ public class ChangeFeedTestsFixture : IAsyncLifetime
     public ChangeFeedTestsFixture()
     {
         _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
+        PreviousDicomChangeFeedStore = new SqlChangeFeedStoreV6(_sqlDataStoreTestsFixture.SqlConnectionWrapperFactory);
     }
 
     public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;
 
     public IChangeFeedStore DicomChangeFeedStore => _sqlDataStoreTestsFixture.ChangeFeedStore;
+
+    public IChangeFeedStore PreviousDicomChangeFeedStore { get; }
 
     public IIndexDataStoreTestHelper DicomIndexDataStoreTestHelper => _sqlDataStoreTestsFixture.IndexDataStoreTestHelper;
 
