@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -351,8 +352,9 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
     {
-        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        IEnumerable<VersionedInstanceIdentifier> results = await RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
+        return results.Select(x => new InstanceMetadata(x, new InstanceProperties())).ToList();
     }
 }
