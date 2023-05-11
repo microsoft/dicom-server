@@ -72,7 +72,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SOPClassUID
 - PatientID
 
-> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`.
+> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID is validated based on its LO VR type.
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
@@ -83,6 +83,8 @@ In previous versions, a Store request would fail if any of the [required](#store
 
 Failed validation of attributes not required by the API will still result in the file being stored and a warning will be given about each failing attribute per instance.
 When a sequence contains an attribute that fails validation, or when there are multiple issues with a single attribute, only the first failing attribute reason will be noted.
+
+If an attribute is padded with nulls, the attribute will be indexed when searchable and will be stored as is in dicom+json metadata. No validation warning will be provided.
 
 ### Store Response Status Codes
 
@@ -345,6 +347,8 @@ Retrieving metadata will not return attributes with the following value represen
 | OW      | Other Word             |
 | UN      | Unknown                |
 
+Retrieved metadata will include the null character when the attribute was padded with nulls and stored as is.
+
 ### Retrieve Metadata Cache Validation (for Study, Series, or Instance)
 
 Cache validation is supported using the `ETag` mechanism. In the response of a metadata reqeuest, ETag is returned as one of the headers. This ETag can be cached and added as `If-None-Match` header in the later requests for the same metadata. Two types of responses are possible if the data exists:
@@ -559,6 +563,7 @@ The query API will return one of the following status codes in the response:
 - Matching is case in-sensitive and accent sensitive for other string VR types.
 - Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
 - Using the default attributes or limiting the number of results requested will maximize performance.
+- When an attribute was stored using null padding, it can be searched for with or without the null padding in uri encoding. Results retrieved will be for attributes stored both with and without null padding.
 
 ## Delete
 

@@ -21,7 +21,7 @@ Additionally, the following non-standard API(s) are supported:
 
 All paths below include an implicit base URL of the server, such as `https://localhost:63838` when running locally.
 
-The service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified as part of the base URL as in the following example: 
+The service makes use of REST Api versioning. Do note that the version of the REST API must be explicitly specified as part of the base URL as in the following example:
 
 `https://localhost:63838/v1/studies`
 
@@ -69,7 +69,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SOPClassUID
 - PatientID
 
-> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`.
+> Note: All UIDs must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID is validated based on its LO VR type.
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
@@ -542,7 +542,7 @@ If not specified in the URI, the payload dataset must contain the Workitem in th
 The `Accept` and `Content-Type` headers are required in the request, and must both have the value `application/dicom+json`.
 
 There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
-required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be
 found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
 
 Notes on dataset attributes:
@@ -662,7 +662,7 @@ The request payload contains a dataset with the changes to be applied to the tar
 When multiple Attributes need updating as a group, do this as multiple Attributes in a single request, not as multiple requests.
 
 There are a number of requirements related to DICOM data attributes in the context of a specific transaction. Attributes may be
-required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be 
+required to be present, required to not be present, required to be empty, or required to not be empty. These requirements can be
 found in [this table](https://dicom.nema.org/medical/dicom/current/output/html/part04.html#table_CC.2.5-3).
 
 Notes on dataset attributes:

@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Azure.Core" Version="1.31.0" />
+    <PackageVersion Include="Azure.Core" Version="1.32.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Identity" Version="1.8.2" />
@@ -13,7 +13,7 @@
     <PackageVersion Include="fo-dicom" Version="5.0.3" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.10.5" />
     <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.0.3" />
-    <PackageVersion Include="Google.Protobuf" Version="3.22.4" />
+    <PackageVersion Include="Google.Protobuf" Version="3.23.0" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
