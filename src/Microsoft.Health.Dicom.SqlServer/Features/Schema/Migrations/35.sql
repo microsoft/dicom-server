@@ -1552,7 +1552,7 @@ BEGIN
              INNER JOIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
-    ORDER BY Timestamp DESC;
+    ORDER BY Timestamp DESC, Sequence DESC;
 END
 
 GO
