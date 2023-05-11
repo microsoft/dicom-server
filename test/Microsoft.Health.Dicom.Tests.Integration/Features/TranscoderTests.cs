@@ -37,7 +37,7 @@ public class TranscoderTests
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _transcoder = new Transcoder(_recyclableMemoryStreamManager, NullLogger<Transcoder>.Instance);
 
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
         new DicomSetupBuilder()
             .RegisterServices(s => s.AddTranscoderManager<NativeTranscoderManager>())
             .Build();

@@ -154,7 +154,7 @@ public static class DicomServerServiceCollectionExtensions
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
 
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
         return new DicomServerBuilder(services);
     }

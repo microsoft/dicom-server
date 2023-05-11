@@ -116,7 +116,7 @@ public static class ServiceCollectionExtensions
         // Note: Fellow Oak Services have already been added as part of the ServiceModule
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, FellowOakExtensionConfiguration>());
 
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
         return services;
     }

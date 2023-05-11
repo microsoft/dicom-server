@@ -22,7 +22,7 @@ public class CustomDicomImplementationTests
         (DicomUID classUID, string versionName) = Samples.GetDicomImplemenationClasUIDAndVersionName();
         _expectedClassUID = classUID;
         _expectedVersion = versionName;
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class CustomDicomImplementationTests
             { DicomTag.SOPInstanceUID, TestUidGenerator.Generate() }
         };
 
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
         var dcmFile = new DicomFile(dataset);
 
         using var stream = new MemoryStream();
