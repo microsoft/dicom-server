@@ -3,8 +3,10 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
+using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -51,9 +54,17 @@ public class ChangeFeedController : ControllerBase
     public Task<IActionResult> GetChangeFeedAsync(
         [FromQuery][Range(0, long.MaxValue)] long offset = 0,
         [FromQuery][Range(1, 100)] int limit = 10,
+        [FromQuery][ModelBinder(typeof(MandatoryTimeZoneBinder))] DateTimeOffset? startTime = null,
+        [FromQuery][ModelBinder(typeof(MandatoryTimeZoneBinder))] DateTimeOffset? endTime = null,
         [FromQuery] bool includeMetadata = true)
     {
-        return GetChangeFeedAsync(TimeRange.MaxValue, offset, limit, includeMetadata, HttpContext.RequestAborted);
+        DateTimeOffset start = startTime.GetValueOrDefault(DateTimeOffset.MinValue);
+        DateTimeOffset end = endTime.GetValueOrDefault(DateTimeOffset.MaxValue);
+
+        if (end <= start)
+            throw new ValidationException(string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidTimeRange, start, end));
+
+        return GetChangeFeedAsync(new TimeRange(start, end), offset, limit, includeMetadata, HttpContext.RequestAborted);
     }
 
     [HttpGet]
