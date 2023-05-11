@@ -81,9 +81,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
 
         // validate input data elements
-        if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
+        if (_enableFullDicomItemValidation)
         {
-            await ValidateAllItemsAsync(dicomDataset, validationResultBuilder);
+            ValidateAllItems(dicomDataset, validationResultBuilder);
+        }
+        else if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
+        {
+            await ValidateAllItemsWithLeniencyAsync(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -181,11 +185,10 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private async Task ValidateAllItemsAsync(
+    private static void ValidateAllItems(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
     {
-        IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
         foreach (DicomItem item in dicomDataset)
         {
             try
@@ -194,35 +197,62 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
-                {
-                    if (RequiredCoreTags.Contains(item.Tag))
-                    {
-                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: true);
-                    }
-                    else
-                    {
-                        validationResultBuilder.Add(ex, item.Tag);
-                    }
-
-                    bool isIndexableTag = queryTags.Any(x => x.Tag == item.Tag);
-                    _storeMeter.ValidateAllValidationError.Add(
-                        1,
-                        new[]
-                        {
-                            new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
-                            new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
-                            new KeyValuePair<string, object>("Tag", item.Tag.ToString()),
-                            new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
-                        });
-                }
-                else
-                {
-                    validationResultBuilder.Add(ex, item.Tag);
-                }
+                validationResultBuilder.Add(ex, item.Tag);
             }
         }
     }
+
+    private async Task ValidateAllItemsWithLeniencyAsync(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder)
+    {
+        IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
+        foreach (DicomElement de in dicomDataset)
+        {
+            try
+            {
+                string value = dicomDataset.GetString(de.Tag);
+                if (value.EndsWith('\0'))
+                {
+                    ValidateWithoutNullPadding(value, de, queryTags);
+                }
+                else
+                {
+                    de.Validate();
+                }
+            }
+            catch (DicomValidationException ex)
+            {
+                validationResultBuilder.Add(ex, de.Tag, isCoreTag: RequiredCoreTags.Contains(de.Tag));
+
+                _storeMeter.V2ValidationError.Add(
+                    1,
+                    TelemetryDimension(de, IsIndexableTag(queryTags, de)));
+            }
+        }
+    }
+
+    private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomElement de)
+    {
+        return queryTags.Any(x => x.Tag == de.Tag);
+    }
+
+    private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    {
+        de.ValueRepresentation.ValidateString(value.TrimEnd('\0'));
+        _storeMeter.V2ValidationNullPaddedPassing.Add(
+            1,
+            TelemetryDimension(de, IsIndexableTag(queryTags, de)));
+    }
+
+    private static KeyValuePair<string, object>[] TelemetryDimension(DicomItem item, bool isIndexableTag) =>
+        new[]
+        {
+            new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
+            new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
+            new KeyValuePair<string, object>("Tag", item.Tag.ToString()),
+            new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
+        };
 
     private static bool EnableDropMetadata(int? version)
     {
