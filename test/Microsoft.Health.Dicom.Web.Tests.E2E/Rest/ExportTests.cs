@@ -176,7 +176,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         => CreateContainerClient().CreateIfNotExistsAsync(PublicAccessType.None);
 
     public Task DisposeAsync()
-        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteAsync());
+        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteIfExistsAsync());
 
     private BlobContainerClient CreateContainerClient()
     {

@@ -15,7 +15,6 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
@@ -26,12 +25,22 @@ using ChangeFeedState = Microsoft.Health.Dicom.Client.Models.ChangeFeedState;
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
-public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegrationTestFixture<Startup>>
+public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
+    protected readonly IDicomWebClient _client;
+    private readonly DicomInstancesManager _instancesManager;
+
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
-        : base(fixture.GetDicomWebClient())
     {
+        _client = EnsureArg.IsNotNull(fixture?.GetDicomWebClient(), nameof(fixture));
+        _instancesManager = new DicomInstancesManager(_client);
     }
+
+    public Task InitializeAsync()
+        => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+        => await _instancesManager.DisposeAsync();
 
     [Fact]
     [Trait("Category", "bvt")]
@@ -80,6 +89,53 @@ public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegratio
                 Assert.NotNull(changeFeedResults[i].Metadata);
             }
         }
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenChanges_WhenQueryingWithWindow_ThenScopeResults()
+    {
+        ChangeFeedEntry[] testChanges;
+
+        // Insert data over time
+        DateTimeOffset start = DateTimeOffset.UtcNow;
+        InstanceIdentifier instance1 = await CreateFileAsync();
+        await Task.Delay(1000);
+        InstanceIdentifier instance2 = await CreateFileAsync();
+        InstanceIdentifier instance3 = await CreateFileAsync();
+
+        // Get all creation events
+        var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(testRange.Start, testRange.End, 0, 10)))
+        {
+            testChanges = await response.ToArrayAsync();
+
+            Assert.Equal(3, testChanges.Length);
+            Assert.Equal(instance1.SopInstanceUid, testChanges[0].SopInstanceUid);
+            Assert.Equal(instance2.SopInstanceUid, testChanges[1].SopInstanceUid);
+            Assert.Equal(instance3.SopInstanceUid, testChanges[2].SopInstanceUid);
+        }
+
+        // Fetch changes outside of the range
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(endTime: testChanges[0].Timestamp, offset: 0, limit: 100)))
+        {
+            ChangeFeedEntry[] changes = await response.ToArrayAsync();
+            Assert.DoesNotContain(changes, x => testChanges.Any(y => y.Sequence == x.Sequence));
+        }
+
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(startTime: testChanges[1].Timestamp, offset: 2, limit: 100)))
+        {
+            Assert.Empty(await response.ToArrayAsync());
+        }
+
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(startTime: testChanges[2].Timestamp.AddMilliseconds(1), offset: 0, limit: 100)))
+        {
+            Assert.Empty(await response.ToArrayAsync());
+        }
+
+        // Fetch changes limited to window
+        await ValidateSubsetAsync(testRange, testChanges[0], testChanges[1], testChanges[2]);
+        await ValidateSubsetAsync(new TimeRange(testChanges[0].Timestamp, testChanges[2].Timestamp), testChanges[0], testChanges[1]);
     }
 
     [Fact]
@@ -192,72 +248,6 @@ public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegratio
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
-    [Fact]
-    public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeedLatest_ThenBadRequestReturned()
-    {
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-            () => _client.GetChangeFeedLatest("?includeMetadata=asdf"));
-        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-    }
-}
-
-// TODO: Combine test classes once v2 is released
-// As a workaround, include these tests with leniency
-[Trait("Category", "leniency")]
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
-public class ChangeFeedV2Tests : BaseChangeFeedTests, IClassFixture<FeatureEnabledTestFixture<Startup>>
-{
-    public ChangeFeedV2Tests(FeatureEnabledTestFixture<Startup> fixture)
-        : base(fixture.GetDicomWebClient(DicomApiVersions.V2))
-    {
-    }
-
-    [Fact]
-    public async Task GivenChanges_WhenQueryWithWindows_ThenScopeResults()
-    {
-        ChangeFeedEntry[] testChanges;
-
-        // Insert data over time
-        DateTimeOffset start = DateTimeOffset.UtcNow;
-        InstanceIdentifier instance1 = await CreateFileAsync(partitionName: DefaultPartition.Name);
-        await Task.Delay(1000);
-        InstanceIdentifier instance2 = await CreateFileAsync(partitionName: DefaultPartition.Name);
-        InstanceIdentifier instance3 = await CreateFileAsync(partitionName: DefaultPartition.Name);
-
-        // Get all creation events
-        var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(testRange.Start, testRange.End, 0, 10)))
-        {
-            testChanges = await response.ToArrayAsync();
-
-            Assert.Equal(3, testChanges.Length);
-            Assert.Equal(instance1.SopInstanceUid, testChanges[0].SopInstanceUid);
-            Assert.Equal(instance2.SopInstanceUid, testChanges[1].SopInstanceUid);
-            Assert.Equal(instance3.SopInstanceUid, testChanges[2].SopInstanceUid);
-        }
-
-        // Fetch changes outside of the range
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(endTime: testChanges[0].Timestamp, offset: 0, limit: 100)))
-        {
-            ChangeFeedEntry[] changes = await response.ToArrayAsync();
-            Assert.DoesNotContain(changes, x => testChanges.Any(y => y.Sequence == x.Sequence));
-        }
-
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(startTime: testChanges[1].Timestamp, offset: 2, limit: 100)))
-        {
-            Assert.Empty(await response.ToArrayAsync());
-        }
-
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed(ToQueryString(startTime: testChanges[2].Timestamp.AddMilliseconds(1), offset: 0, limit: 100)))
-        {
-            Assert.Empty(await response.ToArrayAsync());
-        }
-
-        // Fetch changes limited to window
-        await ValidateSubsetAsync(testRange, testChanges[0], testChanges[1], testChanges[2]);
-        await ValidateSubsetAsync(new TimeRange(testChanges[0].Timestamp, testChanges[2].Timestamp), testChanges[0], testChanges[1]);
-    }
-
     [Theory]
     [InlineData("foo", "2023-05-03T10:58:00Z")]
     [InlineData("2023-05-03T10:58:00Z", "bar")]
@@ -265,10 +255,32 @@ public class ChangeFeedV2Tests : BaseChangeFeedTests, IClassFixture<FeatureEnabl
     [InlineData("2023-05-03T10:58:00Z", "2023-05-03T11:00:00")]
     [InlineData("2023-05-03T10:58:00Z", "2023-05-03T10:58:00Z")]
     [InlineData("2023-05-03T10:59:00Z", "2023-05-03T10:58:00Z")]
-    public async Task GivenAnInvalidV2Timestamps_WhenRetrievingChangeFeed_ThenBadRequestReturned(string startTime, string endTime)
+    public async Task GivenAnInvalidTimestamps_WhenRetrievingChangeFeed_ThenBadRequestReturned(string startTime, string endTime)
     {
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.GetChangeFeed($"?startTime={startTime}&endTime={endTime}"));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeedLatest_ThenBadRequestReturned()
+    {
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.GetChangeFeedLatest("?includeMetadata=asdf"));
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+    }
+
+    private async Task<InstanceIdentifier> CreateFileAsync(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null)
+    {
+        studyInstanceUid ??= TestUidGenerator.Generate();
+        seriesInstanceUid ??= TestUidGenerator.Generate();
+        sopInstanceUid ??= TestUidGenerator.Generate();
+
+        DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid);
+        DicomDataset dataset = await response.GetValueAsync();
+
+        return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)
@@ -285,40 +297,8 @@ public class ChangeFeedV2Tests : BaseChangeFeedTests, IClassFixture<FeatureEnabl
         using DicomWebAsyncEnumerableResponse<ChangeFeedEntry> emptyResponse = await _client.GetChangeFeed(ToQueryString(range.Start, range.End, expected.Length, 1));
         Assert.Empty(await emptyResponse.ToArrayAsync());
     }
-}
 
-public class BaseChangeFeedTests : IAsyncLifetime
-{
-    protected readonly IDicomWebClient _client;
-    private readonly DicomInstancesManager _instancesManager;
-
-    public BaseChangeFeedTests(IDicomWebClient client)
-    {
-        _client = EnsureArg.IsNotNull(client, nameof(client));
-        _instancesManager = new DicomInstancesManager(client);
-    }
-
-    public Task InitializeAsync()
-        => Task.CompletedTask;
-
-    public async Task DisposeAsync()
-        => await _instancesManager.DisposeAsync();
-
-    protected async Task<InstanceIdentifier> CreateFileAsync(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null, string partitionName = null)
-    {
-        studyInstanceUid ??= TestUidGenerator.Generate();
-        seriesInstanceUid ??= TestUidGenerator.Generate();
-        sopInstanceUid ??= TestUidGenerator.Generate();
-
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid, partitionName);
-        DicomDataset dataset = await response.GetValueAsync();
-
-        return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-    }
-
-    protected static string ToQueryString(
+    private static string ToQueryString(
         DateTimeOffset? startTime = null,
         DateTimeOffset? endTime = null,
         long? offset = null,
