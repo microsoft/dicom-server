@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Tests.Common;
@@ -357,6 +359,15 @@ public static class Samples
         });
 
         return dataset;
+    }
+
+    public static (DicomUID classUID, string versionName) GetDicomImplemenationClasUIDAndVersionName()
+    {
+        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
+        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
+        var classUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
+
+        return (classUID, expectedVersion);
     }
 
     private static IByteBuffer CreateRandomPixelData(int pixelDataSize)

@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
@@ -16,32 +14,32 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.FellowOak;
 
 public class CustomDicomImplementationTests
 {
+    private readonly DicomUID _expectedClassUID;
+    private readonly string _expectedVersion;
+
+    public CustomDicomImplementationTests()
+    {
+        (DicomUID classUID, string versionName) = Samples.GetDicomImplemenationClasUIDAndVersionName();
+        _expectedClassUID = classUID;
+        _expectedVersion = versionName;
+        CustomDicomImplementation.SetFellowOakDicomImplementation();
+    }
+
     [Fact]
     public void SetFellowOakDicomImplementation_SetsClassUID()
     {
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
-
-        Assert.Equal(new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown), DicomImplementation.ClassUID);
+        Assert.Equal(_expectedClassUID, DicomImplementation.ClassUID);
     }
 
     [Fact]
     public void SetFellowOakDicomImplementation_SetsVersion()
     {
-        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
-        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
-
-        CustomDicomImplementation.SetFellowOakDicomImplementation();
-
-        Assert.Equal(expectedVersion, DicomImplementation.Version);
+        Assert.Equal(_expectedVersion, DicomImplementation.Version);
     }
 
     [Fact]
     public async Task GivenDataset_WhenDicomFileIsSaved_DicomImplementationIsSetCorrectly()
     {
-        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
-        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
-        var expectedUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
-
         var dataset = new DicomDataset
         {
             { DicomTag.SOPClassUID, TestUidGenerator.Generate() },
@@ -57,7 +55,7 @@ public class CustomDicomImplementationTests
 
         var actualDcmFile = await DicomFile.OpenAsync(stream);
 
-        Assert.Equal(expectedUID, actualDcmFile.FileMetaInfo.ImplementationClassUID);
-        Assert.Equal(expectedVersion, actualDcmFile.FileMetaInfo.ImplementationVersionName);
+        Assert.Equal(_expectedClassUID, actualDcmFile.FileMetaInfo.ImplementationClassUID);
+        Assert.Equal(_expectedVersion, actualDcmFile.FileMetaInfo.ImplementationVersionName);
     }
 }

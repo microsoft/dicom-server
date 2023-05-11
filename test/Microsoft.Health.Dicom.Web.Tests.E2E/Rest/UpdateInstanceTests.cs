@@ -8,12 +8,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Operations;
@@ -181,9 +179,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     }
     private static void VerifyImplementationClassUID(DicomFile actual)
     {
-        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
-        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
-        var expectedUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
+        (DicomUID expectedUID, string expectedVersion) = Samples.GetDicomImplemenationClasUIDAndVersionName();
 
         Assert.Equal(expectedUID, actual.FileMetaInfo.ImplementationClassUID);
         Assert.Equal(expectedVersion, actual.FileMetaInfo.ImplementationVersionName);

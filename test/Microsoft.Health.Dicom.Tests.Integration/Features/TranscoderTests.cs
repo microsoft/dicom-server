@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -16,6 +15,7 @@ using FellowOakDicom.Imaging.NativeCodec;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Tests.Common.TranscoderTests;
 using Microsoft.IO;
@@ -148,9 +148,7 @@ public class TranscoderTests
 
     private static void VerifyImplementationClassUID(DicomFile actual)
     {
-        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
-        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
-        var expectedUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
+        (DicomUID expectedUID, string expectedVersion) = Samples.GetDicomImplemenationClasUIDAndVersionName();
 
         Assert.Equal(expectedUID, actual.FileMetaInfo.ImplementationClassUID);
         Assert.Equal(expectedVersion, actual.FileMetaInfo.ImplementationVersionName);
