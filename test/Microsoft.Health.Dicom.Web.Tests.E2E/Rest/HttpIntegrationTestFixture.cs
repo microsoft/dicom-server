@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Client.Authentication;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using NSubstitute;
@@ -30,6 +31,7 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
     protected HttpIntegrationTestFixture(TestServerFeatureSettingType[] featureSettingTypes)
     {
         TestDicomWebServer = TestDicomWebServerFactory.GetTestDicomWebServer(typeof(TStartup), featureSettingTypes);
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
     }
 
     public bool IsInProcess => TestDicomWebServer is InProcTestDicomWebServer;
