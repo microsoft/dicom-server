@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,9 +69,9 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                Uri fileLocation = await _fixture.FileStore.StoreFileAsync(version, stream);
+                InstanceProperties instanceProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
 
-                Assert.NotNull(fileLocation);
+                Assert.NotNull(instanceProperties);
             }
 
             var file = await _fixture.FileStore.GetFileAsync(version);

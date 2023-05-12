@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.IO;
 using Xunit;
 
@@ -37,9 +38,9 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         var fileData = new byte[] { 4, 7, 2 };
 
         // Store the file.
-        Uri fileLocation = await AddFileAsync(version, fileData, $"{nameof(GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
+        InstanceProperties instanceProperties = await AddFileAsync(version, fileData, $"{nameof(GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
 
-        Assert.NotNull(fileLocation);
+        Assert.NotNull(instanceProperties);
 
         // Should be able to retrieve.
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
@@ -63,13 +64,13 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        Uri fileLocation1 = await AddFileAsync(version, fileData1, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData1");
+        InstanceProperties instanceProperties1 = await AddFileAsync(version, fileData1, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData1");
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
-        Uri fileLocation2 = await AddFileAsync(version, fileData2, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData2");
+        InstanceProperties instanceProperties2 = await AddFileAsync(version, fileData2, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData2");
 
-        Assert.Equal(fileLocation1, fileLocation2);
+        Assert.Equal(instanceProperties1, instanceProperties2);
 
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
@@ -102,7 +103,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
     }
 
-    private async Task<Uri> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
+    private async Task<InstanceProperties> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
