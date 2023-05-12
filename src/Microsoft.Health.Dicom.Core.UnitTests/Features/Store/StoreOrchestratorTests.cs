@@ -36,6 +36,8 @@ public class StoreOrchestratorTests
         DefaultSopInstanceUid,
         DefaultVersion);
 
+    private static readonly InstanceProperties DefaultInstanceProperties = new InstanceProperties();
+
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
     private readonly IFileStore _fileStore = Substitute.For<IFileStore>();
@@ -90,6 +92,12 @@ public class StoreOrchestratorTests
     [Fact]
     public async Task GivenFilesAreSuccessfullyStored_WhenStoringFile_ThenStatusShouldBeUpdatedToCreated()
     {
+        _fileStore.StoreFileAsync(
+                DefaultVersionedInstanceIdentifier.Version,
+                _stream,
+                cancellationToken: DefaultCancellationToken)
+            .Returns(DefaultInstanceProperties);
+
         await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
         await ValidateStatusUpdateAsync();
@@ -158,6 +166,7 @@ public class StoreOrchestratorTests
                 expectedTags,
                 false,
                 false,
+                instanceProperties: DefaultInstanceProperties,
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()
