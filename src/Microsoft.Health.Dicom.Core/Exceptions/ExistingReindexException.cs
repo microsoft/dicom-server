@@ -25,7 +25,8 @@ public sealed class ExistingReindexException : ExistingOperationException
             operation,
             string.Format(
                 CultureInfo.CurrentCulture,
-                DicomCoreResource.ExistingReindexOperation,
+                DicomCoreResource.ExistingOperation,
+                "re-index",
                 EnsureArg.IsNotNull(operation, nameof(operation)).Id.ToString(OperationId.FormatSpecifier)))
     { }
 }

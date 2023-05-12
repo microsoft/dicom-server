@@ -25,7 +25,8 @@ public sealed class ExistingUpdateOperationException : ExistingOperationExceptio
             operation,
             string.Format(
                 CultureInfo.CurrentCulture,
-                DicomCoreResource.ExistingUpdateOperation,
+                DicomCoreResource.ExistingOperation,
+                "update",
                 EnsureArg.IsNotNull(operation, nameof(operation)).Id.ToString(OperationId.FormatSpecifier)))
     { }
 }
