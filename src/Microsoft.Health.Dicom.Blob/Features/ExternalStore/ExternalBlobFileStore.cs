@@ -29,12 +29,9 @@ internal class ExternalBlobFileStore : BlobFileStore
     }
     private protected override BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
-        var filePath = _externalStoreOptions.ServiceStorePath;
-        string blobName = _nameWithPrefix.GetInstanceFileName(version);
-
-        var fullPath = filePath + blobName;
-
+        string blobName = NameWithPrefix.GetInstanceFileName(version);
+        string fullPath = _externalStoreOptions.ServiceStorePath + blobName;
         // does not throw, just appends uri with blobName
-        return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
+        return BlobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 }

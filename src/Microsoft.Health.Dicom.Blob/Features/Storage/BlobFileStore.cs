@@ -29,14 +29,9 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 public class BlobFileStore : IFileStore
 {
 #pragma warning disable CA1051
-    // ReSharper disable once InconsistentNaming
-    protected readonly IBlobClient _blobClient;
-#pragma warning restore CA1051
+    protected readonly IBlobClient BlobClient;
     private readonly BlobOperationOptions _options;
-    // ReSharper disable once InconsistentNaming
-#pragma warning disable CA1051
-    protected readonly DicomFileNameWithPrefix _nameWithPrefix;
-#pragma warning restore CA1051
+    protected readonly DicomFileNameWithPrefix NameWithPrefix;
     private readonly ILogger<BlobFileStore> _logger;
 
     public BlobFileStore(
@@ -45,10 +40,10 @@ public class BlobFileStore : IFileStore
         IOptions<BlobOperationOptions> options,
         ILogger<BlobFileStore> logger)
     {
-        _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
+        NameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
+        BlobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
 
     /// <inheritdoc />
@@ -146,7 +141,7 @@ public class BlobFileStore : IFileStore
         string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
 
         if (blockToUpdate == null)
-            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal);
+            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, BlobClient.IsExternal);
 
         stream.Seek(0, SeekOrigin.Begin);
 
@@ -278,7 +273,7 @@ public class BlobFileStore : IFileStore
             BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
             if (!blockList.CommittedBlocks.Any())
-                throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
+                throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, BlobClient.IsExternal);
 
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
             result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
@@ -303,10 +298,10 @@ public class BlobFileStore : IFileStore
 
     private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
-        string blobName = _nameWithPrefix.GetInstanceFileName(version);
+        string blobName = NameWithPrefix.GetInstanceFileName(version);
 
         // does not throw, just appends uri with blobName
-        return _blobClient.BlobContainerClient.GetBlockBlobClient(blobName);
+        return BlobClient.BlobContainerClient.GetBlockBlobClient(blobName);
     }
 
     private async Task ExecuteAsync(Func<Task> action)
@@ -318,17 +313,17 @@ public class BlobFileStore : IFileStore
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
-            throw new ItemNotFoundException(ex, _blobClient.IsExternal);
+            throw new ItemNotFoundException(ex, BlobClient.IsExternal);
         }
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
-            throw new DataStoreException(ex, _blobClient.IsExternal);
+            throw new DataStoreException(ex, BlobClient.IsExternal);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Access to storage account failed");
-            throw new DataStoreException(ex, _blobClient.IsExternal);
+            throw new DataStoreException(ex, BlobClient.IsExternal);
         }
     }
 }
