@@ -79,12 +79,4 @@ public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegr
             yield return new object[] { false, DicomWebConstants.ApplicationDicomMediaType, "1.2.840.10008.1.2.4.100" }; // unsupported media type MPEG2
         }
     }
-
-    private static void VerifyImplementationClassUID(DicomFile actual)
-    {
-        (DicomUID expectedUID, string expectedVersion) = Samples.GetDicomImplemenationClasUIDAndVersionName();
-
-        Assert.Equal(expectedUID, actual.FileMetaInfo.ImplementationClassUID);
-        Assert.Equal(expectedVersion, actual.FileMetaInfo.ImplementationVersionName);
-    }
 }

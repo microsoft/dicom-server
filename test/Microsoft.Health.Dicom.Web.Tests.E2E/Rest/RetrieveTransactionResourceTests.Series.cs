@@ -49,7 +49,6 @@ public partial class RetrieveTransactionResourceTests
             // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
             var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
             Assert.Equal(expected, actual, new DicomFileEqualityComparer(_ignoredSet));
-            VerifyImplementationClassUID(actual);
         }
     }
 

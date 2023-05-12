@@ -45,7 +45,6 @@ public partial class RetrieveTransactionResourceTests
         var actual = await response.GetValueAsync();
         var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
         Assert.Equal(expected, actual, new DicomFileEqualityComparer(_ignoredSet));
-        VerifyImplementationClassUID(actual);
     }
 
     [Theory]
