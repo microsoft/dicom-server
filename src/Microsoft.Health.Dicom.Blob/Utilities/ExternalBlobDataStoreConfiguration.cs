@@ -18,4 +18,6 @@ internal class ExternalBlobDataStoreConfiguration
 
     // use for local testing with Azurite
     public string ContainerName { get; set; }
+
+    public string ServiceStorePath { get; set; } = "";
 }
