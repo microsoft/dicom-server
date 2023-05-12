@@ -7,11 +7,17 @@ namespace Microsoft.Health.Dicom.Core.Features.Model;
 
 public class InstanceProperties
 {
-    public string TransferSyntaxUid { get; init; }
+    public string TransferSyntaxUid { get; set; }
 
-    public bool HasFrameMetadata { get; init; }
+    public bool HasFrameMetadata { get; set; }
 
-    public long? OriginalVersion { get; init; }
+    public long? OriginalVersion { get; set; }
 
-    public long? NewVersion { get; init; }
+    public long? NewVersion { get; set; }
+
+    public string BlobFilePath { get; set; }
+
+    public string BlobStoreOperationETag { get; set; }
+
+    public long? StreamLength { get; set; }
 }
