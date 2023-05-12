@@ -28,9 +28,15 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobFileStore : IFileStore
 {
-    private readonly IBlobClient _blobClient;
+#pragma warning disable CA1051
+    // ReSharper disable once InconsistentNaming
+    protected readonly IBlobClient _blobClient;
+#pragma warning restore CA1051
     private readonly BlobOperationOptions _options;
-    private readonly DicomFileNameWithPrefix _nameWithPrefix;
+    // ReSharper disable once InconsistentNaming
+#pragma warning disable CA1051
+    protected readonly DicomFileNameWithPrefix _nameWithPrefix;
+#pragma warning restore CA1051
     private readonly ILogger<BlobFileStore> _logger;
 
     public BlobFileStore(
@@ -46,24 +52,33 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Uri> StoreFileAsync(
+    public async Task<InstanceProperties> StoreFileAsync(
         long version,
         Stream stream,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClientExtStr(version);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
         stream.Seek(0, SeekOrigin.Begin);
 
+        BlobContentInfo info = null;
+
         await ExecuteAsync(async () =>
         {
-            await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
+            info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
         });
 
-        return blobClient.Uri;
+        return new InstanceProperties()
+        {
+            BlobFilePath = blobClient.Name,
+            BlobStoreOperationETag = info.ETag.ToString(),
+            StreamLength = stream.Length,
+            NewVersion = version,
+            OriginalVersion = version
+        };
     }
 
     /// <inheritdoc />
@@ -292,6 +307,17 @@ public class BlobFileStore : IFileStore
 
         // does not throw, just appends uri with blobName
         return _blobClient.BlobContainerClient.GetBlockBlobClient(blobName);
+    }
+
+    private protected virtual BlockBlobClient GetInstanceBlockBlobClientExtStr(long version)
+    {
+        var filePath = "hardcoded/path/"; // todo get from config
+        string blobName = _nameWithPrefix.GetInstanceFileName(version);
+
+        var fullPath = filePath + blobName;
+
+        // does not throw, just appends uri with blobName
+        return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
     private async Task ExecuteAsync(Func<Task> action)
