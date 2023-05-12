@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using EnsureThat;
+using System.Globalization;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
@@ -23,10 +25,14 @@ public class ExistingOperationException : Exception
     /// Initializes a new instance of the <see cref="ExistingOperationException"/> class.
     /// </summary>
     /// <param name="operation">The operation reference for the existing operation.</param>
-    /// <param name="exceptionMessage">Exception message</param>
+    /// <param name="operationType">Type of operation (eg: update, re-index)</param>
     /// <exception cref="ArgumentNullException"><paramref name="operation"/> is <see langword="null"/>.</exception>
-    public ExistingOperationException(OperationReference operation, string exceptionMessage)
-        : base(exceptionMessage)
+    public ExistingOperationException(OperationReference operation, string operationType)
+        : base(string.Format(
+                CultureInfo.CurrentCulture,
+                DicomCoreResource.ExistingOperation,
+                operationType,
+                EnsureArg.IsNotNull(operation, nameof(operation)).Id.ToString(OperationId.FormatSpecifier)))
     {
         ExistingOperation = operation;
     }
