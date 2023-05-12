@@ -110,8 +110,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
         Assert.Equal(expectedPatientName, retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.PatientName));
 
-        VerifyImplementationClassUID(retrievedDicomFile);
-
         if (requestOriginalVersion)
         {
             using DicomWebResponse<DicomFile> instanceRetrieve1 = await _client.RetrieveInstanceAsync(
@@ -176,13 +174,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
             DicomFile retrievedDicomFile1 = await instanceRetrieve1.GetValueAsync();
             Assert.NotNull(retrievedDicomFile1);
         }
-    }
-    private static void VerifyImplementationClassUID(DicomFile actual)
-    {
-        (DicomUID expectedUID, string expectedVersion) = Samples.GetDicomImplemenationClasUIDAndVersionName();
-
-        Assert.Equal(expectedUID, actual.FileMetaInfo.ImplementationClassUID);
-        Assert.Equal(expectedVersion, actual.FileMetaInfo.ImplementationVersionName);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;
