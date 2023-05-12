@@ -76,7 +76,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
             .FirstOrDefaultAsync(cancellationToken);
 
         if (activeOperation != null)
-            throw new ExistingUpdateOperationException(activeOperation);
+            throw new ExistingOperationException(activeOperation, "update");
 
         Guid operationId = _guidFactory.Create();
 
