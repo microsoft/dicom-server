@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
-using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
@@ -29,28 +28,21 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobFileStore : IFileStore
 {
-    private readonly BlobContainerClient _container;
+    private readonly IBlobClient _blobClient;
     private readonly BlobOperationOptions _options;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly ILogger<BlobFileStore> _logger;
 
     public BlobFileStore(
-        BlobServiceClient client,
+        IBlobClient blobClient,
         DicomFileNameWithPrefix nameWithPrefix,
-        IOptionsMonitor<BlobContainerConfiguration> namedBlobContainerConfigurationAccessor,
         IOptions<BlobOperationOptions> options,
         ILogger<BlobFileStore> logger)
     {
-        EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(namedBlobContainerConfigurationAccessor, nameof(namedBlobContainerConfigurationAccessor));
         _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-
-        BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
-            .Get(Constants.BlobContainerConfigurationName);
-
-        _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
+        _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
 
     /// <inheritdoc />
@@ -64,18 +56,14 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
+        stream.Seek(0, SeekOrigin.Begin);
 
-        try
+        await ExecuteAsync(async () =>
         {
-            stream.Seek(0, SeekOrigin.Begin);
             await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
+        });
 
-            return blobClient.Uri;
-        }
-        catch (Exception ex)
-        {
-            throw new DataStoreException(ex);
-        }
+        return blobClient.Uri;
     }
 
     /// <inheritdoc />
@@ -130,15 +118,20 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        _logger.LogInformation("Trying to read block list for DICOM instance file with watermark '{Version}'.", version);
 
-        BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+        BlockList blockList = null;
+        await ExecuteAsync(async () =>
+        {
+            blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+        });
 
         IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
 
         string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
 
         if (blockToUpdate == null)
-            throw new DataStoreException(DicomBlobResource.BlockNotFound);
+            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal);
 
         stream.Seek(0, SeekOrigin.Begin);
 
@@ -152,45 +145,33 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task DeleteFileIfExistsAsync(long version, CancellationToken cancellationToken)
     {
-        try
-        {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
-            await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
-        }
-        catch (Exception ex)
-        {
-            throw new DataStoreException(ex);
-        }
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        _logger.LogInformation("Trying to delete DICOM instance file with watermark '{Version}'.", version);
+
+        await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
     }
 
     /// <inheritdoc />
     public async Task<Stream> GetFileAsync(long version, CancellationToken cancellationToken)
     {
-        try
+
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+
+        Stream stream = null;
+        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+        _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
+
+        await ExecuteAsync(async () =>
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+            // todo: RetrieableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrievel.
+            // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetriebleStream
+            //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+            //stream = result.Value.Content;
+            stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
+        });
 
-            Stream stream = null;
-            var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
-
-            await ExecuteAsync(async () =>
-            {
-                // todo: RetrieableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrievel.
-                // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetriebleStream
-                //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
-                //stream = result.Value.Content;
-                stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
-            });
-
-            return stream;
-        }
-        catch (ItemNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "The DICOM instance file with watermark '{Version}' does not exist.", version);
-
-            throw;
-        }
+        return stream;
     }
 
     /// <inheritdoc />
@@ -200,6 +181,7 @@ public class BlobFileStore : IFileStore
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+        _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
         await ExecuteAsync(async () =>
         {
@@ -213,25 +195,17 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task<FileProperties> GetFilePropertiesAsync(long version, CancellationToken cancellationToken)
     {
-        try
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
+        FileProperties fileProperties = null;
+
+        await ExecuteAsync(async () =>
         {
-            BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
-            FileProperties fileProperties = null;
+            var response = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
+            fileProperties = response.Value.ToFileProperties();
+        });
 
-            await ExecuteAsync(async () =>
-            {
-                var response = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
-                fileProperties = response.Value.ToFileProperties();
-            });
-
-            return fileProperties;
-        }
-        catch (ItemNotFoundException ex)
-        {
-            _logger.LogWarning(ex, "The DICOM instance file with watermark '{Version}' does not exist.", version);
-
-            throw;
-        }
+        return fileProperties;
     }
 
     /// <inheritdoc />
@@ -240,6 +214,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(range, nameof(range));
 
         BlockBlobClient blob = GetInstanceBlockBlobClient(version);
+        _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
         Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
@@ -259,6 +234,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(range, nameof(range));
 
         BlockBlobClient blob = GetInstanceBlockBlobClient(version);
+        _logger.LogInformation("Trying to read DICOM instance fileContent with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
         BinaryData data = null;
         var blobDownloadOptions = new BlobDownloadOptions
@@ -280,13 +256,14 @@ public class BlobFileStore : IFileStore
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
         KeyValuePair<string, long> result = new KeyValuePair<string, long>();
+        _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' firstBlock.", version);
 
         await ExecuteAsync(async () =>
         {
             BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
             if (!blockList.CommittedBlocks.Any())
-                throw new DataStoreException(DicomBlobResource.BlockListNotFound);
+                throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
 
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
             result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
@@ -300,6 +277,7 @@ public class BlobFileStore : IFileStore
     {
         var blobClient = GetInstanceBlockBlobClient(originalVersion);
         var copyBlobClient = GetInstanceBlockBlobClient(newVersion);
+        _logger.LogInformation("Trying to copy DICOM instance file with watermark '{Version}' to new watermark '{NewVersion}.", originalVersion, newVersion);
 
         if (!await copyBlobClient.ExistsAsync(cancellationToken))
         {
@@ -312,10 +290,11 @@ public class BlobFileStore : IFileStore
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
 
-        return _container.GetBlockBlobClient(blobName);
+        // does not throw, just appends uri with blobName
+        return _blobClient.BlobContainerClient.GetBlockBlobClient(blobName);
     }
 
-    private static async Task ExecuteAsync(Func<Task> action)
+    private async Task ExecuteAsync(Func<Task> action)
     {
         try
         {
@@ -323,11 +302,18 @@ public class BlobFileStore : IFileStore
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
-            throw new ItemNotFoundException(ex);
+            _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
+            throw new ItemNotFoundException(ex, _blobClient.IsExternal);
+        }
+        catch (RequestFailedException ex)
+        {
+            _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
         catch (Exception ex)
         {
-            throw new DataStoreException(ex);
+            _logger.LogError(ex, "Access to storage account failed");
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }
 }

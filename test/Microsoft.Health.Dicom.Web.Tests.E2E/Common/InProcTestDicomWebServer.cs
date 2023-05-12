@@ -84,6 +84,8 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 {
                     TestEnvironment.Variables["security_enabled"] = "true";
                 }
+
+                config.AddEnvironmentVariables();
             })
             .ConfigureServices(serviceCollection =>
             {

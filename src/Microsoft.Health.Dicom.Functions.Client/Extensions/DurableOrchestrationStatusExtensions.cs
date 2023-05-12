@@ -24,6 +24,9 @@ internal static class DurableOrchestrationStatusExtensions
             if (status.Name.StartsWith(FunctionNames.ReindexInstances, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Reindex;
 
+            if (status.Name.StartsWith(FunctionNames.MigrateFiles, StringComparison.OrdinalIgnoreCase))
+                return DicomOperation.Migrate;
+
             if (status.Name.StartsWith(FunctionNames.UpdateInstances, StringComparison.OrdinalIgnoreCase))
                 return DicomOperation.Update;
         }
