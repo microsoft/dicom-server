@@ -350,4 +350,17 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
+
+    public virtual Task EndCreateInstanceIndexAsync(
+        int partitionKey,
+        DicomDataset dicomDataset,
+        long watermark,
+        IEnumerable<QueryTag> queryTags,
+        bool allowExpiredTags = false,
+        bool hasFrameMetadata = false,
+        InstanceProperties instanceProperties = null,
+        CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
 }

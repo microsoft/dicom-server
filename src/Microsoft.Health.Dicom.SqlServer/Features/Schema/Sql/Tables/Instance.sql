@@ -21,6 +21,8 @@ CREATE TABLE dbo.Instance (
     --instance metadata
     TransferSyntaxUid       VARCHAR(64)                NULL,
     HasFrameMetadata        BIT                        NOT NULL DEFAULT 0,
+    BlobFilePath            VARCHAR(64)                NULL,
+    BlobStoreOperationETag  VARCHAR(64)                NULL,
     --update columns
     OriginalWatermark       BIGINT                     NULL,
     NewWatermark            BIGINT                     NULL
@@ -106,7 +108,7 @@ INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid  
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -123,7 +125,7 @@ INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid  
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
