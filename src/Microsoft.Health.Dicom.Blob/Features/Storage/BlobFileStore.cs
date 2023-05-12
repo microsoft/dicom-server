@@ -311,7 +311,7 @@ public class BlobFileStore : IFileStore
 
     private protected virtual BlockBlobClient GetInstanceBlockBlobClientExtStr(long version)
     {
-        var filePath = "hardcoded/path/"; // todo get from config
+        var filePath = "hardcoded/path/"; // todo get from config and move to separate class
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
 
         var fullPath = filePath + blobName;

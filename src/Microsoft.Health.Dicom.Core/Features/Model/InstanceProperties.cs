@@ -19,5 +19,5 @@ public class InstanceProperties
 
     public string BlobStoreOperationETag { get; set; }
 
-    public long? StreamLength { get; set; }
+    public long StreamLength { get; set; }
 }
