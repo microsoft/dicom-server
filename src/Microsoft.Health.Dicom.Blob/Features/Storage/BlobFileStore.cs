@@ -59,7 +59,7 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClientExtStr(version);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
         stream.Seek(0, SeekOrigin.Begin);
@@ -301,23 +301,12 @@ public class BlobFileStore : IFileStore
         }
     }
 
-    private BlockBlobClient GetInstanceBlockBlobClient(long version)
+    private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
 
         // does not throw, just appends uri with blobName
         return _blobClient.BlobContainerClient.GetBlockBlobClient(blobName);
-    }
-
-    private protected virtual BlockBlobClient GetInstanceBlockBlobClientExtStr(long version)
-    {
-        var filePath = "hardcoded/path/"; // todo get from config and move to separate class
-        string blobName = _nameWithPrefix.GetInstanceFileName(version);
-
-        var fullPath = filePath + blobName;
-
-        // does not throw, just appends uri with blobName
-        return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
     private async Task ExecuteAsync(Func<Task> action)

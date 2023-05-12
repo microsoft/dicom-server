@@ -71,7 +71,7 @@ public static class DicomFunctionsBuilderRegistrationExtensions
                 .AsImplementedInterfaces();
 
             functionsBuilder.Services
-                .AddPersistence<IFileStore, BlobFileStore>();
+                .AddPersistence<IFileStore, ExternalBlobFileStore>();
         }
         else
         {
