@@ -158,7 +158,7 @@ public class StoreOrchestratorTests
                 expectedTags,
                 false,
                 false,
-                DefaultCancellationToken);
+                cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()
         => _deleteService
