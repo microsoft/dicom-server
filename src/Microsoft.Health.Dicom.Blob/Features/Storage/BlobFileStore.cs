@@ -28,11 +28,10 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobFileStore : IFileStore
 {
-#pragma warning disable CA1051
-    protected readonly IBlobClient BlobClient;
     private readonly BlobOperationOptions _options;
-    protected readonly DicomFileNameWithPrefix NameWithPrefix;
     private readonly ILogger<BlobFileStore> _logger;
+    protected DicomFileNameWithPrefix NameWithPrefix { get; }
+    public IBlobClient BlobClient { get; }
 
     public BlobFileStore(
         IBlobClient blobClient,
@@ -211,8 +210,8 @@ public class BlobFileStore : IFileStore
 
         await ExecuteAsync(async () =>
         {
-            var response = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
-            fileProperties = response.Value.ToFileProperties();
+            BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
+            fileProperties = blobProperties.ToFileProperties();
         });
 
         return fileProperties;
@@ -294,6 +293,14 @@ public class BlobFileStore : IFileStore
             var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
             await operation.WaitForCompletionAsync(cancellationToken);
         }
+    }
+
+
+    public async Task<string> SetInstanceBlobMetadataAsync(long version, IDictionary<string, string> metadata, CancellationToken cancellationToken = default)
+    {
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
+        BlobInfo blobInfo = await blobClient.SetMetadataAsync(metadata, cancellationToken: cancellationToken);
+        return blobInfo.ETag.ToString();
     }
 
     private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version)

@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,19 +59,21 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
     }
 
     [Fact]
-    public async Task GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten()
+    public async Task GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwrittenWithDifferentETag()
     {
         var version = _getNextWatermark();
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        InstanceProperties instanceProperties1 = await AddFileAsync(version, fileData1, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData1");
+        InstanceProperties instanceProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
-        InstanceProperties instanceProperties2 = await AddFileAsync(version, fileData2, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData2");
+        InstanceProperties instanceProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
-        Assert.Equal(instanceProperties1, instanceProperties2);
+        Assert.Equal(instanceProperties1.BlobFilePath, instanceProperties2.BlobFilePath);
+        // while the path may be the same, the eTag is expected to be different on file rewrites
+        Assert.NotEqual(instanceProperties1.BlobStoreOperationETag, instanceProperties2.BlobStoreOperationETag);
 
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
@@ -81,6 +84,49 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         await _blobDataStore.DeleteFileIfExistsAsync(version);
     }
+
+    [Fact]
+    public async Task GivenFileAlreadyExists_WhenDeletedAndThenRestored_ThenExistingFileWillBeRewrittenWithDifferentETag()
+    {
+        var version = _getNextWatermark();
+
+        // store the file
+        var fileData1 = new byte[] { 4, 7, 2 };
+        InstanceProperties instanceProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
+
+        // file is deleted
+        await _blobDataStore.DeleteFileIfExistsAsync(version);
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version));
+
+        // store file again with same path
+        var fileData2 = new byte[] { 1, 3, 5 };
+        InstanceProperties instanceProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
+
+        // expect file path same
+        Assert.Equal(instanceProperties1.BlobFilePath, instanceProperties2.BlobFilePath);
+        // while the path may be the same, the eTag is expected to be different on file rewrites
+        Assert.NotEqual(instanceProperties1.BlobStoreOperationETag, instanceProperties2.BlobStoreOperationETag);
+
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
+        {
+            Assert.Equal(
+                fileData2,
+                await ConvertStreamToByteArrayAsync(resultStream));
+        }
+
+        IDictionary<string, string> metadata = new Dictionary<string, string>() { };
+
+        // modify metadata of file and expect blob etag is now different than what it was before
+        string eTag = await _blobDataStore.SetInstanceBlobMetadataAsync(version, metadata);
+        Assert.NotEqual(instanceProperties2.BlobStoreOperationETag, eTag);
+
+        // get blob again and ensure its eTag is same as what we got from metadata update
+        FileProperties props = await _blobDataStore.GetFilePropertiesAsync(version);
+        Assert.NotEqual(props.ETag, eTag);
+
+        await _blobDataStore.DeleteFileIfExistsAsync(version);
+    }
+
 
     [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenItemNotFoundExceptionShouldBeThrown()

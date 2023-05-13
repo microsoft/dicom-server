@@ -3,25 +3,27 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Extensions.Options;
-using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Features.Storage;
-using NSubstitute;
-using Xunit;
-using Azure.Storage.Blobs;
+using System.Globalization;
 using System.IO;
 using System.Threading;
-using Azure.Storage.Blobs.Models;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Azure.Storage.Blobs.Specialized;
-using NSubstitute.ExceptionExtensions;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Threading.Tasks;
-using System.Globalization;
-using Microsoft.Health.Dicom.Core;
 using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
+using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Xunit;
 
-namespace Microsoft.Health.Dicom.Blob.UnitTests;
+namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Storage;
 
 public class BlobFileStoreTests
 {
@@ -88,7 +90,8 @@ public class BlobFileStoreTests
         externalBlobClient = new TestExternalBlobClient();
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
+        IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
+        blobFileStore = new ExternalBlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance, externalStoreOptions);
 
     }
 
