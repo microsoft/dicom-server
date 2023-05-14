@@ -449,20 +449,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There is already an active re-index operation with ID &apos;{0}&apos;..
+        ///   Looks up a localized string similar to There is already an active {0} operation with ID &apos;{1}&apos;..
         /// </summary>
-        internal static string ExistingReindexOperation {
+        internal static string ExistingOperation {
             get {
-                return ResourceManager.GetString("ExistingReindexOperation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to There is already an active update operation with ID &apos;{0}&apos;..
-        /// </summary>
-        internal static string ExistingUpdateOperation {
-            get {
-                return ResourceManager.GetString("ExistingUpdateOperation", resourceCulture);
+                return ResourceManager.GetString("ExistingOperation", resourceCulture);
             }
         }
         

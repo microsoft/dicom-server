@@ -4,39 +4,34 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 using EnsureThat;
+using System.Globalization;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
 /// <summary>
-/// The exception that is thrown when a Dicom update operation request is submitted while one is already active.
+/// The exception that is thrown when a new operation is submitted while one is already active.
 /// </summary>
-public sealed class ExistingUpdateOperationException : Exception
+public class ExistingOperationException : Exception
 {
     /// <summary>
-    /// Gets the reference to the existing update operation.
+    /// Gets the reference to the existing operation.
     /// </summary>
     /// <value>The <see cref="OperationReference"/> for the existing operation, if specified.</value>
     public OperationReference ExistingOperation { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExistingUpdateOperationException"/> class.
+    /// Initializes a new instance of the <see cref="ExistingOperationException"/> class.
     /// </summary>
-    public ExistingUpdateOperationException()
-    { }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ExistingUpdateOperationException"/> class.
-    /// </summary>
-    /// <param name="operation">The operation reference for the existing update operation.</param>
+    /// <param name="operation">The operation reference for the existing operation.</param>
+    /// <param name="operationType">Type of operation (eg: update, re-index)</param>
     /// <exception cref="ArgumentNullException"><paramref name="operation"/> is <see langword="null"/>.</exception>
-    public ExistingUpdateOperationException(OperationReference operation)
-        : base(
-            string.Format(
+    public ExistingOperationException(OperationReference operation, string operationType)
+        : base(string.Format(
                 CultureInfo.CurrentCulture,
-                DicomCoreResource.ExistingUpdateOperation,
+                DicomCoreResource.ExistingOperation,
+                operationType,
                 EnsureArg.IsNotNull(operation, nameof(operation)).Id.ToString(OperationId.FormatSpecifier)))
     {
         ExistingOperation = operation;
