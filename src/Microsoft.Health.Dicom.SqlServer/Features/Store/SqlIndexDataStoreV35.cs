@@ -59,8 +59,8 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV23
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata,
-                instanceProperties.BlobFilePath,
-                instanceProperties.BlobStoreOperationETag
+                instanceProperties?.BlobFilePath,
+                instanceProperties?.BlobStoreOperationETag
             );
 
             try

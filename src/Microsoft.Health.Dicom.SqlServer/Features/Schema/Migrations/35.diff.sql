@@ -65,8 +65,8 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV35
     @status                     TINYINT,
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
-    @blobFilePath               VARCHAR(64),
-    @blobStoreOperationETag     VARCHAR(64)
+    @blobFilePath               VARCHAR(64) = NULL,
+    @blobStoreOperationETag     VARCHAR(64) = NULL
     AS
 BEGIN
     SET NOCOUNT ON
