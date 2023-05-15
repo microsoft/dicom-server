@@ -16,6 +16,8 @@ using PartitionEntry = Microsoft.Health.Dicom.Core.Features.Partition.PartitionE
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
+// TODO: Remove trait and combine tests with other change feed tests once V2 is live
+[Trait("Category", "leniency")]
 [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
 public class TemporalChangeFeedTests : BaseChangeFeedTests, IClassFixture<FeatureEnabledTestFixture<Startup>>
 {

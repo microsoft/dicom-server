@@ -14,7 +14,6 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-// Merge tests with temporal ones when V2 becomes the 
 [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
 public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
