@@ -159,6 +159,19 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         }
     }
 
+    public override async Task EndCreateInstanceIndexAsync(
+        int partitionKey,
+        DicomDataset dicomDataset,
+        long watermark,
+        IEnumerable<QueryTag> queryTags,
+        bool allowExpiredTags = false,
+        bool hasFrameMetadata = false,
+        InstanceProperties instanceProperties = null,
+        CancellationToken cancellationToken = default)
+    {
+        await EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
+    }
+
     public override async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
     {
         var results = new List<VersionedInstanceIdentifier>();
