@@ -35,3 +35,21 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInst
     SeriesInstanceUid,
     SopInstanceUid
 ) WITH (DATA_COMPRESSION = PAGE)
+
+-- For use with the V1 APIs that use Sequence
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+(
+    Sequence
+)
+INCLUDE
+(
+    Timestamp,
+    Action,
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid,
+    OriginalWatermark,
+    CurrentWatermark,
+    PartitionKey
+)
+WITH (DATA_COMPRESSION = PAGE)

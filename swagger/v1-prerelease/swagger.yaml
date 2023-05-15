@@ -26,16 +26,6 @@ paths:
             type: integer
             format: int32
             default: 10
-        - name: startTime
-          in: query
-          schema:
-            type: string
-            format: date-time
-        - name: endTime
-          in: query
-          schema:
-            type: string
-            format: date-time
         - name: includeMetadata
           in: query
           schema:

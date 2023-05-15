@@ -4,11 +4,31 @@ BEGIN TRANSACTION
 
     DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
 
+    DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+
     CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     (
         Timestamp,
         Sequence
     )
+
+    -- For use with the V1 APIs that use Sequence
+    CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+    (
+        Sequence
+    )
+    INCLUDE
+    (
+        Timestamp,
+        Action,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        OriginalWatermark,
+        CurrentWatermark,
+        PartitionKey
+    )
+WITH (DATA_COMPRESSION = PAGE)
 
 COMMIT TRANSACTION
 GO

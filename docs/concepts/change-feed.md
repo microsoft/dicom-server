@@ -6,6 +6,8 @@ Client applications can read these logs at any time in batches of any size. The 
 
 You can process these change events asynchronously, incrementally, or in-full. Any number of client applications can independently read the Change Feed, in parallel, and at their own pace.
 
+As of v2 of the API, the Change Feed can be queried for a particular time window.
+
 ## API Design
 
 The API exposes two `GET` endpoints for interacting with the Change Feed. A typical flow for consuming the Change Feed is [provided below](#example-usage-flow).
@@ -71,13 +73,13 @@ deleted  | This instance has been deleted and is no longer available in the serv
 
 #### Parameters
 
-Name            | Type     | Description | Default | Min | Max |
-:-------------- | :------- | :---------- | :------ | :-- | :-- |
-offset          | int      | The number of records to skip before the values to return | `0` | `0` | |
-limit           | int      | The number of records to return | `10` | `1` | `100` |
-startTime       | DateTime | The inclusive start time for change events | `"0001-01-01T00:00:00Z"` | `"0001-01-01T00:00:00Z"` | `"9999-12-31T23:59:59.9999998Z"`|
-endTime         | DateTime | The exclusive end time for change events | `"9999-12-31T23:59:59.9999999Z"` | `"0001-01-01T00:00:00.0000001"` | `"9999-12-31T23:59:59.9999999Z"` |
-includeMetadata | bool     | Indicates whether or not to include the metadata | `true` | | |
+Name            | Type     | Availability | Description | Default | Min | Max |
+:-------------- | :------- | :----------- | :---------- | :------ | :-- | :-- |
+offset          | int      | v1           | The number of records to skip before the values to return | `0` | `0` | |
+limit           | int      | v1           | The number of records to return | `10` | `1` | `100` |
+startTime       | DateTime | v2           | The inclusive start time for change events | `"0001-01-01T00:00:00Z"` | `"0001-01-01T00:00:00Z"` | `"9999-12-31T23:59:59.9999998Z"`|
+endTime         | DateTime | v2           |  The exclusive end time for change events | `"9999-12-31T23:59:59.9999999Z"` | `"0001-01-01T00:00:00.0000001"` | `"9999-12-31T23:59:59.9999999Z"` |
+includeMetadata | bool     | v1           | Indicates whether or not to include the metadata | `true` | | |
 
 ### Get latest Change Feed item
 
@@ -114,6 +116,8 @@ includeMetadata | bool | Indicates whether or not to include the metadata | `tru
 
 Below is the flow for an example application that wants to do additional processing on the instances within the DICOM service.
 
+#### Version 2
+
 1. On some interval, an application queries the Change Feed for the changes within a time range
     * For example, if querying every hour, a query for the Change Feed may look like `/changefeed?startTime=2023-05-10T16:00:00Z&endTime=2023-05-10T17:00:00Z`
     * If starting from the beginning, the Change Feed query may omit the `startTime` to read all of the changes up to, but excluding, the `endTime`
@@ -124,6 +128,20 @@ Below is the flow for an example application that wants to do additional process
         * `/changefeed?offset=100&limit=100&startTime=2023-05-10T16:00:00Z&endTime=2023-05-10T17:00:00Z`
         * `/changefeed?offset=200&limit=100&startTime=2023-05-10T16:00:00Z&endTime=2023-05-10T17:00:00Z`
     * If fewer events than the `limit` are returned, then the application can assume that there are no more results
+
+#### Version 1
+
+1. Application that wants to monitor the Change Feed starts.
+2. It determines if there's a current state that it should start with:
+   * If it has a state, it uses the offset (sequence) stored.
+   * If it has never started and wants to start from beginning it uses offset=0
+   * If it only wants to process from now, it queries `/changefeed/latest` to obtain the last sequence
+3. It queries the Change Feed with the given offset `/changefeed?offset={offset}`
+4. If there are entries:
+   * It performs additional processing
+   * It updates it's current state
+   * It starts again at 2 above
+5. If there are no entries it sleeps for a configured amount of time and starts back at 2.
 
 ### Other potential usage patterns
 

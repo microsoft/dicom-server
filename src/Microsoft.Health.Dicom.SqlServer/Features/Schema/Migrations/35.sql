@@ -95,6 +95,10 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid
     ON dbo.ChangeFeed(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid) WITH (DATA_COMPRESSION = PAGE);
 
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence
+    ON dbo.ChangeFeed(Sequence)
+    INCLUDE(Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark, PartitionKey) WITH (DATA_COMPRESSION = PAGE);
+
 CREATE TABLE dbo.DeletedInstance (
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
     SeriesInstanceUid VARCHAR (64)       NOT NULL,
