@@ -32,7 +32,7 @@ public class ChangeFeedService : IChangeFeedService
         _options = EnsureArg.IsNotNull(options?.Value, nameof(metadataStore));
     }
 
-    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, bool includeMetadata, CancellationToken cancellationToken = default)
     {
         if (offset < 0)
             throw new ArgumentOutOfRangeException(nameof(offset));
@@ -40,7 +40,7 @@ public class ChangeFeedService : IChangeFeedService
         if (limit < 1)
             throw new ArgumentOutOfRangeException(nameof(limit));
 
-        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, cancellationToken);
+        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedStore.GetChangeFeedAsync(range, offset, limit, order, cancellationToken);
 
         if (includeMetadata)
         {
@@ -57,9 +57,9 @@ public class ChangeFeedService : IChangeFeedService
         return changeFeedEntries;
     }
 
-    public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, CancellationToken cancellationToken = default)
+    public async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(ChangeFeedOrder order, bool includeMetadata, CancellationToken cancellationToken = default)
     {
-        ChangeFeedEntry result = await _changeFeedStore.GetChangeFeedLatestAsync(cancellationToken);
+        ChangeFeedEntry result = await _changeFeedStore.GetChangeFeedLatestAsync(order, cancellationToken);
 
         if (result == null)
             return null;

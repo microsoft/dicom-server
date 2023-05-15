@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
@@ -148,20 +149,22 @@ public static class DicomMediatorExtensions
         TimeRange range,
         long offset,
         int limit,
+        ChangeFeedOrder order,
         bool includeMetadata,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ChangeFeedRequest(range, offset, limit, includeMetadata), cancellationToken);
+        return mediator.Send(new ChangeFeedRequest(range, offset, limit, order, includeMetadata), cancellationToken);
     }
 
     public static Task<ChangeFeedLatestResponse> GetChangeFeedLatest(
         this IMediator mediator,
+        ChangeFeedOrder order,
         bool includeMetadata,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
+        return mediator.Send(new ChangeFeedLatestRequest(order, includeMetadata), cancellationToken);
     }
 
     public static Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(

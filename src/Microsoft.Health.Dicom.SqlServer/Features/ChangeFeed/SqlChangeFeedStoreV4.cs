@@ -31,9 +31,9 @@ internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
         SqlConnectionWrapperFactory = EnsureArg.IsNotNull(sqlConnectionWrapperFactory, nameof(sqlConnectionWrapperFactory));
     }
 
-    public virtual async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
-        if (range != TimeRange.MaxValue)
+        if (range != TimeRange.MaxValue || order != ChangeFeedOrder.Sequence)
             throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
 
         var results = new List<ChangeFeedEntry>();
@@ -71,8 +71,11 @@ internal class SqlChangeFeedStoreV4 : ISqlChangeFeedStore
         return results;
     }
 
-    public virtual async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
+    public virtual async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(ChangeFeedOrder order, CancellationToken cancellationToken)
     {
+        if (order != ChangeFeedOrder.Sequence)
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 

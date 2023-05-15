@@ -4,17 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using MediatR;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
 public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
 {
-    public ChangeFeedRequest(TimeRange range, long offset, int limit, bool includeMetadata)
+    public ChangeFeedRequest(TimeRange range, long offset, int limit, ChangeFeedOrder order, bool includeMetadata)
     {
         Range = range;
         Offset = offset;
         Limit = limit;
+        Order = order;
         IncludeMetadata = includeMetadata;
     }
 
@@ -23,6 +25,8 @@ public class ChangeFeedRequest : IRequest<ChangeFeedResponse>
     public int Limit { get; }
 
     public long Offset { get; }
+
+    public ChangeFeedOrder Order { get; }
 
     public bool IncludeMetadata { get; }
 }

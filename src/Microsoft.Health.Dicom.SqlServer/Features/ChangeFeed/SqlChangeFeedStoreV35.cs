@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
@@ -27,8 +28,13 @@ internal class SqlChangeFeedStoreV35 : SqlChangeFeedStoreV6
     {
     }
 
-    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, CancellationToken cancellationToken = default)
     {
+        EnsureArg.EnumIsDefined(order, nameof(order));
+
+        if (range != TimeRange.MaxValue && order == ChangeFeedOrder.Sequence)
+            throw new InvalidOperationException(DicomSqlServerResource.InvalidChangeFeedQuery);
+
         var results = new List<ChangeFeedEntry>();
 
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
@@ -66,8 +72,10 @@ internal class SqlChangeFeedStoreV35 : SqlChangeFeedStoreV6
         return results;
     }
 
-    public override async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(CancellationToken cancellationToken)
+    public override async Task<ChangeFeedEntry> GetChangeFeedLatestAsync(ChangeFeedOrder order, CancellationToken cancellationToken)
     {
+        EnsureArg.EnumIsDefined(order, nameof(order));
+
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 

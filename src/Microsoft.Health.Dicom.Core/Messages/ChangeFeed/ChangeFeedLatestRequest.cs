@@ -4,15 +4,19 @@
 // -------------------------------------------------------------------------------------------------
 
 using MediatR;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
 namespace Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
 
 public class ChangeFeedLatestRequest : IRequest<ChangeFeedLatestResponse>
 {
-    public ChangeFeedLatestRequest(bool includeMetadata)
+    public ChangeFeedLatestRequest(ChangeFeedOrder order, bool includeMetadata)
     {
+        Order = order;
         IncludeMetadata = includeMetadata;
     }
+
+    public ChangeFeedOrder Order { get; }
 
     public bool IncludeMetadata { get; }
 }

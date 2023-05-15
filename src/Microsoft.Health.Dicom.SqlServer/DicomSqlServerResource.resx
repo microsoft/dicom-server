@@ -129,6 +129,9 @@
     <value>The specified extended query tag with tag key {0} cannot be found.</value>
     <comment>{0} is tag key</comment>
   </data>
+  <data name="InvalidChangeFeedQuery" xml:space="preserve">
+    <value>Change feed cannot be filtered by time while sorted by sequence number.</value>
+  </data>
   <data name="SchemaVersionNeedsToBeUpgraded" xml:space="preserve">
     <value>Cannot carry out the SQL datastore operation because the SQL schema needs to be upgraded.</value>
   </data>

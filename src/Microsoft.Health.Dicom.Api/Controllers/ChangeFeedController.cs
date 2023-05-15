@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Filters;
-using Microsoft.Health.Dicom.Api.Features.ModelBinders;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -54,17 +52,9 @@ public class ChangeFeedController : ControllerBase
     public Task<IActionResult> GetChangeFeedAsync(
         [FromQuery][Range(0, long.MaxValue)] long offset = 0,
         [FromQuery][Range(1, 100)] int limit = 10,
-        [FromQuery][ModelBinder(typeof(MandatoryTimeZoneBinder))] DateTimeOffset? startTime = null,
-        [FromQuery][ModelBinder(typeof(MandatoryTimeZoneBinder))] DateTimeOffset? endTime = null,
         [FromQuery] bool includeMetadata = true)
     {
-        DateTimeOffset start = startTime.GetValueOrDefault(DateTimeOffset.MinValue);
-        DateTimeOffset end = endTime.GetValueOrDefault(DateTimeOffset.MaxValue);
-
-        if (end <= start)
-            throw new ValidationException(string.Format(CultureInfo.InvariantCulture, DicomApiResource.InvalidTimeRange, start, end));
-
-        return GetChangeFeedAsync(new TimeRange(start, end), offset, limit, includeMetadata, HttpContext.RequestAborted);
+        return GetChangeFeedAsync(TimeRange.MaxValue, offset, limit, ChangeFeedOrder.Sequence, includeMetadata, HttpContext.RequestAborted);
     }
 
     [HttpGet]
@@ -80,7 +70,7 @@ public class ChangeFeedController : ControllerBase
         [FromQuery] bool includeMetadata = true)
     {
         EnsureArg.IsNotNull(options, nameof(options));
-        return GetChangeFeedAsync(options.Window, options.Offset, options.Limit, includeMetadata, HttpContext.RequestAborted);
+        return GetChangeFeedAsync(options.Window, options.Offset, options.Limit, ChangeFeedOrder.Time, includeMetadata, HttpContext.RequestAborted);
     }
 
     [HttpGet]
@@ -94,7 +84,9 @@ public class ChangeFeedController : ControllerBase
     {
         _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
 
+        int version = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
         ChangeFeedLatestResponse response = await _mediator.GetChangeFeedLatest(
+            version > 1 ? ChangeFeedOrder.Time : ChangeFeedOrder.Sequence,
             includeMetadata,
             cancellationToken: HttpContext.RequestAborted);
 
@@ -105,6 +97,7 @@ public class ChangeFeedController : ControllerBase
         TimeRange range,
         long offset,
         int limit,
+        ChangeFeedOrder order,
         bool includeMetadata,
         CancellationToken cancellationToken = default)
     {
@@ -119,6 +112,7 @@ public class ChangeFeedController : ControllerBase
             range,
             offset,
             limit,
+            order,
             includeMetadata,
             cancellationToken);
 

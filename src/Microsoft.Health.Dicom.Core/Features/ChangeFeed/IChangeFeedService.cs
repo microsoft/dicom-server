@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 
 public interface IChangeFeedService
 {
-    public Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, bool includeMetadata, CancellationToken cancellationToken = default);
+    public Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedAsync(TimeRange range, long offset, int limit, ChangeFeedOrder order, bool includeMetadata, CancellationToken cancellationToken = default);
 
-    public Task<ChangeFeedEntry> GetChangeFeedLatestAsync(bool includeMetadata, CancellationToken cancellationToken = default);
+    public Task<ChangeFeedEntry> GetChangeFeedLatestAsync(ChangeFeedOrder order, bool includeMetadata, CancellationToken cancellationToken = default);
 }
