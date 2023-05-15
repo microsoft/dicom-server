@@ -18,40 +18,7 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedLatestV35
---
--- FIRST SCHEMA VERSION
---     35
---
--- DESCRIPTION
---     Gets the latest dicom change by timestamp
-/***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV35
-AS
-BEGIN
-    SET NOCOUNT     ON
-    SET XACT_ABORT  ON
-
-    SELECT  TOP(1)
-            Sequence,
-            Timestamp,
-            Action,
-            PartitionName,
-            StudyInstanceUid,
-            SeriesInstanceUid,
-            SopInstanceUid,
-            OriginalWatermark,
-            CurrentWatermark
-    FROM    dbo.ChangeFeed c
-    INNER JOIN dbo.Partition p
-    ON p.PartitionKey = c.PartitionKey
-    ORDER BY Timestamp DESC, Sequence DESC
-END
-GO
-
-/***************************************************************************************/
--- STORED PROCEDURE
---     GetChangeFeedV35
+--     GetChangeFeedByTime
 --
 -- FIRST SCHEMA VERSION
 --     35
@@ -69,7 +36,7 @@ GO
 --     @limit
 --         * Max rows to return
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV35 (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedByTime (
     @startTime DATETIMEOFFSET(7),
     @endTime   DATETIMEOFFSET(7),
     @offset    BIGINT,
@@ -96,6 +63,39 @@ BEGIN
     ORDER BY Timestamp, Sequence
     OFFSET @offset ROWS
     FETCH NEXT @limit ROWS ONLY
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetChangeFeedLatestByTime
+--
+-- FIRST SCHEMA VERSION
+--     35
+--
+-- DESCRIPTION
+--     Gets the latest dicom change by timestamp
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestByTime
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  TOP(1)
+            Sequence,
+            Timestamp,
+            Action,
+            PartitionName,
+            StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            OriginalWatermark,
+            CurrentWatermark
+    FROM    dbo.ChangeFeed c
+    INNER JOIN dbo.Partition p
+    ON p.PartitionKey = c.PartitionKey
+    ORDER BY Timestamp DESC, Sequence DESC
 END
 GO
 

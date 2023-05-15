@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Threading.Tasks;
 using MediatR;
@@ -66,29 +65,24 @@ public class ChangeFeedControllerTests
     }
 
     [Theory]
-    [InlineData(0, 5, null, null, false)]
-    [InlineData(int.MaxValue + 1L, 25, "2023-05-10T01:23:45Z", null, true)]
-    [InlineData(100, 200, null, "2023-05-11T01:23:45Z", true)]
-    [InlineData(1000, int.MaxValue, "2023-05-10T01:23:45Z", "2023-05-11T01:23:45Z", false)]
-    public async Task GivenParameters_WhenFetchingChangeFeed_ThenPassValues(long offset, int limit, string start, string end, bool includeMetadata)
+    [InlineData(0, 5, false)]
+    [InlineData(int.MaxValue + 1L, 25, true)]
+    public async Task GivenParameters_WhenFetchingChangeFeed_ThenPassValues(long offset, int limit, bool includeMetadata)
     {
-        DateTimeOffset? startTime = start == null ? null : DateTimeOffset.Parse(start, CultureInfo.InvariantCulture);
-        DateTimeOffset? endTime = end == null ? null : DateTimeOffset.Parse(end, CultureInfo.InvariantCulture);
-        var range = new TimeRange(startTime ?? DateTimeOffset.MinValue, endTime ?? DateTimeOffset.MaxValue);
-
         var expected = new List<ChangeFeedEntry>();
 
         _mediator
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == range &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
+                    x.Order == ChangeFeedOrder.Sequence &&
                     x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
 
-        IActionResult result = await _controller.GetChangeFeedAsync(offset, limit, startTime, endTime, includeMetadata);
+        IActionResult result = await _controller.GetChangeFeedAsync(offset, limit, includeMetadata);
         var actual = result as ObjectResult;
         Assert.Same(expected, actual.Value);
 
@@ -96,18 +90,12 @@ public class ChangeFeedControllerTests
             .Received(1)
             .Send(
                 Arg.Is<ChangeFeedRequest>(x =>
-                    x.Range == range &&
+                    x.Range == TimeRange.MaxValue &&
                     x.Offset == offset &&
                     x.Limit == limit &&
+                    x.Order == ChangeFeedOrder.Sequence &&
                     x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted);
-    }
-
-    [Fact]
-    public async Task GivenOrderMixup_WhenFetchingChangeFeed_ThenThrow()
-    {
-        await Assert.ThrowsAsync<ValidationException>(() => _controller.GetChangeFeedAsync(startTime: DateTimeOffset.UtcNow, endTime: DateTimeOffset.UtcNow.AddHours(-1)));
-        await _mediator.DidNotReceiveWithAnyArgs().Send(default, default);
     }
 
     [Fact]
@@ -158,6 +146,7 @@ public class ChangeFeedControllerTests
                     x.Range == expectedRange &&
                     x.Offset == offset &&
                     x.Limit == limit &&
+                    x.Order == ChangeFeedOrder.Time &&
                     x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted)
             .Returns(new ChangeFeedResponse(expected));
@@ -181,6 +170,7 @@ public class ChangeFeedControllerTests
                     x.Range == expectedRange &&
                     x.Offset == offset &&
                     x.Limit == limit &&
+                    x.Order == ChangeFeedOrder.Time &&
                     x.IncludeMetadata == includeMetadata),
                 _controller.HttpContext.RequestAborted);
     }

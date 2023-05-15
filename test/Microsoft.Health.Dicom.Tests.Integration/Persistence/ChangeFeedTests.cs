@@ -71,45 +71,22 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         // Get all creation events
         var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
-        IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(testRange, 0, 10);
+        IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(testRange, 0, 10, ChangeFeedOrder.Time);
         Assert.Equal(3, changes.Count);
         Assert.Equal(instance1.Version, changes[0].CurrentVersion);
         Assert.Equal(instance2.Version, changes[1].CurrentVersion);
         Assert.Equal(instance3.Version, changes[2].CurrentVersion);
 
         // Fetch changes outside of the range
-        IReadOnlyList<ChangeFeedEntry> existingEvents = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.Before(changes[0].Timestamp), 0, 100);
+        IReadOnlyList<ChangeFeedEntry> existingEvents = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.Before(changes[0].Timestamp), 0, 100, ChangeFeedOrder.Time);
         Assert.DoesNotContain(existingEvents, x => changes.Any(y => y.Sequence == x.Sequence));
 
-        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[1].Timestamp), 2, 100));
-        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[2].Timestamp.AddMilliseconds(1)), 0, 100));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[1].Timestamp), 2, 100, ChangeFeedOrder.Time));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[2].Timestamp.AddMilliseconds(1)), 0, 100, ChangeFeedOrder.Time));
 
         // Fetch changes limited to window
         await ValidateSubsetAsync(testRange, changes[0], changes[1], changes[2]);
         await ValidateSubsetAsync(new TimeRange(changes[0].Timestamp, changes[2].Timestamp), changes[0], changes[1]);
-    }
-
-    [Fact]
-    public async Task GivenPreviousChangeFeedLogic_WhenFetchingChangeFeeds_ThenResultsAreTheSame()
-    {
-        await CreateInstanceAsync();
-        await CreateInstanceAsync();
-        await CreateInstanceAsync();
-        await CreateInstanceAsync();
-        await CreateInstanceAsync();
-
-        // Check Change Feed
-        IReadOnlyList<ChangeFeedEntry> current = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.MaxValue, 0, int.MaxValue);
-        IReadOnlyList<ChangeFeedEntry> previous = await _fixture.PreviousDicomChangeFeedStore.GetChangeFeedAsync(TimeRange.MaxValue, 0, int.MaxValue);
-
-        Assert.Equal(current.Count, previous.Count);
-        Assert.True(current.Zip(previous).All(p => p.First.Sequence == p.Second.Sequence));
-
-        // Check Latest Change Feed Entry
-        ChangeFeedEntry currentLatest = await _fixture.DicomChangeFeedStore.GetChangeFeedLatestAsync();
-        ChangeFeedEntry previousLatest = await _fixture.PreviousDicomChangeFeedStore.GetChangeFeedLatestAsync();
-
-        Assert.Equal(currentLatest.Sequence, previousLatest.Sequence);
     }
 
     private async Task ValidateInsertFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
@@ -165,13 +142,13 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
     {
         for (int i = 0; i < expected.Length; i++)
         {
-            IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, i, 1);
+            IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, i, 1, ChangeFeedOrder.Time);
 
             Assert.Single(changes);
             Assert.Equal(expected[i].Sequence, changes.Single().Sequence);
         }
 
-        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, expected.Length, 1));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, expected.Length, 1, ChangeFeedOrder.Time));
     }
 
     private async Task<VersionedInstanceIdentifier> CreateInstanceAsync(

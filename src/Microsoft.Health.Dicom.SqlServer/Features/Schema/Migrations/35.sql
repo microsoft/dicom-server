@@ -1516,6 +1516,32 @@ BEGIN
 END
 
 GO
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedByTime
+@startTime DATETIMEOFFSET (7), @endTime DATETIMEOFFSET (7), @offset BIGINT, @limit INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT   Sequence,
+             Timestamp,
+             Action,
+             PartitionName,
+             StudyInstanceUid,
+             SeriesInstanceUid,
+             SopInstanceUid,
+             OriginalWatermark,
+             CurrentWatermark
+    FROM     dbo.ChangeFeed AS c
+             INNER JOIN
+             dbo.Partition AS p
+             ON p.PartitionKey = c.PartitionKey
+    WHERE    c.Timestamp >= @startTime
+             AND c.Timestamp < @endTime
+    ORDER BY Timestamp, Sequence
+    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+END
+
+GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatest
 AS
 BEGIN
@@ -1534,7 +1560,7 @@ BEGIN
 END
 
 GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestV35
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedLatestByTime
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1575,32 +1601,6 @@ BEGIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence DESC;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV35
-@startTime DATETIMEOFFSET (7), @endTime DATETIMEOFFSET (7), @offset BIGINT, @limit INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    SELECT   Sequence,
-             Timestamp,
-             Action,
-             PartitionName,
-             StudyInstanceUid,
-             SeriesInstanceUid,
-             SopInstanceUid,
-             OriginalWatermark,
-             CurrentWatermark
-    FROM     dbo.ChangeFeed AS c
-             INNER JOIN
-             dbo.Partition AS p
-             ON p.PartitionKey = c.PartitionKey
-    WHERE    c.Timestamp >= @startTime
-             AND c.Timestamp < @endTime
-    ORDER BY Timestamp, Sequence
-    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
 
 GO

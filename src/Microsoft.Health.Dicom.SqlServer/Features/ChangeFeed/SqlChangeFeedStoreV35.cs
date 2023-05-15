@@ -40,7 +40,17 @@ internal class SqlChangeFeedStoreV35 : SqlChangeFeedStoreV6
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetChangeFeedV35.PopulateCommand(sqlCommandWrapper, range.Start, range.End, offset, limit);
+        switch (order)
+        {
+            case ChangeFeedOrder.Sequence:
+                VLatest.GetChangeFeedV6.PopulateCommand(sqlCommandWrapper, limit, offset);
+                break;
+            case ChangeFeedOrder.Time:
+                VLatest.GetChangeFeedByTime.PopulateCommand(sqlCommandWrapper, range.Start, range.End, offset, limit);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(order));
+        }
 
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
@@ -79,7 +89,17 @@ internal class SqlChangeFeedStoreV35 : SqlChangeFeedStoreV6
         using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetChangeFeedLatestV35.PopulateCommand(sqlCommandWrapper);
+        switch (order)
+        {
+            case ChangeFeedOrder.Sequence:
+                VLatest.GetChangeFeedLatestV6.PopulateCommand(sqlCommandWrapper);
+                break;
+            case ChangeFeedOrder.Time:
+                VLatest.GetChangeFeedLatestByTime.PopulateCommand(sqlCommandWrapper);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(order));
+        }
 
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         if (await reader.ReadAsync(cancellationToken))
