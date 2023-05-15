@@ -91,6 +91,7 @@ public class BlobFileStoreTests
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
         IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
+        externalStoreOptions.Value.Returns(Substitute.For<ExternalBlobDataStoreConfiguration>());
         blobFileStore = new ExternalBlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance, externalStoreOptions);
 
     }

@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.Health.Dicom.Blob.Utilities;
 
-internal class ExternalBlobDataStoreConfiguration
+public class ExternalBlobDataStoreConfiguration
 {
     public const string SectionName = "ExternalBlobStore";
 
