@@ -1,3 +1,23 @@
+﻿SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+/*************************************************************
+    DeletedInstance Table
+    Add OriginalWatermark
+**************************************************************/
+IF NOT EXISTS 
+(
+    SELECT *
+    FROM    sys.columns
+    WHERE   (NAME = 'OriginalWatermark')
+        AND Object_id = OBJECT_ID('dbo.DeletedInstance')
+)
+BEGIN
+    ALTER TABLE dbo.DeletedInstance 
+    ADD OriginalWatermark BIGINT NULL
+END
+GO
+
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     DeleteInstanceV6
@@ -30,6 +50,7 @@ CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
 AS
+BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
 
@@ -262,3 +283,63 @@ AS
     END
 
     COMMIT TRANSACTION
+END
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     RetrieveDeletedInstanceV6
+--
+-- FIRST SCHEMA VERSION
+--     6
+--
+-- DESCRIPTION
+--     Retrieves deleted instances where the cleanupAfter is less than the current date in and the retry count hasn't been exceeded
+--
+-- PARAMETERS
+--     @count
+--         * The number of entries to return
+--     @maxRetries
+--         * The maximum number of times to retry a cleanup
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV6
+    @count          INT,
+    @maxRetries     INT
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    SELECT  TOP (@count) PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark
+    FROM    dbo.DeletedInstance WITH (UPDLOCK, READPAST)
+    WHERE   RetryCount <= @maxRetries
+    AND     CleanupAfter < SYSUTCDATETIME()
+END
+GO
+
+COMMIT TRANSACTION
+
+IF EXISTS 
+(
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_DeletedInstance_RetryCount_CleanupAfter'
+        AND Object_id = OBJECT_ID('dbo.DeletedInstance')
+)
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter ON dbo.DeletedInstance
+    (
+        RetryCount,
+        CleanupAfter
+    )
+    INCLUDE
+    (
+        PartitionKey,
+        StudyInstanceUid,
+        SeriesInstanceUid,
+        SopInstanceUid,
+        Watermark,
+        OriginalWatermark
+    )
+    WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING=ON, ONLINE=ON)
+END
+GO
