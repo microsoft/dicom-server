@@ -10,7 +10,6 @@ using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Client.Authentication;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using NSubstitute;
