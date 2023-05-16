@@ -92,7 +92,7 @@ public class DeleteService : IDeleteService
             try
             {
                 var deletedInstanceIdentifiers = (await _indexDataStore
-                    .RetrieveDeletedInstancesAsync(
+                    .RetrieveDeletedInstancesWithPropertiesAsync(
                         _deletedInstanceCleanupConfiguration.BatchSize,
                         _deletedInstanceCleanupConfiguration.MaxRetries,
                         cancellationToken))
@@ -100,26 +100,35 @@ public class DeleteService : IDeleteService
 
                 retrievedInstanceCount = deletedInstanceIdentifiers.Count;
 
-                foreach (VersionedInstanceIdentifier deletedInstanceIdentifier in deletedInstanceIdentifiers)
+                foreach (InstanceMetadata deletedInstanceIdentifier in deletedInstanceIdentifiers)
                 {
                     try
                     {
                         Task[] tasks = new[]
                         {
-                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.Version, cancellationToken),
-                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.Version, cancellationToken),
-                            _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier.Version, cancellationToken),
+                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
+                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
+                            _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
                         };
+
+                        if (deletedInstanceIdentifier.InstanceProperties.OriginalVersion.HasValue)
+                        {
+                            tasks = tasks.Concat(new[]
+                            {
+                                _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken),
+                                _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken),
+                            }).ToArray();
+                        }
 
                         await Task.WhenAll(tasks);
 
-                        await _indexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier, cancellationToken);
+                        await _indexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier, cancellationToken);
                     }
                     catch (Exception cleanupException)
                     {
                         try
                         {
-                            int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.RetryBackOff), cancellationToken);
+                            int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.RetryBackOff), cancellationToken);
                             if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
                             {
                                 _logger.LogCritical(cleanupException, "Failed to cleanup instance {DeletedInstanceIdentifier}. Retry count is now {NewRetryCount} and retry will not be re-attempted.", deletedInstanceIdentifier, newRetryCount);
