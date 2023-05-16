@@ -256,6 +256,22 @@ public class StoreDatasetValidatorTestsV1
         };
     }
 
+    [Fact]
+    public async Task GivenNonRequiredTagNull_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.ContentDate, new string[] { null });
+        dicomDataset.AddOrUpdate(DicomTag.PatientName, new string[] { null });
+        dicomDataset.Add(DicomTag.WindowCenterWidthExplanation, new string[] { null });
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
     [Theory]
     [MemberData(nameof(GetDuplicatedDicomIdentifierValues))]
     public async Task GivenDuplicatedIdentifiers_WhenValidated_ThenDatasetValidationExceptionShouldBeThrown(string firstDicomTagInString, string secondDicomTagInString)
