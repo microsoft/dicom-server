@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -144,7 +145,6 @@ public partial class RetrieveTransactionResourceTests
         Assert.Equal(dicomFile1.ToByteArray(), (await instanceRetrieve.GetValueAsync()).ToByteArray());
     }
 
-
     /*
      * A customer is sending us UIDs with a trailing space. This is invalid, but may be due to their interpretation of
      * the padding requirement to add a null character to make length even.
@@ -195,6 +195,31 @@ public partial class RetrieveTransactionResourceTests
         Assert.Equal(
             queryStudyInstanceUid.TrimEnd(),
             retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID).TrimEnd());
+    }
+
+    [Fact]
+    public async Task GivenExistingInstance_WhenRetrievingInstanceAndMetadataAndFrame_ThenServerShouldReturnExpectedContent()
+    {
+        string studyInstanceUid = "2.25.81807007645997311198377430799026916602";
+        string seriesInstanceUid = "2.25.250753924732793947834686260446683374093";
+        string sopInstanceUid = "2.25.107991042123998946672148230267983649341";
+
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await _instancesManager.StoreIfNotExistsAsync(dicomFile, doNotDelete: true);
+
+        using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: "*");
+        Assert.Equal(HttpStatusCode.OK, instanceRetrieve.StatusCode);
+        Assert.NotNull((await instanceRetrieve.GetValueAsync()));
+
+        using DicomWebAsyncEnumerableResponse<DicomDataset> metadataResponse = await _client.RetrieveInstanceMetadataAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        Assert.Equal(HttpStatusCode.OK, metadataResponse.StatusCode);
+        DicomDataset[] datasets = await metadataResponse.ToArrayAsync();
+        Assert.NotNull(datasets.First());
+
+        using DicomWebResponse<Stream> frameResponse = await _client.RetrieveSingleFrameAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, 1);
+        Assert.Equal(HttpStatusCode.OK, frameResponse.StatusCode);
+        using Stream frameStream = await frameResponse.GetValueAsync();
+        Assert.NotNull(frameStream);
     }
 
     public static IEnumerable<object[]> GetAcceptHeadersForInstances
