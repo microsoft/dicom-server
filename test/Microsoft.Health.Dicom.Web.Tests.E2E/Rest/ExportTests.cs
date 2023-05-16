@@ -176,7 +176,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         => CreateContainerClient().CreateIfNotExistsAsync(PublicAccessType.None);
 
     public Task DisposeAsync()
-        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteAsync());
+        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteIfExistsAsync());
 
     private BlobContainerClient CreateContainerClient()
     {
@@ -237,11 +237,13 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private class AzureBlobConnectionOptions
     {
-        public Uri BlobContainerUri { get; set; }
+        public string BlobContainerName { get; set; } = Guid.NewGuid().ToString("D");
+
+        public Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
+
+        public Uri BlobServiceUri { get; set; }
 
         public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
-
-        public string BlobContainerName { get; set; } = "export-e2e-test";
 
         public bool UseManagedIdentity { get; set; }
     }
