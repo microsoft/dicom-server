@@ -105,7 +105,7 @@ internal class DicomInstancesManager : IAsyncDisposable
 
             if (!doNotDelete)
             {
-                _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partitionName));
+                _instanceIds.Add(dicomInstanceId);
             }
         }
     }
