@@ -34,6 +34,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private readonly ExportTestOptions _options;
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instanceManager;
+    private readonly BlobContainerClient _containerClient;
 
     private const string ExpectedPathPattern = "{0}/results/{1}/{2}/{3}.dcm";
 
@@ -46,6 +47,8 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
         _options = new ExportTestOptions();
         exportSection.Bind(_options);
+
+        _containerClient = CreateContainerClient(_options);
     }
 
     [Fact]
@@ -124,9 +127,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(3, results.Skipped);
 
         // Validate the export by querying the blob container
-        BlobContainerClient containerClient = CreateContainerClient();
-
-        List<BlobItem> actual = await containerClient
+        List<BlobItem> actual = await _containerClient
             .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
             .Where(x => x.Name.EndsWith(".dcm"))
             .ToListAsync();
@@ -134,7 +135,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(instances.Count, actual.Count);
         foreach (BlobItem blob in actual)
         {
-            BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
+            BlobClient blobClient = _containerClient.GetBlobClient(blob.Name);
             using Stream data = await blobClient.OpenReadAsync();
             DicomFile file = await GetDicomFileAsync(data);
 
@@ -147,7 +148,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         }
 
         // Check for errors
-        BlobClient errorBlobClient = containerClient.GetBlobClient(expectedErrorLog);
+        BlobClient errorBlobClient = _containerClient.GetBlobClient(expectedErrorLog);
         using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
 
         var errors = new List<JsonElement>();
@@ -173,21 +174,21 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     }
 
     public Task InitializeAsync()
-        => CreateContainerClient().CreateIfNotExistsAsync(PublicAccessType.None);
+        => _containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
 
     public Task DisposeAsync()
-        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteIfExistsAsync());
+        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), _containerClient.DeleteIfExistsAsync());
 
-    private BlobContainerClient CreateContainerClient()
+    private static BlobContainerClient CreateContainerClient(ExportTestOptions options)
     {
-        if (_options.BlobContainerUri != null)
+        if (options.BlobContainerUri != null)
         {
-            return _options.UseManagedIdentity
-                ? new BlobContainerClient(_options.BlobContainerUri, new DefaultAzureCredential())
-                : new BlobContainerClient(_options.BlobContainerUri);
+            return options.UseManagedIdentity
+                ? new BlobContainerClient(options.BlobContainerUri, new DefaultAzureCredential())
+                : new BlobContainerClient(options.BlobContainerUri);
         }
 
-        return new BlobContainerClient(_options.ConnectionString, _options.BlobContainerName);
+        return new BlobContainerClient(options.ConnectionString, options.BlobContainerName);
     }
 
     private static async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
@@ -237,7 +238,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private class AzureBlobConnectionOptions
     {
-        public string BlobContainerName { get; set; } = Guid.NewGuid().ToString("D");
+        public string BlobContainerName { get; } = Guid.NewGuid().ToString("D");
 
         public Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
 
