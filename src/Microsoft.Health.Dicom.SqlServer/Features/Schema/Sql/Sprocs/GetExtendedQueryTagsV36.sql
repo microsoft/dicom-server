@@ -1,9 +1,9 @@
 /***************************************************************************************/
 --STORED PROCEDURE
---     GetExtendedQueryTagsV35
+--     GetExtendedQueryTagsV36
 --
 -- FIRST SCHEMA VERSION
---     35
+--     36
 --
 -- DESCRIPTION
 --     Gets a possibly paginated set of query tags as indicated by the parameters
@@ -17,7 +17,7 @@
 -- RETURN VALUE
 --     The set of query tags.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV35
+CREATE OR ALTER PROCEDURE dbo.GetExtendedQueryTagsV36
     @limit  INT,
     @offset BIGINT
 AS

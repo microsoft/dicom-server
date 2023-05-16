@@ -19,11 +19,11 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.ChangeFeed;
 
-internal class SqlChangeFeedStoreV35 : SqlChangeFeedStoreV6
+internal class SqlChangeFeedStoreV36 : SqlChangeFeedStoreV6
 {
-    public override SchemaVersion Version => SchemaVersion.V35;
+    public override SchemaVersion Version => SchemaVersion.V36;
 
-    public SqlChangeFeedStoreV35(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlChangeFeedStoreV36(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
        : base(sqlConnectionWrapperFactory)
     {
     }

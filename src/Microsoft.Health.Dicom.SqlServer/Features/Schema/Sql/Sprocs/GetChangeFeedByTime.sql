@@ -3,7 +3,7 @@
 --     GetChangeFeedByTime
 --
 -- FIRST SCHEMA VERSION
---     35
+--     36
 --
 -- DESCRIPTION
 --     Gets a subset of dicom changes within a given time range
