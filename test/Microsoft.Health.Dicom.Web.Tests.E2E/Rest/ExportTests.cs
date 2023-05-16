@@ -34,23 +34,12 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instanceManager;
 
-    private static readonly ExportTestOptions Options;
-    private static readonly BlobContainerClient ContainerClient;
-
     private const string ExpectedPathPattern = "{0}/results/{1}/{2}/{3}.dcm";
 
     public ExportTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _instanceManager = new DicomInstancesManager(_client);
-    }
-
-    static ExportTests()
-    {
-        Options = new ExportTestOptions();
-        TestEnvironment.Variables.GetSection("Tests:Export").Bind(Options);
-
-        ContainerClient = CreateContainerClient(Options);
     }
 
     [Fact]
@@ -102,6 +91,10 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         await Task.WhenAll(instances.Select(x => _instanceManager.StoreAsync(new DicomFile(x.Value))));
 
         // Begin Export
+        ExportTestOptions options = GetTestOptions(TestEnvironment.Variables);
+        BlobContainerClient containerClient = options.CreateContainerClient();
+        await using IAsyncDisposable scope = await ContainerScope.CreateAsync(containerClient);
+
         DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
             ExportSource.ForIdentifiers(
                 DicomIdentifier.ForStudy(studyUid1),
@@ -112,7 +105,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
                 DicomIdentifier.ForInstance(instance8),
                 DicomIdentifier.ForInstance(instance9),
                 DicomIdentifier.ForStudy(unknownStudyUid3)),
-            Options.Destination);
+            options.Destination);
 
         // Wait for the operation to complete
         DicomOperationReference operation = await response.GetValueAsync();
@@ -129,7 +122,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(3, results.Skipped);
 
         // Validate the export by querying the blob container
-        List<BlobItem> actual = await ContainerClient
+        List<BlobItem> actual = await containerClient
             .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
             .Where(x => x.Name.EndsWith(".dcm"))
             .ToListAsync();
@@ -137,7 +130,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(instances.Count, actual.Count);
         foreach (BlobItem blob in actual)
         {
-            BlobClient blobClient = ContainerClient.GetBlobClient(blob.Name);
+            BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
             using Stream data = await blobClient.OpenReadAsync();
             DicomFile file = await GetDicomFileAsync(data);
 
@@ -150,7 +143,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         }
 
         // Check for errors
-        BlobClient errorBlobClient = ContainerClient.GetBlobClient(expectedErrorLog);
+        BlobClient errorBlobClient = containerClient.GetBlobClient(expectedErrorLog);
         using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
 
         var errors = new List<JsonElement>();
@@ -176,21 +169,17 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     }
 
     public Task InitializeAsync()
-        => ContainerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+        => Task.CompletedTask;
 
     public Task DisposeAsync()
-        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), ContainerClient.DeleteIfExistsAsync());
+        => _instanceManager.DisposeAsync().AsTask();
 
-    private static BlobContainerClient CreateContainerClient(ExportTestOptions options)
+    private static ExportTestOptions GetTestOptions(IConfiguration configuration)
     {
-        if (options.BlobContainerUri != null)
-        {
-            return options.UseManagedIdentity
-                ? new BlobContainerClient(options.BlobContainerUri, new DefaultAzureCredential())
-                : new BlobContainerClient(options.BlobContainerUri);
-        }
+        var options = new ExportTestOptions();
+        configuration.GetSection("Tests:Export").Bind(options);
 
-        return new BlobContainerClient(options.ConnectionString, options.BlobContainerName);
+        return options;
     }
 
     private static async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
@@ -249,5 +238,34 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
 
         public bool UseManagedIdentity { get; set; }
+
+        public BlobContainerClient CreateContainerClient()
+        {
+            if (BlobContainerUri != null)
+            {
+                return UseManagedIdentity
+                    ? new BlobContainerClient(BlobContainerUri, new DefaultAzureCredential())
+                    : new BlobContainerClient(BlobContainerUri);
+            }
+
+            return new BlobContainerClient(ConnectionString, BlobContainerName);
+        }
+    }
+
+    private sealed class ContainerScope : IAsyncDisposable
+    {
+        private readonly BlobContainerClient _client;
+
+        private ContainerScope(BlobContainerClient client)
+            => _client = client;
+
+        public static async Task<IAsyncDisposable> CreateAsync(BlobContainerClient client)
+        {
+            await client.CreateIfNotExistsAsync();
+            return new ContainerScope(client);
+        }
+
+        public ValueTask DisposeAsync()
+            => new ValueTask(_client.DeleteIfExistsAsync());
     }
 }
