@@ -91,8 +91,8 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         await Task.WhenAll(instances.Select(x => _instanceManager.StoreAsync(new DicomFile(x.Value))));
 
         // Begin Export
-        ExportTestOptions options = GetTestOptions(TestEnvironment.Variables);
-        BlobContainerClient containerClient = options.CreateContainerClient();
+        ExportTestOptions options = GetExportTestOptions(TestEnvironment.Variables);
+        BlobContainerClient containerClient = options.CreateTestContainerClient();
         await using IAsyncDisposable scope = await ContainerScope.CreateAsync(containerClient);
 
         DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
@@ -203,48 +203,40 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             identifer.SeriesInstanceUid,
             identifer.SopInstanceUid);
 
-    private static ExportTestOptions GetTestOptions(IConfiguration configuration)
+    private static ExportTestOptions GetExportTestOptions(IConfiguration configuration)
     {
         var options = new ExportTestOptions();
         configuration.GetSection("Tests:Export").Bind(options);
-
-        if (string.IsNullOrEmpty(options.BlobContainerName))
-            options.BlobContainerName = Guid.NewGuid().ToString("D");
 
         return options;
     }
 
     private sealed class ExportTestOptions : AzureBlobConnectionOptions
     {
+        // Depending on the test setup, the "Sink" (i.e. the Azure Storage connection) may
+        // look different from that used by the test, so optionally it can be overridden.
+        // For example, this may be the case if the web app is running via docker-compose with Azurite.
         public AzureBlobConnectionOptions Sink { get; set; }
+
+        public string BlobContainerName { get; } = Guid.NewGuid().ToString("D");
+
+        // The BlobContainerUri is always based on the export test's connection
+        private Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
 
         public ExportDataOptions<ExportDestinationType> Destination
         {
             get
             {
                 AzureBlobConnectionOptions options = Sink ?? this;
-                return options.BlobContainerUri != null
-                    ? ExportDestination.ForAzureBlobStorage(options.BlobContainerUri, options.UseManagedIdentity)
-                    : ExportDestination.ForAzureBlobStorage(options.ConnectionString, options.BlobContainerName);
+                return options.BlobServiceUri != null
+                    ? ExportDestination.ForAzureBlobStorage(BlobContainerUri, options.UseManagedIdentity)
+                    : ExportDestination.ForAzureBlobStorage(options.ConnectionString, BlobContainerName);
             }
         }
-    }
 
-    private class AzureBlobConnectionOptions
-    {
-        public string BlobContainerName { get; set; }
-
-        public Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
-
-        public Uri BlobServiceUri { get; set; }
-
-        public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
-
-        public bool UseManagedIdentity { get; set; }
-
-        public BlobContainerClient CreateContainerClient()
+        public BlobContainerClient CreateTestContainerClient()
         {
-            if (BlobContainerUri != null)
+            if (BlobServiceUri != null)
             {
                 return UseManagedIdentity
                     ? new BlobContainerClient(BlobContainerUri, new DefaultAzureCredential())
@@ -253,6 +245,15 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
             return new BlobContainerClient(ConnectionString, BlobContainerName);
         }
+    }
+
+    private class AzureBlobConnectionOptions
+    {
+        public Uri BlobServiceUri { get; set; }
+
+        public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
+
+        public bool UseManagedIdentity { get; set; }
     }
 
     private sealed class ContainerScope : IAsyncDisposable
