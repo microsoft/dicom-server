@@ -174,14 +174,6 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     public Task DisposeAsync()
         => _instanceManager.DisposeAsync().AsTask();
 
-    private static ExportTestOptions GetTestOptions(IConfiguration configuration)
-    {
-        var options = new ExportTestOptions();
-        configuration.GetSection("Tests:Export").Bind(options);
-
-        return options;
-    }
-
     private static async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
     {
         using var buffer = new MemoryStream();
@@ -211,6 +203,17 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             identifer.SeriesInstanceUid,
             identifer.SopInstanceUid);
 
+    private static ExportTestOptions GetTestOptions(IConfiguration configuration)
+    {
+        var options = new ExportTestOptions();
+        configuration.GetSection("Tests:Export").Bind(options);
+
+        if (string.IsNullOrEmpty(options.BlobContainerName))
+            options.BlobContainerName = Guid.NewGuid().ToString("D");
+
+        return options;
+    }
+
     private sealed class ExportTestOptions : AzureBlobConnectionOptions
     {
         public AzureBlobConnectionOptions Sink { get; set; }
@@ -229,7 +232,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     private class AzureBlobConnectionOptions
     {
-        public string BlobContainerName { get; } = Guid.NewGuid().ToString("D");
+        public string BlobContainerName { get; set; }
 
         public Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
 
