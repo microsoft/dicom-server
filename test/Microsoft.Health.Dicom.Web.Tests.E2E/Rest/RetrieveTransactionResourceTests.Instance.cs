@@ -198,6 +198,7 @@ public partial class RetrieveTransactionResourceTests
     }
 
     [Fact]
+    [Trait("Category", "bvt")]
     public async Task GivenExistingInstance_WhenRetrievingInstanceAndMetadataAndFrame_ThenServerShouldReturnExpectedContent()
     {
         string studyInstanceUid = "2.25.81807007645997311198377430799026916602";
