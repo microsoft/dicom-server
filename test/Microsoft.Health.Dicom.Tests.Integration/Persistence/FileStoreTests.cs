@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.IO;
 using Xunit;
 
@@ -39,9 +38,10 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         var fileData = new byte[] { 4, 7, 2 };
 
         // Store the file.
-        InstanceProperties instanceProperties = await AddFileAsync(version, fileData, $"{nameof(GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
+        FileProperties fileProperties = await AddFileAsync(version, fileData, $"{nameof
+        (GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
 
-        Assert.NotNull(instanceProperties);
+        Assert.NotNull(fileProperties);
 
         // Should be able to retrieve.
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
@@ -65,15 +65,15 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        InstanceProperties instanceProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
+        FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
-        InstanceProperties instanceProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
+        FileProperties fileProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
-        Assert.Equal(instanceProperties1.BlobFilePath, instanceProperties2.BlobFilePath);
+        Assert.Equal(fileProperties1.FilePath, fileProperties2.FilePath);
         // while the path may be the same, the eTag is expected to be different on file rewrites
-        Assert.NotEqual(instanceProperties1.BlobStoreOperationETag, instanceProperties2.BlobStoreOperationETag);
+        Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
 
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
@@ -92,7 +92,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store the file
         var fileData1 = new byte[] { 4, 7, 2 };
-        InstanceProperties instanceProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
+        FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         // file is deleted
         await _blobDataStore.DeleteFileIfExistsAsync(version);
@@ -100,12 +100,12 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
-        InstanceProperties instanceProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
+        FileProperties fileProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
         // expect file path same
-        Assert.Equal(instanceProperties1.BlobFilePath, instanceProperties2.BlobFilePath);
+        Assert.Equal(fileProperties1.FilePath, fileProperties2.FilePath);
         // while the path may be the same, the eTag is expected to be different on file rewrites
-        Assert.NotEqual(instanceProperties1.BlobStoreOperationETag, instanceProperties2.BlobStoreOperationETag);
+        Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
 
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
@@ -118,7 +118,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // modify metadata of file and expect blob etag is now different than what it was before
         string eTag = await _blobDataStore.SetInstanceBlobMetadataAsync(version, metadata);
-        Assert.NotEqual(instanceProperties2.BlobStoreOperationETag, eTag);
+        Assert.NotEqual(fileProperties2.ETag, eTag);
 
         // get blob again and ensure its eTag is same as what we got from metadata update
         FileProperties props = await _blobDataStore.GetFilePropertiesAsync(version);
@@ -149,7 +149,8 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
     }
 
-    private async Task<InstanceProperties> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
+    private async Task<FileProperties> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken =
+     default)
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {

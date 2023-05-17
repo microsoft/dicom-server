@@ -23,7 +23,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV23
+internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
 {
     public SqlIndexDataStoreV36(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
@@ -59,9 +59,9 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV23
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata,
-                null,
-                instanceProperties?.FilePath,
-                instanceProperties?.ETag
+                instanceProperties?.InstanceKey,
+                instanceProperties?.FileProperties.FilePath,
+                instanceProperties?.FileProperties.ETag
             );
 
             try

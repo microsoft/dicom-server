@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -69,9 +70,9 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                InstanceProperties instanceProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
+                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
 
-                Assert.NotNull(instanceProperties);
+                Assert.NotNull(fileProperties);
             }
 
             var file = await _fixture.FileStore.GetFileAsync(version);

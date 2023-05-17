@@ -159,6 +159,10 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         }
     }
 
+    /// <summary>
+    /// When binary updated before schema is migrated, this will continue to get to the old sproc until the schema is migrated
+    /// and next EndCreateInstanceIndexAsync version is used
+    /// </summary>
     public override async Task EndCreateInstanceIndexAsync(
         int partitionKey,
         DicomDataset dicomDataset,

@@ -304,8 +304,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly NullableVarCharColumn TransferSyntaxUid = new NullableVarCharColumn("TransferSyntaxUid", 64);
             internal readonly BitColumn HasFrameMetadata = new BitColumn("HasFrameMetadata");
-            internal readonly NullableVarCharColumn BlobFilePath = new NullableVarCharColumn("BlobFilePath", 64);
-            internal readonly NullableVarCharColumn BlobStoreOperationETag = new NullableVarCharColumn("BlobStoreOperationETag", 64);
             internal readonly NullableBigIntColumn OriginalWatermark = new NullableBigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn NewWatermark = new NullableBigIntColumn("NewWatermark");
             internal readonly Index IXC_Instance = new Index("IXC_Instance");

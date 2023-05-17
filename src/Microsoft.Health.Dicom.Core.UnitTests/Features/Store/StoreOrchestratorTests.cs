@@ -36,7 +36,7 @@ public class StoreOrchestratorTests
         DefaultSopInstanceUid,
         DefaultVersion);
 
-    private static readonly InstanceProperties DefaultInstanceProperties = new InstanceProperties();
+    private static readonly FileProperties DefaultFileProperties = new FileProperties();
 
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -96,7 +96,7 @@ public class StoreOrchestratorTests
                 DefaultVersionedInstanceIdentifier.Version,
                 _stream,
                 cancellationToken: DefaultCancellationToken)
-            .Returns(DefaultInstanceProperties);
+            .Returns(DefaultFileProperties);
 
         await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
@@ -166,7 +166,7 @@ public class StoreOrchestratorTests
                 expectedTags,
                 false,
                 false,
-                instanceProperties: DefaultInstanceProperties,
+                instanceProperties: Arg.Any<InstanceProperties>(),
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()

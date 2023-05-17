@@ -8,5 +8,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Common;
 public class FileProperties
 {
     public long ContentLength { get; init; }
+
+    public long StreamLength { get; init; }
+
+    public string FilePath { get; init; }
+
     public string ETag { get; init; }
 }
