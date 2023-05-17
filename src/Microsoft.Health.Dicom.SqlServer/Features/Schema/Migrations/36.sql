@@ -97,7 +97,7 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInst
 
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence
     ON dbo.ChangeFeed(Sequence)
-    INCLUDE(Timestamp, Action, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, CurrentWatermark, PartitionKey) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(PartitionKey) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.DeletedInstance (
     StudyInstanceUid  VARCHAR (64)       NOT NULL,
@@ -1608,6 +1608,30 @@ BEGIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence DESC;
+END
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV36
+@limit INT, @offset BIGINT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    SELECT   Sequence,
+             Timestamp,
+             Action,
+             PartitionName,
+             StudyInstanceUid,
+             SeriesInstanceUid,
+             SopInstanceUid,
+             OriginalWatermark,
+             CurrentWatermark
+    FROM     dbo.ChangeFeed AS c WITH (INDEX (IX_ChangeFeed_Sequence))
+             INNER JOIN
+             dbo.Partition AS p
+             ON p.PartitionKey = c.PartitionKey
+    ORDER BY Sequence
+    OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
 END
 
 GO

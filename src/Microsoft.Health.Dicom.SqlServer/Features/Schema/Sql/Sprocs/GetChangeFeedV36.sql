@@ -31,7 +31,7 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed c
+    FROM    dbo.ChangeFeed c WITH (INDEX(IX_ChangeFeed_Sequence))
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence

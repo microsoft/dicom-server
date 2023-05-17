@@ -19,21 +19,56 @@ BEGIN TRANSACTION
     )
     INCLUDE
     (
-        Timestamp,
-        Action,
-        StudyInstanceUid,
-        SeriesInstanceUid,
-        SopInstanceUid,
-        OriginalWatermark,
-        CurrentWatermark,
         PartitionKey
     )
-WITH (DATA_COMPRESSION = PAGE)
+    WITH (DATA_COMPRESSION = PAGE)
 
 COMMIT TRANSACTION
 GO
 
 BEGIN TRANSACTION
+GO
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     GetChangeFeedV36
+--
+-- FIRST SCHEMA VERSION
+--     36
+--
+-- DESCRIPTION
+--     Gets a stream of dicom changes (instance adds and deletes)
+--
+-- PARAMETERS
+--     @limit
+--         * Max rows to return
+--     @offet
+--         * Rows to skip
+/***************************************************************************************/
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV36 (
+    @limit      INT,
+    @offset     BIGINT)
+AS
+BEGIN
+    SET NOCOUNT     ON
+    SET XACT_ABORT  ON
+
+    SELECT  Sequence,
+            Timestamp,
+            Action,
+            PartitionName,
+            StudyInstanceUid,
+            SeriesInstanceUid,
+            SopInstanceUid,
+            OriginalWatermark,
+            CurrentWatermark
+    FROM    dbo.ChangeFeed c WITH (INDEX(IX_ChangeFeed_Sequence))
+    INNER JOIN dbo.Partition p
+    ON p.PartitionKey = c.PartitionKey
+    ORDER BY Sequence
+    OFFSET @offset ROWS
+    FETCH NEXT @limit ROWS ONLY
+END
 GO
 
 /***************************************************************************************/

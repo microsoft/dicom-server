@@ -43,13 +43,6 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
 )
 INCLUDE
 (
-    Timestamp,
-    Action,
-    StudyInstanceUid,
-    SeriesInstanceUid,
-    SopInstanceUid,
-    OriginalWatermark,
-    CurrentWatermark,
     PartitionKey
 )
 WITH (DATA_COMPRESSION = PAGE)
