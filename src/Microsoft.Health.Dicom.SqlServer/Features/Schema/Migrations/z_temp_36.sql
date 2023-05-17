@@ -76,6 +76,15 @@ CREATE SEQUENCE dbo.WorkitemWatermarkSequence
     NO CYCLE
     CACHE 10000;
 
+CREATE TABLE dbo.FileProperty (
+    InstanceKey             BIGINT             NOT NULL, --FK
+    FilePath                NVARCHAR(4000)     NOT NULL,
+    ETag                    NVARCHAR(200)      NOT NULL
+)
+WITH (DATA_COMPRESSION = PAGE);
+
+CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty ON dbo.FileProperty(InstanceKey);
+
 CREATE TABLE dbo.ChangeFeed (
     Sequence          BIGINT             IDENTITY (1, 1) NOT NULL,
     Timestamp         DATETIMEOFFSET (7) NOT NULL,
@@ -2507,8 +2516,8 @@ WHERE  StudyInstanceUid = @studyInstanceUid
 COMMIT TRANSACTION;
 
 GO
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV35
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @blobFilePath VARCHAR (64)=NULL, @blobStoreOperationETag VARCHAR (64)=NULL
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @instanceKey BIGINT, @filePath VARCHAR(64), @eTag VARCHAR(64)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2521,9 +2530,7 @@ BEGIN
     UPDATE dbo.Instance
     SET    Status                 = @status,
            LastStatusUpdatedDate  = @currentDate,
-           HasFrameMetadata       = @hasFrameMetadata,
-           BlobFilePath           = @blobFilePath,
-           BlobStoreOperationETag = @blobStoreOperationETag
+           HasFrameMetadata       = @hasFrameMetadata
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = @seriesInstanceUid
@@ -2531,6 +2538,8 @@ BEGIN
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
+    INSERT INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
+    VALUES                       (@instanceKey, @filePath, @eTag);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
     UPDATE dbo.ChangeFeed

@@ -23,7 +23,7 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV23
+internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV23
 {
     public SqlIndexDataStoreV35(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
@@ -49,7 +49,7 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV23
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.UpdateInstanceStatusV35.PopulateCommand(
+            VLatest.UpdateInstanceStatusV36.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
@@ -59,8 +59,9 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV23
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata,
-                instanceProperties?.BlobFilePath,
-                instanceProperties?.BlobStoreOperationETag
+                "instanceKey",
+                instanceProperties?.FilePath,
+                instanceProperties?.ETag
             );
 
             try

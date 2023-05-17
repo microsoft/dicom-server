@@ -33,7 +33,7 @@
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV35
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
     @partitionKey               INT,
     @studyInstanceUid           VARCHAR(64),
     @seriesInstanceUid          VARCHAR(64),
@@ -42,8 +42,9 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV35
     @status                     TINYINT,
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
-    @blobFilePath               VARCHAR(64),
-    @blobStoreOperationETag     VARCHAR(64)
+    @instanceKey                BIGINT,
+    @filePath                   VARCHAR(64),
+    @eTag                       VARCHAR(64)
 AS
 BEGIN
     SET NOCOUNT ON
@@ -59,7 +60,7 @@ BEGIN
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata, BlobFilePath = @blobFilePath, BlobStoreOperationETag = @blobStoreOperationETag
+    SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata
     WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
@@ -69,6 +70,10 @@ BEGIN
     -- The instance does not exist. Perhaps it was deleted?
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1
+
+    -- Insert to FileProperty.
+    INSERT INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
+    VALUES                       (@instanceKey, @filePath, @eTag)
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
