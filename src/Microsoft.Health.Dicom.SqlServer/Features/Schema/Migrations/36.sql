@@ -1,6 +1,6 @@
 
 /*************************************************************************************************
-    Auto-Generated from Sql build task. Do not manually edit it. 
+    Auto-Generated from Sql build task. Do not manually edit it.
 **************************************************************************************************/
 SET XACT_ABORT ON
 BEGIN TRAN
@@ -644,7 +644,7 @@ USING (SELECT @tagKey AS TagKey,
               @errorCode AS ErrorCode,
               @watermark AS Watermark) AS src ON src.TagKey = XQTE.TagKey
                                                  AND src.WaterMark = XQTE.Watermark
-WHEN MATCHED THEN UPDATE 
+WHEN MATCHED THEN UPDATE
 SET CreatedTime = @currentDate,
     ErrorCode   = @errorCode,
     @addedCount = 0
@@ -2061,7 +2061,7 @@ BEGIN
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
             WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
@@ -2084,7 +2084,7 @@ BEGIN
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
             WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
@@ -2107,7 +2107,7 @@ BEGIN
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
             WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
@@ -2131,7 +2131,7 @@ BEGIN
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
             WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, S.TagValueUtc, @resourceType);
@@ -2154,7 +2154,7 @@ BEGIN
                                                                               AND T.SopInstanceKey1 = @studyKey
                                                                               AND ISNULL(T.SopInstanceKey2, @seriesKey) = @seriesKey
                                                                               AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
-            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE 
+            WHEN MATCHED AND @watermark > T.Watermark THEN UPDATE
             SET T.Watermark = @watermark,
                 T.TagValue  = S.TagValue
             WHEN NOT MATCHED THEN INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType) VALUES (S.TagKey, S.TagValue, @partitionKey, @studyKey, (CASE WHEN S.TagLevel <> 2 THEN @seriesKey ELSE NULL END), (CASE WHEN S.TagLevel = 0 THEN @instanceKey ELSE NULL END), @watermark, @resourceType);
@@ -2522,7 +2522,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @instanceKey BIGINT, @filePath VARCHAR (4000), @eTag VARCHAR (200)
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @instanceKey BIGINT=NULL, @filePath VARCHAR (4000)=NULL, @eTag VARCHAR (200)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2543,8 +2543,9 @@ BEGIN
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
-    INSERT  INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
-    VALUES                       (@instanceKey, @filePath, @eTag);
+    IF (@instanceKey IS NOT NULL)
+        INSERT  INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
+        VALUES                       (@instanceKey, @filePath, @eTag);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
     UPDATE dbo.ChangeFeed
@@ -2756,7 +2757,7 @@ IF NOT EXISTS (SELECT *
             se.PerformedProcedureStepStartDate,
             se.ManufacturerModelName,
             (SELECT SUM(1)
-            FROM dbo.Instance i 
+            FROM dbo.Instance i
             WHERE se.PartitionKey = i.PartitionKey
             AND se.StudyKey = i.StudyKey
             AND se.SeriesKey = i.SeriesKey) AS NumberofSeriesRelatedInstances,
@@ -2783,11 +2784,11 @@ IF NOT EXISTS (SELECT *
             st.AccessionNumber,
             st.PatientBirthDate,
             (SELECT STRING_AGG(Modality, '','')
-            FROM dbo.Series se 
+            FROM dbo.Series se
             WHERE st.StudyKey = se.StudyKey
             AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
-            (SELECT SUM(1) 
-            FROM dbo.Instance i 
+            (SELECT SUM(1)
+            FROM dbo.Instance i
             WHERE st.PartitionKey = i.PartitionKey
             AND st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
             st.PartitionKey,

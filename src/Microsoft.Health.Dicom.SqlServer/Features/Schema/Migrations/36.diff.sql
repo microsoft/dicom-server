@@ -108,9 +108,10 @@ WHERE PartitionKey = @partitionKey
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1
 
-    -- Insert to FileProperty.
-INSERT INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
-VALUES                       (@instanceKey, @filePath, @eTag);
+    -- Insert to FileProperty when InstanceKey given
+    IF (@instanceKey IS NOT NULL)
+        INSERT INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
+        VALUES                       (@instanceKey, @filePath, @eTag)
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
