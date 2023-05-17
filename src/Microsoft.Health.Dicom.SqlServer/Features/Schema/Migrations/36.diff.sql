@@ -4,22 +4,34 @@ BEGIN TRANSACTION
 GO
 
 /*************************************************************
-    Instance Table
-    Add BlobFilePath and BlobStoreOperationETag columns.
+    File Property Table
+    Stores file properties of a given instance
 **************************************************************/
-IF NOT EXISTS
-(
+IF NOT EXISTS (
     SELECT *
-    FROM    sys.columns
-    WHERE   (NAME = 'BlobFilePath' OR NAME = 'BlobStoreOperationETag')
-        AND Object_id = OBJECT_ID('dbo.Instance')
-)
+    FROM sys.tables
+    WHERE name = 'FileProperty')
 BEGIN
-ALTER TABLE dbo.Instance
-    ADD BlobFilePath VARCHAR(64) NULL, BlobStoreOperationETag VARCHAR(64) NULL
+CREATE TABLE dbo.FileProperty (
+                                           InstanceKey             BIGINT             NOT NULL, --FK
+                                           FilePath                NVARCHAR(4000)     NOT NULL,
+                                           ETag                    NVARCHAR(200)      NOT NULL
+)
+WITH (DATA_COMPRESSION = PAGE)
 END
-GO
 
+IF NOT EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IXC_FileProperty' AND object_id = OBJECT_ID('dbo.FileProperty'))
+BEGIN
+    CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty ON dbo.FileProperty
+    (
+        InstanceKey
+    )
+END
+
+GO
 
 /*************************************************************
     Stored procedures for updating an instance status.
@@ -48,15 +60,17 @@ GO
 --         * Optional max ExtendedQueryTag key
 --     @hasFrameMetadata
 --         * Optional flag to indicate frame metadata existance
---     @blobFilePath
+--     @instanceKey
+--         * The instance key.
+--     @filePath
 --         * path to dcm blob file
---     @blobStoreOperationETag
+--     @eTag
 --         * eTag of upload blob operation
 --
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV35
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
     @partitionKey               INT,
     @studyInstanceUid           VARCHAR(64),
     @seriesInstanceUid          VARCHAR(64),
@@ -65,8 +79,9 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV35
     @status                     TINYINT,
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
-    @blobFilePath               VARCHAR(64) = NULL,
-    @blobStoreOperationETag     VARCHAR(64) = NULL
+    @instanceKey                BIGINT,
+    @filePath                   VARCHAR(4000),
+    @eTag                       VARCHAR(200)
     AS
 BEGIN
     SET NOCOUNT ON
@@ -82,7 +97,7 @@ BEGIN TRANSACTION
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
 UPDATE dbo.Instance
-SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata, BlobFilePath = @blobFilePath, BlobStoreOperationETag = @blobStoreOperationETag
+SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata
 WHERE PartitionKey = @partitionKey
   AND StudyInstanceUid = @studyInstanceUid
   AND SeriesInstanceUid = @seriesInstanceUid
@@ -92,6 +107,10 @@ WHERE PartitionKey = @partitionKey
   -- The instance does not exist. Perhaps it was deleted?
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1
+
+    -- Insert to FileProperty.
+INSERT INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
+VALUES                       (@instanceKey, @filePath, @eTag);
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created

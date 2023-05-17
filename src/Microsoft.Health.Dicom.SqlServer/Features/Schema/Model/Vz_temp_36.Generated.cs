@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class Vz_temp_36
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -124,7 +124,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly NullableBigIntColumn OriginalWatermark = new NullableBigIntColumn("OriginalWatermark");
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
@@ -2049,9 +2048,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
             private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxTagKey = new ParameterDefinition<System.Nullable<System.Int32>>("@maxTagKey", global::System.Data.SqlDbType.Int, true);
             private readonly ParameterDefinition<System.Nullable<System.Boolean>> _hasFrameMetadata = new ParameterDefinition<System.Nullable<System.Boolean>>("@hasFrameMetadata", global::System.Data.SqlDbType.Bit, true);
-            private readonly ParameterDefinition<System.Int64> _instanceKey = new ParameterDefinition<System.Int64>("@instanceKey", global::System.Data.SqlDbType.BigInt, true);
-            private readonly ParameterDefinition<System.String> _filePath = new ParameterDefinition<System.String>("@filePath", global::System.Data.SqlDbType.VarChar, true, 4000);
-            private readonly ParameterDefinition<System.String> _eTag = new ParameterDefinition<System.String>("@eTag", global::System.Data.SqlDbType.VarChar, true, 200);
+            private readonly ParameterDefinition<System.Int64> _instanceKey = new ParameterDefinition<System.Int64>("@instanceKey", global::System.Data.SqlDbType.BigInt, false);
+            private readonly ParameterDefinition<System.String> _filePath = new ParameterDefinition<System.String>("@filePath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.String> _eTag = new ParameterDefinition<System.String>("@eTag", global::System.Data.SqlDbType.VarChar, false, 64);
 
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey, System.Nullable<System.Boolean> hasFrameMetadata, System.Int64 instanceKey, System.String filePath, System.String eTag)
             {

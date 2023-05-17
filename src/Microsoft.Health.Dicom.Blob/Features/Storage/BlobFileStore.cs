@@ -67,8 +67,8 @@ public class BlobFileStore : IFileStore
 
         return new InstanceProperties()
         {
-            BlobFilePath = blobClient.Name,
-            BlobStoreOperationETag = info.ETag.ToString(),
+            FilePath = blobClient.Name,
+            ETag = info.ETag.ToString(),
             StreamLength = stream.Length,
             NewVersion = version,
             OriginalVersion = version

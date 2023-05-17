@@ -25,9 +25,11 @@
 --         * Optional max ExtendedQueryTag key
 --     @hasFrameMetadata
 --         * Optional flag to indicate frame metadata existance
---     @blobFilePath
+--     @instanceKey
+--         * The instance key.
+--     @filePath
 --         * path to dcm blob file
---     @blobStoreOperationETag
+--     @eTag
 --         * eTag of upload blob operation
 --
 -- RETURN VALUE
@@ -43,8 +45,8 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
     @instanceKey                BIGINT,
-    @filePath                   VARCHAR(64),
-    @eTag                       VARCHAR(64)
+    @filePath                   VARCHAR(4000),
+    @eTag                       VARCHAR(200)
 AS
 BEGIN
     SET NOCOUNT ON

@@ -15,9 +15,9 @@ public class InstanceProperties
 
     public long? NewVersion { get; set; }
 
-    public string BlobFilePath { get; set; }
+    public string FilePath { get; set; }
 
-    public string BlobStoreOperationETag { get; set; }
+    public string ETag { get; set; }
 
     public long StreamLength { get; set; }
 }
