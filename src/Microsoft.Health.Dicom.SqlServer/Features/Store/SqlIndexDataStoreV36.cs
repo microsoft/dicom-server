@@ -13,7 +13,10 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
@@ -46,20 +49,20 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV23
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            // VLatest.UpdateInstanceStatusV36.PopulateCommand(
-            //     sqlCommandWrapper,
-            //     partitionKey,
-            //     dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
-            //     dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
-            //     dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-            //     watermark,
-            //     (byte)IndexStatus.Created,
-            //     allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
-            //     hasFrameMetadata,
-            //     "instanceKey",
-            //     instanceProperties?.FilePath,
-            //     instanceProperties?.ETag
-            // );
+            VLatest.UpdateInstanceStatusV36.PopulateCommand(
+                sqlCommandWrapper,
+                partitionKey,
+                dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
+                dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
+                watermark,
+                (byte)IndexStatus.Created,
+                allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
+                hasFrameMetadata,
+                null,
+                instanceProperties?.FilePath,
+                instanceProperties?.ETag
+            );
 
             try
             {
