@@ -123,6 +123,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
+            internal readonly NullableBigIntColumn OriginalWatermark = new NullableBigIntColumn("OriginalWatermark");
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }

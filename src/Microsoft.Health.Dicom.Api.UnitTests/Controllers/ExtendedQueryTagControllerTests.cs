@@ -53,7 +53,7 @@ public class ExtendedQueryTagControllerTests
             .Send(
                 Arg.Is<AddExtendedQueryTagRequest>(x => x.ExtendedQueryTags.Single().Path == path),
                 controller.HttpContext.RequestAborted)
-            .Returns(Task.FromException<AddExtendedQueryTagResponse>(new ExistingReindexException(expected)));
+            .Returns(Task.FromException<AddExtendedQueryTagResponse>(new ExistingOperationException(expected, "re-index")));
 
         var actual = await controller.PostAsync(new AddExtendedQueryTagEntry[] { new AddExtendedQueryTagEntry { Path = path } }) as ContentResult;
         await mediator.Received(1).Send(

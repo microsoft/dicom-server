@@ -87,6 +87,8 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
         await VerifyMetadata(studyInstanceUid1, new string[] { originalPatientName1, originalPatientName2 }, true);
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
+
+        await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, true);
     }
 
     private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName)
@@ -174,6 +176,25 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
             DicomFile retrievedDicomFile1 = await instanceRetrieve1.GetValueAsync();
             Assert.NotNull(retrievedDicomFile1);
         }
+    }
+
+    private async Task VerifyDeleteStudyAsync(string studyInstanceUid, DicomFile dicomFile, bool requestOriginalVersion = default)
+    {
+        var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
+        var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
+
+        using (DicomWebResponse response = await _client.DeleteStudyAsync(studyInstanceUid))
+        {
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        DicomWebException exception1 = await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUID, sopInstanceUID));
+        Assert.Equal(HttpStatusCode.NotFound, exception1.StatusCode);
+
+        DicomWebException exception2 = await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUID, sopInstanceUID, requestOriginalVersion: requestOriginalVersion));
+        Assert.Equal(HttpStatusCode.NotFound, exception2.StatusCode);
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

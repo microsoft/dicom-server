@@ -351,6 +351,11 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
+    public virtual Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
+
     public virtual Task EndCreateInstanceIndexAsync(
         int partitionKey,
         DicomDataset dicomDataset,

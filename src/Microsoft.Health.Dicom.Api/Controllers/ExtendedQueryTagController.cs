@@ -59,7 +59,7 @@ public class ExtendedQueryTagController : ControllerBase
             Response.AddLocationHeader(response.Operation.Href);
             return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
         }
-        catch (ExistingReindexException ere)
+        catch (ExistingOperationException ere)
         {
             Response.AddLocationHeader(ere.ExistingOperation.Href);
             return new ContentResult
