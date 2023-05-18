@@ -91,6 +91,7 @@ public class StoreOrchestrator : IStoreOrchestrator
             {
                 HasFrameMetadata = await frameRangeTask,
                 FileProperties = await storeFileTask,
+                OriginalVersion = watermark
             };
 
             await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata: instanceProperties.HasFrameMetadata, instanceProperties: instanceProperties, cancellationToken: cancellationToken);

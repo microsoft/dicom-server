@@ -36,7 +36,11 @@ public class StoreOrchestratorTests
         DefaultSopInstanceUid,
         DefaultVersion);
 
-    private static readonly FileProperties DefaultFileProperties = new FileProperties();
+    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    {
+        FilePath = String.Empty,
+        ETag = String.Empty
+    };
 
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -166,7 +170,12 @@ public class StoreOrchestratorTests
                 expectedTags,
                 false,
                 false,
-                instanceProperties: Arg.Any<InstanceProperties>(),
+                instanceProperties: Arg.Is<InstanceProperties>(
+                    p => p.InstanceKey == null
+                           && p.FileProperties.FilePath == DefaultFileProperties.FilePath
+                           && p.FileProperties.ETag == DefaultFileProperties.ETag
+                           && p.FileProperties.StreamLength == _stream.Length
+                           && p.HasFrameMetadata == false), //always false for these tests
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()
