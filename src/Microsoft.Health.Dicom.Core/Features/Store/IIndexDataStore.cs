@@ -26,7 +26,7 @@ public interface IIndexDataStore
     /// <param name="queryTags">Queryable dicom tags</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+    Task<InstanceProperties> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously reindex a DICOM instance.

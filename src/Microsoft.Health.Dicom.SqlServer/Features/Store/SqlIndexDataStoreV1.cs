@@ -37,7 +37,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
     public virtual SchemaVersion Version => SchemaVersion.V1;
 
-    public virtual async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public virtual async Task<InstanceProperties> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -62,7 +62,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
             try
             {
-                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                return (InstanceProperties)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
             }
             catch (SqlException ex)
             {

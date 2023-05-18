@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -39,12 +40,12 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
         dataset.Add(DicomTag.SeriesInstanceUID, TestUidGenerator.Generate());
         dataset.Add(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
         dataset.Add(DicomTag.PatientID, TestUidGenerator.Generate());
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
+        InstanceProperties instanceProperties = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, (long)instanceProperties.NewVersion);
 
         // test null conversions
-        await _queryStore.GetStudyResultAsync(1, new List<long> { version });
-        await _queryStore.GetSeriesResultAsync(1, new List<long> { version });
+        await _queryStore.GetStudyResultAsync(1, new List<long> { (long)instanceProperties.NewVersion });
+        await _queryStore.GetSeriesResultAsync(1, new List<long> { (long)instanceProperties.NewVersion });
     }
 
     public Task InitializeAsync()

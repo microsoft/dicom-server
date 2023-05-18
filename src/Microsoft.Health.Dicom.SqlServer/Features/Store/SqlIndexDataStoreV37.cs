@@ -23,17 +23,11 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-/// <summary>
-/// Sql IndexDataStore version 6.
-/// </summary>
-internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
+internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV36
 {
-    public SqlIndexDataStoreV10(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
-        : base(sqlConnectionWrapperFactory)
-    {
-    }
+    public SqlIndexDataStoreV37(SqlConnectionWrapperFactory sqlConnectionWrapperFactory) : base(sqlConnectionWrapperFactory) { }
 
-    public override SchemaVersion Version => SchemaVersion.V10;
+    public override SchemaVersion Version => SchemaVersion.V37;
 
     public override async Task<InstanceProperties> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
@@ -44,7 +38,7 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
             var rows = ExtendedQueryTagDataRowsBuilder.Build(dicomDataset, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-            VLatest.AddInstanceV6TableValuedParameters parameters = new VLatest.AddInstanceV6TableValuedParameters(
+            VLatest.AddInstanceV37TableValuedParameters parameters = new VLatest.AddInstanceV37TableValuedParameters(
                 rows.StringRows,
                 rows.LongRows,
                 rows.DoubleRows,
@@ -52,7 +46,7 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
                 rows.PersonNameRows
             );
 
-            VLatest.AddInstanceV6.PopulateCommand(
+            VLatest.AddInstanceV37.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetString(DicomTag.StudyInstanceUID),
@@ -74,7 +68,16 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
 
             try
             {
-                return (InstanceProperties)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
+                if (await reader.ReadAsync(cancellationToken))
+                {
+                    (long? watermark, long instanceKey) = reader.ReadRow(
+                        VLatest.Instance.NewWatermark,
+                        VLatest.Instance.InstanceKey);
+                    return new InstanceProperties() { NewVersion = watermark, InstanceKey = instanceKey };
+                }
+
+                return null;
             }
             catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict && ex.State == (byte)IndexStatus.Creating)
             {

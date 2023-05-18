@@ -11,7 +11,7 @@ public class InstanceProperties
 {
     public string TransferSyntaxUid { get; init; }
 
-    public bool HasFrameMetadata { get; init; }
+    public bool HasFrameMetadata { get; set; }
 
     public long? OriginalVersion { get; init; }
 
@@ -20,7 +20,7 @@ public class InstanceProperties
     /// <summary>
     /// File properties of instance
     /// </summary>
-    public FileProperties FileProperties { get; init; }
+    public FileProperties FileProperties { get; set; }
 
     /// <summary>
     /// InstanceKey of instance

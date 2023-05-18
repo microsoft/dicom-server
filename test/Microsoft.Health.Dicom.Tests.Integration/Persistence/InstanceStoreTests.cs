@@ -191,8 +191,8 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
+        InstanceProperties instanceProperties = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, (long)instanceProperties.NewVersion, new[] { new QueryTag(tagStoreEntry) }));
     }
 
     [Fact]
@@ -330,10 +330,10 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
+        InstanceProperties instanceProperties = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, (long)instanceProperties.NewVersion);
 
-        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
+        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, (long)instanceProperties.NewVersion);
     }
 
     private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(int partitionKey = DefaultPartition.Key)
@@ -344,7 +344,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
+        InstanceProperties instanceProperties = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, (long)instanceProperties.NewVersion, partitionKey);
     }
 }

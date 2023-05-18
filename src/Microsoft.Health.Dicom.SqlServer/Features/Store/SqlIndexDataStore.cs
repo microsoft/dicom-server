@@ -28,7 +28,7 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+    public async Task<InstanceProperties> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);

@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -184,7 +185,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
     {
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        InstanceProperties instanceProperties = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
         if (flagToStoreInstance)
         {
@@ -197,7 +198,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             dicomFile.Save(stream);
             stream.Position = 0;
             await _fileStore.StoreFileAsync(
-                version,
+                (long)instanceProperties.NewVersion,
                 stream);
         }
 
