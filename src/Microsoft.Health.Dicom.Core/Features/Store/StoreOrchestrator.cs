@@ -87,7 +87,6 @@ public class StoreOrchestrator : IStoreOrchestrator
                 StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken),
                 frameRangeTask);
 
-            // todo - set instanceKey
             InstanceProperties instanceProperties = new InstanceProperties()
             {
                 HasFrameMetadata = await frameRangeTask,
