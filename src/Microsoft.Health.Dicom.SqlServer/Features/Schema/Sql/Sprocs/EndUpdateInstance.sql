@@ -57,6 +57,18 @@ BEGIN
             AND Status = 1
             AND NewWatermark IS NOT NULL
 
+        -- Only updating patient information in a study
+        UPDATE dbo.Study
+        SET PatientId = ISNULL(@patientId, PatientId), 
+            PatientName = ISNULL(@patientName, PatientName), 
+            PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
+        WHERE PartitionKey = @partitionKey
+            AND StudyInstanceUid = @studyInstanceUid 
+
+        -- The study does not exist. May be deleted
+        IF @@ROWCOUNT = 0
+            THROW 50404, 'Study does not exist', 1
+
         -- Insert into change feed table for update action type
         INSERT INTO dbo.ChangeFeed
         (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
@@ -72,18 +84,6 @@ BEGIN
             AND C.StudyInstanceUid = U.StudyInstanceUid
             AND C.SeriesInstanceUid = U.SeriesInstanceUid
             AND C.SopInstanceUid = U.SopInstanceUid
-
-        -- Only updating patient information in a study
-        UPDATE dbo.Study
-        SET PatientId = ISNULL(@patientId, PatientId), 
-            PatientName = ISNULL(@patientName, PatientName), 
-            PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
-        WHERE PartitionKey = @partitionKey
-            AND StudyInstanceUid = @studyInstanceUid 
-
-        -- The study does not exist. May be deleted
-        IF @@ROWCOUNT = 0
-            THROW 50404, 'Study does not exist', 1
 
     COMMIT TRANSACTION
 END

@@ -38,7 +38,7 @@ BEGIN
         SopInstanceUid,
         OriginalWatermark,
         CurrentWatermark
-    FROM dbo.ChangeFeed c
+    FROM dbo.ChangeFeed c WITH (TABLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     WHERE c.Timestamp >= @startTime AND c.Timestamp < @endTime

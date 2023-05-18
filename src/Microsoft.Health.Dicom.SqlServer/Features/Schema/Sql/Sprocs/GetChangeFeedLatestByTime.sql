@@ -24,7 +24,7 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed c
+    FROM    dbo.ChangeFeed c WITH (TABLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     ORDER BY Timestamp DESC, Sequence DESC
