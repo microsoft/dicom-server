@@ -196,7 +196,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             {
                 PartitionKey = partitionKey,
                 ChangeDataset = datasetToUpdate,
-                StudyInstanceUids = updateSpecification.StudyInstanceUids.ToDictionary(x => Guid.NewGuid().ToString(), x => x),
+                StudyInstanceUids = updateSpecification.StudyInstanceUids,
             });
 
         _logger.LogInformation("Successfully started new update operation instance with ID '{InstanceId}'.", instanceId);

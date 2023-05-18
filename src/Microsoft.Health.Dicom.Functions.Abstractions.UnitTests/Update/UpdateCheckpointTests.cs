@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Health.Dicom.Functions.Update;
@@ -23,7 +22,7 @@ public class UpdateCheckpointTests
     [InlineData(4, 2, 50)]
     [InlineData(4, 0, 0)]
     public void GivenUpdateInput_WhenGettingPercentComplete_ThenReturnComputedProgress(int total, int completed, int expected)
-        => Assert.Equal(expected, new UpdateCheckpoint { StudyInstanceUids = Enumerable.Repeat<string>(".", total).ToList().ToDictionary(x => Guid.NewGuid().ToString(), x => x), NumberOfStudyCompleted = completed }.PercentComplete);
+        => Assert.Equal(expected, new UpdateCheckpoint { StudyInstanceUids = Enumerable.Repeat<string>(".", total).ToList(), NumberOfStudyCompleted = completed }.PercentComplete);
 
     [Fact]
     public void GivenCheckpoint_WhenRetrievingAdditionalProperties_ThenGetOperationSpecificValues()

@@ -11,7 +11,7 @@ public class UpdateInput
 {
     public int PartitionKey { get; set; }
 
-    public IReadOnlyDictionary<string, string> StudyInstanceUids { get; set; }
+    public IReadOnlyList<string> StudyInstanceUids { get; set; }
 
     public string ChangeDataset { get; set; }
 }
