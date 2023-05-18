@@ -197,6 +197,12 @@ public partial class RetrieveTransactionResourceTests
             retrievedDicomFile.Dataset.GetSingleValue<string>(DicomTag.StudyInstanceUID).TrimEnd());
     }
 
+    /*
+     * This test ensures existing DICOM instances/metadata/frames are retreivable.
+     * Since our PR environment, creates new db for each test run, the tests is not so usable there
+     * but it will make sure the existing instances are retreivable in our CI environment.
+     * Once we move the blob file path to sql db, we can remove this test.
+     */
     [Fact]
     [Trait("Category", "bvt")]
     public async Task GivenExistingInstance_WhenRetrievingInstanceAndMetadataAndFrame_ThenServerShouldReturnExpectedContent()
