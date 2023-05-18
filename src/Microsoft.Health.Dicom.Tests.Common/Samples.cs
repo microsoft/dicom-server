@@ -363,8 +363,9 @@ public static class Samples
 
     public static (DicomUID classUID, string versionName) GetDicomImplemenationClasUIDAndVersionName()
     {
-        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
-        string expectedVersion = $"{version.Major}.{version.Minor}.{version.Build}";
+        Assembly assembly = typeof(CustomDicomImplementation).GetTypeInfo().Assembly;
+        AssemblyFileVersionAttribute fileVersionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+        string expectedVersion = fileVersionAttribute?.Version ?? "Unknown";
         var classUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
 
         return (classUID, expectedVersion);

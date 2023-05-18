@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Reflection;
 using FellowOakDicom;
 
@@ -26,9 +25,10 @@ public static class CustomDicomImplementation
     /// </summary>
     public static void SetDicomImplementationClassUIDAndVersion()
     {
-        Version version = typeof(CustomDicomImplementation).GetTypeInfo().Assembly.GetName().Version;
+        Assembly assembly = typeof(CustomDicomImplementation).GetTypeInfo().Assembly;
+        AssemblyFileVersionAttribute fileVersionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
 
         DicomImplementation.ClassUID = new DicomUID(ImplementationClassUid, "Implementation Class UID", DicomUidType.Unknown);
-        DicomImplementation.Version = $"{version.Major}.{version.Minor}.{version.Build}";
+        DicomImplementation.Version = fileVersionAttribute?.Version ?? "Unknown";
     }
 }
