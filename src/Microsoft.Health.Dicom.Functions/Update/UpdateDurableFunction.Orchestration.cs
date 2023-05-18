@@ -101,7 +101,9 @@ public partial class UpdateDurableFunction
 
             if (instanceWatermarks.Count > 0)
             {
-                _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count);
+                var executionId = context.GetExecutionId();
+                _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count,
+                    new KeyValuePair<string, object>("ExecutionId", executionId));
             }
             context.ContinueAsNew(
                 new UpdateCheckpoint
