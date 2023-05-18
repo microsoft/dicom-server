@@ -21,5 +21,7 @@ public class ServicesConfiguration
 
     public FramesRangeCacheConfiguration FramesRangeCacheConfiguration { get; } = new FramesRangeCacheConfiguration();
 
+    public FrameRangeMigrationConfiguration FramRangeBlobConfiguration { get; } = new FrameRangeMigrationConfiguration();
+
     public UpdateConfiguration UpdateServiceSettings { get; } = new UpdateConfiguration();
 }

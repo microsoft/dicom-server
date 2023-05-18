@@ -180,6 +180,8 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.TryAddSingleton<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
+
         services.AddSingleton<DeleteMeter>();
         services.AddSingleton<RetrieveMeter>();
         services.AddSingleton<StoreMeter>();
@@ -282,7 +284,6 @@ public class ServiceModule : IStartupModule
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ExportSourceFactory>();
         services.AddScoped<ExportSinkFactory>();
-        services.TryAddScoped<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSourceProvider, IdentifierExportSourceProvider>());
     }
 }

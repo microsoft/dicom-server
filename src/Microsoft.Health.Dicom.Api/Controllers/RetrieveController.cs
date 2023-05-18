@@ -64,7 +64,7 @@ public class RetrieveController : ControllerBase
     {
         _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
 
-        RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+        RetrieveResourceResponse response = await _mediator.RetrieveDicomStudyAsync(studyInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.Request.IsOriginalVersionRequested(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -84,7 +84,7 @@ public class RetrieveController : ControllerBase
     {
         _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}.", studyInstanceUid);
 
-        RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
+        RetrieveMetadataResponse response = await _mediator.RetrieveDicomStudyMetadataAsync(studyInstanceUid, ifNoneMatch, HttpContext.Request.IsOriginalVersionRequested(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -105,7 +105,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
         RetrieveResourceResponse response = await _mediator.RetrieveDicomSeriesAsync(
-            studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.Request.IsOriginalVersionRequested(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -126,7 +126,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}.", studyInstanceUid, seriesInstanceUid);
 
         RetrieveMetadataResponse response = await _mediator.RetrieveDicomSeriesMetadataAsync(
-            studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, ifNoneMatch, HttpContext.Request.IsOriginalVersionRequested(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -148,12 +148,12 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Transaction request received, for study: '{StudyInstanceUid}', series: '{SeriesInstanceUid}', instance: '{SopInstanceUid}'.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         RetrieveResourceResponse response = await _mediator.RetrieveDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, HttpContext.Request.GetAcceptHeaders(), HttpContext.Request.IsOriginalVersionRequested(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
 
-    [Produces(KnownContentTypes.ImageJpeg)]
+    [Produces(KnownContentTypes.ImageJpeg, KnownContentTypes.ImagePng)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -166,12 +166,13 @@ public class RetrieveController : ControllerBase
     public async Task<IActionResult> GetRenderedInstanceAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
-        string sopInstanceUid)
+        string sopInstanceUid,
+        [FromQuery] int quality = 100)
     {
         _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for instance received");
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Instance, HttpContext.Request.GetAcceptHeaders(), quality, HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -196,7 +197,7 @@ public class RetrieveController : ControllerBase
         _logger.LogInformation("DICOM Web Retrieve Metadata Transaction request received, for study: {StudyInstanceUid}, series: {SeriesInstanceUid}, instance: {SopInstanceUid}.", studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         RetrieveMetadataResponse response = await _mediator.RetrieveDicomInstanceMetadataAsync(
-           studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.RequestAborted);
+           studyInstanceUid, seriesInstanceUid, sopInstanceUid, ifNoneMatch, HttpContext.Request.IsOriginalVersionRequested(), HttpContext.RequestAborted);
 
         return CreateResult(response);
     }
@@ -223,7 +224,7 @@ public class RetrieveController : ControllerBase
         return CreateResult(response);
     }
 
-    [Produces(KnownContentTypes.ImageJpeg)]
+    [Produces(KnownContentTypes.ImageJpeg, KnownContentTypes.ImagePng)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
@@ -237,12 +238,13 @@ public class RetrieveController : ControllerBase
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
-        int frame)
+        int frame,
+        [FromQuery] int quality = 100)
     {
         _logger.LogInformation("DICOM Web Retrieve Rendered Image Transaction request for frame received");
 
         RetrieveRenderedResponse response = await _mediator.RetrieveRenderedDicomInstanceAsync(
-            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, HttpContext.Request.GetAcceptHeaders(), HttpContext.RequestAborted, frame);
+            studyInstanceUid, seriesInstanceUid, sopInstanceUid, ResourceType.Frames, HttpContext.Request.GetAcceptHeaders(), quality, HttpContext.RequestAborted, frame);
 
         return CreateResult(response);
     }

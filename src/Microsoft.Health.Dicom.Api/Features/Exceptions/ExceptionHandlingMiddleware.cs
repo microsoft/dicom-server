@@ -90,6 +90,9 @@ public class ExceptionHandlingMiddleware
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;
                 break;
+            case ConditionalExternalException ex when ex.IsExternal == true:
+                statusCode = HttpStatusCode.FailedDependency;
+                break;
             case ResourceNotFoundException:
                 statusCode = HttpStatusCode.NotFound;
                 break;
@@ -106,6 +109,7 @@ public class ExceptionHandlingMiddleware
             case InstanceAlreadyExistsException:
             case ExtendedQueryTagsAlreadyExistsException:
             case ExtendedQueryTagsOutOfDateException:
+            case ExistingOperationException:
                 statusCode = HttpStatusCode.Conflict;
                 break;
             case PayloadTooLargeException:

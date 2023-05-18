@@ -41,7 +41,8 @@ AS
             SeriesInstanceUid VARCHAR(64),
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
-            Watermark BIGINT)
+            Watermark BIGINT,
+            OriginalWatermark BIGINT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
@@ -61,7 +62,7 @@ AS
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark
         INTO @deletedInstances
     WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
@@ -148,8 +149,8 @@ AS
     AND     ResourceType = @imageResourceType
 
     INSERT INTO dbo.DeletedInstance
-    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
+    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter, OriginalWatermark
     FROM @deletedInstances
 
     INSERT INTO dbo.ChangeFeed
