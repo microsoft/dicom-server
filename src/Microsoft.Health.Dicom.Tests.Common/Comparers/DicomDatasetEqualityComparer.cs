@@ -1,11 +1,9 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
@@ -16,14 +14,14 @@ public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
 {
     public static DicomDatasetEqualityComparer Default { get; } = new DicomDatasetEqualityComparer();
 
-    private readonly IEnumerable<DicomTag> _ignoredTags;
+    private readonly ISet<DicomTag> _ignoredTags;
 
     public DicomDatasetEqualityComparer()
-        : this(Array.Empty<DicomTag>())
+        : this(new HashSet<DicomTag>())
     {
     }
 
-    public DicomDatasetEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+    public DicomDatasetEqualityComparer(ISet<DicomTag> ignoredTags)
     {
         EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
         _ignoredTags = ignoredTags;
@@ -37,8 +35,9 @@ public class DicomDatasetEqualityComparer : IEqualityComparer<DicomDataset>
             return object.ReferenceEquals(x, y);
         }
 
+        _ignoredTags.Add(DicomTag.PixelData);
         // Compare DicomItems except PixelData, since DicomItemCollectionEqualityComparer cannot handle it
-        IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(_ignoredTags.Concat(new[] { DicomTag.PixelData }));
+        IEqualityComparer<IEnumerable<DicomItem>> dicomItemsComparaer = new DicomItemCollectionEqualityComparer(_ignoredTags);
 
         if (!dicomItemsComparaer.Equals(x, y))
         {

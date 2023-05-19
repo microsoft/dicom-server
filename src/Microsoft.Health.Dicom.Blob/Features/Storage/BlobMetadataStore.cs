@@ -213,6 +213,9 @@ public class BlobMetadataStore : IMetadataStore
             return await ExecuteAsync(async t =>
             {
                 BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+
+                _logger.LogInformation("Successfully downloaded frame range metadata using fallback logic.");
+
                 return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
             }, cancellationToken);
         }
