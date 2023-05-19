@@ -40,7 +40,7 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
         IEnumerable<QueryTag> queryTags,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
-        InstanceProperties instanceProperties = null,
+        FileProperty fileProperty = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
@@ -59,8 +59,8 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata,
-                instanceProperties?.FileProperty.FilePath,
-                instanceProperties?.FileProperty.ETag
+                fileProperty.FilePath,
+                fileProperty.ETag
             );
 
             try

@@ -170,11 +170,9 @@ public class StoreOrchestratorTests
                 expectedTags,
                 false,
                 false,
-                instanceProperties: Arg.Is<InstanceProperties>(
-                    p => p.FileProperty.FilePath == DefaultFileProperty.FilePath
-                           && p.FileProperty.ETag == DefaultFileProperty.ETag
-                           && p.FileProperty.StreamLength == _stream.Length
-                           && p.HasFrameMetadata == false), //always false for these tests
+                fileProperty: Arg.Is<FileProperty>(
+                    p => p.FilePath == DefaultFileProperty.FilePath
+                           && p.ETag == DefaultFileProperty.ETag),
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()

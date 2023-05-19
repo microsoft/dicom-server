@@ -170,7 +170,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         IEnumerable<QueryTag> queryTags,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
-        InstanceProperties instanceProperties = null,
+        FileProperty fileProperty = null,
         CancellationToken cancellationToken = default)
     {
         await EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);

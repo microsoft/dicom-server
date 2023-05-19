@@ -363,7 +363,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         IEnumerable<QueryTag> queryTags,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
-        InstanceProperties instanceProperties = null,
+        FileProperty fileProperty = null,
         CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);

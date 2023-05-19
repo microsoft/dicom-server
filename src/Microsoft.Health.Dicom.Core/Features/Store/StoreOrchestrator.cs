@@ -80,8 +80,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         try
         {
             // We have successfully created the index, store the files.
-            Task<(long, FileProperty)> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, 
-            cancellationToken);
+            Task<(long, FileProperty)> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
             Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, watermark, cancellationToken);
             await Task.WhenAll(
                 storeFileTask,
@@ -90,14 +89,9 @@ public class StoreOrchestrator : IStoreOrchestrator
 
             (long streamLength, FileProperty fileProperty) = await storeFileTask;
 
-            InstanceProperties instanceProperties = new InstanceProperties()
-            {
-                HasFrameMetadata = await frameRangeTask,
-                FileProperty = fileProperty,
-                TransferSyntaxUid = dicomDataset.InternalTransferSyntax.UID.UID
-            };
+            bool hasFrameMetadata = await frameRangeTask;
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata: instanceProperties.HasFrameMetadata, instanceProperties: instanceProperties, cancellationToken: cancellationToken);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata, fileProperty: fileProperty, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 
