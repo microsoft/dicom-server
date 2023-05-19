@@ -34,6 +34,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private readonly IIndexDataStoreTestHelper _testHelper;
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
+    private readonly FileProperty _defaultPrivateProperty = new FileProperty() { FilePath = "/", ETag = "e123" };
 
     public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
     {
@@ -387,7 +388,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
         long version = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version, fileProperty: _defaultPrivateProperty);
 
         await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset));
     }
@@ -412,7 +413,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         // Make sure there is delay between.
         await Task.Delay(50);
 
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version, fileProperty: _defaultPrivateProperty);
 
         IReadOnlyList<Instance> instances = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -446,7 +447,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(
-            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version));
+            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version, fileProperty: _defaultPrivateProperty));
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
     }
@@ -554,7 +555,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         var queryTags = new[] { new QueryTag(tagEntry) };
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, queryTags);
         await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
-            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags));
+            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags, fileProperty: _defaultPrivateProperty));
     }
 
     [Fact]

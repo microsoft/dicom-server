@@ -331,7 +331,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
 
         return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
     }

@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -201,7 +202,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
                 stream);
         }
 
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
     }
 
     private void ValidateResponseDicomFiles(

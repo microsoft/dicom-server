@@ -487,7 +487,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
         return watermark;
     }
 

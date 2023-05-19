@@ -12,6 +12,7 @@ using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -394,7 +395,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
         dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, queryTags);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, queryTags, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
         return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
     }
 
@@ -410,7 +411,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
     {
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, watermark, queryTags);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, watermark, queryTags, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
         return watermark;
     }
 }
