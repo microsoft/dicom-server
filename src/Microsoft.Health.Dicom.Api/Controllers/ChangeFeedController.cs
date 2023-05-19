@@ -31,6 +31,13 @@ namespace Microsoft.Health.Dicom.Api.Controllers;
 [ServiceFilter(typeof(DicomAudit.AuditLoggingFilterAttribute))]
 public class ChangeFeedController : ControllerBase
 {
+    /*
+     * The current offset/limit pattern used in DICOMweb and the other paginated APIs may have performance
+     * issues as the size of the offset increases. That is because while SQL Server can use the index to
+     * seek to a particular value easily, it still needs to reads the number of rows in the offset to figure
+     * out where to begin returning rows. So if the offset is 1000 and the limit is 5, SQL will read 1005 rows.
+     */
+
     private readonly IMediator _mediator;
     private readonly ILogger<ChangeFeedController> _logger;
 
