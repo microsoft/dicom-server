@@ -168,9 +168,9 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
+        FileProperty fileProperty,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
-        FileProperty fileProperty = null,
         CancellationToken cancellationToken = default)
     {
         await EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);

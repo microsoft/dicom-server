@@ -168,11 +168,11 @@ public class StoreOrchestratorTests
                 _dicomDataset,
                 DefaultVersionedInstanceIdentifier.Version,
                 expectedTags,
-                false,
-                false,
                 fileProperty: Arg.Is<FileProperty>(
-                    p => p.FilePath == DefaultFileProperty.FilePath
-                           && p.ETag == DefaultFileProperty.ETag),
+                        p => p.FilePath == DefaultFileProperty.FilePath
+                             && p.ETag == DefaultFileProperty.ETag),
+                false,
+                false,
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()

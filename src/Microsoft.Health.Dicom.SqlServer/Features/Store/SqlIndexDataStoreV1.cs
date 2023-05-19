@@ -361,9 +361,9 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
+        FileProperty fileProperty,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
-        FileProperty fileProperty = null,
         CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);

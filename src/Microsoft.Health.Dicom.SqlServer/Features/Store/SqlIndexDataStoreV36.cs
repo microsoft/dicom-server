@@ -35,9 +35,9 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
+        FileProperty fileProperty,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
-        FileProperty fileProperty = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
