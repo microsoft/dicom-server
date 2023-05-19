@@ -304,9 +304,9 @@ public class BlobFileStore : IFileStore
     private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
         string blobName = NameWithPrefix.GetInstanceFileName(version);
-
+        string fullPath = BlobClient.ServicePath + blobName;
         // does not throw, just appends uri with blobName
-        return BlobClient.BlobContainerClient.GetBlockBlobClient(blobName);
+        return BlobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
     private async Task ExecuteAsync(Func<Task> action)

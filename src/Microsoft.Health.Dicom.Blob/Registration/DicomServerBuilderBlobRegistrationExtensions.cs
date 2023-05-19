@@ -51,7 +51,7 @@ public static class DicomServerBuilderBlobRegistrationExtensions
                 .AsImplementedInterfaces();
 
             serverBuilder.Services
-                .AddPersistence<IFileStore, ExternalBlobFileStore>();
+                .AddPersistence<IFileStore, BlobFileStore>();
         }
         else
         {

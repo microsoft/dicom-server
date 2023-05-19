@@ -17,4 +17,5 @@ public interface IBlobClient
 
     // To support SxS behavior of current internal store and tomorrows BYOS
     bool IsExternal { get; }
+    string ServicePath { get; }
 }

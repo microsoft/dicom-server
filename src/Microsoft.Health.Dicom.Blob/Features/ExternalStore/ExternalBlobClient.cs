@@ -37,6 +37,7 @@ internal class ExternalBlobClient : IBlobClient
     }
 
     public bool IsExternal => true;
+    public string ServicePath => "AHS_DICOM/";
 
     public BlobContainerClient BlobContainerClient
     {

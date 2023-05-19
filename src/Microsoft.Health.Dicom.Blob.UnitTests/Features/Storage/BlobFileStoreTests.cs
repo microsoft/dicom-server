@@ -90,9 +90,7 @@ public class BlobFileStoreTests
         externalBlobClient = new TestExternalBlobClient();
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
-        externalStoreOptions.Value.Returns(Substitute.For<ExternalBlobDataStoreConfiguration>());
-        blobFileStore = new ExternalBlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance, externalStoreOptions);
+        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
 
     }
 
@@ -109,6 +107,8 @@ public class BlobFileStoreTests
 
         public bool IsExternal => true;
 
+        public string ServicePath { get; } = "external/";
+
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
 
@@ -124,6 +124,8 @@ public class BlobFileStoreTests
         public virtual BlobContainerClient BlobContainerClient { get; private set; }
 
         public bool IsExternal => false;
+
+        public string ServicePath { get; } = "internal/";
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
