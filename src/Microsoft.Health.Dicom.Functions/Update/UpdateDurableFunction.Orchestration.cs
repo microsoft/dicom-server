@@ -5,11 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Core.Features.Audit;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -26,6 +30,7 @@ public partial class UpdateDurableFunction
     /// a single instance.
     /// </remarks>
     /// <param name="context">The context for the orchestration instance.</param>
+    /// <param name="auditLogger">Audit logger.</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>A task representing the <see cref="UpdateInstancesAsync"/> operation.</returns>
     /// <exception cref="ArgumentNullException">
@@ -35,12 +40,29 @@ public partial class UpdateDurableFunction
     [FunctionName(nameof(UpdateInstancesAsync))]
     public async Task UpdateInstancesAsync(
         [OrchestrationTrigger] IDurableOrchestrationContext context,
+        IAuditLogger auditLogger,
         ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
+        EnsureArg.IsNotNull(auditLogger, nameof(auditLogger));
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
+
+        var callerClaims = new List<KeyValuePair<string, string>>
+        {
+            new ("operation_id", context.GetOperationId().ToString()),
+        };
+        auditLogger.LogAudit(
+            AuditAction.Executing,
+            AuditEventSubType.UpdateStudy,
+            null,
+            null,
+            Activity.Current?.RootId,
+            null,
+            callerClaims,
+            null);
+        HttpStatusCode auditStatusCode = HttpStatusCode.BadRequest;
 
         if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
         {
@@ -124,6 +146,16 @@ public partial class UpdateDurableFunction
             {
                 logger.LogInformation("Update operation completed successfully");
             }
+            auditStatusCode = HttpStatusCode.OK;
         }
+        auditLogger.LogAudit(
+            AuditAction.Executed,
+            AuditEventSubType.UpdateStudy,
+            null,
+            auditStatusCode,
+            Activity.Current?.RootId,
+            null,
+            callerClaims,
+            null);
     }
 }
