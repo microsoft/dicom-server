@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -48,14 +48,7 @@ public partial class RetrieveTransactionResourceTests
         {
             // TODO: verify media type once https://microsofthealth.visualstudio.com/Health/_workitems/edit/75185 is done
             var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-            Assert.Equal(expected, actual, new DicomFileEqualityComparer(
-                ignoredTags: new[]
-                {
-                    DicomTag.ImplementationVersionName,  // Version name is updated as we update fo-dicom
-                    DicomTag.StudyInstanceUID,
-                    DicomTag.SeriesInstanceUID,
-                    DicomTag.SOPInstanceUID
-                }));
+            Assert.Equal(expected, actual, new DicomFileEqualityComparer(_ignoredSet));
         }
     }
 

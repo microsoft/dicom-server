@@ -16,8 +16,8 @@ public class PersonNameValidationTests
     [Fact]
     public void GivenValidatePersonName_WhenValidating_ThenShouldPass()
     {
-        DicomElement element = new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz");
-        new PersonNameValidation().Validate(element);
+        new PersonNameValidation().Validate(new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz"));
+        new PersonNameValidation().Validate(new DicomPersonName(DicomTag.PatientName, (string)null));
     }
 
     [Fact]

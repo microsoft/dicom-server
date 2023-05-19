@@ -35,6 +35,11 @@ internal class EncodedStringElementValidation : IElementValidation
     {
         string value = element.GetFirstValueOrDefault<string>();
 
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
         try
         {
             validate(value);
