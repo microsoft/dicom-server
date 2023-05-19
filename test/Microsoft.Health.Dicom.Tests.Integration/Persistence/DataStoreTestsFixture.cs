@@ -101,5 +101,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
         public virtual BlobContainerClient BlobContainerClient { get; }
 
         public bool IsExternal => false;
+
+        public string ServiceStorePath => "";
     }
 }
