@@ -107,7 +107,7 @@ public class BlobFileStoreTests
 
         public bool IsExternal => true;
 
-        public string ServicePath { get; } = "external/";
+        public string ServiceStorePath { get; } = "external/";
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
@@ -125,7 +125,7 @@ public class BlobFileStoreTests
 
         public bool IsExternal => false;
 
-        public string ServicePath { get; } = "internal/";
+        public string ServiceStorePath { get; } = "internal/";
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
