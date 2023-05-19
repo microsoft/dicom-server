@@ -36,7 +36,7 @@ public class StoreOrchestratorTests
         DefaultSopInstanceUid,
         DefaultVersion);
 
-    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    private static readonly FileProperty DefaultFileProperty = new FileProperty()
     {
         FilePath = String.Empty,
         ETag = String.Empty
@@ -100,7 +100,7 @@ public class StoreOrchestratorTests
                 DefaultVersionedInstanceIdentifier.Version,
                 _stream,
                 cancellationToken: DefaultCancellationToken)
-            .Returns(DefaultFileProperties);
+            .Returns(DefaultFileProperty);
 
         await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
@@ -171,9 +171,9 @@ public class StoreOrchestratorTests
                 false,
                 false,
                 instanceProperties: Arg.Is<InstanceProperties>(
-                    p => p.FileProperties.FilePath == DefaultFileProperties.FilePath
-                           && p.FileProperties.ETag == DefaultFileProperties.ETag
-                           && p.FileProperties.StreamLength == _stream.Length
+                    p => p.FileProperty.FilePath == DefaultFileProperty.FilePath
+                           && p.FileProperty.ETag == DefaultFileProperty.ETag
+                           && p.FileProperty.StreamLength == _stream.Length
                            && p.HasFrameMetadata == false), //always false for these tests
                 cancellationToken: DefaultCancellationToken);
 

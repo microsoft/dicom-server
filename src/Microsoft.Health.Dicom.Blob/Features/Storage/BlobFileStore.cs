@@ -46,7 +46,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<FileProperties> StoreFileAsync(
+    public async Task<FileProperty> StoreFileAsync(
         long version,
         Stream stream,
         CancellationToken cancellationToken)
@@ -65,11 +65,11 @@ public class BlobFileStore : IFileStore
             info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
         });
 
-        return new FileProperties()
+        return new FileProperty()
         {
             FilePath = blobClient.Name,
             ETag = info.ETag.ToString(),
-            StreamLength = stream.Length
+            Watermark = version
         };
     }
 
