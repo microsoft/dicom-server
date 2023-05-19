@@ -44,7 +44,6 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
     @status                     TINYINT,
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
-    @instanceKey                BIGINT = NULL,
     @filePath                   VARCHAR(4000) = NULL,
     @eTag                       VARCHAR(200) = NULL
 AS
@@ -73,10 +72,9 @@ BEGIN
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1
 
-    -- Insert to FileProperty when InstanceKey given
-    IF (@instanceKey IS NOT NULL)
-        INSERT INTO dbo.FileProperty (InstanceKey, FilePath, ETag)
-        VALUES                       (@instanceKey, @filePath, @eTag)
+    -- Insert to FileProperty
+    INSERT INTO dbo.FileProperty (Watermark, FilePath, ETag)
+    VALUES                       (@watermark, @filePath, @eTag)
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created

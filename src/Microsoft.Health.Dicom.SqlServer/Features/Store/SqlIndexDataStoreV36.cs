@@ -59,7 +59,6 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata,
-                instanceProperties?.InstanceKey,
                 instanceProperties?.FileProperties.FilePath,
                 instanceProperties?.FileProperties.ETag
             );

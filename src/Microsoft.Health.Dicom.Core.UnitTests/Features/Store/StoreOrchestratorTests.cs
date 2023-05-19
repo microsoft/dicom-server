@@ -171,8 +171,7 @@ public class StoreOrchestratorTests
                 false,
                 false,
                 instanceProperties: Arg.Is<InstanceProperties>(
-                    p => p.InstanceKey == null
-                           && p.FileProperties.FilePath == DefaultFileProperties.FilePath
+                    p => p.FileProperties.FilePath == DefaultFileProperties.FilePath
                            && p.FileProperties.ETag == DefaultFileProperties.ETag
                            && p.FileProperties.StreamLength == _stream.Length
                            && p.HasFrameMetadata == false), //always false for these tests

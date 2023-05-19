@@ -21,9 +21,4 @@ public class InstanceProperties
     /// File properties of instance
     /// </summary>
     public FileProperties FileProperties { get; init; }
-
-    /// <summary>
-    /// InstanceKey of instance
-    /// </summary>
-    public long? InstanceKey { get; init; }
 }
