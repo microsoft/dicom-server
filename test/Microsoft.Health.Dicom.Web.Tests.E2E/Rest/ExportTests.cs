@@ -31,7 +31,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
-    private readonly ExportTestOptions _options;
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instanceManager;
 
@@ -41,11 +40,6 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _instanceManager = new DicomInstancesManager(_client);
-
-        IConfigurationSection exportSection = TestEnvironment.Variables.GetSection("Tests:Export");
-
-        _options = new ExportTestOptions();
-        exportSection.Bind(_options);
     }
 
     [Fact]
@@ -97,6 +91,10 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         await Task.WhenAll(instances.Select(x => _instanceManager.StoreAsync(new DicomFile(x.Value))));
 
         // Begin Export
+        ExportTestOptions options = GetExportTestOptions(TestEnvironment.Variables);
+        BlobContainerClient containerClient = options.CreateTestContainerClient();
+        await using IAsyncDisposable scope = await ContainerScope.CreateAsync(containerClient);
+
         DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
             ExportSource.ForIdentifiers(
                 DicomIdentifier.ForStudy(studyUid1),
@@ -107,7 +105,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
                 DicomIdentifier.ForInstance(instance8),
                 DicomIdentifier.ForInstance(instance9),
                 DicomIdentifier.ForStudy(unknownStudyUid3)),
-            _options.Destination);
+            options.Destination);
 
         // Wait for the operation to complete
         DicomOperationReference operation = await response.GetValueAsync();
@@ -124,8 +122,6 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         Assert.Equal(3, results.Skipped);
 
         // Validate the export by querying the blob container
-        BlobContainerClient containerClient = CreateContainerClient();
-
         List<BlobItem> actual = await containerClient
             .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
             .Where(x => x.Name.EndsWith(".dcm"))
@@ -173,22 +169,10 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     }
 
     public Task InitializeAsync()
-        => CreateContainerClient().CreateIfNotExistsAsync(PublicAccessType.None);
+        => Task.CompletedTask;
 
     public Task DisposeAsync()
-        => Task.WhenAll(_instanceManager.DisposeAsync().AsTask(), CreateContainerClient().DeleteIfExistsAsync());
-
-    private BlobContainerClient CreateContainerClient()
-    {
-        if (_options.BlobContainerUri != null)
-        {
-            return _options.UseManagedIdentity
-                ? new BlobContainerClient(_options.BlobContainerUri, new DefaultAzureCredential())
-                : new BlobContainerClient(_options.BlobContainerUri);
-        }
-
-        return new BlobContainerClient(_options.ConnectionString, _options.BlobContainerName);
-    }
+        => _instanceManager.DisposeAsync().AsTask();
 
     private static async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
     {
@@ -219,30 +203,73 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             identifer.SeriesInstanceUid,
             identifer.SopInstanceUid);
 
+    private static ExportTestOptions GetExportTestOptions(IConfiguration configuration)
+    {
+        var options = new ExportTestOptions();
+        configuration.GetSection("Tests:Export").Bind(options);
+
+        return options;
+    }
+
     private sealed class ExportTestOptions : AzureBlobConnectionOptions
     {
+        // Depending on the test setup, the "Sink" (i.e. the Azure Storage connection) may
+        // look different from that used by the test, so optionally it can be overridden.
+        // For example, this may be the case if the web app is running via docker-compose with Azurite.
         public AzureBlobConnectionOptions Sink { get; set; }
+
+        public string BlobContainerName { get; } = Guid.NewGuid().ToString("D");
+
+        // The BlobContainerUri is always based on the export test's connection
+        private Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
 
         public ExportDataOptions<ExportDestinationType> Destination
         {
             get
             {
                 AzureBlobConnectionOptions options = Sink ?? this;
-                return options.BlobContainerUri != null
-                    ? ExportDestination.ForAzureBlobStorage(options.BlobContainerUri, options.UseManagedIdentity)
-                    : ExportDestination.ForAzureBlobStorage(options.ConnectionString, options.BlobContainerName);
+                return options.BlobServiceUri != null
+                    ? ExportDestination.ForAzureBlobStorage(BlobContainerUri, options.UseManagedIdentity)
+                    : ExportDestination.ForAzureBlobStorage(options.ConnectionString, BlobContainerName);
             }
+        }
+
+        public BlobContainerClient CreateTestContainerClient()
+        {
+            if (BlobServiceUri != null)
+            {
+                return UseManagedIdentity
+                    ? new BlobContainerClient(BlobContainerUri, new DefaultAzureCredential())
+                    : new BlobContainerClient(BlobContainerUri);
+            }
+
+            return new BlobContainerClient(ConnectionString, BlobContainerName);
         }
     }
 
     private class AzureBlobConnectionOptions
     {
-        public Uri BlobContainerUri { get; set; }
+        public Uri BlobServiceUri { get; set; }
 
         public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
 
-        public string BlobContainerName { get; set; } = "export-e2e-test";
-
         public bool UseManagedIdentity { get; set; }
+    }
+
+    private sealed class ContainerScope : IAsyncDisposable
+    {
+        private readonly BlobContainerClient _client;
+
+        private ContainerScope(BlobContainerClient client)
+            => _client = client;
+
+        public static async Task<IAsyncDisposable> CreateAsync(BlobContainerClient client)
+        {
+            await client.CreateIfNotExistsAsync();
+            return new ContainerScope(client);
+        }
+
+        public ValueTask DisposeAsync()
+            => new ValueTask(_client.DeleteIfExistsAsync());
     }
 }

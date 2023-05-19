@@ -129,8 +129,6 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
-
-
     [Theory]
     [InlineData("123,345")]
     public async Task GivenV2Enabled_WhenPatientIDPAddedWithComma_ExpectTagValidatedAndNoErrorProduced(string value)
@@ -138,6 +136,22 @@ public class StoreDatasetValidatorTestsV2
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
             validateItems: false,
             patientId: value);
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenNonRequiredTagNull_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(DicomTag.AcquisitionDateTime, new string[] { null });
+        dicomDataset.AddOrUpdate(DicomTag.PatientName, new string[] { null });
+        dicomDataset.Add(DicomTag.WindowCenterWidthExplanation, new string[] { null });
 
         var result = await _dicomDatasetValidator.ValidateAsync(
             dicomDataset,
