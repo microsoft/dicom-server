@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,6 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
 internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
@@ -29,7 +27,6 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
         : base(sqlConnectionWrapperFactory)
     {
     }
-
 
     public override SchemaVersion Version => SchemaVersion.V36;
 

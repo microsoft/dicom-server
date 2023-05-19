@@ -30,8 +30,6 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobOperationOptions _options;
     private readonly ILogger<BlobFileStore> _logger;
-    protected DicomFileNameWithPrefix NameWithPrefix { get; }
-    public IBlobClient BlobClient { get; }
 
     public BlobFileStore(
         IBlobClient blobClient,
@@ -44,6 +42,8 @@ public class BlobFileStore : IFileStore
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         BlobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
+    protected DicomFileNameWithPrefix NameWithPrefix { get; }
+    public IBlobClient BlobClient { get; }
 
     /// <inheritdoc />
     public async Task<FileProperty> StoreFileAsync(

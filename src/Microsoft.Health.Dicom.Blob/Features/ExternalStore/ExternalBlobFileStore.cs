@@ -27,6 +27,7 @@ internal class ExternalBlobFileStore : BlobFileStore
     {
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
     }
+
     private protected override BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
         string blobName = NameWithPrefix.GetInstanceFileName(version);
