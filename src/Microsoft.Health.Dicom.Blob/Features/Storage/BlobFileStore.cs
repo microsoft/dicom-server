@@ -43,7 +43,7 @@ public class BlobFileStore : IFileStore
         BlobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
     protected DicomFileNameWithPrefix NameWithPrefix { get; }
-    public IBlobClient BlobClient { get; }
+    private IBlobClient BlobClient { get; }
 
     /// <inheritdoc />
     public async Task<FileProperty> StoreFileAsync(
