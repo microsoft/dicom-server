@@ -45,15 +45,7 @@ public partial class RetrieveTransactionResourceTests
 
         var actual = await response.GetValueAsync();
         var expected = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
-        Assert.Equal(expected, actual, new DicomFileEqualityComparer(
-            ignoredTags: new[]
-            {
-                DicomTag.ImplementationVersionName,  // Version name is updated as we update fo-dicom
-                DicomTag.StudyInstanceUID,
-                DicomTag.SeriesInstanceUID,
-                DicomTag.SOPInstanceUID
-            }));
-
+        Assert.Equal(expected, actual, new DicomFileEqualityComparer(_ignoredSet));
     }
 
     [Theory]

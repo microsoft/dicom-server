@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
@@ -114,6 +115,8 @@ public static class ServiceCollectionExtensions
 
         // Note: Fellow Oak Services have already been added as part of the ServiceModule
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, FellowOakExtensionConfiguration>());
+
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
         return services;
     }
