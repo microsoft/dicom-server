@@ -21,8 +21,8 @@
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeedByTime (
     @startTime DATETIMEOFFSET(7),
     @endTime   DATETIMEOFFSET(7),
-    @offset    BIGINT,
-    @limit     INT)
+    @limit     INT,
+    @offset    BIGINT)
 AS
 BEGIN
     SET NOCOUNT     ON

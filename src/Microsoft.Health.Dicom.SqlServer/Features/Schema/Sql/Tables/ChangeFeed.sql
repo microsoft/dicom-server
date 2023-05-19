@@ -9,7 +9,7 @@
 **************************************************************/
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    Timestamp               DATETIMEOFFSET(7)    NOT NULL,
+    Timestamp               DATETIMEOFFSET(7)    NOT NULL DEFAULT SYSDATETIMEOFFSET(),
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
@@ -40,9 +40,4 @@ CREATE NONCLUSTERED INDEX IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInst
 CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
 (
     Sequence
-)
-INCLUDE
-(
-    PartitionKey
-)
-WITH (DATA_COMPRESSION = PAGE)
+) WITH (DATA_COMPRESSION = PAGE)

@@ -43,10 +43,10 @@ internal class SqlChangeFeedStoreV36 : SqlChangeFeedStoreV6
         switch (order)
         {
             case ChangeFeedOrder.Sequence:
-                VLatest.GetChangeFeedV36.PopulateCommand(sqlCommandWrapper, limit, offset);
+                VLatest.GetChangeFeedV6.PopulateCommand(sqlCommandWrapper, limit, offset);
                 break;
             case ChangeFeedOrder.Time:
-                VLatest.GetChangeFeedByTime.PopulateCommand(sqlCommandWrapper, range.Start, range.End, offset, limit);
+                VLatest.GetChangeFeedByTime.PopulateCommand(sqlCommandWrapper, range.Start, range.End, limit, offset);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(order));

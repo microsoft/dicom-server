@@ -2,8 +2,21 @@ SET XACT_ABORT ON
 
 BEGIN TRANSACTION
 
-    DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
+    IF NOT EXISTS
+    (
+        SELECT *
+        FROM sys.all_columns c
+        INNER JOIN sys.tables t ON t.object_id = c.object_id
+        INNER JOIN sys.default_constraints d ON c.default_object_id = d.object_id
+        WHERE t.name = 'ChangeFeed' AND c.name = 'Timestamp'
+    )
+    BEGIN
 
+        ALTER TABLE dbo.ChangeFeed ADD DEFAULT SYSDATETIMEOFFSET() FOR Timestamp
+
+    END
+
+    DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
     DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
 
     CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
@@ -16,12 +29,7 @@ BEGIN TRANSACTION
     CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
     (
         Sequence
-    )
-    INCLUDE
-    (
-        PartitionKey
-    )
-    WITH (DATA_COMPRESSION = PAGE)
+    ) WITH (DATA_COMPRESSION = PAGE)
 
 COMMIT TRANSACTION
 GO
@@ -31,10 +39,10 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstanceV6
+--     DeleteInstanceV36
 --
 -- FIRST SCHEMA VERSION
---     6
+--     36
 --
 -- DESCRIPTION
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
@@ -53,7 +61,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV36
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @partitionKey       INT,
@@ -279,8 +287,8 @@ BEGIN
     END
 
     INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
     WHERE Status = @createdStatus
 
@@ -302,7 +310,10 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     EndUpdateInstance
+--     EndUpdateInstanceV36
+--
+-- FIRST SCHEMA VERSION
+--     36
 --
 -- DESCRIPTION
 --     Bulk update all instances in a study, creates new entry in changefeed.
@@ -322,7 +333,7 @@ GO
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV36
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @patientId                          NVARCHAR(64) = NULL,
@@ -370,8 +381,8 @@ BEGIN
 
         -- Insert into change feed table for update action type
         INSERT INTO dbo.ChangeFeed
-        (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-        SELECT @currentDate, 2, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+        (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        SELECT 2, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
         FROM @updatedInstances
 
         -- Update existing instance currentWatermark to latest
@@ -390,10 +401,10 @@ GO
 
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedV36
+--     GetChangeFeedV6
 --
 -- FIRST SCHEMA VERSION
---     36
+--     6
 --
 -- DESCRIPTION
 --     Gets a stream of dicom changes (instance adds and deletes)
@@ -404,7 +415,7 @@ GO
 --     @offet
 --         * Rows to skip
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV36 (
+CREATE OR ALTER PROCEDURE dbo.GetChangeFeedV6 (
     @limit      INT,
     @offset     BIGINT)
 AS
@@ -424,9 +435,8 @@ BEGIN
     FROM    dbo.ChangeFeed c WITH (TABLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
+    WHERE   Sequence BETWEEN @offset+1 AND @offset+@limit
     ORDER BY Sequence
-    OFFSET @offset ROWS
-    FETCH NEXT @limit ROWS ONLY
 END
 GO
 
@@ -453,8 +463,8 @@ GO
 CREATE OR ALTER PROCEDURE dbo.GetChangeFeedByTime (
     @startTime DATETIMEOFFSET(7),
     @endTime   DATETIMEOFFSET(7),
-    @offset    BIGINT,
-    @limit     INT)
+    @limit     INT,
+    @offset    BIGINT)
 AS
 BEGIN
     SET NOCOUNT     ON
@@ -646,6 +656,95 @@ BEGIN
     ORDER BY CreatedTime ASC, XQTE.Watermark ASC, TagKey ASC
     OFFSET @offset ROWS
     FETCH NEXT @limit ROWS ONLY
+END
+GO
+
+/*************************************************************
+    Stored procedures for updating an instance status.
+**************************************************************/
+--
+-- STORED PROCEDURE
+--     UpdateInstanceStatusV36
+--
+-- FIRST SCHEMA VERSION
+--     36
+--
+-- DESCRIPTION
+--     Updates a DICOM instance status, which allows for consistency during indexing.
+--
+-- PARAMETERS
+--     @partitionKey
+--         * The partition key.
+--     @studyInstanceUid
+--         * The study instance UID.
+--     @seriesInstanceUid
+--         * The series instance UID.
+--     @sopInstanceUid
+--         * The SOP instance UID.
+--     @watermark
+--         * The watermark.
+--     @status
+--         * The new status to update to.
+--     @maxTagKey
+--         * Optional max ExtendedQueryTag key
+--     @hasFrameMetadata
+--         * Optional flag to indicate frame metadata existance
+--
+-- RETURN VALUE
+--     None
+--
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
+    @partitionKey       INT,
+    @studyInstanceUid   VARCHAR(64),
+    @seriesInstanceUid  VARCHAR(64),
+    @sopInstanceUid     VARCHAR(64),
+    @watermark          BIGINT,
+    @status             TINYINT,
+    @maxTagKey          INT = NULL,
+    @hasFrameMetadata   BIT = 0
+AS
+BEGIN
+    SET NOCOUNT ON
+
+    SET XACT_ABORT ON
+    BEGIN TRANSACTION
+
+    -- This check ensures the client is not potentially missing 1 or more query tags that may need to be indexed.
+    -- Note that if @maxTagKey is NULL, < will always return UNKNOWN.
+    IF @maxTagKey < (SELECT ISNULL(MAX(TagKey), 0) FROM dbo.ExtendedQueryTag WITH (HOLDLOCK))
+        THROW 50409, 'Max extended query tag key does not match', 10
+
+    DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
+
+    UPDATE dbo.Instance
+    SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid = @sopInstanceUid
+        AND Watermark = @watermark
+
+    -- The instance does not exist. Perhaps it was deleted?
+    IF @@ROWCOUNT = 0
+        THROW 50404, 'Instance does not exist', 1
+
+    -- Insert to change feed.
+    -- Currently this procedure is used only updating the status to created
+    -- If that changes an if condition is needed.
+    INSERT INTO dbo.ChangeFeed
+        (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES
+        (0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+
+    -- Update existing instance currentWatermark to latest
+    UPDATE dbo.ChangeFeed
+    SET CurrentWatermark      = @watermark
+    WHERE PartitionKey = @partitionKey
+        AND StudyInstanceUid  = @studyInstanceUid
+        AND SeriesInstanceUid = @seriesInstanceUid
+        AND SopInstanceUid    = @sopInstanceUid
+
+    COMMIT TRANSACTION
 END
 GO
 

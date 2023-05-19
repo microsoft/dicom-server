@@ -1,9 +1,9 @@
-/***************************************************************************************/
+﻿/***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstanceV6
+--     DeleteInstanceV36
 --
 -- FIRST SCHEMA VERSION
---     6
+--     36
 --
 -- DESCRIPTION
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
@@ -22,7 +22,7 @@
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV36
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @partitionKey       INT,
@@ -30,6 +30,7 @@ CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
 AS
+BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
 
@@ -153,21 +154,6 @@ AS
     SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter, OriginalWatermark
     FROM @deletedInstances
 
-    INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
-    FROM @deletedInstances
-    WHERE Status = @createdStatus
-
-    UPDATE CF
-    SET CF.CurrentWatermark = NULL
-    FROM dbo.ChangeFeed AS CF WITH(FORCESEEK)
-    JOIN @deletedInstances AS DI
-    ON CF.PartitionKey = DI.PartitionKey
-        AND CF.StudyInstanceUid = DI.StudyInstanceUid
-        AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
-        AND CF.SopInstanceUid = DI.SopInstanceUid
-
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
                     FROM    dbo.Instance WITH(HOLDLOCK, UPDLOCK)
@@ -261,4 +247,20 @@ AS
         AND     ResourceType = @imageResourceType
     END
 
+    INSERT INTO dbo.ChangeFeed
+    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    FROM @deletedInstances
+    WHERE Status = @createdStatus
+
+    UPDATE CF
+    SET CF.CurrentWatermark = NULL
+    FROM dbo.ChangeFeed AS CF WITH(FORCESEEK)
+    JOIN @deletedInstances AS DI
+    ON CF.PartitionKey = DI.PartitionKey
+        AND CF.StudyInstanceUid = DI.StudyInstanceUid
+        AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
+        AND CF.SopInstanceUid = DI.SopInstanceUid
+
     COMMIT TRANSACTION
+END
