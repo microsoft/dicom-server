@@ -14,6 +14,8 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using System;
+using System.Linq;
+using Microsoft.Health.Dicom.Core;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 
@@ -34,6 +36,38 @@ internal class ExternalBlobClient : IBlobClient
         _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
+        _externalStoreOptions.ServiceStorePath = SanitizeServiceStorePath(_externalStoreOptions.ServiceStorePath);
+        ValidateServiceStorePath(_externalStoreOptions.ServiceStorePath);
+    }
+
+    private static string SanitizeServiceStorePath(string path)
+    {
+        return !path.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? path + "/" : path;
+    }
+
+    /// <summary>
+    /// See https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
+    /// </summary>
+    private void ValidateServiceStorePath(string path)
+    {
+        // Reserved URL characters must be properly escaped.
+        // https://www.rfc-editor.org/rfc/rfc3986#section-2.2
+        // reserved    = gen-delims / sub-delims
+        // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+        // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
+        //               / "*" / "+" / "," / ";" / "="
+        if (path.Select(x => !Char.IsLetterOrDigit(x) && x != '.' && x != '/').Any())
+        {
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePath, isExternal: IsExternal);
+        }
+
+        // If your account does not have a hierarchical namespace, then the number of path segments comprising the blob
+        // name cannot exceed 254. A path segment is the string between consecutive delimiter characters
+        // (e.g., the forward slash '/') that corresponds to the name of a virtual directory.
+        if (path.Count(c => c == '/') > 254)
+        {
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePath, isExternal: IsExternal);
+        }
     }
 
     public bool IsExternal => true;
