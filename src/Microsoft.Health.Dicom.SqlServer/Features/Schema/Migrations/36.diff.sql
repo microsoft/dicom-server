@@ -1,38 +1,34 @@
 SET XACT_ABORT ON
 
-BEGIN TRANSACTION
+IF NOT EXISTS
+(
+    SELECT *
+    FROM sys.all_columns c
+    INNER JOIN sys.tables t ON t.object_id = c.object_id
+    INNER JOIN sys.default_constraints d ON c.default_object_id = d.object_id
+    WHERE t.name = 'ChangeFeed' AND c.name = 'Timestamp'
+)
+BEGIN
 
-    IF NOT EXISTS
-    (
-        SELECT *
-        FROM sys.all_columns c
-        INNER JOIN sys.tables t ON t.object_id = c.object_id
-        INNER JOIN sys.default_constraints d ON c.default_object_id = d.object_id
-        WHERE t.name = 'ChangeFeed' AND c.name = 'Timestamp'
-    )
-    BEGIN
+    ALTER TABLE dbo.ChangeFeed ADD DEFAULT SYSDATETIMEOFFSET() FOR Timestamp
 
-        ALTER TABLE dbo.ChangeFeed ADD DEFAULT SYSDATETIMEOFFSET() FOR Timestamp
-
-    END
-
-    DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
-    DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-
-    CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
-    (
-        Timestamp,
-        Sequence
-    )
-
-    -- For use with the V1 APIs that use Sequence
-    CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-    (
-        Sequence
-    ) WITH (DATA_COMPRESSION = PAGE)
-
-COMMIT TRANSACTION
+END
 GO
+
+DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
+DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+
+CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
+(
+    Timestamp,
+    Sequence
+)
+
+-- For use with the V1 APIs that use Sequence
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+(
+    Sequence
+) WITH (DATA_COMPRESSION = PAGE)
 
 BEGIN TRANSACTION
 GO
