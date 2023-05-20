@@ -432,7 +432,7 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed c WITH (TABLOCK)
+    FROM    dbo.ChangeFeed c WITH (HOLDLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     WHERE   Sequence BETWEEN @offset+1 AND @offset+@limit
@@ -480,7 +480,7 @@ BEGIN
         SopInstanceUid,
         OriginalWatermark,
         CurrentWatermark
-    FROM dbo.ChangeFeed c WITH (TABLOCK)
+    FROM dbo.ChangeFeed c WITH (HOLDLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     WHERE c.Timestamp >= @startTime AND c.Timestamp < @endTime
@@ -516,7 +516,7 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed c WITH (TABLOCK)
+    FROM    dbo.ChangeFeed c WITH (HOLDLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     ORDER BY Sequence DESC
@@ -549,7 +549,7 @@ BEGIN
             SopInstanceUid,
             OriginalWatermark,
             CurrentWatermark
-    FROM    dbo.ChangeFeed c WITH (TABLOCK)
+    FROM    dbo.ChangeFeed c WITH (HOLDLOCK)
     INNER JOIN dbo.Partition p
     ON p.PartitionKey = c.PartitionKey
     ORDER BY Timestamp DESC, Sequence DESC

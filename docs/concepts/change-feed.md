@@ -38,10 +38,20 @@ current  | This instance is the current version.
 replaced | This instance has been replaced by a new version.
 deleted  | This instance has been deleted and is no longer available in the service.
 
-### Read Change Feed
+## Change Feed
+The Change Feed resource is a collection of events that have occurred within the DICOM server.
 
-**Route**: /changefeed?offset={int}&limit={int}&includemetadata={**true**|false}
+### Version 2
+
+#### Request
+```http
+GET /changefeed?startTime={datetime}&endtime={datetime}&offset={int}&limit={int}&includemetadata={bool} HTTP/1.1
+Accept: */*
+Content-Type: application/json
 ```
+
+#### Response
+```json
 [
     {
         "Sequence": 1,
@@ -52,7 +62,7 @@ deleted  | This instance has been deleted and is no longer available in the serv
         "Timestamp": "2020-03-04T01:03:08.4834Z",
         "State": "current|replaced|deleted",
         "Metadata": {
-            "actual": "metadata"
+            // DICOM JSON
         }
     },
     {
@@ -64,28 +74,82 @@ deleted  | This instance has been deleted and is no longer available in the serv
         "Timestamp": "2020-03-05T07:13:16.4834Z",
         "State": "current|replaced|deleted",
         "Metadata": {
-            "actual": "metadata"
+            // DICOM JSON
         }
-    }
-    ...
+    },
+    // ...
 ]
 ```
 
 #### Parameters
 
-Name            | Type     | Availability | Description | Default | Min | Max |
-:-------------- | :------- | :----------- | :---------- | :------ | :-- | :-- |
-offset          | int      | v1           | The number of records to skip before the values to return | `0` | `0` | |
-limit           | int      | v1           | The number of records to return | `10` | `1` | `100` |
-startTime       | DateTime | v2           | The inclusive start time for change events | `"0001-01-01T00:00:00Z"` | `"0001-01-01T00:00:00Z"` | `"9999-12-31T23:59:59.9999998Z"`|
-endTime         | DateTime | v2           |  The exclusive end time for change events | `"9999-12-31T23:59:59.9999999Z"` | `"0001-01-01T00:00:00.0000001"` | `"9999-12-31T23:59:59.9999999Z"` |
-includeMetadata | bool     | v1           | Indicates whether or not to include the metadata | `true` | | |
+Name            | Type     | Description | Default | Min | Max |
+:-------------- | :------- | :---------- | :------ | :-- | :-- |
+offset          | int      | The number of events to skip from the beginning of the result set | `0` | `0` | |
+limit           | int      | The number of records to return | `100` | `1` | `200` |
+startTime       | DateTime | The inclusive start time for change events | `"0001-01-01T00:00:00Z"` | `"0001-01-01T00:00:00Z"` | `"9999-12-31T23:59:59.9999998Z"`|
+endTime         | DateTime |  The exclusive end time for change events | `"9999-12-31T23:59:59.9999999Z"` | `"0001-01-01T00:00:00.0000001"` | `"9999-12-31T23:59:59.9999999Z"` |
+includeMetadata | bool     | Indicates whether or not to include the DICOM metadata | `true` | | |
 
-### Get latest Change Feed item
+### Version 1
 
-**Route**: /changefeed/latest?includemetadata={**true**|false}
-
+#### Request
+```http
+GET /changefeed?offset={int}&limit={int}&includemetadata={bool} HTTP/1.1
+Accept: */*
+Content-Type: application/json
 ```
+
+#### Response
+```json
+[
+    {
+        "Sequence": 1,
+        "StudyInstanceUid": "{uid}",
+        "SeriesInstanceUid": "{uid}",
+        "SopInstanceUid": "{uid}",
+        "Action": "create|delete",
+        "Timestamp": "2020-03-04T01:03:08.4834Z",
+        "State": "current|replaced|deleted",
+        "Metadata": {
+            // DICOM JSON
+        }
+    },
+    {
+        "Sequence": 2,
+        "StudyInstanceUid": "{uid}",
+        "SeriesInstanceUid": "{uid}",
+        "SopInstanceUid": "{uid}",
+        "Action": "create|delete",
+        "Timestamp": "2020-03-05T07:13:16.4834Z",
+        "State": "current|replaced|deleted",
+        "Metadata": {
+            // DICOM JSON
+        }
+    },
+    // ...
+]
+```
+
+#### Parameters
+Name            | Type     | Description | Default | Min | Max |
+:-------------- | :------- | :---------- | :------ | :-- | :-- |
+offset          | int      | The exclusive starting sequence number for events | `0` | `0` | |
+limit           | int      | The maximum number of records to return. There may be more results, even if the returned number is less than the limit | `10` | `1` | `100` |
+includeMetadata | bool     | Indicates whether or not to include the DICOM metadata | `true` | | |
+
+## Latest Change Feed
+The latest Change Feed resource represents the latest event that has occurred within the DICOM Server.
+
+### Request
+```http
+GET /changefeed/latest?includemetadata={bool} HTTP/1.1
+Accept: */*
+Content-Type: application/json
+```
+
+### Response
+```json
 {
     "Sequence": 2,
     "StudyInstanceUid": "{uid}",
@@ -95,12 +159,12 @@ includeMetadata | bool     | v1           | Indicates whether or not to include 
     "Timestamp": "2020-03-05T07:13:16.4834Z",
     "State": "current|replaced|deleted",
     "Metadata": {
-        "actual": "metadata"
+        // DICOM JSON
     }
 }
 ```
 
-#### Parameters
+### Parameters
 
 Name            | Type | Description | Default |
 :-------------- | :--- | :---------- | :------ |
@@ -112,7 +176,7 @@ includeMetadata | bool | Indicates whether or not to include the metadata | `tru
 
 [DICOM Cast](/converter/dicom-cast) is a stateful processor that pulls DICOM changes from Change Feed, transforms and publishes them to a configured Azure API for FHIR service as an [ImagingStudy resource](https://www.hl7.org/fhir/imagingstudy.html). DICOM Cast can start processing the DICOM change events at any point and continue to pull and process new changes incrementally.
 
-### Example Usage Flow
+### User Application
 
 Below is the flow for an example application that wants to do additional processing on the instances within the DICOM service.
 
@@ -150,10 +214,6 @@ Change Feed support is well-suited for scenarios that process data based on obje
 * Build connected application pipelines like ML that react to change events or schedule executions based on created or deleted instance.
 * Extract business analytics insights and metrics, based on changes that occur to your objects.
 * Poll the Change Feed to create an event source for push notifications.
-
-### Latency
-
-Be careful about querying data close to the current time. The results of the Change Feed are subject to change within 30 seconds of the current time, as that is the default timeout for any SQL transaction. If you have configured your DICOM Web server differently, please keep this timeout in mind when querying the Change Feed. For example, events may still be pending and could be potentially missed!
 
 ## Summary
 

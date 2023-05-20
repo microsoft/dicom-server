@@ -1781,7 +1781,7 @@ BEGIN
              SopInstanceUid,
              OriginalWatermark,
              CurrentWatermark
-    FROM     dbo.ChangeFeed AS c WITH (TABLOCK)
+    FROM     dbo.ChangeFeed AS c WITH (HOLDLOCK)
              INNER JOIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
@@ -1824,7 +1824,7 @@ BEGIN
                      SopInstanceUid,
                      OriginalWatermark,
                      CurrentWatermark
-    FROM     dbo.ChangeFeed AS c WITH (TABLOCK)
+    FROM     dbo.ChangeFeed AS c WITH (HOLDLOCK)
              INNER JOIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
@@ -1846,7 +1846,7 @@ BEGIN
                      SopInstanceUid,
                      OriginalWatermark,
                      CurrentWatermark
-    FROM     dbo.ChangeFeed AS c WITH (TABLOCK)
+    FROM     dbo.ChangeFeed AS c WITH (HOLDLOCK)
              INNER JOIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
@@ -1869,7 +1869,7 @@ BEGIN
              SopInstanceUid,
              OriginalWatermark,
              CurrentWatermark
-    FROM     dbo.ChangeFeed AS c WITH (TABLOCK)
+    FROM     dbo.ChangeFeed AS c WITH (HOLDLOCK)
              INNER JOIN
              dbo.Partition AS p
              ON p.PartitionKey = c.PartitionKey
