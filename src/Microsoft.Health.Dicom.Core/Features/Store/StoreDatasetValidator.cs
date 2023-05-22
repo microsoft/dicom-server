@@ -212,7 +212,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             try
             {
                 string value = dicomDataset.GetString(de.Tag);
-                if (value.EndsWith('\0'))
+                if (value != null && value.EndsWith('\0'))
                 {
                     ValidateWithoutNullPadding(value, de, queryTags);
                 }
