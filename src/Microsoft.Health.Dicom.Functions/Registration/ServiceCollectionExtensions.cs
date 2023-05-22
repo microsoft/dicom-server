@@ -54,8 +54,6 @@ public static class ServiceCollectionExtensions
 
         services.RegisterModule<ServiceModule>();
 
-        services.AddSingleton<IAuditLogger, AuditLogger>();
-
         return new DicomFunctionsBuilder(services
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
@@ -65,7 +63,8 @@ public static class ServiceCollectionExtensions
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .AddFunctionsOptions<UpdateOptions>(configuration, UpdateOptions.SectionName)
             .ConfigureDurableFunctionSerialization()
-            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
+            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings())
+            .AddSingleton<IAuditLogger, AuditLogger>());
     }
 
     /// <summary>
