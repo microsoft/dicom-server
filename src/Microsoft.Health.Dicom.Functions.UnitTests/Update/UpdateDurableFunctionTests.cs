@@ -6,6 +6,7 @@
 using System.Text.Json;
 using FellowOakDicom.Serialization;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -26,6 +27,7 @@ public partial class UpdateDurableFunctionTests
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
+    private readonly IAuditLogger _auditLogger;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateDurableFunctionTests()
@@ -36,6 +38,7 @@ public partial class UpdateDurableFunctionTests
         _fileStore = Substitute.For<IFileStore>();
         _updateInstanceService = Substitute.For<IUpdateInstanceService>();
         _options = new UpdateOptions { RetryOptions = new ActivityRetryOptions() };
+        _auditLogger = Substitute.For<IAuditLogger>();
         _jsonSerializerOptions = new JsonSerializerOptions();
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
@@ -46,6 +49,7 @@ public partial class UpdateDurableFunctionTests
             _metadataStore,
             _fileStore,
             _updateInstanceService,
+            _auditLogger,
             Options.Create(_jsonSerializerOptions));
     }
 }

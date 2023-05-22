@@ -9,7 +9,6 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Functions.Update;
@@ -23,8 +22,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 
 public partial class UpdateDurableFunctionTests
 {
-    private readonly IAuditLogger _auditLogger = Substitute.For<IAuditLogger>();
-
     [Fact]
     public async Task GivenNewOrchestrationWithInput_WhenUpdatingInstances_ThenComplete()
     {
@@ -94,7 +91,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesAsync(context, _auditLogger, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -180,7 +177,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesAsync(context, _auditLogger, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
@@ -241,7 +238,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
 
         // Invoke the orchestration
-        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesAsync(context, _auditLogger, NullLogger.Instance));
+        await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance));
 
         // Assert behavior
         context
@@ -341,7 +338,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesAsync(context, _auditLogger, NullLogger.Instance);
+        await _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context
