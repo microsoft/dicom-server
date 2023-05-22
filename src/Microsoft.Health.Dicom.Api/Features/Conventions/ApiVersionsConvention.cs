@@ -92,11 +92,10 @@ internal class ApiVersionsConvention : IControllerConvention
             .ToList();
     }
 
-    // TODO: Can remove once _isLatestApiVersionEnabled is removed
     private static bool IsEnabled(ActionModel actionModel, IEnumerable<ApiVersion> enabled)
     {
         HashSet<ApiVersion> actionVersions = actionModel.Attributes
-            .Where(a => a.GetType() == typeof(MapToApiVersionAttribute))
+            .Where(a => a is MapToApiVersionAttribute)
             .Cast<MapToApiVersionAttribute>()
             .SelectMany(x => x.Versions)
             .ToHashSet();
