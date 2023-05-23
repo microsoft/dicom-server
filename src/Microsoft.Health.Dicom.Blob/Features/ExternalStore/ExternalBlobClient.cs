@@ -66,7 +66,7 @@ internal class ExternalBlobClient : IBlobClient
         // (e.g., the forward slash '/') that corresponds to the name of a virtual directory.
         if (path.Count(c => c == '/') > 254)
         {
-            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePath, isExternal: IsExternal);
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, isExternal: IsExternal);
         }
     }
 
