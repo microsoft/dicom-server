@@ -28,6 +28,14 @@ internal class ExternalBlobClient : IBlobClient
     private readonly IExternalOperationCredentialProvider _credentialProvider;
     private BlobContainerClient _blobContainerClient;
 
+    /// <summary>
+    /// Configures a blob client for an external store.
+    /// </summary>
+    /// <param name="credentialProvider"></param>
+    /// <param name="externalStoreOptions">Options to use with configuring the external store. This includes a
+    /// ServiceStorePath which is used to store blobs along a specific path in a container, serving as a prefix to the
+    /// full blob name and providing a logical hierarchy.</param>
+    /// <param name="blobClientOptions">Options to use when configuring the blob client.</param>
     public ExternalBlobClient(
         IExternalOperationCredentialProvider credentialProvider,
         IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions,
@@ -40,6 +48,7 @@ internal class ExternalBlobClient : IBlobClient
     }
 
     public bool IsExternal => true;
+
     public string ServiceStorePath => _externalStoreOptions.ServiceStorePath;
 
     public BlobContainerClient BlobContainerClient
