@@ -41,6 +41,6 @@ public class ChangeFeedRetrieveService : IChangeFeedRetrieveService
         using DicomWebResponse<ChangeFeedEntry> response = await _dicomWebClient.GetChangeFeedLatest("?includeMetadata=false", cancellationToken);
         ChangeFeedEntry latest = await response.GetValueAsync();
 
-        return latest?.Sequence ?? 0L;
+        return latest?.Sequence ?? 0L; // 0L is the default offset used by the Change Feed and SyncStateStore
     }
 }
