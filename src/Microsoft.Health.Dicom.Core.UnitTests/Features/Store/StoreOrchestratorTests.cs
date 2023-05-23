@@ -38,7 +38,7 @@ public class StoreOrchestratorTests
 
     private static readonly FileProperty DefaultFileProperty = new FileProperty()
     {
-        FilePath = String.Empty,
+        Path = String.Empty,
         ETag = String.Empty
     };
 
@@ -169,7 +169,7 @@ public class StoreOrchestratorTests
                 DefaultVersionedInstanceIdentifier.Version,
                 expectedTags,
                 fileProperty: Arg.Is<FileProperty>(
-                        p => p.FilePath == DefaultFileProperty.FilePath
+                        p => p.Path == DefaultFileProperty.Path
                              && p.ETag == DefaultFileProperty.ETag),
                 false,
                 false,

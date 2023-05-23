@@ -83,7 +83,14 @@ public interface IIndexDataStore
     /// <param name="fileProperty">file property</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperty fileProperty, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default);
+    Task EndCreateInstanceIndexAsync(int partitionKey,
+        DicomDataset dicomDataset,
+        long watermark,
+        IEnumerable<QueryTag> queryTags,
+        FileProperty fileProperty,
+        bool allowExpiredTags = false,
+        bool hasFrameMetadata = false,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Return a collection of deleted instances.

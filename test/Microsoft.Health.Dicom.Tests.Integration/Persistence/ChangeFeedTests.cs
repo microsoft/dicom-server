@@ -126,7 +126,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         if (instanceFullyCreated)
         {
-            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
+            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperty: new FileProperty() { Path = "/", ETag = "e123" });
         }
 
         return versionedIdentifier;

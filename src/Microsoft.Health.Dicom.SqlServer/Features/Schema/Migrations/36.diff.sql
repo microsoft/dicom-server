@@ -61,7 +61,7 @@ GO
 -- RETURN VALUE
 --     None
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @filePath VARCHAR (4000)=NULL, @eTag VARCHAR (200)=NULL
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (200)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -83,7 +83,7 @@ BEGIN
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
     INSERT  INTO dbo.FileProperty (Watermark, FilePath, ETag)
-    VALUES                       (@watermark, @filePath, @eTag);
+    VALUES                       (@watermark, @path, @eTag);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
     UPDATE dbo.ChangeFeed

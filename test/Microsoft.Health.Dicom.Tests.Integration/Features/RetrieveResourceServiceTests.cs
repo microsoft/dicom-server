@@ -202,7 +202,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
                 stream);
         }
 
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version, fileProperty: new FileProperty() { Path = "/", ETag = "e123" });
     }
 
     private void ValidateResponseDicomFiles(

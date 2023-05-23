@@ -67,9 +67,8 @@ public class BlobFileStore : IFileStore
 
         return new FileProperty()
         {
-            FilePath = blobClient.Name,
+            Path = blobClient.Name,
             ETag = info.ETag.ToString(),
-            Watermark = version
         };
     }
 

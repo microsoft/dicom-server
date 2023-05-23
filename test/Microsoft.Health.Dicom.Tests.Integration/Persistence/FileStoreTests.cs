@@ -72,7 +72,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         FileProperty fileProperty2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
-        Assert.Equal(fileProperty1.FilePath, fileProperty2.FilePath);
+        Assert.Equal(fileProperty1.Path, fileProperty2.Path);
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperty1.ETag, fileProperty2.ETag);
 
@@ -104,7 +104,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         FileProperty fileProperty2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
         // expect file path same
-        Assert.Equal(fileProperty1.FilePath, fileProperty2.FilePath);
+        Assert.Equal(fileProperty1.Path, fileProperty2.Path);
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperty1.ETag, fileProperty2.ETag);
 

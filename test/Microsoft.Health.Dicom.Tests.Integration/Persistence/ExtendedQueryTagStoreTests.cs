@@ -165,7 +165,7 @@ public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture
         ExtendedQueryTagStoreEntry storeEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
         QueryTag queryTag = new QueryTag(storeEntry);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, new QueryTag[] { queryTag });
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, new QueryTag[] { queryTag }, fileProperty: new FileProperty() { FilePath = "/", ETag = "e123" });
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, new QueryTag[] { queryTag }, fileProperty: new FileProperty() { Path = "/", ETag = "e123" });
         var extendedQueryTagIndexData = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
         Assert.NotEmpty(extendedQueryTagIndexData);
 

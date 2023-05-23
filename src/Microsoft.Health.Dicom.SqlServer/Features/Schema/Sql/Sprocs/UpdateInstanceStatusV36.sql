@@ -27,7 +27,7 @@
 --         * Optional flag to indicate frame metadata existance
 --     @instanceKey
 --         * The instance key.
---     @filePath
+--     @path
 --         * path to dcm blob file
 --     @eTag
 --         * eTag of upload blob operation
@@ -44,7 +44,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
     @status                     TINYINT,
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
-    @filePath                   VARCHAR(4000) = NULL,
+    @path                       VARCHAR(4000) = NULL,
     @eTag                       VARCHAR(200) = NULL
 AS
 BEGIN
@@ -74,7 +74,7 @@ BEGIN
 
     -- Insert to FileProperty
     INSERT INTO dbo.FileProperty (Watermark, FilePath, ETag)
-    VALUES                       (@watermark, @filePath, @eTag)
+    VALUES                       (@watermark, @path, @eTag)
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
