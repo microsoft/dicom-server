@@ -168,7 +168,7 @@ public class StoreOrchestratorTests
                 _dicomDataset,
                 DefaultVersionedInstanceIdentifier.Version,
                 expectedTags,
-                fileProperty: Arg.Is<FileProperty>(
+                fileProperties: Arg.Is<FileProperties>(
                         p => p.Path == DefaultFileProperties.Path
                              && p.ETag == DefaultFileProperties.ETag),
                 false,

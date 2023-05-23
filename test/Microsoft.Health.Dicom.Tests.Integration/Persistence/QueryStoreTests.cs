@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -41,7 +41,7 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
         dataset.Add(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
         dataset.Add(DicomTag.PatientID, TestUidGenerator.Generate());
         long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version, fileProperty: new FileProperty() { Path = "/", ETag = "e123" });
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version, fileProperties: new FileProperties() { Path = "/", ETag = "e123" });
 
         // test null conversions
         await _queryStore.GetStudyResultAsync(1, new List<long> { version });

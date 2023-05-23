@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -126,7 +127,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         if (instanceFullyCreated)
         {
-            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperty: new FileProperty() { Path = "/", ETag = "e123" });
+            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperties: new FileProperties() { Path = "/", ETag = "e123" });
         }
 
         return versionedIdentifier;

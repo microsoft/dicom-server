@@ -11,6 +11,7 @@ using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -487,7 +488,11 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, fileProperty: new FileProperty() { Path = "/", ETag = "e123" });
+        await _indexDataStore.EndCreateInstanceIndexAsync(
+            1,
+            dataset,
+            watermark,
+            fileProperties: new FileProperties() { Path = "/", ETag = "e123" });
         return watermark;
     }
 

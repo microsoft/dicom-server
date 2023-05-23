@@ -7,8 +7,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
 
 namespace Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -19,5 +19,5 @@ public static class IIndexDataStoreExtensions
         => indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, Array.Empty<QueryTag>(), cancellationToken);
 
     public static Task EndCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, int partitionKey, DicomDataset dicomDataset, long watermark, FileProperties fileProperties, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
-        => indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, Array.Empty<QueryTag>(), fileProperty, true, hasFrameMetadata, cancellationToken);
+        => indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, Array.Empty<QueryTag>(), fileProperties, true, hasFrameMetadata, cancellationToken);
 }
