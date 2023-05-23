@@ -53,7 +53,7 @@ public partial class UpdateDurableFunction
         _auditLogger.LogAudit(
             AuditAction.Executing,
             AuditEventSubType.UpdateStudy,
-            null,
+            _dicomServiceOptions.Endpoint,
             null,
             Activity.Current?.RootId,
             null,
@@ -148,7 +148,7 @@ public partial class UpdateDurableFunction
         _auditLogger.LogAudit(
             AuditAction.Executed,
             AuditEventSubType.UpdateStudy,
-            null,
+            _dicomServiceOptions.Endpoint,
             auditStatusCode,
             Activity.Current?.RootId,
             null,

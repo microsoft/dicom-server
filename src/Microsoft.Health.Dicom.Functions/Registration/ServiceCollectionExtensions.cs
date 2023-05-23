@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Dicom.Functions;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
@@ -64,8 +65,7 @@ public static class ServiceCollectionExtensions
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .AddFunctionsOptions<UpdateOptions>(configuration, UpdateOptions.SectionName)
             .ConfigureDurableFunctionSerialization()
-            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings())
-            .AddSingleton<IAuditLogger, AuditLogger>());
+            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
     }
 
     /// <summary>
@@ -97,6 +97,17 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         return builder.AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c));
+    }
+
+    public static IDicomFunctionsBuilder ConfigureAuditLogging(
+        this IDicomFunctionsBuilder builder, IConfiguration configuration)
+    {
+        EnsureArg.IsNotNull(builder, nameof(builder));
+        EnsureArg.IsNotNull(configuration, nameof(configuration));
+
+        builder.Services.Configure<DicomServiceOptions>(configuration.GetSection(DicomServiceOptions.SectionName));
+        builder.Services.AddSingleton<IAuditLogger, AuditLogger>();
+        return builder;
     }
 
     private static IServiceCollection AddRecyclableMemoryStreamManager(this IServiceCollection services, Func<RecyclableMemoryStreamManager> factory = null)

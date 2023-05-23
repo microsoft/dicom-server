@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ public class Startup : FunctionsStartup
         IConfiguration config = builder.GetHostConfiguration();
         builder.Services
             .ConfigureFunctions(config)
+            .ConfigureAuditLogging(config)
             .AddBlobStorage(config)
             .AddSqlServer(config)
             .AddKeyVaultClient(config);
