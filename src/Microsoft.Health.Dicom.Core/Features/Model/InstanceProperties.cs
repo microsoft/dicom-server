@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Health.Dicom.Core.Features.Common;
+
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
 public class InstanceProperties
@@ -18,5 +20,5 @@ public class InstanceProperties
     /// <summary>
     /// File properties of instance
     /// </summary>
-    public FileProperty FileProperty { get; init; }
+    public FileProperties fileProperties { get; init; }
 }

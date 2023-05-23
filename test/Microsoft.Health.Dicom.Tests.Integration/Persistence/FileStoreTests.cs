@@ -39,7 +39,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         var fileData = new byte[] { 4, 7, 2 };
 
         // Store the file.
-        FileProperty fileProperty = await AddFileAsync(version, fileData, $"{nameof
+        FileProperties fileProperties = await AddFileAsync(version, fileData, $"{nameof
         (GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
 
         Assert.NotNull(fileProperty);
@@ -66,11 +66,11 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        FileProperty fileProperty1 = await AddFileAsync(version, fileData1, "fileDataTag");
+        FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
-        FileProperty fileProperty2 = await AddFileAsync(version, fileData2, "fileDataTag");
+        FileProperties fileProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
         Assert.Equal(fileProperty1.Path, fileProperty2.Path);
         // while the path may be the same, the eTag is expected to be different on file rewrites
@@ -93,7 +93,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store the file
         var fileData1 = new byte[] { 4, 7, 2 };
-        FileProperty fileProperty1 = await AddFileAsync(version, fileData1, "fileDataTag");
+        FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         // file is deleted
         await _blobDataStore.DeleteFileIfExistsAsync(version);
@@ -101,7 +101,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
-        FileProperty fileProperty2 = await AddFileAsync(version, fileData2, "fileDataTag");
+        FileProperties fileProperties2 = await AddFileAsync(version, fileData2, "fileDataTag");
 
         // expect file path same
         Assert.Equal(fileProperty1.Path, fileProperty2.Path);

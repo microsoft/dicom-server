@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -80,14 +81,14 @@ public interface IIndexDataStore
     /// <param name="queryTags">Queryable dicom tags</param>
     /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
     /// <param name="hasFrameMetadata">Has additional frame range metadata stores.</param>
-    /// <param name="fileProperty">file property</param>
+    /// <param name="fileProperties">file properties</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous update operation.</returns>
     Task EndCreateInstanceIndexAsync(int partitionKey,
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        FileProperty fileProperty,
+        FileProperties fileProperties,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
         CancellationToken cancellationToken = default);

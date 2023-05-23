@@ -46,7 +46,7 @@ public class BlobFileStore : IFileStore
     private IBlobClient BlobClient { get; }
 
     /// <inheritdoc />
-    public async Task<FileProperty> StoreFileAsync(
+    public async Task<FileProperties> StoreFileAsync(
         long version,
         Stream stream,
         CancellationToken cancellationToken)
@@ -65,10 +65,11 @@ public class BlobFileStore : IFileStore
             info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
         });
 
-        return new FileProperty()
+        return new FileProperties()
         {
             Path = blobClient.Name,
             ETag = info.ETag.ToString(),
+            ContentLength = stream.Length
         };
     }
 
@@ -208,7 +209,7 @@ public class BlobFileStore : IFileStore
         await ExecuteAsync(async () =>
         {
             BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
-            fileProperties = blobProperties.ToFileProperties();
+            fileProperties = blobProperties.ToFileProperties(path: blobClient.Name);
         });
 
         return fileProperties;

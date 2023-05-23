@@ -11,12 +11,14 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
 public static class BlobPropertiesExtension
 {
-    public static FileProperties ToFileProperties(this BlobProperties blobProperties)
+    public static FileProperties ToFileProperties(this BlobProperties blobProperties, string path)
     {
         EnsureArg.IsNotNull(blobProperties, nameof(blobProperties));
         return new FileProperties()
         {
             ContentLength = blobProperties.ContentLength,
+            ETag = blobProperties.ETag.ToString(),
+            Path = path,
         };
     }
 }

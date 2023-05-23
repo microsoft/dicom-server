@@ -10,8 +10,8 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -35,7 +35,7 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        FileProperty fileProperty,
+        FileProperties fileProperties,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
         CancellationToken cancellationToken = default)
@@ -56,8 +56,8 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata,
-                fileProperty.Path,
-                fileProperty.ETag
+                fileProperties.Path,
+                fileProperties.ETag
             );
 
             try

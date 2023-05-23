@@ -14,6 +14,7 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -168,7 +169,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        FileProperty fileProperty,
+        FileProperties fileProperties,
         bool allowExpiredTags = false,
         bool hasFrameMetadata = false,
         CancellationToken cancellationToken = default)

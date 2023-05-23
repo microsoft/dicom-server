@@ -18,6 +18,6 @@ public static class IIndexDataStoreExtensions
     public static Task<long> BeginCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, int partitionKey, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
         => indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, Array.Empty<QueryTag>(), cancellationToken);
 
-    public static Task EndCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, int partitionKey, DicomDataset dicomDataset, long watermark, FileProperty fileProperty, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
+    public static Task EndCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, int partitionKey, DicomDataset dicomDataset, long watermark, FileProperties fileProperties, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
         => indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, Array.Empty<QueryTag>(), fileProperty, true, hasFrameMetadata, cancellationToken);
 }
