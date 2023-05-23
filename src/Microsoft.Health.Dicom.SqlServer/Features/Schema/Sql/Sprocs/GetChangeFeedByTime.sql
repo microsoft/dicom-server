@@ -28,6 +28,9 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
+    -- As the offset increases, so too does the number of rows read by SQL which may lead
+    -- to performance degradation. This can be minimize by smaller time windows as the
+    -- Timestamp column is indexed.
     SELECT
         Sequence,
         Timestamp,

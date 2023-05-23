@@ -5,6 +5,9 @@
 -- STORED PROCEDURE
 --     UpdateInstanceStatusV6
 --
+-- FIRST SCHEMA VERSION
+--     6
+--
 -- DESCRIPTION
 --     Updates a DICOM instance status, which allows for consistency during indexing.
 --
@@ -68,15 +71,15 @@ BEGIN
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed
-        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
-        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+        (0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
 
     -- Update existing instance currentWatermark to latest
     UPDATE dbo.ChangeFeed
     SET CurrentWatermark      = @watermark
     WHERE PartitionKey = @partitionKey
-        AND StudyInstanceUid    = @studyInstanceUid
+        AND StudyInstanceUid  = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
         AND SopInstanceUid    = @sopInstanceUid
 

@@ -1,5 +1,20 @@
 SET XACT_ABORT ON
 
+CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
+(
+    Timestamp,
+    Sequence
+) WITH (DROP_EXISTING=ON, ONLINE=ON)
+
+-- For use with the V1 APIs that use Sequence
+CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+(
+    Sequence
+) WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+
+BEGIN TRANSACTION
+GO
+
 IF NOT EXISTS
 (
     SELECT *
@@ -15,30 +30,12 @@ BEGIN
 END
 GO
 
-DROP INDEX IF EXISTS IXC_ChangeFeed ON dbo.ChangeFeed
-DROP INDEX IF EXISTS IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-
-CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
-(
-    Timestamp,
-    Sequence
-)
-
--- For use with the V1 APIs that use Sequence
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
-(
-    Sequence
-) WITH (DATA_COMPRESSION = PAGE)
-
-BEGIN TRANSACTION
-GO
-
 /***************************************************************************************/
 -- STORED PROCEDURE
---     DeleteInstanceV36
+--     DeleteInstanceV6
 --
 -- FIRST SCHEMA VERSION
---     36
+--     6
 --
 -- DESCRIPTION
 --     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
@@ -57,7 +54,7 @@ GO
 --     @sopInstanceUid
 --         * The SOP instance UID.
 /***************************************************************************************/
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV36
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter       DATETIMEOFFSET(0),
     @createdStatus      TINYINT,
     @partitionKey       INT,
@@ -306,10 +303,7 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     EndUpdateInstanceV36
---
--- FIRST SCHEMA VERSION
---     36
+--     EndUpdateInstance
 --
 -- DESCRIPTION
 --     Bulk update all instances in a study, creates new entry in changefeed.
@@ -329,7 +323,7 @@ GO
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV36
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstance
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @patientId                          NVARCHAR(64) = NULL,
@@ -466,6 +460,9 @@ BEGIN
     SET NOCOUNT     ON
     SET XACT_ABORT  ON
 
+    -- As the offset increases, so too does the number of rows read by SQL which may lead
+    -- to performance degradation. This can be minimize by smaller time windows as the
+    -- Timestamp column is indexed.
     SELECT
         Sequence,
         Timestamp,
@@ -660,10 +657,10 @@ GO
 **************************************************************/
 --
 -- STORED PROCEDURE
---     UpdateInstanceStatusV36
+--     UpdateInstanceStatusV6
 --
 -- FIRST SCHEMA VERSION
---     36
+--     6
 --
 -- DESCRIPTION
 --     Updates a DICOM instance status, which allows for consistency during indexing.
@@ -689,7 +686,7 @@ GO
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV6
     @partitionKey       INT,
     @studyInstanceUid   VARCHAR(64),
     @seriesInstanceUid  VARCHAR(64),

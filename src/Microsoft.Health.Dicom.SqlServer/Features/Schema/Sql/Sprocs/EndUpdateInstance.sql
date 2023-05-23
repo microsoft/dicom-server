@@ -57,22 +57,6 @@ BEGIN
             AND Status = 1
             AND NewWatermark IS NOT NULL
 
-        -- Insert into change feed table for update action type
-        INSERT INTO dbo.ChangeFeed
-        (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-        SELECT @currentDate, 2, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
-        FROM @updatedInstances
-
-        -- Update existing instance currentWatermark to latest
-        UPDATE C
-        SET CurrentWatermark = U.Watermark
-        FROM dbo.ChangeFeed C
-        JOIN @updatedInstances U
-        ON C.PartitionKey = U.PartitionKey
-            AND C.StudyInstanceUid = U.StudyInstanceUid
-            AND C.SeriesInstanceUid = U.SeriesInstanceUid
-            AND C.SopInstanceUid = U.SopInstanceUid
-
         -- Only updating patient information in a study
         UPDATE dbo.Study
         SET PatientId = ISNULL(@patientId, PatientId), 
@@ -84,6 +68,22 @@ BEGIN
         -- The study does not exist. May be deleted
         IF @@ROWCOUNT = 0
             THROW 50404, 'Study does not exist', 1
+
+        -- Insert into change feed table for update action type
+        INSERT INTO dbo.ChangeFeed
+        (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        SELECT 2, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+        FROM @updatedInstances
+
+        -- Update existing instance currentWatermark to latest
+        UPDATE C
+        SET CurrentWatermark = U.Watermark
+        FROM dbo.ChangeFeed C
+        JOIN @updatedInstances U
+        ON C.PartitionKey = U.PartitionKey
+            AND C.StudyInstanceUid = U.StudyInstanceUid
+            AND C.SeriesInstanceUid = U.SeriesInstanceUid
+            AND C.SopInstanceUid = U.SopInstanceUid
 
     COMMIT TRANSACTION
 END
