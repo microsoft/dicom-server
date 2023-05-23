@@ -23,6 +23,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 internal class ExternalBlobClient : IBlobClient
 {
     private readonly object _lockObj = new object();
+    private readonly bool _isPathInvalid;
+    private readonly bool _isPathSegmentInvalid;
     private readonly BlobServiceClientOptions _blobClientOptions;
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IExternalOperationCredentialProvider _credentialProvider;
@@ -37,7 +39,8 @@ internal class ExternalBlobClient : IBlobClient
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
         _externalStoreOptions.ServiceStorePath = SanitizeServiceStorePath(_externalStoreOptions.ServiceStorePath);
-        ValidateServiceStorePath(_externalStoreOptions.ServiceStorePath);
+        _isPathInvalid = IsServiceStorePathInvalid(_externalStoreOptions.ServiceStorePath);
+        _isPathSegmentInvalid = IsServiceStorePathSegmentInvalid(_externalStoreOptions.ServiceStorePath);
     }
 
     public bool IsExternal => true;
@@ -84,7 +87,7 @@ internal class ExternalBlobClient : IBlobClient
     /// <summary>
     /// See https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
     /// </summary>
-    private void ValidateServiceStorePath(string path)
+    private static bool IsServiceStorePathInvalid(string path)
     {
         // Reserved URL characters must be properly escaped.
         // https://www.rfc-editor.org/rfc/rfc3986#section-2.2
@@ -92,17 +95,29 @@ internal class ExternalBlobClient : IBlobClient
         // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
         // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
         //               / "*" / "+" / "," / ";" / "="
-        if (path.Select(x => !Char.IsLetterOrDigit(x) && x != '.' && x != '/').Any())
-        {
-            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePath, isExternal: IsExternal);
-        }
+        return path.Select(x => !Char.IsLetterOrDigit(x) && x != '.' && x != '/').Any(x => x is true);
+    }
 
+    /// <summary>
+    /// See https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
+    /// </summary>
+    private static bool IsServiceStorePathSegmentInvalid(string path)
+    {
         // If your account does not have a hierarchical namespace, then the number of path segments comprising the blob
         // name cannot exceed 254. A path segment is the string between consecutive delimiter characters
         // (e.g., the forward slash '/') that corresponds to the name of a virtual directory.
-        if (path.Count(c => c == '/') > 254)
+        return path.Count(c => c == '/') > 254;
+    }
+
+    public void EnsureValidConfiguration()
+    {
+        if (_isPathInvalid)
         {
-            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, isExternal: IsExternal);
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePath, isExternal: true);
+        }
+        if (_isPathSegmentInvalid)
+        {
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, isExternal: true);
         }
     }
 }

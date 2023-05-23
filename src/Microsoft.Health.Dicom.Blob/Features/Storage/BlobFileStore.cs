@@ -311,6 +311,7 @@ public class BlobFileStore : IFileStore
 
     private async Task ExecuteAsync(Func<Task> action)
     {
+        BlobClient.EnsureValidConfiguration();
         try
         {
             await action();
