@@ -23,7 +23,6 @@ internal static class FellowOakServiceExtensions
         services
             .AddFellowOakDicom()
             .AddTranscoderManager<NativeTranscoderManager>()
-            .AddLogging()
             .AddImageManager<ImageSharpImageManager>();
 
         return services;
