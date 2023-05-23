@@ -502,11 +502,20 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error occured configuration of storage account. A blob name must be at least one character long and cannot be more than 1,024 characters long. Use the http://fwlink to troubleshoot the issue. Details: {0}.
+        /// </summary>
+        internal static string ExternalDataStoreBlobNameTooLong {
+            get {
+                return ResourceManager.GetString("ExternalDataStoreBlobNameTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error occured configuration of storage account. Invalid Store Path provided. Only alphanumeric characters, periods(.) and forward slashes (/) are allowed. Use the http://fwlink to troubleshoot the issue. Details: {0}.
         /// </summary>
-        internal static string ExternalDataStoreInvalidServiceStorePath {
+        internal static string ExternalDataStoreInvalidCharactersInServiceStorePath {
             get {
-                return ResourceManager.GetString("ExternalDataStoreInvalidServiceStorePath", resourceCulture);
+                return ResourceManager.GetString("ExternalDataStoreInvalidCharactersInServiceStorePath", resourceCulture);
             }
         }
         

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Storage.Blobs;
-using Microsoft.Health.Dicom.Core.Exceptions;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -18,12 +17,9 @@ public interface IBlobClient
 
     // To support SxS behavior of current internal store and tomorrows BYOS
     bool IsExternal { get; }
-    string ServiceStorePath { get; }
 
     /// <summary>
-    /// Checks that the client has been configured correctly and throws Exceptions if not.
-    /// This allows us to surface configuration issues at startup through API calls.
+    /// Get the service store path for the blob client as configured at startup.
     /// </summary>
-    /// <exception cref="DataStoreException"></exception>
-    void EnsureValidConfiguration();
+    string ServiceStorePath { get; }
 }

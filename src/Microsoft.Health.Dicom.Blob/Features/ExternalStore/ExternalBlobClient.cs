@@ -23,8 +23,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 internal class ExternalBlobClient : IBlobClient
 {
     private readonly object _lockObj = new object();
-    private readonly bool _isPathInvalid;
-    private readonly bool _isPathSegmentInvalid;
     private readonly BlobServiceClientOptions _blobClientOptions;
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IExternalOperationCredentialProvider _credentialProvider;
@@ -39,8 +37,6 @@ internal class ExternalBlobClient : IBlobClient
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
         _externalStoreOptions.ServiceStorePath = SanitizeServiceStorePath(_externalStoreOptions.ServiceStorePath);
-        _isPathInvalid = IsServiceStorePathInvalid(_externalStoreOptions.ServiceStorePath);
-        _isPathSegmentInvalid = IsServiceStorePathSegmentInvalid(_externalStoreOptions.ServiceStorePath);
     }
 
     public bool IsExternal => true;
@@ -50,6 +46,7 @@ internal class ExternalBlobClient : IBlobClient
     {
         get
         {
+            EnsureValidConfiguration();
             if (_blobContainerClient == null)
             {
                 lock (_lockObj)
@@ -87,7 +84,7 @@ internal class ExternalBlobClient : IBlobClient
     /// <summary>
     /// See https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
     /// </summary>
-    private static bool IsServiceStorePathInvalid(string path)
+    private void ServiceStorePathContainsInvalidCharactersCheck()
     {
         // Reserved URL characters must be properly escaped.
         // https://www.rfc-editor.org/rfc/rfc3986#section-2.2
@@ -95,29 +92,38 @@ internal class ExternalBlobClient : IBlobClient
         // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
         // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
         //               / "*" / "+" / "," / ";" / "="
-        return path.Select(x => !Char.IsLetterOrDigit(x) && x != '.' && x != '/').Any(x => x is true);
+        if (_externalStoreOptions.ServiceStorePath.
+            Select(x => !char.IsLetterOrDigit(x) && x != '.' && x != '/').
+            Any(x => x is true))
+        {
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidCharactersInServiceStorePath, isExternal: true);
+        }
     }
 
     /// <summary>
     /// See https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
     /// </summary>
-    private static bool IsServiceStorePathSegmentInvalid(string path)
+    private void ServiceStorePathSegmentInvalidCheck()
     {
         // If your account does not have a hierarchical namespace, then the number of path segments comprising the blob
         // name cannot exceed 254. A path segment is the string between consecutive delimiter characters
         // (e.g., the forward slash '/') that corresponds to the name of a virtual directory.
-        return path.Count(c => c == '/') > 254;
-    }
-
-    public void EnsureValidConfiguration()
-    {
-        if (_isPathInvalid)
-        {
-            throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePath, isExternal: true);
-        }
-        if (_isPathSegmentInvalid)
+        if (_externalStoreOptions.ServiceStorePath.Count(c => c == '/') > 254)
         {
             throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, isExternal: true);
         }
+    }
+
+    private void EnsureValidConfiguration()
+    {
+        // A blob name must be at least one character long and cannot be more than 1,024 characters long
+        if (_externalStoreOptions.ServiceStorePath.Length > 1024)
+        {
+            throw new DataStoreException(DicomCoreResource.ExternalDataStoreBlobNameTooLong, isExternal: true);
+        }
+
+        ServiceStorePathContainsInvalidCharactersCheck();
+
+        ServiceStorePathSegmentInvalidCheck();
     }
 }
