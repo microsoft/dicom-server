@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -374,17 +374,20 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
 
     private static DicomDataset GenerateNewDataSet()
     {
-        return new DicomDataset()
+
+        return new DicomDataset
         {
             { DicomTag.SeriesDescription, "A Test Series" },
             { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
-            new DicomSequence(DicomTag.RegistrationSequence, new DicomDataset()
-            {
-                { DicomTag.PatientName, "Test^Patient" },
-                { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
-            }),
+            new DicomSequence(
+                DicomTag.RegistrationSequence,
+                new DicomDataset
+                {
+                    { DicomTag.PatientName, "Test^Patient" },
+                    { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
+                }),
             { DicomTag.StudyDate, DateTime.UtcNow },
-            { new DicomTag(0007, 0008), "Private Tag" },
+            { DicomVR.LO, new DicomTag(0007, 0008), "Private Tag" },
         };
     }
 
