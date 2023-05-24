@@ -30,6 +30,7 @@ public class StoreOrchestratorTests
     private const string DefaultSeriesInstanceUid = "2";
     private const string DefaultSopInstanceUid = "3";
     private const long DefaultVersion = 1;
+    private static readonly long? DefaultInstanceKey = null;
     private static readonly VersionedInstanceIdentifier DefaultVersionedInstanceIdentifier = new VersionedInstanceIdentifier(
         DefaultStudyInstanceUid,
         DefaultSeriesInstanceUid,
@@ -75,7 +76,7 @@ public class StoreOrchestratorTests
 
         _indexDataStore
             .BeginCreateInstanceIndexAsync(Arg.Any<int>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
-            .Returns(DefaultVersion);
+            .Returns((DefaultVersion, DefaultInstanceKey));
 
         _queryTagService
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
@@ -122,7 +123,7 @@ public class StoreOrchestratorTests
 
         await ValidateCleanupAsync();
 
-        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default);
+        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default, default);
     }
 
     [Fact]
@@ -140,7 +141,7 @@ public class StoreOrchestratorTests
 
         await ValidateCleanupAsync();
 
-        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default);
+        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default, default);
     }
 
     [Fact]
@@ -169,10 +170,11 @@ public class StoreOrchestratorTests
                 DefaultVersionedInstanceIdentifier.Version,
                 expectedTags,
                 fileProperties: Arg.Is<FileProperties>(
-                        p => p.Path == DefaultFileProperties.Path
-                             && p.ETag == DefaultFileProperties.ETag),
-                false,
-                false,
+                    p => p.Path == DefaultFileProperties.Path
+                         && p.ETag == DefaultFileProperties.ETag),
+                instanceKey: DefaultInstanceKey,
+                allowExpiredTags: false,
+                hasFrameMetadata: false,
                 cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()

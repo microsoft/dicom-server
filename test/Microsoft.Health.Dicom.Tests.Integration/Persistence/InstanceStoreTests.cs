@@ -10,7 +10,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -192,7 +191,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        (long watermark, long? instanceKey) = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
         await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
     }
 
@@ -331,8 +330,8 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark, fileProperties: new FileProperties() { Path = "/", ETag = "e123" });
+        (long watermark, _) = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
 
         return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
     }
@@ -345,7 +344,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        (long version, long? instanceKey) = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
         return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
     }
 }

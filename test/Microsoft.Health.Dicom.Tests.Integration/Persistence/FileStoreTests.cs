@@ -106,7 +106,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.Equal(fileProperties1.Path, fileProperties2.Path);
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
-
+        // assert that content is the same
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
             Assert.Equal(
@@ -122,7 +122,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // get blob again and ensure its eTag is same as what we got from metadata update
         FileProperties props = await _blobDataStore.GetFilePropertiesAsync(version);
-        Assert.NotEqual(props.ETag, eTag);
+        Assert.Equal(props.ETag, eTag);
 
         await _blobDataStore.DeleteFileIfExistsAsync(version);
     }

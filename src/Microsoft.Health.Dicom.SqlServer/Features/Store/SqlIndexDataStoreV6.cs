@@ -38,7 +38,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
 
     public override SchemaVersion Version => SchemaVersion.V6;
 
-    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public override async Task<(long, long?)> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -76,7 +76,8 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
 
             try
             {
-                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                long watermark = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                return (watermark, null);
             }
             catch (SqlException ex)
             {
@@ -161,18 +162,11 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
     }
 
     /// <summary>
+    /// New binary, old schema
     /// When binary updated before schema is migrated, this will continue to get to the old sproc until the schema is migrated
     /// and next EndCreateInstanceIndexAsync version is used
     /// </summary>
-    public override async Task EndCreateInstanceIndexAsync(
-        int partitionKey,
-        DicomDataset dicomDataset,
-        long watermark,
-        IEnumerable<QueryTag> queryTags,
-        FileProperties fileProperties,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+    public override async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, long? instanceKey = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         await EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
     }

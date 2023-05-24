@@ -35,7 +35,7 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
 
     public override SchemaVersion Version => SchemaVersion.V10;
 
-    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public override async Task<(long, long?)> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -74,7 +74,7 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
 
             try
             {
-                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                return ((long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken)), null);
             }
             catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict && ex.State == (byte)IndexStatus.Creating)
             {

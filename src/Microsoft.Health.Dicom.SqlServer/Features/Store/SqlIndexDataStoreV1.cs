@@ -38,7 +38,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
     public virtual SchemaVersion Version => SchemaVersion.V1;
 
-    public virtual async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public virtual async Task<(long, long?)> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -63,7 +63,8 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
             try
             {
-                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                long watermark = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                return (watermark, null);
             }
             catch (SqlException ex)
             {
@@ -357,15 +358,10 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task EndCreateInstanceIndexAsync(
-        int partitionKey,
-        DicomDataset dicomDataset,
-        long watermark,
-        IEnumerable<QueryTag> queryTags,
-        FileProperties fileProperties,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+    /// <summary>
+    /// New binary, old schema
+    /// </summary>
+    public virtual Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, long? instanceKey = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

@@ -33,15 +33,7 @@ internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
 
     public override SchemaVersion Version => SchemaVersion.V22;
 
-    public override async Task EndCreateInstanceIndexAsync(
-        int partitionKey,
-        DicomDataset dicomDataset,
-        long watermark,
-        IEnumerable<QueryTag> queryTags,
-        FileProperties fileProperties,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+    public override async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, long? instanceKey, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));

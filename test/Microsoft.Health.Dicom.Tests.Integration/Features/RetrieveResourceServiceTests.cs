@@ -184,7 +184,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
     {
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        (long version, _) = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
 
         if (flagToStoreInstance)
         {
@@ -204,8 +204,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            version,
-            fileProperties: new FileProperties() { Path = "/", ETag = "e123" });
+            version);
     }
 
     private void ValidateResponseDicomFiles(

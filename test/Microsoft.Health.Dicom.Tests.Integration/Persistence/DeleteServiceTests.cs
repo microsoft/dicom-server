@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -52,7 +53,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     {
         var newDataSet = CreateValidMetadataDataset();
 
-        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newDataSet);
+        (long version, long? instanceKey) = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newDataSet);
         var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
         if (persistMetadata)
@@ -71,7 +72,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
             {
                 FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
 
-                Assert.NotNull(fileProperty);
+                Assert.NotNull(fileProperties);
             }
 
             var file = await _fixture.FileStore.GetFileAsync(version);

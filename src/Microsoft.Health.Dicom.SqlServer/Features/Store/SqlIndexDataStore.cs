@@ -29,7 +29,7 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
+    public async Task<(long, long?)> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
@@ -95,10 +95,10 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
     }
 
-    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
+    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, long? instanceKey, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, fileProperties, allowExpiredTags, hasFrameMetadata, cancellationToken);
+        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, fileProperties, instanceKey, allowExpiredTags, hasFrameMetadata, cancellationToken);
     }
 
     public async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)

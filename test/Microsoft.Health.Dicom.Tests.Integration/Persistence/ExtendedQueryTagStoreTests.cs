@@ -12,7 +12,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -164,13 +163,12 @@ public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture
         await AddExtendedQueryTagsAsync(new AddExtendedQueryTagEntry[] { tag.BuildAddExtendedQueryTagEntry() });
         ExtendedQueryTagStoreEntry storeEntry = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
         QueryTag queryTag = new QueryTag(storeEntry);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, new QueryTag[] { queryTag });
+        (long watermark, _) = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, new QueryTag[] { queryTag });
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
             watermark,
-            new QueryTag[] { queryTag },
-            fileProperties: new FileProperties() { Path = "/", ETag = "e123" });
+            new QueryTag[] { queryTag });
         var extendedQueryTagIndexData = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
         Assert.NotEmpty(extendedQueryTagIndexData);
 
