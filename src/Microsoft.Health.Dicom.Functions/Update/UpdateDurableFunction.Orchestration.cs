@@ -45,7 +45,7 @@ public partial class UpdateDurableFunction
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
-
+        Uri uri = new Uri(input.Endpoint, UriKind.Absolute);
         var callerClaims = new List<KeyValuePair<string, string>>
         {
             new ("operation_id", context.GetOperationId().ToString()),
@@ -53,7 +53,7 @@ public partial class UpdateDurableFunction
         _auditLogger.LogAudit(
             AuditAction.Executing,
             AuditEventSubType.UpdateStudy,
-            _dicomServiceOptions.Endpoint,
+            uri,
             null,
             Activity.Current?.RootId,
             null,
@@ -128,6 +128,7 @@ public partial class UpdateDurableFunction
                     TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                    Endpoint = input.Endpoint,
                 });
         }
         else
@@ -142,13 +143,13 @@ public partial class UpdateDurableFunction
             else
             {
                 logger.LogInformation("Update operation completed successfully");
+                auditStatusCode = HttpStatusCode.OK;
             }
-            auditStatusCode = HttpStatusCode.OK;
         }
         _auditLogger.LogAudit(
             AuditAction.Executed,
             AuditEventSubType.UpdateStudy,
-            _dicomServiceOptions.Endpoint,
+            uri,
             auditStatusCode,
             Activity.Current?.RootId,
             null,

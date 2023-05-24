@@ -84,10 +84,11 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
 
         int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+        string endpoint = _contextAccessor.RequestContext.Uri.ToString();
 
         try
         {
-            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, endpoint, cancellationToken);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)

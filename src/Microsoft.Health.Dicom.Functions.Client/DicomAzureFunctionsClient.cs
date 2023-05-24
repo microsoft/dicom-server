@@ -183,7 +183,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, string endpoint, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
 
@@ -198,6 +198,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 PartitionKey = partitionKey,
                 ChangeDataset = datasetToUpdate,
                 StudyInstanceUids = updateSpecification.StudyInstanceUids,
+                Endpoint = endpoint,
             });
 
         _logger.LogInformation("Successfully started new update operation instance with ID '{InstanceId}'.", instanceId);

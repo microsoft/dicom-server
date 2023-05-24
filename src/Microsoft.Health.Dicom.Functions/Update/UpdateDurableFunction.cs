@@ -26,7 +26,6 @@ public partial class UpdateDurableFunction
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
     private readonly IAuditLogger _auditLogger;
-    private readonly DicomServiceOptions _dicomServiceOptions;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateDurableFunction(
@@ -37,7 +36,6 @@ public partial class UpdateDurableFunction
         IFileStore fileStore,
         IUpdateInstanceService updateInstanceService,
         IAuditLogger auditLogger,
-        IOptions<DicomServiceOptions> dicomServiceOptions,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
         _indexStore = EnsureArg.IsNotNull(indexStore, nameof(indexStore));
@@ -47,7 +45,6 @@ public partial class UpdateDurableFunction
         _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         _auditLogger = EnsureArg.IsNotNull(auditLogger, nameof(auditLogger));
-        _dicomServiceOptions = EnsureArg.IsNotNull(dicomServiceOptions?.Value, nameof(dicomServiceOptions));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }

@@ -28,7 +28,6 @@ public partial class UpdateDurableFunctionTests
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
     private readonly IAuditLogger _auditLogger;
-    private readonly IOptions<DicomServiceOptions> _dicomServiceOptions;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateDurableFunctionTests()
@@ -40,8 +39,6 @@ public partial class UpdateDurableFunctionTests
         _updateInstanceService = Substitute.For<IUpdateInstanceService>();
         _options = new UpdateOptions { RetryOptions = new ActivityRetryOptions() };
         _auditLogger = Substitute.For<IAuditLogger>();
-        _dicomServiceOptions = Substitute.For<IOptions<DicomServiceOptions>>();
-        _dicomServiceOptions.Value.Returns(new DicomServiceOptions());
         _jsonSerializerOptions = new JsonSerializerOptions();
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
@@ -53,7 +50,6 @@ public partial class UpdateDurableFunctionTests
             _fileStore,
             _updateInstanceService,
             _auditLogger,
-            _dicomServiceOptions,
             Options.Create(_jsonSerializerOptions));
     }
 }

@@ -17,7 +17,6 @@ using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
-using Microsoft.Health.Dicom.Functions;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
@@ -105,7 +104,6 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(builder, nameof(builder));
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
-        builder.Services.Configure<DicomServiceOptions>(configuration.GetSection(DicomServiceOptions.SectionName));
         builder.Services.AddSingleton<IAuditLogger, AuditLogger>();
         return builder;
     }
