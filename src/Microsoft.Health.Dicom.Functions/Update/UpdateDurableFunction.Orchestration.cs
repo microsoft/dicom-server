@@ -48,7 +48,7 @@ public partial class UpdateDurableFunction
         Uri uri = new Uri(input.Endpoint, UriKind.Absolute);
         var callerClaims = new List<KeyValuePair<string, string>>
         {
-            new ("operation_id", context.GetOperationId().ToString()),
+            new ("instance_id", context.InstanceId),
         };
         _auditLogger.LogAudit(
             AuditAction.Executing,
