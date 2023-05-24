@@ -100,8 +100,5 @@
         "MaxTimeInterval": "00:00:20"
       }
     }
-  },
-  "DicomService": {
-    "Endpoint": "https://localhost:63838"
   }
 }
