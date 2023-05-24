@@ -6,11 +6,20 @@ CREATE UNIQUE CLUSTERED INDEX IXC_ChangeFeed ON dbo.ChangeFeed
     Sequence
 ) WITH (DROP_EXISTING=ON, ONLINE=ON)
 
--- For use with the V1 APIs that use Sequence
-CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+IF NOT EXISTS
 (
-    Sequence
-) WITH (DROP_EXISTING=ON, DATA_COMPRESSION = PAGE, ONLINE=ON)
+    SELECT *
+    FROM    sys.indexes
+    WHERE   NAME = 'IX_ChangeFeed_Sequence'
+        AND Object_id = OBJECT_ID('dbo.ChangeFeed')
+)
+BEGIN
+    -- For use with the V1 APIs that use Sequence
+    CREATE NONCLUSTERED INDEX IX_ChangeFeed_Sequence ON dbo.ChangeFeed
+    (
+        Sequence
+    ) WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
+END
 
 BEGIN TRANSACTION
 GO
