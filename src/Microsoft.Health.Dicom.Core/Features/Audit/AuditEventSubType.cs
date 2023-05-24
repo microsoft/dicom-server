@@ -59,4 +59,6 @@ public static class AuditEventSubType
     public const string BulkImportStore = "bulk-import-store";
 
     public const string UpdateStudy = "update-study";
+
+    public const string UpdateStudyTask = "update-study-task";
 }
