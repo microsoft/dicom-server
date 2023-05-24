@@ -71,10 +71,12 @@ public class UpdateInstanceOperationServiceTests
                Arg.Any<Guid>(),
                Arg.Any<UpdateSpecification>(),
                PartitionEntry.Default.PartitionKey,
+               "https://dicom.contoso.io/update",
                CancellationToken.None)
            .Returns(expected);
 
         _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _contextAccessor.RequestContext.Uri.Returns(new Uri("https://dicom.contoso.io/update", UriKind.Absolute));
         var response = await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
         Assert.Equal(expected.Href.ToString(), response.Operation.Href.ToString());
