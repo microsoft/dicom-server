@@ -374,6 +374,8 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
 
     private static DicomDataset GenerateNewDataSet()
     {
+        var privTag = new DicomTag(0x00f1, 0x0010, "MY_PRIVATE_CREATOR");
+        DicomDictionary.Default.Add(new DicomDictionaryEntry(privTag, "My private tag", "privateTag1", DicomVM.VM_1, false, DicomVR.CS));
         return new DicomDataset()
         {
             { DicomTag.SeriesDescription, "A Test Series" },
@@ -384,7 +386,7 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
                 { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
             }),
             { DicomTag.StudyDate, DateTime.UtcNow },
-            { new DicomTag(0007, 0008), "Private Tag" },
+            { privTag, "Private Tag" },
         };
     }
 
