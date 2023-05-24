@@ -374,7 +374,6 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
 
     private static DicomDataset GenerateNewDataSet()
     {
-
         return new DicomDataset
         {
             { DicomTag.SeriesDescription, "A Test Series" },
