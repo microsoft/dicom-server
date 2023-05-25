@@ -611,7 +611,9 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         // yet we can still retrieve the instance. This works today because for now these are hardcoded paths and GET hasn't
         // been updated to use the new schema yet and consider stored paths.
-        // Once GET and other operations are updated, we will attempt to use the stored path and, when unavailable, fallback to the hardcoded default paths.
+        // GET and other operations will be updated to attempt to use the stored path and, when unavailable, fallback to the hardcoded default path 
+        // based on which store was being used.
+        // We will not support existing/running dicoms to enable external store, so we do not need a migration at this time.
         // This helps guard against a situation where the binary hasn't been updated yet, but will also continue to 
         // work when binary is updated as the GET and other operations will be updated before we start using variable paths
         IReadOnlyList<Instance> instances = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);

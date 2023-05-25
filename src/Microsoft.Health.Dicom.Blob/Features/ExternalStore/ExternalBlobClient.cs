@@ -27,6 +27,7 @@ internal class ExternalBlobClient : IBlobClient
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IExternalOperationCredentialProvider _credentialProvider;
     private BlobContainerClient _blobContainerClient;
+    private readonly char[] _allowedChars = new[] { '.', '/', '-' };
 
     /// <summary>
     /// Configures a blob client for an external store.
@@ -102,7 +103,7 @@ internal class ExternalBlobClient : IBlobClient
         // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
         //               / "*" / "+" / "," / ";" / "="
         if (_externalStoreOptions.ServiceStorePath.
-            Select(x => !char.IsLetterOrDigit(x) && x != '.' && x != '/').
+            Select(x => !char.IsLetterOrDigit(x) && !_allowedChars.Contains(x)).
             Any(x => x is true))
         {
             throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidCharactersInServiceStorePath, isExternal: true);
@@ -123,6 +124,12 @@ internal class ExternalBlobClient : IBlobClient
         }
     }
 
+    /// <summary>
+    /// This is necessary only for OSS as the path will be specified for managed services.
+    /// The workspace name can contain only lowercase letters, and numbers. No "-" or other symbols are allowed.
+    /// The DICOM name can contain only lowercase letters, numbers and the '-' character, and must start and end with a letter or a number.
+    /// </summary>
+    /// <exception cref="DataStoreException"></exception>
     private void EnsureValidConfiguration()
     {
         // A blob name must be at least one character long and cannot be more than 1,024 characters long
