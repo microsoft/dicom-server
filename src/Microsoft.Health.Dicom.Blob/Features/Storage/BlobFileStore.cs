@@ -42,7 +42,9 @@ public class BlobFileStore : IFileStore
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         BlobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
+
     protected DicomFileNameWithPrefix NameWithPrefix { get; }
+
     private IBlobClient BlobClient { get; }
 
     /// <inheritdoc />
@@ -65,12 +67,17 @@ public class BlobFileStore : IFileStore
             info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
         });
 
-        return new FileProperties()
+        if (BlobClient.IsExternal)
         {
-            Path = blobClient.Name,
-            ETag = info.ETag.ToString(),
-            ContentLength = stream.Length
-        };
+            return new FileProperties()
+            {
+                Path = blobClient.Name,
+                ETag = info.ETag.ToString(),
+                ContentLength = stream.Length
+            };
+        }
+        // we don't need to track this content for internal store
+        return null;
     }
 
     /// <inheritdoc />

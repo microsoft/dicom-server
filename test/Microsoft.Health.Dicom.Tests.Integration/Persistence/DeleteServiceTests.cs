@@ -72,7 +72,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
             {
                 FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
 
-                Assert.NotNull(fileProperties);
+                Assert.Null(fileProperties);
             }
 
             var file = await _fixture.FileStore.GetFileAsync(version);

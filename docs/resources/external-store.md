@@ -49,7 +49,7 @@ By default, the Blob service is based on a flat storage scheme, not a hierarchic
 a character or string delimiter within a blob name to create a virtual hierarchy.
 ```
 ##### ExternalDataStoreInvalidCharactersInServiceStorePath
-DICOM allows any alphanumeric characters, periods(.) and forward slashes (/) in the service store path.
+DICOM allows any alphanumeric characters, dashes(-). periods(.) and forward slashes (/) in the service store path.
 
 For the rule stating that [`reserved URL characters must be properly escaped`](https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names), 
 see [rfc section 2.2](https://www.rfc-editor.org/rfc/rfc3986#section-2.2):
@@ -62,6 +62,12 @@ sub-delims  = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
 It is not enough to just encode all of these characters. The blob file store will not recognize an encoded forward 
 slash as a delimiter as a logical directory segment. Because of this, DICOM has restricted allowable characters at 
 this time.
+
+When DICOM is a managed service, your workspace and DICOM names will be used to generate the path and this error 
+should not occur:
+- The workspace name can contain only lowercase letters, and numbers. No "-" or other symbols are allowed.
+- The DICOM name can contain only lowercase letters, numbers and the '-' character, and must start and end with a 
+  letter or a number.
 
 ##### ExternalDataStoreInvalidServiceStorePathSegments
 

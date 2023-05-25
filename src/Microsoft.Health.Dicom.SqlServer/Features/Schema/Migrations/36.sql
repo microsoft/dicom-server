@@ -287,7 +287,7 @@ CREATE TABLE dbo.FileProperty (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty
-    ON dbo.FileProperty(InstanceKey, Watermark);
+    ON dbo.FileProperty(Watermark) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,
@@ -2652,7 +2652,8 @@ BEGIN
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
-    IF (@instanceKey IS NOT NULL)
+    IF (@instanceKey IS NOT NULL
+        AND @path IS NOT NULL)
         INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag, Size)
         VALUES                       (@instanceKey, @watermark, @path, @eTag, @size);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)

@@ -112,11 +112,19 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+        FileProperties fileProperties,
+        long? instanceKey,
+        bool allowExpiredTags,
+        bool hasFrameMetadata,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        if (fileProperties != null)
+        {
+            // if we are passing in fileProperties, it means we're using a new binary, but with an old schema
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -354,14 +362,6 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     }
 
     public virtual Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
-    {
-        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-    }
-
-    /// <summary>
-    /// New binary, old schema
-    /// </summary>
-    public virtual Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, long? instanceKey = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

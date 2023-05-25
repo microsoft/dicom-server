@@ -7,7 +7,7 @@ using System;
 
 namespace Microsoft.Health.Dicom.Blob.Utilities;
 
-public class ExternalBlobDataStoreConfiguration
+internal class ExternalBlobDataStoreConfiguration
 {
     public const string SectionName = "ExternalBlobStore";
 
@@ -19,5 +19,11 @@ public class ExternalBlobDataStoreConfiguration
     // use for local testing with Azurite
     public string ContainerName { get; set; }
 
-    public string ServiceStorePath { get; set; } = String.Empty;
+    /// <summary>
+    /// A path which is used to store blobs along a specific path in a container, serving as a prefix to the
+    /// full blob name and providing a logical hierarchy when segments used though use of forward slashes (/).
+    /// DICOM allows any alphanumeric characters, dashes(-). periods(.) and forward slashes (/) in the service store path.
+    /// This path will be supplied externally when DICOM is a managed service.
+    /// </summary>
+    public string StorageDirectory { get; set; } = String.Empty;
 }

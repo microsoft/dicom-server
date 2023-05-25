@@ -511,7 +511,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occured configuration of storage account. Invalid Store Path provided. Only alphanumeric characters, periods(.) and forward slashes (/) are allowed. Use the http://fwlink to troubleshoot the issue. Details: {0}.
+        ///   Looks up a localized string similar to Error occured configuration of storage account. Invalid Store Path provided. Only alphanumeric characters, dashes (-), periods(.) and forward slashes (/) are allowed. Use the http://fwlink to troubleshoot the issue. Details: {0}.
         /// </summary>
         internal static string ExternalDataStoreInvalidCharactersInServiceStorePath {
             get {

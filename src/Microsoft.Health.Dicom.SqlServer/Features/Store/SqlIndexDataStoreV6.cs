@@ -125,12 +125,20 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+        FileProperties fileProperties,
+        long? instanceKey,
+        bool allowExpiredTags,
+        bool hasFrameMetadata,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+        if (fileProperties != null)
+        {
+            // if we are passing in fileProperties, it means we're using a new binary, but with an old schema
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -159,16 +167,6 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
                 };
             }
         }
-    }
-
-    /// <summary>
-    /// New binary, old schema
-    /// When binary updated before schema is migrated, this will continue to get to the old sproc until the schema is migrated
-    /// and next EndCreateInstanceIndexAsync version is used
-    /// </summary>
-    public override async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, long? instanceKey = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
-    {
-        await EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
     }
 
     public override async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)

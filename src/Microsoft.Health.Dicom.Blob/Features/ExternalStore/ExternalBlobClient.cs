@@ -22,6 +22,8 @@ namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 /// Represents the blob container created by the user and initialized JIT
 internal class ExternalBlobClient : IBlobClient
 {
+    private const int MaxBlobNameLength = 1024;
+    private const int MaxBlobSegmentsAllowed = 254;
     private readonly object _lockObj = new object();
     private readonly BlobServiceClientOptions _blobClientOptions;
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
@@ -33,9 +35,7 @@ internal class ExternalBlobClient : IBlobClient
     /// Configures a blob client for an external store.
     /// </summary>
     /// <param name="credentialProvider"></param>
-    /// <param name="externalStoreOptions">Options to use with configuring the external store. This includes a
-    /// ServiceStorePath which is used to store blobs along a specific path in a container, serving as a prefix to the
-    /// full blob name and providing a logical hierarchy.</param>
+    /// <param name="externalStoreOptions">Options to use with configuring the external store.</param>
     /// <param name="blobClientOptions">Options to use when configuring the blob client.</param>
     public ExternalBlobClient(
         IExternalOperationCredentialProvider credentialProvider,
@@ -45,12 +45,12 @@ internal class ExternalBlobClient : IBlobClient
         _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
-        _externalStoreOptions.ServiceStorePath = SanitizeServiceStorePath(_externalStoreOptions.ServiceStorePath);
+        _externalStoreOptions.StorageDirectory = SanitizeServiceStorePath(_externalStoreOptions.StorageDirectory);
     }
 
     public bool IsExternal => true;
 
-    public string ServiceStorePath => _externalStoreOptions.ServiceStorePath;
+    public string ServiceStorePath => _externalStoreOptions.StorageDirectory;
 
     public BlobContainerClient BlobContainerClient
     {
@@ -77,7 +77,7 @@ internal class ExternalBlobClient : IBlobClient
                         }
                         catch (Exception ex)
                         {
-                            throw new DataStoreException(ex, isExternal: IsExternal);
+                            throw new DataStoreException(ex, isExternal: true);
                         }
                     }
                 }
@@ -102,7 +102,7 @@ internal class ExternalBlobClient : IBlobClient
         // gen-delims  = ":" / "/" / "?" / "#" / "[" / "]" / "@"
         // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
         //               / "*" / "+" / "," / ";" / "="
-        if (_externalStoreOptions.ServiceStorePath.
+        if (_externalStoreOptions.StorageDirectory.
             Select(x => !char.IsLetterOrDigit(x) && !_allowedChars.Contains(x)).
             Any(x => x is true))
         {
@@ -118,22 +118,20 @@ internal class ExternalBlobClient : IBlobClient
         // If your account does not have a hierarchical namespace, then the number of path segments comprising the blob
         // name cannot exceed 254. A path segment is the string between consecutive delimiter characters
         // (e.g., the forward slash '/') that corresponds to the name of a virtual directory.
-        if (_externalStoreOptions.ServiceStorePath.Count(c => c == '/') > 254)
+        if (_externalStoreOptions.StorageDirectory.Count(c => c == '/') > MaxBlobSegmentsAllowed)
         {
             throw new DataStoreException(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, isExternal: true);
         }
     }
 
     /// <summary>
-    /// This is necessary only for OSS as the path will be specified for managed services.
-    /// The workspace name can contain only lowercase letters, and numbers. No "-" or other symbols are allowed.
-    /// The DICOM name can contain only lowercase letters, numbers and the '-' character, and must start and end with a letter or a number.
+    /// This validation necessary only for OSS as the path will be specified for managed services.
     /// </summary>
     /// <exception cref="DataStoreException"></exception>
     private void EnsureValidConfiguration()
     {
         // A blob name must be at least one character long and cannot be more than 1,024 characters long
-        if (_externalStoreOptions.ServiceStorePath.Length > 1024)
+        if (_externalStoreOptions.StorageDirectory.Length is 0 or > MaxBlobNameLength)
         {
             throw new DataStoreException(DicomCoreResource.ExternalDataStoreBlobNameTooLong, isExternal: true);
         }

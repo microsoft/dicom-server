@@ -5,6 +5,7 @@
 
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -14,9 +15,12 @@ using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -25,6 +29,37 @@ namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Storage;
 
 public class BlobFileStoreTests
 {
+    [Theory]
+    [InlineData("a!/b")]
+    [InlineData("a#/b")]
+    [InlineData("a\b")]
+    [InlineData("a%b")]
+    public void GivenInvalidStorageDirectory_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty(string storageDirectory)
+    {
+        var externalStoreOptions = ExternalStoreOptions(out ExternalBlobClient client);
+
+        externalStoreOptions.Value.StorageDirectory = storageDirectory;
+
+        var ex = Assert.Throws<DataStoreException>(() => client.BlobContainerClient);
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(DicomCoreResource.ExternalDataStoreInvalidCharactersInServiceStorePath, ex.Message);
+    }
+
+    [Fact]
+    public void GivenInvalidStorageDirectorySegments_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
+    {
+        var externalStoreOptions = ExternalStoreOptions(out ExternalBlobClient client);
+
+        externalStoreOptions.Value.StorageDirectory = string.Join("", Enumerable.Repeat("a/b", 255));
+
+        var ex = Assert.Throws<DataStoreException>(() => client.BlobContainerClient);
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, ex.Message);
+    }
+
+
     [Fact]
     public async Task GivenExternalStore_WhenUploadFails_ThenThrowExceptionWithRightMessageAndProperty()
     {
@@ -92,6 +127,24 @@ public class BlobFileStoreTests
 
     }
 
+    /// <summary>
+    /// Use to test configuration of client with subbed options
+    /// </summary>
+    private static IOptions<ExternalBlobDataStoreConfiguration> ExternalStoreOptions(out ExternalBlobClient client)
+    {
+        var externalStoreOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
+        externalStoreOptions.Value.Returns(Substitute.For<ExternalBlobDataStoreConfiguration>());
+
+        var blobClientOptions = Substitute.For<IOptions<BlobServiceClientOptions>>();
+        blobClientOptions.Value.Returns(Substitute.For<BlobServiceClientOptions>());
+
+        client = new ExternalBlobClient(Substitute.For<IExternalOperationCredentialProvider>(), externalStoreOptions, blobClientOptions);
+        return externalStoreOptions;
+    }
+
+    /// <summary>
+    /// Use to test operations o n client with subbed BlockBlobVlient
+    /// </summary>
     private class TestExternalBlobClient : IBlobClient
     {
         public TestExternalBlobClient()
@@ -105,7 +158,7 @@ public class BlobFileStoreTests
 
         public bool IsExternal => true;
 
-        public string ServiceStorePath { get; } = "external/";
+        public string ServiceStorePath { get; internal set; } = "external/";
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
