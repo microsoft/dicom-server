@@ -39,7 +39,20 @@ public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : Acti
         IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
         dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
-        dicomRequestContext.Version = context.HttpContext.GetRequestedApiVersion()?.MajorVersion;
+        ApiVersion version = null;
+        try
+        {
+            version = context.HttpContext?.GetRequestedApiVersion();
+        }
+        catch (ArgumentNullException)
+        {
+            /*
+             * GetRequestedApiVersion() is throwing argument null when it has no version.
+             * logged a bug  https://github.com/dotnet/aspnet-api-versioning/issues/976
+             */
+        }
+
+        dicomRequestContext.Version = version?.MajorVersion;
 
         // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
         RouteData routeData = context.RouteData;
