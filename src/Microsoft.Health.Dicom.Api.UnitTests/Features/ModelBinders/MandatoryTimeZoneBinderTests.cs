@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -22,6 +23,12 @@ public class MandatoryTimeZoneBinderTests
     private readonly DefaultModelBindingContext _bindingContext = new DefaultModelBindingContext();
     private readonly IValueProvider _valueProvider = Substitute.For<IValueProvider>();
 
+    public static readonly IEnumerable<object[]> EmptyInputs = new object[][]
+    {
+        new object[] { new ValueProviderResult(new StringValues((string)null)) },
+        new object[] { ValueProviderResult.None },
+    };
+
     public MandatoryTimeZoneBinderTests()
     {
         _bindingContext.ModelState = new ModelStateDictionary();
@@ -29,14 +36,9 @@ public class MandatoryTimeZoneBinderTests
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task GivenNoInput_WhenBinding_ThenSkip(bool isNull)
+    [MemberData(nameof(EmptyInputs))]
+    public async Task GivenNoInput_WhenBinding_ThenSkip(ValueProviderResult result)
     {
-        ValueProviderResult result = isNull
-            ? new ValueProviderResult(new StringValues((string)null))
-            : ValueProviderResult.None;
-
         _bindingContext.ModelName = ModelName;
         _valueProvider.GetValue(ModelName).Returns(result);
 
@@ -73,6 +75,7 @@ public class MandatoryTimeZoneBinderTests
     [InlineData("2023-04-26T11:23:40.902+7:0")]
     [InlineData("2023-04-26T11:23:40.90+7")]
     [InlineData("2023-04-26T11:23:40.9Z")]
+    [InlineData("Wed, 26 Apr 2023 18:23:40 GMT")]
     public async Task GivenValidString_WhenBinding_ThenSucceed(string input)
     {
         _bindingContext.ModelName = ModelName;
@@ -90,6 +93,8 @@ public class MandatoryTimeZoneBinderTests
     [InlineData("foo")]
     [InlineData("4/26/2023 5:38:06 PM")]
     [InlineData("2023-04-26T11:23:40.9025193")]
+    [InlineData("2023-04-26T11:23:40X")]
+    [InlineData("2023-04-26T11:23:40+101:00")]
     [InlineData("2023-04-26")]
     public async Task GivenInvalidString_WhenBinding_ThenFail(string input)
     {

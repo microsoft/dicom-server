@@ -5,13 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.ChangeFeed;
@@ -45,13 +45,17 @@ public class ChangeFeedService : IChangeFeedService
         if (includeMetadata)
         {
             await Parallel.ForEachAsync(
-                changeFeedEntries,
+                changeFeedEntries.Where(x => x.CurrentVersion.HasValue),
                 new ParallelOptions
                 {
                     CancellationToken = cancellationToken,
                     MaxDegreeOfParallelism = _options.MaxDegreeOfParallelism,
                 },
-                PopulateMetadata);
+                async (entry, t) =>
+                {
+                    entry.IncludeMetadata = true;
+                    entry.Metadata = await _metadataStore.GetInstanceMetadataAsync(entry.CurrentVersion.GetValueOrDefault(), t);
+                });
         }
 
         return changeFeedEntries;
@@ -64,19 +68,12 @@ public class ChangeFeedService : IChangeFeedService
         if (result == null)
             return null;
 
-        if (includeMetadata)
-            await PopulateMetadata(result, cancellationToken);
+        if (includeMetadata && result.CurrentVersion.HasValue)
+        {
+            result.IncludeMetadata = true;
+            result.Metadata = await _metadataStore.GetInstanceMetadataAsync(result.CurrentVersion.Value, cancellationToken);
+        }
 
         return result;
-    }
-
-    private async ValueTask PopulateMetadata(ChangeFeedEntry entry, CancellationToken cancellationToken)
-    {
-        if (entry.CurrentVersion == null)
-            return;
-
-        var identifier = new VersionedInstanceIdentifier(entry.StudyInstanceUid, entry.SeriesInstanceUid, entry.SopInstanceUid, entry.CurrentVersion.Value);
-        entry.Metadata = await _metadataStore.GetInstanceMetadataAsync(identifier.Version, cancellationToken);
-        entry.IncludeMetadata = true;
     }
 }

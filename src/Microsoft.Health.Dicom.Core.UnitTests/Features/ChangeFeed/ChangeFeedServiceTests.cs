@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
@@ -27,6 +28,7 @@ public class ChangeFeedServiceTests
 
     public ChangeFeedServiceTests()
     {
+        // For the test, we'll use unbounded parallelism with -1
         _changeFeedService = new ChangeFeedService(
             _changeFeedStore,
             _metadataStore,
@@ -40,7 +42,10 @@ public class ChangeFeedServiceTests
         const int limit = 50;
         const ChangeFeedOrder order = ChangeFeedOrder.Sequence;
         TimeRange range = TimeRange.MaxValue;
-        var expected = new List<ChangeFeedEntry>();
+        var expected = new List<ChangeFeedEntry>
+        {
+            new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, 101, ChangeFeedState.Current),
+        };
 
         using var tokenSource = new CancellationTokenSource();
 
@@ -52,6 +57,8 @@ public class ChangeFeedServiceTests
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
 
         Assert.Same(expected, actual);
+        Assert.True(actual.All(x => !x.IncludeMetadata));
+        Assert.True(actual.All(x => x.Metadata == null));
     }
 
     [Fact]
@@ -85,9 +92,12 @@ public class ChangeFeedServiceTests
         await _metadataStore.Received(1).GetInstanceMetadataAsync(104, Arg.Any<CancellationToken>());
 
         Assert.Same(expected, actual);
-        Assert.Same(expectedDataset1, expected[0].Metadata);
+        Assert.True(actual[0].IncludeMetadata);
+        Assert.Same(expectedDataset1, actual[0].Metadata);
+        Assert.False(actual[1].IncludeMetadata);
         Assert.Null(expected[1].Metadata);
-        Assert.Same(expectedDataset3, expected[2].Metadata);
+        Assert.True(actual[2].IncludeMetadata);
+        Assert.Same(expectedDataset3, actual[2].Metadata);
     }
 
     [Fact]
@@ -105,10 +115,12 @@ public class ChangeFeedServiceTests
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
 
         Assert.Same(expected, actual);
+        Assert.False(actual.IncludeMetadata);
+        Assert.Null(actual.Metadata);
     }
 
     [Fact]
-    public async Task GivenChangeFeed_WhenFetchingLatestDeletedWithMetadata_ThenSkipMetadata()
+    public async Task GivenChangeFeed_WhenFetchingLatestDeletedWithMetadata_ThenOnlyCheckStore()
     {
         const ChangeFeedOrder order = ChangeFeedOrder.Sequence;
         var expected = new ChangeFeedEntry(1, DateTime.Now, ChangeFeedAction.Create, TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 101, null, ChangeFeedState.Deleted);
@@ -122,5 +134,7 @@ public class ChangeFeedServiceTests
         await _metadataStore.DidNotReceiveWithAnyArgs().GetInstanceMetadataAsync(default, default);
 
         Assert.Same(expected, actual);
+        Assert.False(actual.IncludeMetadata);
+        Assert.Null(actual.Metadata);
     }
 }

@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -96,14 +97,10 @@ public class ApiVersionsConventionTests
     public void GivenActionInLatest_WhenLatestConfigured_ThenAddOrRemove(bool enableLatest)
     {
         // arrange
+        MethodInfo actionMethod = typeof(TestController).GetMethod(nameof(TestController.GetResultAsync));
         var controllerModel = new ControllerModel(typeof(TestController).GetTypeInfo(), Array.Empty<object>())
         {
-            Actions =
-            {
-                new ActionModel(
-                    typeof(TestController).GetMethod(nameof(TestController.GetResultAsync)),
-                    new [] { new MapToApiVersionAttribute("2.0") }),
-            },
+            Actions = { new ActionModel(actionMethod, actionMethod.GetCustomAttributes().ToList()) },
         };
         var builder = new ControllerApiVersionConventionBuilder(typeof(TestController));
         var featuresOptions = Options.Create(new FeatureConfiguration { EnableLatestApiVersion = enableLatest });

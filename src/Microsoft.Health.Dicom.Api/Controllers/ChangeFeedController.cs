@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
@@ -89,11 +90,12 @@ public class ChangeFeedController : ControllerBase
     [AuditEventType(AuditEventSubType.ChangeFeed)]
     public async Task<IActionResult> GetChangeFeedLatestAsync([FromQuery] bool includeMetadata = true)
     {
-        _logger.LogInformation("Change feed latest was read and metadata is {Metadata} included.", includeMetadata ? string.Empty : "not");
+        _logger.LogInformation(
+            "Received request to read the latest change feed and metadata is {MetadataStatus}.",
+            includeMetadata ? "included" : "not included");
 
-        int version = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
         ChangeFeedLatestResponse response = await _mediator.GetChangeFeedLatest(
-            version > 1 ? ChangeFeedOrder.Time : ChangeFeedOrder.Sequence,
+            HttpContext.GetMajorRequestedApiVersion() > 1 ? ChangeFeedOrder.Time : ChangeFeedOrder.Sequence,
             includeMetadata,
             cancellationToken: HttpContext.RequestAborted);
 
@@ -109,7 +111,7 @@ public class ChangeFeedController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation(
-            "Change feed was read for {Window} with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",
+            "Received request to read change feed for {Window} with an offset of {Offset} and limit of {Limit}. Metadata is {MetadataStatus}.",
             range,
             offset,
             limit,

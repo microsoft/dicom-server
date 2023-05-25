@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Api.Models;
@@ -35,7 +36,7 @@ public class ChangeFeedControllerTests
     }
 
     [Fact]
-    public async Task GivenNoUserValues_WhenFetchingChangeFeed_ThenUseProperDefaults()
+    public async Task GivenNoUserValues_WhenFetchingChangeFeed_ThenUseDefaultValues()
     {
         var expected = new List<ChangeFeedEntry>();
 
@@ -196,6 +197,35 @@ public class ChangeFeedControllerTests
             .Received(1)
             .Send(
                 Arg.Is<ChangeFeedLatestRequest>(x => x.IncludeMetadata == includeMetadata),
+                _controller.HttpContext.RequestAborted);
+    }
+
+    [Theory]
+    [InlineData("1.0-prerelease", ChangeFeedOrder.Sequence)]
+    [InlineData("1.0", ChangeFeedOrder.Sequence)]
+    [InlineData("2.0", ChangeFeedOrder.Time)]
+    [InlineData("8.9", ChangeFeedOrder.Time)]
+    public async Task GivenVersion_WhenFetchingLatestChangeFeed_ThenChangeSortOrder(string version, ChangeFeedOrder order)
+    {
+        var expected = new ChangeFeedEntry(1, DateTimeOffset.UtcNow, ChangeFeedAction.Create, "1", "2", "3", 1, 1, ChangeFeedState.Current);
+
+        IApiVersioningFeature versioningFeature = Substitute.For<IApiVersioningFeature>();
+        _controller.ControllerContext.HttpContext.Features.Set(versioningFeature);
+        versioningFeature.RequestedApiVersion.Returns(ApiVersion.Parse(version));
+        _mediator
+            .Send(
+                Arg.Is<ChangeFeedLatestRequest>(x => x.Order == order),
+                _controller.HttpContext.RequestAborted)
+            .Returns(new ChangeFeedLatestResponse(expected));
+
+        IActionResult result = await _controller.GetChangeFeedLatestAsync();
+        var actual = result as ObjectResult;
+        Assert.Same(expected, actual.Value);
+
+        await _mediator
+            .Received(1)
+            .Send(
+                Arg.Is<ChangeFeedLatestRequest>(x => x.Order == order),
                 _controller.HttpContext.RequestAborted);
     }
 }

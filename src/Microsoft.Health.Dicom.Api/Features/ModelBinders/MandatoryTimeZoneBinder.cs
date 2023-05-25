@@ -28,6 +28,10 @@ internal class MandatoryTimeZoneBinder : IModelBinder
             {
                 try
                 {
+                    // Attempt to parse the string as a DateTime and convert it to UTC.
+                    // The only reason DateTime is used is because the Kind property allows us to
+                    // correctly determine whether time zone was specified. Otherwise, we'd have to
+                    // construct a series of complicated regular expressions.
                     var dt = DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.None);
                     if (dt.Kind == DateTimeKind.Unspecified)
                         bindingContext.ModelState.TryAddModelError(modelName, DicomApiResource.TimeZoneRequired);
