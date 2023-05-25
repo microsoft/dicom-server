@@ -52,7 +52,7 @@ public partial class UpdateDurableFunction
         };
         _auditLogger.LogAudit(
             AuditAction.Executing,
-            AuditEventSubType.UpdateStudyTask,
+            AuditEventSubType.UpdateStudyOperation,
             uri,
             null,
             Activity.Current?.RootId,
@@ -148,7 +148,7 @@ public partial class UpdateDurableFunction
         }
         _auditLogger.LogAudit(
             AuditAction.Executed,
-            AuditEventSubType.UpdateStudyTask,
+            AuditEventSubType.UpdateStudyOperation,
             uri,
             auditStatusCode,
             Activity.Current?.RootId,

@@ -60,5 +60,5 @@ public static class AuditEventSubType
 
     public const string UpdateStudy = "update-study";
 
-    public const string UpdateStudyTask = "update-study-task";
+    public const string UpdateStudyOperation = "update-study-operation";
 }
