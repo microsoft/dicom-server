@@ -20,5 +20,6 @@ public sealed class UpdateMeter : IDisposable
 
     public Counter<int> UpdatedInstances { get; }
 
-    public void Dispose() => _meter.Dispose();
+    public void Dispose()
+        => _meter.Dispose();
 }

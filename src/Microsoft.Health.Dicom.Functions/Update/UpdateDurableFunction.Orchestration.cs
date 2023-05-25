@@ -104,6 +104,7 @@ public partial class UpdateDurableFunction
                 _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count,
                     new KeyValuePair<string, object>("ExecutionId", context.NewGuid()));
             }
+
             context.ContinueAsNew(
                 new UpdateCheckpoint
                 {
