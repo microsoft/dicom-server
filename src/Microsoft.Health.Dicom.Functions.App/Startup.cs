@@ -21,7 +21,7 @@ public class Startup : FunctionsStartup
         IConfiguration config = builder.GetHostConfiguration();
         builder.Services
             .ConfigureFunctions(config)
-            .ConfigureAuditLogging(config)
+            .ConfigureAuditLogging()
             .AddBlobStorage(config)
             .AddSqlServer(config)
             .AddKeyVaultClient(config);

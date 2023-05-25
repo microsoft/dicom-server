@@ -99,10 +99,9 @@ public static class ServiceCollectionExtensions
     }
 
     public static IDicomFunctionsBuilder ConfigureAuditLogging(
-        this IDicomFunctionsBuilder builder, IConfiguration configuration)
+        this IDicomFunctionsBuilder builder)
     {
         EnsureArg.IsNotNull(builder, nameof(builder));
-        EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         builder.Services.AddSingleton<IAuditLogger, AuditLogger>();
         return builder;
