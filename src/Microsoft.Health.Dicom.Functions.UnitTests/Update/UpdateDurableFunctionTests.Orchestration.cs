@@ -138,6 +138,7 @@ public partial class UpdateDurableFunctionTests
                 TestUidGenerator.Generate()
             },
             CreatedTime = createdTime,
+            Endpoint = "https://dicom.contoso.io/update",
         };
 
         var expectedInstances = new List<InstanceFileState>();
@@ -226,7 +227,8 @@ public partial class UpdateDurableFunctionTests
             Errors = new List<string>()
             {
                 "Failed Study"
-            }
+            },
+            Endpoint = "https://dicom.contoso.io/update",
         };
 
         // Arrange the input
@@ -384,6 +386,7 @@ public partial class UpdateDurableFunctionTests
                 TestUidGenerator.Generate()
             },
             CreatedTime = DateTime.UtcNow,
+            Endpoint = "https://dicom.contoso.io/update",
         };
 
     private static IDurableOrchestrationContext CreateContext(string operationId)
