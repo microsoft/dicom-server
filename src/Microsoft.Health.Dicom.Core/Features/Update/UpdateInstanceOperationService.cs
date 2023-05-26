@@ -9,11 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -27,6 +29,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<UpdateInstanceOperationService> _logger;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
@@ -43,16 +46,19 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IDicomRequestContextAccessor contextAccessor,
+        TelemetryClient telemetryClient,
         ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
         _client = client;
         _contextAccessor = contextAccessor;
+        _telemetryClient = telemetryClient;
         _logger = logger;
     }
 
@@ -88,6 +94,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         try
         {
             var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            _telemetryClient.ForwardLogTrace("Message from UpdateInstanceOperationService operation", operationId.ToString(), updateSpecification);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)
