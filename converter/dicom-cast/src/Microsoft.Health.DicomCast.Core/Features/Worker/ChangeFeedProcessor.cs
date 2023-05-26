@@ -1,11 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
@@ -27,8 +26,8 @@ namespace Microsoft.Health.DicomCast.Core.Features.Worker;
 /// </summary>
 public class ChangeFeedProcessor : IChangeFeedProcessor
 {
-    private static readonly Func<ILogger, IDisposable> LogProcessingDelegate =
-        LoggerMessage.DefineScope("Processing change feed.");
+    internal const int DefaultLimit = 10;
+    private static readonly Func<ILogger, IDisposable> LogProcessingDelegate = LoggerMessage.DefineScope("Processing change feed.");
 
     private readonly IChangeFeedRetrieveService _changeFeedRetrieveService;
     private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
@@ -43,16 +42,11 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
         IExceptionStore exceptionStore,
         ILogger<ChangeFeedProcessor> logger)
     {
-        EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
-        EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
-        EnsureArg.IsNotNull(syncStateService, nameof(syncStateService));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        _changeFeedRetrieveService = changeFeedRetrieveService;
-        _fhirTransactionPipeline = fhirTransactionPipeline;
-        _syncStateService = syncStateService;
-        _exceptionStore = exceptionStore;
-        _logger = logger;
+        _changeFeedRetrieveService = EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
+        _fhirTransactionPipeline = EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
+        _syncStateService = EnsureArg.IsNotNull(syncStateService, nameof(syncStateService));
+        _exceptionStore = EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc/>
@@ -64,72 +58,78 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
 
             while (true)
             {
-                // Retrieve the change feed for any changes.
+                // Retrieve the change feed for any changes after checking the sequence number of the latest event
+                long latest = await _changeFeedRetrieveService.RetrieveLatestSequenceAsync(cancellationToken);
                 IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedRetrieveService.RetrieveChangeFeedAsync(
                     state.SyncedSequence,
+                    DefaultLimit,
                     cancellationToken);
 
-                if (!changeFeedEntries.Any())
+                // If there are no events because nothing available, then skip processing for now
+                // Note that there may be more events to read for API version v1 even if the Count < limit
+                if (changeFeedEntries.Count == 0 && latest == state.SyncedSequence)
                 {
-                    _logger.LogInformation("No new DICOM events to process.");
-
+                    _logger.LogInformation("No new DICOM events to process");
                     return;
                 }
 
-                long maxSequence = changeFeedEntries[^1].Sequence;
-
-                // Process each change feed as a FHIR transaction.
-                foreach (ChangeFeedEntry changeFeedEntry in changeFeedEntries)
-                {
-                    try
-                    {
-                        if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
-                        {
-                            await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
-                            _logger.LogInformation("Successfully processed DICOM event with SequenceID: {SequenceId}", changeFeedEntry.Sequence);
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Skip DICOM event with SequenceId {SequenceId} due to deletion before processing creation.", changeFeedEntry.Sequence);
-                        }
-                    }
-                    catch (Exception ex) when (ex is FhirNonRetryableException or DicomTagException or TimeoutRejectedException)
-                    {
-                        string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
-                        string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
-                        string sopInstanceUid = changeFeedEntry.SopInstanceUid;
-                        long changeFeedSequence = changeFeedEntry.Sequence;
-
-                        ErrorType errorType = ErrorType.FhirError;
-
-                        if (ex is DicomTagException)
-                        {
-                            errorType = ErrorType.DicomError;
-                        }
-                        else if (ex is TimeoutRejectedException)
-                        {
-                            errorType = ErrorType.TransientFailure;
-                        }
-
-                        await _exceptionStore.WriteExceptionAsync(
-                            changeFeedEntry,
-                            ex,
-                            errorType,
-                            cancellationToken);
-
-                        _logger.LogError("Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyInstanceUid}, SeriesUid: {SeriesInstanceUid}, instanceUid: {SopInstanceUid}  and will not be retried further. Continuing to next event.", changeFeedEntry.Sequence, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-                    }
-                }
+                // Otherwise, process any new entries and increment the sequence
+                long maxSequence = changeFeedEntries.Count > 0 ? changeFeedEntries[^1].Sequence : state.SyncedSequence + DefaultLimit;
+                await ProcessChangeFeedEntriesAsync(changeFeedEntries, cancellationToken);
 
                 var newSyncState = new SyncState(maxSequence, Clock.UtcNow);
-
                 await _syncStateService.UpdateSyncStateAsync(newSyncState, cancellationToken);
-
-                _logger.LogInformation("Processed DICOM events sequenced {SequenceId}-{MaxSequence}.", state.SyncedSequence + 1, maxSequence);
-
+                _logger.LogInformation("Processed DICOM events sequenced [{SequenceId}, {MaxSequence}]", state.SyncedSequence + 1, maxSequence);
                 state = newSyncState;
 
                 await Task.Delay(pollIntervalDuringCatchup, cancellationToken);
+            }
+        }
+    }
+
+    private async Task ProcessChangeFeedEntriesAsync(IEnumerable<ChangeFeedEntry> changeFeedEntries, CancellationToken cancellationToken)
+    {
+        // Process each change feed as a FHIR transaction.
+        foreach (ChangeFeedEntry changeFeedEntry in changeFeedEntries)
+        {
+            try
+            {
+                if (!(changeFeedEntry.Action == ChangeFeedAction.Create && changeFeedEntry.State == ChangeFeedState.Deleted))
+                {
+                    await _fhirTransactionPipeline.ProcessAsync(changeFeedEntry, cancellationToken);
+                    _logger.LogInformation("Successfully processed DICOM event with SequenceID: {SequenceId}", changeFeedEntry.Sequence);
+                }
+                else
+                {
+                    _logger.LogInformation("Skip DICOM event with SequenceId {SequenceId} due to deletion before processing creation.", changeFeedEntry.Sequence);
+                }
+            }
+            catch (Exception ex) when (ex is FhirNonRetryableException or DicomTagException or TimeoutRejectedException)
+            {
+                string studyInstanceUid = changeFeedEntry.StudyInstanceUid;
+                string seriesInstanceUid = changeFeedEntry.SeriesInstanceUid;
+                string sopInstanceUid = changeFeedEntry.SopInstanceUid;
+                long changeFeedSequence = changeFeedEntry.Sequence;
+
+                ErrorType errorType = ErrorType.FhirError;
+
+                if (ex is DicomTagException)
+                {
+                    errorType = ErrorType.DicomError;
+                }
+                else if (ex is TimeoutRejectedException)
+                {
+                    errorType = ErrorType.TransientFailure;
+                }
+
+                await _exceptionStore.WriteExceptionAsync(changeFeedEntry, ex, errorType, cancellationToken);
+
+                _logger.LogError(
+                    "Failed to process DICOM event with SequenceID: {SequenceId}, StudyUid: {StudyInstanceUid}, SeriesUid: {SeriesInstanceUid}, instanceUid: {SopInstanceUid}  and will not be retried further. Continuing to next event.",
+                    changeFeedSequence,
+                    studyInstanceUid,
+                    seriesInstanceUid,
+                    sopInstanceUid);
             }
         }
     }
