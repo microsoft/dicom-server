@@ -66,9 +66,10 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
                     cancellationToken);
 
                 // If there are no events because nothing available, then skip processing for now
+                // Note that there may be more events to read for API version v1 even if the Count < limit
                 if (changeFeedEntries.Count == 0 && latest == state.SyncedSequence)
                 {
-                    _logger.LogInformation("No new DICOM events to process.");
+                    _logger.LogInformation("No new DICOM events to process");
                     return;
                 }
 
@@ -78,9 +79,9 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
 
                 var newSyncState = new SyncState(maxSequence, Clock.UtcNow);
                 await _syncStateService.UpdateSyncStateAsync(newSyncState, cancellationToken);
+                _logger.LogInformation("Processed DICOM events sequenced [{SequenceId}, {MaxSequence}]", state.SyncedSequence + 1, maxSequence);
                 state = newSyncState;
 
-                _logger.LogInformation("Processed DICOM events sequenced {SequenceId}-{MaxSequence}.", state.SyncedSequence + 1, maxSequence);
                 await Task.Delay(pollIntervalDuringCatchup, cancellationToken);
             }
         }
