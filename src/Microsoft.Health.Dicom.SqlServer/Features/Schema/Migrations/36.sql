@@ -1384,7 +1384,7 @@ BEGIN
                    AND PartitionKey = @partitionKey
                    AND ResourceType = @imageResourceType;
         END
-    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    INSERT INTO dbo.ChangeFeed WITH (TABLOCKX) (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 1,
            PartitionKey,
            StudyInstanceUid,
@@ -1481,7 +1481,7 @@ BEGIN
            AND StudyInstanceUid = @studyInstanceUid;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Study does not exist', 1;
-    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    INSERT INTO dbo.ChangeFeed WITH (TABLOCKX) (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 2,
            PartitionKey,
            StudyInstanceUid,
@@ -2638,8 +2638,8 @@ BEGIN
            AND Watermark = @watermark;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
-    INSERT  INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    VALUES                     (0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
+    INSERT  INTO dbo.ChangeFeed WITH (TABLOCKX) (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    VALUES                                     (0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
     UPDATE dbo.ChangeFeed
     SET    CurrentWatermark = @watermark
     WHERE  PartitionKey = @partitionKey

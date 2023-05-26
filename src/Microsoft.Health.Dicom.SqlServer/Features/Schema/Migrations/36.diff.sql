@@ -288,7 +288,7 @@ BEGIN
         AND     ResourceType = @imageResourceType
     END
 
-    INSERT INTO dbo.ChangeFeed
+    INSERT INTO dbo.ChangeFeed WITH (TABLOCKX)
     (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
@@ -379,7 +379,7 @@ BEGIN
             THROW 50404, 'Study does not exist', 1
 
         -- Insert into change feed table for update action type
-        INSERT INTO dbo.ChangeFeed
+        INSERT INTO dbo.ChangeFeed WITH (TABLOCKX)
         (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
         SELECT 2, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
         FROM @updatedInstances
@@ -733,7 +733,7 @@ BEGIN
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
-    INSERT INTO dbo.ChangeFeed
+    INSERT INTO dbo.ChangeFeed WITH (TABLOCKX)
         (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
         (0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)

@@ -247,7 +247,7 @@ BEGIN
         AND     ResourceType = @imageResourceType
     END
 
-    INSERT INTO dbo.ChangeFeed
+    INSERT INTO dbo.ChangeFeed WITH (TABLOCKX)
     (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
     FROM @deletedInstances
