@@ -21,7 +21,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 
 [Trait("Category", "leniency")]
-public class StoreTransactionTestsV2 : IClassFixture<EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<Startup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
     private readonly IDicomWebClient _clientV1;
@@ -29,7 +29,7 @@ public class StoreTransactionTestsV2 : IClassFixture<EnableDropInvalidDicomJsonM
     private readonly DicomInstancesManager _instancesManagerV1;
     private readonly string _partition = TestUidGenerator.Generate();
 
-    public StoreTransactionTestsV2(EnableDropInvalidDicomJsonMetadataHttpIntegrationTestFixture<Startup> fixture)
+    public StoreTransactionTestsV2(FeatureEnabledTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient(DicomApiVersions.V2);

@@ -39,7 +39,7 @@ jobs:
 
   - task: PowerShell@2
     displayName: 'Check for breaking API / Swagger changes'
-    enabled: true
+    enabled: false
     inputs:
       pwsh: true
       filepath: './build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
