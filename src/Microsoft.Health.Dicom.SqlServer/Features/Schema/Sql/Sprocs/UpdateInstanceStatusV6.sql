@@ -70,7 +70,7 @@ BEGIN
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
-    INSERT INTO dbo.ChangeFeed WITH (TABLOCKX)
+    INSERT INTO dbo.ChangeFeed
         (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES
         (0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)

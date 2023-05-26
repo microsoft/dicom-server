@@ -70,7 +70,7 @@ BEGIN
             THROW 50404, 'Study does not exist', 1
 
         -- Insert into change feed table for update action type
-        INSERT INTO dbo.ChangeFeed WITH (TABLOCKX)
+        INSERT INTO dbo.ChangeFeed
         (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
         SELECT 2, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
         FROM @updatedInstances
