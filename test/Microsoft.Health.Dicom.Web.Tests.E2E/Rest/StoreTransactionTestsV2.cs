@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -66,6 +66,7 @@ public class StoreTransactionTestsV2 : IClassFixture<EnableDropInvalidDicomJsonM
             FailureReasonCodes.ValidationFailure.ToString(CultureInfo.InvariantCulture),
             instance.GetString(DicomTag.FailureReason));
     }
+
 
     [Fact]
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenInvalidDataDroppedAndValidDataWritten()
