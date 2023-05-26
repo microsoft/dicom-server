@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -16,6 +17,7 @@ using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Operations;
 using NSubstitute;
+using OpenTelemetry.Metrics;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
@@ -120,6 +122,9 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Is<UpdateCheckpoint>(x => x.NumberOfStudyCompleted == 1),
                 false);
+
+        _meterProvider.ForceFlush();
+        Assert.NotEmpty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -206,6 +211,9 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Any<UpdateCheckpoint>(),
                 false);
+
+        _meterProvider.ForceFlush();
+        Assert.Empty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
     }
 
 
@@ -267,6 +275,9 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Any<UpdateCheckpoint>(),
                 false);
+
+        _meterProvider.ForceFlush();
+        Assert.Empty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -367,6 +378,9 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                  Arg.Is(GetPredicate(expectedInstancesWithNewWatermark.Count, 1)),
                 false);
+
+        _meterProvider.ForceFlush();
+        Assert.NotEmpty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
     }
 
 
