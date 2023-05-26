@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -32,5 +32,5 @@ public interface IGetExtendedQueryTagsService
     /// <para>-or-</para>
     /// <para><paramref name="offset"/> is less than <c>0</c>.</para>
     /// </exception>
-    public Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default);
+    public Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(int limit, long offset = 0, CancellationToken cancellationToken = default);
 }

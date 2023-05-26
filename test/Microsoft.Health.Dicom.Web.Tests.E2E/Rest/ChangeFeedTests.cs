@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -6,29 +6,20 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using EnsureThat;
-using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
-using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
-using ChangeFeedAction = Microsoft.Health.Dicom.Client.Models.ChangeFeedAction;
-using ChangeFeedState = Microsoft.Health.Dicom.Client.Models.ChangeFeedState;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 [CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
-public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
-    private readonly IDicomWebClient _client;
-    private readonly DicomInstancesManager _instancesManager;
-
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
+        : base(fixture.GetDicomWebClient())
     {
-        EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient();
-        _instancesManager = new DicomInstancesManager(_client);
     }
 
     [Fact]
@@ -42,11 +33,11 @@ public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>
 
         for (int i = 0; i < 10; i++)
         {
-            await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUids[i]);
+            await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUids[i]);
 
             if (initialSequence == -1)
             {
-                using DicomWebResponse<ChangeFeedEntry> latestResponse = await _client.GetChangeFeedLatest();
+                using DicomWebResponse<ChangeFeedEntry> latestResponse = await Client.GetChangeFeedLatest();
 
                 ChangeFeedEntry result = await latestResponse.GetValueAsync();
 
@@ -59,12 +50,12 @@ public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>
             }
         }
 
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed())
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await Client.GetChangeFeed())
         {
             Assert.Equal(10, await response.CountAsync());
         }
 
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}"))
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await Client.GetChangeFeed(ToQueryString(offset: initialSequence - 1)))
         {
             ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
 
@@ -87,30 +78,30 @@ public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         long initialSequence;
 
-        using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest())
+        using (DicomWebResponse<ChangeFeedEntry> response = await Client.GetChangeFeedLatest())
         {
             initialSequence = (await ValidateFeedAsync(response, ChangeFeedAction.Create, ChangeFeedState.Current)).Sequence;
         }
 
-        await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await Client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest())
+        using (DicomWebResponse<ChangeFeedEntry> response = await Client.GetChangeFeedLatest())
         {
             await ValidateFeedAsync(response, ChangeFeedAction.Delete, ChangeFeedState.Deleted);
         }
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest())
+        using (DicomWebResponse<ChangeFeedEntry> response = await Client.GetChangeFeedLatest())
         {
             await ValidateFeedAsync(response, ChangeFeedAction.Create, ChangeFeedState.Current);
         }
 
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}"))
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await Client.GetChangeFeed(ToQueryString(offset: initialSequence - 1)))
         {
             ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
 
@@ -147,27 +138,22 @@ public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>
     [Fact]
     public async Task GivenAnInstance_WhenRetrievingChangeFeedWithoutMetadata_ThenMetadataIsNotReturned()
     {
-        var studyInstanceUid = TestUidGenerator.Generate();
-        var seriesInstanceUid = TestUidGenerator.Generate();
-        var sopInstanceUid = TestUidGenerator.Generate();
-
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
         long initialSequence;
+        InstanceIdentifier id = await CreateFileAsync();
 
-        using (DicomWebResponse<ChangeFeedEntry> response = await _client.GetChangeFeedLatest("?includemetadata=false"))
+        using (DicomWebResponse<ChangeFeedEntry> response = await Client.GetChangeFeedLatest(ToQueryString(includeMetadata: false)))
         {
             ChangeFeedEntry changeFeedEntry = await response.GetValueAsync();
 
             initialSequence = changeFeedEntry.Sequence;
 
-            Assert.Equal(studyInstanceUid, changeFeedEntry.StudyInstanceUid);
-            Assert.Equal(seriesInstanceUid, changeFeedEntry.SeriesInstanceUid);
-            Assert.Equal(sopInstanceUid, changeFeedEntry.SopInstanceUid);
+            Assert.Equal(id.StudyInstanceUid, changeFeedEntry.StudyInstanceUid);
+            Assert.Equal(id.SeriesInstanceUid, changeFeedEntry.SeriesInstanceUid);
+            Assert.Equal(id.SopInstanceUid, changeFeedEntry.SopInstanceUid);
             Assert.Null(changeFeedEntry.Metadata);
         }
 
-        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _client.GetChangeFeed($"?offset={initialSequence - 1}&includemetadata=false"))
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await Client.GetChangeFeed(ToQueryString(offset: initialSequence - 1, includeMetadata: false)))
         {
             ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
 
@@ -191,7 +177,7 @@ public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>
     public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeed_ThenBadRequestReturned(string limit, string offset, string includeMetadata)
     {
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-            () => _client.GetChangeFeed($"?limit={limit}&offset={offset}&includeMetadata={includeMetadata}"));
+            () => Client.GetChangeFeed($"?limit={limit}&offset={offset}&includeMetadata={includeMetadata}"));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
@@ -199,20 +185,7 @@ public class ChangeFeedTests : IClassFixture<HttpIntegrationTestFixture<Startup>
     public async Task GivenAnInvalidParameter_WhenRetrievingChangeFeedLatest_ThenBadRequestReturned()
     {
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-            () => _client.GetChangeFeedLatest("?includeMetadata=asdf"));
+            () => Client.GetChangeFeedLatest("?includeMetadata=asdf"));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-    }
-
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public async Task DisposeAsync()
-    {
-        await _instancesManager.DisposeAsync();
-    }
-
-    private async Task CreateFile(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
-    {
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        await _instancesManager.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
     }
 }

@@ -11,7 +11,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.2.93</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>6.2.95</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.3.0</Hl7FhirPackageVersion>
     <IdentityModelTokenPackageVersion>6.30.1</IdentityModelTokenPackageVersion>
@@ -38,11 +38,13 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == '$(LtsVersion)'">
       <PropertyGroup>
+        <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
+        <DependencyInjectionVersion>7.0.0</DependencyInjectionVersion>
         <SdkPackageVersion>7.0.0</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>

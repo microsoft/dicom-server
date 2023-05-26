@@ -53,7 +53,8 @@ internal class ApiVersionsConvention : IControllerConvention
 
         var controllerIntroducedInVersion = controllerModel.Attributes
             .Where(a => a.GetType() == typeof(IntroducedInApiVersionAttribute))
-            .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
+            .Cast<IntroducedInApiVersionAttribute>()
+            .Select(x => x.Version)
             .SingleOrDefault();
 
         IEnumerable<ApiVersion> versions = AllSupportedVersions;
@@ -63,12 +64,18 @@ internal class ApiVersionsConvention : IControllerConvention
         }
         // when upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove this logic
         versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
-
         controller.HasApiVersions(versions);
+
+        var inactiveActions = controllerModel.Actions.Where(x => !IsEnabled(x, versions)).ToList();
+        foreach (ActionModel action in inactiveActions)
+        {
+            controllerModel.Actions.Remove(action);
+        }
+
         return true;
     }
 
-    internal static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int start, int end)
+    private static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int start, int end)
     {
         if (start < 1)
         {
@@ -85,4 +92,23 @@ internal class ApiVersionsConvention : IControllerConvention
             .ToList();
     }
 
+    private static bool IsEnabled(ActionModel actionModel, IEnumerable<ApiVersion> enabled)
+    {
+        HashSet<ApiVersion> actionVersions = actionModel.Attributes
+            .Where(a => a is MapToApiVersionAttribute)
+            .Cast<MapToApiVersionAttribute>()
+            .SelectMany(x => x.Versions)
+            .ToHashSet();
+
+        if (actionVersions.Count == 0)
+            return true;
+
+        foreach (ApiVersion version in enabled)
+        {
+            if (actionVersions.Contains(version))
+                return true;
+        }
+
+        return false;
+    }
 }
