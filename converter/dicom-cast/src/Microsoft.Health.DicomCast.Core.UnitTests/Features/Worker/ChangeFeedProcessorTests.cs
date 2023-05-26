@@ -49,27 +49,40 @@ public class ChangeFeedProcessorTests
     [Fact]
     public async Task GivenMultipleChangeFeedEntries_WhenProcessed_ThenEachChangeFeedEntryShouldBeProcessed()
     {
+        const long Latest = 3L;
         ChangeFeedEntry[] changeFeeds = new[]
         {
             ChangeFeedGenerator.Generate(1),
             ChangeFeedGenerator.Generate(2),
-            ChangeFeedGenerator.Generate(3),
+            ChangeFeedGenerator.Generate(Latest),
         };
 
-        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(3L);
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds);
+        // Arrange
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Latest);
 
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+        // Act
         await ExecuteProcessAsync();
 
+        // Assert
+        await _changeFeedRetrieveService.Received(2).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(2).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
         await _fhirTransactionPipeline.ReceivedWithAnyArgs(3).ProcessAsync(default, default);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds[0], DefaultCancellationToken);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds[1], DefaultCancellationToken);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds[2], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds[0], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds[1], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds[2], DefaultCancellationToken);
     }
 
     [Fact]
     public async Task GivenMultipleChangeFeedEntries_WhenProcessing_ThenItShouldProcessAllPendinChangeFeedEntries()
     {
+        const long Latest = 2L;
         ChangeFeedEntry[] changeFeeds1 = new[]
         {
             ChangeFeedGenerator.Generate(1),
@@ -77,48 +90,72 @@ public class ChangeFeedProcessorTests
 
         ChangeFeedEntry[] changeFeeds2 = new[]
         {
-            ChangeFeedGenerator.Generate(2),
+            ChangeFeedGenerator.Generate(Latest),
         };
 
-        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(2L);
+        // Arrange
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Latest);
+
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds2);
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(2, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
+        // Act
         await ExecuteProcessAsync();
 
+        // Assert
+        await _changeFeedRetrieveService.Received(3).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(3).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
         await _fhirTransactionPipeline.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds2[0], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds2[0], DefaultCancellationToken);
     }
 
     [Fact]
     public async Task GivenSkippedSequenceNumbers_WhenProcessing_ThenSkipAheadByLimit()
     {
-        long next = 5 + ChangeFeedProcessor.DefaultLimit + 1;
+        const long PageOneEnd = 5L;
+        const long Latest = PageOneEnd + ChangeFeedProcessor.DefaultLimit + 1; // Fall onto the next page
         ChangeFeedEntry[] changeFeeds1 = new[]
         {
             ChangeFeedGenerator.Generate(1),
-            ChangeFeedGenerator.Generate(5),
+            ChangeFeedGenerator.Generate(PageOneEnd),
         };
 
         ChangeFeedEntry[] changeFeeds3 = new[]
         {
-            ChangeFeedGenerator.Generate(next),
+            ChangeFeedGenerator.Generate(Latest),
         };
 
-        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(5L, next, next, next);
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(5, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(5 + ChangeFeedProcessor.DefaultLimit, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds3);
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(next, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+        // Arrange
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(PageOneEnd, Latest, Latest, Latest);
 
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(PageOneEnd, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(PageOneEnd + ChangeFeedProcessor.DefaultLimit, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds3);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+        // Act
         await ExecuteProcessAsync();
 
+        // Assert
+        await _changeFeedRetrieveService.Received(4).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(4).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.RetrieveChangeFeedAsync(PageOneEnd, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.RetrieveChangeFeedAsync(PageOneEnd + ChangeFeedProcessor.DefaultLimit, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
         await _fhirTransactionPipeline.ReceivedWithAnyArgs(3).ProcessAsync(default, default);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds1[1], DefaultCancellationToken);
-        await _fhirTransactionPipeline.Received().ProcessAsync(changeFeeds3[0], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[1], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds3[0], DefaultCancellationToken);
     }
 
     [Fact]
@@ -129,13 +166,17 @@ public class ChangeFeedProcessorTests
             ChangeFeedGenerator.Generate(1),
         };
 
-        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(1L);
+        // Arrange
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
-
         _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new Exception(); });
 
+        // Act
         await Assert.ThrowsAsync<Exception>(() => ExecuteProcessAsync());
+
+        // Assert
+        await _changeFeedRetrieveService.Received(1).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
     }
 
     [Fact]
@@ -146,13 +187,25 @@ public class ChangeFeedProcessorTests
             ChangeFeedGenerator.Generate(1),
         };
 
+        // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(1L);
+
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
         _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new TimeoutRejectedException(); });
 
+        // Act
         await ExecuteProcessAsync();
+
+        // Assert
+        await _changeFeedRetrieveService.Received(2).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(2).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
     }
 
     [Fact]
@@ -163,13 +216,25 @@ public class ChangeFeedProcessorTests
             ChangeFeedGenerator.Generate(1),
         };
 
+        // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(1L);
+
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
         _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new DicomTagException("exception"); });
 
+        // Act
         await ExecuteProcessAsync();
+
+        // Assert
+        await _changeFeedRetrieveService.Received(2).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(2).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
     }
 
     [Fact]
@@ -180,19 +245,30 @@ public class ChangeFeedProcessorTests
             ChangeFeedGenerator.Generate(1),
         };
 
+        // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(1L);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
         _fhirTransactionPipeline.When(pipeline => pipeline.ProcessAsync(Arg.Any<ChangeFeedEntry>(), Arg.Any<CancellationToken>())).Do(pipeline => { throw new FhirNonRetryableException("exception"); });
 
+        // Act
         await ExecuteProcessAsync();
+
+        // Assert
+        await _changeFeedRetrieveService.Received(2).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(2).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
     }
 
     [Fact]
     public async Task GivenMultipleChangeFeedEntries_WhenProcessing_ThenPollIntervalShouldBeHonored()
     {
-        TimeSpan pollIntervalDuringCatchup = TimeSpan.FromMilliseconds(50);
+        var pollIntervalDuringCatchup = TimeSpan.FromMilliseconds(50);
 
         ChangeFeedEntry[] changeFeeds1 = new[]
         {
@@ -204,6 +280,7 @@ public class ChangeFeedProcessorTests
             ChangeFeedGenerator.Generate(2),
         };
 
+        // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(2L);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds1);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds2);
@@ -232,13 +309,43 @@ public class ChangeFeedProcessorTests
     }
 
     [Fact]
-    public async Task GivenNoChangeFeed_WhenProcessed_ThenSyncStateShouldNotBeUpdated()
+    public async Task GivenDefaultState_WhenProcessed_ThenSyncStateShouldNotBeUpdated()
     {
-        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(new ChangeFeedEntry[0]);
+        // Arrange
+        _syncStateService.GetSyncStateAsync(DefaultCancellationToken).Returns(SyncState.CreateInitialSyncState());
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(0L);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
 
+        // Act
         await ExecuteProcessAsync();
 
-        await _syncStateService.ReceivedWithAnyArgs(0).UpdateSyncStateAsync(default, default);
+        // Assert
+        await _syncStateService.Received(1).GetSyncStateAsync(DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _fhirTransactionPipeline.DidNotReceiveWithAnyArgs().ProcessAsync(default, default);
+        await _syncStateService.DidNotReceiveWithAnyArgs().UpdateSyncStateAsync(default, default);
+    }
+
+    [Fact]
+    public async Task GivenNoChangeFeed_WhenProcessed_ThenSyncStateShouldNotBeUpdated()
+    {
+        const long Sequence = 27L;
+
+        // Arrange
+        _syncStateService.GetSyncStateAsync(DefaultCancellationToken).Returns(new SyncState(Sequence, DateTimeOffset.UtcNow));
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Sequence);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(Sequence, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+        // Act
+        await ExecuteProcessAsync();
+
+        // Assert
+        await _syncStateService.Received(1).GetSyncStateAsync(DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(Sequence, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _fhirTransactionPipeline.DidNotReceiveWithAnyArgs().ProcessAsync(default, default);
+        await _syncStateService.DidNotReceiveWithAnyArgs().UpdateSyncStateAsync(default, default);
     }
 
     [Fact]
@@ -251,6 +358,7 @@ public class ChangeFeedProcessorTests
             ChangeFeedGenerator.Generate(expectedSequence),
         };
 
+        // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(expectedSequence);
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(changeFeeds);
 
@@ -258,9 +366,11 @@ public class ChangeFeedProcessorTests
 
         using (Mock.Property(() => ClockResolver.UtcNowFunc, () => instant))
         {
+            // Act
             await ExecuteProcessAsync();
         }
 
+        // Assert
         await _syncStateService.Received(1)
             .UpdateSyncStateAsync(Arg.Is<SyncState>(syncState => syncState != null && syncState.SyncedSequence == expectedSequence && syncState.SyncedDate == instant), DefaultCancellationToken);
     }
