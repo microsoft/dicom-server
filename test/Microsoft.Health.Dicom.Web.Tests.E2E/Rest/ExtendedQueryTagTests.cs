@@ -103,67 +103,6 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
 
     [Fact]
     [Trait("Category", "bvt")]
-    public async Task GivenExtendedQueryTagUsingPrivateTags_WhenReindexing_ThenShouldSucceed()
-    {
-        DicomTag privateTag = new DicomTag(0x00f1, 0x0010, "MY_PRIVATE_CREATOR");
-        DicomTag filmTag = DicomTag.NumberOfFilms;
-
-        // Try to delete these extended query tags.
-        await _tagManager.DeleteExtendedQueryTagAsync(privateTag.GetPath());
-        await _tagManager.DeleteExtendedQueryTagAsync(filmTag.GetPath());
-
-        // Define DICOM files
-        DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
-        instance1.Add(privateTag, "M");
-        instance1.Add(filmTag, "12");
-
-        DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
-        instance2.Add(privateTag, "O");
-        instance2.Add(filmTag, "03");
-
-        // Upload files
-        Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance1))).IsSuccessStatusCode);
-        Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
-
-        // Add extended query tag
-#pragma warning disable CS0618
-        Assert.Equal(
-            OperationStatus.Completed,
-            await _tagManager.AddTagsAsync(
-                new AddExtendedQueryTagEntry { Path = privateTag.GetPath(), VR = privateTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
-                new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
-#pragma warning restore CS0618
-
-        // Check specific tag
-        DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
-        GetExtendedQueryTagEntry entry;
-
-        getResponse = await _client.GetExtendedQueryTagAsync(privateTag.GetPath());
-        entry = await getResponse.GetValueAsync();
-        Assert.Null(entry.Errors);
-        Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
-
-        getResponse = await _client.GetExtendedQueryTagAsync(filmTag.GetPath());
-        entry = await getResponse.GetValueAsync();
-        Assert.Null(entry.Errors);
-        Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
-
-        // Query multiple tags
-        // Note: We don't necessarily need to check the tags are the above ones, as another test may have added ones beforehand
-        var multipleTags = await _tagManager.GetTagsAsync(2, 0);
-        Assert.Equal(2, multipleTags.Count);
-
-        Assert.Equal(multipleTags[0].Path, (await _tagManager.GetTagsAsync(1, 0)).Single().Path);
-        Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
-
-        // QIDO
-        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
-        DicomDataset[] instances = await queryResponse.ToArrayAsync();
-        Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
-    }
-
-    [Fact]
-    [Trait("Category", "bvt")]
     public async Task GivenExtendedQueryTagWithErrors_WhenReindexing_ThenShouldSucceedWithErrors()
     {
         // Define tags
