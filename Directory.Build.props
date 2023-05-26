@@ -38,11 +38,13 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == '$(LtsVersion)'">
       <PropertyGroup>
+        <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
+        <DependencyInjectionVersion>7.0.0</DependencyInjectionVersion>
         <SdkPackageVersion>7.0.0</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>
