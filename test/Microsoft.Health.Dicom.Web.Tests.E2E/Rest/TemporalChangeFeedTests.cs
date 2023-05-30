@@ -40,7 +40,6 @@ public class TemporalChangeFeedTests : BaseChangeFeedTests, IClassFixture<Featur
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     public async Task GivenChanges_WhenQueryingWithWindow_ThenScopeResults()
     {
         ChangeFeedEntry[] testChanges;
