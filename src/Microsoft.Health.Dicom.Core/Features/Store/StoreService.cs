@@ -237,13 +237,8 @@ public class StoreService : IStoreService
 
             switch (ex)
             {
-                case DataStoreException dataStoreException when (dataStoreException.IsExternal):
+                case DataStoreException { IsExternal: true }:
                     throw;
-                    if (dataStoreException.IsExternal)
-                    {
-                        throw;
-                    }
-                    break;
 
                 case PendingInstanceException _:
                     failureCode = FailureReasonCodes.PendingSopInstance;
