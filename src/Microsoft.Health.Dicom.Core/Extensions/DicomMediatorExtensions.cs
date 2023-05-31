@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using MediatR;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Messages.ChangeFeed;
@@ -24,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Messages.Workitem;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using ResourceType = Microsoft.Health.Dicom.Core.Messages.ResourceType;
@@ -144,22 +146,25 @@ public static class DicomMediatorExtensions
 
     public static Task<ChangeFeedResponse> GetChangeFeed(
         this IMediator mediator,
+        TimeRange range,
         long offset,
         int limit,
+        ChangeFeedOrder order,
         bool includeMetadata,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ChangeFeedRequest(offset, limit, includeMetadata), cancellationToken);
+        return mediator.Send(new ChangeFeedRequest(range, offset, limit, order, includeMetadata), cancellationToken);
     }
 
     public static Task<ChangeFeedLatestResponse> GetChangeFeedLatest(
         this IMediator mediator,
+        ChangeFeedOrder order,
         bool includeMetadata,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new ChangeFeedLatestRequest(includeMetadata), cancellationToken);
+        return mediator.Send(new ChangeFeedLatestRequest(order, includeMetadata), cancellationToken);
     }
 
     public static Task<AddExtendedQueryTagResponse> AddExtendedQueryTagsAsync(
@@ -177,7 +182,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(
-        this IMediator mediator, int limit, int offset, CancellationToken cancellationToken)
+        this IMediator mediator, int limit, long offset, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(new GetExtendedQueryTagsRequest(limit, offset), cancellationToken);
@@ -191,7 +196,7 @@ public static class DicomMediatorExtensions
     }
 
     public static Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(
-        this IMediator mediator, string extendedQueryTagPath, int limit, int offset, CancellationToken cancellationToken)
+        this IMediator mediator, string extendedQueryTagPath, int limit, long offset, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(new GetExtendedQueryTagErrorsRequest(extendedQueryTagPath, limit, offset), cancellationToken);

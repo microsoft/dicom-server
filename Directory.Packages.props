@@ -10,10 +10,10 @@
     <PackageVersion Include="Azure.Storage.Queues" Version="12.14.0" />
     <PackageVersion Include="Azure.Storage.Common" Version="12.15.0" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
-    <PackageVersion Include="fo-dicom" Version="5.0.3" />
-    <PackageVersion Include="fo-dicom.Codecs" Version="5.10.5" />
-    <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.0.3" />
-    <PackageVersion Include="Google.Protobuf" Version="3.23.1" />
+    <PackageVersion Include="fo-dicom" Version="5.1.0" />
+    <PackageVersion Include="fo-dicom.Codecs" Version="5.10.6" />
+    <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.23.2" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="$(Hl7FhirPackageVersion)" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="$(Hl7FhirPackageVersion)" />
@@ -36,7 +36,7 @@
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.37" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="5.0.0" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.1.2" />
-    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.9.4" />
+    <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="2.9.5" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.2.0" />
     <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.1.1" />
     <PackageVersion Include="Microsoft.Extensions.Azure" Version="1.6.3" />
@@ -48,7 +48,7 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.CommandLine" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(SdkPackageVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(DependencyInjectionVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Diagnostics.HealthChecks.Abstractions" Version="$(SdkPackageVersion)" />

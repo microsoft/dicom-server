@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ public class ChangeFeedLatestHandler : BaseHandler, IRequestHandler<ChangeFeedLa
             throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        ChangeFeedEntry latestEntry = await _changeFeedService.GetChangeFeedLatestAsync(request.IncludeMetadata, cancellationToken);
+        ChangeFeedEntry latestEntry = await _changeFeedService.GetChangeFeedLatestAsync(request.Order, request.IncludeMetadata, cancellationToken);
         return new ChangeFeedLatestResponse(latestEntry);
     }
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -19,7 +19,15 @@ public interface IChangeFeedRetrieveService
     /// Asynchronously retrieves the change feed.
     /// </summary>
     /// <param name="offset">Skip events till sequence number.</param>
+    /// <param name="limit">The maximum number of events to fetch.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the retrieving operation.</returns>
-    Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ChangeFeedEntry>> RetrieveChangeFeedAsync(long offset, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously retrieves the latest entry sequence number from the change feed.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the retrieving operation.</returns>
+    Task<long> RetrieveLatestSequenceAsync(CancellationToken cancellationToken = default);
 }

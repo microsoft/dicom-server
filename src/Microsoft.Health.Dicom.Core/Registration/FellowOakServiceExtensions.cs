@@ -6,7 +6,6 @@
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.Imaging.NativeCodec;
-using Microsoft.Health.Dicom.Core.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -24,7 +23,6 @@ internal static class FellowOakServiceExtensions
         services
             .AddFellowOakDicom()
             .AddTranscoderManager<NativeTranscoderManager>()
-            .AddLogManager<FellowOakDecoratorLogManager>()
             .AddImageManager<ImageSharpImageManager>();
 
         return services;

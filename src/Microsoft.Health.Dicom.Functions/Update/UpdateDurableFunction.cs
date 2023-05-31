@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Update;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
@@ -24,6 +25,7 @@ public partial class UpdateDurableFunction
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
+    private readonly UpdateMeter _updateMeter;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateDurableFunction(
@@ -33,6 +35,7 @@ public partial class UpdateDurableFunction
         IMetadataStore metadataStore,
         IFileStore fileStore,
         IUpdateInstanceService updateInstanceService,
+        UpdateMeter updateMeter,
         IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
         _indexStore = EnsureArg.IsNotNull(indexStore, nameof(indexStore));
@@ -41,6 +44,7 @@ public partial class UpdateDurableFunction
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
         _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        _updateMeter = EnsureArg.IsNotNull(updateMeter, nameof(updateMeter));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }
 }
