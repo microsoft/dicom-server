@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     AddInstanceV36
+--     AddInstanceV37
 --
 -- FIRST SCHEMA VERSION
 --     6

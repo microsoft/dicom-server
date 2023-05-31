@@ -44,7 +44,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
 
         var authSettings = new Dictionary<string, string>
         {
-            { "TestAuthEnvironment:Path", "testauthenvironment.json" },
+            { "TestAuthEnvironment:FilePath", "testauthenvironment.json" },
             { "DicomServer:Security:Authentication:Authority", "https://inprochost" },
             { "DicomServer:Security:Authorization:Enabled", "true" },
             { "DicomServer:Security:Enabled", "true" },
