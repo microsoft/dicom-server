@@ -24,7 +24,7 @@ using Xunit;
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 
 // Run these tests exclusively serial since they change the global autovalidation
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+[CollectionDefinition("StoreDatasetValidatorTestsV1 Non-Parallel Collection", DisableParallelization = true)]
 public class StoreDatasetValidatorTestsV1
 {
     private const ushort ValidationFailedFailureCode = 43264;

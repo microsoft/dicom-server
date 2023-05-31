@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+[CollectionDefinition("ChangeFeedTests Non-Parallel Collection", DisableParallelization = true)]
 public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)

@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 
 // Run these tests exclusively serial since they change the global autovalidation
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+[CollectionDefinition("StoreDatasetValidatorTestsV2 Non-Parallel Collection", DisableParallelization = true)]
 public class StoreDatasetValidatorTestsV2
 {
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
