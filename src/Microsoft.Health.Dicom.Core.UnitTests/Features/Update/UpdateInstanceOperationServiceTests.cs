@@ -7,10 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -30,13 +33,17 @@ public class UpdateInstanceOperationServiceTests
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly TelemetryClient _telemetryClient;
+    private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
 
     public UpdateInstanceOperationServiceTests()
     {
         _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, NullLogger<UpdateInstanceOperationService>.Instance);
+        _telemetryClient = Substitute.For<TelemetryClient>();
+        _jsonSerializerOptions = Substitute.For<IOptions<JsonSerializerOptions>>();
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, _jsonSerializerOptions, NullLogger<UpdateInstanceOperationService>.Instance);
     }
 
     [Fact]

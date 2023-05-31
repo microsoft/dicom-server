@@ -3,11 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Text.Json;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
@@ -53,20 +54,19 @@ internal static class LogForwarderExtensions
     /// <param name="message">message to set on the trace log</param>
     /// <param name="operationId">operation id</param>
     /// <param name="value">Object to pass to the forward logger</param>
+    /// <param name="jsonSerializerOptions">Json serialization options</param>
     public static void ForwardLogTrace<T>(
         this TelemetryClient telemetryClient,
         string message,
         string operationId,
-        T value)
+        T value,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions)
     {
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
 
-        string property = JsonConvert.SerializeObject(value, Formatting.None,
-            new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            });
+        string property = JsonSerializer.Serialize(value, jsonSerializerOptions.Value);
 
         var telemetry = new TraceTelemetry(message);
         telemetry.Properties.Add(nameof(T), property);

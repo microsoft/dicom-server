@@ -5,12 +5,14 @@
 
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -31,6 +33,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<UpdateInstanceOperationService> _logger;
+    private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -47,12 +50,14 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         IDicomOperationsClient client,
         IDicomRequestContextAccessor contextAccessor,
         TelemetryClient telemetryClient,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
         ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
@@ -60,6 +65,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         _contextAccessor = contextAccessor;
         _telemetryClient = telemetryClient;
         _logger = logger;
+        _jsonSerializerOptions = jsonSerializerOptions;
     }
 
     public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
@@ -94,7 +100,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         try
         {
             var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
-            _telemetryClient.ForwardLogTrace("Message from UpdateInstanceOperationService operation", operationId.ToString(), updateSpecification);
+            _telemetryClient.ForwardLogTrace("Message from UpdateInstanceOperationService operation", operationId.ToString(), updateSpecification, _jsonSerializerOptions);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)
