@@ -18,6 +18,7 @@ CREATE TABLE dbo.FileProperty (
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty ON dbo.FileProperty(
+    InstanceKey,
     Watermark
 )
 WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)

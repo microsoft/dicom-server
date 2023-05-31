@@ -290,7 +290,7 @@ CREATE TABLE dbo.FileProperty (
 WITH (DATA_COMPRESSION = PAGE);
 
 CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty
-    ON dbo.FileProperty(Watermark) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
+    ON dbo.FileProperty(InstanceKey, Watermark) WITH (DATA_COMPRESSION = PAGE, ONLINE = ON);
 
 CREATE TABLE dbo.Instance (
     InstanceKey           BIGINT        NOT NULL,

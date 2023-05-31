@@ -25,7 +25,7 @@ IF NOT EXISTS (
     FROM sys.indexes
     WHERE name='IXC_FileProperty' AND object_id = OBJECT_ID('dbo.FileProperty'))
 CREATE UNIQUE CLUSTERED INDEX IXC_FileProperty
-    ON dbo.FileProperty(Watermark)
+    ON dbo.FileProperty(InstanceKey, Watermark)
     WITH (DATA_COMPRESSION = PAGE, ONLINE=ON)
 GO
 
