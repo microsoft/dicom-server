@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 
 // Run these tests exclusively serial since they change the global autovalidation
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+[Collection("Auto-Validation Collection")]
 public class StoreDatasetValidatorTestsV2
 {
     private readonly IStoreDatasetValidator _dicomDatasetValidator;
@@ -33,7 +33,6 @@ public class StoreDatasetValidatorTestsV2
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
     private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
-
 
     public StoreDatasetValidatorTestsV2()
     {
