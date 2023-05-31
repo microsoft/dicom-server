@@ -11,7 +11,10 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using FellowOakDicom.Serialization;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -22,6 +25,7 @@ using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
+using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
@@ -34,16 +38,21 @@ public class UpdateInstanceOperationServiceTests
     private readonly IDicomOperationsClient _client;
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly TelemetryClient _telemetryClient;
-    private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateInstanceOperationServiceTests()
     {
         _guidFactory = Substitute.For<IGuidFactory>();
         _client = Substitute.For<IDicomOperationsClient>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _telemetryClient = Substitute.For<TelemetryClient>();
-        _jsonSerializerOptions = Substitute.For<IOptions<JsonSerializerOptions>>();
-        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, _jsonSerializerOptions, NullLogger<UpdateInstanceOperationService>.Instance);
+        _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+        {
+            TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+        });
+        _jsonSerializerOptions = new JsonSerializerOptions();
+        _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
+        _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, Options.Create(_jsonSerializerOptions), NullLogger<UpdateInstanceOperationService>.Instance);
     }
 
     [Fact]
