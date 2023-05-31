@@ -71,6 +71,7 @@ internal static class LogForwarderExtensions
         var telemetry = new TraceTelemetry(message);
         telemetry.Properties.Add(nameof(T), property);
         telemetry.Properties.Add("operation_id", operationId);
+        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
 
         telemetryClient.TrackTrace(telemetry);
     }
