@@ -237,7 +237,8 @@ public class StoreService : IStoreService
 
             switch (ex)
             {
-                case DataStoreException dataStoreException:
+                case DataStoreException dataStoreException when (dataStoreException.IsExternal):
+                    throw;
                     if (dataStoreException.IsExternal)
                     {
                         throw;
