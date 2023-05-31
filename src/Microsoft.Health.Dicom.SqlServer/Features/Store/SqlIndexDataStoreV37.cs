@@ -23,14 +23,14 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
+internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV35
 {
-    public SqlIndexDataStoreV36(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV37(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V36;
+    public override SchemaVersion Version => SchemaVersion.V37;
 
     public override async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, long? instanceKey = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
@@ -40,7 +40,7 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.UpdateInstanceStatusV36.PopulateCommand(
+            VLatest.UpdateInstanceStatusV37.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
@@ -81,14 +81,14 @@ internal class SqlIndexDataStoreV36 : SqlIndexDataStoreV35
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
             var rows = ExtendedQueryTagDataRowsBuilder.Build(dicomDataset, queryTags.Where(tag => tag.IsExtendedQueryTag), Version);
-            VLatest.AddInstanceV36TableValuedParameters parameters = new VLatest.AddInstanceV36TableValuedParameters(
+            VLatest.AddInstanceV37TableValuedParameters parameters = new VLatest.AddInstanceV37TableValuedParameters(
                 rows.StringRows,
                 rows.LongRows,
                 rows.DoubleRows,
                 rows.DateTimeWithUtcRows,
                 rows.PersonNameRows);
 
-            VLatest.AddInstanceV36.PopulateCommand(
+            VLatest.AddInstanceV37.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetString(DicomTag.StudyInstanceUID),

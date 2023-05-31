@@ -35,7 +35,7 @@
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
     @partitionKey               INT,
     @studyInstanceUid           VARCHAR(64),
     @seriesInstanceUid          VARCHAR(64),

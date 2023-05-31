@@ -54,7 +54,7 @@
 -- RETURN VALUE
 --     The watermark (version) and instanceKey.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV36
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV37
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @seriesInstanceUid                  VARCHAR(64),

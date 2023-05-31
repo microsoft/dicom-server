@@ -63,7 +63,7 @@ GO
 --
 -- RETURN VALUE
 --     None
-CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV36
+CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
 @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (200)=NULL, @instanceKey BIGINT=NULL, @size BIGINT=NULL
 AS
 BEGIN
@@ -156,7 +156,7 @@ GO
 -- RETURN VALUE
 --     The watermark (version) and instanceKey.
 ------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE dbo.AddInstanceV36
+CREATE OR ALTER PROCEDURE dbo.AddInstanceV37
 @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @patientId NVARCHAR (64), @patientName NVARCHAR (325)=NULL, @referringPhysicianName NVARCHAR (325)=NULL, @studyDate DATE=NULL, @studyDescription NVARCHAR (64)=NULL, @accessionNumber NVARCHAR (64)=NULL, @modality NVARCHAR (16)=NULL, @performedProcedureStepStartDate DATE=NULL, @patientBirthDate DATE=NULL, @manufacturerModelName NVARCHAR (64)=NULL, @stringExtendedQueryTags dbo.InsertStringExtendedQueryTagTableType_1 READONLY, @longExtendedQueryTags dbo.InsertLongExtendedQueryTagTableType_1 READONLY, @doubleExtendedQueryTags dbo.InsertDoubleExtendedQueryTagTableType_1 READONLY, @dateTimeExtendedQueryTags dbo.InsertDateTimeExtendedQueryTagTableType_2 READONLY, @personNameExtendedQueryTags dbo.InsertPersonNameExtendedQueryTagTableType_1 READONLY, @initialStatus TINYINT, @transferSyntaxUid VARCHAR (64)=NULL
 AS
 BEGIN
