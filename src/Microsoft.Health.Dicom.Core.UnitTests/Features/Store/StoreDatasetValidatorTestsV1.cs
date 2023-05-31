@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ using Xunit;
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 
 // Run these tests exclusively serial since they change the global autovalidation
-[CollectionDefinition("StoreDatasetValidatorTestsV1 Non-Parallel Collection", DisableParallelization = true)]
+[Collection("Auto-Validation Collection")]
 public class StoreDatasetValidatorTestsV1
 {
     private const ushort ValidationFailedFailureCode = 43264;
@@ -35,7 +35,6 @@ public class StoreDatasetValidatorTestsV1
     private readonly List<QueryTag> _queryTags;
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-
 
     public StoreDatasetValidatorTestsV1()
     {
@@ -51,7 +50,6 @@ public class StoreDatasetValidatorTestsV1
     [Fact]
     public async Task GivenFullValidation_WhenPatientIDInvalid_ExpectErrorProduced()
     {
-
         var featureConfigurationEnableFullValidation = Substitute.For<IOptions<FeatureConfiguration>>();
         featureConfigurationEnableFullValidation.Value.Returns(new FeatureConfiguration
         {

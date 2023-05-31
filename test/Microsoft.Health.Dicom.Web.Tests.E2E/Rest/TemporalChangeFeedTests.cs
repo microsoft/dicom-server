@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 // TODO: Remove trait and combine tests with other change feed tests once V2 is live
 [Trait("Category", "leniency")]
-[CollectionDefinition("TemporalChangeFeedTests Non-Parallel Collection", DisableParallelization = true)]
+[Collection("Change Feed Collection")]
 public class TemporalChangeFeedTests : BaseChangeFeedTests, IClassFixture<FeatureEnabledTestFixture<Startup>>
 {
     public TemporalChangeFeedTests(FeatureEnabledTestFixture<Startup> fixture)
