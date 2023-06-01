@@ -6,8 +6,8 @@
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
-internal class XUnitLoggerProvider : ILoggerProvider
+namespace Microsoft.Health.Dicom.Tests.Common.XUnitLogger;
+public class XUnitLoggerProvider : ILoggerProvider
 {
     private readonly ITestOutputHelper _testOutputHelper;
 

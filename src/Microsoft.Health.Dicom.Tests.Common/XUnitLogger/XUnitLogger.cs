@@ -3,14 +3,12 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-
 using System;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
-internal class XUnitLogger : ILogger
+namespace Microsoft.Health.Dicom.Tests.Common.XUnitLogger;
+public class XUnitLogger : ILogger
 {
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly string _categoryName;

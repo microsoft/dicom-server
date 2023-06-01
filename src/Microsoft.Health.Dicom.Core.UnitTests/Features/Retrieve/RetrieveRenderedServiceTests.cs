@@ -29,6 +29,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using Microsoft.Health.Dicom.Core.Web;
 using Xunit.Abstractions;
+using Microsoft.Health.Dicom.Tests.Common.XUnitLogger;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveRenderedServiceTests
