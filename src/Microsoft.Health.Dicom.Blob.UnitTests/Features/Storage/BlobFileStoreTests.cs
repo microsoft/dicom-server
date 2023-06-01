@@ -3,6 +3,8 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,12 +17,10 @@ using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -36,29 +36,38 @@ public class BlobFileStoreTests
     [InlineData("a%b")]
     public void GivenInvalidStorageDirectory_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty(string storageDirectory)
     {
-        var externalStoreOptions = ExternalStoreOptions(out ExternalBlobClient client);
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = storageDirectory };
+        var results = new List<ValidationResult>();
 
-        externalStoreOptions.Value.StorageDirectory = storageDirectory;
+        Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
 
-        var ex = Assert.Throws<DataStoreException>(() => client.BlobContainerClient);
-
-        Assert.True(ex.IsExternal);
-        Assert.Equal(DicomCoreResource.ExternalDataStoreInvalidCharactersInServiceStorePath, ex.Message);
+        Assert.Single(results);
+        Assert.Equal("""The field StorageDirectory must match the regular expression '^[a-zA-Z0-9\-\.]*(\/[a-zA-Z0-9\-\.]*){0,254}$'.""", results.First().ErrorMessage);
     }
 
     [Fact]
     public void GivenInvalidStorageDirectorySegments_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
     {
-        var externalStoreOptions = ExternalStoreOptions(out ExternalBlobClient client);
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = string.Join("", Enumerable.Repeat("a/b", 255)) };
+        var results = new List<ValidationResult>();
 
-        externalStoreOptions.Value.StorageDirectory = string.Join("", Enumerable.Repeat("a/b", 255));
+        Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
 
-        var ex = Assert.Throws<DataStoreException>(() => client.BlobContainerClient);
-
-        Assert.True(ex.IsExternal);
-        Assert.Equal(DicomCoreResource.ExternalDataStoreInvalidServiceStorePathSegments, ex.Message);
+        Assert.Single(results);
+        Assert.Equal("""The field StorageDirectory must match the regular expression '^[a-zA-Z0-9\-\.]*(\/[a-zA-Z0-9\-\.]*){0,254}$'.""", results.First().ErrorMessage);
     }
 
+    [Fact]
+    public void GivenInvalidStorageDirectoryLength_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
+    {
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = string.Join("", Enumerable.Repeat("a", 1025)) };
+        var results = new List<ValidationResult>();
+
+        Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
+
+        Assert.Single(results);
+        Assert.Equal("""The field StorageDirectory must be a string with a maximum length of 1024.""", results.First().ErrorMessage);
+    }
 
     [Fact]
     public async Task GivenExternalStore_WhenUploadFails_ThenThrowExceptionWithRightMessageAndProperty()
@@ -128,22 +137,7 @@ public class BlobFileStoreTests
     }
 
     /// <summary>
-    /// Use to test configuration of client with subbed options
-    /// </summary>
-    private static IOptions<ExternalBlobDataStoreConfiguration> ExternalStoreOptions(out ExternalBlobClient client)
-    {
-        var externalStoreOptions = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
-        externalStoreOptions.Value.Returns(Substitute.For<ExternalBlobDataStoreConfiguration>());
-
-        var blobClientOptions = Substitute.For<IOptions<BlobServiceClientOptions>>();
-        blobClientOptions.Value.Returns(Substitute.For<BlobServiceClientOptions>());
-
-        client = new ExternalBlobClient(Substitute.For<IExternalOperationCredentialProvider>(), externalStoreOptions, blobClientOptions);
-        return externalStoreOptions;
-    }
-
-    /// <summary>
-    /// Use to test operations o n client with subbed BlockBlobVlient
+    /// Use to test operations o n client with subbed BlockBlobClient
     /// </summary>
     private class TestExternalBlobClient : IBlobClient
     {
