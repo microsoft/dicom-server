@@ -7,9 +7,9 @@ using System;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Api.Features.Audit;
+using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Context;
 
@@ -38,16 +38,7 @@ public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : Acti
 
         IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
         dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
-
-        int? version = null;
-        var feature = context.HttpContext?.Features.Get<IApiVersioningFeature>();
-
-        if (feature?.RouteParameter != null)
-        {
-            version = feature.RequestedApiVersion?.MajorVersion ?? null;
-        }
-
-        dicomRequestContext.Version = version;
+        dicomRequestContext.Version = context.HttpContext.GetMajorRequestedApiVersion();
 
         // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
         RouteData routeData = context.RouteData;
