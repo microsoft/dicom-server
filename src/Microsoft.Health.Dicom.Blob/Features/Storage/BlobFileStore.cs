@@ -58,12 +58,7 @@ public class BlobFileStore : IFileStore
         var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
         stream.Seek(0, SeekOrigin.Begin);
 
-        BlobContentInfo info = null;
-
-        await ExecuteAsync(async () =>
-        {
-            info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
-        });
+        BlobContentInfo info = await ExecuteAsync<BlobContentInfo>(async () => await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken));
 
         if (_blobClient.IsExternal)
         {
@@ -94,7 +89,7 @@ public class BlobFileStore : IFileStore
 
         int maxBufferSize = (int)blockLengths.Max(x => x.Value);
 
-        await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () =>
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
             try
@@ -115,9 +110,8 @@ public class BlobFileStore : IFileStore
             {
                 ArrayPool<byte>.Shared.Return(buffer);
             }
+            return blobClient.Uri;
         });
-
-        return blobClient.Uri;
     }
 
     /// <inheritdoc />
@@ -133,11 +127,11 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
         _logger.LogInformation("Trying to read block list for DICOM instance file with watermark '{Version}'.", version);
 
-        BlockList blockList = null;
-        await ExecuteAsync(async () =>
-        {
-            blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
-        });
+        BlockList blockList = await ExecuteAsync<BlockList>(async () => await blobClient.GetBlockListAsync(
+            BlockListTypes.Committed,
+            snapshot: null,
+            conditions: null,
+            cancellationToken));
 
         IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
 
@@ -151,7 +145,7 @@ public class BlobFileStore : IFileStore
         await ExecuteAsync(async () =>
         {
             await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
-            await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
+            return await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
         });
     }
 
@@ -171,20 +165,10 @@ public class BlobFileStore : IFileStore
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
-        Stream stream = null;
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
-        await ExecuteAsync(async () =>
-        {
-            // todo: RetrieableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrievel.
-            // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetriebleStream
-            //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
-            //stream = result.Value.Content;
-            stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
-        });
-
-        return stream;
+        return await ExecuteAsync(async () => await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken));
     }
 
     /// <inheritdoc />
@@ -192,17 +176,13 @@ public class BlobFileStore : IFileStore
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
 
-        Stream stream = null;
-        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 
-        await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () =>
         {
             Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
-            stream = result.Value.Content;
+            return result.Value.Content;
         });
-
-        return stream;
     }
 
     /// <inheritdoc />
@@ -210,20 +190,17 @@ public class BlobFileStore : IFileStore
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
         _logger.LogInformation("Trying to read DICOM instance fileProperties with watermark '{Version}'.", version);
-        FileProperties fileProperties = null;
 
-        await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () =>
         {
             BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
-            fileProperties = new FileProperties
+            return new FileProperties
             {
                 Path = blobClient.Name,
                 ETag = blobProperties.ETag.ToString(),
                 ContentLength = blobProperties.ContentLength,
             };
         });
-
-        return fileProperties;
     }
 
     /// <inheritdoc />
@@ -234,14 +211,11 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blob = GetInstanceBlockBlobClient(version);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
-        Stream stream = null;
-        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
-
-        await ExecuteAsync(async () =>
+        Stream stream = await ExecuteAsync(async () =>
         {
             var httpRange = new HttpRange(range.Offset, range.Length);
             Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
-            stream = result.Value.Content;
+            return result.Value.Content;
         });
         return stream;
     }
@@ -254,16 +228,15 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blob = GetInstanceBlockBlobClient(version);
         _logger.LogInformation("Trying to read DICOM instance fileContent with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
-        BinaryData data = null;
         var blobDownloadOptions = new BlobDownloadOptions
         {
             Range = new HttpRange(range.Offset, range.Length)
         };
 
-        await ExecuteAsync(async () =>
+        BinaryData data = await ExecuteAsync(async () =>
         {
             Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
-            data = result.Value.Content;
+            return result.Value.Content;
         });
 
         return data;
@@ -273,10 +246,9 @@ public class BlobFileStore : IFileStore
     public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, CancellationToken cancellationToken = default)
     {
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
-        KeyValuePair<string, long> result = new KeyValuePair<string, long>();
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' firstBlock.", version);
 
-        await ExecuteAsync(async () =>
+        KeyValuePair<string, long> result = await ExecuteAsync(async () =>
         {
             BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
@@ -284,7 +256,7 @@ public class BlobFileStore : IFileStore
                 throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
 
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
-            result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
+            return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
         });
 
         return result;
@@ -320,11 +292,11 @@ public class BlobFileStore : IFileStore
         return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
-    private async Task ExecuteAsync(Func<Task> action)
+    private async Task<T> ExecuteAsync<T>(Func<Task<T>> action)
     {
         try
         {
-            await action();
+            return await action();
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
