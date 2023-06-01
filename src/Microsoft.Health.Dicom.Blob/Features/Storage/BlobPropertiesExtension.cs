@@ -14,7 +14,7 @@ public static class BlobPropertiesExtension
     public static FileProperties ToFileProperties(this BlobProperties blobProperties, string path)
     {
         EnsureArg.IsNotNull(blobProperties, nameof(blobProperties));
-        return new FileProperties()
+        return new FileProperties
         {
             ContentLength = blobProperties.ContentLength,
             ETag = blobProperties.ETag.ToString(),

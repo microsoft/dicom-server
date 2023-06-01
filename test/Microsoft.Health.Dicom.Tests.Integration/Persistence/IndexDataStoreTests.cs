@@ -35,7 +35,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private readonly IIndexDataStoreTestHelper _testHelper;
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
-    private readonly FileProperties _defaultPrivateProperties = new FileProperties() { Path = "/", ETag = "e123" };
+    private readonly FileProperties _defaultPrivateProperties = new FileProperties { Path = "/", ETag = "e123" };
 
     public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
     {

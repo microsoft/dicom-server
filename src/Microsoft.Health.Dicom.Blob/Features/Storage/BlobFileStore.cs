@@ -30,6 +30,8 @@ public class BlobFileStore : IFileStore
 {
     private readonly BlobOperationOptions _options;
     private readonly ILogger<BlobFileStore> _logger;
+    private readonly IBlobClient _blobClient;
+    private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
     public BlobFileStore(
         IBlobClient blobClient,
@@ -37,15 +39,11 @@ public class BlobFileStore : IFileStore
         IOptions<BlobOperationOptions> options,
         ILogger<BlobFileStore> logger)
     {
-        NameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
+        _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        BlobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
+        _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
     }
-
-    protected DicomFileNameWithPrefix NameWithPrefix { get; }
-
-    private IBlobClient BlobClient { get; }
 
     /// <inheritdoc />
     public async Task<FileProperties> StoreFileAsync(
@@ -67,15 +65,16 @@ public class BlobFileStore : IFileStore
             info = await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken);
         });
 
-        if (BlobClient.IsExternal)
+        if (_blobClient.IsExternal)
         {
-            return new FileProperties()
+            return new FileProperties
             {
                 Path = blobClient.Name,
                 ETag = info.ETag.ToString(),
-                ContentLength = stream.Length
+                ContentLength = stream.Length,
             };
         }
+
         // we don't need to track this content for internal store
         return null;
     }
@@ -145,7 +144,7 @@ public class BlobFileStore : IFileStore
         string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
 
         if (blockToUpdate == null)
-            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, BlobClient.IsExternal);
+            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal);
 
         stream.Seek(0, SeekOrigin.Begin);
 
@@ -277,7 +276,7 @@ public class BlobFileStore : IFileStore
             BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
             if (!blockList.CommittedBlocks.Any())
-                throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, BlobClient.IsExternal);
+                throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
 
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
             result = new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
@@ -310,10 +309,10 @@ public class BlobFileStore : IFileStore
 
     private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
-        string blobName = NameWithPrefix.GetInstanceFileName(version);
-        string fullPath = BlobClient.ServiceStorePath + blobName;
+        string blobName = _nameWithPrefix.GetInstanceFileName(version);
+        string fullPath = _blobClient.ServiceStorePath + blobName;
         // does not throw, just appends uri with blobName
-        return BlobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
+        return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
     private async Task ExecuteAsync(Func<Task> action)
@@ -325,17 +324,17 @@ public class BlobFileStore : IFileStore
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
-            throw new ItemNotFoundException(ex, BlobClient.IsExternal);
+            throw new ItemNotFoundException(ex, _blobClient.IsExternal);
         }
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
-            throw new DataStoreException(ex, BlobClient.IsExternal);
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Access to storage account failed");
-            throw new DataStoreException(ex, BlobClient.IsExternal);
+            throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }
 }
