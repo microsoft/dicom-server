@@ -60,18 +60,12 @@ public class BlobFileStore : IFileStore
 
         BlobContentInfo info = await ExecuteAsync<BlobContentInfo>(async () => await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken));
 
-        if (_blobClient.IsExternal)
+        return new FileProperties
         {
-            return new FileProperties
-            {
-                Path = blobClient.Name,
-                ETag = info.ETag.ToString(),
-                ContentLength = stream.Length,
-            };
-        }
-
-        // we don't need to track this content for internal store
-        return null;
+            Path = blobClient.Name,
+            ETag = info.ETag.ToString(),
+            ContentLength = stream.Length,
+        };
     }
 
     /// <inheritdoc />
