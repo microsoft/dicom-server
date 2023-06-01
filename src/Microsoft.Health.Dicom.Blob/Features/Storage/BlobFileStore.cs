@@ -215,7 +215,12 @@ public class BlobFileStore : IFileStore
         await ExecuteAsync(async () =>
         {
             BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
-            fileProperties = blobProperties.ToFileProperties(path: blobClient.Name);
+            fileProperties = new FileProperties
+            {
+                Path = blobClient.Name,
+                ETag = blobProperties.ETag.ToString(),
+                ContentLength = blobProperties.ContentLength,
+            };
         });
 
         return fileProperties;
