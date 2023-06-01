@@ -5,9 +5,9 @@
 
 using System;
 using EnsureThat;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Features.Routing;
@@ -39,20 +39,15 @@ public sealed class DicomRequestContextRouteDataPopulatingFilterAttribute : Acti
         IDicomRequestContext dicomRequestContext = _dicomRequestContextAccessor.RequestContext;
         dicomRequestContext.RouteName = context.ActionDescriptor?.AttributeRouteInfo?.Name;
 
-        ApiVersion version = null;
-        try
+        int? version = null;
+        var feature = context.HttpContext?.Features.Get<IApiVersioningFeature>();
+
+        if (feature?.RouteParameter != null)
         {
-            version = context.HttpContext?.GetRequestedApiVersion();
-        }
-        catch (ArgumentNullException)
-        {
-            /*
-             * GetRequestedApiVersion() is throwing argument null when it has no version.
-             * logged a bug  https://github.com/dotnet/aspnet-api-versioning/issues/976
-             */
+            version = feature.RequestedApiVersion?.MajorVersion ?? null;
         }
 
-        dicomRequestContext.Version = version?.MajorVersion;
+        dicomRequestContext.Version = version;
 
         // Set StudyInstanceUid, SeriesInstanceUid, and SopInstanceUid based on the route data
         RouteData routeData = context.RouteData;

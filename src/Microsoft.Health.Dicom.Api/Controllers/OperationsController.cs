@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
@@ -107,7 +108,13 @@ public class OperationsController : ControllerBase
 
     private IOperationState<DicomOperation> UpdateOperationState(IOperationState<DicomOperation> operationState)
     {
-        int version = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
+        int version = 1;
+        var feature = HttpContext?.Features.Get<IApiVersioningFeature>();
+
+        if (feature?.RouteParameter != null)
+        {
+            version = feature.RequestedApiVersion?.MajorVersion ?? 1;
+        }
 
         if (version > 1 || operationState.Status != OperationStatus.Succeeded)
             return operationState;

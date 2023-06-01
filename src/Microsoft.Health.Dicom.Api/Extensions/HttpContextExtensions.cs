@@ -5,12 +5,23 @@
 
 using EnsureThat;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 
 namespace Microsoft.Health.Dicom.Api.Extensions;
 
 internal static class HttpContextExtensions
 {
     public static int GetMajorRequestedApiVersion(this HttpContext context)
-        => EnsureArg.IsNotNull(context, nameof(context)).GetRequestedApiVersion()?.MajorVersion ?? 1;
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+
+        var feature = context?.Features.Get<IApiVersioningFeature>();
+
+        if (feature?.RouteParameter != null)
+        {
+            return feature.RequestedApiVersion?.MajorVersion ?? 1;
+        }
+
+        return 1;
+    }
 }
