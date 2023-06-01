@@ -21,7 +21,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+[Collection("Change Feed Collection")]
 public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 {
     private readonly ChangeFeedTestsFixture _fixture;

@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 // TODO: Remove trait and combine tests with other change feed tests once V2 is live
 [Trait("Category", "leniency")]
-[CollectionDefinition("Non-Parallel Collection", DisableParallelization = true)]
+[Collection("Change Feed Collection")]
 public class TemporalChangeFeedTests : BaseChangeFeedTests, IClassFixture<FeatureEnabledTestFixture<Startup>>
 {
     public TemporalChangeFeedTests(FeatureEnabledTestFixture<Startup> fixture)
@@ -40,7 +40,6 @@ public class TemporalChangeFeedTests : BaseChangeFeedTests, IClassFixture<Featur
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
     public async Task GivenChanges_WhenQueryingWithWindow_ThenScopeResults()
     {
         ChangeFeedEntry[] testChanges;
