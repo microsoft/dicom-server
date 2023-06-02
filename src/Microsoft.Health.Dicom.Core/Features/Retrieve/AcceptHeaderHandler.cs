@@ -69,7 +69,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
         List<AcceptHeaderDescriptor> descriptors = _acceptableDescriptors[resourceType];
 
         AcceptHeader selectedHeader = null;
-        // we will return the highest priority media type we support, breaking ties by favoring the original media type.
+        // we will return the highest priority media type we support
         foreach (AcceptHeader header in orderedHeaders)
         {
             foreach (AcceptHeaderDescriptor descriptor in descriptors)
