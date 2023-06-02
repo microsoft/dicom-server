@@ -554,7 +554,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { DicomTag.PatientName.BuildAddExtendedQueryTagEntry() }, maxAllowedCount: 128, ready: true);
 
         var queryTags = new[] { new QueryTag(tagEntry) };
-        (long watermark, long? instanceKey) = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, queryTags);
+        (long watermark, long? _) = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, queryTags);
         await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
             () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags, _defaultPrivateProperties, 123));
     }

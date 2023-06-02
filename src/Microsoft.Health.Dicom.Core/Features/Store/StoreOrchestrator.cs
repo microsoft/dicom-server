@@ -80,24 +80,24 @@ public class StoreOrchestrator : IStoreOrchestrator
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-        (long watermark, long? instanceKey) = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
-        var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
+        var instanceStorageKey = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
+        var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(instanceStorageKey.watermark);
 
         try
         {
             // We have successfully created the index, store the files.
             Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
-            Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, watermark, cancellationToken);
+            Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, instanceStorageKey.watermark, cancellationToken);
             await Task.WhenAll(
                 storeFileTask,
-                StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken),
+                StoreInstanceMetadataAsync(dicomDataset, instanceStorageKey.watermark, cancellationToken),
                 frameRangeTask);
 
             FileProperties fileProperties = await storeFileTask;
 
             bool hasFrameMetadata = await frameRangeTask;
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, fileProperties, ShouldStoreFileProperties(instanceKey), hasFrameMetadata, cancellationToken: cancellationToken);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, instanceStorageKey.watermark, queryTags, fileProperties, instanceStorageKey.instanceKey, hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 

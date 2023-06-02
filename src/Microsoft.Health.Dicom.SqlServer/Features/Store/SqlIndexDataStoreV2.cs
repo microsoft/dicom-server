@@ -40,7 +40,7 @@ internal class SqlIndexDataStoreV2 : SqlIndexDataStoreV1
 
     public override SchemaVersion Version => SchemaVersion.V2;
 
-    public override async Task<(long, long?)> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public override async Task<(long watermark, long? instanceKey)> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
