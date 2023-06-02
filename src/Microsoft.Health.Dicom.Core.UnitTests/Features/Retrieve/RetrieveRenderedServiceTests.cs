@@ -29,7 +29,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using Microsoft.Health.Dicom.Core.Web;
 using Xunit.Abstractions;
-using Microsoft.Health.Dicom.Tests.Common.XUnitLogger;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveRenderedServiceTests
@@ -40,7 +39,6 @@ public class RetrieveRenderedServiceTests
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly ILogger<RetrieveRenderedService> _logger;
-    private readonly ILoggerProvider _xunitLoggerProvider;
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
     private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
@@ -57,10 +55,7 @@ public class RetrieveRenderedServiceTests
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
 
-        var loggerFactory = new LoggerFactory();
-        _xunitLoggerProvider = new XUnitLoggerProvider(output);
-        loggerFactory.AddProvider(_xunitLoggerProvider);
-        _logger = loggerFactory.CreateLogger<RetrieveRenderedService>();
+        _logger = output.ToLogger<RetrieveRenderedService>();
 
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _retrieveRenderedService = new RetrieveRenderedService(

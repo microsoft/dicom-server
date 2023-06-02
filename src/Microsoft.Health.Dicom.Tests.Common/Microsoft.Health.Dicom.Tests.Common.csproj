@@ -15,7 +15,6 @@
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NSubstitute" />
-    <PackageReference Include="xunit" />
     <PackageReference Include="xunit.assert" />
   </ItemGroup>
 
