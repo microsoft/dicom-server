@@ -40,7 +40,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         FileProperties fileProperties = await AddFileAsync(version, fileData, $"{nameof
         (GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
 
-        Assert.Null(fileProperties);
+        Assert.NotNull(fileProperties);
 
         // Should be able to retrieve.
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
@@ -64,11 +64,11 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        Assert.Null(await AddFileAsync(version, fileData1, "fileDataTag"));
+        Assert.NotNull(await AddFileAsync(version, fileData1, "fileDataTag"));
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
-        Assert.Null(await AddFileAsync(version, fileData2, "fileDataTag"));
+        Assert.NotNull(await AddFileAsync(version, fileData2, "fileDataTag"));
 
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
@@ -87,7 +87,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store the file
         var fileData1 = new byte[] { 4, 7, 2 };
-        Assert.Null(await AddFileAsync(version, fileData1, "fileDataTag"));
+        Assert.NotNull(await AddFileAsync(version, fileData1, "fileDataTag"));
 
         // file is deleted
         await _blobDataStore.DeleteFileIfExistsAsync(version);
@@ -95,7 +95,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
-        Assert.Null(await AddFileAsync(version, fileData2, "fileDataTag"));
+        Assert.NotNull(await AddFileAsync(version, fileData2, "fileDataTag"));
 
         // assert that content is the same
         await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))

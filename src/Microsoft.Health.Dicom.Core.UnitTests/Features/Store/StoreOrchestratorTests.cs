@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -51,6 +53,7 @@ public class StoreOrchestratorTests
     private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
     private readonly IQueryTagService _queryTagService = Substitute.For<IQueryTagService>();
     private readonly IDicomRequestContextAccessor _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
     private readonly StoreOrchestrator _storeOrchestrator;
 
     private readonly DicomDataset _dicomDataset;
@@ -84,6 +87,7 @@ public class StoreOrchestratorTests
 
         _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
         var logger = NullLogger<StoreOrchestrator>.Instance;
+        _options.Value.Returns(new FeatureConfiguration { EnableExport = false, });
         _storeOrchestrator = new StoreOrchestrator(
             _contextAccessor,
             _fileStore,
@@ -91,6 +95,7 @@ public class StoreOrchestratorTests
             _indexDataStore,
             _deleteService,
             _queryTagService,
+            _options,
             logger);
     }
 
