@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 public class AcceptHeader
 {
     public const double DefaultQuality = 1.0;
-    public AcceptHeader(StringSegment mediaType, PayloadTypes payloadType, StringSegment transferSyntax = default, double? quality = null)
+    public AcceptHeader(StringSegment mediaType, PayloadTypes payloadType, StringSegment transferSyntax = default, double? quality = DefaultQuality)
     {
         MediaType = mediaType;
         PayloadType = payloadType;

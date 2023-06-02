@@ -59,7 +59,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
-        List<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality ?? 0.000).ToList();
+        List<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality ?? AcceptHeader.DefaultQuality).ToList();
 
         _logger.LogInformation(
             "Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.",
@@ -69,7 +69,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
         List<AcceptHeaderDescriptor> descriptors = _acceptableDescriptors[resourceType];
 
         AcceptHeader selectedHeader = null;
-        // since these are ordered by quality already, we can return the first acceptable header
+        // we will return the highest priority media type we support, breaking ties by favoring the original media type.
         foreach (AcceptHeader header in orderedHeaders)
         {
             foreach (AcceptHeaderDescriptor descriptor in descriptors)
@@ -100,7 +100,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     // if no quality provided prioritize returning original transfer syntax
     private static bool IsHigherPriorityTransferSyntax(AcceptHeader header, AcceptHeader selectedHeader)
     {
-        bool isQualityGreater = (header.Quality ?? 0.000) >= (selectedHeader.Quality ?? 0.000);
+        bool isQualityGreater = (header.Quality ?? AcceptHeader.DefaultQuality) >= (selectedHeader.Quality ?? AcceptHeader.DefaultQuality);
         return (header.TransferSyntax.Value == DicomTransferSyntaxUids.Original && isQualityGreater);
     }
 
