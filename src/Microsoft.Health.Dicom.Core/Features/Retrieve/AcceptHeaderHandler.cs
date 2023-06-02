@@ -59,7 +59,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     public AcceptHeader GetValidAcceptHeader(ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders)
     {
         EnsureArg.IsNotNull(acceptHeaders, nameof(acceptHeaders));
-        List<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality).ToList();
+        List<AcceptHeader> orderedHeaders = acceptHeaders.OrderByDescending(x => x.Quality ?? 0.000).ToList();
 
         _logger.LogInformation(
             "Getting transfer syntax for retrieving {ResourceType} with accept headers {AcceptHeaders}.",
@@ -68,24 +68,40 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
 
         List<AcceptHeaderDescriptor> descriptors = _acceptableDescriptors[resourceType];
 
+        AcceptHeader selectedHeader = null;
         // since these are ordered by quality already, we can return the first acceptable header
         foreach (AcceptHeader header in orderedHeaders)
         {
             foreach (AcceptHeaderDescriptor descriptor in descriptors)
             {
-                if (descriptor.IsAcceptable(header))
+                if (descriptor.IsAcceptable(header) && (selectedHeader == null || IsHigherPriorityTransferSyntax(header, selectedHeader)))
                 {
-                    return new AcceptHeader(
+                    selectedHeader = new AcceptHeader(
                         header.MediaType,
                         header.PayloadType,
                         descriptor.GetTransferSyntax(header),
                         header.Quality);
+
+                    continue;
                 }
             }
         }
 
+        if (selectedHeader != null)
+        {
+            _logger.LogInformation("Selected accept header {AcceptHeader} for retrieving {ResourceType}.", selectedHeader, resourceType);
+            return selectedHeader;
+        }
+
         //  none were valid
         throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+    }
+
+    // if no quality provided prioritize returning original transfer syntax
+    private static bool IsHigherPriorityTransferSyntax(AcceptHeader header, AcceptHeader selectedHeader)
+    {
+        bool isQualityGreater = (header.Quality ?? 0.000) >= (selectedHeader.Quality ?? 0.000);
+        return (header.TransferSyntax.Value == DicomTransferSyntaxUids.Original && isQualityGreater);
     }
 
     private static List<AcceptHeaderDescriptor> DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
