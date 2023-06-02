@@ -115,14 +115,4 @@ public interface IFileStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     Task CopyFileAsync(long originalVersion, long newVersion, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously sets metadata on a blob.
-    /// </summary>
-    /// <param name="version">The DICOM instance version.</param>
-    /// <param name="metadata">Metadata to store.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A string representing eTag of changed blob.</returns>
-    /// <remarks>Used only for integration tests today to ensure we capture eTag changing logic even when contents of file not changed.</remarks>
-    Task<string> SetInstanceBlobMetadataAsync(long version, IDictionary<string, string> metadata, CancellationToken cancellationToken = default);
 }

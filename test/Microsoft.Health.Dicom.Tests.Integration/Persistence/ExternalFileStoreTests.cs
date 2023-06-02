@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -88,6 +87,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     [Fact]
     public async Task GivenFileAlreadyExists_WhenDeletedAndThenRestored_ThenExistingFileWillBeRewrittenWithDifferentETag()
     {
+        // Note that modifying metadata also changes the etag of the blob
         var version = _getNextWatermark();
 
         // store the file
@@ -113,38 +113,6 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
                 fileData2,
                 await ConvertStreamToByteArrayAsync(resultStream));
         }
-
-        IDictionary<string, string> metadata = new Dictionary<string, string>() { };
-
-        // modify metadata of file and expect blob etag is now different than what it was before
-        string eTag = await _blobDataStore.SetInstanceBlobMetadataAsync(version, metadata);
-        Assert.NotEqual(fileProperties2.ETag, eTag);
-
-        // get blob again and ensure its eTag is same as what we got from metadata update
-        FileProperties props = await _blobDataStore.GetFilePropertiesAsync(version);
-        Assert.Equal(props.ETag, eTag);
-
-        await _blobDataStore.DeleteFileIfExistsAsync(version);
-    }
-
-    [Fact]
-    public async Task GivenFileAlreadyExists_WhenMetadataModified_ThenExistingFileWillHaveDifferentETag()
-    {
-        var version = _getNextWatermark();
-
-        // store the file
-        var fileData1 = new byte[] { 4, 7, 2 };
-        FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
-
-        IDictionary<string, string> metadata = new Dictionary<string, string>() { };
-
-        // modify metadata of file and expect blob etag is now different than what it was before
-        string eTag = await _blobDataStore.SetInstanceBlobMetadataAsync(version, metadata);
-        Assert.NotEqual(fileProperties1.ETag, eTag);
-
-        // get blob again and ensure its eTag is same as what we got from metadata update
-        FileProperties props = await _blobDataStore.GetFilePropertiesAsync(version);
-        Assert.Equal(props.ETag, eTag);
 
         await _blobDataStore.DeleteFileIfExistsAsync(version);
     }

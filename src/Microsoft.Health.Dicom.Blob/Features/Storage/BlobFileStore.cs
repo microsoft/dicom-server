@@ -270,14 +270,6 @@ public class BlobFileStore : IFileStore
         }
     }
 
-
-    public async Task<string> SetInstanceBlobMetadataAsync(long version, IDictionary<string, string> metadata, CancellationToken cancellationToken = default)
-    {
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
-        BlobInfo blobInfo = await blobClient.SetMetadataAsync(metadata, cancellationToken: cancellationToken);
-        return blobInfo.ETag.ToString();
-    }
-
     private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version)
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
