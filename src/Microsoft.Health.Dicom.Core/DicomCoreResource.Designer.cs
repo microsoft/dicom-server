@@ -502,33 +502,6 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occured configuration of storage account. A blob name must be at least one character long and cannot be more than 1,024 characters long. Use the http://fwlink to troubleshoot the issue. Details: {0}.
-        /// </summary>
-        internal static string ExternalDataStoreBlobNameTooLong {
-            get {
-                return ResourceManager.GetString("ExternalDataStoreBlobNameTooLong", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error occured configuration of storage account. Invalid Store Path provided. Only alphanumeric characters, dashes (-), periods(.) and forward slashes (/) are allowed. Use the http://fwlink to troubleshoot the issue. Details: {0}.
-        /// </summary>
-        internal static string ExternalDataStoreInvalidCharactersInServiceStorePath {
-            get {
-                return ResourceManager.GetString("ExternalDataStoreInvalidCharactersInServiceStorePath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error occured configuration of storage account. Invalid Store Path provided. The maximum number of segments is 254. Use the http://fwlink to troubleshoot the issue. Details: {0}.
-        /// </summary>
-        internal static string ExternalDataStoreInvalidServiceStorePathSegments {
-            get {
-                return ResourceManager.GetString("ExternalDataStoreInvalidServiceStorePathSegments", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}.
         /// </summary>
         internal static string ExternalDataStoreOperationFailed {

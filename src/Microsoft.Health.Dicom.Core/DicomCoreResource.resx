@@ -667,13 +667,4 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ExternalDataStoreOperationFailed" xml:space="preserve">
     <value>Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
   </data>
-  <data name="ExternalDataStoreInvalidCharactersInServiceStorePath" xml:space="preserve">
-    <value>Error occured configuration of storage account. Invalid Store Path provided. Only alphanumeric characters, dashes (-), periods(.) and forward slashes (/) are allowed. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
-  </data>
-  <data name="ExternalDataStoreInvalidServiceStorePathSegments" xml:space="preserve">
-    <value>Error occured configuration of storage account. Invalid Store Path provided. The maximum number of segments is 254. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
-  </data>
-  <data name="ExternalDataStoreBlobNameTooLong" xml:space="preserve">
-    <value>Error occured configuration of storage account. A blob name must be at least one character long and cannot be more than 1,024 characters long. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
-  </data>
 </root>
