@@ -287,7 +287,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
 
             internal readonly BigIntColumn InstanceKey = new BigIntColumn("InstanceKey");
             internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
-            internal readonly BigIntColumn Size = new BigIntColumn("Size");
             internal readonly NVarCharColumn FilePath = new NVarCharColumn("FilePath", 4000);
             internal readonly NVarCharColumn ETag = new NVarCharColumn("ETag", 4000);
             internal readonly Index IXC_FileProperty = new Index("IXC_FileProperty");
@@ -2233,9 +2232,8 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.String> _path = new ParameterDefinition<System.String>("@path", global::System.Data.SqlDbType.VarChar, true, 4000);
             private readonly ParameterDefinition<System.String> _eTag = new ParameterDefinition<System.String>("@eTag", global::System.Data.SqlDbType.VarChar, true, 4000);
             private readonly ParameterDefinition<System.Nullable<System.Int64>> _instanceKey = new ParameterDefinition<System.Nullable<System.Int64>>("@instanceKey", global::System.Data.SqlDbType.BigInt, true);
-            private readonly ParameterDefinition<System.Nullable<System.Int64>> _size = new ParameterDefinition<System.Nullable<System.Int64>>("@size", global::System.Data.SqlDbType.BigInt, true);
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey, System.Nullable<System.Boolean> hasFrameMetadata, System.String path, System.String eTag, System.Nullable<System.Int64> instanceKey, System.Nullable<System.Int64> size)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid, System.Int64 watermark, System.Byte status, System.Nullable<System.Int32> maxTagKey, System.Nullable<System.Boolean> hasFrameMetadata, System.String path, System.String eTag, System.Nullable<System.Int64> instanceKey)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.UpdateInstanceStatusV37";
@@ -2250,7 +2248,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _path.AddParameter(command.Parameters, path);
                 _eTag.AddParameter(command.Parameters, eTag);
                 _instanceKey.AddParameter(command.Parameters, instanceKey);
-                _size.AddParameter(command.Parameters, size);
             }
         }
 

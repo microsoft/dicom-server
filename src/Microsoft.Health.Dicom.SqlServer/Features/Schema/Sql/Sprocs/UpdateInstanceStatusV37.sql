@@ -46,8 +46,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
     @hasFrameMetadata           BIT = 0,
     @path                       VARCHAR(4000) = NULL,
     @eTag                       VARCHAR(4000) = NULL,
-    @instanceKey                BIGINT = NULL,
-    @size                       BIGINT = NULL
+    @instanceKey                BIGINT = NULL
 AS
 BEGIN
     SET NOCOUNT ON
@@ -76,8 +75,8 @@ BEGIN
 
     -- Insert to FileProperty
     IF (@instanceKey IS NOT NULL AND @path IS NOT NULL)
-        INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag, Size)
-        VALUES                       (@instanceKey, @watermark, @path, @eTag, @size)
+        INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
+        VALUES                       (@instanceKey, @watermark, @path, @eTag)
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created

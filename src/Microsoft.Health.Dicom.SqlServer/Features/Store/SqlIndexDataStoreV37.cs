@@ -52,8 +52,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV35
                 hasFrameMetadata,
                 fileProperties?.Path,
                 fileProperties?.ETag,
-                instanceKey,
-                fileProperties?.ContentLength
+                instanceKey
             );
 
             try

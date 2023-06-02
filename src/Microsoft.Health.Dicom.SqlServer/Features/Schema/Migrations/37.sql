@@ -283,7 +283,6 @@ CREATE NONCLUSTERED INDEX IX_ExtendedQueryTagString_PartitionKey_ResourceType_So
 CREATE TABLE dbo.FileProperty (
     InstanceKey BIGINT          NOT NULL,
     Watermark   BIGINT          NOT NULL,
-    Size        BIGINT          NOT NULL,
     FilePath    NVARCHAR (4000) NOT NULL,
     ETag        NVARCHAR (4000) NOT NULL
 )
@@ -2738,7 +2737,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (4000)=NULL, @instanceKey BIGINT=NULL, @size BIGINT=NULL
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (4000)=NULL, @instanceKey BIGINT=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -2761,8 +2760,8 @@ BEGIN
         THROW 50404, 'Instance does not exist', 1;
     IF (@instanceKey IS NOT NULL
         AND @path IS NOT NULL)
-        INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag, Size)
-        VALUES                       (@instanceKey, @watermark, @path, @eTag, @size);
+        INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
+        VALUES                       (@instanceKey, @watermark, @path, @eTag);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
     UPDATE dbo.ChangeFeed

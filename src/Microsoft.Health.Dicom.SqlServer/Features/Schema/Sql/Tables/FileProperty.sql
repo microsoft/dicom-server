@@ -7,8 +7,6 @@ CREATE TABLE dbo.FileProperty (
     -- Watermark is a unique identifier used to differentiate between one version of a file from another for the same 
     -- instance.
     Watermark       BIGINT          NOT NULL,
-    -- Size is the size of the blob in bytes.
-    Size            BIGINT          NOT NULL,
     -- Since blob names can be up to 1,024 characters when hierarchical naming used, we can set the column to max 
     -- bytes to accommodate up to potentially 2 bytes for c-strings and allow for larger paths if blob max changes.
     FilePath        NVARCHAR (4000) NOT NULL,
