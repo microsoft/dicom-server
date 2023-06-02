@@ -97,7 +97,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
             bool hasFrameMetadata = await frameRangeTask;
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, instanceStorageKey.watermark, queryTags, fileProperties, instanceStorageKey.instanceKey, hasFrameMetadata, cancellationToken: cancellationToken);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, instanceStorageKey.watermark, queryTags, ShouldStoreFileProperties(fileProperties), instanceStorageKey.instanceKey, hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 
@@ -113,9 +113,9 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
     }
 
-    private long? ShouldStoreFileProperties(long? instanceKey)
+    private FileProperties ShouldStoreFileProperties(FileProperties fileProperties)
     {
-        return _isExternalStoreEnabled ? instanceKey : null;
+        return _isExternalStoreEnabled ? fileProperties : null;
     }
 
     private async Task<FileProperties> StoreFileAsync(
