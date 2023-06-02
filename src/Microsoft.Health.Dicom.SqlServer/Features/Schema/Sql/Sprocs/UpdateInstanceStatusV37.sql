@@ -45,7 +45,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
     @path                       VARCHAR(4000) = NULL,
-    @eTag                       VARCHAR(200) = NULL,
+    @eTag                       VARCHAR(4000) = NULL,
     @instanceKey                BIGINT = NULL,
     @size                       BIGINT = NULL
 AS

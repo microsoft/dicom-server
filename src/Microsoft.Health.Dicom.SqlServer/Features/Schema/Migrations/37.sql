@@ -2738,7 +2738,7 @@ COMMIT TRANSACTION;
 
 GO
 CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (200)=NULL, @instanceKey BIGINT=NULL, @size BIGINT=NULL
+@partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64), @sopInstanceUid VARCHAR (64), @watermark BIGINT, @status TINYINT, @maxTagKey INT=NULL, @hasFrameMetadata BIT=0, @path VARCHAR (4000)=NULL, @eTag VARCHAR (4000)=NULL, @instanceKey BIGINT=NULL, @size BIGINT=NULL
 AS
 BEGIN
     SET NOCOUNT ON;

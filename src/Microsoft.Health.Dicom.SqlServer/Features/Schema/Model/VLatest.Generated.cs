@@ -2231,7 +2231,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             private readonly ParameterDefinition<System.Nullable<System.Int32>> _maxTagKey = new ParameterDefinition<System.Nullable<System.Int32>>("@maxTagKey", global::System.Data.SqlDbType.Int, true);
             private readonly ParameterDefinition<System.Nullable<System.Boolean>> _hasFrameMetadata = new ParameterDefinition<System.Nullable<System.Boolean>>("@hasFrameMetadata", global::System.Data.SqlDbType.Bit, true);
             private readonly ParameterDefinition<System.String> _path = new ParameterDefinition<System.String>("@path", global::System.Data.SqlDbType.VarChar, true, 4000);
-            private readonly ParameterDefinition<System.String> _eTag = new ParameterDefinition<System.String>("@eTag", global::System.Data.SqlDbType.VarChar, true, 200);
+            private readonly ParameterDefinition<System.String> _eTag = new ParameterDefinition<System.String>("@eTag", global::System.Data.SqlDbType.VarChar, true, 4000);
             private readonly ParameterDefinition<System.Nullable<System.Int64>> _instanceKey = new ParameterDefinition<System.Nullable<System.Int64>>("@instanceKey", global::System.Data.SqlDbType.BigInt, true);
             private readonly ParameterDefinition<System.Nullable<System.Int64>> _size = new ParameterDefinition<System.Nullable<System.Int64>>("@size", global::System.Data.SqlDbType.BigInt, true);
 

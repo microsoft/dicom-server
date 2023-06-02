@@ -165,7 +165,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             { DicomTag.PatientID, TestUidGenerator.Generate() },
         };
 
-        (long version, long? instanceKey) = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
+        (long version, long? _) = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
 
         var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
