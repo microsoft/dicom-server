@@ -87,7 +87,7 @@ public class StoreOrchestratorTests
 
         _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
         var logger = NullLogger<StoreOrchestrator>.Instance;
-        _options.Value.Returns(new FeatureConfiguration { EnableExport = false, });
+        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
         _storeOrchestrator = new StoreOrchestrator(
             _contextAccessor,
             _fileStore,
