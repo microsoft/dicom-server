@@ -2759,7 +2759,9 @@ BEGIN
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1;
     IF (@instanceKey IS NOT NULL
-        AND @path IS NOT NULL)
+        AND @path IS NOT NULL
+        AND @eTag IS NOT NULL
+        AND @watermark IS NOT NULL)
         INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
         VALUES                       (@instanceKey, @watermark, @path, @eTag);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
