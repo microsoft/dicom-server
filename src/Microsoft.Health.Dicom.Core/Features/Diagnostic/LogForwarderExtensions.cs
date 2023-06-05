@@ -22,6 +22,8 @@ internal static class LogForwarderExtensions
     private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
     private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
     private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
+    private const string InputPayload = $"{Prefix}input";
+    private const string OperationId = $"{Prefix}operationId";
 
     /// <summary>
     /// Emits a trace log with forwarding flag set and adds properties from instanceIdentifier as properties to telemetry.
@@ -66,11 +68,11 @@ internal static class LogForwarderExtensions
         EnsureArg.IsNotNull(message, nameof(message));
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
 
-        string property = JsonSerializer.Serialize(value, jsonSerializerOptions.Value);
+        string input = JsonSerializer.Serialize(value, jsonSerializerOptions.Value);
 
         var telemetry = new TraceTelemetry(message);
-        telemetry.Properties.Add(nameof(T), property);
-        telemetry.Properties.Add("operation_id", operationId);
+        telemetry.Properties.Add(InputPayload, input);
+        telemetry.Properties.Add(OperationId, operationId);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
 
         telemetryClient.TrackTrace(telemetry);

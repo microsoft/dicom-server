@@ -100,7 +100,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         try
         {
             var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
-            _telemetryClient.ForwardLogTrace("Message from UpdateInstanceOperationService operation", operationId.ToString(), updateSpecification, _jsonSerializerOptions);
+            _telemetryClient.ForwardLogTrace("Dicom update operation", operationId.ToString(), updateSpecification, _jsonSerializerOptions);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)
