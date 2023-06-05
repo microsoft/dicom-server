@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -393,13 +394,13 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
         dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
         dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-        (long watermark, long? _) = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
+        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            watermark,
+            key.Watermark,
             queryTags);
-        return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
+        return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, key.Watermark);
     }
 
     private async Task CleanupExtendedQueryTags()
@@ -413,8 +414,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
     private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
     {
-        (long watermark, long? _) = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, watermark, queryTags);
-        return watermark;
+        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, key.Watermark, queryTags);
+        return key.Watermark;
     }
 }

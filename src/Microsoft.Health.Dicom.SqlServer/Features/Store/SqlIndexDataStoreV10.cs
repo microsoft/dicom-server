@@ -13,6 +13,7 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -74,7 +75,11 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
 
             try
             {
-                return ((long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken)), null);
+                return new InstanceStorageKey
+                {
+                    Watermark = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken),
+                    InstanceKey = null
+                };
             }
             catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict && ex.State == (byte)IndexStatus.Creating)
             {

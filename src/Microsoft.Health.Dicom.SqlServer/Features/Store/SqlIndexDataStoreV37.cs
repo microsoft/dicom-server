@@ -115,9 +115,13 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV35
                     throw new DataStoreException("Error creating index");
                 }
 
-                (long watermark, long? instanceKey) = reader.ReadRow(VLatest.Instance.Watermark,
-                    VLatest.Instance.InstanceKey);
-                return (watermark, instanceKey);
+                (long watermark, long? instanceKey) = reader.ReadRow(VLatest.Instance.Watermark, VLatest.Instance.InstanceKey);
+
+                return new InstanceStorageKey
+                {
+                    Watermark = watermark,
+                    InstanceKey = instanceKey
+                };
             }
             catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict && ex.State == (byte)IndexStatus.Creating)
             {
