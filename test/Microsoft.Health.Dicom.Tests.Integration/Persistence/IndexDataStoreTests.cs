@@ -389,7 +389,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, key.InstanceKey);
 
         await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset));
     }
@@ -414,7 +414,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         // Make sure there is delay between.
         await Task.Delay(50);
 
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, key.InstanceKey);
 
         IReadOnlyList<Instance> instances = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -448,7 +448,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(
-            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark));
+            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, key.InstanceKey));
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
     }
@@ -555,7 +555,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         var queryTags = new[] { new QueryTag(tagEntry) };
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, queryTags);
-        await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(() => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, queryTags, _defaultPrivateProperties, 123));
+        await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(() => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, key.InstanceKey, queryTags, _defaultPrivateProperties));
     }
 
     [Fact]
@@ -603,7 +603,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
         // override instanceKey to be null
         // path is not stored
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, _defaultPrivateProperties, instanceKey: null);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, key.Watermark, key.InstanceKey, _defaultPrivateProperties);
 
         // yet we can still retrieve the instance. This works today because for now these are hardcoded paths and GET hasn't
         // been updated to use the new schema yet and consider stored paths.

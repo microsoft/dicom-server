@@ -37,9 +37,9 @@ internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
         int partitionKey,
         DicomDataset dicomDataset,
         long watermark,
+        long? instanceKey,
         IEnumerable<QueryTag> queryTags,
         FileProperties fileProperties,
-        long? instanceKey,
         bool allowExpiredTags,
         bool hasFrameMetadata,
         CancellationToken cancellationToken)

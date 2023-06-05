@@ -111,9 +111,9 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         int partitionKey,
         DicomDataset dicomDataset,
         long watermark,
+        long? instanceKey,
         IEnumerable<QueryTag> queryTags,
         FileProperties fileProperties,
-        long? instanceKey,
         bool allowExpiredTags,
         bool hasFrameMetadata,
         CancellationToken cancellationToken)

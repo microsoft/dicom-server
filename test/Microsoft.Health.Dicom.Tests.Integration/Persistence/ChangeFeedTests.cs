@@ -172,7 +172,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         if (instanceFullyCreated)
         {
-            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, key.Watermark);
+            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, key.Watermark, key.InstanceKey);
         }
 
         return versionedIdentifier;

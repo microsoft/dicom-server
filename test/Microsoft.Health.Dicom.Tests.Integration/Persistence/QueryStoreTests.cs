@@ -41,7 +41,7 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
         dataset.Add(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
         dataset.Add(DicomTag.PatientID, TestUidGenerator.Generate());
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, key.Watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, key.Watermark, key.InstanceKey);
 
         // test null conversions
         await _queryStore.GetStudyResultAsync(1, new List<long> { key.Watermark });

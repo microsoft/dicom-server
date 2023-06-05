@@ -97,7 +97,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
             bool hasFrameMetadata = await frameRangeTask;
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, instanceStorageKey.Watermark, queryTags, ShouldStoreFileProperties(fileProperties), instanceStorageKey.InstanceKey, hasFrameMetadata, cancellationToken: cancellationToken);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, instanceStorageKey.Watermark, instanceStorageKey.InstanceKey, queryTags, ShouldStoreFileProperties(fileProperties), hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 

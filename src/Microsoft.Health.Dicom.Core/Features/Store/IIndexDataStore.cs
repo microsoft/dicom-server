@@ -85,7 +85,7 @@ public interface IIndexDataStore
     /// <param name="hasFrameMetadata">Has additional frame range metadata stores.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous update operation.</returns>
-    Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, long? instanceKey = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default);
+    Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, long? instanceKey, IEnumerable<QueryTag> queryTags, FileProperties fileProperties = null, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Return a collection of deleted instances.

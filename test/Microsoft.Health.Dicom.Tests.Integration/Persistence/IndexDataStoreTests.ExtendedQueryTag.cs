@@ -399,6 +399,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             1,
             dataset,
             key.Watermark,
+            key.InstanceKey,
             queryTags);
         return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, key.Watermark);
     }
@@ -415,7 +416,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
     {
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, key.Watermark, queryTags);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, key.Watermark, key.InstanceKey, queryTags);
         return key.Watermark;
     }
 }

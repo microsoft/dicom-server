@@ -333,7 +333,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, key.Watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, key.Watermark, key.InstanceKey);
 
         return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, key.Watermark);
     }
