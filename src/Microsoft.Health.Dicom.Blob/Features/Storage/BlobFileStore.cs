@@ -161,7 +161,10 @@ public class BlobFileStore : IFileStore
 
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
-
+        // todo: RetrievableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrieved.
+        // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetrievableStream
+        //Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+        //stream = result.Value.Content;
         return await ExecuteAsync(async () => await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken));
     }
 
