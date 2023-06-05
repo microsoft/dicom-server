@@ -107,7 +107,7 @@ public class OperationsController : ControllerBase
 
     private IOperationState<DicomOperation> UpdateOperationState(IOperationState<DicomOperation> operationState)
     {
-        int version = HttpContext.GetRequestedApiVersion()?.MajorVersion ?? 1;
+        int version = HttpContext.GetMajorRequestedApiVersion();
 
         if (version > 1 || operationState.Status != OperationStatus.Succeeded)
             return operationState;

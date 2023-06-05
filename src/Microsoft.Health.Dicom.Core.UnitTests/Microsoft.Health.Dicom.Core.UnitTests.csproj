@@ -8,6 +8,7 @@
     <PackageReference Include="Azure.Core" />
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="fo-dicom" />
+    <PackageReference Include="MartinCostello.Logging.XUnit" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
