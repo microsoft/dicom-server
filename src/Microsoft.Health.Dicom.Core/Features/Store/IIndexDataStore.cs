@@ -78,9 +78,9 @@ public interface IIndexDataStore
     /// <param name="partitionKey">The partition key.</param>
     /// <param name="dicomDataset">The DICOM dataset whose status should be updated.</param>
     /// <param name="watermark">The DICOM instance watermark.</param>
+    /// <param name="instanceKey">The instance key.</param>
     /// <param name="queryTags">Queryable dicom tags</param>
     /// <param name="fileProperties">file properties</param>
-    /// <param name="instanceKey">The instance key.</param>
     /// <param name="allowExpiredTags">Optionally allow an out-of-date snapshot of <paramref name="queryTags"/>.</param>
     /// <param name="hasFrameMetadata">Has additional frame range metadata stores.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
