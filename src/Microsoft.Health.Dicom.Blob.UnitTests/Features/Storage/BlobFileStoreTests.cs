@@ -135,7 +135,7 @@ public class BlobFileStoreTests
         blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
 
     }
-    
+
     private class TestExternalBlobClient : IBlobClient
     {
         public TestExternalBlobClient()

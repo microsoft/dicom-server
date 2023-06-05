@@ -7,7 +7,6 @@ using System;
 using System.Resources;
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Blob.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Tests.Integration")]
 [assembly: NeutralResourcesLanguage("en-us")]
