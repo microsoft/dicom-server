@@ -59,7 +59,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
         EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-        _isExternalStoreEnabled = featureConfiguration.Value.EnableExternalStore;
+        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
