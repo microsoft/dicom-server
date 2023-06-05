@@ -3,34 +3,32 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using EnsureThat;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Functions.Registration;
 
-public class ReplaySafeUpdateMeter
+public class ReplaySafeCounter
 {
     private readonly IDurableOrchestrationContext _context;
 
-    private readonly UpdateMeter _updateMeter;
+    private readonly Counter<int> _counter;
 
-    internal ReplaySafeUpdateMeter(IDurableOrchestrationContext context, UpdateMeter updateMeter)
+    internal ReplaySafeCounter(IDurableOrchestrationContext context, Counter<int> counter)
     {
         EnsureArg.IsNotNull(context, nameof(context));
-        EnsureArg.IsNotNull(updateMeter, nameof(updateMeter));
+        EnsureArg.IsNotNull(counter, nameof(counter));
 
         _context = context;
-        _updateMeter = updateMeter;
+        _counter = counter;
     }
 
-    public void Add(int UpdatedInstances)
+    public void Add(int count)
     {
         if (!_context.IsReplaying)
         {
-            _updateMeter.UpdatedInstances.Add(UpdatedInstances,
-                new KeyValuePair<string, object>("ExecutionId", _context.NewGuid()));
+            _counter.Add(count);
         }
     }
 }

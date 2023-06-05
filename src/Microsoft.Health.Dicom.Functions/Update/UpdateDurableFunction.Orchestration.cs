@@ -40,7 +40,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
-        ReplaySafeUpdateMeter replaySafeUpdateMeter = context.CreateReplaySafeMeter(_updateMeter);
+        ReplaySafeCounter replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
 
@@ -103,7 +103,7 @@ public partial class UpdateDurableFunction
 
             if (instanceWatermarks.Count > 0)
             {
-                replaySafeUpdateMeter.Add(instanceWatermarks.Count);
+                replaySafeCounter.Add(instanceWatermarks.Count);
             }
 
             context.ContinueAsNew(

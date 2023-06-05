@@ -3,23 +3,23 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Diagnostics.Metrics;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
-using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Functions.Registration;
 
 internal static class DurableContextExtensions
 {
     /// <summary>
-    /// Returns an instance of UpdateMeter that is replay safe, ensuring the meter emits metric only when the orchestrator
+    /// Returns an instance of Counter that is replay safe, ensuring the meter emits metric only when the orchestrator
     /// is not replaying that line of code.
     /// </summary>
     /// <param name="context">The context object.</param>
-    /// <param name="updateMeter">An instance of UpdateMeter.</param>
-    /// <returns>An instance of a replay safe UpdateMeter.</returns>
-    public static ReplaySafeUpdateMeter CreateReplaySafeMeter(this IDurableOrchestrationContext context, UpdateMeter updateMeter)
+    /// <param name="counter">A metric counter.</param>
+    /// <returns>An instance of a replay safe Counter.</returns>
+    public static ReplaySafeCounter CreateReplaySafeCounter(this IDurableOrchestrationContext context, Counter<int> counter)
     {
-        return new ReplaySafeUpdateMeter(context, updateMeter);
+        return new ReplaySafeCounter(context, counter);
     }
 }
 
