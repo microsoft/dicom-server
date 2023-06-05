@@ -51,6 +51,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
     }
 
     public IFileStore FileStore { get; set; }
+
     public IFileStore ExternalFileStore { get; set; }
 
     public IMetadataStore MetadataStore { get; set; }

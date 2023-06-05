@@ -208,13 +208,12 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blob = GetInstanceBlockBlobClient(version);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
-        Stream stream = await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () =>
         {
             var httpRange = new HttpRange(range.Offset, range.Length);
             Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
             return result.Value.Content;
         });
-        return stream;
     }
 
     /// <inheritdoc />
@@ -230,13 +229,11 @@ public class BlobFileStore : IFileStore
             Range = new HttpRange(range.Offset, range.Length)
         };
 
-        BinaryData data = await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () =>
         {
             Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
             return result.Value.Content;
         });
-
-        return data;
     }
 
     /// <inheritdoc />
@@ -245,7 +242,7 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' firstBlock.", version);
 
-        KeyValuePair<string, long> result = await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () =>
         {
             BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
 
@@ -255,8 +252,6 @@ public class BlobFileStore : IFileStore
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
             return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
         });
-
-        return result;
     }
 
     /// <inheritdoc />

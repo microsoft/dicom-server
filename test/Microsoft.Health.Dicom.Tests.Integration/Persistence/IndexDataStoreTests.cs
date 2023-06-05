@@ -608,7 +608,6 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         // path is not stored
         await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version, _defaultPrivateProperties, instanceKey);
 
-
         // yet we can still retrieve the instance. This works today because for now these are hardcoded paths and GET hasn't
         // been updated to use the new schema yet and consider stored paths.
         // GET and other operations will be updated to attempt to use the stored path and, when unavailable, fallback to the hardcoded default path 

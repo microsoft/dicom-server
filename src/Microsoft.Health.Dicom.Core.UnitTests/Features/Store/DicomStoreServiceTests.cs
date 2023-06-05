@@ -502,9 +502,7 @@ public class DicomStoreServiceTests
 
         DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(async () => await _storeService.ProcessAsync(new[] { dicomInstanceEntry }, null, cancellationToken: DefaultCancellationToken));
 
-        Assert.True(
-            exception.IsExternal
-        );
+        Assert.True(exception.IsExternal);
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().BuildResponse(Arg.Any<string>(), Arg.Any<bool>());
 

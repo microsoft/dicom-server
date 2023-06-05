@@ -125,10 +125,7 @@ public class StoreOrchestrator : IStoreOrchestrator
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-        return await _fileStore.StoreFileAsync(
-                versionedInstanceIdentifier.Version,
-                stream,
-                cancellationToken);
+        return await _fileStore.StoreFileAsync(versionedInstanceIdentifier.Version, stream, cancellationToken);
     }
 
     private Task StoreInstanceMetadataAsync(
