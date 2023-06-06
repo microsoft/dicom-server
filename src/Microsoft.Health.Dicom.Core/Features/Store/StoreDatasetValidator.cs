@@ -216,38 +216,43 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             // add to stack to keep iterating when SQ type, otherwise validate
             foreach (DicomItem item in ds)
             {
-                try
+                if (item.ValueRepresentation == DicomVR.SQ)
                 {
-                    if (item.ValueRepresentation == DicomVR.SQ)
+                    foreach (DicomDataset childDs in ((DicomSequence)item).Items)
                     {
-                        foreach (DicomDataset childDs in ((DicomSequence)item).Items)
-                        {
-                            stack.Push(childDs);
-                        }
-                    }
-                    else
-                    {
-                        DicomElement de = (DicomElement)item;
-                        string value = ds.GetString(de.Tag);
-                        if (value != null && value.EndsWith('\0'))
-                        {
-                            ValidateWithoutNullPadding(value, de, queryTags);
-                        }
-                        else
-                        {
-                            de.Validate();
-                        }
+                        stack.Push(childDs);
                     }
                 }
-                catch (DicomValidationException ex)
+                else
                 {
-                    validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
+                    DicomElement de = (DicomElement)item;
+                    string value = ds.GetString(de.Tag);
+                    try
+                    {
+                        ValidateItemWithLeniency(value, de, queryTags);
+                    }
+                    catch (DicomValidationException ex)
+                    {
+                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
 
-                    _storeMeter.V2ValidationError.Add(
-                        1,
-                        TelemetryDimension(item, IsIndexableTag(queryTags, item)));
+                        _storeMeter.V2ValidationError.Add(
+                            1,
+                            TelemetryDimension(item, IsIndexableTag(queryTags, item)));
+                    }
                 }
             }
+        }
+    }
+
+    private void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    {
+        if (value != null && value.EndsWith('\0'))
+        {
+            ValidateWithoutNullPadding(value, de, queryTags);
+        }
+        else
+        {
+            de.Validate();
         }
     }
 
