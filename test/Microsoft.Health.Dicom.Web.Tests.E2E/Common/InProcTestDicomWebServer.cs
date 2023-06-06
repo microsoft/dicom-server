@@ -55,7 +55,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
             { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
             { "DicomServer:Features:EnableLatestApiVersion", "true" },
-            { "DicomServer:Features:EnableUpdate", "true" },
+            { "DicomServer:Features:EnableUpdate", enableLatestApiVersion.ToString() },
         };
 
 
