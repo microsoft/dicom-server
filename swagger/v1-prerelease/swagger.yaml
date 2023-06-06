@@ -14,12 +14,15 @@ paths:
         - name: offset
           in: query
           schema:
+            minimum: 0
             type: integer
             format: int64
             default: 0
         - name: limit
           in: query
           schema:
+            maximum: 100
+            minimum: 1
             type: integer
             format: int32
             default: 10
@@ -653,10 +656,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -784,10 +786,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -896,10 +897,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1004,10 +1004,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1101,10 +1100,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1154,10 +1152,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1207,10 +1204,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1265,10 +1261,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1313,10 +1308,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1366,10 +1360,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1419,10 +1412,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1477,10 +1469,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1535,10 +1526,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -1598,10 +1588,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -2486,10 +2475,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:
@@ -2582,10 +2570,9 @@ paths:
         - name: Offset
           in: query
           schema:
-            maximum: 2147483647
             minimum: 0
             type: integer
-            format: int32
+            format: int64
         - name: Limit
           in: query
           schema:

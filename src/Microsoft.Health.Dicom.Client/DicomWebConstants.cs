@@ -48,6 +48,8 @@ public static class DicomWebConstants
 
     public const string TransferSyntaxHeaderName = "transfer-syntax";
 
+    public const string RequestOriginalVersion = "msdicom-request-original";
+
     public const string ApplicationDicomMediaType = "application/dicom";
     public const string ApplicationDicomJsonMediaType = "application/dicom+json";
     public const string ApplicationOctetStreamMediaType = "application/octet-stream";

@@ -12,24 +12,25 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Api.Web;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.WebUtilities;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Web;
 
-public class SeekableStreamConverterTests
+public class HttpSeekableStreamConverterTests
 {
-    private readonly SeekableStreamConverter _seekableStreamConverter;
+    private readonly HttpSeekableStreamConverter _seekableStreamConverter;
 
-    public SeekableStreamConverterTests()
+    public HttpSeekableStreamConverterTests()
     {
         IOptions<StoreConfiguration> configuration = Substitute.For<IOptions<StoreConfiguration>>();
         configuration.Value.Returns(new StoreConfiguration
         {
             MaxAllowedDicomFileSize = 1000000,
         });
-        _seekableStreamConverter = new SeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), NullLogger<SeekableStreamConverter>.Instance);
+        _seekableStreamConverter = new HttpSeekableStreamConverter(Substitute.For<IHttpContextAccessor>(), NullLogger<SeekableStreamConverter>.Instance);
     }
 
     [Fact]

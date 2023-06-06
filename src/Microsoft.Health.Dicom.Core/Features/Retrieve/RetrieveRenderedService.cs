@@ -75,13 +75,14 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         Stopwatch sw = new Stopwatch();
 
         int partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
+        _dicomRequestContextAccessor.RequestContext.PartCount = 1;
         AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
 
         try
         {
             // this call throws NotFound when zero instance found
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken)).First();
+                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
 
             FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, true, cancellationToken);
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
@@ -95,6 +96,8 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             sw.Stop();
             _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
+
+            _dicomRequestContextAccessor.RequestContext.BytesRendered = resultStream.Length;
 
             return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
         }
@@ -119,7 +122,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
             if (mediaType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
             {
-                JpegEncoder jpegEncoder = new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder();
+                JpegEncoder jpegEncoder = new JpegEncoder();
                 jpegEncoder.Quality = quality;
                 await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, cancellationToken: cancellationToken);
             }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ public class AddExtendedQueryTagServiceTests
             .FindOperationsAsync(Arg.Is(GetOperationPredicate()), _tokenSource.Token)
             .Returns(new OperationReference[] { expected }.ToAsyncEnumerable());
 
-        await Assert.ThrowsAsync<ExistingReindexException>(
+        await Assert.ThrowsAsync<ExistingOperationException>(
             () => _extendedQueryTagService.AddExtendedQueryTagsAsync(input, _tokenSource.Token));
 
         _client

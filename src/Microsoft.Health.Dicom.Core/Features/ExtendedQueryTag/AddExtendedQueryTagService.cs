@@ -68,7 +68,7 @@ public class AddExtendedQueryTagService : IAddExtendedQueryTagService
             .FirstOrDefaultAsync(cancellationToken);
 
         if (activeReindex != null)
-            throw new ExistingReindexException(activeReindex);
+            throw new ExistingOperationException(activeReindex, "re-index");
 
         _extendedQueryTagEntryValidator.ValidateExtendedQueryTags(extendedQueryTags);
         var normalized = extendedQueryTags

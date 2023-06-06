@@ -45,6 +45,7 @@ public class EncodedStringElementValidationTests
         new object[] { new DicomDateTime(DicomTag.EffectiveDateTime, DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmss'.'ffffff'+'0000", CultureInfo.InvariantCulture)) },
         new object[] { new DicomIntegerString(DicomTag.PixelAspectRatio, "0012345") },
         new object[] { new DicomTime(DicomTag.Time, DateTime.UtcNow.ToString("HHmmss'.'fffff", CultureInfo.InvariantCulture)) },
+        new object[] { new DicomTime(DicomTag.Time, (string)null )},
     };
 
     public static object[][] InvalidElements = new object[][]

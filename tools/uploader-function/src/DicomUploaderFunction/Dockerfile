@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0.203-alpine3.17-amd64@sha256:912d0c585a53734e98216cdee5ae49383399fa9bbf744c791e3f104846d0ed8e AS installer-env
+FROM mcr.microsoft.com/dotnet/sdk:7.0.302-alpine3.17-amd64@sha256:ce1b323214a67089bbddcf29d9946e19096aa8e4671fd43c3c4290ae972626cd AS installer-env
 
 RUN set -x && \
     apk update && \
@@ -14,7 +14,7 @@ RUN cd /tools/uploader-function/src/DicomUploaderFunction && \
 
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/dotnet:4-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:2d206079af172af4ed376c29957ef373f49033feb40c5ff25f5c0d8e2f34ba0c
+FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:68223d3fe4ee88ca41721e623f634d3cb331efbc1c6375d41af7be862c678018
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot
 
 COPY --from=installer-env ["/home/site/wwwroot", "/home/site/wwwroot"]

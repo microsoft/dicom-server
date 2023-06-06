@@ -40,7 +40,7 @@ public class UpdateInstanceOperationServiceTests
     }
 
     [Fact]
-    public async Task WhenExistingOperationQueued_ThenExistingUpdateOperationExceptionShouldBeThrown()
+    public async Task WhenExistingOperationQueued_ThenExistingOperationExceptionShouldBeThrown()
     {
         IReadOnlyList<string> studyInstanceUids = new List<string>() { "1.2.3.4" };
         DicomDataset changeDataset = new DicomDataset();
@@ -50,7 +50,7 @@ public class UpdateInstanceOperationServiceTests
 
         _client.FindOperationsAsync(Arg.Is(GetOperationPredicate()), CancellationToken.None)
             .Returns(new OperationReference[] { expected }.ToAsyncEnumerable());
-        await Assert.ThrowsAsync<ExistingUpdateOperationException>(() =>
+        await Assert.ThrowsAsync<ExistingOperationException>(() =>
             _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None));
     }
 

@@ -89,6 +89,27 @@ internal class DicomInstancesManager : IAsyncDisposable
         return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionName, cancellationToken);
     }
 
+    public async Task StoreIfNotExistsAsync(DicomFile dicomFile, bool doNotDelete = false, string partitionName = default, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
+
+        var dicomInstanceId = DicomInstanceId.FromDicomFile(dicomFile, partitionName);
+
+        try
+        {
+            await _dicomWebClient.RetrieveInstanceAsync(dicomInstanceId.StudyInstanceUid, dicomInstanceId.SeriesInstanceUid, dicomInstanceId.SopInstanceUid, cancellationToken: cancellationToken);
+        }
+        catch (DicomWebException)
+        {
+            await _dicomWebClient.StoreAsync(dicomFile, dicomInstanceId.StudyInstanceUid, partitionName, cancellationToken);
+
+            if (!doNotDelete)
+            {
+                _instanceIds.Add(dicomInstanceId);
+            }
+        }
+    }
+
     public async Task<OperationStatus> UpdateStudyAsync(List<string> studyInstanceUids, DicomDataset dicomDataset, string partitionName = default, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));

@@ -12,7 +12,9 @@ using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Blob.Utilities;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -37,10 +39,34 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddOptions<BlobOperationOptions>()
             .Bind(blobConfig.GetSection(nameof(BlobServiceClientOptions.Operations)));
 
+        FeatureConfiguration featureConfiguration = new FeatureConfiguration();
+        configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
+        if (featureConfiguration.EnableExternalStore)
+        {
+            serverBuilder.Services.Configure<ExternalBlobDataStoreConfiguration>(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
+
+            serverBuilder.Services.Add<ExternalBlobClient>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            serverBuilder.Services
+                .AddPersistence<IFileStore, BlobFileStore>();
+        }
+        else
+        {
+            serverBuilder.Services.Add<InternalBlobClient>()
+                .Singleton()
+                .AsSelf()
+                .AsImplementedInterfaces();
+
+            serverBuilder
+                .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore>(
+                    configuration,
+                    "DcmHealthCheck");
+        }
+
         serverBuilder
-            .AddStorageDataStore<BlobStoreConfigurationSection, IFileStore, BlobFileStore>(
-                configuration,
-                "DcmHealthCheck")
             .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore>(
                 configuration,
                 "MetadataHealthCheck")

@@ -173,8 +173,11 @@ public class StoreService : IStoreService
 
                 DropInvalidMetadata(storeValidatorResult, dicomDataset);
 
-                // set warning code if none set yet
-                warningReasonCode ??= WarningReasonCodes.DatasetHasValidationWarnings;
+                // set warning code if none set yet when there were validation warnings
+                if (storeValidatorResult.InvalidTagErrors.Any())
+                {
+                    warningReasonCode ??= WarningReasonCodes.DatasetHasValidationWarnings;
+                }
             }
             else
             {

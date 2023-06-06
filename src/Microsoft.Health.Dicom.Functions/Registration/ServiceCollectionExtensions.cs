@@ -13,11 +13,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Modules;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
+using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -56,11 +59,13 @@ public static class ServiceCollectionExtensions
             .AddRecyclableMemoryStreamManager()
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
+            .AddFunctionsOptions<MigrationFilesOptions>(configuration, MigrationFilesOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .AddFunctionsOptions<UpdateOptions>(configuration, UpdateOptions.SectionName)
             .ConfigureDurableFunctionSerialization()
-            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings()));
+            .AddJsonSerializerOptions(o => o.ConfigureDefaultDicomSettings())
+            .AddSingleton<UpdateMeter>());
     }
 
     /// <summary>
@@ -112,6 +117,8 @@ public static class ServiceCollectionExtensions
 
         // Note: Fellow Oak Services have already been added as part of the ServiceModule
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IExtensionConfigProvider, FellowOakExtensionConfiguration>());
+
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
         return services;
     }

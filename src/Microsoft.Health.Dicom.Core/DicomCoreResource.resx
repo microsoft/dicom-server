@@ -614,13 +614,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="InvalidWorkitemInstanceTargetUri" xml:space="preserve">
     <value>The target URI did not reference a claimed Workitem.</value>
   </data>
-  <data name="ExistingReindexOperation" xml:space="preserve">
-    <value>There is already an active re-index operation with ID '{0}'.</value>
-    <comment>{0} Operation ID</comment>
-  </data>
-  <data name="ExistingUpdateOperation" xml:space="preserve">
-    <value>There is already an active update operation with ID '{0}'.</value>
-    <comment>{0} Operation ID</comment>
+  <data name="ExistingOperation" xml:space="preserve">
+    <value>There is already an active {0} operation with ID '{1}'.</value>
+    <comment>{0} Operation type. {1} Operation ID</comment>
   </data>
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">
     <value>The submitted request is inconsistent with the current state of the Workitem.</value>
@@ -667,5 +663,8 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="InvalidImageQuality" xml:space="preserve">
     <value>Image quality must be between 1 and 100 inclusive</value>
+  </data>
+  <data name="ExternalDataStoreOperationFailed" xml:space="preserve">
+    <value>Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
   </data>
 </root>

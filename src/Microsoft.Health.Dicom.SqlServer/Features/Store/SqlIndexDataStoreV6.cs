@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -251,7 +251,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         }
     }
 
-    private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    protected virtual async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -326,5 +326,11 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
 
             }
         }
+    }
+
+    public override async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<VersionedInstanceIdentifier> results = await RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
+        return results.Select(x => new InstanceMetadata(x, new InstanceProperties())).ToList();
     }
 }
