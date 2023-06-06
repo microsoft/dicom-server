@@ -141,7 +141,7 @@ public class AcceptHeaderHandlerTests
         AcceptHeader requestedAcceptHeader1 = new AcceptHeader(
             ValidStudyAcceptHeaderDescriptor.MediaType,
             ValidStudyAcceptHeaderDescriptor.PayloadType,
-            DicomTransferSyntaxUids.Original,
+            DicomTransferSyntaxUids.Any,
             quality: 0.3
         );
 
@@ -178,7 +178,7 @@ public class AcceptHeaderHandlerTests
         AcceptHeader requestedAcceptHeader2 = new AcceptHeader(
                 payloadType: PayloadTypes.SinglePart,
                 mediaType: KnownContentTypes.ApplicationOctetStream,
-                transferSyntax: DicomTransferSyntaxUids.Original);
+                transferSyntax: DicomTransferSyntaxUids.Any);
 
 
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(

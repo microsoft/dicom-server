@@ -71,7 +71,7 @@ public class MediaTypeHeaderValueExtensionsTests
     public void GivenSinglePartHeader_WhenGetAcceptHeader_ShouldSucceed()
     {
         string mediaType = KnownContentTypes.ApplicationDicom;
-        string transferSyntax = DicomTransferSyntaxUids.Original;
+        string transferSyntax = DicomTransferSyntaxUids.Any;
         double quality = 0.9;
         MediaTypeHeaderValue headerValue = CreateMediaTypeHeaderValue(mediaType, string.Empty, transferSyntax, quality);
         AcceptHeader acceptHeader = headerValue.ToAcceptHeader();
@@ -85,7 +85,7 @@ public class MediaTypeHeaderValueExtensionsTests
     public void GivenMultiPartRelatedHeader_WhenGetAcceptHeader_ShouldSucceed()
     {
         string type = KnownContentTypes.ApplicationOctetStream;
-        string transferSyntax = DicomTransferSyntaxUids.Original;
+        string transferSyntax = DicomTransferSyntaxUids.Any;
 
         double quality = 0.9;
         MediaTypeHeaderValue headerValue = CreateMediaTypeHeaderValue(KnownContentTypes.MultipartRelated, type, transferSyntax, quality);
@@ -116,7 +116,7 @@ public class MediaTypeHeaderValueExtensionsTests
     {
         string mediaType = "multipart/form-data";
         string type = KnownContentTypes.ApplicationDicom;
-        string transferSyntax = DicomTransferSyntaxUids.Original;
+        string transferSyntax = DicomTransferSyntaxUids.Any;
         double quality = 0.9;
         MediaTypeHeaderValue headerValue = CreateMediaTypeHeaderValue(mediaType, type, transferSyntax, quality);
         AcceptHeader acceptHeader = headerValue.ToAcceptHeader();

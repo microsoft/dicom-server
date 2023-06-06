@@ -89,7 +89,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 message.AcceptHeaders);
 
             string requestedTransferSyntax = validAcceptHeader.TransferSyntax.Value;
-            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsOriginalTransferSyntaxRequested(requestedTransferSyntax);
+            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsAnyTransferSyntaxRequested(requestedTransferSyntax);
 
             if (message.ResourceType == ResourceType.Frames)
             {

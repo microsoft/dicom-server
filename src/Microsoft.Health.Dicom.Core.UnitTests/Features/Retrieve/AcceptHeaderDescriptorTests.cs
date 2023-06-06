@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -183,15 +183,15 @@ public class AcceptHeaderDescriptorTests
     {
         Assert.False(ValidStudyAcceptHeaderDescriptor.IsTransferSyntaxMandatory);
         Assert.NotNull(ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
-        Assert.NotEqual(DicomTransferSyntaxUids.Original, ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
+        Assert.NotEqual(DicomTransferSyntaxUids.Any, ValidStudyAcceptHeaderDescriptor.TransferSyntaxWhenMissing);
 
         Assert.Equal(
-            DicomTransferSyntaxUids.Original,
+            DicomTransferSyntaxUids.Any,
             ValidStudyAcceptHeaderDescriptor.GetTransferSyntax(
                 new(
                     ValidStudyAcceptHeaderDescriptor.MediaType,
                     ValidStudyAcceptHeaderDescriptor.PayloadType,
-                    transferSyntax: DicomTransferSyntaxUids.Original)
+                    transferSyntax: DicomTransferSyntaxUids.Any)
             )
         );
     }

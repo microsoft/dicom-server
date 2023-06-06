@@ -101,7 +101,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
     private static bool IsHigherPriorityTransferSyntax(AcceptHeader header, AcceptHeader selectedHeader)
     {
         bool isQualityGreater = (header.Quality ?? AcceptHeader.DefaultQuality) >= (selectedHeader.Quality ?? AcceptHeader.DefaultQuality);
-        return (header.TransferSyntax.Value == DicomTransferSyntaxUids.Original && isQualityGreater);
+        return (header.TransferSyntax.Value == DicomTransferSyntaxUids.Any && isQualityGreater);
     }
 
     private static List<AcceptHeaderDescriptor> DescriptorsForGetNonFrameResource(PayloadTypes payloadTypes)
@@ -113,7 +113,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 mediaType: KnownContentTypes.ApplicationDicom,
                 isTransferSyntaxMandatory: false,
                 transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original,
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Any,
                     DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, DicomTransferSyntax.JPEG2000Lossless.UID.UID))
         };
     }
@@ -127,7 +127,7 @@ public class AcceptHeaderHandler : IAcceptHeaderHandler
                 mediaType: KnownContentTypes.ApplicationOctetStream,
                 isTransferSyntaxMandatory: false,
                 transferSyntaxWhenMissing: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID,
-                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Original,
+                acceptableTransferSyntaxes: GetAcceptableTransferSyntaxSet(DicomTransferSyntaxUids.Any,
                     DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID)),
             new AcceptHeaderDescriptor(
                 payloadType: PayloadTypes.MultipartRelated,

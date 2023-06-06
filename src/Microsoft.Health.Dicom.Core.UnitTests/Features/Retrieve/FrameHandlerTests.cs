@@ -90,7 +90,7 @@ public class FrameHandlerTests
 
     public static IEnumerable<object[]> TestDataForInvokingTranscoderOrNotTests()
     {
-        yield return new object[] { true, DicomTransferSyntaxUids.Original, false };
+        yield return new object[] { true, DicomTransferSyntaxUids.Any, false };
         yield return new object[] { false, DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID, false }; // Created Dataset is on transferSyntax ExplicitVRLittleEndian
         yield return new object[] { false, DicomTransferSyntax.JPEGProcess1.UID.UID, true };
     }
