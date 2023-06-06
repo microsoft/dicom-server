@@ -45,6 +45,20 @@ public class BlobFileStoreTests
         Assert.Equal("""The field StorageDirectory must match the regular expression '^[a-zA-Z0-9\-\.]*(\/[a-zA-Z0-9\-\.]*){0,254}$'.""", results.First().ErrorMessage);
     }
 
+    [Theory]
+    [InlineData("//")]
+    [InlineData("a/")]
+    [InlineData("a")]
+    [InlineData("a/b/")]
+    [InlineData("a-b/c-d/")]
+    public void GivenValidStorageDirectory_WhenExternalStoreInitialized_ThenDoNotThrowException(string storageDirectory)
+    {
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = storageDirectory };
+        var results = new List<ValidationResult>();
+
+        Assert.True(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
+    }
+
     [Fact]
     public void GivenInvalidStorageDirectorySegments_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
     {
