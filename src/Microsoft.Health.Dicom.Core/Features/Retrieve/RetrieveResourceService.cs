@@ -107,6 +107,8 @@ public class RetrieveResourceService : IRetrieveResourceService
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
+            long version = instance.GetVersion(message.IsOriginalVersionRequested);
+
             bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
@@ -122,10 +124,10 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+                Stream stream = await _blobDataStore.GetFileAsync(version, cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
@@ -141,7 +143,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, cancellationToken);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, cancellationToken);
             return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
@@ -186,17 +188,21 @@ public class RetrieveResourceService : IRetrieveResourceService
         {
             _logger.LogInformation("Executing fast frame get.");
 
+            // To get frame range metadata file, we use the original version of the instance, since we are not changing the pixel data
+            // else we use the current version.
+            long version = instance.InstanceProperties.OriginalVersion ?? instance.VersionedInstanceIdentifier.Version;
+
             // get frame range
             IReadOnlyDictionary<int, FrameRange> framesRange = await _framesRangeCache.GetAsync(
-                instance.VersionedInstanceIdentifier.Version,
-                instance.VersionedInstanceIdentifier.Version,
+                version,
+                version,
                 _metadataStore.GetInstanceFramesRangeAsync,
                 cancellationToken);
 
             string responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
             IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
-                instance.VersionedInstanceIdentifier,
+                version,
                 framesRange,
                 message.Frames,
                 responseTransferSyntax,
@@ -271,12 +277,14 @@ public class RetrieveResourceService : IRetrieveResourceService
         IEnumerable<InstanceMetadata> instanceMetadatas,
         bool isOriginalTransferSyntaxRequested,
         string requestedTransferSyntax,
+        bool isOriginalVersionRequested,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         foreach (var instanceMetadata in instanceMetadatas)
         {
-            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, cancellationToken);
-            Stream stream = await _blobDataStore.GetStreamingFileAsync(instanceMetadata.VersionedInstanceIdentifier.Version, cancellationToken);
+            long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,
@@ -314,7 +322,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     }
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(
-        VersionedInstanceIdentifier identifier,
+        long version,
         IReadOnlyDictionary<int, FrameRange> framesRange,
         IReadOnlyCollection<int> frames,
         string responseTransferSyntax,
@@ -330,7 +338,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(identifier.Version, frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, frameRange, cancellationToken);
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }

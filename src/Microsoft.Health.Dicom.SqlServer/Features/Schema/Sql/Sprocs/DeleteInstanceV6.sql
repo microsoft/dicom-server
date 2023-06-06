@@ -30,6 +30,7 @@ CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @seriesInstanceUid  VARCHAR(64) = null,
     @sopInstanceUid     VARCHAR(64) = null
 AS
+BEGIN
     SET NOCOUNT ON
     SET XACT_ABORT ON
 
@@ -41,7 +42,8 @@ AS
             SeriesInstanceUid VARCHAR(64),
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
-            Watermark BIGINT)
+            Watermark BIGINT,
+            OriginalWatermark BIGINT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
@@ -61,7 +63,7 @@ AS
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark
         INTO @deletedInstances
     WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
@@ -148,24 +150,9 @@ AS
     AND     ResourceType = @imageResourceType
 
     INSERT INTO dbo.DeletedInstance
-    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter)
-    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter
+    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
+    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter, OriginalWatermark
     FROM @deletedInstances
-
-    INSERT INTO dbo.ChangeFeed
-    (TimeStamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT @deletedDate, 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
-    FROM @deletedInstances
-    WHERE Status = @createdStatus
-
-    UPDATE CF
-    SET CF.CurrentWatermark = NULL
-    FROM dbo.ChangeFeed AS CF WITH(FORCESEEK)
-    JOIN @deletedInstances AS DI
-    ON CF.PartitionKey = DI.PartitionKey
-        AND CF.StudyInstanceUid = DI.StudyInstanceUid
-        AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
-        AND CF.SopInstanceUid = DI.SopInstanceUid
 
     -- If this is the last instance for a series, remove the series
     IF NOT EXISTS ( SELECT  *
@@ -260,4 +247,20 @@ AS
         AND     ResourceType = @imageResourceType
     END
 
+    INSERT INTO dbo.ChangeFeed
+    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
+    FROM @deletedInstances
+    WHERE Status = @createdStatus
+
+    UPDATE CF
+    SET CF.CurrentWatermark = NULL
+    FROM dbo.ChangeFeed AS CF WITH(FORCESEEK)
+    JOIN @deletedInstances AS DI
+    ON CF.PartitionKey = DI.PartitionKey
+        AND CF.StudyInstanceUid = DI.StudyInstanceUid
+        AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
+        AND CF.SopInstanceUid = DI.SopInstanceUid
+
     COMMIT TRANSACTION
+END

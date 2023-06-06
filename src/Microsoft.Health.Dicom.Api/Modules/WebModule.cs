@@ -16,7 +16,7 @@ public class WebModule : IStartupModule
     {
         EnsureArg.IsNotNull(services, nameof(services));
 
-        services.Add<SeekableStreamConverter>()
+        services.Add<HttpSeekableStreamConverter>()
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();

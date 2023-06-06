@@ -1,9 +1,8 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using EnsureThat;
 using FellowOakDicom;
@@ -16,14 +15,14 @@ public class DicomFileEqualityComparer : IEqualityComparer<DicomFile>
 
     private readonly DicomItemCollectionEqualityComparer _metadataComparer;
     private readonly DicomDatasetEqualityComparer _datasetComparer;
-    private readonly IEnumerable<DicomTag> _ignoredTags;
+    private readonly ISet<DicomTag> _ignoredTags;
 
     public DicomFileEqualityComparer()
-       : this(Array.Empty<DicomTag>())
+       : this(new HashSet<DicomTag>())
     {
     }
 
-    public DicomFileEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+    public DicomFileEqualityComparer(ISet<DicomTag> ignoredTags)
     {
         EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
         _ignoredTags = ignoredTags;

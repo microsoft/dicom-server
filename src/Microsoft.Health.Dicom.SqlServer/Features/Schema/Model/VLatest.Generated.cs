@@ -48,18 +48,23 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteWorkitemProcedure DeleteWorkitem = new DeleteWorkitemProcedure();
         internal readonly static EndUpdateInstanceProcedure EndUpdateInstance = new EndUpdateInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
+        internal readonly static GetChangeFeedByTimeProcedure GetChangeFeedByTime = new GetChangeFeedByTimeProcedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
+        internal readonly static GetChangeFeedLatestByTimeProcedure GetChangeFeedLatestByTime = new GetChangeFeedLatestByTimeProcedure();
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
         internal readonly static GetExtendedQueryTagErrorsProcedure GetExtendedQueryTagErrors = new GetExtendedQueryTagErrorsProcedure();
+        internal readonly static GetExtendedQueryTagErrorsV36Procedure GetExtendedQueryTagErrorsV36 = new GetExtendedQueryTagErrorsV36Procedure();
         internal readonly static GetExtendedQueryTagErrorsV6Procedure GetExtendedQueryTagErrorsV6 = new GetExtendedQueryTagErrorsV6Procedure();
         internal readonly static GetExtendedQueryTagsProcedure GetExtendedQueryTags = new GetExtendedQueryTagsProcedure();
         internal readonly static GetExtendedQueryTagsByKeyProcedure GetExtendedQueryTagsByKey = new GetExtendedQueryTagsByKeyProcedure();
         internal readonly static GetExtendedQueryTagsByOperationProcedure GetExtendedQueryTagsByOperation = new GetExtendedQueryTagsByOperationProcedure();
+        internal readonly static GetExtendedQueryTagsV36Procedure GetExtendedQueryTagsV36 = new GetExtendedQueryTagsV36Procedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
+        internal readonly static GetInstanceBatchesByTimeStampProcedure GetInstanceBatchesByTimeStamp = new GetInstanceBatchesByTimeStampProcedure();
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
         internal readonly static GetInstanceWithPropertiesProcedure GetInstanceWithProperties = new GetInstanceWithPropertiesProcedure();
         internal readonly static GetInstanceWithPropertiesV32Procedure GetInstanceWithPropertiesV32 = new GetInstanceWithPropertiesV32Procedure();
@@ -105,6 +110,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
+            internal readonly Index IX_ChangeFeed_Sequence = new Index("IX_ChangeFeed_Sequence");
         }
 
         internal class DeletedInstanceTable : Table
@@ -121,6 +127,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly IntColumn RetryCount = new IntColumn("RetryCount");
             internal readonly DateTimeOffsetColumn CleanupAfter = new DateTimeOffsetColumn("CleanupAfter", 0);
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
+            internal readonly NullableBigIntColumn OriginalWatermark = new NullableBigIntColumn("OriginalWatermark");
             internal readonly Index IXC_DeletedInstance = new Index("IXC_DeletedInstance");
             internal readonly Index IX_DeletedInstance_RetryCount_CleanupAfter = new Index("IX_DeletedInstance_RetryCount_CleanupAfter");
         }
@@ -299,6 +306,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Watermark = new Index("IX_Instance_PartitionKey_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark");
+            internal readonly Index IX_Instance_Watermark_Status_CreatedDate = new Index("IX_Instance_Watermark_Status_CreatedDate");
         }
 
         internal class PartitionTable : Table
@@ -1063,6 +1071,28 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetChangeFeedByTimeProcedure : StoredProcedure
+        {
+            internal GetChangeFeedByTimeProcedure() : base("dbo.GetChangeFeedByTime")
+            {
+            }
+
+            private readonly ParameterDefinition<System.DateTimeOffset> _startTime = new ParameterDefinition<System.DateTimeOffset>("@startTime", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
+            private readonly ParameterDefinition<System.DateTimeOffset> _endTime = new ParameterDefinition<System.DateTimeOffset>("@endTime", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset startTime, System.DateTimeOffset endTime, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetChangeFeedByTime";
+                _startTime.AddParameter(command.Parameters, startTime);
+                _endTime.AddParameter(command.Parameters, endTime);
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
         internal class GetChangeFeedLatestProcedure : StoredProcedure
         {
             internal GetChangeFeedLatestProcedure() : base("dbo.GetChangeFeedLatest")
@@ -1073,6 +1103,19 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetChangeFeedLatest";
+            }
+        }
+
+        internal class GetChangeFeedLatestByTimeProcedure : StoredProcedure
+        {
+            internal GetChangeFeedLatestByTimeProcedure() : base("dbo.GetChangeFeedLatestByTime")
+            {
+            }
+
+            public void PopulateCommand(SqlCommandWrapper command)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetChangeFeedLatestByTime";
             }
         }
 
@@ -1153,6 +1196,26 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetExtendedQueryTagErrors";
+                _tagPath.AddParameter(command.Parameters, tagPath);
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
+        internal class GetExtendedQueryTagErrorsV36Procedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagErrorsV36Procedure() : base("dbo.GetExtendedQueryTagErrorsV36")
+            {
+            }
+
+            private readonly ParameterDefinition<System.String> _tagPath = new ParameterDefinition<System.String>("@tagPath", global::System.Data.SqlDbType.VarChar, false, 64);
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.String tagPath, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagErrorsV36";
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _limit.AddParameter(command.Parameters, limit);
                 _offset.AddParameter(command.Parameters, offset);
@@ -1259,6 +1322,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
+        internal class GetExtendedQueryTagsV36Procedure : StoredProcedure
+        {
+            internal GetExtendedQueryTagsV36Procedure() : base("dbo.GetExtendedQueryTagsV36")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetExtendedQueryTagsV36";
+                _limit.AddParameter(command.Parameters, limit);
+                _offset.AddParameter(command.Parameters, offset);
+            }
+        }
+
         internal class GetInstanceProcedure : StoredProcedure
         {
             internal GetInstanceProcedure() : base("dbo.GetInstance")
@@ -1299,6 +1380,32 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _batchSize.AddParameter(command.Parameters, batchSize);
                 _batchCount.AddParameter(command.Parameters, batchCount);
                 _status.AddParameter(command.Parameters, status);
+                _maxWatermark.AddParameter(command.Parameters, maxWatermark);
+            }
+        }
+
+        internal class GetInstanceBatchesByTimeStampProcedure : StoredProcedure
+        {
+            internal GetInstanceBatchesByTimeStampProcedure() : base("dbo.GetInstanceBatchesByTimeStamp")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
+            private readonly ParameterDefinition<System.DateTimeOffset> _startTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@startTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+            private readonly ParameterDefinition<System.DateTimeOffset> _endTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@endTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
+            private readonly ParameterDefinition<System.Nullable<System.Int64>> _maxWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@maxWatermark", global::System.Data.SqlDbType.BigInt, true);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Byte status, System.DateTimeOffset startTimeStamp, System.DateTimeOffset endTimeStamp, System.Nullable<System.Int64> maxWatermark)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.GetInstanceBatchesByTimeStamp";
+                _batchSize.AddParameter(command.Parameters, batchSize);
+                _batchCount.AddParameter(command.Parameters, batchCount);
+                _status.AddParameter(command.Parameters, status);
+                _startTimeStamp.AddParameter(command.Parameters, startTimeStamp);
+                _endTimeStamp.AddParameter(command.Parameters, endTimeStamp);
                 _maxWatermark.AddParameter(command.Parameters, maxWatermark);
             }
         }

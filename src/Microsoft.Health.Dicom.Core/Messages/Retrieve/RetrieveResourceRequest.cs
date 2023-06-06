@@ -11,30 +11,36 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
 public class RetrieveResourceRequest : IRequest<RetrieveResourceResponse>
 {
-    public RetrieveResourceRequest(string studyInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders)
-        : this(ResourceType.Study, acceptHeaders)
+    public RetrieveResourceRequest(string studyInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, bool isOriginalVersionRequested = false)
+        : this(ResourceType.Study, acceptHeaders, isOriginalVersionRequested)
     {
         StudyInstanceUid = studyInstanceUid;
     }
 
-    public RetrieveResourceRequest(string studyInstanceUid, string seriesInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders)
-        : this(ResourceType.Series, acceptHeaders)
+    public RetrieveResourceRequest(string studyInstanceUid, string seriesInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, bool isOriginalVersionRequested = false)
+        : this(ResourceType.Series, acceptHeaders, isOriginalVersionRequested)
     {
         StudyInstanceUid = studyInstanceUid;
         SeriesInstanceUid = seriesInstanceUid;
     }
 
     public RetrieveResourceRequest(
-         string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders)
-        : this(ResourceType.Instance, acceptHeaders)
+         string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IReadOnlyCollection<AcceptHeader> acceptHeaders, bool isOriginalVersionRequested = false)
+        : this(ResourceType.Instance, acceptHeaders, isOriginalVersionRequested)
     {
         StudyInstanceUid = studyInstanceUid;
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
     }
 
-    public RetrieveResourceRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, IReadOnlyCollection<int> frames, IReadOnlyCollection<AcceptHeader> acceptHeaders)
-        : this(ResourceType.Frames, acceptHeaders)
+    public RetrieveResourceRequest(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        IReadOnlyCollection<int> frames,
+        IReadOnlyCollection<AcceptHeader> acceptHeaders,
+        bool isOriginalVersionRequested = false)
+        : this(ResourceType.Frames, acceptHeaders, isOriginalVersionRequested)
     {
         StudyInstanceUid = studyInstanceUid;
         SeriesInstanceUid = seriesInstanceUid;
@@ -45,10 +51,11 @@ public class RetrieveResourceRequest : IRequest<RetrieveResourceResponse>
         Frames = frames?.Select(x => x - 1).ToList();
     }
 
-    private RetrieveResourceRequest(ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders)
+    private RetrieveResourceRequest(ResourceType resourceType, IReadOnlyCollection<AcceptHeader> acceptHeaders, bool isOriginalVersionRequested)
     {
         ResourceType = resourceType;
         AcceptHeaders = acceptHeaders;
+        IsOriginalVersionRequested = isOriginalVersionRequested;
     }
 
     public ResourceType ResourceType { get; }
@@ -62,4 +69,6 @@ public class RetrieveResourceRequest : IRequest<RetrieveResourceResponse>
     public IReadOnlyCollection<int> Frames { get; }
 
     public IReadOnlyCollection<AcceptHeader> AcceptHeaders { get; }
+
+    public bool IsOriginalVersionRequested { get; }
 }

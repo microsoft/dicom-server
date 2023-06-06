@@ -12,6 +12,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.IO.Writer;
+using FellowOakDicom.IO;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -445,6 +447,45 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         Assert.Equal(
             """DICOM100: (0010,0020) - Dicom element 'PatientID' failed validation for VR 'LO': Value contains invalid character.""",
         failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
+    }
+
+    [Fact]
+    public async Task GivenInstanceWithImplicitVRPrivateTag_WhenStored_ThePrivateTagShouldBeRemovedFromMetadata()
+    {
+        // setup
+        DicomTag privateTag = new DicomTag(0007, 0008);
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(dicomTransferSyntax: DicomTransferSyntax.ImplicitVRLittleEndian);
+        dicomFile.Dataset.Add(DicomVR.LO, privateTag, "Private Tag");
+
+        // write file to stream to apply the implicit transfer-syntax
+        using var stream = new MemoryStream();
+        IByteTarget byteTarget = new StreamByteTarget(stream);
+        DicomFileWriter writer = new DicomFileWriter(DicomWriteOptions.Default);
+        await writer.WriteAsync(byteTarget, dicomFile.FileMetaInfo, dicomFile.Dataset);
+
+        var response = await _instancesManager.StoreAsync(stream);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
+            dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
+            dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
+            dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID));
+
+        DicomFile retrievedDicomFile = await retrievedInstance.GetValueAsync();
+
+        // The private tag should exist because we do not change the file itself
+        Assert.True(retrievedDicomFile.Dataset.Contains(privateTag));
+
+        using DicomWebAsyncEnumerableResponse<DicomDataset> retrievedInstanceMetadata = await _client.RetrieveInstanceMetadataAsync(
+            dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
+            dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
+            dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID));
+
+        DicomDataset metadata = await retrievedInstanceMetadata.SingleAsync();
+
+        // The private tag should be removed from the metadata since VR is unknown
+        Assert.False(metadata.Contains(privateTag));
     }
 
     public static IEnumerable<object[]> GetIncorrectAcceptHeaders

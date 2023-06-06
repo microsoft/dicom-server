@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using FellowOakDicom.Imaging;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -29,6 +28,7 @@ using Xunit;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using Microsoft.Health.Dicom.Core.Web;
+using Xunit.Abstractions;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 public class RetrieveRenderedServiceTests
@@ -39,7 +39,6 @@ public class RetrieveRenderedServiceTests
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly ILogger<RetrieveRenderedService> _logger;
-
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
     private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
@@ -47,15 +46,17 @@ public class RetrieveRenderedServiceTests
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
 
-    public RetrieveRenderedServiceTests()
+    public RetrieveRenderedServiceTests(ITestOutputHelper output)
     {
         _instanceStore = Substitute.For<IInstanceStore>();
         _fileStore = Substitute.For<IFileStore>();
-        _logger = NullLogger<RetrieveRenderedService>.Instance;
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
+
+        _logger = output.ToLogger<RetrieveRenderedService>();
+
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _retrieveRenderedService = new RetrieveRenderedService(
             _instanceStore,
@@ -194,6 +195,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -210,6 +213,8 @@ public class RetrieveRenderedServiceTests
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -256,6 +261,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 20, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() });
 
@@ -273,6 +280,8 @@ public class RetrieveRenderedServiceTests
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -314,6 +323,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/png", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         var retrieveRenderedRequest2 = new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Frames, 2, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader(mediaType: KnownContentTypes.ImagePng) });
 
@@ -330,6 +341,8 @@ public class RetrieveRenderedServiceTests
         resultStream2.Position = 0;
         AssertStreamsEqual(resultStream2, response2.ResponseStream);
         Assert.Equal("image/png", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream2.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         copyStream.Dispose();
         streamAndStoredFileForFrame2.Dispose();
@@ -369,6 +382,8 @@ public class RetrieveRenderedServiceTests
         resultStream.Position = 0;
         AssertStreamsEqual(resultStream, response.ResponseStream);
         Assert.Equal("image/jpeg", response.ContentType);
+        Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
+        Assert.Equal(resultStream.Length, _dicomRequestContextAccessor.RequestContext.BytesRendered);
 
         response.ResponseStream.Dispose();
         copyStream.Dispose();

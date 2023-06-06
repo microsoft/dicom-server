@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public static class InstanceStoreExtensions
 {
-    public static async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstancesToRetrieve(
+    public static async Task<IReadOnlyList<InstanceMetadata>> GetInstancesWithProperties(
             this IInstanceStore instanceStore,
             ResourceType resourceType,
             int partitionKey,
@@ -29,57 +27,7 @@ public static class InstanceStoreExtensions
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
 
-        IReadOnlyList<VersionedInstanceIdentifier> instancesToRetrieve = Array.Empty<VersionedInstanceIdentifier>();
-
-        switch (resourceType)
-        {
-            case ResourceType.Frames:
-            case ResourceType.Instance:
-                instancesToRetrieve = await instanceStore.GetInstanceIdentifierAsync(
-                    partitionKey,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    sopInstanceUid,
-                    cancellationToken);
-                break;
-            case ResourceType.Series:
-                instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInSeriesAsync(
-                    partitionKey,
-                    studyInstanceUid,
-                    seriesInstanceUid,
-                    cancellationToken);
-                break;
-            case ResourceType.Study:
-                instancesToRetrieve = await instanceStore.GetInstanceIdentifiersInStudyAsync(
-                    partitionKey,
-                    studyInstanceUid,
-                    cancellationToken);
-                break;
-            default:
-                Debug.Fail($"Unknown retrieve transaction type: {resourceType}", nameof(resourceType));
-                break;
-        }
-
-        if (instancesToRetrieve.Count == 0)
-        {
-            ThrowNotFoundException(resourceType);
-        }
-
-        return instancesToRetrieve;
-    }
-
-    public static async Task<IEnumerable<InstanceMetadata>> GetInstancesWithProperties(
-            this IInstanceStore instanceStore,
-            ResourceType resourceType,
-            int partitionKey,
-            string studyInstanceUid,
-            string seriesInstanceUid,
-            string sopInstanceUid,
-            CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
-
-        IEnumerable<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
 
         if (!instancesToRetrieve.Any())
         {

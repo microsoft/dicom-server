@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ public class BaseQueryParameters
 {
     public IReadOnlyDictionary<string, string> Filters { get; set; }
 
-    public int Offset { get; set; }
+    public long Offset { get; set; }
 
     public int Limit { get; set; } = 100;
 

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -30,9 +30,9 @@ public class ETagGeneratorTests
     [Fact]
     public void GivenETagGenerationRequestForStudy_ExpectedETagIsReturned()
     {
-        List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
-        string eTag = _eTagGenerator.GetETag(ResourceType.Study, versionedInstanceIdentifiers);
-        string expectedETag = GetExpectedETag(ResourceType.Study, versionedInstanceIdentifiers);
+        List<InstanceMetadata> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
+        string eTag = _eTagGenerator.GetETag(ResourceType.Study, instanceIdentifiers);
+        string expectedETag = GetExpectedETag(ResourceType.Study, instanceIdentifiers);
 
         Assert.Equal(expectedETag, eTag);
     }
@@ -40,9 +40,9 @@ public class ETagGeneratorTests
     [Fact]
     public void GivenETagGenerationRequestForSeries_ExpectedETagIsReturned()
     {
-        List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
-        string eTag = _eTagGenerator.GetETag(ResourceType.Series, versionedInstanceIdentifiers);
-        string expectedETag = GetExpectedETag(ResourceType.Series, versionedInstanceIdentifiers);
+        List<InstanceMetadata> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
+        string eTag = _eTagGenerator.GetETag(ResourceType.Series, instanceIdentifiers);
+        string expectedETag = GetExpectedETag(ResourceType.Series, instanceIdentifiers);
 
         Assert.Equal(expectedETag, eTag);
     }
@@ -50,26 +50,26 @@ public class ETagGeneratorTests
     [Fact]
     public void GivenETagGenerationRequestForInstance_ExpectedETagIsReturned()
     {
-        List<VersionedInstanceIdentifier> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
-        string eTag = _eTagGenerator.GetETag(ResourceType.Instance, versionedInstanceIdentifiers);
-        string expectedETag = GetExpectedETag(ResourceType.Instance, versionedInstanceIdentifiers);
+        List<InstanceMetadata> instanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
+        string eTag = _eTagGenerator.GetETag(ResourceType.Instance, instanceIdentifiers);
+        string expectedETag = GetExpectedETag(ResourceType.Instance, instanceIdentifiers);
 
         Assert.Equal(expectedETag, eTag);
     }
 
-    private static string GetExpectedETag(ResourceType resourceType, List<VersionedInstanceIdentifier> versionedInstanceIdentifiers)
+    private static string GetExpectedETag(ResourceType resourceType, List<InstanceMetadata> instanceIdentifiers)
     {
         string eTag = string.Empty;
 
-        if (versionedInstanceIdentifiers != null && versionedInstanceIdentifiers.Count > 0)
+        if (instanceIdentifiers != null && instanceIdentifiers.Count > 0)
         {
-            long maxWatermark = versionedInstanceIdentifiers.Max(vii => vii.Version);
+            long maxWatermark = instanceIdentifiers.Max(vii => vii.VersionedInstanceIdentifier.Version);
 
             switch (resourceType)
             {
                 case ResourceType.Study:
                 case ResourceType.Series:
-                    int countInstances = versionedInstanceIdentifiers.Count;
+                    int countInstances = instanceIdentifiers.Count;
                     eTag = $"{maxWatermark}-{countInstances}";
                     break;
                 case ResourceType.Instance:
@@ -83,22 +83,21 @@ public class ETagGeneratorTests
         return eTag;
     }
 
-    private List<VersionedInstanceIdentifier> SetupInstanceIdentifiersList(ResourceType resourceType)
+    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType)
     {
-        List<VersionedInstanceIdentifier> dicomInstanceIdentifiersList = new List<VersionedInstanceIdentifier>();
-
+        List<InstanceMetadata> dicomInstanceIdentifiersList = new List<InstanceMetadata>();
         switch (resourceType)
         {
             case ResourceType.Study:
-                dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 0));
-                dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 0), new InstanceProperties()));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1), new InstanceProperties()));
                 break;
             case ResourceType.Series:
-                dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 0));
-                dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 1));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 0), new InstanceProperties()));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 1), new InstanceProperties()));
                 break;
             case ResourceType.Instance:
-                dicomInstanceIdentifiersList.Add(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, version: 0));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, version: 0), new InstanceProperties()));
                 break;
         }
 
