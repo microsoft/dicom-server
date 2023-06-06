@@ -28,7 +28,7 @@ public class FeatureConfiguration
     public bool EnableExport { get; set; }
 
     /// <summary>
-    /// Enables the latest API version
+    /// Enables the latest API version. Use as feature flag to test new API versions.
     /// </summary>
     public bool EnableLatestApiVersion { get; set; }
 
