@@ -147,7 +147,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         // Add extended query tags
 #pragma warning disable CS0618
         Assert.Equal(
-            OperationStatus.Completed,
+            OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance }));
 #pragma warning restore CS0618
 
