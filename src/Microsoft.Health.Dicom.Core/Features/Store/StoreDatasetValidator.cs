@@ -207,32 +207,43 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         StoreValidationResultBuilder validationResultBuilder)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
-        foreach (DicomElement de in dicomDataset)
+        foreach (DicomItem item in dicomDataset)
         {
             try
             {
-                string value = dicomDataset.GetString(de.Tag);
-                if (value != null && value.EndsWith('\0'))
+                if (item.ValueRepresentation == DicomVR.SQ)
                 {
-                    ValidateWithoutNullPadding(value, de, queryTags);
+                    foreach (DicomDataset ds in ((DicomSequence)item).Items)
+                    {
+                        await ValidateAllItemsWithLeniencyAsync(ds, validationResultBuilder);
+                    }
                 }
                 else
                 {
-                    de.Validate();
+                    DicomElement de = (DicomElement)item;
+                    string value = dicomDataset.GetString(de.Tag);
+                    if (value != null && value.EndsWith('\0'))
+                    {
+                        ValidateWithoutNullPadding(value, de, queryTags);
+                    }
+                    else
+                    {
+                        de.Validate();
+                    }
                 }
             }
             catch (DicomValidationException ex)
             {
-                validationResultBuilder.Add(ex, de.Tag, isCoreTag: RequiredCoreTags.Contains(de.Tag));
+                validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
 
                 _storeMeter.V2ValidationError.Add(
                     1,
-                    TelemetryDimension(de, IsIndexableTag(queryTags, de)));
+                    TelemetryDimension(item, IsIndexableTag(queryTags, item)));
             }
         }
     }
 
-    private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomElement de)
+    private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomItem de)
     {
         return queryTags.Any(x => x.Tag == de.Tag);
     }
