@@ -25,10 +25,10 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Store;
 using Microsoft.Health.Dicom.SqlServer.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.Health.SqlServer.Api.Registration;
 using Microsoft.Health.SqlServer.Configs;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Registration;
+using Microsoft.Health.Dicom.SqlServer.Registration;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -50,7 +50,7 @@ public static class DicomSqlServerRegistrationExtensions
                     configureAction?.Invoke(config);
                 })
             .AddSqlServerManagement<SchemaVersion>()
-            .AddSqlServerApi()
+            .AddSqlServerApiOSS()
             .AddBackgroundSqlSchemaVersionResolver();
 
         // Add SQL-specific implementations

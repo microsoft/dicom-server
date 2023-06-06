@@ -6,7 +6,6 @@
 using EnsureThat;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Blob.Features.Health;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
@@ -126,7 +125,7 @@ public static class DicomServerBuilderBlobRegistrationExtensions
     }
 
     internal static IDicomServerBuilder AddBlobHealthCheck<TBlobHealthCheck>(this IDicomServerBuilder serverBuilder, string name)
-        where TBlobHealthCheck : BlobHealthCheck
+        where TBlobHealthCheck : BlobHealthCheckOSS
     {
         serverBuilder.Services
             .AddHealthChecks()
