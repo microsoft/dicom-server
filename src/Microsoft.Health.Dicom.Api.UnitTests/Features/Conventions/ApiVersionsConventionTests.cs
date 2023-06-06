@@ -4,7 +4,9 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -105,6 +107,8 @@ public class ApiVersionsConventionTests
         var builder = new ControllerApiVersionConventionBuilder(typeof(TestController));
         var featuresOptions = Options.Create(new FeatureConfiguration { EnableLatestApiVersion = enableLatest });
         var convention = new ApiVersionsConvention(featuresOptions);
+        int nextVersion = ApiVersionsConvention.CurrentVersion + 1;
+        ApiVersionsConvention.UpcomingVersion = new List<ApiVersion>() { ApiVersion.Parse(nextVersion.ToString(CultureInfo.InvariantCulture)) };
 
         // act
         convention.Apply(builder, controllerModel);
@@ -118,7 +122,7 @@ public class ApiVersionsConventionTests
 
     private sealed class TestController : ControllerBase
     {
-        [MapToApiVersion("2.0")]
+        [MapToApiVersion("3.0")]
         public Task<IActionResult> GetResultAsync()
             => throw new NotImplementedException();
     }

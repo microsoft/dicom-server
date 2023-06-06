@@ -37,9 +37,9 @@ internal class ApiVersionsConvention : IControllerConvention
     /// Add upcoming API versions here so they can be used for private previews.
     /// When upcomingVersion is ready for GA, move upcomingVersion to allSupportedVersion and remove from here.
     /// </summary>
-    private static readonly IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>() { };
+    internal static IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>() { };
 
-    private const int CurrentVersion = 2;
+    internal const int CurrentVersion = 2;
     private readonly bool _isLatestApiVersionEnabled;
 
     public ApiVersionsConvention(IOptions<FeatureConfiguration> featureConfiguration)
@@ -64,7 +64,7 @@ internal class ApiVersionsConvention : IControllerConvention
         {
             versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
-        // when upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion
+        // when upcomingVersion is ready for GA, move upcoming Verion to allSupportedVersion
         versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
         controller.HasApiVersions(versions);
 
