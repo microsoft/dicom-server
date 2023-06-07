@@ -168,8 +168,7 @@ public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            key.Watermark,
-            null,
+            key,
             new QueryTag[] { queryTag });
         var extendedQueryTagIndexData = await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataForTagKeyAsync(ExtendedQueryTagDataType.StringData, storeEntry.Key);
         Assert.NotEmpty(extendedQueryTagIndexData);

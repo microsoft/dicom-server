@@ -491,8 +491,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            key.Watermark,
-            key.InstanceKey);
+            key);
         return key.Watermark;
     }
 

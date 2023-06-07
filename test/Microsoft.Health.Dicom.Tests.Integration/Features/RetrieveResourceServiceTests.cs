@@ -204,8 +204,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            key.Watermark,
-            key.InstanceKey);
+            key);
     }
 
     private void ValidateResponseDicomFiles(
