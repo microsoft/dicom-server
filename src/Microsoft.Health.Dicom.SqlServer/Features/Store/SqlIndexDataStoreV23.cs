@@ -36,8 +36,7 @@ internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
     public override async Task EndCreateInstanceIndexAsync(
         int partitionKey,
         DicomDataset dicomDataset,
-        long watermark,
-        long? instanceKey,
+        InstanceStorageKey instanceStorageKey,
         IEnumerable<QueryTag> queryTags,
         FileProperties fileProperties,
         bool allowExpiredTags,
@@ -62,7 +61,7 @@ internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                watermark,
+                instanceStorageKey.Watermark,
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
                 hasFrameMetadata);

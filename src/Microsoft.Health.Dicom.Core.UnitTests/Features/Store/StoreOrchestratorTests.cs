@@ -179,8 +179,7 @@ public class StoreOrchestratorTests
             .EndCreateInstanceIndexAsync(
                 1,
                 _dicomDataset,
-                DefaultVersionedInstanceIdentifier.Version,
-                instanceKey: DefaultInstanceKey,
+                instanceStorageKey: DefaultInstanceStorageKey,
                 expectedTags,
                 fileProperties: Arg.Is<FileProperties>(
                     p => p.Path == DefaultFileProperties.Path

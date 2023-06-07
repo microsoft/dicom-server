@@ -95,10 +95,10 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
     }
 
-    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, long? instanceKey, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
+    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, InstanceStorageKey instanceStorageKey, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, instanceKey, queryTags, fileProperties, allowExpiredTags, hasFrameMetadata, cancellationToken);
+        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, instanceStorageKey, queryTags, fileProperties, allowExpiredTags, hasFrameMetadata, cancellationToken);
     }
 
     public async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
