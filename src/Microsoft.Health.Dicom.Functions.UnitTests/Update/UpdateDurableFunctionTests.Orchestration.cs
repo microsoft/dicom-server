@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Operations;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using OpenTelemetry.Metrics;
 using Xunit;
 
@@ -275,6 +276,82 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Any<UpdateCheckpoint>(),
                 false);
+
+        _meterProvider.ForceFlush();
+        Assert.Empty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
+    }
+
+    [Fact]
+    public async Task GivenNewOrchestrationWithInput_WhenUpdatingInstancesWithException_ThenCallCleanupActivity()
+    {
+        const int batchSize = 5;
+        _options.BatchSize = batchSize;
+
+        DateTime createdTime = DateTime.UtcNow;
+
+        var expectedInput = new UpdateCheckpoint
+        {
+            PartitionKey = DefaultPartition.Key,
+            ChangeDataset = string.Empty,
+            StudyInstanceUids = new List<string> {
+                TestUidGenerator.Generate()
+            },
+            CreatedTime = createdTime,
+        };
+
+        var expectedInstancesWithNewWatermark = new List<InstanceFileState>
+        {
+            new InstanceFileState
+            {
+                Version = 1,
+                NewVersion = 3,
+            },
+            new InstanceFileState
+            {
+                Version = 2,
+                NewVersion = 4,
+            }
+        };
+
+        // Arrange the input
+        string operationId = OperationId.Generate();
+        IDurableOrchestrationContext context = CreateContext(operationId);
+
+        context
+            .GetInput<UpdateCheckpoint>()
+            .Returns(expectedInput);
+
+        context
+            .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                _options.RetryOptions,
+                Arg.Any<UpdateInstanceWatermarkArguments>())
+            .Returns(expectedInstancesWithNewWatermark);
+
+        context
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                _options.RetryOptions,
+                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+            .ThrowsAsync(new FunctionFailedException("Function failed"));
+
+        context
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.CleanupNewVersionBlobAsync),
+                _options.RetryOptions,
+                Arg.Any<List<InstanceFileState>>())
+            .Returns(Task.CompletedTask);
+
+        // Invoke the orchestration
+        await _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance);
+
+        // Assert behavior
+        await context
+            .Received(1)
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.CleanupNewVersionBlobAsync),
+                _options.RetryOptions,
+                Arg.Any<List<InstanceFileState>>());
 
         _meterProvider.ForceFlush();
         Assert.Empty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
