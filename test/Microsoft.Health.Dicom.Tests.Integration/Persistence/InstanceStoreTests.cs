@@ -193,8 +193,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
         InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, key.Watermark,
-         new[] { new QueryTag(tagStoreEntry) }));
+        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, key.Watermark, new[] { new QueryTag(tagStoreEntry) }));
     }
 
     [Fact]

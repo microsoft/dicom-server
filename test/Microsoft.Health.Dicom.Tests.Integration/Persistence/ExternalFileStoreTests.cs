@@ -117,7 +117,6 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         await _blobDataStore.DeleteFileIfExistsAsync(version);
     }
 
-
     [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenItemNotFoundExceptionShouldBeThrown()
     {
