@@ -225,7 +225,17 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 }
                 else
                 {
-                    DicomElement de = (DicomElement)item;
+                    DicomElement de;
+                    try
+                    {
+                        de = (DicomElement)item;
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // skip non-element items such as DicomOtherByteFragment
+                        continue;
+                    }
+
                     string value = ds.GetString(de.Tag);
                     try
                     {
