@@ -160,6 +160,107 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
+    [Fact]
+    public async Task GivenV2Enabled_WhenValidSequenceTag_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(new DicomSequence(
+            DicomTag.RegistrationSequence,
+            new DicomDataset
+            {
+                { DicomTag.PatientName, "Test^Patient" },
+                { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
+                {DicomTag.AcquisitionDateTime, new string[] { null }}
+            }));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenValidSequenceTagWithInnerSequences_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(
+            new DicomSequence(
+                DicomTag.RegistrationSequence,
+                new DicomDataset
+                {
+                    { DicomTag.PatientName, "Test^Patient" },
+                    new DicomSequence(
+                        DicomTag.RegistrationSequence,
+                        new DicomDataset
+                        {
+                            { DicomTag.PatientName, "Test^Patient" },
+                            new DicomSequence(
+                                DicomTag.RegistrationSequence,
+                                new DicomDataset
+                                {
+                                    { DicomTag.PatientName, "Test^Patient" },
+                                })
+                        })
+                }));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenValidSequenceTagInvalidInnerNullPaddedValues_ExpectTagValidatedAndNoErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        var sq = new DicomDataset();
+        sq.NotValidated();
+        sq.AddOrUpdate(DicomTag.ReviewDate, "NotAValidReviewDate");
+
+        dicomDataset.Add(new DicomSequence(DicomTag.RegistrationSequence, sq));
+
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Single(result.InvalidTagErrors);
+        Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenValidSequenceTagWithInvalidNestedValue_ExpectTagValidatedAndErrorProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+
+        var sq = new DicomDataset();
+        sq.NotValidated();
+        sq.AddOrUpdate(DicomTag.ReviewDate, "NotAValidReviewDate");
+
+        var ds = new DicomDataset();
+        ds.NotValidated();
+        ds.Add(DicomTag.PatientName, "Test^Patient");
+        ds.Add(DicomTag.RegistrationSequence, sq);
+
+        dicomDataset.Add(new DicomSequence(
+                DicomTag.RegistrationSequence,
+                ds));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Single(result.InvalidTagErrors);
+        Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+    }
 
     [Fact]
     public async Task GivenAValidDicomDataset_WhenValidated_ThenItShouldSucceed()
