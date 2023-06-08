@@ -109,7 +109,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     public virtual async Task EndCreateInstanceIndexAsync(
         int partitionKey,
         DicomDataset dicomDataset,
-        long version,
+        long watermark,
         IEnumerable<QueryTag> queryTags,
         FileProperties fileProperties,
         bool allowExpiredTags,
@@ -132,7 +132,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                version,
+                watermark,
                 (byte)IndexStatus.Created);
 
             try
