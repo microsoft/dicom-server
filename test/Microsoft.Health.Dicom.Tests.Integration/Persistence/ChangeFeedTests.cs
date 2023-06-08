@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
@@ -166,7 +165,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             { DicomTag.PatientID, TestUidGenerator.Generate() },
         };
 
-        long version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
+        var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
 
         var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 

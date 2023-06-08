@@ -201,10 +201,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
                 stream);
         }
 
-        await _indexDataStore.EndCreateInstanceIndexAsync(
-            1,
-            dataset,
-            version);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
     }
 
     private void ValidateResponseDicomFiles(
