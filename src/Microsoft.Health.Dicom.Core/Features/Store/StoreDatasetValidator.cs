@@ -227,7 +227,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             // add to stack to keep iterating when SQ type, otherwise validate
             foreach (DicomItem item in ds)
             {
-                if (item is DicomSequence)
+                if (item is DicomSequence sequence)
                 {
                     foreach (DicomDataset childDs in ((DicomSequence)item).Items)
                     {
