@@ -234,7 +234,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         stack.Push(childDs);
                     }
                 }
-                else if (item is DicomElement)
+                else if (item is DicomElement de)
                 {
                     DicomElement de = (DicomElement)item;
                     string value = ds.GetString(de.Tag);
