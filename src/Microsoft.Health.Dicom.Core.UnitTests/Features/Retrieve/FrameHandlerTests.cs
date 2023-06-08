@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -68,13 +68,13 @@ public class FrameHandlerTests
 
     [Theory]
     [MemberData(nameof(TestDataForInvokingTranscoderOrNotTests))]
-    public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
+    public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxSelected, string requestedRepresentation, bool shouldBeInvoked)
     {
         (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
         ITranscoder transcoder = Substitute.For<ITranscoder>();
         transcoder.TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>()).Returns(_recyclableMemoryStreamManager.GetStream());
         FrameHandler frameHandler = new FrameHandler(transcoder, _recyclableMemoryStreamManager);
-        IReadOnlyCollection<Stream> result = await frameHandler.GetFramesResourceAsync(stream, new int[] { 0 }, originalTransferSyntaxRequested, requestedRepresentation);
+        IReadOnlyCollection<Stream> result = await frameHandler.GetFramesResourceAsync(stream, new int[] { 0 }, originalTransferSyntaxSelected, requestedRepresentation);
 
         // Call Position of LazyTransformReadOnlyStream so that transcoder.TranscodeFrame is invoked
         long pos = result.First().Position;

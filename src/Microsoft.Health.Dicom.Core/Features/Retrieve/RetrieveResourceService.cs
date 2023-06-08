@@ -89,7 +89,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 message.AcceptHeaders);
 
             string requestedTransferSyntax = validAcceptHeader.TransferSyntax.Value;
-            bool isOriginalTransferSyntaxRequested = DicomTransferSyntaxUids.IsAnyTransferSyntaxRequested(requestedTransferSyntax);
+            bool isAnyTransferSyntaxRequested = DicomTransferSyntaxUids.IsAnyTransferSyntaxRequested(requestedTransferSyntax);
 
             if (message.ResourceType == ResourceType.Frames)
             {
@@ -97,7 +97,6 @@ public class RetrieveResourceService : IRetrieveResourceService
                     message,
                     partitionKey,
                     requestedTransferSyntax,
-                    isOriginalTransferSyntaxRequested,
                     validAcceptHeader.MediaType.ToString(),
                     validAcceptHeader.IsSinglePart,
                     cancellationToken);
@@ -109,12 +108,12 @@ public class RetrieveResourceService : IRetrieveResourceService
             InstanceMetadata instance = retrieveInstances.First();
             long version = instance.GetVersion(message.IsOriginalVersionRequested);
 
-            bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+            bool needsTranscoding = NeedsTranscoding(requestedTransferSyntax, instance);
 
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
 
             // we will only support retrieving multiple instance if requested in original format, since we can do lazyStreams
-            if (retrieveInstances.Count() > 1 && !isOriginalTransferSyntaxRequested)
+            if (retrieveInstances.Count() > 1 && needsTranscoding)
             {
                 throw new NotAcceptableException(
                     string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
@@ -130,7 +129,6 @@ public class RetrieveResourceService : IRetrieveResourceService
                 Stream stream = await _blobDataStore.GetFileAsync(version, cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
-                    isOriginalTransferSyntaxRequested,
                     stream,
                     instance,
                     requestedTransferSyntax);
@@ -143,7 +141,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, cancellationToken);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, requestedTransferSyntax, message.IsOriginalVersionRequested, cancellationToken);
             return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
@@ -159,7 +157,6 @@ public class RetrieveResourceService : IRetrieveResourceService
         RetrieveResourceRequest message,
         int partitionKey,
         string requestedTransferSyntax,
-        bool isOriginalTransferSyntaxRequested,
         string mediaType,
         bool isSinglePart,
         CancellationToken cancellationToken)
@@ -181,7 +178,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             GetInstanceMetadata,
             cancellationToken);
 
-        bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+        bool needsTranscoding = NeedsTranscoding(requestedTransferSyntax, instance);
 
         // need the entire DicomDataset for transcoding
         if (!needsTranscoding && instance.InstanceProperties.HasFrameMetadata)
@@ -199,7 +196,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 _metadataStore.GetInstanceFramesRangeAsync,
                 cancellationToken);
 
-            string responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
+            string responseTransferSyntax = GetResponseTransferSyntax(requestedTransferSyntax, instance);
 
             IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
                 version,
@@ -219,7 +216,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,
-            isOriginalTransferSyntaxRequested,
+            !needsTranscoding,
             requestedTransferSyntax);
 
         if (needsTranscoding)
@@ -230,7 +227,6 @@ public class RetrieveResourceService : IRetrieveResourceService
         IAsyncEnumerable<RetrieveResourceInstance> frames = GetAsyncEnumerableFrameStreams(
             frameStreams,
             instance,
-            isOriginalTransferSyntaxRequested,
             requestedTransferSyntax);
 
         return new RetrieveResourceResponse(frames, mediaType, isSinglePart);
@@ -243,9 +239,9 @@ public class RetrieveResourceService : IRetrieveResourceService
         _dicomRequestContextAccessor.RequestContext.BytesTranscoded = bytesTranscoded;
     }
 
-    private static string GetResponseTransferSyntax(bool isOriginalTransferSyntaxRequested, string requestedTransferSyntax, InstanceMetadata instanceMetadata)
+    private static string GetResponseTransferSyntax(string requestedTransferSyntax, InstanceMetadata instanceMetadata)
     {
-        if (isOriginalTransferSyntaxRequested)
+        if (DicomTransferSyntaxUids.IsAnyTransferSyntaxRequested(requestedTransferSyntax))
         {
             return GetOriginalTransferSyntaxWithBackCompat(requestedTransferSyntax, instanceMetadata);
         }
@@ -264,9 +260,9 @@ public class RetrieveResourceService : IRetrieveResourceService
         return string.IsNullOrEmpty(instanceMetadata.InstanceProperties.TransferSyntaxUid) ? requestedTransferSyntax : instanceMetadata.InstanceProperties.TransferSyntaxUid;
     }
 
-    private static bool NeedsTranscoding(bool isOriginalTransferSyntaxRequested, string requestedTransferSyntax, InstanceMetadata instanceMetadata)
+    private static bool NeedsTranscoding(string requestedTransferSyntax, InstanceMetadata instanceMetadata)
     {
-        if (isOriginalTransferSyntaxRequested)
+        if (DicomTransferSyntaxUids.IsAnyTransferSyntaxRequested(requestedTransferSyntax))
             return false;
 
         return !(instanceMetadata.InstanceProperties.TransferSyntaxUid != null
@@ -275,7 +271,6 @@ public class RetrieveResourceService : IRetrieveResourceService
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableStreams(
         IEnumerable<InstanceMetadata> instanceMetadatas,
-        bool isOriginalTransferSyntaxRequested,
         string requestedTransferSyntax,
         bool isOriginalVersionRequested,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -288,7 +283,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             yield return
                 new RetrieveResourceInstance(
                     stream,
-                    GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
+                    GetResponseTransferSyntax(requestedTransferSyntax, instanceMetadata),
                     fileProperties.ContentLength);
         }
     }
@@ -296,13 +291,12 @@ public class RetrieveResourceService : IRetrieveResourceService
     private static async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFrameStreams(
         IEnumerable<Stream> frameStreams,
         InstanceMetadata instanceMetadata,
-        bool isOriginalTransferSyntaxRequested,
         string requestedTransferSyntax)
     {
         // fake await to return AsyncEnumerable and keep the response consistent
         await Task.Run(() => 1);
         // responseTransferSyntax is same for all frames in a instance
-        var responseTransferSyntax = GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata);
+        var responseTransferSyntax = GetResponseTransferSyntax(requestedTransferSyntax, instanceMetadata);
         foreach (Stream frameStream in frameStreams)
         {
             yield return
@@ -311,14 +305,13 @@ public class RetrieveResourceService : IRetrieveResourceService
     }
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableTranscodedStreams(
-        bool isOriginalTransferSyntaxRequested,
         Stream stream,
         InstanceMetadata instanceMetadata,
         string requestedTransferSyntax)
     {
         Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
-        yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata), transcodedStream.Length);
+        yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(requestedTransferSyntax, instanceMetadata), transcodedStream.Length);
     }
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(

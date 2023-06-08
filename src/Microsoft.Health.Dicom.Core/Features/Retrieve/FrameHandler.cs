@@ -31,7 +31,7 @@ public class FrameHandler : IFrameHandler
         _recyclableMemoryStreamManager = recyclableMemoryStreamManager;
     }
 
-    public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation)
+    public async Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxSelected, string requestedTransferSyntax)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
         EnsureArg.IsNotNull(frames, nameof(frames));
@@ -41,11 +41,11 @@ public class FrameHandler : IFrameHandler
         // Validate requested frame index exists in file and retrieve the pixel data associated with the file.
         DicomPixelData pixelData = dicomFile.GetPixelDataAndValidateFrames(frames);
 
-        if (!originalTransferSyntaxRequested && !dicomFile.Dataset.InternalTransferSyntax.Equals(DicomTransferSyntax.Parse(requestedRepresentation)))
+        if (!originalTransferSyntaxSelected && !dicomFile.Dataset.InternalTransferSyntax.Equals(DicomTransferSyntax.Parse(requestedTransferSyntax)))
         {
             return frames.Select(frame => new LazyTransformReadOnlyStream<DicomFile>(
                     dicomFile,
-                    df => _transcoder.TranscodeFrame(df, frame, requestedRepresentation)))
+                    df => _transcoder.TranscodeFrame(df, frame, requestedTransferSyntax)))
             .ToArray();
         }
         else

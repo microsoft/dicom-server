@@ -11,5 +11,5 @@ namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
 public interface IFrameHandler
 {
-    Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxRequested, string requestedRepresentation);
+    Task<IReadOnlyCollection<Stream>> GetFramesResourceAsync(Stream stream, IEnumerable<int> frames, bool originalTransferSyntaxSelected, string requestedTransferSyntax);
 }
