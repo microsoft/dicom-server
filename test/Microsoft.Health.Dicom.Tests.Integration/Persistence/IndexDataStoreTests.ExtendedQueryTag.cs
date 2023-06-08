@@ -394,13 +394,13 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
         dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
         dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            key,
+            version,
             queryTags);
-        return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, key.Watermark);
+        return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
     }
 
     private async Task CleanupExtendedQueryTags()
@@ -414,8 +414,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
     private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
     {
-        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
-        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, key, queryTags);
-        return key.Watermark;
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, version, queryTags);
+        return version;
     }
 }

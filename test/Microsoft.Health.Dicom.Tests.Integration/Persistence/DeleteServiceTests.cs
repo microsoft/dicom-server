@@ -53,14 +53,14 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     {
         var newDataSet = CreateValidMetadataDataset();
 
-        InstanceStorageKey key = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newDataSet);
-        var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(key.Watermark);
+        long version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newDataSet);
+        var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
         if (persistMetadata)
         {
-            await _fixture.MetadataStore.StoreInstanceMetadataAsync(newDataSet, key.Watermark);
+            await _fixture.MetadataStore.StoreInstanceMetadataAsync(newDataSet, version);
 
-            var metaEntry = await _fixture.MetadataStore.GetInstanceMetadataAsync(key.Watermark);
+            var metaEntry = await _fixture.MetadataStore.GetInstanceMetadataAsync(version);
             Assert.Equal(versionedDicomInstanceIdentifier.SopInstanceUid, metaEntry.GetSingleValue<string>(DicomTag.SOPInstanceUID));
         }
 
@@ -70,12 +70,12 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(key.Watermark, stream);
+                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
 
                 Assert.NotNull(fileProperties);
             }
 
-            var file = await _fixture.FileStore.GetFileAsync(key.Watermark);
+            var file = await _fixture.FileStore.GetFileAsync(version);
 
             Assert.NotNull(file);
         }

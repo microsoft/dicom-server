@@ -25,8 +25,6 @@
 --         * Optional max ExtendedQueryTag key
 --     @hasFrameMetadata
 --         * Optional flag to indicate frame metadata existance
---     @instanceKey
---         * The instance key.
 --     @path
 --         * path to dcm blob file
 --     @eTag
@@ -45,8 +43,7 @@ CREATE OR ALTER PROCEDURE dbo.UpdateInstanceStatusV37
     @maxTagKey                  INT = NULL,
     @hasFrameMetadata           BIT = 0,
     @path                       VARCHAR(4000) = NULL,
-    @eTag                       VARCHAR(4000) = NULL,
-    @instanceKey                BIGINT = NULL
+    @eTag                       VARCHAR(4000) = NULL
 AS
 BEGIN
     SET NOCOUNT ON
@@ -72,11 +69,25 @@ BEGIN
     -- The instance does not exist. Perhaps it was deleted?
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance does not exist', 1
+        
+    -- Insert to FileProperty when specified params passed in
+    IF (@path IS NOT NULL AND @eTag IS NOT NULL AND @watermark IS NOT NULL)
+    BEGIN
+        -- get instanceKey
+        DECLARE @instanceKey BIGINT
+    
+        SELECT @instanceKey = InstanceKey
+        FROM dbo.Instance
+        WHERE PartitionKey = @partitionKey
+            AND StudyInstanceUid = @studyInstanceUid
+            AND SeriesInstanceUid = @seriesInstanceUid
+            AND SopInstanceUid = @sopInstanceUid
+            AND Watermark = @watermark
 
-    -- Insert to FileProperty
-    IF (@instanceKey IS NOT NULL AND @path IS NOT NULL AND @eTag IS NOT NULL AND @watermark IS NOT NULL)
+        -- Insert to FileProperty
         INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
         VALUES                       (@instanceKey, @watermark, @path, @eTag)
+    END
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created

@@ -12,7 +12,6 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
@@ -36,7 +35,7 @@ internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
 
     public override SchemaVersion Version => SchemaVersion.V5;
 
-    public override async Task<InstanceStorageKey> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -73,11 +72,7 @@ internal class SqlIndexDataStoreV5 : SqlIndexDataStoreV4
 
             try
             {
-                return new InstanceStorageKey
-                {
-                    Watermark = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken),
-                    InstanceKey = null
-                };
+                return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
             }
             catch (SqlException ex)
             {

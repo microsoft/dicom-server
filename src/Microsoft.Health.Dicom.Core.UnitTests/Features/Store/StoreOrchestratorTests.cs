@@ -32,13 +32,6 @@ public class StoreOrchestratorTests
     private const string DefaultSeriesInstanceUid = "2";
     private const string DefaultSopInstanceUid = "3";
     private const long DefaultVersion = 1;
-    private static readonly long? DefaultInstanceKey = null;
-
-    private static readonly InstanceStorageKey DefaultInstanceStorageKey = new InstanceStorageKey
-    {
-        Watermark = DefaultVersion,
-        InstanceKey = DefaultInstanceKey
-    };
 
     private static readonly VersionedInstanceIdentifier DefaultVersionedInstanceIdentifier = new VersionedInstanceIdentifier(
         DefaultStudyInstanceUid,
@@ -86,7 +79,7 @@ public class StoreOrchestratorTests
 
         _indexDataStore
             .BeginCreateInstanceIndexAsync(Arg.Any<int>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
-            .Returns(DefaultInstanceStorageKey);
+            .Returns(DefaultVersion);
 
         _queryTagService
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
@@ -179,7 +172,7 @@ public class StoreOrchestratorTests
             .EndCreateInstanceIndexAsync(
                 1,
                 _dicomDataset,
-                instanceStorageKey: DefaultInstanceStorageKey,
+                version: DefaultVersion,
                 expectedTags,
                 fileProperties: Arg.Is<FileProperties>(
                     p => p.Path == DefaultFileProperties.Path

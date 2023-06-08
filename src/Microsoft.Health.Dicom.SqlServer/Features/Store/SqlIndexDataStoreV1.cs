@@ -38,7 +38,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
     public virtual SchemaVersion Version => SchemaVersion.V1;
 
-    public virtual async Task<InstanceStorageKey> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public virtual async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -63,8 +63,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
             try
             {
-                long watermark = (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
-                return new InstanceStorageKey { Watermark = watermark, InstanceKey = null };
+                return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
             }
             catch (SqlException ex)
             {
@@ -110,7 +109,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     public virtual async Task EndCreateInstanceIndexAsync(
         int partitionKey,
         DicomDataset dicomDataset,
-        InstanceStorageKey instanceStorageKey,
+        long version,
         IEnumerable<QueryTag> queryTags,
         FileProperties fileProperties,
         bool allowExpiredTags,
@@ -133,7 +132,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
                 dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-                instanceStorageKey.Watermark,
+                version,
                 (byte)IndexStatus.Created);
 
             try

@@ -166,13 +166,13 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             { DicomTag.PatientID, TestUidGenerator.Generate() },
         };
 
-        InstanceStorageKey key = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
+        long version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
 
-        var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(key.Watermark);
+        var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
 
         if (instanceFullyCreated)
         {
-            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, key);
+            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version);
         }
 
         return versionedIdentifier;

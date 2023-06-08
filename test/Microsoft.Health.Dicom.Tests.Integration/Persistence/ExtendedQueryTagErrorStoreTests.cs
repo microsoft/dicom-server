@@ -11,7 +11,6 @@ using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -487,12 +486,12 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
     private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
         await _indexDataStore.EndCreateInstanceIndexAsync(
             1,
             dataset,
-            key);
-        return key.Watermark;
+            version);
+        return version;
     }
 
     private async Task<int> AddTagAsync(DicomTag tag)

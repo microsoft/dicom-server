@@ -192,8 +192,8 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, key.Watermark, new[] { new QueryTag(tagStoreEntry) }));
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, version, new[] { new QueryTag(tagStoreEntry) }));
     }
 
     [Fact]
@@ -331,10 +331,10 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, key);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, version);
 
-        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, key.Watermark);
+        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, version);
     }
 
     private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(int partitionKey = DefaultPartition.Key)
@@ -345,7 +345,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-        InstanceStorageKey key = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, key.Watermark, partitionKey);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partitionKey);
     }
 }
