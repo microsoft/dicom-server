@@ -40,7 +40,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
-        ReplaySafeCounter replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
+        ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
 

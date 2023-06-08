@@ -13,19 +13,19 @@ namespace Microsoft.Health.Dicom.Functions.Registration;
 /// Replay-safe counter that can emits the metric only when the orchestrator is not replaying. Other
 /// methods in the Counter class can be added as required.
 /// </summary>
-public class ReplaySafeCounter
+public class ReplaySafeCounter<T> where T : struct
 {
     private readonly IDurableOrchestrationContext _context;
 
-    private readonly Counter<int> _counter;
+    private readonly Counter<T> _counter;
 
-    internal ReplaySafeCounter(IDurableOrchestrationContext context, Counter<int> counter)
+    internal ReplaySafeCounter(IDurableOrchestrationContext context, Counter<T> counter)
     {
         _context = EnsureArg.IsNotNull(context, nameof(context));
         _counter = EnsureArg.IsNotNull(counter, nameof(counter));
     }
 
-    public void Add(int count)
+    public void Add(T count)
     {
         if (!_context.IsReplaying)
         {

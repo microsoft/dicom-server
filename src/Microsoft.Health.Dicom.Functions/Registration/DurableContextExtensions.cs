@@ -17,9 +17,9 @@ internal static class DurableContextExtensions
     /// <param name="context">The context object.</param>
     /// <param name="counter">A metric counter.</param>
     /// <returns>An instance of a replay safe Counter.</returns>
-    public static ReplaySafeCounter CreateReplaySafeCounter(this IDurableOrchestrationContext context, Counter<int> counter)
+    public static ReplaySafeCounter<int> CreateReplaySafeCounter(this IDurableOrchestrationContext context, Counter<int> counter)
     {
-        return new ReplaySafeCounter(context, counter);
+        return new ReplaySafeCounter<int>(context, counter);
     }
 }
 
