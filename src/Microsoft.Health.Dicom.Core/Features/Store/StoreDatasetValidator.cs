@@ -229,14 +229,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 if (item is DicomSequence sequence)
                 {
-                    foreach (DicomDataset childDs in ((DicomSequence)item).Items)
+                    foreach (DicomDataset childDs in sequence)
                     {
                         stack.Push(childDs);
                     }
                 }
                 else if (item is DicomElement de)
                 {
-                    DicomElement de = (DicomElement)item;
                     string value = ds.GetString(de.Tag);
                     try
                     {
