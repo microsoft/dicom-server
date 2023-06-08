@@ -14,7 +14,7 @@
     <HealthcareSharedPackageVersion>6.2.100</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.3.0</Hl7FhirPackageVersion>
-    <IdentityModelTokenPackageVersion>6.30.1</IdentityModelTokenPackageVersion>
+    <IdentityModelTokenPackageVersion>6.31.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
