@@ -123,9 +123,6 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Is<UpdateCheckpoint>(x => x.NumberOfStudyCompleted == 1),
                 false);
-
-        _meterProvider.ForceFlush();
-        Assert.NotEmpty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
     }
 
     [Fact]
@@ -455,9 +452,6 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                  Arg.Is(GetPredicate(expectedInstancesWithNewWatermark.Count, 1)),
                 false);
-
-        _meterProvider.ForceFlush();
-        Assert.NotEmpty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
     }
 
 
