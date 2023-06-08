@@ -10,7 +10,6 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -192,8 +191,8 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, version, new[] { new QueryTag(tagStoreEntry) }));
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
     }
 
     [Fact]
@@ -331,10 +330,10 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, version);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
 
-        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, version);
+        return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
     }
 
     private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(int partitionKey = DefaultPartition.Key)

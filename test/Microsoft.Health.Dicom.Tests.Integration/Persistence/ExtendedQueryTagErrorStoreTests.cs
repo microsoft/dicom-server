@@ -486,12 +486,9 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
     private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(
-            1,
-            dataset,
-            version);
-        return version;
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark);
+        return watermark;
     }
 
     private async Task<int> AddTagAsync(DicomTag tag)
