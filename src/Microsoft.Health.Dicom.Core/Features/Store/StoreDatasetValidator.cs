@@ -202,6 +202,17 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
+    /// <summary>
+    /// Validate all items with leniency applied.
+    /// </summary>
+    /// <param name="dicomDataset">Dataset to validate</param>
+    /// <param name="validationResultBuilder">Result builder to keep validation results in as validation runs</param>
+    /// <remarks>
+    /// We only need to validate SQ and DicomElement types. The only other type under DicomItem
+    /// is DicomFragmentSequence, which does not implement validation and can be skipped.
+    /// An example of a type of DicomFragmentSequence is DicomOtherByteFragment.
+    /// See https://fo-dicom.github.io/stable/v5/api/FellowOakDicom.DicomItem.html
+    /// </remarks>
     private async Task ValidateAllItemsWithLeniencyAsync(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
@@ -216,25 +227,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             // add to stack to keep iterating when SQ type, otherwise validate
             foreach (DicomItem item in ds)
             {
-                if (item.ValueRepresentation == DicomVR.SQ)
+                if (item is DicomSequence)
                 {
                     foreach (DicomDataset childDs in ((DicomSequence)item).Items)
                     {
                         stack.Push(childDs);
                     }
                 }
-                else
+                else if (item is DicomElement)
                 {
-                    DicomElement de;
-                    try
-                    {
-                        de = (DicomElement)item;
-                    }
-                    catch (InvalidCastException)
-                    {
-                        // skip non-element items such as DicomOtherByteFragment
-                        continue;
-                    }
+                    DicomElement de = (DicomElement)item;
 
                     string value = ds.GetString(de.Tag);
                     try
@@ -245,9 +247,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                     {
                         validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
 
-                        _storeMeter.V2ValidationError.Add(
-                            1,
-                            TelemetryDimension(item, IsIndexableTag(queryTags, item)));
+                        _storeMeter.V2ValidationError.Add(1, TelemetryDimension(item, IsIndexableTag(queryTags, item)));
                     }
                 }
             }
