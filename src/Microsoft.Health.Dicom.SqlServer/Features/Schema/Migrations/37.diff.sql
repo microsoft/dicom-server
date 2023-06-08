@@ -91,7 +91,7 @@ BEGIN
         AND @watermark IS NOT NULL)
         BEGIN
             DECLARE @instanceKey AS BIGINT;
-            SELECT @instanceKey = InstanceKey
+            SELECT @instanceKey = dbo.Instance.InstanceKey
             FROM   dbo.Instance
             WHERE  PartitionKey = @partitionKey
                    AND StudyInstanceUid = @studyInstanceUid

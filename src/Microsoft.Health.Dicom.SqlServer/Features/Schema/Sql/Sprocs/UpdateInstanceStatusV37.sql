@@ -76,7 +76,7 @@ BEGIN
         -- get instanceKey
         DECLARE @instanceKey BIGINT
     
-        SELECT @instanceKey = InstanceKey
+        SELECT @instanceKey = dbo.Instance.InstanceKey
         FROM dbo.Instance
         WHERE PartitionKey = @partitionKey
             AND StudyInstanceUid = @studyInstanceUid
