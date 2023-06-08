@@ -113,7 +113,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             _dicomRequestContextAccessor.RequestContext.PartCount = retrieveInstances.Count();
 
             // we will only support retrieving multiple instance if requested in original format, since we can do lazyStreams
-            if (retrieveInstances.Count() > 1 && needsTranscoding)
+            if (retrieveInstances.Count() > 1 && !isAnyTransferSyntaxRequested)
             {
                 throw new NotAcceptableException(
                     string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
