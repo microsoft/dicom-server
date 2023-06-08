@@ -38,6 +38,7 @@ public class StoreController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ILogger<StoreController> _logger;
     private readonly bool _dicomUpdateEnabled;
+    private readonly bool _dataPartitionsEnabled;
 
     public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
     {
@@ -48,6 +49,7 @@ public class StoreController : ControllerBase
         _mediator = mediator;
         _logger = logger;
         _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
+        _dataPartitionsEnabled = featureConfiguration.Value.EnableDataPartitions;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -97,7 +99,7 @@ public class StoreController : ControllerBase
     [AuditEventType(AuditEventSubType.UpdateStudy)]
     public async Task<IActionResult> UpdateAsync([FromBody][Required] UpdateSpecification updateSpecification)
     {
-        if (!_dicomUpdateEnabled)
+        if (!_dicomUpdateEnabled && !_dataPartitionsEnabled)
         {
             throw new DicomUpdateFeatureDisabledException();
         }
