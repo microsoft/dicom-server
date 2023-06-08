@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,7 +74,7 @@ internal class SqlIndexDataStoreV10 : SqlIndexDataStoreV6
 
             try
             {
-                return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
             }
             catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict && ex.State == (byte)IndexStatus.Creating)
             {

@@ -55,8 +55,6 @@ GO
 --         * Optional max ExtendedQueryTag key
 --     @hasFrameMetadata
 --         * Optional flag to indicate frame metadata existance
---     @instanceKey
---         * The instance key.
 --     @filePath
 --         * path to dcm blob file
 --     @eTag

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;

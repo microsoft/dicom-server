@@ -63,7 +63,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
 
             try
             {
-                return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
+                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
             }
             catch (SqlException ex)
             {
