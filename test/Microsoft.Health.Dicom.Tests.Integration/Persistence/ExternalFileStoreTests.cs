@@ -54,7 +54,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         await _blobDataStore.DeleteFileIfExistsAsync(version);
 
         // The file should no longer exists.
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version));
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // file is deleted
         await _blobDataStore.DeleteFileIfExistsAsync(version);
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version));
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
@@ -118,9 +118,9 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     }
 
     [Fact]
-    public async Task GivenANonExistentFile_WhenRetrieving_ThenItemNotFoundExceptionShouldBeThrown()
+    public async Task GivenANonExistentFile_WhenRetrieving_ThenDataStoreRequestFailedExceptionShouldBeThrown()
     {
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(_getNextWatermark()));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(_getNextWatermark()));
     }
 
     [Fact]
