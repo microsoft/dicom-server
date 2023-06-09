@@ -16,7 +16,6 @@ namespace Microsoft.Health.Dicom.Functions.Registration;
 public class ReplaySafeCounter<T> where T : struct
 {
     private readonly IDurableOrchestrationContext _context;
-
     private readonly Counter<T> _counter;
 
     internal ReplaySafeCounter(IDurableOrchestrationContext context, Counter<T> counter)
