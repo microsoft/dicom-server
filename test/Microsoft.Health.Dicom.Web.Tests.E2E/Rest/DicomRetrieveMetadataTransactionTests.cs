@@ -32,7 +32,7 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
         _instancesManager = new DicomInstancesManager(_client);
-        _apiVersion = DicomApiVersions.V1;
+        _apiVersion = DicomApiVersions.V2;
     }
 
     [Theory]

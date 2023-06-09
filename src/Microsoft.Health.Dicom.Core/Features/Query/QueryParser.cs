@@ -57,23 +57,8 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
         }
 
         // add UIDs as filter conditions
-        if (parameters.StudyInstanceUid != null)
-        {
-            var condition = new StringSingleValueMatchCondition(new QueryTag(DicomTag.StudyInstanceUID), parameters.StudyInstanceUid);
-            if (!filterConditions.TryAdd(DicomTag.StudyInstanceUID, condition))
-            {
-                throw new QueryParseException(DicomCoreResource.DisallowedStudyInstanceUIDAttribute);
-            }
-        }
-
-        if (parameters.SeriesInstanceUid != null)
-        {
-            var condition = new StringSingleValueMatchCondition(new QueryTag(DicomTag.SeriesInstanceUID), parameters.SeriesInstanceUid);
-            if (!filterConditions.TryAdd(DicomTag.SeriesInstanceUID, condition))
-            {
-                throw new QueryParseException(DicomCoreResource.DisallowedSeriesInstanceUIDAttribute);
-            }
-        }
+        AddInstanceUidFilter(parameters.StudyInstanceUid, filterConditions);
+        AddSeriesUidFilter(parameters.SeriesInstanceUid, filterConditions);
 
         return new QueryExpression(
             parameters.QueryResourceType,
@@ -83,6 +68,42 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
             parameters.Offset,
             filterConditions.Values,
             erroneousTags);
+    }
+
+    /// <summary>
+    /// Adds series instance uid as filter condition when uid not null.
+    /// </summary>
+    /// <param name="seriesInstanceUid">Uid received from request parameters.</param>
+    /// <param name="filterConditions">Filter collection to add to.</param>
+    /// <exception cref="QueryParseException"></exception>
+    internal static void AddSeriesUidFilter(string seriesInstanceUid, Dictionary<DicomTag, QueryFilterCondition> filterConditions)
+    {
+        if (seriesInstanceUid != null)
+        {
+            var condition = new StringSingleValueMatchCondition(new QueryTag(DicomTag.SeriesInstanceUID), seriesInstanceUid);
+            if (filterConditions != null && !filterConditions.TryAdd(DicomTag.SeriesInstanceUID, condition))
+            {
+                throw new QueryParseException(DicomCoreResource.DisallowedSeriesInstanceUIDAttribute);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds study instance uid as filter condition when uid not null.
+    /// </summary>
+    /// <param name="studyInstanceUid">Uid received from request parameters.</param>
+    /// <param name="filterConditions">Filter collection to add to.</param>
+    /// <exception cref="QueryParseException"></exception>
+    internal static void AddInstanceUidFilter(string studyInstanceUid, Dictionary<DicomTag, QueryFilterCondition> filterConditions)
+    {
+        if (studyInstanceUid != null)
+        {
+            var condition = new StringSingleValueMatchCondition(new QueryTag(DicomTag.StudyInstanceUID), studyInstanceUid);
+            if (filterConditions != null && !filterConditions.TryAdd(DicomTag.StudyInstanceUID, condition))
+            {
+                throw new QueryParseException(DicomCoreResource.DisallowedStudyInstanceUIDAttribute);
+            }
+        }
     }
 
     private static IReadOnlyCollection<QueryTag> GetQualifiedQueryTags(IReadOnlyCollection<QueryTag> queryTags, QueryResource queryResource)

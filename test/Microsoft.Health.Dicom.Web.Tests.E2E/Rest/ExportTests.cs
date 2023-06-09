@@ -110,9 +110,7 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
         // Wait for the operation to complete
         DicomOperationReference operation = await response.GetValueAsync();
         IOperationState<DicomOperation> state = await _client.WaitForCompletionAsync(operation.Id);
-#pragma warning disable CS0618
-        Assert.Equal(OperationStatus.Completed, state.Status);
-#pragma warning restore CS0618
+        Assert.Equal(OperationStatus.Succeeded, state.Status);
 
         string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/errors.log";
         var results = state.Results as ExportResults;

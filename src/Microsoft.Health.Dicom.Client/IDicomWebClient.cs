@@ -13,4 +13,5 @@ public partial interface IDicomWebClient
 {
     Func<MemoryStream> GetMemoryStream { get; set; }
     HttpClient HttpClient { get; }
+    string ApiVersion { get; }
 }

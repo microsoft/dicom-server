@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -12,31 +11,27 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Features.Store;
-using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-
-[Trait("Category", "leniency")]
-public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<Startup>>, IAsyncLifetime
+public class StoreTransactionTestsLatest : StoreTransactionTests
 {
-    private readonly IDicomWebClient _client;
     private readonly IDicomWebClient _clientV1;
-    private readonly DicomInstancesManager _instancesManager;
     private readonly DicomInstancesManager _instancesManagerV1;
-    private readonly string _partition = TestUidGenerator.Generate();
 
-    public StoreTransactionTestsV2(FeatureEnabledTestFixture<Startup> fixture)
+    public StoreTransactionTestsLatest(HttpIntegrationTestFixture<Startup> fixture) : base(fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _clientV1 = fixture.GetDicomWebClient(DicomApiVersions.V1);
-        _instancesManager = new DicomInstancesManager(_client);
         _instancesManagerV1 = new DicomInstancesManager(_clientV1);
-        DicomValidationBuilderExtension.SkipValidation(null);
+    }
+
+    protected override IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture)
+    {
+        return fixture.GetDicomWebClient(DicomApiVersions.Latest);
     }
 
     [Fact]
@@ -54,8 +49,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
 
         // run
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManagerV1.StoreAsync(
-            new[] { dicomFile },
-            partitionName: _partition)
+            new[] { dicomFile })
         );
 
         // assert
@@ -66,7 +60,6 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
             FailureReasonCodes.ValidationFailure.ToString(CultureInfo.InvariantCulture),
             instance.GetString(DicomTag.FailureReason));
     }
-
 
     [Fact]
     public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenEnableDropInvalidDicomJsonMetadata_ThenInvalidDataDroppedAndValidDataWritten()
@@ -82,18 +75,14 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
-            new[] { dicomFile },
-            partitionName: _partition);
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
 
         // assertions
-
         using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID),
-            dicomTransferSyntax: "*",
-            partitionName: _partition);
+            dicomTransferSyntax: "*");
 
         DicomFile retrievedDicomFile = await retrievedInstance.GetValueAsync();
 
@@ -103,7 +92,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
             retrievedDicomFile.Dataset.GetString(DicomTag.PatientBirthDate)
         );
 
-        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile, _partition);
+        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
 
         // expect valid data stored in metadata/JSON
         retrievedMetadata.GetString(DicomTag.PatientBirthDate);
@@ -156,7 +145,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
         dicomDataset.Add(DicomTag.Modality, expectedValueWithNull);
         dicomFile.Dataset.Add(dicomDataset);
 
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: _partition);
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -184,9 +173,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
         dicomDataset.Add(DicomTag.Modality, expectedValueWithNull);
         dicomFile.Dataset.Add(dicomDataset);
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(
-            new[] { dicomFile },
-            partitionName: _partition);
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -206,8 +193,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SOPInstanceUID),
-            dicomTransferSyntax: "*",
-            partitionName: _partition);
+            dicomTransferSyntax: "*");
 
         DicomFile retrievedDicomFile = await retrievedInstance.GetValueAsync();
 
@@ -217,7 +203,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
         );
 
         // expect stored metadata has original value, with null padding
-        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile, _partition);
+        DicomDataset retrievedMetadata = await ResponseHelper.GetMetadata(_client, dicomFile);
         Assert.Equal(
             expectedValueWithNull,
             retrievedMetadata.GetString(DicomTag.Modality)
@@ -228,14 +214,12 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
 
         // and expect that we can query for value null padding when encoded as uri null
         using DicomWebAsyncEnumerableResponse<DicomDataset> qidoResponseWhenUrlEncoded = await _client.QueryInstancesAsync(
-            queryString: "Modality=X%00",
-            partitionName: _partition);
+            queryString: "Modality=X%00");
         Assert.Single(await qidoResponseWhenUrlEncoded.ToArrayAsync());
 
         // and expect that we can query for value without padding at all
         using DicomWebAsyncEnumerableResponse<DicomDataset> qidoResponseWhenNoPadding = await _client.QueryInstancesAsync(
-            queryString: "Modality=X",
-            partitionName: _partition);
+            queryString: "Modality=X");
         Assert.Single(await qidoResponseWhenNoPadding.ToArrayAsync());
     }
 
@@ -245,7 +229,7 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
         DicomFile dicomFile1 = new DicomFile(
             Samples.CreateRandomInstanceDataset(patientId: "123\0", validateItems: false));
 
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 }, partitionName: _partition);
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -261,36 +245,15 @@ public class StoreTransactionTestsV2 : IClassFixture<FeatureEnabledTestFixture<S
         Assert.Empty(failedAttributesSequence);
     }
 
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public async Task DisposeAsync()
+    [Fact]
+    public async Task GivenDatasetWithInvalidVrValue_WhenStoring_TheServerShouldReturnAccepted()
     {
-        await _instancesManager.DisposeAsync();
+        var studyInstanceUID = TestUidGenerator.Generate();
+
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithInvalidVr(studyInstanceUID);
+
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
-
-    private static DicomFile GenerateDicomFile()
-    {
-        DicomFile dicomFile = Samples.CreateRandomDicomFile(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate()
-        );
-        return dicomFile;
-    }
-
-    private async Task<IEnumerable<DicomDataset>> GetInstanceByAttribute(DicomFile dicomFile, DicomTag searchTag)
-    {
-        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync(
-            $"{searchTag.DictionaryEntry.Keyword}={dicomFile.Dataset.GetString(searchTag)}",
-            partitionName: _partition
-        );
-        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
-        DicomDataset[] datasets = await response.ToArrayAsync();
-
-        IEnumerable<DicomDataset> matchedInstances = datasets.Where(
-            ds =>
-                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
-        return matchedInstances;
-    }
-
 }

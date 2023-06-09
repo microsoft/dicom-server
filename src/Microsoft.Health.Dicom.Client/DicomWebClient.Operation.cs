@@ -16,7 +16,7 @@ public partial class DicomWebClient : IDicomWebClient
 {
     public async Task<DicomWebResponse<IOperationState<DicomOperation>>> GetOperationStateAsync(Guid operationId, CancellationToken cancellationToken = default)
     {
-        var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseOperationUri}/{operationId.ToString(OperationId.FormatSpecifier)}", UriKind.Relative);
+        var uri = new Uri($"/{ApiVersion}{DicomWebConstants.BaseOperationUri}/{operationId.ToString(OperationId.FormatSpecifier)}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);

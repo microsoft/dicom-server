@@ -42,22 +42,22 @@ public static class ResponseHelper
         string seriesInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
-        string relativeUri = GetUrl(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        string relativeUri = GetUrl(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, client.ApiVersion);
 
         return (dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID),
             new Uri(client.HttpClient.BaseAddress, relativeUri).ToString(),
             dicomDataset.GetSingleValue<string>(DicomTag.SOPClassUID));
     }
 
-    private static string GetUrl(string partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    private static string GetUrl(string partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string apiVersion)
     {
         if (partition != null)
         {
-            return $"{DicomApiVersions.Latest}/partitions/{partition}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+            return $"{apiVersion}/partitions/{partition}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
         }
         else
         {
-            return $"{DicomApiVersions.Latest}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
+            return $"{apiVersion}/studies/{studyInstanceUid}/series/{seriesInstanceUid}/instances/{sopInstanceUid}";
         }
     }
 

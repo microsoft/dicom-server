@@ -30,14 +30,16 @@ internal class ApiVersionsConvention : IControllerConvention
         // this will result in null minor instead of 0 minor. There is no constructor on ApiVersion that allows this directly
         ApiVersion.Parse("1.0-prerelease"),
         ApiVersion.Parse("1"),
+        ApiVersion.Parse("2"),
     };
 
-    private static readonly IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>()
-    {
-        ApiVersion.Parse("2")
-    };
+    /// <summary>
+    /// Add upcoming API versions here so they can be used for private previews.
+    /// When upcomingVersion is ready for GA, move upcomingVersion to allSupportedVersion and remove from here.
+    /// </summary>
+    internal static IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>() { };
 
-    private const int CurrentVersion = 1;
+    internal const int CurrentVersion = 2;
     private readonly bool _isLatestApiVersionEnabled;
 
     public ApiVersionsConvention(IOptions<FeatureConfiguration> featureConfiguration)
@@ -62,7 +64,7 @@ internal class ApiVersionsConvention : IControllerConvention
         {
             versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
-        // when upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove this logic
+        // when upcomingVersion is ready for GA, move upcomingVersion to allSupportedVersion
         versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
         controller.HasApiVersions(versions);
 

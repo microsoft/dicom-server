@@ -38,12 +38,12 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
 
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new RecyclableMemoryStreamManager();
 
-    public IDicomWebClient GetDicomWebClient(string apiVersion = DicomApiVersions.V1)
+    public IDicomWebClient GetDicomWebClient(string apiVersion = DicomApiVersions.Latest)
     {
         return GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal, apiVersion: apiVersion);
     }
 
-    public IDicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null, string apiVersion = DicomApiVersions.V1)
+    public IDicomWebClient GetDicomWebClient(TestApplication clientApplication, TestUser testUser = null, string apiVersion = DicomApiVersions.Latest)
     {
         EnsureArg.IsNotNull(clientApplication, nameof(clientApplication));
         HttpMessageHandler messageHandler = TestDicomWebServer.CreateMessageHandler();

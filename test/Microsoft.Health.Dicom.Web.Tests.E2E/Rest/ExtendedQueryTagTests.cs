@@ -27,17 +27,22 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
     private const string ErroneousDicomAttributesHeader = "erroneous-dicom-attributes";
-    private readonly IDicomWebClient _client;
+    private readonly IDicomWebClient _v1Client;
+    private readonly IDicomWebClient _v2Client;
     private readonly DicomTagsManager _tagManager;
-    private readonly DicomInstancesManager _instanceManager;
+    private readonly DicomInstancesManager _v1InstanceManager;
+    private readonly DicomInstancesManager _v2InstanceManager;
 
     // Note: Different tags should be used for BVTs so they can be run concurrently without issues
 
     public ExtendedQueryTagTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
-        _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
-        _tagManager = new DicomTagsManager(_client);
-        _instanceManager = new DicomInstancesManager(_client);
+        EnsureArg.IsNotNull(fixture, nameof(fixture));
+        _v1Client = fixture.GetDicomWebClient(DicomApiVersions.V1);
+        _v2Client = fixture.GetDicomWebClient();
+        _tagManager = new DicomTagsManager(_v2Client);
+        _v1InstanceManager = new DicomInstancesManager(_v1Client);
+        _v2InstanceManager = new DicomInstancesManager(_v2Client);
     }
 
     [Fact]
@@ -61,13 +66,13 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         instance2.Add(filmTag, "03");
 
         // Upload files
-        Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance1))).IsSuccessStatusCode);
-        Assert.True((await _instanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
+        Assert.True((await _v2InstanceManager.StoreAsync(new DicomFile(instance1))).IsSuccessStatusCode);
+        Assert.True((await _v2InstanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
 
         // Add extended query tag
 #pragma warning disable CS0618
         Assert.Equal(
-            OperationStatus.Completed,
+            OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
@@ -77,12 +82,12 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
         GetExtendedQueryTagEntry entry;
 
-        getResponse = await _client.GetExtendedQueryTagAsync(genderTag.GetPath());
+        getResponse = await _v2Client.GetExtendedQueryTagAsync(genderTag.GetPath());
         entry = await getResponse.GetValueAsync();
         Assert.Null(entry.Errors);
         Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
 
-        getResponse = await _client.GetExtendedQueryTagAsync(filmTag.GetPath());
+        getResponse = await _v2Client.GetExtendedQueryTagAsync(filmTag.GetPath());
         entry = await getResponse.GetValueAsync();
         Assert.Null(entry.Errors);
         Assert.Equal(QueryStatus.Enabled, entry.QueryStatus);
@@ -96,7 +101,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.Equal(multipleTags[1].Path, (await _tagManager.GetTagsAsync(1, 1)).Single().Path);
 
         // QIDO
-        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
+        DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _v2Client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
         DicomDataset[] instances = await queryResponse.ToArrayAsync();
         Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
     }
@@ -116,55 +121,64 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
         DicomDataset instance2 = Samples.CreateRandomInstanceDataset();
         DicomDataset instance3 = Samples.CreateRandomInstanceDataset();
+        DicomDataset instance4 = Samples.CreateRandomInstanceDataset();
 
         // Annotate files
         // (Disable Auto-validate)
         instance1.NotValidated();
         instance2.NotValidated();
+        // instance3.NotValidated();
+        instance4.NotValidated();
 
-        instance1.Add(tag, "foobar");
-        instance2.Add(tag, "invalid");
-        instance3.Add(tag, tagValue);
+        instance1.Add(tag, "foo");
+        instance2.Add(tag, "bar");
+        instance3.Add(tag, tagValue); // This one is valid
+        instance4.Add(tag, "baz");
 
         // Upload files (with a few errors)
-        await _instanceManager.StoreAsync(new DicomFile(instance1));
-        await _instanceManager.StoreAsync(new DicomFile(instance2));
-        await _instanceManager.StoreAsync(new DicomFile(instance3));
+        // Note: Files uploaded with v2 will have invalid tags removed from their metadata. Therefore they will
+        // not contain any errors during the re-index operation, as the attributes are missing. In the below
+        // example, instances 1 and 2 will contain errors while 3 and 4 will not.
+        await _v1InstanceManager.StoreAsync(new DicomFile(instance1));
+        await _v1InstanceManager.StoreAsync(new DicomFile(instance2));
+        await _v1InstanceManager.StoreAsync(new DicomFile(instance3));
+        await _v2InstanceManager.StoreAsync(new DicomFile(instance4));
 
         // Add extended query tags
 #pragma warning disable CS0618
         Assert.Equal(
-            OperationStatus.Completed,
+            OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance }));
 #pragma warning restore CS0618
 
         // Check specific tag
-        GetExtendedQueryTagEntry actual = await _tagManager.GetTagAsync(tag.GetPath());
-        Assert.Equal(tag.GetPath(), actual.Path);
-        Assert.True(actual.Errors.Count >= 2, "Expected at least 2 errors.");
-        Assert.Equal(QueryStatus.Disabled, actual.QueryStatus); // It should be disabled by default
+        GetExtendedQueryTagEntry indexedTag = await _tagManager.GetTagAsync(tag.GetPath());
+        Assert.Equal(tag.GetPath(), indexedTag.Path);
+        Assert.True(indexedTag.Errors.Count >= 2, "Expected at least 2 errors.");
+        Assert.Equal(QueryStatus.Disabled, indexedTag.QueryStatus); // It should be disabled by default
 
         // Verify Errors
         // Note: Use pageSize = 1 to test pagination
         List<ExtendedQueryTagError> errors = await _tagManager.GetTagErrorsAsync(tag.GetPath(), 1).ToListAsync();
-
-        Assert.Equal(actual.Errors.Count, errors.Count);
-        Assert.Contains(errors[0].ErrorMessage, errors.Select(x => x.ErrorMessage));
-        Assert.Contains(errors[1].ErrorMessage, errors.Select(x => x.ErrorMessage));
+        Assert.Equal(indexedTag.Errors.Count, errors.Count);
+        Assert.Contains(errors, x => IsDicomError(x, instance1));
+        Assert.Contains(errors, x => IsDicomError(x, instance2));
+        Assert.DoesNotContain(errors, x => IsDicomError(x, instance3));
+        Assert.DoesNotContain(errors, x => IsDicomError(x, instance4));
 
         // Check that the reference API returns the same values
         // Note: The reference only returns the first default page of results
-        var errorsByReference = await _client.ResolveReferenceAsync(actual.Errors);
+        var errorsByReference = await _v2Client.ResolveReferenceAsync(indexedTag.Errors);
         Assert.Equal((await _tagManager.GetTagErrorsAsync(tag.GetPath(), 100, 0)).Select(x => x.ErrorMessage), (await errorsByReference.GetValueAsync()).Select(x => x.ErrorMessage));
 
-        var exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}"));
+        var exception = await Assert.ThrowsAsync<DicomWebException>(() => _v2Client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}"));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
 
         // Enable QIDO on Tag
-        actual = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Enabled });
-        Assert.Equal(QueryStatus.Enabled, actual.QueryStatus);
+        indexedTag = await _tagManager.UpdateExtendedQueryTagAsync(tag.GetPath(), new UpdateExtendedQueryTagEntry() { QueryStatus = QueryStatus.Enabled });
+        Assert.Equal(QueryStatus.Enabled, indexedTag.QueryStatus);
 
-        var response = await _client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}");
+        var response = await _v2Client.QueryInstancesAsync($"{tag.GetPath()}={tagValue}");
 
         Assert.True(response.ResponseHeaders.Contains(ErroneousDicomAttributesHeader));
         var values = response.ResponseHeaders.GetValues(ErroneousDicomAttributesHeader);
@@ -175,6 +189,14 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         // Verify result
         DicomDataset[] instances = await response.ToArrayAsync();
         Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance3.ToInstanceIdentifier()));
+
+        static bool IsDicomError(ExtendedQueryTagError error, DicomDataset instance)
+        {
+            var identifier = instance.ToInstanceIdentifier();
+            return error.StudyInstanceUid == identifier.StudyInstanceUid &&
+                error.SeriesInstanceUid == identifier.SeriesInstanceUid &&
+                error.SopInstanceUid == identifier.SopInstanceUid;
+        }
     }
 
     [Theory]
@@ -187,7 +209,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
         }
 
-        HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken))
+        HttpResponseMessage response = await _v2Client.HttpClient.SendAsync(request, default(CancellationToken))
             .ConfigureAwait(false);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains(string.Format(CultureInfo.CurrentCulture, "The field '[0].{0}' in request body is invalid: The Dicom Tag Property {0} must be specified and must not be null, empty or whitespace", missingProperty), response.Content.ReadAsStringAsync().Result);
@@ -203,24 +225,9 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DicomWebConstants.ApplicationJsonMediaType);
         }
 
-        HttpResponseMessage response = await _client.HttpClient.SendAsync(request, default(CancellationToken)).ConfigureAwait(false);
+        HttpResponseMessage response = await _v2Client.HttpClient.SendAsync(request, default(CancellationToken)).ConfigureAwait(false);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("The field '$[0].Level' in request body is invalid: Expected value 'Studys' to be one of the following values: ['Instance', 'Series', 'Study']", response.Content.ReadAsStringAsync().Result);
-    }
-
-    [Fact]
-    public async Task GivenInvalidDSIS_WhenStoring_ThenServerShouldReturnOK()
-    {
-        DicomTag dsTag = DicomTag.PatientSize;
-        DicomTag isTag = DicomTag.ReferencedFrameNumber;
-        await _tagManager.DeleteExtendedQueryTagAsync(dsTag.GetPath());
-        await _tagManager.DeleteExtendedQueryTagAsync(isTag.GetPath());
-        DicomFile dicomFile = Samples.CreateRandomDicomFile();
-        var dataSet = dicomFile.Dataset.NotValidated();
-        dataSet.Add(dsTag, "InvalidDSValue");
-        dataSet.Add(isTag, "InvalidISValue");
-        using DicomWebResponse<DicomDataset> response = await _instanceManager.StoreAsync(dicomFile);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
@@ -233,16 +240,22 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         // add extended query tag
 #pragma warning disable CS0618
         Assert.Equal(
-            OperationStatus.Completed,
+            OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
 #pragma warning restore CS0618
 
-        // validate
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
         var dataSet = dicomFile.Dataset.NotValidated();
         dataSet.Add(tag, "InvalidISValue");
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile));
+
+        // in v1, by indexing the tag, we are making it "required" by the server. And as such, any invalid tag value
+        // in a DICOM file will cause the STOW operation to fail
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _v1Client.StoreAsync(dicomFile));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+
+        // in v2, the file will be accepted with a warning
+        DicomWebResponse<DicomDataset> response = await _v2Client.StoreAsync(dicomFile);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
     }
 
     public static IEnumerable<object[]> GetRequestBodyWithMissingProperty
@@ -260,6 +273,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
     public async Task DisposeAsync()
     {
         await _tagManager.DisposeAsync();
-        await _instanceManager.DisposeAsync();
+        await _v1InstanceManager.DisposeAsync();
+        await _v2InstanceManager.DisposeAsync();
     }
 }

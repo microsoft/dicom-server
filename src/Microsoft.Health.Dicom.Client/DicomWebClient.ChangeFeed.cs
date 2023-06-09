@@ -17,7 +17,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
-            new Uri($"/{_apiVersion}/changefeed{queryString}", UriKind.Relative));
+            new Uri($"/{ApiVersion}/changefeed{queryString}", UriKind.Relative));
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
@@ -33,7 +33,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
-            new Uri($"/{_apiVersion}/changefeed/latest{queryString}", UriKind.Relative));
+            new Uri($"/{ApiVersion}/changefeed/latest{queryString}", UriKind.Relative));
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
