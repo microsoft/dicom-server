@@ -135,7 +135,7 @@ public partial class UpdateDurableFunction
 
             if (input.TotalNumberOfInstanceUpdated > 0)
             {
-                _updateMeter.UpdatedInstances.Add(input.TotalNumberOfInstanceUpdated);
+                replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
             }
         }
     }
