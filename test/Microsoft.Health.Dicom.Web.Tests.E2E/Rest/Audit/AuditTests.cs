@@ -34,7 +34,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _fixture = fixture;
-        _client = fixture.GetDicomWebClient(DicomApiVersions.V1);
+        _client = fixture.GetDicomWebClient(DicomApiVersions.Latest);
         _instancesManager = new DicomInstancesManager(_client);
         _auditLogger = _fixture.AuditLogger;
     }
@@ -214,7 +214,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
 
         var response = await action();
 
-        var expectedUri = new Uri($"http://localhost/{DicomApiVersions.V1}/{expectedPathSegment}");
+        var expectedUri = new Uri($"http://localhost/{DicomApiVersions.Latest}/{expectedPathSegment}");
 
         Assert.Collection(
             _auditLogger.GetAuditEntriesByOperationAndRequestUri(expectedAction, expectedUri),

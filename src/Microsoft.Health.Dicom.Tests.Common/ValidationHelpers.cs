@@ -98,7 +98,7 @@ public static class ValidationHelpers
         Assert.Equal(
             JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
             JsonSerializer.Serialize(responseInstance, AppSerializerOptions.Json));
-        Assert.Equal(expectedDataset.Count(), responseInstance.Count());
+        Assert.Equal(expectedDataset.ToString(), responseInstance.ToString());
     }
 
     public static void ValidateResponseDataset(
