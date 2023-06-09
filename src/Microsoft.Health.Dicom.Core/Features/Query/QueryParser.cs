@@ -76,7 +76,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
     /// <param name="seriesInstanceUid">Uid received from request parameters.</param>
     /// <param name="filterConditions">Filter collection to add to.</param>
     /// <exception cref="QueryParseException"></exception>
-    public static void AddSeriesUidFilter(string seriesInstanceUid, Dictionary<DicomTag, QueryFilterCondition> filterConditions)
+    internal static void AddSeriesUidFilter(string seriesInstanceUid, Dictionary<DicomTag, QueryFilterCondition> filterConditions)
     {
         if (seriesInstanceUid != null)
         {
@@ -94,7 +94,7 @@ public class QueryParser : BaseQueryParser<QueryExpression, QueryParameters>
     /// <param name="studyInstanceUid">Uid received from request parameters.</param>
     /// <param name="filterConditions">Filter collection to add to.</param>
     /// <exception cref="QueryParseException"></exception>
-    public static void AddInstanceUidFilter(string studyInstanceUid, Dictionary<DicomTag, QueryFilterCondition> filterConditions)
+    internal static void AddInstanceUidFilter(string studyInstanceUid, Dictionary<DicomTag, QueryFilterCondition> filterConditions)
     {
         if (studyInstanceUid != null)
         {
