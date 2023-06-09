@@ -92,7 +92,7 @@ public static class ValidationHelpers
     {
         DicomDataset expectedDataset = storedInstance.Clone();
         IReadOnlyCollection<DicomTag> returnTags = GetExpectedReturnTags(resource, expectedDataset);
-        expectedDataset.Remove((di) =>
+        expectedDataset.Remove((di) => !returnTags.Contains(di.Tag));
         {
             return !returnTags.Contains(di.Tag);
         });
