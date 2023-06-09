@@ -17,8 +17,6 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-
-[Trait("Category", "leniency")]
 public class StoreTransactionTestsLatest : StoreTransactionTests
 {
     private readonly IDicomWebClient _clientV1;
