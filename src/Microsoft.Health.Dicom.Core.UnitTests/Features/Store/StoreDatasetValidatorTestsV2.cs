@@ -93,6 +93,20 @@ public class StoreDatasetValidatorTestsV2
         _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
+    [Fact]
+    public async Task GivenV2Enabled_WhenItemNotADicomElement_ExpectTagValidationSkippedAndErrorNotProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(new DicomOtherByteFragment(DicomTag.ReviewDate));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
     [Theory]
     [InlineData("X\0\0\0\0")]
     [InlineData("\0")]
