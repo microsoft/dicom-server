@@ -29,11 +29,12 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
     {
         _client = GetClient(fixture);
         _instancesManager = new DicomInstancesManager(_client);
-        _validateResponseDataset = GetValidateResponseDataset();
+        _validateResponseDataset = GetValidateResponseDataset;
     }
 
     protected abstract IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture);
-    protected abstract Action<QueryResource, DicomDataset, DicomDataset> GetValidateResponseDataset();
+
+    protected abstract void GetValidateResponseDataset(QueryResource resource, DicomDataset expected, DicomDataset actual);
 
     [Fact]
     public async Task GivenSearchRequest_WithUnsupportedTag_ReturnBadRequest()

@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -22,8 +21,8 @@ public class QueryTransactionV1Tests : QueryTransactionTests
         return fixture.GetDicomWebClient(DicomApiVersions.V1);
     }
 
-    protected override Action<QueryResource, DicomDataset, DicomDataset> GetValidateResponseDataset()
+    protected override void GetValidateResponseDataset(QueryResource resource, DicomDataset expected, DicomDataset actual)
     {
-        return ValidationHelpers.ValidateResponseDataset;
+        ValidationHelpers.ValidateResponseDataset(resource, expected, actual);
     }
 }

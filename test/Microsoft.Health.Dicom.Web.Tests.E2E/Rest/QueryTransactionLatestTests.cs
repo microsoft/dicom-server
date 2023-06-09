@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Features.Query;
@@ -11,19 +10,19 @@ using Microsoft.Health.Dicom.Tests.Common;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class QueryTransactionV2Tests : QueryTransactionTests
+public class QueryTransactionLatestTests : QueryTransactionTests
 {
-    public QueryTransactionV2Tests(HttpIntegrationTestFixture<Startup> fixture) : base(fixture)
+    public QueryTransactionLatestTests(HttpIntegrationTestFixture<Startup> fixture) : base(fixture)
     {
     }
 
     protected override IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture)
     {
-        return fixture.GetDicomWebClient(DicomApiVersions.V2);
+        return fixture.GetDicomWebClient(DicomApiVersions.Latest);
     }
 
-    protected override Action<QueryResource, DicomDataset, DicomDataset> GetValidateResponseDataset()
+    protected override void GetValidateResponseDataset(QueryResource resource, DicomDataset expected, DicomDataset actual)
     {
-        return ValidationHelpers.ValidateResponseDatasetV2;
+        ValidationHelpers.ValidateResponseDatasetV2(resource, expected, actual);
     }
 }
