@@ -72,7 +72,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         // Add extended query tag
 #pragma warning disable CS0618
         Assert.Equal(
-            OperationStatus.Completed,
+            OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
@@ -240,7 +240,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         // add extended query tag
 #pragma warning disable CS0618
         Assert.Equal(
-            OperationStatus.Completed,
+            OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
 #pragma warning restore CS0618
 

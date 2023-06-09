@@ -18,7 +18,7 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 public class ChangeFeedTests : BaseChangeFeedTests, IClassFixture<HttpIntegrationTestFixture<Startup>>
 {
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
-        : base(fixture.GetDicomWebClient())
+        : base(fixture.GetDicomWebClient(DicomApiVersions.V1))
     {
     }
 
