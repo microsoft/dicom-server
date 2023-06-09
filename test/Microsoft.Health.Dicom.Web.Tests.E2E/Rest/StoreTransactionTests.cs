@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,8 +12,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.IO.Writer;
 using FellowOakDicom.IO;
+using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -24,32 +24,22 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
-public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
+public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
-    private readonly IDicomWebClient _client;
-    private readonly IDicomWebClient _clientV2;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private readonly DicomInstancesManager _instancesManager;
-    private readonly DicomInstancesManager _instancesManagerV2;
-
+    private protected readonly IDicomWebClient _client;
+    private protected readonly DicomInstancesManager _instancesManager;
+    private protected readonly string _partition = TestUidGenerator.Generate();
     public StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _client = fixture.GetDicomWebClient(DicomApiVersions.V1);
-        _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
-        _instancesManager = new DicomInstancesManager(_client);
-        _instancesManagerV2 = new DicomInstancesManager(_clientV2);
         _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
+        _client = GetClient(fixture);
+        _instancesManager = new DicomInstancesManager(_client);
+        DicomValidationBuilderExtension.SkipValidation(null);
     }
 
-    [Fact]
-    public async Task GivenV2Enabled_WhenAttemptingToUseV2_TheExpectUnsupportedApiVersionExceptionNotThrown()
-    {
-        var studyInstanceUID1 = TestUidGenerator.Generate();
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
-
-        await _clientV2.StoreAsync(dicomFile1);
-    }
+    protected abstract IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture);
 
     [Fact]
     public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnConflict()
@@ -316,23 +306,6 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         }
     }
 
-    [Fact]
-    public async Task GivenDatasetWithInvalidVrValue_WhenStoring_TheServerShouldReturnConflict()
-    {
-        var studyInstanceUID = TestUidGenerator.Generate();
-
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithInvalidVr(studyInstanceUID);
-
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
-        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
-        Assert.False(exception.ResponseDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
-
-        ValidationHelpers.ValidateFailedSopSequence(
-            exception.ResponseDataset,
-            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode));
-    }
-
     [Theory]
     [InlineData("abc.123")]
     [InlineData("11|")]
@@ -433,23 +406,6 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     }
 
     [Fact]
-    public async Task GivenInstanceWithPatientIDWithInvalidChars_WhenStoreInstanceWithPartialValidation_ThenExpectDicom100ErrorAndConflictStatus()
-    {
-        DicomFile dicomFile1 = new DicomFile(
-            Samples.CreateRandomInstanceDataset(patientId: "Before Null Character, \0", validateItems: false));
-
-        var ex = await Assert.ThrowsAsync<DicomWebException>(
-            () => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
-        Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
-        DicomSequence failedSOPSequence = ex.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
-        DicomSequence failedAttributesSequence = failedSOPSequence.Items[0].GetSequence(DicomTag.FailedAttributesSequence);
-        Assert.Equal(
-            """DICOM100: (0010,0020) - Dicom element 'PatientID' failed validation for VR 'LO': Value contains invalid character.""",
-        failedAttributesSequence.Items[0].GetString(DicomTag.ErrorComment));
-    }
-
-    [Fact]
     public async Task GivenInstanceWithImplicitVRPrivateTag_WhenStored_ThePrivateTagShouldBeRemovedFromMetadata()
     {
         // setup
@@ -463,9 +419,7 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
         DicomFileWriter writer = new DicomFileWriter(DicomWriteOptions.Default);
         await writer.WriteAsync(byteTarget, dicomFile.FileMetaInfo, dicomFile.Dataset);
 
-        var response = await _instancesManager.StoreAsync(stream);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await _instancesManager.StoreAsync(stream);
 
         using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
@@ -501,6 +455,28 @@ public class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<St
     public async Task DisposeAsync()
     {
         await _instancesManager.DisposeAsync();
-        await _instancesManagerV2.DisposeAsync();
+    }
+
+    private protected static DicomFile GenerateDicomFile()
+    {
+        DicomFile dicomFile = Samples.CreateRandomDicomFile(
+            studyInstanceUid: TestUidGenerator.Generate(),
+            seriesInstanceUid: TestUidGenerator.Generate(),
+            sopInstanceUid: TestUidGenerator.Generate()
+        );
+        return dicomFile;
+    }
+
+    private protected async Task<IEnumerable<DicomDataset>> GetInstanceByAttribute(DicomFile dicomFile, DicomTag searchTag)
+    {
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryInstancesAsync(
+            $"{searchTag.DictionaryEntry.Keyword}={dicomFile.Dataset.GetString(searchTag)}");
+        Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
+        DicomDataset[] datasets = await response.ToArrayAsync();
+
+        IEnumerable<DicomDataset> matchedInstances = datasets.Where(
+            ds =>
+                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+        return matchedInstances;
     }
 }
