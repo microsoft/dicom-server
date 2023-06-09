@@ -21,7 +21,7 @@ public class QueryTransactionLatestTests : QueryTransactionTests
         return fixture.GetDicomWebClient(DicomApiVersions.Latest);
     }
 
-    protected override void GetValidateResponseDataset(QueryResource resource, DicomDataset expected, DicomDataset actual)
+    protected override void ValidateResponseDataset(QueryResource resource, DicomDataset expected, DicomDataset actual)
     {
         ValidationHelpers.ValidateResponseDatasetV2(resource, expected, actual);
     }

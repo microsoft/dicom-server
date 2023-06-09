@@ -95,10 +95,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     {
         var datasetToUpdate = new DicomDataset();
         datasetToUpdate.AddOrUpdate(DicomTag.PatientName, expectedPatientName);
-#pragma warning disable CS0618
-        Assert.Equal(OperationStatus.Succeeded, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid
-         }, datasetToUpdate));
-#pragma warning restore CS0618
+        Assert.Equal(OperationStatus.Succeeded, await _instancesManager.UpdateStudyAsync(new List<string> { studyInstanceUid }, datasetToUpdate));
     }
 
     private async Task VerifyRetrieveInstance(string studyInstanceUid, DicomFile dicomFile, string expectedPatientName, bool requestOriginalVersion = default)

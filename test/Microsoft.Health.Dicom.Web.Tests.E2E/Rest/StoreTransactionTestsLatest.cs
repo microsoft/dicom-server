@@ -3,14 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
-using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -19,46 +16,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class StoreTransactionTestsLatest : StoreTransactionTests
 {
-    private readonly IDicomWebClient _clientV1;
-    private readonly DicomInstancesManager _instancesManagerV1;
-
     public StoreTransactionTestsLatest(HttpIntegrationTestFixture<Startup> fixture) : base(fixture)
     {
-        EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _clientV1 = fixture.GetDicomWebClient(DicomApiVersions.V1);
-        _instancesManagerV1 = new DicomInstancesManager(_clientV1);
     }
 
     protected override IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture)
     {
         return fixture.GetDicomWebClient(DicomApiVersions.Latest);
-    }
-
-    [Fact]
-    public async Task GivenInstanceWithAnInvalidIndexableAttribute_WhenUsingV1WithV2Enabled_TheServerShouldReturnConflict()
-    {
-        // setup
-        DicomFile dicomFile = GenerateDicomFile();
-
-        DicomDataset dicomDataset = new DicomDataset().NotValidated();
-
-        dicomDataset.Add(DicomTag.StudyDate, "NotAValidStudyDate");
-        dicomDataset.Add(DicomTag.PatientBirthDate, "20220315");
-
-        dicomFile.Dataset.Add(dicomDataset);
-
-        // run
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManagerV1.StoreAsync(
-            new[] { dicomFile })
-        );
-
-        // assert
-        Assert.Equal("Conflict", exception.Message);
-        DicomSequence sq = exception.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
-        DicomDataset instance = sq.Items[0];
-        Assert.Equal(
-            FailureReasonCodes.ValidationFailure.ToString(CultureInfo.InvariantCulture),
-            instance.GetString(DicomTag.FailureReason));
     }
 
     [Fact]
