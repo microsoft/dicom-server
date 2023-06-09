@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
 
@@ -39,6 +40,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
+        ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
 
@@ -101,8 +103,7 @@ public partial class UpdateDurableFunction
 
             if (instanceWatermarks.Count > 0)
             {
-                _updateMeter.UpdatedInstances.Add(instanceWatermarks.Count,
-                    new KeyValuePair<string, object>("ExecutionId", context.NewGuid()));
+                replaySafeCounter.Add(instanceWatermarks.Count);
             }
 
             context.ContinueAsNew(
