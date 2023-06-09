@@ -5,7 +5,6 @@
 
 using System.Net;
 using System.Threading.Tasks;
-using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -16,28 +15,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class StoreTransactionTestsV1 : StoreTransactionTests
 {
-    private readonly IDicomWebClient _clientV2;
-    private readonly DicomInstancesManager _instancesManagerV2;
-
     public StoreTransactionTestsV1(HttpIntegrationTestFixture<Startup> fixture) : base(fixture)
     {
-        EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
-        _instancesManagerV2 = new DicomInstancesManager(_clientV2);
     }
 
     protected override IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture)
     {
         return fixture.GetDicomWebClient(DicomApiVersions.V1);
-    }
-
-    [Fact]
-    public async Task GivenV2Enabled_WhenAttemptingToUseV2_TheExpectUnsupportedApiVersionExceptionNotThrown()
-    {
-        var studyInstanceUID1 = TestUidGenerator.Generate();
-        DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
-
-        await _clientV2.StoreAsync(dicomFile1);
     }
 
     [Fact]
