@@ -4,14 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Globalization;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
-public class ItemNotFoundException : ConditionalExternalException
+public class ItemNotFoundException : DicomServerException
 {
-    public ItemNotFoundException(Exception innerException, bool isExternal = false)
-        : base(isExternal ? string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, innerException?.Message) : DicomCoreResource.ItemNotFound, innerException, isExternal)
+    public ItemNotFoundException(Exception innerException)
+        : base(DicomCoreResource.ItemNotFound, innerException)
     {
     }
 }

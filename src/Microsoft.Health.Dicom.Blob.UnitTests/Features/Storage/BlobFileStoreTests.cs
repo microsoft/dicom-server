@@ -115,10 +115,10 @@ public class BlobFileStoreTests
         RequestFailedException requestFailedException = new RequestFailedException(status: 404, message: "test", errorCode: BlobErrorCode.BlobNotFound.ToString(), innerException: null);
         client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedException);
 
-        var ex = await Assert.ThrowsAsync<ItemNotFoundException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
-        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, "test"), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.BlobNotFound.ToString()), ex.Message);
     }
 
     [Fact]

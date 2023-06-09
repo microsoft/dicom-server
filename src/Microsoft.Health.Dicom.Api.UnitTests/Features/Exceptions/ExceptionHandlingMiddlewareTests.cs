@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -58,7 +59,7 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new InvalidOperationException(), HttpStatusCode.BadRequest };
         yield return new object[] { new PayloadTooLargeException(1), HttpStatusCode.RequestEntityTooLarge };
         yield return new object[] { new DataStoreException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
-        yield return new object[] { new ItemNotFoundException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
+        yield return new object[] { new DataStoreRequestFailedException(new RequestFailedException(String.Empty), isExternal: true), HttpStatusCode.FailedDependency };
     }
 
     [Theory]

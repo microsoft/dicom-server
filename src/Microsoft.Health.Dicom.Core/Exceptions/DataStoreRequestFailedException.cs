@@ -10,10 +10,10 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 
 public class DataStoreRequestFailedException : ConditionalExternalException
 {
-    public DataStoreRequestFailedException(RequestFailedException ex, bool isExternal = false) 
+    public DataStoreRequestFailedException(RequestFailedException ex, bool isExternal = false)
         : base(
-            (isExternal ? 
-                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, ex?.ErrorCode) 
+            (isExternal ?
+                string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, ex?.ErrorCode)
                 : DicomCoreResource.DataStoreOperationFailed),
             ex,
             isExternal)
