@@ -73,10 +73,12 @@ BEGIN
                      FROM   dbo.ExtendedQueryTag WITH (HOLDLOCK))
         THROW 50409, 'Max extended query tag key does not match', 10;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
+    DECLARE @instanceKey AS BIGINT;
     UPDATE dbo.Instance
     SET    Status                = @status,
-           LastStatusUpdatedDate = @currentDate,
-           HasFrameMetadata      = @hasFrameMetadata
+           LastStatusUpdatedDate = @CurrentDate,
+           HasFrameMetadata      = @hasFrameMetadata,
+           @instanceKey          = InstanceKey
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = @seriesInstanceUid
@@ -87,18 +89,8 @@ BEGIN
     IF (@path IS NOT NULL
         AND @eTag IS NOT NULL
         AND @watermark IS NOT NULL)
-        BEGIN
-            DECLARE @instanceKey AS BIGINT;
-            SELECT @instanceKey = dbo.Instance.InstanceKey
-            FROM   dbo.Instance
-            WHERE  PartitionKey = @partitionKey
-                   AND StudyInstanceUid = @studyInstanceUid
-                   AND SeriesInstanceUid = @seriesInstanceUid
-                   AND SopInstanceUid = @sopInstanceUid
-                   AND Watermark = @watermark;
-            INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
-            VALUES                       (@instanceKey, @watermark, @path, @eTag);
-        END
+        INSERT  INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
+        VALUES                       (@instanceKey, @watermark, @path, @eTag);
     INSERT  INTO dbo.ChangeFeed (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     VALUES                     (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark);
     UPDATE dbo.ChangeFeed

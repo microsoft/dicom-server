@@ -58,8 +58,10 @@ BEGIN
 
     DECLARE @currentDate DATETIME2(7) = SYSUTCDATETIME()
 
+    DECLARE @instanceKey BIGINT
+
     UPDATE dbo.Instance
-    SET Status = @status, LastStatusUpdatedDate = @currentDate, HasFrameMetadata = @hasFrameMetadata
+    SET Status = @status, LastStatusUpdatedDate = @CurrentDate, HasFrameMetadata = @hasFrameMetadata, @instanceKey = InstanceKey
     WHERE PartitionKey = @partitionKey
         AND StudyInstanceUid = @studyInstanceUid
         AND SeriesInstanceUid = @seriesInstanceUid
@@ -72,22 +74,8 @@ BEGIN
         
     -- Insert to FileProperty when specified params passed in
     IF (@path IS NOT NULL AND @eTag IS NOT NULL AND @watermark IS NOT NULL)
-    BEGIN
-        -- get instanceKey
-        DECLARE @instanceKey BIGINT
-    
-        SELECT @instanceKey = dbo.Instance.InstanceKey
-        FROM dbo.Instance
-        WHERE PartitionKey = @partitionKey
-            AND StudyInstanceUid = @studyInstanceUid
-            AND SeriesInstanceUid = @seriesInstanceUid
-            AND SopInstanceUid = @sopInstanceUid
-            AND Watermark = @watermark
-
-        -- Insert to FileProperty
         INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
         VALUES                       (@instanceKey, @watermark, @path, @eTag)
-    END
 
     -- Insert to change feed.
     -- Currently this procedure is used only updating the status to created
