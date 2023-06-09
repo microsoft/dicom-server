@@ -282,15 +282,15 @@ public class BlobFileStore : IFileStore
         {
             return await action();
         }
-        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound)
+        catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !_blobClient.IsExternal)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
-            throw new ItemNotFoundException(ex, _blobClient.IsExternal);
+            throw new ItemNotFoundException(ex);
         }
         catch (RequestFailedException ex)
         {
             _logger.LogError(ex, message: "Access to storage account failed with ErrorCode: {ErrorCode}", ex.ErrorCode);
-            throw new DataStoreException(ex, _blobClient.IsExternal);
+            throw new DataStoreRequestFailedException(ex, _blobClient.IsExternal);
         }
         catch (Exception ex)
         {

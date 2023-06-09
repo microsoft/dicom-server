@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
@@ -108,16 +109,33 @@ public class BlobFileStoreTests
     }
 
     [Fact]
-    public async Task GivenExternalStore_WhenGetFails_ThenThrowExceptionWithRightMessageAndProperty()
+    public async Task GivenExternalStore_WhenGetFailsBecauseBlobNotFound_ThenThrowExceptionWithRightMessageAndProperty()
     {
         InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
         RequestFailedException requestFailedException = new RequestFailedException(status: 404, message: "test", errorCode: BlobErrorCode.BlobNotFound.ToString(), innerException: null);
         client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedException);
 
-        var ex = await Assert.ThrowsAsync<ItemNotFoundException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
-        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, "test"), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.BlobNotFound.ToString()), ex.Message);
+    }
+
+    [Fact]
+    public async Task GivenExternalStore_WhenRequestFails_ThenThrowExceptionWithRightMessageAndProperty()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
+        RequestFailedException requestFailedAuthException = new RequestFailedException(
+            status: 400,
+            message: "auth failed simulation",
+            errorCode: BlobErrorCode.AuthenticationFailed.ToString(),
+            innerException: new Exception("super secret inner info"));
+        client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedAuthException);
+
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.AuthenticationFailed.ToString()), ex.Message);
     }
 
     [Fact]
