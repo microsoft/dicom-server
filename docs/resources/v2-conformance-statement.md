@@ -279,7 +279,9 @@ This Retrieve Transaction offers support for retrieving stored studies, series, 
 | GET    | ../studies/{study}/series/{series}/metadata                             | Retrieves the metadata for all instances within a series. |
 | GET    | ../studies/{study}/series/{series}/instances/{instance}                 | Retrieves a single instance. |
 | GET    | ../studies/{study}/series/{series}/instances/{instance}/metadata        | Retrieves the metadata for a single instance. |
+| GET    | ../studies/{study}/series/{series}/instances/{instance}/rendered        | Retrieves an instance rendered into an image format |
 | GET    | ../studies/{study}/series/{series}/instances/{instance}/frames/{frames} | Retrieves one or many frames from a single instance. To specify more than one frame, a comma separate each frame to return, e.g. /studies/1/series/2/instance/3/frames/4,5,6 |
+| GET    | ../studies/{study}/series/{series}/instances/{instance}/frames/{frame}/rendered | Retrieves a single frame rendered into an image format |
 
 ### Retrieve instances within Study or Series
 
@@ -355,6 +357,20 @@ Cache validation is supported using the `ETag` mechanism. In the response of a m
 - Data has not changed since the last request: HTTP 304 (Not Modified) response will be sent with no body.
 - Data has changed since the last request: HTTP 200 (OK) response will be sent with updated ETag. Required data will also be returned as part of the body.
 
+### Retrieve Rendered Image (For Instance or Frame)
+The following `Accept` header(s) are supported for retrieving a rendered image an instance or a frame:
+
+- `image/jpeg`
+- `image/png`
+
+In the case that no `Accept` header is specified the service will render an `image/jpeg` by default.
+
+The service only supports rendering of a single frame. If rendering is requested for an instance with multiple frames then only the first frame will be rendered as an image by default.
+
+When specifying a particular frame to return, frame indexing starts at 1.
+
+The `quality` query parameter is also supported. An integer value between `1-100` inclusive (1 being worst quality, and 100 being best quality) may be passed as the value for the query paramater. This will only be used for images rendered as `jpeg`, and will be ignored for `png` render requests. If not specified will default to `100`.
+
 ### Retrieve Response Status Codes
 
 | Code                         | Description |
@@ -364,8 +380,8 @@ Cache validation is supported using the `ETag` mechanism. In the response of a m
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 403 (Forbidden)              | The user isn't authorized. |
-| 404 (Not Found)              | The specified DICOM resource could not be found. |
-| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
+| 404 (Not Found)              | The specified DICOM resource could not be found or for rendered request the instance did not contain pixel data |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported or for rendered and transcode requests the file requested was too large  |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ## Search (QIDO-RS)
