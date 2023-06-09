@@ -11,6 +11,7 @@
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="fo-dicom" />
     <PackageReference Include="fo-dicom.Codecs" />
+    <PackageReference Include="fo-dicom.Imaging.ImageSharp" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.ApplicationInsights" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />

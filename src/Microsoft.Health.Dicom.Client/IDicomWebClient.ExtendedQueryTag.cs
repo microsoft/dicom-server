@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ public partial interface IDicomWebClient
 
     Task<DicomWebResponse<GetExtendedQueryTagEntry>> UpdateExtendedQueryTagAsync(string tagPath, UpdateExtendedQueryTagEntry newValue, CancellationToken cancellationToken = default);
 
-    Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit = 100, int offset = 0, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit = 100, long offset = 0, CancellationToken cancellationToken = default);
 
-    Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit = 100, int offset = 0, CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit = 100, long offset = 0, CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -45,6 +45,14 @@ public static class AcceptHeaderHelpers
           payloadType: payloadType,
           mediaType: mediaType,
           quality: quality);
+    }
+
+    public static AcceptHeader CreateRenderAcceptHeader(string transferSyntax = "*", string mediaType = KnownContentTypes.ImageJpeg, PayloadTypes payloadType = PayloadTypes.SinglePart)
+    {
+        return CreateAcceptHeader(
+          transferSyntax: transferSyntax,
+          payloadType: payloadType,
+          mediaType: mediaType);
     }
 
     public static AcceptHeader CreateAcceptHeader(string transferSyntax = "*", PayloadTypes payloadType = PayloadTypes.MultipartRelated, string mediaType = KnownContentTypes.ApplicationOctetStream, double? quality = null)

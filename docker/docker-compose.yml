@@ -20,6 +20,7 @@ services:
       SqlServer__AllowDatabaseCreation: "true"
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true"
       SqlServer__Initialize: "true"
+      DicomServer__Features__EnableUpdate: "true"
     ports:
       - "8080:8080"
     restart: on-failure
@@ -52,7 +53,7 @@ services:
       - azurite
   azurite:
     # See here for tags: https://mcr.microsoft.com/en-us/product/azure-storage/azurite/tags
-    image: mcr.microsoft.com/azure-storage/azurite:3.22.0@sha256:f7d8c2250b282ef1e7179eef5473ecabfd1d9ea3ade2c2b35eea5150dfe44c90
+    image: mcr.microsoft.com/azure-storage/azurite:latest
     # # These port bindings [source]:[dest] can be uncommented to connect to the storage emulator via Microsoft Azure Storage Explorer
     # # Note that the source ports may need to change if a storage emulator is already running on localhost
     # ports:

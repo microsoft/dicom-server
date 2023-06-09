@@ -123,6 +123,11 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV5(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV6(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV10(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV23(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV32(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV33(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV35(SqlConnectionWrapperFactory),
             }),
             NullLogger<SqlIndexDataStore>.Instance);
 
@@ -133,6 +138,9 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
                 new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
                 new SqlInstanceStoreV6(SqlConnectionWrapperFactory),
+                new SqlInstanceStoreV10(SqlConnectionWrapperFactory),
+                new SqlInstanceStoreV23(SqlConnectionWrapperFactory),
+                new SqlInstanceStoreV32(SqlConnectionWrapperFactory),
             }));
 
         PartitionStore = new SqlPartitionStore(new VersionedCache<ISqlPartitionStore>(
@@ -151,6 +159,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
                 new SqlExtendedQueryTagStoreV8(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV8>.Instance),
                 new SqlExtendedQueryTagStoreV16(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV16>.Instance),
+                new SqlExtendedQueryTagStoreV36(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV36>.Instance),
             }));
 
         ExtendedQueryTagErrorStore = new SqlExtendedQueryTagErrorStore(new VersionedCache<ISqlExtendedQueryTagErrorStore>(
@@ -160,6 +169,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlExtendedQueryTagErrorStoreV1(),
                 new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
                 new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
+                new SqlExtendedQueryTagErrorStoreV36(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV36>.Instance),
            }));
 
         IndexWorkitemStore = new SqlWorkitemStore(new VersionedCache<ISqlWorkitemStore>(
@@ -177,6 +187,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             {
                 new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
+                new SqlChangeFeedStoreV36(SqlConnectionWrapperFactory),
             }));
 
         QueryStore = new SqlQueryStore(new VersionedCache<ISqlQueryStore>(

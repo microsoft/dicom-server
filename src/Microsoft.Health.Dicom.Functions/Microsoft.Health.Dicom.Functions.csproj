@@ -41,6 +41,12 @@
     <None Include="Indexing\ReindexDurableFunction.*.cs">
       <DependentUpon>ReindexDurableFunction.cs</DependentUpon>
     </None>
+    <None Include="Update\UpdateDurableFunction.*.cs">
+      <DependentUpon>UpdateDurableFunction.cs</DependentUpon>
+    </None>
+    <None Include="Migration\MigrationFilesDurableFunction.*.cs">
+      <DependentUpon>MigrationFilesDurableFunction.cs</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>

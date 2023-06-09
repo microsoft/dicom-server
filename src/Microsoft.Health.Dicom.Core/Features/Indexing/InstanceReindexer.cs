@@ -47,7 +47,7 @@ public class InstanceReindexer : IInstanceReindexer
         EnsureArg.IsNotNull(entries, nameof(entries));
         EnsureArg.IsNotNull(versionedInstanceId, nameof(versionedInstanceId));
 
-        DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId, cancellationToken);
+        DicomDataset dataset = await _metadataStore.GetInstanceMetadataAsync(versionedInstanceId.Version, cancellationToken);
 
         // Only reindex on valid query tags
         IReadOnlyCollection<QueryTag> validQueryTags = await _dicomDatasetReindexValidator.ValidateAsync(

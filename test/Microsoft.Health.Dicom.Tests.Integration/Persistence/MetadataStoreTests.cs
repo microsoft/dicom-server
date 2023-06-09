@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Tests.Common;
 using Xunit;
 
@@ -33,21 +31,20 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
     {
         DicomDataset dicomDataset = CreateValidMetadataDataset();
         int version = _getNextWatermark();
-        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
         // Store the metadata.
         await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version);
 
         // Should be able to retrieve.
-        DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(instanceIdentifier);
+        DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(version);
 
         ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
 
         // Should be able to delete.
-        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(version);
 
         // The file should no longer exists.
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _metadataStore.GetInstanceMetadataAsync(version));
     }
 
     [Fact]
@@ -65,8 +62,7 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version);
 
         // Should be able to retrieve.
-        DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(
-            dicomDataset.ToVersionedInstanceIdentifier(version));
+        DicomDataset retrievedDicomDataset = await _metadataStore.GetInstanceMetadataAsync(version);
 
         ValidateDicomDataset(dicomDataset, retrievedDicomDataset);
 
@@ -77,14 +73,9 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
     public async Task GivenANonExistingMetadata_WhenRetrievingInstanceMetadata_ThenItemNotFoundExceptionShouldBeThrown()
     {
         int version = _getNextWatermark();
-        var instanceIdentifier = new VersionedInstanceIdentifier(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate(),
-            version);
 
         await Assert.ThrowsAsync<ItemNotFoundException>(
-            () => _metadataStore.GetInstanceMetadataAsync(instanceIdentifier));
+            () => _metadataStore.GetInstanceMetadataAsync(version));
     }
 
     [Fact]
@@ -92,13 +83,12 @@ public class MetadataStoreTests : IClassFixture<DataStoreTestsFixture>
     {
         DicomDataset dicomDataset = CreateValidMetadataDataset();
         int version = _getNextWatermark();
-        var instanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
         await _metadataStore.StoreInstanceMetadataAsync(dicomDataset, version);
 
-        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(version);
 
-        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(instanceIdentifier);
+        await _metadataStore.DeleteInstanceMetadataIfExistsAsync(version);
     }
 
     private static DicomDataset CreateValidMetadataDataset()

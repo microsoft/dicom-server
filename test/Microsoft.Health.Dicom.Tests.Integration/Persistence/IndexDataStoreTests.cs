@@ -656,7 +656,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         dataset.Remove(DicomTag.PatientID);
 
         dataset.Add(DicomTag.PatientID, "pid");
-        dataset.Add(DicomTag.PatientName, "pname");
+        dataset.AddOrUpdate(DicomTag.PatientName, "pname");
         dataset.Add(DicomTag.ReferringPhysicianName, "rname");
         dataset.Add(DicomTag.StudyDate, "20200301");
         dataset.Add(DicomTag.StudyDescription, "sd");

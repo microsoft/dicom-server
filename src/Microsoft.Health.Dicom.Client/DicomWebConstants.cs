@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -17,11 +17,11 @@ public static class DicomWebConstants
     public const string BaseSeriesUriFormat = BaseStudyUriFormat + "/series/{1}";
     public const string BaseRetrieveSeriesMetadataUriFormat = BaseSeriesUriFormat + "/metadata";
     public const string BaseInstanceUriFormat = BaseSeriesUriFormat + "/instances/{2}";
-    public const string BaseRetrieveInstanceRenderedUriFormat = BaseInstanceUriFormat + "/rendered";
+    public const string BaseRetrieveInstanceRenderedUriFormat = BaseInstanceUriFormat + "/rendered?quality={3}";
     public const string BaseRetrieveInstanceThumbnailUriFormat = BaseInstanceUriFormat + "/thumbnail";
     public const string BaseRetrieveInstanceMetadataUriFormat = BaseInstanceUriFormat + "/metadata";
     public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
-    public const string BaseRetrieveFramesRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
+    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered?quality={4}";
     public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
     public const string PartitionsUriString = "/partitions";
     public const string StudiesUriString = "/studies";
@@ -39,6 +39,7 @@ public static class DicomWebConstants
     public const string ExportUriString = "/export";
     public const string ChangeWorkitemStateUriFormat = $"{BaseWorkitemUriFormat}/state";
     public const string UpdateWorkitemUriFormat = "/workitems/{0}?{1}";
+    public const string UpdateAttributeUriString = StudiesUriString + "/$bulkupdate";
 
     public const string LimitParameter = "limit";
     public const string OffsetParameter = "offset";
@@ -46,6 +47,8 @@ public static class DicomWebConstants
     public const string OriginalDicomTransferSyntax = "*";
 
     public const string TransferSyntaxHeaderName = "transfer-syntax";
+
+    public const string RequestOriginalVersion = "msdicom-request-original";
 
     public const string ApplicationDicomMediaType = "application/dicom";
     public const string ApplicationDicomJsonMediaType = "application/dicom+json";

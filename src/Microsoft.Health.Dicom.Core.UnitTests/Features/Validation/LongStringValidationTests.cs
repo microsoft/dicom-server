@@ -17,6 +17,7 @@ public class LongStringValidationTests
     public void GivenValidateLongString_WhenValidating_ThenShouldPass()
     {
         new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912"));
+        new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, (string)null));
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
@@ -34,15 +36,21 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private readonly IIndexDataStoreTestHelper _indexDataStoreTestHelper;
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly IPartitionStore _partitionStore;
+    private readonly IQueryStore _queryStore;
+    private readonly IChangeFeedStore _changeFeedStore;
+    private readonly SqlDataStoreTestsFixture _fixture;
 
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
     {
+        _fixture = EnsureArg.IsNotNull(fixture, nameof(fixture));
         _instanceStore = EnsureArg.IsNotNull(fixture?.InstanceStore, nameof(fixture.InstanceStore));
         _indexDataStore = EnsureArg.IsNotNull(fixture?.IndexDataStore, nameof(fixture.IndexDataStore));
         _extendedQueryTagStore = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStore, nameof(fixture.ExtendedQueryTagStore));
         _indexDataStoreTestHelper = EnsureArg.IsNotNull(fixture?.IndexDataStoreTestHelper, nameof(fixture.IndexDataStoreTestHelper));
         _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
         _partitionStore = EnsureArg.IsNotNull(fixture?.PartitionStore, nameof(fixture.PartitionStore));
+        _queryStore = EnsureArg.IsNotNull(fixture?.QueryStore, nameof(fixture.QueryStore));
+        _changeFeedStore = EnsureArg.IsNotNull(fixture?.ChangeFeedStore, nameof(fixture.ChangeFeedStore));
     }
 
     [Fact]
@@ -258,6 +266,60 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, DefaultPartition.Key);
         Assert.Empty(instances);
+    }
+
+    [Fact]
+    public async Task GivenInstances_WhenBulkUpdateInstancesInAStudy_ThenItShouldBeSuccessful()
+    {
+        var studyInstanceUID1 = TestUidGenerator.Generate();
+        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
+        DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
+        DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
+        DicomDataset dataset4 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
+        dataset4.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
+
+        var instance1 = await CreateInstanceIndexAsync(dataset1);
+        var instance2 = await CreateInstanceIndexAsync(dataset2);
+        var instance3 = await CreateInstanceIndexAsync(dataset3);
+        var instance4 = await CreateInstanceIndexAsync(dataset4);
+
+        var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
+
+        // Update the instances with newWatermark
+        await _indexDataStore.BeginUpdateInstancesAsync(instance1.PartitionKey, studyInstanceUID1);
+
+        var dicomDataset = new DicomDataset();
+        dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
+
+        await _indexDataStore.EndUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUID1, dicomDataset);
+
+        var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, studyInstanceUID1)).ToList();
+
+        // Verify the instances are updated with updated information
+        Assert.Equal(instances.Count, instanceMetadata.Count());
+
+        for (int i = 0; i < instances.Count; i++)
+        {
+            Assert.Equal(instances[i].SopInstanceUid, instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid);
+            Assert.Equal(instances[i].Watermark, instanceMetadata[i].InstanceProperties.OriginalVersion);
+            Assert.False(instanceMetadata[i].InstanceProperties.NewVersion.HasValue);
+        }
+
+        // Verify if the new patient name is updated
+        var result = await _queryStore.GetStudyResultAsync(DefaultPartition.Key, new long[] { instanceMetadata.First().VersionedInstanceIdentifier.Version });
+
+        Assert.True(result.Any());
+        Assert.Equal("FirstName_NewLastName", result.First().PatientName);
+
+        // Verify Changefeed entries are inserted
+        var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetUpdatedChangeFeedRowsAsync(4);
+        Assert.True(changeFeedEntries.Any());
+        for (int i = 0; i < instances.Count; i++)
+        {
+            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalWatermark);
+            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
+            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
+        }
     }
 
     private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)

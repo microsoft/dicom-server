@@ -27,15 +27,15 @@
   "author": "Microsoft",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^23.2.0",
+    "electron": "^25.1.0",
     "electron-builder": "^23.6.0",
     "ansi-regex": ">=6.0.1",
     "async": ">=3.2.4"
   },
   "dependencies": {
-    "node-fetch": "^2.6.9",
+    "node-fetch": "^2.6.11",
     "form-data": "^4.0.0",
-    "jquery": "^3.6.4"
+    "jquery": "^3.7.0"
   },
   "overrides": {
     "minimatch": "5.0.1"

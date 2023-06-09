@@ -177,7 +177,7 @@ public class QueryServiceTests
 
         await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
         await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
-        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class QueryServiceTests
 
         await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
         await _queryStore.Received().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
-        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
         Assert.Equal(2, response.ResponseDataset.Count());
         ValidationResponse(response.ResponseDataset, studyResults.Single(), seriesResults);
     }
@@ -215,7 +215,7 @@ public class QueryServiceTests
 
         await _queryStore.DidNotReceive().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
         await _queryStore.Received().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
-        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        await _metadataStore.DidNotReceive().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class QueryServiceTests
 
         await _queryStore.DidNotReceive().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
         await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
-        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -246,13 +246,13 @@ public class QueryServiceTests
         var studyResults = GenerateStudyResults(identifier.StudyInstanceUid);
         var metadataResult = GenerateMetadataStoreResponse(identifier);
         _queryStore.GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>()).Returns(studyResults);
-        _metadataStore.GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>()).Returns(metadataResult);
+        _metadataStore.GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>()).Returns(metadataResult);
 
         var response = await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
 
         await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
         await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
-        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
         Assert.Single(response.ResponseDataset);
         ValidationResponse(response.ResponseDataset.Single(), studyResults.Single(), metadataResult);
     }
@@ -271,7 +271,7 @@ public class QueryServiceTests
 
         await _queryStore.DidNotReceive().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
         await _queryStore.Received().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
-        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
 

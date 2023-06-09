@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -113,8 +113,8 @@ public class DeleteServiceTests
     public async Task GivenNoDeletedInstances_WhenCleanupCalled_ThenNotCallStoresAndReturnsCorrectTuple()
     {
         _indexDataStore
-            .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
-            .ReturnsForAnyArgs(Enumerable.Empty<VersionedInstanceIdentifier>());
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(new List<InstanceMetadata>());
 
         (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
@@ -123,7 +123,7 @@ public class DeleteServiceTests
 
         await _indexDataStore
             .ReceivedWithAnyArgs(1)
-            .RetrieveDeletedInstancesAsync(batchSize: default, maxRetries: default, CancellationToken.None);
+            .RetrieveDeletedInstancesWithPropertiesAsync(batchSize: default, maxRetries: default, CancellationToken.None);
 
         await _indexDataStore
             .DidNotReceiveWithAnyArgs()
@@ -135,11 +135,11 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, CancellationToken.None);
 
         await _metadataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteInstanceMetadataIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
+            .DeleteInstanceMetadataIfExistsAsync(version: default, CancellationToken.None);
 
         _transactionScope.Received(1).Complete();
     }
@@ -150,14 +150,14 @@ public class DeleteServiceTests
         DateTimeOffset now = DateTimeOffset.UtcNow;
         using (Mock.Property(() => ClockResolver.UtcNowFunc, () => now))
         {
-            List<VersionedInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
+            List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
 
             _indexDataStore
-                .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+                .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
                 .ReturnsForAnyArgs(responseList);
 
             _fileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -167,21 +167,21 @@ public class DeleteServiceTests
 
             await _indexDataStore
                 .Received(1)
-                .IncrementDeletedInstanceRetryAsync(responseList[0], now + _deleteConfiguration.RetryBackOff, CancellationToken.None);
+                .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, now + _deleteConfiguration.RetryBackOff, CancellationToken.None);
         }
     }
 
     [Fact]
     public async Task GivenADeletedInstance_WhenMetadataStoreThrowsUnhandled_ThenIncrementRetryIsCalled()
     {
-        List<VersionedInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
+        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
 
         _indexDataStore
-            .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
         _metadataStore
-            .DeleteInstanceMetadataIfExistsAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>())
+            .DeleteInstanceMetadataIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -191,20 +191,20 @@ public class DeleteServiceTests
 
         await _indexDataStore
             .Received(1)
-            .IncrementDeletedInstanceRetryAsync(responseList[0], cleanupAfter: Arg.Any<DateTimeOffset>(), CancellationToken.None);
+            .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, cleanupAfter: Arg.Any<DateTimeOffset>(), CancellationToken.None);
     }
 
     [Fact]
     public async Task GivenADeletedInstance_WhenIncrementThrows_ThenSuccessIsReturnedFalse()
     {
-        List<VersionedInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
+        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1);
 
         _indexDataStore
-            .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
         _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<VersionedInstanceIdentifier>(), Arg.Any<CancellationToken>())
+            .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         _indexDataStore
@@ -218,16 +218,14 @@ public class DeleteServiceTests
 
         await _indexDataStore
             .Received(1)
-            .IncrementDeletedInstanceRetryAsync(responseList[0], cleanupAfter: Arg.Any<DateTimeOffset>(), CancellationToken.None);
+            .IncrementDeletedInstanceRetryAsync(responseList[0].VersionedInstanceIdentifier, cleanupAfter: Arg.Any<DateTimeOffset>(), CancellationToken.None);
     }
 
     [Fact]
     public async Task GivenADeletedInstance_WhenRetrieveThrows_ThenSuccessIsReturnedFalse()
     {
-        List<VersionedInstanceIdentifier> responseList = GeneratedDeletedInstanceList(1);
-
         _indexDataStore
-            .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -245,7 +243,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(versionedInstanceIdentifier: default, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, CancellationToken.None);
     }
 
     [Theory]
@@ -253,39 +251,59 @@ public class DeleteServiceTests
     [InlineData(3)]
     public async Task GivenMultipleDeletedInstance_WhenCleanupCalled_ThenCorrectMethodsAreCalledAndReturnsCorrectTuple(int numberOfDeletedInstances)
     {
-        List<VersionedInstanceIdentifier> responseList = GeneratedDeletedInstanceList(numberOfDeletedInstances);
+        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(numberOfDeletedInstances);
 
         _indexDataStore
-            .RetrieveDeletedInstancesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(responseList);
 
         (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        await ValidateSuccessfulCleanupDeletedInstanceCall(success, responseList, retrievedInstanceCount);
+        await ValidateSuccessfulCleanupDeletedInstanceCall(success, responseList.Select(x => x.VersionedInstanceIdentifier).ToList(), retrievedInstanceCount);
     }
 
-    private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedInstanceIdentifier> responseList, int retrievedInstanceCount)
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    public async Task GivenMultipleDeletedInstanceWithOriginalVersion_WhenCleanupCalled_ThenCorrectMethodsAreCalled(int numberOfDeletedInstances)
     {
+        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(numberOfDeletedInstances, new InstanceProperties { OriginalVersion = 5 });
+
+        _indexDataStore
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(responseList);
+
+        (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+
         Assert.True(success);
         Assert.Equal(responseList.Count, retrievedInstanceCount);
 
         await _indexDataStore
             .ReceivedWithAnyArgs(1)
-            .RetrieveDeletedInstancesAsync(default, default, CancellationToken.None);
+            .RetrieveDeletedInstancesWithPropertiesAsync(default, default, CancellationToken.None);
 
-        foreach (VersionedInstanceIdentifier deletedVersion in responseList)
+        foreach (InstanceMetadata instance in responseList)
         {
+            var deletedVersion = instance.VersionedInstanceIdentifier;
             await _indexDataStore
                 .Received(1)
                 .DeleteDeletedInstanceAsync(deletedVersion, CancellationToken.None);
 
             await _metadataStore
                 .Received(1)
-                .DeleteInstanceMetadataIfExistsAsync(deletedVersion, CancellationToken.None);
+                .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+
+            await _fileDataStore
+               .Received(numberOfDeletedInstances)
+               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, CancellationToken.None);
+
+            await _metadataStore
+                .Received(numberOfDeletedInstances)
+                .DeleteInstanceMetadataIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, CancellationToken.None);
         }
 
         await _indexDataStore
@@ -295,15 +313,48 @@ public class DeleteServiceTests
         _transactionScope.Received(1).Complete();
     }
 
-    private static List<VersionedInstanceIdentifier> GeneratedDeletedInstanceList(int numberOfResults)
+    private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedInstanceIdentifier> responseList, int retrievedInstanceCount)
     {
-        var deletedInstanceList = new List<VersionedInstanceIdentifier>();
+        Assert.True(success);
+        Assert.Equal(responseList.Count, retrievedInstanceCount);
+
+        await _indexDataStore
+            .ReceivedWithAnyArgs(1)
+            .RetrieveDeletedInstancesWithPropertiesAsync(default, default, CancellationToken.None);
+
+        foreach (VersionedInstanceIdentifier deletedVersion in responseList)
+        {
+            await _indexDataStore
+                .Received(1)
+                .DeleteDeletedInstanceAsync(deletedVersion, CancellationToken.None);
+
+            await _metadataStore
+                .Received(1)
+                .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+
+            await _fileDataStore
+                .Received(1)
+                .DeleteFileIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+        }
+
+        await _indexDataStore
+            .DidNotReceiveWithAnyArgs()
+            .IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier: default, cleanupAfter: default, CancellationToken.None);
+
+        _transactionScope.Received(1).Complete();
+    }
+
+    private static List<InstanceMetadata> GeneratedDeletedInstanceList(int numberOfResults, InstanceProperties instanceProperties = null)
+    {
+        instanceProperties = instanceProperties ?? new InstanceProperties();
+
+        var deletedInstanceList = new List<InstanceMetadata>();
         for (int i = 0; i < numberOfResults; i++)
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            deletedInstanceList.Add(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i));
+            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i), instanceProperties));
         }
 
         return deletedInstanceList;

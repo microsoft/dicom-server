@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -58,9 +58,9 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
         if (persistMetadata)
         {
-            await _fixture.MetadataStore.StoreInstanceMetadataAsync(newDataSet, versionedDicomInstanceIdentifier.Version);
+            await _fixture.MetadataStore.StoreInstanceMetadataAsync(newDataSet, version);
 
-            var metaEntry = await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedDicomInstanceIdentifier);
+            var metaEntry = await _fixture.MetadataStore.GetInstanceMetadataAsync(version);
             Assert.Equal(versionedDicomInstanceIdentifier.SopInstanceUid, metaEntry.GetSingleValue<string>(DicomTag.SOPInstanceUID));
         }
 
@@ -70,12 +70,12 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                Uri fileLocation = await _fixture.FileStore.StoreFileAsync(versionedDicomInstanceIdentifier, stream);
+                Uri fileLocation = await _fixture.FileStore.StoreFileAsync(version, stream);
 
                 Assert.NotNull(fileLocation);
             }
 
-            var file = await _fixture.FileStore.GetFileAsync(versionedDicomInstanceIdentifier);
+            var file = await _fixture.FileStore.GetFileAsync(version);
 
             Assert.NotNull(file);
         }
@@ -88,8 +88,8 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.True(success);
         Assert.Equal(1, retrievedInstanceCount);
 
-        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier));
-        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }

@@ -112,7 +112,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
         await _fileStore.StoreFileAsync(
-            versionedInstanceIdentifier,
+            versionedInstanceIdentifier.Version,
             stream,
             cancellationToken);
 
@@ -135,9 +135,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
         if (framesRange != null && framesRange.Count > 0)
         {
-            var identifier = dicomDataset.ToVersionedInstanceIdentifier(version);
-
-            await _metadataStore.StoreInstanceFramesRangeAsync(identifier, framesRange, cancellationToken);
+            await _metadataStore.StoreInstanceFramesRangeAsync(version, framesRange, cancellationToken);
             hasFrameMetadata = true;
         }
         return hasFrameMetadata;

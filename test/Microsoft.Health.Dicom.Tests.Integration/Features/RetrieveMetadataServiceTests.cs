@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -40,9 +41,12 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     private readonly IETagGenerator _eTagGenerator;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly RetrieveMeter _retrieveMeter;
+    private readonly DicomFileNameWithPrefix _nameWithPrefix;
 
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _seriesInstanceUid = TestUidGenerator.Generate();
+    private readonly int _firstOriginalVersion;
+    private readonly int _secondOriginalVersion;
 
     public RetrieveMetadataServiceTests(DataStoreTestsFixture storagefixture)
     {
@@ -53,7 +57,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _eTagGenerator = Substitute.For<IETagGenerator>();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _retrieveMeter = new RetrieveMeter();
-
+        _nameWithPrefix = storagefixture.NameWithPrefix;
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
 
         _retrieveMetadataService = new RetrieveMetadataService(
@@ -63,6 +67,9 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
             _dicomRequestContextAccessor,
             _retrieveMeter,
             Options.Create(new RetrieveConfiguration()));
+
+        _firstOriginalVersion = storagefixture.NextWatermark;
+        _secondOriginalVersion = storagefixture.NextWatermark;
     }
 
     [Fact]
@@ -76,7 +83,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         // Add metadata for only one instance in the given list
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -88,7 +95,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
         string ifNoneMatch = null;
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -104,7 +111,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.Version);
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 
@@ -119,7 +126,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         // Add metadata for only one instance in the given list
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -131,7 +138,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         SetupDatasetList(ResourceType.Series, cancellationToken: tokenSource.Token);
 
         string ifNoneMatch = null;
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
         await Assert.ThrowsAsync<ItemNotFoundException>(() => response.ResponseMetadata.ToListAsync().AsTask());
     }
 
@@ -147,7 +154,31 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.Version);
 
         string ifNoneMatch = null;
-        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, tokenSource.Token);
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, _seriesInstanceUid, ifNoneMatch, cancellationToken: tokenSource.Token);
+        await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
+    }
+
+    [Fact]
+    public async Task GivenFileIdentifier_WhenGetInstanceFramesRangeWithInvalidVersion_ShouldThrowExceptionAndAttemptTwice()
+    {
+        await Assert.ThrowsAsync<ItemNotFoundException>(async () => await _metadataStore.GetInstanceFramesRangeAsync(1, CancellationToken.None));
+        _nameWithPrefix.Received(1).GetInstanceFramesRangeFileNameWithSpace(1);
+        _nameWithPrefix.Received(1).GetInstanceFramesRangeFileName(1);
+    }
+
+    [Fact]
+    public async Task GivenRetrieveMetadataRequestForStudyWithOriginalVersion_WhenIsSuccessful_ThenInstanceMetadataIsRetrievedSuccessfully()
+    {
+        using var tokenSource = new CancellationTokenSource();
+
+        (VersionedDicomDataset first, VersionedDicomDataset second) = SetupDatasetList(ResourceType.Study, cancellationToken: tokenSource.Token);
+        string ifNoneMatch = null;
+
+        // Add metadata for all instances in the given list
+        await _metadataStore.StoreInstanceMetadataAsync(first.Dataset, first.OriginalVersion);
+        await _metadataStore.StoreInstanceMetadataAsync(second.Dataset, second.OriginalVersion);
+
+        RetrieveMetadataResponse response = await _retrieveMetadataService.RetrieveStudyInstanceMetadataAsync(_studyInstanceUid, ifNoneMatch, isOriginalVersionRequested: true, tokenSource.Token);
         await ValidateResponseMetadataAsync(response.ResponseMetadata, first, second);
     }
 
@@ -157,39 +188,44 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         int partitionKey = DefaultPartition.Key,
         CancellationToken cancellationToken = default)
     {
+        var instanceProperty1 = new InstanceProperties { OriginalVersion = _firstOriginalVersion };
+        var instanceProperty2 = new InstanceProperties { OriginalVersion = _secondOriginalVersion };
+
         var seriesInstanceUid = resourceType == ResourceType.Study ? TestUidGenerator.Generate() : _seriesInstanceUid;
         var result1 = new VersionedDicomDataset
         {
             Dataset = CreateValidMetadataDataset(_studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()),
             Version = _getNextWatermark(),
+            OriginalVersion = _firstOriginalVersion,
         };
 
         var result2 = new VersionedDicomDataset
         {
             Dataset = CreateValidMetadataDataset(_studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate()),
             Version = _getNextWatermark(),
+            OriginalVersion = _secondOriginalVersion,
         };
 
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifiersInStudyAsync(partitionKey, _studyInstanceUid, cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
-                    new List<VersionedInstanceIdentifier>
+                    new List<InstanceMetadata>
                     {
-                        result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version),
-                        result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
                     });
         }
         else
         {
             _instanceStore
-                .GetInstanceIdentifiersInSeriesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
-                    new List<VersionedInstanceIdentifier>
+                    new List<InstanceMetadata>
                     {
-                        result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version),
-                        result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
                     });
         }
 
@@ -223,5 +259,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         public DicomDataset Dataset { get; init; }
 
         public int Version { get; init; }
+
+        public int OriginalVersion { get; init; }
     }
 }

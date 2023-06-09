@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ public class ExtendedQueryTagErrorsService : IExtendedQueryTagErrorsService
         _dicomTagParser = EnsureArg.IsNotNull(dicomTagParser, nameof(dicomTagParser));
     }
 
-    public async Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken)
+    public async Task<GetExtendedQueryTagErrorsResponse> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(tagPath, nameof(tagPath));
         string numericalTagPath = _dicomTagParser.TryParse(tagPath, out DicomTag[] tags)

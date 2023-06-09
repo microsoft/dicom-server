@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -82,6 +82,12 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.RetrieveDeletedInstancesWithPropertiesAsync(batchSize, maxRetries, cancellationToken);
+    }
+
     public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
@@ -92,5 +98,23 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
+    }
+
+    public async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.BeginUpdateInstanceAsync(partitionKey, versions, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.BeginUpdateInstancesAsync(partitionKey, studyInstanceUid, cancellationToken);
+    }
+
+    public async Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        await store.EndUpdateInstanceAsync(partitionKey, studyInstanceUid, dicomDataset, cancellationToken);
     }
 }

@@ -20,4 +20,8 @@ public class ServicesConfiguration
     public InstanceMetadataCacheConfiguration InstanceMetadataCacheConfiguration { get; } = new InstanceMetadataCacheConfiguration();
 
     public FramesRangeCacheConfiguration FramesRangeCacheConfiguration { get; } = new FramesRangeCacheConfiguration();
+
+    public FrameRangeMigrationConfiguration FramRangeBlobConfiguration { get; } = new FrameRangeMigrationConfiguration();
+
+    public UpdateConfiguration UpdateServiceSettings { get; } = new UpdateConfiguration();
 }

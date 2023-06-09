@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
@@ -24,6 +25,20 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Controllers;
 
 public class OperationsControllerTests
 {
+    private readonly IMediator _mediator = Substitute.For<IMediator>();
+    private readonly IUrlResolver _urlResolver = Substitute.For<IUrlResolver>();
+    private readonly IApiVersioningFeature _apiVersion = Substitute.For<IApiVersioningFeature>();
+    private readonly OperationsController _controller;
+
+    public OperationsControllerTests()
+    {
+        _apiVersion.RequestedApiVersion.Returns(new ApiVersion(1, 0));
+
+        _controller = new OperationsController(_mediator, _urlResolver, NullLogger<OperationsController>.Instance);
+        _controller.ControllerContext.HttpContext = new DefaultHttpContext();
+        _controller.HttpContext.Features.Set(_apiVersion);
+    }
+
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
@@ -49,24 +64,20 @@ public class OperationsControllerTests
     public async Task GivenNullState_WhenGettingState_ThenReturnNotFound()
     {
         Guid id = Guid.NewGuid();
-        IMediator mediator = Substitute.For<IMediator>();
-        IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
-        var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
-        controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
-        mediator
+        _mediator
             .Send(
                 Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-                Arg.Is(controller.HttpContext.RequestAborted))
+                Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns((OperationStateResponse)null);
 
-        Assert.IsType<NotFoundResult>(await controller.GetStateAsync(id));
-        Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
+        Assert.IsType<NotFoundResult>(await _controller.GetStateAsync(id));
+        Assert.False(_controller.Response.Headers.ContainsKey(HeaderNames.Location));
 
-        await mediator.Received(1).Send(
+        await _mediator.Received(1).Send(
             Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-            Arg.Is(controller.HttpContext.RequestAborted));
-        urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
+            Arg.Is(_controller.HttpContext.RequestAborted));
+        _urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
     }
 
     [Theory]
@@ -76,10 +87,6 @@ public class OperationsControllerTests
     {
         Guid id = Guid.NewGuid();
         string statusUrl = "https://dicom.contoso.io/unit/test/Operations/" + id;
-        IMediator mediator = Substitute.For<IMediator>();
-        IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
-        var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
-        controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         var expected = new OperationState<DicomOperation>
         {
@@ -92,16 +99,16 @@ public class OperationsControllerTests
             Type = DicomOperation.Reindex,
         };
 
-        mediator
+        _mediator
             .Send(
                 Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-                Arg.Is(controller.HttpContext.RequestAborted))
+                Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new OperationStateResponse(expected));
-        urlResolver.ResolveOperationStatusUri(id).Returns(new Uri(statusUrl, UriKind.Absolute));
+        _urlResolver.ResolveOperationStatusUri(id).Returns(new Uri(statusUrl, UriKind.Absolute));
 
-        IActionResult response = await controller.GetStateAsync(id);
+        IActionResult response = await _controller.GetStateAsync(id);
         Assert.IsType<ObjectResult>(response);
-        Assert.True(controller.Response.Headers.TryGetValue(HeaderNames.Location, out StringValues headerValue));
+        Assert.True(_controller.Response.Headers.TryGetValue(HeaderNames.Location, out StringValues headerValue));
         Assert.Single(headerValue);
 
         var actual = response as ObjectResult;
@@ -109,10 +116,10 @@ public class OperationsControllerTests
         Assert.Same(expected, actual.Value);
         Assert.Equal(statusUrl, headerValue[0]);
 
-        await mediator.Received(1).Send(
+        await _mediator.Received(1).Send(
             Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-            Arg.Is(controller.HttpContext.RequestAborted));
-        urlResolver.Received(1).ResolveOperationStatusUri(id);
+            Arg.Is(_controller.HttpContext.RequestAborted));
+        _urlResolver.Received(1).ResolveOperationStatusUri(id);
     }
 
     [Theory]
@@ -122,10 +129,6 @@ public class OperationsControllerTests
     public async Task GivenDoneState_WhenGettingState_ThenReturnOk(OperationStatus doneStatus)
     {
         Guid id = Guid.NewGuid();
-        IMediator mediator = Substitute.For<IMediator>();
-        IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
-        var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
-        controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         var expected = new OperationState<DicomOperation>
         {
@@ -138,35 +141,39 @@ public class OperationsControllerTests
             Type = DicomOperation.Reindex,
         };
 
-        mediator
+        _mediator
             .Send(
                 Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-                Arg.Is(controller.HttpContext.RequestAborted))
+                Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new OperationStateResponse(expected));
 
-        IActionResult response = await controller.GetStateAsync(id);
+        IActionResult response = await _controller.GetStateAsync(id);
         Assert.IsType<ObjectResult>(response);
-        Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
+        Assert.False(_controller.Response.Headers.ContainsKey(HeaderNames.Location));
 
         var actual = response as ObjectResult;
         Assert.Equal((int)HttpStatusCode.OK, actual.StatusCode);
         Assert.Same(expected, actual.Value);
 
-        await mediator.Received(1).Send(
+        await _mediator.Received(1).Send(
             Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-            Arg.Is(controller.HttpContext.RequestAborted));
-        urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
+            Arg.Is(_controller.HttpContext.RequestAborted));
+        _urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
     }
 
-    [Fact]
-    public async Task GivenSucceededState_WhenGettingState_ThenReturnCompleted()
+    [Theory]
+#pragma warning disable CS0618 // Type or member is obsolete
+    [InlineData(null, OperationStatus.Completed)]
+    [InlineData(1, OperationStatus.Completed)]
+#pragma warning restore CS0618 // Type or member is obsolete
+    [InlineData(2, OperationStatus.Succeeded)]
+    [InlineData(3, OperationStatus.Succeeded)]
+    public async Task GivenSucceededState_WhenGettingState_ThenReturnProperDoneStatus(int? apiVersion, OperationStatus expectedStatus)
     {
         Guid id = Guid.NewGuid();
         DateTime utcNow = DateTime.UtcNow;
-        IMediator mediator = Substitute.For<IMediator>();
-        IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
-        var controller = new OperationsController(mediator, urlResolver, NullLogger<OperationsController>.Instance);
-        controller.ControllerContext.HttpContext = new DefaultHttpContext();
+
+        _apiVersion.RequestedApiVersion.Returns(apiVersion.HasValue ? new ApiVersion(apiVersion.GetValueOrDefault(), 0) : null);
 
         var expected = new OperationState<DicomOperation, object>
         {
@@ -176,19 +183,19 @@ public class OperationsControllerTests
             PercentComplete = 100,
             Resources = new Uri[] { new Uri("https://dicom.contoso.io/unit/test/extendedquerytags/00101010", UriKind.Absolute) },
             Results = new object(),
-            Status = OperationStatus.Succeeded,
+            Status = expectedStatus,
             Type = DicomOperation.Reindex,
         };
 
-        mediator
+        _mediator
             .Send(
                 Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-                Arg.Is(controller.HttpContext.RequestAborted))
+                Arg.Is(_controller.HttpContext.RequestAborted))
             .Returns(new OperationStateResponse(expected));
 
-        IActionResult response = await controller.GetStateAsync(id);
+        IActionResult response = await _controller.GetStateAsync(id);
         Assert.IsType<ObjectResult>(response);
-        Assert.False(controller.Response.Headers.ContainsKey(HeaderNames.Location));
+        Assert.False(_controller.Response.Headers.ContainsKey(HeaderNames.Location));
 
         var objectResult = response as ObjectResult;
         Assert.Equal((int)HttpStatusCode.OK, objectResult.StatusCode);
@@ -200,14 +207,12 @@ public class OperationsControllerTests
         Assert.Equal(expected.PercentComplete, actual.PercentComplete);
         Assert.Same(expected.Resources, actual.Resources);
         Assert.Same(expected.Results, actual.Results);
-#pragma warning disable CS0618
-        Assert.Equal(OperationStatus.Completed, actual.Status);
-#pragma warning restore CS0618
+        Assert.Equal(expectedStatus, actual.Status);
         Assert.Equal(expected.Type, actual.Type);
 
-        await mediator.Received(1).Send(
+        await _mediator.Received(1).Send(
             Arg.Is<OperationStateRequest>(x => x.OperationId == id),
-            Arg.Is(controller.HttpContext.RequestAborted));
-        urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
+            Arg.Is(_controller.HttpContext.RequestAborted));
+        _urlResolver.DidNotReceiveWithAnyArgs().ResolveOperationStatusUri(default);
     }
 }

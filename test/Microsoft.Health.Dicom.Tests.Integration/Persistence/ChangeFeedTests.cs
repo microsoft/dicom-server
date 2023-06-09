@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -20,6 +21,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 
+[Collection("Change Feed Collection")]
 public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 {
     private readonly ChangeFeedTestsFixture _fixture;
@@ -33,31 +35,61 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
     public async Task GivenInstance_WhenAddedAndDeletedAndAdded_ChangeFeedEntryAvailable()
     {
         // create and validate
-        var dicomInstanceIdentifier = await CreateInstance();
-        await ValidateInsertFeed(dicomInstanceIdentifier, 1);
+        var dicomInstanceIdentifier = await CreateInstanceAsync();
+        await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1);
 
         // delete and validate
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
-        await ValidateDeleteFeed(dicomInstanceIdentifier, 2);
+        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
 
         // re-create the same instance and validate
-        await CreateInstance(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
-        await ValidateInsertFeed(dicomInstanceIdentifier, 3);
+        await CreateInstanceAsync(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
+        await ValidateInsertFeedAsync(dicomInstanceIdentifier, 3);
     }
 
     [Fact]
     public async Task GivenCreatingInstance_WhenDeleted_ValidateNoChangeFeedRecord()
     {
         // create and validate
-        var dicomInstanceIdentifier = await CreateInstance(instanceFullyCreated: false);
-        await ValidateNoChangeFeed(dicomInstanceIdentifier);
+        var dicomInstanceIdentifier = await CreateInstanceAsync(instanceFullyCreated: false);
+        await ValidateNoChangeFeedAsync(dicomInstanceIdentifier);
 
         // delete and validate
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
-        await ValidateNoChangeFeed(dicomInstanceIdentifier);
+        await ValidateNoChangeFeedAsync(dicomInstanceIdentifier);
     }
 
-    private async Task ValidateInsertFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+    [Fact]
+    public async Task GivenRecords_WhenQueryWithWindows_ThenScopeResults()
+    {
+        // Insert data over time
+        DateTimeOffset start = DateTimeOffset.UtcNow;
+        VersionedInstanceIdentifier instance1 = await CreateInstanceAsync();
+        await Task.Delay(1000);
+        VersionedInstanceIdentifier instance2 = await CreateInstanceAsync();
+        VersionedInstanceIdentifier instance3 = await CreateInstanceAsync();
+
+        // Get all creation events
+        var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
+        IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(testRange, 0, 10, ChangeFeedOrder.Time);
+        Assert.Equal(3, changes.Count);
+        Assert.Equal(instance1.Version, changes[0].CurrentVersion);
+        Assert.Equal(instance2.Version, changes[1].CurrentVersion);
+        Assert.Equal(instance3.Version, changes[2].CurrentVersion);
+
+        // Fetch changes outside of the range
+        IReadOnlyList<ChangeFeedEntry> existingEvents = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.Before(changes[0].Timestamp), 0, 100, ChangeFeedOrder.Time);
+        Assert.DoesNotContain(existingEvents, x => changes.Any(y => y.Sequence == x.Sequence));
+
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[1].Timestamp), 2, 100, ChangeFeedOrder.Time));
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(changes[2].Timestamp.AddMilliseconds(1)), 0, 100, ChangeFeedOrder.Time));
+
+        // Fetch changes limited to window
+        await ValidateSubsetAsync(testRange, changes[0], changes[1], changes[2]);
+        await ValidateSubsetAsync(new TimeRange(changes[0].Timestamp, changes[2].Timestamp), changes[0], changes[1]);
+    }
+
+    private async Task ValidateInsertFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
     {
         IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
             dicomInstanceIdentifier.StudyInstanceUid,
@@ -78,7 +110,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         }
     }
 
-    private async Task ValidateDeleteFeed(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+    private async Task ValidateDeleteFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
     {
         IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
             dicomInstanceIdentifier.StudyInstanceUid,
@@ -95,7 +127,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         }
     }
 
-    private async Task ValidateNoChangeFeed(VersionedInstanceIdentifier dicomInstanceIdentifier)
+    private async Task ValidateNoChangeFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier)
     {
         IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
             dicomInstanceIdentifier.StudyInstanceUid,
@@ -106,7 +138,20 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         Assert.Equal(0, result.Count);
     }
 
-    private async Task<VersionedInstanceIdentifier> CreateInstance(
+    private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)
+    {
+        for (int i = 0; i < expected.Length; i++)
+        {
+            IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, i, 1, ChangeFeedOrder.Time);
+
+            Assert.Single(changes);
+            Assert.Equal(expected[i].Sequence, changes.Single().Sequence);
+        }
+
+        Assert.Empty(await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(range, expected.Length, 1, ChangeFeedOrder.Time));
+    }
+
+    private async Task<VersionedInstanceIdentifier> CreateInstanceAsync(
         bool instanceFullyCreated = true,
         string studyInstanceUid = null,
         string seriesInstanceUid = null,

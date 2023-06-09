@@ -11,14 +11,14 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.2.55</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>6.2.101</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.3.0</Hl7FhirPackageVersion>
-    <IdentityModelTokenPackageVersion>6.27.0</IdentityModelTokenPackageVersion>
+    <IdentityModelTokenPackageVersion>6.31.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <OpenTelemetryVersion>1.4.0</OpenTelemetryVersion>
+    <OpenTelemetryVersion>1.5.0</OpenTelemetryVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -38,11 +38,13 @@
   <Choose>
     <When Condition="'$(TargetFramework)' == '$(LtsVersion)'">
       <PropertyGroup>
+        <DependencyInjectionVersion>6.0.1</DependencyInjectionVersion>
         <SdkPackageVersion>6.0.0</SdkPackageVersion>
       </PropertyGroup>
     </When>
     <Otherwise>
       <PropertyGroup>
+        <DependencyInjectionVersion>7.0.0</DependencyInjectionVersion>
         <SdkPackageVersion>7.0.0</SdkPackageVersion>
       </PropertyGroup>
     </Otherwise>

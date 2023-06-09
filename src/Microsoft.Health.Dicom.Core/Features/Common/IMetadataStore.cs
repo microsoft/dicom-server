@@ -31,52 +31,72 @@ public interface IMetadataStore
     /// <summary>
     /// Asynchronously gets a DICOM instance metadata.
     /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="version">The DICOM instance version.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get operation.</returns>
     Task<DicomDataset> GetInstanceMetadataAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        long version,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes a DICOM instance metadata.
     /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="version">The DICOM instance version.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteInstanceMetadataIfExistsAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        long version,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Async store Frames range metadata
     /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="version">The DICOM instance version.</param>
     /// <param name="framesRange">Dictionary of frame id and byte range</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the async add of frame metadata</returns>
     Task StoreInstanceFramesRangeAsync(
-            VersionedInstanceIdentifier versionedInstanceIdentifier,
+            long version,
             IReadOnlyDictionary<int, FrameRange> framesRange,
             CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Async get Frames range metadata
     /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="version">The DICOM instance version.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Dictionary of frame id and byte range</returns>
     Task<IReadOnlyDictionary<int, FrameRange>> GetInstanceFramesRangeAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        long version,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes a DICOM instance frameRange metadata.
     /// </summary>
-    /// <param name="versionedInstanceIdentifier">The DICOM instance identifier.</param>
+    /// <param name="version">The DICOM instance version.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteInstanceFramesRangeAsync(
-        VersionedInstanceIdentifier versionedInstanceIdentifier,
+        long version,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously copies instance frame range file.
+    /// </summary>
+    /// <param name="version">The DICOM instance version.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous copy operation.</returns>
+    Task CopyInstanceFramesRangeAsync(
+        long version,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously deletes a DICOM instance frame range file.
+    /// </summary>
+    /// <param name="version">The DICOM instance version.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the asynchronous delete operation.</returns>
+    Task DeleteMigratedFramesRangeIfExistsAsync(
+        long version,
         CancellationToken cancellationToken = default);
 }

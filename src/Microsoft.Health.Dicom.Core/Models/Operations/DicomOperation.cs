@@ -23,5 +23,16 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an export operation that copies data out of the DICOM server and into an external data store.
     /// </summary>
-    Export
+    Export,
+
+    /// <summary>
+    /// Specifies an migrate files operation that copies frame range file from one format to another.
+    /// </summary>
+    [IgnoreEnum]
+    Migrate,
+
+    /// <summary>
+    /// Specifies an update operation that updates the Dicom attributes.
+    /// </summary>
+    Update
 }

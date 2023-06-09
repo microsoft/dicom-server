@@ -102,24 +102,28 @@ public class OperationsController : ControllerBase
             statusCode = HttpStatusCode.OK;
         }
 
-        return StatusCode((int)statusCode, GetV1State(state));
+        return StatusCode((int)statusCode, UpdateOperationState(state));
     }
 
-    // TODO #94762: After v1, we can use Succeeded instead of Completed
-    private static IOperationState<DicomOperation> GetV1State(IOperationState<DicomOperation> operationState)
+    private IOperationState<DicomOperation> UpdateOperationState(IOperationState<DicomOperation> operationState)
+    {
+        int version = HttpContext.GetMajorRequestedApiVersion();
+
+        if (version > 1 || operationState.Status != OperationStatus.Succeeded)
+            return operationState;
+
 #pragma warning disable CS0618
-        => operationState.Status == OperationStatus.Succeeded
-            ? new OperationState<DicomOperation, object>
-            {
-                CreatedTime = operationState.CreatedTime,
-                LastUpdatedTime = operationState.LastUpdatedTime,
-                OperationId = operationState.OperationId,
-                PercentComplete = operationState.PercentComplete,
-                Resources = operationState.Resources,
-                Results = operationState.Results,
-                Status = OperationStatus.Completed,
-                Type = operationState.Type,
-            }
-            : operationState;
+        return new OperationState<DicomOperation, object>
+        {
+            CreatedTime = operationState.CreatedTime,
+            LastUpdatedTime = operationState.LastUpdatedTime,
+            OperationId = operationState.OperationId,
+            PercentComplete = operationState.PercentComplete,
+            Resources = operationState.Resources,
+            Results = operationState.Results,
+            Status = OperationStatus.Completed,
+            Type = operationState.Type,
+        };
 #pragma warning restore CS0618
+    }
 }

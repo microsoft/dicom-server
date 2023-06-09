@@ -214,6 +214,42 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error was encountered when attempting to convert the dicom file into an image.
+        /// </summary>
+        internal static string DicomImageConversionFailed {
+            get {
+                return ResourceManager.GetString("DicomImageConversionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dicom update feature is disabled..
+        /// </summary>
+        internal static string DicomUpdateFeatureDisabled {
+            get {
+                return ResourceManager.GetString("DicomUpdateFeatureDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StudyInstanceUids count exceeded maximum length &apos;{0}&apos;.
+        /// </summary>
+        internal static string DicomUpdateStudyInstanceUidsExceedMaxCount {
+            get {
+                return ResourceManager.GetString("DicomUpdateStudyInstanceUidsExceedMaxCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating the tag is not supported.
+        /// </summary>
+        internal static string DicomUpdateTagValidationFailed {
+            get {
+                return ResourceManager.GetString("DicomUpdateTagValidationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: cannot specify attribute &apos;SeriesInstanceUID&apos; for the given resource..
         /// </summary>
         internal static string DisallowedSeriesInstanceUIDAttribute {
@@ -413,11 +449,11 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There is already an active re-index operation with ID &apos;{0}&apos;..
+        ///   Looks up a localized string similar to There is already an active {0} operation with ID &apos;{1}&apos;..
         /// </summary>
-        internal static string ExistingReindexOperation {
+        internal static string ExistingOperation {
             get {
-                return ResourceManager.GetString("ExistingReindexOperation", resourceCulture);
+                return ResourceManager.GetString("ExistingOperation", resourceCulture);
             }
         }
         
@@ -463,6 +499,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string ExtendedQueryTagsOutOfDate {
             get {
                 return ResourceManager.GetString("ExtendedQueryTagsOutOfDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}.
+        /// </summary>
+        internal static string ExternalDataStoreOperationFailed {
+            get {
+                return ResourceManager.GetString("ExternalDataStoreOperationFailed", resourceCulture);
             }
         }
         
@@ -636,6 +681,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string InvalidFuzzyMatchValue {
             get {
                 return ResourceManager.GetString("InvalidFuzzyMatchValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image quality must be between 1 and 100 inclusive.
+        /// </summary>
+        internal static string InvalidImageQuality {
+            get {
+                return ResourceManager.GetString("InvalidImageQuality", resourceCulture);
             }
         }
         
@@ -886,6 +940,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The required field &apos;{0}&apos; is missing or empty..
+        /// </summary>
+        internal static string MissingRequiredField {
+            get {
+                return ResourceManager.GetString("MissingRequiredField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The required tag &apos;{0}&apos; is missing..
         /// </summary>
         internal static string MissingRequiredTag {
@@ -913,6 +976,15 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
+        /// </summary>
+        internal static string MultipleAcceptHeadersNotSupported {
+            get {
+                return ResourceManager.GetString("MultipleAcceptHeadersNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nested Dicom sequence tags are currently not supported..
         /// </summary>
         internal static string NestedSequencesNotSupported {
@@ -927,15 +999,6 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string NotAcceptableHeaders {
             get {
                 return ResourceManager.GetString("NotAcceptableHeaders", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The request contains multiple accept headers, which is not supported..
-        /// </summary>
-        internal static string NotSupportMultipleAcceptHeaders {
-            get {
-                return ResourceManager.GetString("NotSupportMultipleAcceptHeaders", resourceCulture);
             }
         }
         
@@ -1026,6 +1089,15 @@ namespace Microsoft.Health.Dicom.Core {
         internal static string QueryTagAlreadySupported {
             get {
                 return ResourceManager.GetString("QueryTagAlreadySupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requested DICOM instance size is above the supported limit of {0} for rendering. Please retrieve the whole file in the original transfer syntax instead of rendering to image media type..
+        /// </summary>
+        internal static string RenderFileTooLarge {
+            get {
+                return ResourceManager.GetString("RenderFileTooLarge", resourceCulture);
             }
         }
         

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ public interface IFramesRangeCache
 {
     public Task<IReadOnlyDictionary<int, FrameRange>> GetAsync(
        object key,
-       VersionedInstanceIdentifier input,
-       Func<VersionedInstanceIdentifier, CancellationToken, Task<IReadOnlyDictionary<int, FrameRange>>> asyncFactory,
+       long input,
+       Func<long, CancellationToken, Task<IReadOnlyDictionary<int, FrameRange>>> asyncFactory,
        CancellationToken cancellationToken = default);
 }

@@ -34,6 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Health.Dicom.Core\Microsoft.Health.Dicom.Core.csproj" />
     <ProjectReference Include="..\Microsoft.Health.Dicom.Functions.Abstractions\Microsoft.Health.Dicom.Functions.Abstractions.csproj" />
+    <ProjectReference Include="..\Microsoft.Health.Dicom.WebUtilities\Microsoft.Health.Dicom.WebUtilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

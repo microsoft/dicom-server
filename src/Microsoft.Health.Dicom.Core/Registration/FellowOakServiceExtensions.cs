@@ -1,11 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
+using FellowOakDicom.Imaging;
 using FellowOakDicom.Imaging.NativeCodec;
-using Microsoft.Health.Dicom.Core.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +23,7 @@ internal static class FellowOakServiceExtensions
         services
             .AddFellowOakDicom()
             .AddTranscoderManager<NativeTranscoderManager>()
-            .AddLogManager<FellowOakDecoratorLogManager>();
+            .AddImageManager<ImageSharpImageManager>();
 
         return services;
     }

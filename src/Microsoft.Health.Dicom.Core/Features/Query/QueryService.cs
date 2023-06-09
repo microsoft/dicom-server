@@ -138,7 +138,7 @@ public class QueryService : IQueryService
         if (getFullMetadata)
         {
             instanceMetadata = await Task.WhenAll(
-                queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x, cancellationToken)));
+                queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x.Version, cancellationToken)));
         }
         if (getSeriesResponse)
         {

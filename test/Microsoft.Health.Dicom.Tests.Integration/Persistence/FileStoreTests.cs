@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
 using Xunit;
 
@@ -34,17 +32,17 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
     [Fact]
     public async Task GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted()
     {
-        VersionedInstanceIdentifier instanceIdentifier = GenerateIdentifier();
+        var version = _getNextWatermark();
 
         var fileData = new byte[] { 4, 7, 2 };
 
         // Store the file.
-        Uri fileLocation = await AddFileAsync(instanceIdentifier, fileData, $"{nameof(GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
+        Uri fileLocation = await AddFileAsync(version, fileData, $"{nameof(GivenAValidFileStream_WhenStored_ThenItCanBeRetrievedAndDeleted)}.fileData");
 
         Assert.NotNull(fileLocation);
 
         // Should be able to retrieve.
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(instanceIdentifier))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
             Assert.Equal(
                 fileData,
@@ -52,51 +50,47 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
 
         // Should be able to delete.
-        await _blobDataStore.DeleteFileIfExistsAsync(instanceIdentifier);
+        await _blobDataStore.DeleteFileIfExistsAsync(version);
 
         // The file should no longer exists.
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(instanceIdentifier));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version));
     }
 
     [Fact]
     public async Task GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten()
     {
-        VersionedInstanceIdentifier instanceIdentifier = GenerateIdentifier();
+        var version = _getNextWatermark();
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        Uri fileLocation1 = await AddFileAsync(instanceIdentifier, fileData1, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData1");
+        Uri fileLocation1 = await AddFileAsync(version, fileData1, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData1");
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
-        Uri fileLocation2 = await AddFileAsync(instanceIdentifier, fileData2, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData2");
+        Uri fileLocation2 = await AddFileAsync(version, fileData2, $"{nameof(GivenFileAlreadyExists_WhenStored_ThenExistingFileWillBeOverwritten)}.fileData2");
 
         Assert.Equal(fileLocation1, fileLocation2);
 
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(instanceIdentifier))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
         {
             Assert.Equal(
                 fileData2,
                 await ConvertStreamToByteArrayAsync(resultStream));
         }
 
-        await _blobDataStore.DeleteFileIfExistsAsync(instanceIdentifier);
+        await _blobDataStore.DeleteFileIfExistsAsync(version);
     }
 
     [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenItemNotFoundExceptionShouldBeThrown()
     {
-        VersionedInstanceIdentifier instanceIdentifier = GenerateIdentifier();
-
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(instanceIdentifier));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(_getNextWatermark()));
     }
 
     [Fact]
     public async Task GivenANonExistentFile_WhenDeleting_ThenItShouldNotThrowException()
     {
-        VersionedInstanceIdentifier instanceIdentifier = GenerateIdentifier();
-
-        await _blobDataStore.DeleteFileIfExistsAsync(instanceIdentifier);
+        await _blobDataStore.DeleteFileIfExistsAsync(_getNextWatermark());
     }
 
     private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
@@ -108,18 +102,11 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
     }
 
-    private VersionedInstanceIdentifier GenerateIdentifier()
-        => new VersionedInstanceIdentifier(
-            studyInstanceUid: TestUidGenerator.Generate(),
-            seriesInstanceUid: TestUidGenerator.Generate(),
-            sopInstanceUid: TestUidGenerator.Generate(),
-            _getNextWatermark());
-
-    private async Task<Uri> AddFileAsync(VersionedInstanceIdentifier versionedInstanceIdentifier, byte[] bytes, string tag, CancellationToken cancellationToken = default)
+    private async Task<Uri> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileAsync(versionedInstanceIdentifier, stream, cancellationToken);
+            return await _blobDataStore.StoreFileAsync(version, stream, cancellationToken);
         }
     }
 }

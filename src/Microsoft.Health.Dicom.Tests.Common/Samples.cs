@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,10 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 
 namespace Microsoft.Health.Dicom.Tests.Common;
@@ -141,14 +143,15 @@ public static class Samples
     }
 
     public static DicomFile CreateRandomDicomFileWithPixelData(
-    string studyInstanceUid = null,
-    string seriesInstanceUid = null,
-    string sopInstanceUid = null,
-    int rows = 50,
-    int columns = 50,
-    int frames = 1)
+        string studyInstanceUid = null,
+        string seriesInstanceUid = null,
+        string sopInstanceUid = null,
+        int rows = 50,
+        int columns = 50,
+        int frames = 1,
+        DicomTransferSyntax dicomTransferSyntax = null)
     {
-        var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+        var result = new DicomFile(CreateRandomInstanceDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid, dicomTransferSyntax: dicomTransferSyntax));
         AppendRandomPixelData(rows, columns, frames, result);
         return result;
     }
@@ -205,6 +208,7 @@ public static class Samples
         ds.Add(DicomTag.BitsAllocated, (ushort)8);
         ds.Add(DicomTag.PhotometricInterpretation, PhotometricInterpretation.Monochrome2.Value);
         ds.Add(DicomTag.PatientID, patientId ?? TestUidGenerator.Generate());
+        ds.Add(DicomTag.PatientName, TestUidGenerator.Generate());
         return ds;
     }
 
@@ -355,6 +359,16 @@ public static class Samples
         });
 
         return dataset;
+    }
+
+    public static (DicomUID classUID, string versionName) GetDicomImplemenationClasUIDAndVersionName()
+    {
+        Assembly assembly = typeof(CustomDicomImplementation).GetTypeInfo().Assembly;
+        AssemblyFileVersionAttribute fileVersionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+        string expectedVersion = fileVersionAttribute?.Version ?? "Unknown";
+        var classUID = new DicomUID("1.3.6.1.4.1.311.129", "Implementation Class UID", DicomUidType.Unknown);
+
+        return (classUID, expectedVersion);
     }
 
     private static IByteBuffer CreateRandomPixelData(int pixelDataSize)

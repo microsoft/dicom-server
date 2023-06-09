@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using EnsureThat;
 using Microsoft.Health.Dicom.Blob.Utilities;
-using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -13,22 +11,29 @@ public class DicomFileNameWithPrefix : IDicomFileNameBuilder
 {
     public const int MaxPrefixLength = 3;
 
-    public string GetInstanceFileName(VersionedInstanceIdentifier instanceIdentifier)
+    public string GetInstanceFileName(long version)
     {
-        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-
-        return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}.dcm";
+        return $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}.dcm";
     }
 
-    public string GetMetadataFileName(VersionedInstanceIdentifier instanceIdentifier)
+    public string GetMetadataFileName(long version)
     {
-        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_metadata.json";
+        return $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}_metadata.json";
     }
 
-    public static string GetInstanceFramesRangeFileName(VersionedInstanceIdentifier instanceIdentifier)
+    public string GetInstanceFramesRangeFileName(long version)
     {
-        EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
-        return $"{HashingHelper.ComputeXXHash(instanceIdentifier.Version, MaxPrefixLength)}_{instanceIdentifier.Version}_frames_range.json";
+        return $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_{version}_frames_range.json";
+    }
+
+    /// <summary>
+    /// This method is used for the fallback logic to get the blob file with space in between
+    /// that was introduced in a recent regression.
+    /// </summary>
+    /// <param name="version"></param>
+    /// <returns></returns>
+    public string GetInstanceFramesRangeFileNameWithSpace(long version)
+    {
+        return $"{HashingHelper.ComputeXXHash(version, MaxPrefixLength)}_ {version}_frames_range.json";
     }
 }

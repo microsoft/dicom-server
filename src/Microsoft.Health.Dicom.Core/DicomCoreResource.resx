@@ -262,7 +262,7 @@ The first part date {1} should be lesser than or equal to the second part date {
   <data name="ErrorMessageDateIsInvalid" xml:space="preserve">
     <value>Value cannot be parsed as a valid date.</value>
   </data>
-  <data name="NotSupportMultipleAcceptHeaders" xml:space="preserve">
+  <data name="MultipleAcceptHeadersNotSupported" xml:space="preserve">
     <value>The request contains multiple accept headers, which is not supported.</value>
   </data>
   <data name="DuplicateExtendedQueryTag" xml:space="preserve">
@@ -462,6 +462,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="DataPartitionFeatureCannotBeDisabled" xml:space="preserve">
     <value>Data partitions feature cannot be disabled while existing data has already been partitioned.</value>
   </data>
+  <data name="DicomUpdateFeatureDisabled" xml:space="preserve">
+    <value>Dicom update feature is disabled.</value>
+  </data>
   <data name="ImplicitVRNotAllowed" xml:space="preserve">
     <value>Implicit VR is not allowed.</value>
   </data>
@@ -611,9 +614,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="InvalidWorkitemInstanceTargetUri" xml:space="preserve">
     <value>The target URI did not reference a claimed Workitem.</value>
   </data>
-  <data name="ExistingReindexOperation" xml:space="preserve">
-    <value>There is already an active re-index operation with ID '{0}'.</value>
-    <comment>{0} Operation ID</comment>
+  <data name="ExistingOperation" xml:space="preserve">
+    <value>There is already an active {0} operation with ID '{1}'.</value>
+    <comment>{0} Operation type. {1} Operation ID</comment>
   </data>
   <data name="UpdateWorkitemInstanceConflictFailure" xml:space="preserve">
     <value>The submitted request is inconsistent with the current state of the Workitem.</value>
@@ -639,5 +642,29 @@ For details on valid range queries, please refer to Search Matching section in C
   </data>
   <data name="ErrorMessageFormat" xml:space="preserve">
     <value>DICOM{0}: {1} - {2}</value>
+  </data>
+  <data name="DicomImageConversionFailed" xml:space="preserve">
+    <value>An error was encountered when attempting to convert the dicom file into an image</value>
+  </data>
+  <data name="RenderFileTooLarge" xml:space="preserve">
+    <value>Requested DICOM instance size is above the supported limit of {0} for rendering. Please retrieve the whole file in the original transfer syntax instead of rendering to image media type.</value>
+    <comment>{0} bytes representing the support max file size</comment>
+  </data>
+  <data name="DicomUpdateTagValidationFailed" xml:space="preserve">
+    <value>Updating the tag is not supported</value>
+  </data>
+  <data name="MissingRequiredField" xml:space="preserve">
+    <value>The required field '{0}' is missing or empty.</value>
+    <comment>{0} is the required field in input. E.g., StudyInstanceUIDs.</comment>
+  </data>
+  <data name="DicomUpdateStudyInstanceUidsExceedMaxCount" xml:space="preserve">
+    <value>StudyInstanceUids count exceeded maximum length '{0}'</value>
+    <comment>{0} StudyInstanceUids max allowed count</comment>
+  </data>
+  <data name="InvalidImageQuality" xml:space="preserve">
+    <value>Image quality must be between 1 and 100 inclusive</value>
+  </data>
+  <data name="ExternalDataStoreOperationFailed" xml:space="preserve">
+    <value>Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
   </data>
 </root>

@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -86,6 +87,11 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<RetrieveRenderedService>()
+            .Scoped()
+            .AsSelf()
+            .AsImplementedInterfaces();
+
         services.Add<FrameHandler>()
             .Transient()
             .AsSelf()
@@ -139,6 +145,16 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
+        services.Add<UpdateInstanceOperationService>()
+           .Scoped()
+           .AsSelf()
+           .AsImplementedInterfaces();
+
+        services.Add<UpdateInstanceService>()
+           .Scoped()
+           .AsSelf()
+           .AsImplementedInterfaces();
+
         services.AddSingleton<IGuidFactory>(GuidFactory.Default);
 
         services.AddScoped<IDicomOperationsResourceStore, DicomOperationsResourceStore>();
@@ -163,6 +179,8 @@ public class ServiceModule : IStartupModule
             .Singleton()
             .AsSelf()
             .AsImplementedInterfaces();
+
+        services.TryAddSingleton<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
 
         services.AddSingleton<DeleteMeter>();
         services.AddSingleton<RetrieveMeter>();
@@ -266,7 +284,6 @@ public class ServiceModule : IStartupModule
         services.AddScoped<IExportService, ExportService>();
         services.AddScoped<ExportSourceFactory>();
         services.AddScoped<ExportSinkFactory>();
-        services.TryAddScoped<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IExportSourceProvider, IdentifierExportSourceProvider>());
     }
 }

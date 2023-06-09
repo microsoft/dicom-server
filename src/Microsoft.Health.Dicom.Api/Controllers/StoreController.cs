@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -10,15 +11,21 @@ using FellowOakDicom;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
+using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Messages.Store;
+using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Core.Web;
+using Microsoft.Health.Operations;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
 namespace Microsoft.Health.Dicom.Api.Controllers;
@@ -30,14 +37,19 @@ public class StoreController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<StoreController> _logger;
+    private readonly bool _dicomUpdateEnabled;
+    private readonly bool _dataPartitionsEnabled;
 
-    public StoreController(IMediator mediator, ILogger<StoreController> logger)
+    public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
         _mediator = mediator;
         _logger = logger;
+        _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
+        _dataPartitionsEnabled = featureConfiguration.Value.EnableDataPartitions;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -76,6 +88,27 @@ public class StoreController : ControllerBase
     public async Task<IActionResult> PostInstanceInStudyAsync(string studyInstanceUid)
     {
         return await PostAsync(studyInstanceUid);
+    }
+
+    [HttpPost]
+    [Consumes(KnownContentTypes.ApplicationJson)]
+    [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
+    [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.BadRequest)]
+    [VersionedPartitionRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.PartitionedUpdateInstance)]
+    [VersionedRoute(KnownRoutes.UpdateInstanceRoute, Name = KnownRouteNames.UpdateInstance)]
+    [AuditEventType(AuditEventSubType.UpdateStudy)]
+    public async Task<IActionResult> UpdateAsync([FromBody][Required] UpdateSpecification updateSpecification)
+    {
+        if (!_dicomUpdateEnabled && !_dataPartitionsEnabled)
+        {
+            throw new DicomUpdateFeatureDisabledException();
+        }
+        UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);
+        if (response.FailedDataset != null)
+        {
+            return StatusCode((int)HttpStatusCode.BadRequest, response.FailedDataset);
+        }
+        return StatusCode((int)HttpStatusCode.Accepted, response.Operation);
     }
 
     private async Task<IActionResult> PostAsync(string studyInstanceUid)

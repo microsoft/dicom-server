@@ -19,7 +19,7 @@ public interface IAddExtendedQueryTagService
     /// <param name="extendedQueryTags">The extended query tags.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response.</returns>
-    /// <exception cref="ExistingReindexException">There is already an ongoing re-index operation.</exception>
+    /// <exception cref="ExistingOperationException">There is already an ongoing re-index operation.</exception>
     /// <exception cref="ExtendedQueryTagsAlreadyExistsException">
     /// One or more values in <paramref name="extendedQueryTags"/> has already been indexed.
     /// </exception>

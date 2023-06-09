@@ -42,6 +42,7 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new AuditHeaderTooLargeException("TestHeader", AuditConstants.MaximumLengthOfCustomHeader + 1), HttpStatusCode.BadRequest };
         yield return new object[] { new ResourceNotFoundException("Resource not found."), HttpStatusCode.NotFound };
         yield return new object[] { new TranscodingException(), HttpStatusCode.NotAcceptable };
+        yield return new object[] { new DicomImageException(), HttpStatusCode.NotAcceptable };
         yield return new object[] { new DataStoreException(new TaskCanceledException()), HttpStatusCode.BadRequest };
         yield return new object[] { new DataStoreException("Something went wrong."), HttpStatusCode.ServiceUnavailable };
         yield return new object[] { new InstanceAlreadyExistsException(), HttpStatusCode.Conflict };
@@ -56,6 +57,8 @@ public class ExceptionHandlingMiddlewareTests
         yield return new object[] { new TaskCanceledException(), HttpStatusCode.BadRequest };
         yield return new object[] { new InvalidOperationException(), HttpStatusCode.BadRequest };
         yield return new object[] { new PayloadTooLargeException(1), HttpStatusCode.RequestEntityTooLarge };
+        yield return new object[] { new DataStoreException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
+        yield return new object[] { new ItemNotFoundException(new Exception(), isExternal: true), HttpStatusCode.FailedDependency };
     }
 
     [Theory]

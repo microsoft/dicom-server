@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
+using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -214,6 +215,37 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
                 sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
                 sqlCommand.Parameters.AddWithValue("@seriesInstanceUid", seriesInstanceUid);
                 sqlCommand.Parameters.AddWithValue("@sopInstanceUid", sopInstanceUid);
+
+                using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                {
+                    while (await sqlDataReader.ReadAsync())
+                    {
+                        result.Add(new ChangeFeedRow(sqlDataReader));
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
+
+    public async Task<IReadOnlyList<ChangeFeedRow>> GetUpdatedChangeFeedRowsAsync(int limit)
+    {
+        using (var sqlConnection = new SqlConnection(_connectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            var result = new List<ChangeFeedRow>();
+
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = @$"
+                        SELECT TOP({limit}) *
+                        FROM {VLatest.ChangeFeed.TableName}
+                        WHERE {VLatest.ChangeFeed.Action} = @action
+                        ORDER BY {VLatest.ChangeFeed.Sequence}";
+
+                sqlCommand.Parameters.AddWithValue("@action", ChangeFeedAction.Update);
 
                 using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
                 {

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a291cc81-1292-4959-835a-1259a1776495",
+		"_postman_id": "2d4290a7-8227-4a7a-8913-181a2372848f",
 		"name": "Conformance-as-Postman",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "0ed3341a-b4e6-4bdb-a8cc-b9fdcb0a7fa9"
 					}
 				}
 			],
@@ -74,7 +75,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "3c48a308-2eba-455c-8e75-564b5bf5119d"
 					}
 				}
 			],
@@ -134,7 +136,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "7d495a64-8b32-48dc-90d9-2c0122d145e6"
 					}
 				}
 			],
@@ -194,7 +197,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "5631a407-6ae7-4f19-a03b-959adefdb26a"
 					}
 				}
 			],
@@ -285,7 +289,8 @@
 							"});\r",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "3f4906ad-42eb-454c-8887-ef8e808d87bb"
 					}
 				}
 			],
@@ -333,7 +338,8 @@
 							"    pm.expect(pm.response.text()).to.include(seriesid);\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "78acdc8d-4e85-4d86-b715-bfb87175fe57"
 					}
 				}
 			],
@@ -377,7 +383,8 @@
 							"    pm.response.to.have.status(200);\r",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "76147669-8206-4c96-b1b3-ae4428ddc7fb"
 					}
 				}
 			],
@@ -516,6 +523,94 @@
 					]
 				},
 				"description": "This request retrieves the metadata for a single instances within a single study and series.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/instances/{instance}/metadata\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/dicom+json`"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-rendered-image-of-a-single-instance-within-a-series",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"description": "Either application/jpeg or application/png. If unspecified default to application/jpeg",
+						"key": "Accept",
+						"type": "text",
+						"value": "application/jpeg"
+					}
+				],
+				"url": {
+					"raw": "{{optionallyPartitionedUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/rendered?quality=100",
+					"host": [
+						"{{optionallyPartitionedUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances",
+						"{{instance1}}",
+						"rendered"
+					],
+					"query": [
+						{
+							"key": "quality",
+							"value": "100",
+							"description": "Quality for jpeg request, can be 1-100 inclusive. Ignored if requesting a png"
+						}
+					]
+				},
+				"description": "This request retrieves a rendered image for a single instance within a single study and series. If there are multiple frames in the instance then the first frame is rendered as default.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/instances/{instance}/rendered\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/jpeg`\r\n  * `Accept: application/png`\r\n* Query Paramaters\r\n  * `quality: 1-100`"
+			},
+			"response": []
+		},
+		{
+			"name": "Retrieve-rendered-image-of-a-single-frame-within-a-instance",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"accept": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"description": "Either application/jpeg or application/png. If unspecified default to application/jpeg",
+						"key": "Accept",
+						"type": "text",
+						"value": "application/jpeg"
+					}
+				],
+				"url": {
+					"raw": "{{optionallyPartitionedUrl}}/studies/{{study1}}/series/{{series1}}/instances/{{instance1}}/frames/{{frame}}/rendered?quality=100",
+					"host": [
+						"{{optionallyPartitionedUrl}}"
+					],
+					"path": [
+						"studies",
+						"{{study1}}",
+						"series",
+						"{{series1}}",
+						"instances",
+						"{{instance1}}",
+						"frames",
+						"{{frame}}",
+						"rendered"
+					],
+					"query": [
+						{
+							"key": "quality",
+							"value": "100",
+							"description": "Quality for jpeg request, can be 1-100 inclusive. Ignored if requesting a png"
+						}
+					]
+				},
+				"description": "This request retrieves a rendered image for a single frame within a single instance. Only supports one frame.\r\n\r\n_Details:_\r\n* Path: ../studies/{study}/series/{series}/instances/{instance}/frames/{frame}/rendered\r\n* Method: GET\r\n* Headers:\r\n  * `Accept: application/jpeg`\r\n  * `Accept: application/png`\r\n* Query Paramaters\r\n  * `quality: 1-100`"
 			},
 			"response": []
 		},
@@ -835,7 +930,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "894f58aa-f3c1-467f-ad9d-dd580349ba99"
 					}
 				}
 			],
@@ -888,7 +984,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "1374f494-65ac-46c4-890f-2f8632988a1c"
 					}
 				}
 			],
@@ -936,7 +1033,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "e0d29d31-6a8c-40c8-8232-a0e3f5b76de3"
 					}
 				}
 			],
@@ -985,7 +1083,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "d860591e-be7f-41bd-8e2c-d1f2fe9be1de"
 					}
 				}
 			],
@@ -1033,7 +1132,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "11e63a84-6cff-40a0-b9f0-ff0ecb9fffeb"
 					}
 				}
 			],
@@ -1087,7 +1187,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "f9a379f4-a7f5-4909-ba65-e81238253086"
 					}
 				}
 			],
@@ -1137,7 +1238,8 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"id": "87f53592-f746-4a70-9c3d-2741c3978142"
 					}
 				}
 			],
@@ -1531,7 +1633,8 @@
 					"} else {",
 					"    pm.collectionVariables.set(\"optionallyPartitionedUrl\", baseUrl)",
 					"}"
-				]
+				],
+				"id": "7a39bc47-5125-4e1f-b322-3bc04ff57e11"
 			}
 		},
 		{
@@ -1540,60 +1643,67 @@
 				"type": "text/javascript",
 				"exec": [
 					""
-				]
+				],
+				"id": "fcedbb83-d444-4d89-ad61-3ce84ce37ad7"
 			}
 		}
 	],
 	"variable": [
 		{
+			"id": "e21c8a39-0224-4654-aa1f-446e02ad3af5",
 			"key": "baseUrl",
 			"value": "https://localhost:63838/v1"
 		},
 		{
+			"id": "39d5d2ab-96cf-4daa-8209-8893c94e85f4",
 			"key": "study1",
 			"value": "1.2.826.0.1.3680043.8.498.13230779778012324449356534479549187420"
 		},
 		{
+			"id": "f77cbd7b-053e-4a79-914b-1ddd79e9c19d",
 			"key": "series1",
 			"value": "1.2.826.0.1.3680043.8.498.45787841905473114233124723359129632652"
 		},
 		{
+			"id": "46319575-e1d4-4f3f-bed5-1cc2fa3b784c",
 			"key": "instance1",
 			"value": "1.2.826.0.1.3680043.8.498.47359123102728459884412887463296905395"
 		},
 		{
+			"id": "baf10350-9b81-496d-ab17-511b29ee9fce",
 			"key": "instance2",
 			"value": "1.2.826.0.1.3680043.8.498.12714725698140337137334606354172323212\n"
 		},
 		{
+			"id": "c1070cfd-fe2f-4b8c-8df1-26c23e68b655",
 			"key": "extendedQueryTag",
-			"value": "ManufacturerModelName",
-			"type": "default"
+			"value": "ManufacturerModelName"
 		},
 		{
+			"id": "1f242804-812f-4df9-99f0-a60e177e7cc5",
 			"key": "operationId",
-			"value": "1",
-			"type": "default"
+			"value": "1"
 		},
 		{
+			"id": "fad4e434-a3b4-4a69-93d9-9b0d12b38d0a",
 			"key": "partitionName",
-			"value": "",
-			"type": "default"
+			"value": ""
 		},
 		{
+			"id": "c7bb4ae5-7964-43db-983e-a3d447b54e67",
 			"key": "optionallyPartitionedUrl",
-			"value": "",
-			"type": "default"
+			"value": ""
 		},
 		{
+			"id": "85568294-089e-4f15-8101-c40d0a83bd19",
 			"key": "workitem1",
-			"value": "1",
-			"type": "default"
+			"value": "1"
 		},
 		{
+			"id": "68344164-240f-47e2-bcaa-1ac5b5b3af11",
 			"key": "transactionUid",
-			"value": "1.2.3",
-			"type": "default"
+			"value": "1.2.3"
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }
