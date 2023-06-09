@@ -64,7 +64,7 @@ internal class ApiVersionsConvention : IControllerConvention
         {
             versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
-        // when upcomingVersion is ready for GA, move upcoming Verion to allSupportedVersion
+        // when upcomingVersion is ready for GA, move upcomingVersion to allSupportedVersion
         versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
         controller.HasApiVersions(versions);
 

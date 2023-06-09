@@ -187,7 +187,7 @@ public static class ValidationHelpers
         return returnTags;
     }
 
-    private static Dictionary<DicomTag, QueryFilterCondition>.ValueCollection GetQueryFilterConditions(
+    private static IReadOnlyCollection<QueryFilterCondition> GetQueryFilterConditions(
         QueryResource resource,
         DicomDataset expectedDataset)
     {
