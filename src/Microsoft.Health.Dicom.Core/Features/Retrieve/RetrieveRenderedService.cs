@@ -84,8 +84,8 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
 
-            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, true, cancellationToken);
-            using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.PartitionKey, true, cancellationToken);
+            using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.PartitionKey, cancellationToken);
             sw.Start();
 
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);

@@ -124,10 +124,10 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.PartitionKey, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(version, cancellationToken);
+                Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionKey, cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
@@ -203,6 +203,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
             IAsyncEnumerable<RetrieveResourceInstance> fastFrames = GetAsyncEnumerableFastFrameStreams(
                 version,
+                instance.VersionedInstanceIdentifier.PartitionKey,
                 framesRange,
                 message.Frames,
                 responseTransferSyntax,
@@ -212,10 +213,10 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
 
         _logger.LogInformation("Downloading the entire instance for frame parsing");
-        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, false, cancellationToken);
+        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.PartitionKey, false, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
-        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.PartitionKey, cancellationToken);
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,
@@ -283,8 +284,8 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (var instanceMetadata in instanceMetadatas)
         {
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
-            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
-            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, cancellationToken);
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, instanceMetadata.VersionedInstanceIdentifier.PartitionKey, cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, instanceMetadata.VersionedInstanceIdentifier.PartitionKey, cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,
@@ -323,6 +324,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(
         long version,
+        long partitionKey,
         IReadOnlyDictionary<int, FrameRange> framesRange,
         IReadOnlyCollection<int> frames,
         string responseTransferSyntax,
@@ -338,7 +340,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, partitionKey, frameRange, cancellationToken);
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }

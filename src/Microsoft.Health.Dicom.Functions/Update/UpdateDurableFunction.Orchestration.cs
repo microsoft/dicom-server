@@ -98,7 +98,7 @@ public partial class UpdateDurableFunction
                 await context.CallActivityWithRetryAsync(
                     nameof(DeleteOldVersionBlobAsync),
                     _options.RetryOptions,
-                    instanceWatermarks);
+                    new UpdateInstanceBlobArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
             }
 
             if (instanceWatermarks.Count > 0)

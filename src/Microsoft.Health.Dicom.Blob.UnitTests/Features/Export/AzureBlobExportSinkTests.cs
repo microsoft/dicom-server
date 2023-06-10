@@ -89,7 +89,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         using var fileStream = new MemoryStream();
         using var tokenSource = new CancellationTokenSource();
 
-        _fileStore.GetStreamingFileAsync(identifier.Version, tokenSource.Token).Returns(fileStream);
+        _fileStore.GetStreamingFileAsync(identifier.Version, identifier.PartitionKey, tokenSource.Token).Returns(fileStream);
         _destClient.GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
@@ -97,7 +97,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         Assert.True(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
-        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, tokenSource.Token);
+        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, identifier.PartitionKey, tokenSource.Token);
         _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm");
         await _destBlob
             .Received(1)
@@ -115,7 +115,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         Assert.False(await _sink.CopyAsync(ReadResult.ForFailure(failure), tokenSource.Token));
 
-        await _fileStore.DidNotReceiveWithAnyArgs().GetStreamingFileAsync(default, default);
+        await _fileStore.DidNotReceiveWithAnyArgs().GetStreamingFileAsync(default, default, tokenSource.Token);
         _destClient.DidNotReceiveWithAnyArgs().GetBlobClient(default);
         await _destBlob.DidNotReceiveWithAnyArgs().UploadAsync(default(Stream), default(BlobUploadOptions), default);
 
@@ -135,7 +135,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         using var fileStream = new MemoryStream();
         using var tokenSource = new CancellationTokenSource();
 
-        _fileStore.GetStreamingFileAsync(identifier.Version, tokenSource.Token).Returns(fileStream);
+        _fileStore.GetStreamingFileAsync(identifier.Version, identifier.PartitionKey, tokenSource.Token).Returns(fileStream);
         _destClient.GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
@@ -143,7 +143,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         Assert.False(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
-        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, tokenSource.Token);
+        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, identifier.PartitionKey, tokenSource.Token);
         _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm");
         await _destBlob
             .Received(1)

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -75,6 +76,7 @@ public partial class UpdateDurableFunctionTests
             _updateInstanceService
                 .UpdateInstanceBlobAsync(
                 instance,
+                DefaultPartition.Key,
                 Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
                 Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
@@ -90,6 +92,7 @@ public partial class UpdateDurableFunctionTests
                 .Received(1)
                 .UpdateInstanceBlobAsync(
                 instance,
+                DefaultPartition.Key,
                 Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
                 Arg.Any<CancellationToken>());
         }
@@ -134,19 +137,18 @@ public partial class UpdateDurableFunctionTests
         context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
         await _updateDurableFunction.DeleteOldVersionBlobAsync(
-            context,
+            new UpdateInstanceBlobArguments(Arg.Any<int>(), expected, String.Empty),
             NullLogger.Instance);
 
         // Assert behavior
-        context.Received(1).GetInput<IReadOnlyList<InstanceFileState>>();
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 
     private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)

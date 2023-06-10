@@ -99,7 +99,7 @@ public partial class UpdateDurableFunction
                 },
                 async (instance, token) =>
                 {
-                    await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, token);
+                    await _updateInstanceService.UpdateInstanceBlobAsync(instance, arguments.PartitionKey, datasetToUpdate, token);
                 });
 
             logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
@@ -154,26 +154,23 @@ public partial class UpdateDurableFunction
     /// <summary>
     /// Asynchronously delete all the old blobs if it has more than 2 version.
     /// </summary>
-    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="arguments">Contains watermarks with parition keys to delete</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
     /// A task representing the <see cref="DeleteOldVersionBlobAsync"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(DeleteOldVersionBlobAsync))]
-    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
     {
-        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
-
-        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", arguments.InstanceWatermarks.Count);
 
         await Parallel.ForEachAsync(
-            fileIdentifiers.Where(f => f.OriginalVersion.HasValue),
+            arguments.InstanceWatermarks.Where(f => f.OriginalVersion.HasValue),
             new ParallelOptions
             {
                 CancellationToken = default,
@@ -181,10 +178,10 @@ public partial class UpdateDurableFunction
             },
             async (fileIdentifier, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, arguments.PartitionKey, token);
             });
 
-        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", arguments.InstanceWatermarks.Count);
     }
 
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);

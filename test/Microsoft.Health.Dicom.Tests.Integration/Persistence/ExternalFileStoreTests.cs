@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.IO;
 using Xunit;
 
@@ -43,7 +44,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.NotNull(fileProperties);
 
         // Should be able to retrieve.
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, DefaultPartition.Key))
         {
             Assert.Equal(
                 fileData,
@@ -51,10 +52,10 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
 
         // Should be able to delete.
-        await _blobDataStore.DeleteFileIfExistsAsync(version);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, DefaultPartition.Key);
 
         // The file should no longer exists.
-        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, DefaultPartition.Key));
     }
 
     [Fact]
@@ -74,14 +75,14 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
 
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, DefaultPartition.Key))
         {
             Assert.Equal(
                 fileData2,
                 await ConvertStreamToByteArrayAsync(resultStream));
         }
 
-        await _blobDataStore.DeleteFileIfExistsAsync(version);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, DefaultPartition.Key);
     }
 
     [Fact]
@@ -95,8 +96,8 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         FileProperties fileProperties1 = await AddFileAsync(version, fileData1, "fileDataTag");
 
         // file is deleted
-        await _blobDataStore.DeleteFileIfExistsAsync(version);
-        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version));
+        await _blobDataStore.DeleteFileIfExistsAsync(version, DefaultPartition.Key);
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, DefaultPartition.Key));
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
@@ -107,26 +108,26 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
         // assert that content is the same
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, DefaultPartition.Key))
         {
             Assert.Equal(
                 fileData2,
                 await ConvertStreamToByteArrayAsync(resultStream));
         }
 
-        await _blobDataStore.DeleteFileIfExistsAsync(version);
+        await _blobDataStore.DeleteFileIfExistsAsync(version, DefaultPartition.Key);
     }
 
     [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenDataStoreRequestFailedExceptionShouldBeThrown()
     {
-        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(_getNextWatermark()));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(_getNextWatermark(), DefaultPartition.Key));
     }
 
     [Fact]
     public async Task GivenANonExistentFile_WhenDeleting_ThenItShouldNotThrowException()
     {
-        await _blobDataStore.DeleteFileIfExistsAsync(_getNextWatermark());
+        await _blobDataStore.DeleteFileIfExistsAsync(_getNextWatermark(), DefaultPartition.Key);
     }
 
     private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
@@ -143,7 +144,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileAsync(version, stream, cancellationToken);
+            return await _blobDataStore.StoreFileAsync(version, DefaultPartition.Key, stream, cancellationToken);
         }
     }
 }

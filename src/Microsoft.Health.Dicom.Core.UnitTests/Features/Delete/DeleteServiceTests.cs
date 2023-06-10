@@ -135,7 +135,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(version: default, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, DefaultPartition.Key, CancellationToken.None);
 
         await _metadataStore
             .DidNotReceiveWithAnyArgs()
@@ -157,7 +157,7 @@ public class DeleteServiceTests
                 .ReturnsForAnyArgs(responseList);
 
             _fileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -204,7 +204,7 @@ public class DeleteServiceTests
             .ReturnsForAnyArgs(responseList);
 
         _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .DeleteFileIfExistsAsync(Arg.Any<long>(), Arg.Any<long>(), Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         _indexDataStore
@@ -243,7 +243,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(version: default, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, DefaultPartition.Key, CancellationToken.None);
     }
 
     [Theory]
@@ -295,11 +295,11 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, instance.VersionedInstanceIdentifier.PartitionKey, CancellationToken.None);
 
             await _fileDataStore
                .Received(numberOfDeletedInstances)
-               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, CancellationToken.None);
+               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, instance.VersionedInstanceIdentifier.PartitionKey, CancellationToken.None);
 
             await _metadataStore
                 .Received(numberOfDeletedInstances)
@@ -334,7 +334,7 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionKey, CancellationToken.None);
         }
 
         await _indexDataStore

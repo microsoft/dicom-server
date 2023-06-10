@@ -89,7 +89,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
                 _options.RetryOptions,
-                expectedInstances)
+                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration

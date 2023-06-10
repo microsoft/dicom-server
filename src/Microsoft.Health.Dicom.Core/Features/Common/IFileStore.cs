@@ -21,44 +21,49 @@ public interface IFileStore
     /// Asynchronously stores a file to the file store.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="stream">The DICOM instance stream.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task<FileProperties> StoreFileAsync(long version, Stream stream, CancellationToken cancellationToken = default);
+    Task<FileProperties> StoreFileAsync(long version, long partition, Stream stream, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a file from the file store.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get operation.</returns>
-    Task<Stream> GetFileAsync(long version, CancellationToken cancellationToken = default);
+    Task<Stream> GetFileAsync(long version, long partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes a file from the file store if the file exists.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteFileIfExistsAsync(long version, CancellationToken cancellationToken = default);
+    Task DeleteFileIfExistsAsync(long version, long partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously get file properties
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get properties operation.</returns>
-    Task<FileProperties> GetFilePropertiesAsync(long version, CancellationToken cancellationToken = default);
+    Task<FileProperties> GetFilePropertiesAsync(long version, long partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously get a specific range of bytes from the blob
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="range">Byte range in Httprange format with offset and length</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Stream representing the bytes requested</returns>
     Task<Stream> GetFileFrameAsync(
-        long version,
+        long version, long partition,
         FrameRange range,
         CancellationToken cancellationToken = default);
 
@@ -66,53 +71,59 @@ public interface IFileStore
     /// Asynchronously gets a streaming file from the file store.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous get operation.</returns>
-    Task<Stream> GetStreamingFileAsync(long version, CancellationToken cancellationToken = default);
+    Task<Stream> GetStreamingFileAsync(long version, long partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously stores a file to the file store in blocks.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="stream">The DICOM instance stream.</param>
     /// <param name="blockLengths">Dictionary of blockId and block lengths</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous Store operation.</returns>
-    Task<Uri> StoreFileInBlocksAsync(long version, Stream stream, IDictionary<string, long> blockLengths, CancellationToken cancellationToken = default);
+    Task<Uri> StoreFileInBlocksAsync(long version, long partition, Stream stream, IDictionary<string, long> blockLengths, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a file content from the file store. The file content will be in memory. Use only for small files
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="range">Byte range in Httprange format with offset and length</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    Task<BinaryData> GetFileContentInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken = default);
+    Task<BinaryData> GetFileContentInRangeAsync(long version, long partition, FrameRange range, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously updates a block in a blob.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="blockId">BlockId to be updated.</param>
     /// <param name="stream">The DICOM instance stream.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous update block operation.</returns>
-    Task UpdateFileBlockAsync(long version, string blockId, Stream stream, CancellationToken cancellationToken = default);
+    Task UpdateFileBlockAsync(long version, long partition, string blockId, Stream stream, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a commited block list.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Key value pair of blockId and blockLength.</returns>
-    Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, CancellationToken cancellationToken = default);
+    Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, long partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously copies file from the same container
     /// </summary>
     /// <param name="originalVersion">The DICOM instance original version.</param>
     /// <param name="newVersion">The DICOM instance new version.</param>
+    /// <param name="partition"></param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    Task CopyFileAsync(long originalVersion, long newVersion, CancellationToken cancellationToken = default);
+    Task CopyFileAsync(long originalVersion, long newVersion, long partition, CancellationToken cancellationToken = default);
 }

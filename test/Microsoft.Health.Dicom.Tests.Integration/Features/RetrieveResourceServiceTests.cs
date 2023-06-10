@@ -184,7 +184,8 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
     {
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        int partitionKey = 1;
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
 
         if (flagToStoreInstance)
         {
@@ -198,6 +199,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             stream.Position = 0;
             await _fileStore.StoreFileAsync(
                 version,
+                partitionKey,
                 stream);
         }
 
