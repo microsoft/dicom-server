@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Microsoft.Health.Dicom.Blob.Utilities;
 
@@ -18,4 +19,16 @@ internal class ExternalBlobDataStoreConfiguration
 
     // use for local testing with Azurite
     public string ContainerName { get; set; }
+
+    /// <summary>
+    /// A path which is used to store blobs along a specific path in a container, serving as a prefix to the
+    /// full blob name and providing a logical hierarchy when segments used though use of forward slashes (/).
+    /// DICOM allows any alphanumeric characters, dashes(-). periods(.) and forward slashes (/) in the service store path.
+    /// This path will be supplied externally when DICOM is a managed service.
+    /// Max of 1024 characters total and max of 254 forward slashes allowed.
+    /// See https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
+    /// </summary>
+    [RegularExpression(@"^[a-zA-Z0-9\-\.]*(\/[a-zA-Z0-9\-\.]*){0,254}$")]
+    [StringLength(1024)]
+    public string StorageDirectory { get; set; }
 }

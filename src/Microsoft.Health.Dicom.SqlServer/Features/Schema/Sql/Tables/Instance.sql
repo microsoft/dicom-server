@@ -106,7 +106,7 @@ INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid  
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 
@@ -123,7 +123,7 @@ INCLUDE
 (
     StudyInstanceUid,
     SeriesInstanceUid,
-    SopInstanceUid  
+    SopInstanceUid
 )
 WITH (DATA_COMPRESSION = PAGE)
 

@@ -13,6 +13,7 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -110,11 +111,18 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+        FileProperties fileProperties,
+        bool allowExpiredTags,
+        bool hasFrameMetadata,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+
+        if (fileProperties != null)
+        {
+            // if we are passing in fileProperties, it means we're using a new binary, but with an old schema
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())

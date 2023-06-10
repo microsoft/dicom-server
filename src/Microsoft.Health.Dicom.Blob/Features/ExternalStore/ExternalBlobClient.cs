@@ -26,6 +26,12 @@ internal class ExternalBlobClient : IBlobClient
     private readonly IExternalOperationCredentialProvider _credentialProvider;
     private BlobContainerClient _blobContainerClient;
 
+    /// <summary>
+    /// Configures a blob client for an external store.
+    /// </summary>
+    /// <param name="credentialProvider"></param>
+    /// <param name="externalStoreOptions">Options to use with configuring the external store.</param>
+    /// <param name="blobClientOptions">Options to use when configuring the blob client.</param>
     public ExternalBlobClient(
         IExternalOperationCredentialProvider credentialProvider,
         IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions,
@@ -34,9 +40,12 @@ internal class ExternalBlobClient : IBlobClient
         _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
+        _externalStoreOptions.StorageDirectory = SanitizeServiceStorePath(_externalStoreOptions.StorageDirectory);
     }
 
     public bool IsExternal => true;
+
+    public string ServiceStorePath => _externalStoreOptions.StorageDirectory;
 
     public BlobContainerClient BlobContainerClient
     {
@@ -62,12 +71,17 @@ internal class ExternalBlobClient : IBlobClient
                         }
                         catch (Exception ex)
                         {
-                            throw new DataStoreException(ex, isExternal: IsExternal);
+                            throw new DataStoreException(ex, isExternal: true);
                         }
                     }
                 }
             }
             return _blobContainerClient;
         }
+    }
+
+    private static string SanitizeServiceStorePath(string path)
+    {
+        return !path.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? path + "/" : path;
     }
 }

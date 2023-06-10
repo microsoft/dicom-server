@@ -43,7 +43,10 @@ public static class DicomServerBuilderBlobRegistrationExtensions
         configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);
         if (featureConfiguration.EnableExternalStore)
         {
-            serverBuilder.Services.Configure<ExternalBlobDataStoreConfiguration>(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName));
+            serverBuilder.Services
+                .AddOptions<ExternalBlobDataStoreConfiguration>()
+                .Bind(configuration.GetSection(ExternalBlobDataStoreConfiguration.SectionName))
+                .ValidateDataAnnotations();
 
             serverBuilder.Services.Add<ExternalBlobClient>()
                 .Singleton()

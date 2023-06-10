@@ -21,41 +21,24 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-/// <summary>
-/// Sql IndexDataStore version 23.
-/// </summary>
-internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
+internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV35
 {
-    public SqlIndexDataStoreV23(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV37(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V22;
+    public override SchemaVersion Version => SchemaVersion.V37;
 
-    public override async Task EndCreateInstanceIndexAsync(
-        int partitionKey,
-        DicomDataset dicomDataset,
-        long watermark,
-        IEnumerable<QueryTag> queryTags,
-        FileProperties fileProperties,
-        bool allowExpiredTags,
-        bool hasFrameMetadata,
-        CancellationToken cancellationToken)
+    public override async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, bool allowExpiredTags, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
 
-        if (fileProperties != null)
-        {
-            // if we are passing in fileProperties, it means we're using a new binary, but with an old schema
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-        }
-
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.UpdateInstanceStatusV6.PopulateCommand(
+            VLatest.UpdateInstanceStatusV37.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
@@ -64,7 +47,10 @@ internal class SqlIndexDataStoreV23 : SqlIndexDataStoreV10
                 watermark,
                 (byte)IndexStatus.Created,
                 allowExpiredTags ? null : ExtendedQueryTagDataRowsBuilder.GetMaxTagKey(queryTags),
-                hasFrameMetadata);
+                hasFrameMetadata,
+                fileProperties?.Path,
+                fileProperties?.ETag
+            );
 
             try
             {

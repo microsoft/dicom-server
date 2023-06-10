@@ -24,7 +24,7 @@ public interface IFileStore
     /// <param name="stream">The DICOM instance stream.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task<Uri> StoreFileAsync(long version, Stream stream, CancellationToken cancellationToken = default);
+    Task<FileProperties> StoreFileAsync(long version, Stream stream, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously gets a file from the file store.

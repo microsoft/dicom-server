@@ -489,6 +489,27 @@ public class DicomStoreServiceTests
     }
 
     [Fact]
+    public async Task GivenAnExternalStoreExceptionWhenStoring_WhenProcessed_ThenExpectDataStoreExceptionRethrownAndResponseBuilderNotUsed()
+    {
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+
+        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+
+        _storeOrchestrator
+            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+            .Do(_ => throw new DataStoreException("Simulated failure.", isExternal: true));
+
+        DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(async () => await _storeService.ProcessAsync(new[] { dicomInstanceEntry }, null, cancellationToken: DefaultCancellationToken));
+
+        Assert.True(exception.IsExternal);
+
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().BuildResponse(Arg.Any<string>(), Arg.Any<bool>());
+
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(Arg.Any<DicomDataset>(), Arg.Any<StoreValidationResult>());
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(Arg.Any<DicomDataset>(), Arg.Any<ushort>());
+    }
+
+    [Fact]
     public async Task GivenMultipleDicomInstanceEntries_WhenProcessed_ThenCorrespondingEntryShouldBeAdded()
     {
         IDicomInstanceEntry dicomInstanceEntryToSucceed = Substitute.For<IDicomInstanceEntry>();

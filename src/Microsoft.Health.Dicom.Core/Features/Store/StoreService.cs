@@ -237,6 +237,12 @@ public class StoreService : IStoreService
 
             switch (ex)
             {
+                case DataStoreException { IsExternal: true }:
+                    throw;
+
+                case DataStoreRequestFailedException { IsExternal: true }:
+                    throw;
+
                 case PendingInstanceException _:
                     failureCode = FailureReasonCodes.PendingSopInstance;
                     break;

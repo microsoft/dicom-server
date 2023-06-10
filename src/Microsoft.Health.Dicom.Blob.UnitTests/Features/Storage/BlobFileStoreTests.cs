@@ -3,28 +3,87 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
-using NSubstitute;
-using Xunit;
-using Azure.Storage.Blobs;
-using System.IO;
-using System.Threading;
-using Azure.Storage.Blobs.Models;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using Azure.Storage.Blobs.Specialized;
-using NSubstitute.ExceptionExtensions;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Threading.Tasks;
-using System.Globalization;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core;
-using Azure;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using Xunit;
 
-namespace Microsoft.Health.Dicom.Blob.UnitTests;
+namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Storage;
 
 public class BlobFileStoreTests
 {
+    [Theory]
+    [InlineData("a!/b")]
+    [InlineData("a#/b")]
+    [InlineData("a\b")]
+    [InlineData("a%b")]
+    public void GivenInvalidStorageDirectory_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty(string storageDirectory)
+    {
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = storageDirectory };
+        var results = new List<ValidationResult>();
+
+        Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
+
+        Assert.Single(results);
+        Assert.Equal("""The field StorageDirectory must match the regular expression '^[a-zA-Z0-9\-\.]*(\/[a-zA-Z0-9\-\.]*){0,254}$'.""", results.First().ErrorMessage);
+    }
+
+    [Theory]
+    [InlineData("//")]
+    [InlineData("a/")]
+    [InlineData("a")]
+    [InlineData("a/b/")]
+    [InlineData("a-b/c-d/")]
+    public void GivenValidStorageDirectory_WhenExternalStoreInitialized_ThenDoNotThrowException(string storageDirectory)
+    {
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = storageDirectory };
+        var results = new List<ValidationResult>();
+
+        Assert.True(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
+    }
+
+    [Fact]
+    public void GivenInvalidStorageDirectorySegments_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
+    {
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = string.Join("", Enumerable.Repeat("a/b", 255)) };
+        var results = new List<ValidationResult>();
+
+        Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
+
+        Assert.Single(results);
+        Assert.Equal("""The field StorageDirectory must match the regular expression '^[a-zA-Z0-9\-\.]*(\/[a-zA-Z0-9\-\.]*){0,254}$'.""", results.First().ErrorMessage);
+    }
+
+    [Fact]
+    public void GivenInvalidStorageDirectoryLength_WhenExternalStoreInitialized_ThenThrowExceptionWithRightMessageAndProperty()
+    {
+        ExternalBlobDataStoreConfiguration config = new ExternalBlobDataStoreConfiguration() { StorageDirectory = string.Join("", Enumerable.Repeat("a", 1025)) };
+        var results = new List<ValidationResult>();
+
+        Assert.False(Validator.TryValidateObject(config, new ValidationContext(config), results, validateAllProperties: true));
+
+        Assert.Single(results);
+        Assert.Equal("""The field StorageDirectory must be a string with a maximum length of 1024.""", results.First().ErrorMessage);
+    }
+
     [Fact]
     public async Task GivenExternalStore_WhenUploadFails_ThenThrowExceptionWithRightMessageAndProperty()
     {
@@ -50,16 +109,33 @@ public class BlobFileStoreTests
     }
 
     [Fact]
-    public async Task GivenExternalStore_WhenGetFails_ThenThrowExceptionWithRightMessageAndProperty()
+    public async Task GivenExternalStore_WhenGetFailsBecauseBlobNotFound_ThenThrowExceptionWithRightMessageAndProperty()
     {
         InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
         RequestFailedException requestFailedException = new RequestFailedException(status: 404, message: "test", errorCode: BlobErrorCode.BlobNotFound.ToString(), innerException: null);
         client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedException);
 
-        var ex = await Assert.ThrowsAsync<ItemNotFoundException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
-        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, "test"), ex.Message);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.BlobNotFound.ToString()), ex.Message);
+    }
+
+    [Fact]
+    public async Task GivenExternalStore_WhenRequestFails_ThenThrowExceptionWithRightMessageAndProperty()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
+        RequestFailedException requestFailedAuthException = new RequestFailedException(
+            status: 400,
+            message: "auth failed simulation",
+            errorCode: BlobErrorCode.AuthenticationFailed.ToString(),
+            innerException: new Exception("super secret inner info"));
+        client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedAuthException);
+
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.AuthenticationFailed.ToString()), ex.Message);
     }
 
     [Fact]
@@ -105,6 +181,8 @@ public class BlobFileStoreTests
 
         public bool IsExternal => true;
 
+        public string ServiceStorePath { get; internal set; } = "external/";
+
         public BlockBlobClient BlockBlobClient { get; private set; }
     }
 
@@ -120,6 +198,8 @@ public class BlobFileStoreTests
         public virtual BlobContainerClient BlobContainerClient { get; private set; }
 
         public bool IsExternal => false;
+
+        public string ServiceStorePath { get; } = "internal/";
 
         public BlockBlobClient BlockBlobClient { get; private set; }
     }

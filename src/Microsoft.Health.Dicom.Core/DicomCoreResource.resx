@@ -665,6 +665,6 @@ For details on valid range queries, please refer to Search Matching section in C
     <value>Image quality must be between 1 and 100 inclusive</value>
   </data>
   <data name="ExternalDataStoreOperationFailed" xml:space="preserve">
-    <value>Error occured during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Details: {0}</value>
+    <value>Error occurred during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Received the following error code: {0}</value>
   </data>
 </root>
