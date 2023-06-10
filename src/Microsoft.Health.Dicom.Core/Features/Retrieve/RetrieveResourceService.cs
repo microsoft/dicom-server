@@ -324,7 +324,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFastFrameStreams(
         long version,
-        long partitionKey,
+        int partitionKey,
         IReadOnlyDictionary<int, FrameRange> framesRange,
         IReadOnlyCollection<int> frames,
         string responseTransferSyntax,

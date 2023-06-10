@@ -17,7 +17,7 @@ public interface IUpdateInstanceService
     /// Asynchronously update instance blobs
     /// </summary>
     /// <param name="instanceFileIdentifier">Instance watermark version combinations</param>
-    /// <param name="partitionKey"></param>
+    /// <param name="partitionKey">Partition key to use when updating blob</param>
     /// <param name="datasetToUpdate">Dataset to update</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous UpdateInstanceBlobAsync operation</returns>
@@ -30,7 +30,7 @@ public interface IUpdateInstanceService
     /// Asynchronously deletes old blob
     /// </summary>
     /// <param name="fileIdentifier">Unique file identifier, watermark</param>
-    /// <param name="partitionKey"></param>
+    /// <param name="partitionKey">Partition key to use when updating blob</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous DeleteInstanceBlobAsync operation</returns>
     public Task DeleteInstanceBlobAsync(long fileIdentifier, int partitionKey, CancellationToken cancellationToken = default);

@@ -8,18 +8,13 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// <summary>
 /// Represents input to <see cref="UpdateDurableFunction.CompleteUpdateStudyAsync"/>
 /// </summary>
-public sealed class CompleteStudyArguments
+public sealed class CompleteStudyArguments : UpdateInstanceWatermarkArguments
 {
-    public int PartitionKey { get; }
-
-    public string StudyInstanceUid { get; }
-
     public string ChangeDataset { get; set; }
 
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
+        : base(partitionKey, studyInstanceUid)
     {
-        PartitionKey = partitionKey;
-        StudyInstanceUid = studyInstanceUid;
         ChangeDataset = dicomDataset;
     }
 }

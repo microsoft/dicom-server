@@ -12,18 +12,13 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// <summary>
 /// Represents input to <see cref="UpdateDurableFunction.UpdateInstanceBlobsAsync"/>
 /// </summary>
-public sealed class UpdateInstanceBlobArguments
+public sealed class UpdateInstanceBlobArguments : BaseArguments
 {
-    public int PartitionKey { get; }
-
-    public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
-
     public string ChangeDataset { get; }
 
     public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
+        : base(instanceWatermarks, partitionKey)
     {
-        PartitionKey = partitionKey;
-        InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
         ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }
 }

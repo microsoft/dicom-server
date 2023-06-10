@@ -154,6 +154,27 @@ public partial class UpdateDurableFunction
     /// <summary>
     /// Asynchronously delete all the old blobs if it has more than 2 version.
     /// </summary>
+    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="DeleteOldVersionBlobAsync"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// </exception>
+    [Obsolete("Please use DeleteOldVersionBlobAsyncV2 instead.")]
+    [FunctionName(nameof(DeleteOldVersionBlobAsync))]
+    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
+        await DeleteOldVersionBlobAsyncV2(new BaseArguments(fileIdentifiers), logger);
+    }
+
+    /// <summary>
+    /// Asynchronously delete all the old blobs if it has more than 2 version.
+    /// </summary>
     /// <param name="arguments">Contains watermarks with parition keys to delete</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
@@ -161,8 +182,8 @@ public partial class UpdateDurableFunction
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// </exception>
-    [FunctionName(nameof(DeleteOldVersionBlobAsync))]
-    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
+    [FunctionName(nameof(DeleteOldVersionBlobAsyncV2))]
+    public async Task DeleteOldVersionBlobAsyncV2([ActivityTrigger] BaseArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));

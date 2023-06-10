@@ -57,7 +57,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         EnsureArg.IsTrue(instanceFileIdentifier.NewVersion.HasValue, nameof(instanceFileIdentifier.NewVersion.HasValue));
 
         Task updateInstanceFileTask = UpdateInstanceFileAsync(instanceFileIdentifier, partitionKey, datasetToUpdate, cancellationToken);
-        Task updateInstanceMetadataTask = UpdateInstanceMetadataAsync(instanceFileIdentifier, partitionKey, datasetToUpdate, cancellationToken);
+        Task updateInstanceMetadataTask = UpdateInstanceMetadataAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
         await Task.WhenAll(updateInstanceFileTask, updateInstanceMetadataTask);
     }
 
@@ -144,7 +144,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         await UpdateDatasetInFileAsync(newFileIdentifier, partitionKey, datasetToUpdate, block, cancellationToken);
     }
 
-    private async Task UpdateInstanceMetadataAsync(InstanceFileState instanceFileIdentifier, int partitionKey, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
+    private async Task UpdateInstanceMetadataAsync(InstanceFileState instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken)
     {
         long originFileIdentifier = instanceFileIdentifier.Version;
         long newFileIdentifier = instanceFileIdentifier.NewVersion.Value;

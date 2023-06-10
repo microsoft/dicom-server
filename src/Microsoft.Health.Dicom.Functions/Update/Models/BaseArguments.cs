@@ -3,17 +3,21 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Model;
+
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
-public class UpdateInstanceWatermarkArguments
+public class BaseArguments
 {
+    public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
+
     public int PartitionKey { get; }
 
-    public string StudyInstanceUid { get; }
-
-    public UpdateInstanceWatermarkArguments(int partitionKey, string studyInstanceUid)
+    public BaseArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, int partitionKey = default)
     {
         PartitionKey = partitionKey;
-        StudyInstanceUid = studyInstanceUid;
+        InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
     }
 }

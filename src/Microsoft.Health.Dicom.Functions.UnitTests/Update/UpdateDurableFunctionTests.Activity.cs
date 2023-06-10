@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -137,18 +136,52 @@ public partial class UpdateDurableFunctionTests
         context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), 0, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
+#pragma warning disable CS0618
         await _updateDurableFunction.DeleteOldVersionBlobAsync(
-            new UpdateInstanceBlobArguments(Arg.Any<int>(), expected, String.Empty),
+            context,
+            NullLogger.Instance);
+#pragma warning restore CS0618
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), 0, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenDeleteFileV2_ThenShouldDeleteSuccessfully()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { OriginalVersion = 1 });
+        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
+            new InstanceFileState
+            {
+                Version = x.VersionedInstanceIdentifier.Version,
+                OriginalVersion = x.InstanceProperties.OriginalVersion,
+                NewVersion = x.InstanceProperties.NewVersion
+            }).Take(1).ToList();
+
+        // Arrange input
+        IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
+        context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), DefaultPartition.Key, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.DeleteOldVersionBlobAsyncV2(
+            new BaseArguments(expected, DefaultPartition.Key),
             NullLogger.Instance);
 
         // Assert behavior
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), DefaultPartition.Key, Arg.Any<CancellationToken>());
     }
 
     private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)

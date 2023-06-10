@@ -14,7 +14,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 internal static class RetrieveHelpers
 {
-    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, long partitionKey, bool render, CancellationToken cancellationToken)
+    public static async Task<FileProperties> CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, int partitionKey, bool render, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
 
