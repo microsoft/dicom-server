@@ -225,6 +225,5 @@ public partial class UpdateDurableFunction
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
-
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
 }
