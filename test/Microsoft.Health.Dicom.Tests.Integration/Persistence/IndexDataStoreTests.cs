@@ -170,6 +170,37 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     }
 
     [Fact]
+    public async Task GivenANewDicomInstance_WhenConflictingStudyAndSeriesTagsWithNulls_PreviousDataStays()
+    {
+        // create a new instance
+        DicomDataset dataset = CreateTestDicomDataset();
+        string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
+        string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, Array.Empty<QueryTag>());
+
+        // add another instance in the same study+series with null patientName and modality and validate previous data wins
+        DicomDataset newdataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
+        string conflictPatientName = null;
+        string conflictStudyDescription = null;
+        string conflictModality = null;
+        newdataset.AddOrUpdate(DicomTag.PatientName, conflictPatientName);
+        newdataset.AddOrUpdate(DicomTag.Modality, conflictModality);
+        newdataset.AddOrUpdate(DicomTag.StudyDescription, conflictStudyDescription);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newdataset);
+
+        IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
+        IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
+
+        Assert.Equal(1, studyMetadataEntries.Count);
+        Assert.Equal(dataset.GetString(DicomTag.PatientName), studyMetadataEntries.First().PatientName);
+        Assert.Equal(dataset.GetString(DicomTag.StudyDescription), studyMetadataEntries.First().StudyDescription);
+
+        Assert.Equal(1, seriesMetadataEntries.Count);
+        Assert.Equal(dataset.GetString(DicomTag.Modality), seriesMetadataEntries.First().Modality);
+    }
+
+    [Fact]
     public async Task GivenAnExistingDicomInstance_WhenDeletedByInstanceId_ThenItShouldBeRemovedAndAddedToDeletedInstanceTable()
     {
         string studyInstanceUid = TestUidGenerator.Generate();

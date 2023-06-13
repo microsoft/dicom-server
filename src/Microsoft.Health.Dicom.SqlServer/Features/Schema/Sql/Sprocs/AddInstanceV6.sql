@@ -141,10 +141,15 @@ BEGIN
 
                     -- Latest wins
                     UPDATE dbo.Study
-                    SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+                    SET PatientId = ISNULL(@patientId, PatientId),
+                        PatientName = ISNULL(@patientName, PatientName),
+                        PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate),
+                        ReferringPhysicianName = ISNULL(@referringPhysicianName, ReferringPhysicianName),
+                        StudyDate = ISNULL(@studyDate, StudyDate),
+                        StudyDescription = ISNULL(@studyDescription, StudyDescription),
+                        AccessionNumber = ISNULL(@accessionNumber, AccessionNumber)
                     WHERE PartitionKey = @partitionKey
-                        AND StudyKey = @studyKey
-
+                      AND StudyKey = @studyKey
 
                 END
                 ELSE
@@ -155,7 +160,13 @@ BEGIN
             BEGIN
                 -- Latest wins
                 UPDATE dbo.Study
-                SET PatientId = @patientId, PatientName = @patientName, PatientBirthDate = @patientBirthDate, ReferringPhysicianName = @referringPhysicianName, StudyDate = @studyDate, StudyDescription = @studyDescription, AccessionNumber = @accessionNumber
+                SET PatientId = ISNULL(@patientId, PatientId),
+                    PatientName = ISNULL(@patientName, PatientName),
+                    PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate),
+                    ReferringPhysicianName = ISNULL(@referringPhysicianName, ReferringPhysicianName),
+                    StudyDate = ISNULL(@studyDate, StudyDate),
+                    StudyDescription = ISNULL(@studyDescription, StudyDescription),
+                    AccessionNumber = ISNULL(@accessionNumber, AccessionNumber)
                 WHERE PartitionKey = @partitionKey
                     AND StudyKey = @studyKey
             END
@@ -180,7 +191,9 @@ BEGIN
             BEGIN
                 -- Latest wins
                 UPDATE dbo.Series
-                SET Modality = @modality, PerformedProcedureStepStartDate = @performedProcedureStepStartDate, ManufacturerModelName = @manufacturerModelName
+                SET Modality = ISNULL(@modality, Modality),
+                    PerformedProcedureStepStartDate = ISNULL(@performedProcedureStepStartDate, PerformedProcedureStepStartDate),
+                    ManufacturerModelName = ISNULL(@manufacturerModelName, ManufacturerModelName)
                 WHERE SeriesKey = @seriesKey
                 AND StudyKey = @studyKey
                 AND PartitionKey = @partitionKey
