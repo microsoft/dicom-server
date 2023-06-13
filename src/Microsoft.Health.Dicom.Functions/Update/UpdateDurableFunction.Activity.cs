@@ -169,8 +169,9 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
+        int fileCount = fileIdentifiers.Where(f => f.OriginalVersion.HasValue).Count();
 
-        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileCount);
 
         await Parallel.ForEachAsync(
             fileIdentifiers.Where(f => f.OriginalVersion.HasValue),
@@ -184,7 +185,7 @@ public partial class UpdateDurableFunction
                 await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, token);
             });
 
-        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
     /// <summary>
@@ -206,7 +207,8 @@ public partial class UpdateDurableFunction
 
         IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
 
-        logger.LogInformation("Begin cleaning up new blobs. Total size {TotalCount}", fileIdentifiers.Count);
+        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue).Count();
+        logger.LogInformation("Begin cleaning up new blobs. Total size {TotalCount}", fileCount);
 
         await Parallel.ForEachAsync(
             fileIdentifiers.Where(f => f.NewVersion.HasValue),
@@ -220,7 +222,7 @@ public partial class UpdateDurableFunction
                 await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, token);
             });
 
-        logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
 
