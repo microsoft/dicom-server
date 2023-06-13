@@ -5,15 +5,19 @@
 
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Operations;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -27,7 +31,9 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<UpdateInstanceOperationService> _logger;
+    private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -43,17 +49,23 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
         IDicomRequestContextAccessor contextAccessor,
+        TelemetryClient telemetryClient,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
         ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
         _client = client;
         _contextAccessor = contextAccessor;
+        _telemetryClient = telemetryClient;
         _logger = logger;
+        _jsonSerializerOptions = jsonSerializerOptions;
     }
 
     public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
@@ -88,6 +100,9 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         try
         {
             var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+
+            string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
+            _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);
             return new UpdateInstanceResponse(operation);
         }
         catch (Exception ex)
