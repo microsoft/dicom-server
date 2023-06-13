@@ -18,10 +18,14 @@ using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -87,10 +91,11 @@ public class BlobFileStoreTests
     [Fact]
     public async Task GivenExternalStore_WhenUploadFails_ThenThrowExceptionWithRightMessageAndProperty()
     {
-        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
-        client.BlockBlobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws(new System.Exception());
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
+        client.BlobContainerClient.GetBlockBlobClient(Arg.Any<string>()).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws
+        (new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Substitute.For<Stream>(), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, DefaultPartition.Name, Substitute.For<Stream>(), CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, new System.Exception().Message), ex.Message);
@@ -102,7 +107,7 @@ public class BlobFileStoreTests
         InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
         client.BlockBlobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws(new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Substitute.For<Stream>(), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, DefaultPartition.Name, Substitute.For<Stream>(), CancellationToken.None));
 
         Assert.False(ex.IsExternal);
         Assert.Equal(DicomCoreResource.DataStoreOperationFailed, ex.Message);
@@ -111,11 +116,15 @@ public class BlobFileStoreTests
     [Fact]
     public async Task GivenExternalStore_WhenGetFailsBecauseBlobNotFound_ThenThrowExceptionWithRightMessageAndProperty()
     {
-        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
         RequestFailedException requestFailedException = new RequestFailedException(status: 404, message: "test", errorCode: BlobErrorCode.BlobNotFound.ToString(), innerException: null);
-        client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedException);
+        client.BlobContainerClient.GetBlockBlobClient(Arg.Any<string>()).DownloadStreamingAsync(
+            Arg.Any<HttpRange>(),
+            Arg.Any<BlobRequestConditions>(),
+            false,
+            Arg.Any<CancellationToken>()).Throws(requestFailedException);
 
-        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, DefaultPartition.Name, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.BlobNotFound.ToString()), ex.Message);
@@ -124,15 +133,19 @@ public class BlobFileStoreTests
     [Fact]
     public async Task GivenExternalStore_WhenRequestFails_ThenThrowExceptionWithRightMessageAndProperty()
     {
-        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient client);
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
         RequestFailedException requestFailedAuthException = new RequestFailedException(
             status: 400,
             message: "auth failed simulation",
             errorCode: BlobErrorCode.AuthenticationFailed.ToString(),
             innerException: new Exception("super secret inner info"));
-        client.BlockBlobClient.DownloadStreamingAsync(Arg.Any<HttpRange>(), Arg.Any<BlobRequestConditions>(), false, Arg.Any<CancellationToken>()).Throws(requestFailedAuthException);
+        client.BlobContainerClient.GetBlockBlobClient(Arg.Any<string>()).DownloadStreamingAsync(
+            Arg.Any<HttpRange>(),
+            Arg.Any<BlobRequestConditions>(),
+            false,
+            Arg.Any<CancellationToken>()).Throws(requestFailedAuthException);
 
-        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, DefaultPartition.Name, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.AuthenticationFailed.ToString()), ex.Message);
@@ -144,46 +157,53 @@ public class BlobFileStoreTests
         InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
         client.BlockBlobClient.GetPropertiesAsync(Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>()).Throws(new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.GetFilePropertiesAsync(1, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.GetFilePropertiesAsync(1, DefaultPartition.Name, CancellationToken.None));
 
         Assert.False(ex.IsExternal);
         Assert.Equal(DicomCoreResource.DataStoreOperationFailed, ex.Message);
     }
 
-    private static void InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient externalBlobClient)
+    // [Fact]
+    // public async Task GivenExternalStore_WhenPartitionsEnabled_ThenExpectServiceStorePathUsesPartitions()
+    // {
+    //     InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client, partitionsEnabled: true);
+    //     client.GetServiceStorePath(DefaultPartition.Key);
+    // }
+
+    private static void InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient internalBlobClient)
     {
-        externalBlobClient = new TestInternalBlobClient();
+        internalBlobClient = new TestInternalBlobClient();
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
+        blobFileStore = new BlobFileStore(internalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
 
     }
 
-    private static void InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out TestExternalBlobClient externalBlobClient)
+    private static void InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient externalBlobClient, bool partitionsEnabled = false)
     {
-        externalBlobClient = new TestExternalBlobClient();
-        var options = Substitute.For<IOptions<BlobOperationOptions>>();
-        options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
-
-    }
-
-    private class TestExternalBlobClient : IBlobClient
-    {
-        public TestExternalBlobClient()
+        var featureConfiguration = Substitute.For<IOptions<FeatureConfiguration>>();
+        featureConfiguration.Value.Returns(new FeatureConfiguration
         {
-            BlobContainerClient = Substitute.For<BlobContainerClient>();
-            BlockBlobClient = Substitute.For<BlockBlobClient>();
-            BlobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(BlockBlobClient);
-        }
+            EnableDataPartitions = partitionsEnabled,
+        });
+        var externalStoreConfig = Substitute.For<IOptions<ExternalBlobDataStoreConfiguration>>();
+        externalStoreConfig.Value.Returns(new ExternalBlobDataStoreConfiguration
+        {
+            ConnectionString = "test",
+            ContainerName = "test",
+            StorageDirectory = "/test/",
+        });
+        externalBlobClient = new ExternalBlobClient(
+            Substitute.For<IExternalOperationCredentialProvider>(),
+            externalStoreConfig, Substitute.For<IOptions<BlobServiceClientOptions>>(), featureConfiguration);
 
-        public virtual BlobContainerClient BlobContainerClient { get; private set; }
+        var blobContainerClient = Substitute.For<BlobContainerClient>();
+        blobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(Substitute.For<BlockBlobClient>());
+        externalBlobClient.BlobContainerClient.Returns(blobContainerClient);
 
-        public bool IsExternal => true;
-
-        public string ServiceStorePath { get; internal set; } = "external/";
-
-        public BlockBlobClient BlockBlobClient { get; private set; }
+        var options = Substitute.For<IOptions<BlobOperationOptions>>();
+        options.Value.Returns(Substitute.For<BlobOperationOptions>());
+        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
     }
 
     private class TestInternalBlobClient : IBlobClient
@@ -199,9 +219,12 @@ public class BlobFileStoreTests
 
         public bool IsExternal => false;
 
-        public string ServiceStorePath { get; } = "internal/";
-
         public BlockBlobClient BlockBlobClient { get; private set; }
+
+        public string GetServiceStorePath(string _)
+        {
+            return "internal/";
+        }
     }
 
 }

@@ -24,7 +24,7 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
 
     public override SchemaVersion Version => SchemaVersion.V23;
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string partitionName, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -58,7 +58,8 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
                                 watermark,
-                                partitionKey),
+                                partitionKey,
+                                partitionName),
                             new InstanceProperties() { TransferSyntaxUid = rTransferSyntaxUid, HasFrameMetadata = rHasFrameMetadata }));
                 }
             }

@@ -186,6 +186,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     private (VersionedDicomDataset First, VersionedDicomDataset Second) SetupDatasetList(
         ResourceType resourceType,
         int partitionKey = DefaultPartition.Key,
+        string partitionName = DefaultPartition.Name,
         CancellationToken cancellationToken = default)
     {
         var instanceProperty1 = new InstanceProperties { OriginalVersion = _firstOriginalVersion };
@@ -209,7 +210,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, _studyInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {
@@ -220,7 +221,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         else
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {

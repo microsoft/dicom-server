@@ -125,8 +125,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, 
-                _retrieveConfiguration.MaxDicomFileSize, version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
                 Stream stream = await _blobDataStore.GetFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);

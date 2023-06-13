@@ -89,7 +89,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         using var fileStream = new MemoryStream();
         using var tokenSource = new CancellationTokenSource();
 
-        _fileStore.GetStreamingFileAsync(identifier.Version, tokenSource.Token).Returns(fileStream);
+        _fileStore.GetStreamingFileAsync(identifier.Version, identifier.PartitionName, tokenSource.Token).Returns(fileStream);
         _destClient.GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
@@ -97,7 +97,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         Assert.True(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
-        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, tokenSource.Token);
+        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, identifier.PartitionName, tokenSource.Token);
         _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm");
         await _destBlob
             .Received(1)
@@ -135,7 +135,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
         using var fileStream = new MemoryStream();
         using var tokenSource = new CancellationTokenSource();
 
-        _fileStore.GetStreamingFileAsync(identifier.Version, tokenSource.Token).Returns(fileStream);
+        _fileStore.GetStreamingFileAsync(identifier.Version, identifier.PartitionName, tokenSource.Token).Returns(fileStream);
         _destClient.GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm").Returns(_destBlob);
         _destBlob
             .UploadAsync(fileStream, Arg.Is<BlobUploadOptions>(x => x.TransferOptions == _blobOptions.Upload), tokenSource.Token)
@@ -143,7 +143,7 @@ public class AzureBlobExportSinkTests : IAsyncDisposable
 
         Assert.False(await _sink.CopyAsync(ReadResult.ForIdentifier(identifier), tokenSource.Token));
 
-        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, tokenSource.Token);
+        await _fileStore.Received(1).GetStreamingFileAsync(identifier.Version, identifier.PartitionName, tokenSource.Token);
         _destClient.Received(1).GetBlobClient($"{_output.OperationId:N}/results/1.2/3.4.5/6.7.8.9.10.dcm");
         await _destBlob
             .Received(1)

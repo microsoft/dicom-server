@@ -39,7 +39,7 @@ public partial class ExportDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         ExportBatchArguments args = context.GetInput<ExportBatchArguments>();
-        await using IExportSource source = await _sourceFactory.CreateAsync(args.Source, args.Partition); // todo get partition name from here
+        await using IExportSource source = await _sourceFactory.CreateAsync(args.Source, args.Partition);
         await using IExportSink sink = await _sinkFactory.CreateAsync(args.Destination, context.GetOperationId());
 
         source.ReadFailure += (source, e) => logger.LogError(e.Exception, "Cannot read desired DICOM file(s)");
