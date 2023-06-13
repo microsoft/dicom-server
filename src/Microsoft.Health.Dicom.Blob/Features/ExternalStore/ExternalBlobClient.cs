@@ -14,6 +14,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using System;
+using Microsoft.Health.Dicom.Core.Configs;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 
@@ -25,6 +26,7 @@ internal class ExternalBlobClient : IBlobClient
     private readonly ExternalBlobDataStoreConfiguration _externalStoreOptions;
     private readonly IExternalOperationCredentialProvider _credentialProvider;
     private BlobContainerClient _blobContainerClient;
+    private readonly bool _isPartitionEnabled;
 
     /// <summary>
     /// Configures a blob client for an external store.
@@ -32,20 +34,22 @@ internal class ExternalBlobClient : IBlobClient
     /// <param name="credentialProvider"></param>
     /// <param name="externalStoreOptions">Options to use with configuring the external store.</param>
     /// <param name="blobClientOptions">Options to use when configuring the blob client.</param>
+    /// <param name="featureConfiguration">Feature configuration.</param>
     public ExternalBlobClient(
         IExternalOperationCredentialProvider credentialProvider,
         IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions,
-        IOptions<BlobServiceClientOptions> blobClientOptions)
+        IOptions<BlobServiceClientOptions> blobClientOptions,
+        IOptions<FeatureConfiguration> featureConfiguration)
     {
         _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
         _externalStoreOptions.StorageDirectory = SanitizeServiceStorePath(_externalStoreOptions.StorageDirectory);
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
     }
 
     public bool IsExternal => true;
-
-    public string ServiceStorePath => _externalStoreOptions.StorageDirectory;
 
     public BlobContainerClient BlobContainerClient
     {
@@ -83,5 +87,15 @@ internal class ExternalBlobClient : IBlobClient
     private static string SanitizeServiceStorePath(string path)
     {
         return !path.EndsWith("/", StringComparison.OrdinalIgnoreCase) ? path + "/" : path;
+    }
+
+    /// <summary>
+    /// Gets path to store blobs in. When partitioning is enabled, the path append partition as a subdirectory.
+    /// </summary>
+    /// <param name="partitionName">Partition name to use to append as subdirectory to prefix.</param>
+    /// <returns></returns>
+    public string GetServiceStorePath(string partitionName)
+    {
+        return _isPartitionEnabled ? _externalStoreOptions.StorageDirectory + partitionName + "/" : _externalStoreOptions.StorageDirectory;
     }
 }

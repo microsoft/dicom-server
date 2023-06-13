@@ -52,6 +52,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
             ResourceType.Study,
             GetPartitionKey(),
+            GetPartitionName(),
             studyInstanceUid,
             seriesInstanceUid: null,
             sopInstanceUid: null,
@@ -67,6 +68,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Series,
                 GetPartitionKey(),
+                GetPartitionName(),
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid: null,
@@ -82,6 +84,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
             ResourceType.Instance,
             GetPartitionKey(),
+            GetPartitionName(),
             studyInstanceUid,
             seriesInstanceUid,
             sopInstanceUid,
@@ -121,6 +124,8 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     /// <returns>True if cache is valid, i.e. content has not modified, else returns false.</returns>
     private static bool IsCacheValid(string eTag, string ifNoneMatch)
         => !string.IsNullOrEmpty(ifNoneMatch) && string.Equals(ifNoneMatch, eTag, StringComparison.OrdinalIgnoreCase);
+
+    private string GetPartitionName() => _contextAccessor.RequestContext.GetPartitionName();
 
     private int GetPartitionKey()
         => _contextAccessor.RequestContext.GetPartitionKey();

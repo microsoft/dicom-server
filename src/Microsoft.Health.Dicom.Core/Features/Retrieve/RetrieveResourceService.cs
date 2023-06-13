@@ -81,6 +81,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     {
         EnsureArg.IsNotNull(message, nameof(message));
         var partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
+        var partitionName = _dicomRequestContextAccessor.RequestContext.GetPartitionName();
 
         try
         {
@@ -105,7 +106,7 @@ public class RetrieveResourceService : IRetrieveResourceService
 
             // this call throws NotFound when zero instance found
             IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
-                message.ResourceType, partitionKey, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
+                message.ResourceType, partitionKey, partitionName, message.StudyInstanceUid, message.SeriesInstanceUid, message.SopInstanceUid, cancellationToken);
             InstanceMetadata instance = retrieveInstances.First();
             long version = instance.GetVersion(message.IsOriginalVersionRequested);
 
@@ -124,10 +125,11 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, 
+                _retrieveConfiguration.MaxDicomFileSize, version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(version, cancellationToken);
+                Stream stream = await _blobDataStore.GetFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
@@ -211,11 +213,12 @@ public class RetrieveResourceService : IRetrieveResourceService
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
 
+        string partitionName = _dicomRequestContextAccessor.RequestContext.GetPartitionName();
         _logger.LogInformation("Downloading the entire instance for frame parsing");
-        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, false, cancellationToken);
+        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partitionName, false, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
-        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
+        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partitionName, cancellationToken);
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,
@@ -283,8 +286,8 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (var instanceMetadata in instanceMetadatas)
         {
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
-            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, cancellationToken);
-            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, cancellationToken);
+            FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
             yield return
                 new RetrieveResourceInstance(
                     stream,
@@ -338,7 +341,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, frameRange, cancellationToken);
+            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), frameRange, cancellationToken);
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
@@ -354,6 +357,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance,
                 instanceIdentifier.PartitionKey,
+                instanceIdentifier.PartitionName,
                 instanceIdentifier.StudyInstanceUid,
                 instanceIdentifier.SeriesInstanceUid,
                 instanceIdentifier.SopInstanceUid,

@@ -34,12 +34,13 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        return GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
     }
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
@@ -52,19 +53,21 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken, seriesInstanceUid);
+        return GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(studyInstanceUid, cancellationToken);
+        return GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken);
     }
 
     public virtual Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
@@ -78,6 +81,8 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
     }
 
     private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
+        int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         CancellationToken cancellationToken,
         string seriesInstanceUid = null,
@@ -109,7 +114,9 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
                             rStudyInstanceUid,
                             rSeriesInstanceUid,
                             rSopInstanceUid,
-                            watermark));
+                            watermark,
+                            partitionKey,
+                            partitionName));
                 }
             }
         }
@@ -117,7 +124,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
         return results;
     }
 
-    public virtual Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public virtual Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string partitionName, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

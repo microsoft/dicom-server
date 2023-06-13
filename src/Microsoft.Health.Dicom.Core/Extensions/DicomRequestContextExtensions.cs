@@ -18,4 +18,12 @@ public static class DicomRequestContextExtensions
         EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
         return partitionKey.Value;
     }
+    public static string GetPartitionName(this IDicomRequestContext dicomRequestContext)
+    {
+        EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
+
+        var partitionName = dicomRequestContext.DataPartitionEntry?.PartitionName;
+        EnsureArg.IsNotEmpty(partitionName);
+        return partitionName;
+    }
 }

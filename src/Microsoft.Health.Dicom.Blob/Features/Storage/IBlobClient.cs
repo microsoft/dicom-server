@@ -21,5 +21,5 @@ public interface IBlobClient
     /// <summary>
     /// Get the service store path for the blob client as configured at startup.
     /// </summary>
-    string ServiceStorePath { get; }
+    string GetServiceStorePath(string partitionName);
 }

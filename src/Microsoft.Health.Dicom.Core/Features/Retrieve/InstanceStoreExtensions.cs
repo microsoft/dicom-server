@@ -20,6 +20,7 @@ public static class InstanceStoreExtensions
             this IInstanceStore instanceStore,
             ResourceType resourceType,
             int partitionKey,
+            string partitionName,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -27,7 +28,7 @@ public static class InstanceStoreExtensions
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
 
-        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
 
         if (!instancesToRetrieve.Any())
         {

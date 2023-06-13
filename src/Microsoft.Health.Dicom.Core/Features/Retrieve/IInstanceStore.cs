@@ -18,11 +18,13 @@ public interface IInstanceStore
     /// Gets identifiers of instances in a study.
     /// </summary>
     /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partitionName">The partition name.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         CancellationToken cancellationToken = default);
 
@@ -30,12 +32,14 @@ public interface IInstanceStore
     /// Gets identifiers of instances in a series.
     /// </summary>
     /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partitionName">The partition name.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken = default);
@@ -44,6 +48,7 @@ public interface IInstanceStore
     /// Gets identifiers of instances in an instance.
     /// </summary>
     /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partitionName">The partition name.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="sopInstanceUid">The instance identifier.</param>
@@ -51,6 +56,7 @@ public interface IInstanceStore
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
@@ -98,6 +104,7 @@ public interface IInstanceStore
     /// Gets identifiers of instances with additional properties.
     /// </summary>
     /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partitionName">The partition name.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="sopInstanceUid">The instance identifier.</param>
@@ -105,6 +112,7 @@ public interface IInstanceStore
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid = null,
         string sopInstanceUid = null,

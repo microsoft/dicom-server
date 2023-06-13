@@ -29,29 +29,32 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        return GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid);
+        return GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken);
+        return GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken);
     }
 
     public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
@@ -93,14 +96,15 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
     }
 
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string partitionName, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
-        IEnumerable<VersionedInstanceIdentifier> indentifiers = await GetInstanceIdentifierImp(partitionKey, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        IEnumerable<VersionedInstanceIdentifier> indentifiers = await GetInstanceIdentifierImp(partitionKey, partitionName, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         return indentifiers.Select(i => new InstanceMetadata(i, new InstanceProperties())).ToList();
     }
 
     private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
         int partitionKey,
+        string partitionName,
         string studyInstanceUid,
         CancellationToken cancellationToken,
         string seriesInstanceUid = null,
@@ -133,7 +137,9 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
                             rStudyInstanceUid,
                             rSeriesInstanceUid,
                             rSopInstanceUid,
-                            watermark));
+                            watermark,
+                            partitionKey,
+                            partitionName));
                 }
             }
         }

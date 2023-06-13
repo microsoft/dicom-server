@@ -78,6 +78,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         _logger.LogInformation("Storing a DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+        string partitionName = _contextAccessor.RequestContext.GetPartitionName();
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
         long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
@@ -86,7 +87,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         try
         {
             // We have successfully created the index, store the files.
-            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
+            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, partitionName, dicomInstanceEntry, cancellationToken);
             Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, version, cancellationToken);
             await Task.WhenAll(
                 storeFileTask,
@@ -120,12 +121,13 @@ public class StoreOrchestrator : IStoreOrchestrator
 
     private async Task<FileProperties> StoreFileAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
+        string partitionName,
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-        return await _fileStore.StoreFileAsync(versionedInstanceIdentifier.Version, stream, cancellationToken);
+        return await _fileStore.StoreFileAsync(versionedInstanceIdentifier.Version, partitionName, stream, cancellationToken);
     }
 
     private Task StoreInstanceMetadataAsync(

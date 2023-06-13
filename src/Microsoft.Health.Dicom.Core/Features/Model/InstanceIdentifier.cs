@@ -16,7 +16,8 @@ public class InstanceIdentifier
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
-        int partitionKey = default)
+        int partitionKey = default,
+        string partitionName = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -26,6 +27,7 @@ public class InstanceIdentifier
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
         PartitionKey = partitionKey;
+        PartitionName = partitionName;
     }
 
     public string StudyInstanceUid { get; }
@@ -35,6 +37,8 @@ public class InstanceIdentifier
     public string SopInstanceUid { get; }
 
     public int PartitionKey { get; }
+
+    public string PartitionName { get; }
 
     public override bool Equals(object obj)
     {
