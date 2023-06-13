@@ -169,8 +169,9 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
+        int fileCount = fileIdentifiers.Where(f => f.OriginalVersion.HasValue).Count();
 
-        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileCount);
 
         await Parallel.ForEachAsync(
             fileIdentifiers.Where(f => f.OriginalVersion.HasValue),
@@ -184,7 +185,44 @@ public partial class UpdateDurableFunction
                 await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, token);
             });
 
-        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileIdentifiers.Count);
+        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously delete the new blob when there is a failure while updating the study instances.
+    /// </summary>
+    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="CleanupNewVersionBlobAsync"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(CleanupNewVersionBlobAsync))]
+    public async Task CleanupNewVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
+
+        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue).Count();
+        logger.LogInformation("Begin cleaning up new blobs. Total size {TotalCount}", fileCount);
+
+        await Parallel.ForEachAsync(
+            fileIdentifiers.Where(f => f.NewVersion.HasValue),
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (fileIdentifier, token) =>
+            {
+                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, token);
+            });
+
+        logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);

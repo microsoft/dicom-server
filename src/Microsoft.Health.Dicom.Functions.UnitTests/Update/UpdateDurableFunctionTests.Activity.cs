@@ -117,6 +117,40 @@ public partial class UpdateDurableFunctionTests
     }
 
     [Fact]
+    public async Task GivenInstanceUpdateFails_WhenDeleteFile_ThenShouldDeleteSuccessfully()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1 });
+        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
+            new InstanceFileState
+            {
+                Version = x.VersionedInstanceIdentifier.Version,
+                OriginalVersion = x.InstanceProperties.OriginalVersion,
+                NewVersion = x.InstanceProperties.NewVersion
+            }).Take(1).ToList();
+
+        // Arrange input
+        IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
+        context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.CleanupNewVersionBlobAsync(
+            context,
+            NullLogger.Instance);
+
+        // Assert behavior
+        context.Received(1).GetInput<IReadOnlyList<InstanceFileState>>();
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+    }
+
+
+    [Fact]
     public async Task GivenInstanceMetadataList_WhenDeleteFile_ThenShouldDeleteSuccessfully()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
@@ -148,6 +182,7 @@ public partial class UpdateDurableFunctionTests
             .Received(1)
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
+
 
     private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
     {

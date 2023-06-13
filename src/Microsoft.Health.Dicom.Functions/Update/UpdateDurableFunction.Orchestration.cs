@@ -57,6 +57,8 @@ public partial class UpdateDurableFunction
 
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instanceWatermarks.Count);
 
+            var totalNoOfInstances = input.TotalNumberOfInstanceUpdated;
+
             if (instanceWatermarks.Count > 0)
             {
                 try
@@ -70,10 +72,11 @@ public partial class UpdateDurableFunction
                         nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
                         new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+
+                    totalNoOfInstances += instanceWatermarks.Count;
                 }
                 catch (FunctionFailedException ex)
                 {
-                    // TODO: Need to call cleanup orchestration on failure after retries.
                     logger.LogError(ex, "Failed to update instances for study", ex);
                     var errors = new List<string>
                     {
@@ -84,6 +87,9 @@ public partial class UpdateDurableFunction
                         errors.AddRange(errors);
 
                     input.Errors = errors;
+
+                    // Cleanup the new version when the update activity fails
+                    await TryCleanupActivity(context, instanceWatermarks);
                 }
             }
 
@@ -101,11 +107,6 @@ public partial class UpdateDurableFunction
                     instanceWatermarks);
             }
 
-            if (instanceWatermarks.Count > 0)
-            {
-                replaySafeCounter.Add(instanceWatermarks.Count);
-            }
-
             context.ContinueAsNew(
                 new UpdateCheckpoint
                 {
@@ -113,7 +114,7 @@ public partial class UpdateDurableFunction
                     ChangeDataset = input.ChangeDataset,
                     PartitionKey = input.PartitionKey,
                     NumberOfStudyCompleted = numberOfStudyCompleted,
-                    TotalNumberOfInstanceUpdated = input.TotalNumberOfInstanceUpdated + instanceWatermarks.Count,
+                    TotalNumberOfInstanceUpdated = totalNoOfInstances,
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
                 });
@@ -131,6 +132,24 @@ public partial class UpdateDurableFunction
             {
                 logger.LogInformation("Update operation completed successfully");
             }
+
+            if (input.TotalNumberOfInstanceUpdated > 0)
+            {
+                replaySafeCounter.Add(input.TotalNumberOfInstanceUpdated);
+            }
         }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]
+    private async Task TryCleanupActivity(IDurableOrchestrationContext context, IReadOnlyList<InstanceFileState> instanceWatermarks)
+    {
+        try
+        {
+            await context.CallActivityWithRetryAsync(
+                nameof(CleanupNewVersionBlobAsync),
+                _options.RetryOptions,
+                instanceWatermarks);
+        }
+        catch (Exception) { }
     }
 }
