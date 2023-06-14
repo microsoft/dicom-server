@@ -17,7 +17,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.IO;
@@ -30,7 +29,6 @@ public class UpdateInstanceService : IUpdateInstanceService
     private readonly IMetadataStore _metadataStore;
     private readonly ILogger<UpdateInstanceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly int _largeDicomItemSizeInBytes;
     private readonly int _stageBlockSizeInBytes;
     private const int LargeObjectSizeInBytes = 1000;
@@ -39,7 +37,6 @@ public class UpdateInstanceService : IUpdateInstanceService
         IFileStore fileStore,
         IMetadataStore metadataStore,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
-        IDicomRequestContextAccessor dicomRequestContextAccessor,
         IOptions<UpdateConfiguration> updateConfiguration,
         ILogger<UpdateInstanceService> logger)
     {
@@ -47,7 +44,6 @@ public class UpdateInstanceService : IUpdateInstanceService
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _recyclableMemoryStreamManager = EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
-        _dicomRequestContextAccessor = EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         var configuration = EnsureArg.IsNotNull(updateConfiguration?.Value, nameof(updateConfiguration));
         _largeDicomItemSizeInBytes = configuration.LargeDicomItemsizeInBytes;
         _stageBlockSizeInBytes = configuration.StageBlockSizeInBytes;
@@ -70,7 +66,8 @@ public class UpdateInstanceService : IUpdateInstanceService
     {
         _logger.LogInformation("Begin deleting instance blob {FileIdentifier}.", fileIdentifier);
 
-        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
+        // external store not supported with update yet. pass is partition name once supported
+        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, String.Empty, cancellationToken);
         Task metadataTask = _metadataStore.DeleteInstanceMetadataIfExistsAsync(fileIdentifier, cancellationToken);
 
         await Task.WhenAll(fileTask, metadataTask);
@@ -82,7 +79,6 @@ public class UpdateInstanceService : IUpdateInstanceService
     {
         long originFileIdentifier = instanceFileIdentifier.Version;
         long newFileIdentifier = instanceFileIdentifier.NewVersion.Value;
-        string partitionName = _dicomRequestContextAccessor.RequestContext.GetPartitionName();
         var stopwatch = new Stopwatch();
 
         KeyValuePair<string, long> block = default;
@@ -94,7 +90,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         if (isPreUpdated)
         {
             _logger.LogInformation("Begin copying instance file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
-            await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, partitionName, cancellationToken);
+            await _fileStore.CopyFileAsync(originFileIdentifier, newFileIdentifier, cancellationToken);
         }
         else
         {
@@ -102,7 +98,8 @@ public class UpdateInstanceService : IUpdateInstanceService
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             // If not pre-updated get the file stream, GetFileAsync will open the stream
-            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, partitionName, cancellationToken);
+            // // pass in partition name once update supported by external store
+            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, string.Empty, cancellationToken);
 
             // Read the file and check if there is any large DICOM item in the file.
             DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand, LargeObjectSizeInBytes);
@@ -135,7 +132,7 @@ public class UpdateInstanceService : IUpdateInstanceService
             stream.Seek(0, SeekOrigin.Begin);
 
             // Copy the original file into another file as multiple blocks
-            await _fileStore.StoreFileInBlocksAsync(newFileIdentifier, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), stream, blockLengths, cancellationToken);
+            await _fileStore.StoreFileInBlocksAsync(newFileIdentifier, stream, blockLengths, cancellationToken);
 
             // Retain the first block information to update the metadata information
             block = blockLengths.First();
@@ -175,10 +172,10 @@ public class UpdateInstanceService : IUpdateInstanceService
         // This scenario occurs if the file is already updated and we have stored in multiple blocks
         if (block.Key is null)
         {
-            block = await _fileStore.GetFirstBlockPropertyAsync(newFileIdentifier, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
+            block = await _fileStore.GetFirstBlockPropertyAsync(newFileIdentifier, cancellationToken);
         }
 
-        BinaryData data = await _fileStore.GetFileContentInRangeAsync(newFileIdentifier, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), new FrameRange(0, block.Value), cancellationToken);
+        BinaryData data = await _fileStore.GetFileContentInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
 
         using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(data);
         DicomFile dicomFile = await DicomFile.OpenAsync(stream);
@@ -187,7 +184,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
         await dicomFile.SaveAsync(resultStream);
 
-        await _fileStore.UpdateFileBlockAsync(newFileIdentifier, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), block.Key, resultStream, cancellationToken);
+        await _fileStore.UpdateFileBlockAsync(newFileIdentifier, block.Key, resultStream, cancellationToken);
 
         stopwatch.Stop();
 

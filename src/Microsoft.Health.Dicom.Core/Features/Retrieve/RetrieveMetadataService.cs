@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -51,8 +52,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     {
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
             ResourceType.Study,
-            GetPartitionKey(),
-            GetPartitionName(),
+            GetPartitionEntry(),
             studyInstanceUid,
             seriesInstanceUid: null,
             sopInstanceUid: null,
@@ -67,8 +67,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     {
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Series,
-                GetPartitionKey(),
-                GetPartitionName(),
+                GetPartitionEntry(),
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid: null,
@@ -83,8 +82,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     {
         IReadOnlyList<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
             ResourceType.Instance,
-            GetPartitionKey(),
-            GetPartitionName(),
+            GetPartitionEntry(),
             studyInstanceUid,
             seriesInstanceUid,
             sopInstanceUid,
@@ -125,7 +123,7 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private static bool IsCacheValid(string eTag, string ifNoneMatch)
         => !string.IsNullOrEmpty(ifNoneMatch) && string.Equals(ifNoneMatch, eTag, StringComparison.OrdinalIgnoreCase);
 
-    private string GetPartitionName() => _contextAccessor.RequestContext.GetPartitionName();
+    private PartitionEntry GetPartitionEntry() => _contextAccessor.RequestContext.GetPartitionEntry();
 
     private int GetPartitionKey()
         => _contextAccessor.RequestContext.GetPartitionKey();

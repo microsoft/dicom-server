@@ -3,10 +3,22 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Health.Dicom.Core.Features.Partition;
+
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
 public class VersionedInstanceIdentifier : InstanceIdentifier
 {
+    public VersionedInstanceIdentifier(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        long version,
+        PartitionEntry partitionEntry)
+        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry)
+    {
+        Version = version;
+    }
     public VersionedInstanceIdentifier(
         string studyInstanceUid,
         string seriesInstanceUid,

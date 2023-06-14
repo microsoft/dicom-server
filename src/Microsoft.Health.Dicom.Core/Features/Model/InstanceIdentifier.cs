@@ -5,12 +5,28 @@
 
 using System;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
 public class InstanceIdentifier
 {
     private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
+
+    public InstanceIdentifier(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        PartitionEntry partitionEntry)
+        : this(
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            partitionEntry?.PartitionKey ?? throw new ArgumentNullException(nameof(partitionEntry)),
+            partitionEntry?.PartitionName ?? throw new ArgumentNullException(nameof(partitionEntry)))
+    {
+        EnsureArg.IsNotNull(partitionEntry, nameof(partitionEntry));
+    }
 
     public InstanceIdentifier(
         string studyInstanceUid,
@@ -39,6 +55,7 @@ public class InstanceIdentifier
     public int PartitionKey { get; }
 
     public string PartitionName { get; }
+    public PartitionEntry PartitionEntry { get; }
 
     public override bool Equals(object obj)
     {

@@ -354,7 +354,7 @@ public class DeleteServiceTests
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i, DefaultPartition.Key, DefaultPartition.Name), instanceProperties));
+            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i, DefaultPartition.PartitionEntry), instanceProperties));
         }
 
         return deletedInstanceList;

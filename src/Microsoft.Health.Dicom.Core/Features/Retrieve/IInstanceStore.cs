@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -17,29 +18,25 @@ public interface IInstanceStore
     /// <summary>
     /// Gets identifiers of instances in a study.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
-    /// <param name="partitionName">The partition name.</param>
+    /// <param name="partitionEntry">The partition.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
-        int partitionKey,
-        string partitionName,
+        PartitionEntry partitionEntry,
         string studyInstanceUid,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets identifiers of instances in a series.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
-    /// <param name="partitionName">The partition name.</param>
+    /// <param name="partitionEntry">The partition.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
-        int partitionKey,
-        string partitionName,
+        PartitionEntry partitionEntry,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken = default);
@@ -47,16 +44,14 @@ public interface IInstanceStore
     /// <summary>
     /// Gets identifiers of instances in an instance.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
-    /// <param name="partitionName">The partition name.</param>
+    /// <param name="partitionEntry">The partition.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="sopInstanceUid">The instance identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
-        int partitionKey,
-        string partitionName,
+        PartitionEntry partitionEntry,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
@@ -103,16 +98,14 @@ public interface IInstanceStore
     /// <summary>
     /// Gets identifiers of instances with additional properties.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
-    /// <param name="partitionName">The partition name.</param>
+    /// <param name="partitionEntry">The partition.</param>
     /// <param name="studyInstanceUid">The study identifier.</param>
     /// <param name="seriesInstanceUid">The series identifier.</param>
     /// <param name="sopInstanceUid">The instance identifier.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     /// <returns>Instance identifiers.</returns>
     Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(
-        int partitionKey,
-        string partitionName,
+        PartitionEntry partitionEntry,
         string studyInstanceUid,
         string seriesInstanceUid = null,
         string sopInstanceUid = null,

@@ -51,7 +51,7 @@ public class RetrieveRenderedServiceTests
         _instanceStore = Substitute.For<IInstanceStore>();
         _fileStore = Substitute.For<IFileStore>();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = DefaultPartition.PartitionEntry;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
 
@@ -103,7 +103,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenNoStoredInstances_RenderForInstance_ThenNotFoundIsThrown()
     {
-        _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, DefaultPartition.Name, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+        _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.PartitionEntry, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveRenderedService.RetrieveRenderedImageAsync(
             new RetrieveRenderedRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, ResourceType.Instance, 1, 75, new[] { AcceptHeaderHelpers.CreateRenderAcceptHeader() }),
@@ -390,14 +390,15 @@ public class RetrieveRenderedServiceTests
         copyStream.Dispose();
     }
 
-    private List<InstanceMetadata> SetupInstanceIdentifiersList(int partitionKey = DefaultPartition.Key, string partitionName = DefaultPartition.Name, InstanceProperties instanceProperty = null)
+    private List<InstanceMetadata> SetupInstanceIdentifiersList(PartitionEntry partitionEntry = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
         instanceProperty = instanceProperty ?? new InstanceProperties();
+        partitionEntry = partitionEntry ?? DefaultPartition.PartitionEntry;
 
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, partitionName), instanceProperty));
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionEntry), instanceProperty));
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
 
         return dicomInstanceIdentifiersList;
     }

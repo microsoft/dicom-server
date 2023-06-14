@@ -66,7 +66,7 @@ public class RetrieveResourceServiceTests
         _logger = NullLogger<RetrieveResourceService>.Instance;
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = DefaultPartition.PartitionEntry;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
         var loggerFactory = Substitute.For<ILoggerFactory>();
@@ -93,7 +93,7 @@ public class RetrieveResourceServiceTests
     [Fact]
     public async Task GivenNoStoredInstances_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
     {
-        _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.Key, DefaultPartition.Name, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+        _instanceStore.GetInstanceIdentifiersInStudyAsync(DefaultPartition.PartitionEntry, _studyInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
             new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
@@ -255,7 +255,7 @@ public class RetrieveResourceServiceTests
     {
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         var instanceMetadata = new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, DefaultPartition.Key), new InstanceProperties());
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, DefaultPartition.Name, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instanceMetadata.VersionedInstanceIdentifier), _recyclableMemoryStreamManager);
@@ -283,7 +283,7 @@ public class RetrieveResourceServiceTests
     [Fact]
     public async Task GivenNoStoredInstances_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
     {
-        _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.Key, DefaultPartition.Name, _studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+        _instanceStore.GetInstanceIdentifiersInSeriesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, _firstSeriesInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
             new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
@@ -356,7 +356,7 @@ public class RetrieveResourceServiceTests
     [Fact]
     public async Task GivenNoStoredInstances_WhenRetrieveRequestForInstance_ThenNotFoundIsThrown()
     {
-        _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.Key, DefaultPartition.Name, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
+        _instanceStore.GetInstanceIdentifierAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid).Returns(new List<VersionedInstanceIdentifier>());
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveResourceService.GetInstanceResourceAsync(
             new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetInstance() }),
@@ -505,7 +505,7 @@ public class RetrieveResourceServiceTests
     public async Task GetInstances_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
     {
         // arrange object with originalTransferSyntax
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, DefaultPartition.Key, DefaultPartition.Name, new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, instanceProperty: new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
@@ -535,7 +535,7 @@ public class RetrieveResourceServiceTests
     public async Task GetFrames_WithAcceptType_ThenResponseContentTypeIsCorrect(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
     {
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames, DefaultPartition.Key, DefaultPartition.Name, new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames, instanceProperty: new InstanceProperties() { TransferSyntaxUid = originalTransferSyntax });
         var framesToRequest = new List<int> { 1, 2 };
 
         // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
@@ -584,7 +584,7 @@ public class RetrieveResourceServiceTests
     public async Task GetInstances_WithAcceptTypeOnOldFile_ThenResponseContentTypeWithBackCompatWorks(string requestedTransferSyntax, string originalTransferSyntax, string expectedTransferSyntax)
     {
         // arrange object with originalTransferSyntax as null from DB to show backcompat
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance, DefaultPartition.Key, DefaultPartition.Name, null);
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
@@ -643,7 +643,7 @@ public class RetrieveResourceServiceTests
     public async Task GetFrames_WithNoTranscode_HitsCache()
     {
         // arrange
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames, DefaultPartition.Key, DefaultPartition.Name, new InstanceProperties() { HasFrameMetadata = true });
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Frames, instanceProperty: new InstanceProperties() { HasFrameMetadata = true });
         var framesToRequest = new List<int> { 1 };
 
         // act
@@ -663,9 +663,7 @@ public class RetrieveResourceServiceTests
         // arrange
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Frames,
-            DefaultPartition.Key,
-            DefaultPartition.Name,
-            new InstanceProperties() { HasFrameMetadata = true });
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true });
         var framesToRequest = new List<int> { 1 };
 
         // act
@@ -695,9 +693,7 @@ public class RetrieveResourceServiceTests
         // arrange
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Frames,
-            DefaultPartition.Key,
-            DefaultPartition.Name,
-            new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 1 });
+            instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 1 });
         var framesToRequest = new List<int> { 1 };
 
         // act
@@ -721,32 +717,32 @@ public class RetrieveResourceServiceTests
             Arg.Any<CancellationToken>());
     }
 
-    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, int partitionKey = DefaultPartition.Key, string partitionName = DefaultPartition.Name, InstanceProperties instanceProperty = null)
+    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, PartitionEntry partitionEntry = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
         instanceProperty = instanceProperty ?? new InstanceProperties();
+        partitionEntry = partitionEntry ?? DefaultPartition.PartitionEntry;
 
         switch (resourceType)
         {
             case ResourceType.Study:
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier
-                (_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, partitionName), instanceProperty));
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 1, partitionKey, partitionName), instanceProperty));
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 2, partitionKey, partitionName), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionEntry), instanceProperty));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 1, partitionEntry), instanceProperty));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _secondSeriesInstanceUid, TestUidGenerator.Generate(), 2, partitionEntry), instanceProperty));
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Series:
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionKey, partitionName), instanceProperty));
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 1, partitionKey, partitionName), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, _studyInstanceUid, _firstSeriesInstanceUid, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partitionEntry), instanceProperty));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 1, partitionEntry), instanceProperty));
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, _firstSeriesInstanceUid, null, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Instance:
             case ResourceType.Frames:
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 3, partitionKey, partitionName), instanceProperty));
-                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 4, partitionKey, partitionName), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, partitionName, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1).ToList());
-                var identifier = new InstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, partitionKey, partitionName);
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, 3, partitionEntry), instanceProperty));
+                dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 4, partitionEntry), instanceProperty));
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList.SkipLast(1).ToList());
+                var identifier = new InstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, partitionEntry);
                 _instanceMetadataCache.GetAsync(Arg.Any<object>(), identifier, Arg.Any<Func<InstanceIdentifier, CancellationToken, Task<InstanceMetadata>>>(), Arg.Any<CancellationToken>()).Returns(dicomInstanceIdentifiersList.First());
                 break;
         }

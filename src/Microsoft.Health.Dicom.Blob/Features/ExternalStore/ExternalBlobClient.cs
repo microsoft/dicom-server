@@ -82,6 +82,7 @@ internal class ExternalBlobClient : IBlobClient
             }
             return _blobContainerClient;
         }
+        set => _blobContainerClient = value;
     }
 
     private static string SanitizeServiceStorePath(string path)
