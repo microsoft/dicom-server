@@ -35,8 +35,9 @@ namespace Microsoft.Health.Dicom.Blob.UnitTests.Features.Storage;
 public class BlobFileStoreTests
 {
     private const string DefaultBlobName = "foo/123.dcm";
+    private const string DefaultStorageDirectory = "/test/";
 
-
+    [Theory]
     [InlineData("a!/b")]
     [InlineData("a#/b")]
     [InlineData("a\b")]
@@ -154,6 +155,21 @@ public class BlobFileStoreTests
     }
 
     [Fact]
+    public void GivenExternalStore_WhenGetServiceStorePathWithPartitionsEnabled_ThenPathReturnedContainsPartitionPassed()
+    {
+        string partitionName = "foo";
+        InitializeExternalBlobFileStore(out BlobFileStore _, out ExternalBlobClient client, partitionsEnabled: true);
+        Assert.Equal(DefaultStorageDirectory + partitionName + "/", client.GetServiceStorePath(partitionName));
+    }
+
+    [Fact]
+    public void GivenExternalStore_WhenGetServiceStorePathWithPartitionsDisabled_ThenPathReturnedUsesDefaultMsPartition()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore _, out ExternalBlobClient client, partitionsEnabled: false);
+        Assert.Equal(DefaultStorageDirectory + DefaultPartition.Name + "/", client.GetServiceStorePath("foo"));
+    }
+
+    [Fact]
     public async Task GivenInternalStore_WhenGetPropertiesFails_ThenThrowExceptionWithRightMessageAndProperty()
     {
         InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
@@ -186,7 +202,7 @@ public class BlobFileStoreTests
         {
             ConnectionString = "test",
             ContainerName = "test",
-            StorageDirectory = "/test/",
+            StorageDirectory = DefaultStorageDirectory,
         });
         var clientOptions = Substitute.For<IOptions<BlobServiceClientOptions>>();
         clientOptions.Value.Returns(Substitute.For<BlobServiceClientOptions>());
