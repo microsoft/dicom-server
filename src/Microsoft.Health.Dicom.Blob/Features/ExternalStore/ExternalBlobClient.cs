@@ -92,7 +92,7 @@ internal class ExternalBlobClient : IBlobClient
     }
 
     /// <summary>
-    /// Gets path to store blobs in. When partitioning is enabled, the path append partition as a subdirectory.
+    /// Gets path to store blobs in. When partitioning is enabled, the path appends partition as a subdirectory.
     /// </summary>
     /// <param name="partitionName">Partition name to use to append as subdirectory to prefix.</param>
     /// <returns></returns>

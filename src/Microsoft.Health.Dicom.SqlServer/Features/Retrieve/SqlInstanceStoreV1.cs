@@ -112,8 +112,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
                             rSeriesInstanceUid,
                             rSopInstanceUid,
                             watermark,
-                            partitionEntry.PartitionKey,
-                            partitionEntry.PartitionName));
+                            partitionEntry));
                 }
             }
         }

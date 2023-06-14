@@ -55,6 +55,7 @@ public class InstanceIdentifier
     public int PartitionKey { get; }
 
     public string PartitionName { get; }
+
     public PartitionEntry PartitionEntry { get; }
 
     public override bool Equals(object obj)
@@ -65,7 +66,6 @@ public class InstanceIdentifier
                     SeriesInstanceUid.Equals(identifier.SeriesInstanceUid, EqualsStringComparison) &&
                     SopInstanceUid.Equals(identifier.SopInstanceUid, EqualsStringComparison);
         }
-
         return false;
     }
 
