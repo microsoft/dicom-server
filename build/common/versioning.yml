@@ -35,14 +35,14 @@ jobs:
       arguments: >
         -SwaggerDir '$(System.DefaultWorkingDirectory)/swagger'
         -AssemblyDir '$(System.ArtifactsDirectory)/deploy/webArtifacts/Microsoft.Health.Dicom.Web.dll'
-        -Version 'v1-prerelease','v1'
+        -Version 'v1-prerelease','v1','v2'
 
   - task: PowerShell@2
     displayName: 'Check for breaking API / Swagger changes'
-    enabled: false
+    enabled: false # will re-enable once v2 swagger exists on main
     inputs:
       pwsh: true
       filepath: './build/common/scripts/CheckForBreakingAPISwaggerChanges.ps1'
       arguments: >
         -SwaggerDir 'swagger'
-        -Version 'v1-prerelease','v1'
+        -Version 'v1-prerelease','v1','v2'

@@ -28,13 +28,21 @@ dotnet swagger
 
 foreach ($Version in $Versions)
 {
-    Write-Host "Generating swagger yaml file for $Version"
+    Write-Host "Ensuring directory path exists for swagger api version $Version"
+    $ProjectSwaggerDir=".\swagger\$Version"
+    if (!(Test-Path $ProjectSwaggerDir -PathType Container)) {
+        New-Item -ItemType Directory -Force -Path $ProjectSwaggerDir
+        Write-Host "Directory $ProjectSwaggerDir did not exist. Directory created."
+    }
+
     $WritePath=(Join-Path -Path "$SwaggerDir" -ChildPath "$Version.yaml")
+    Write-Host "Generating swagger yaml file for $Version to path $WritePath"
 
     dotnet swagger tofile --yaml --output $WritePath "$AssemblyDir" $Version
 
     Write-Host "Comparing generated swagger with what was checked in ..."
-    $HasDifferences = (Compare-Object -ReferenceObject (Get-Content -Path $WritePath) -DifferenceObject (Get-Content -Path ".\swagger\$Version\swagger.yaml"))
+    $HasDifferences = (Compare-Object -ReferenceObject (Get-Content -Path $WritePath) -DifferenceObject (Get-Content -Path "$ProjectSwaggerDir\swagger.yaml"))
+
     if ($HasDifferences){
         Write-Host $HasDifferences
         throw "The swagger yaml checked in with this PR is not up to date with code. Please build the sln, which will trigger a hook to autogenerate these files on your behalf. Differences shown above."
