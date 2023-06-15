@@ -158,6 +158,12 @@ In order to retrieve original version, `msdicom-request-original` header should 
 
 This transaction will delete both original and latest version of instances.
 
+## Change Feed
+
+Along with other actions (Create and Delete), Updated change feed action is populated for every update operation.
+
+Examples of the request and response of change feed action can be found [here](./change-feed.md).
+
 ### Other APIs
 
-There is no change in other APIs.
+There is no change in other APIs. All the other APIs supports only latest version of instances.
