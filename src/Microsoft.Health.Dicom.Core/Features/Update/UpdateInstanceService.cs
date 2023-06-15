@@ -66,7 +66,7 @@ public class UpdateInstanceService : IUpdateInstanceService
     {
         _logger.LogInformation("Begin deleting instance blob {FileIdentifier}.", fileIdentifier);
 
-        // external store not supported with update yet. pass is partition name once supported
+        // Note: External store not supported with update yet. Pass in partition name once supported
         Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, String.Empty, cancellationToken);
         Task metadataTask = _metadataStore.DeleteInstanceMetadataIfExistsAsync(fileIdentifier, cancellationToken);
 
