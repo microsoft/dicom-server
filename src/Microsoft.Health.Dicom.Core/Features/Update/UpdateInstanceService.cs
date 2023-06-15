@@ -98,7 +98,7 @@ public class UpdateInstanceService : IUpdateInstanceService
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             // If not pre-updated get the file stream, GetFileAsync will open the stream
-            // // pass in partition name once update supported by external store
+            // // pass in partition name once update supported by external store #104373
             using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, string.Empty, cancellationToken);
 
             // Read the file and check if there is any large DICOM item in the file.

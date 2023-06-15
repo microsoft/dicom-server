@@ -80,7 +80,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(blockLengths, nameof(blockLengths));
         EnsureArg.IsGte(blockLengths.Count, 0, nameof(blockLengths.Count));
 
-        // pass in partition name once update supported by external store
+        // pass in partition name once update supported by external store #104373
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, string.Empty);
 
         int maxBufferSize = (int)blockLengths.Max(x => x.Value);
@@ -120,7 +120,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(stream, nameof(stream));
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
-        // pass in partition name once update supported by external store
+        // pass in partition name once update supported by external store #104373
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, string.Empty);
         _logger.LogInformation("Trying to read block list for DICOM instance file with watermark '{Version}'.", version);
 
@@ -223,7 +223,7 @@ public class BlobFileStore : IFileStore
     public async Task<BinaryData> GetFileContentInRangeAsync(long version, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
-        // pass in partition name once update supported by external store
+        // pass in partition name once update supported by external store #104373
         BlockBlobClient blob = GetInstanceBlockBlobClient(version, string.Empty);
         _logger.LogInformation("Trying to read DICOM instance fileContent with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
@@ -242,7 +242,7 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, CancellationToken cancellationToken = default)
     {
-        // pass in partition name once update supported by external store
+        // pass in partition name once update supported by external store #104373
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, string.Empty);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' firstBlock.", version);
 
@@ -261,7 +261,7 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task CopyFileAsync(long originalVersion, long newVersion, CancellationToken cancellationToken)
     {
-        // pass in partition name once update supported by external store
+        // pass in partition name once update supported by external store #104373
         var blobClient = GetInstanceBlockBlobClient(originalVersion, string.Empty);
         var copyBlobClient = GetInstanceBlockBlobClient(newVersion, string.Empty);
         _logger.LogInformation("Trying to copy DICOM instance file with watermark '{Version}' to new watermark '{NewVersion}.", originalVersion, newVersion);

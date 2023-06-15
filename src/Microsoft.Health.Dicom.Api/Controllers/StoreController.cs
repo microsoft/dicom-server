@@ -110,6 +110,7 @@ public class StoreController : ControllerBase
         {
             throw new DicomUpdateFeatureDisabledException();
         }
+
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);
         if (response.FailedDataset != null)
         {

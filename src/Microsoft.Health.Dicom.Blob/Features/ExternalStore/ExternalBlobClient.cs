@@ -3,18 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-
+using EnsureThat;
+using System;
 using Azure.Core;
 using Azure.Storage.Blobs;
-using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
-using Microsoft.Health.Dicom.Blob.Utilities;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
-using Microsoft.Health.Dicom.Core.Exceptions;
-using System;
+using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Configs;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
@@ -46,8 +45,7 @@ internal class ExternalBlobClient : IBlobClient
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
         _externalStoreOptions.StorageDirectory = SanitizeServiceStorePath(_externalStoreOptions.StorageDirectory);
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-        _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
+        _isPartitionEnabled = EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration)).Value.EnableDataPartitions;
     }
 
     public bool IsExternal => true;

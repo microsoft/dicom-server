@@ -19,6 +19,7 @@ public class VersionedInstanceIdentifier : InstanceIdentifier
     {
         Version = version;
     }
+
     public VersionedInstanceIdentifier(
         string studyInstanceUid,
         string seriesInstanceUid,

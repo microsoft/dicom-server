@@ -212,12 +212,11 @@ public class RetrieveResourceService : IRetrieveResourceService
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
 
-        string partitionName = _dicomRequestContextAccessor.RequestContext.GetPartitionName();
         _logger.LogInformation("Downloading the entire instance for frame parsing");
-        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partitionName, false, cancellationToken);
+        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partitionEntry.PartitionName, false, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
-        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partitionName, cancellationToken);
+        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partitionEntry.PartitionName, cancellationToken);
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,

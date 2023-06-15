@@ -22,7 +22,7 @@ public static class DicomRequestContextExtensions
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
 
-        return dicomRequestContext.DataPartitionEntry?.PartitionName;
+        return dicomRequestContext.DataPartitionEntry.PartitionName;
     }
 
     public static PartitionEntry GetPartitionEntry(this IDicomRequestContext dicomRequestContext)

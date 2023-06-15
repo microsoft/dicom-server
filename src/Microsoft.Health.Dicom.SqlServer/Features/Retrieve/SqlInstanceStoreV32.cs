@@ -68,8 +68,7 @@ internal class SqlInstanceStoreV32 : SqlInstanceStoreV23
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
                                 watermark,
-                                partitionEntry.PartitionKey,
-                                partitionEntry.PartitionName),
+                                partitionEntry),
                             new InstanceProperties()
                             {
                                 TransferSyntaxUid = rTransferSyntaxUid,

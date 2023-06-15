@@ -105,7 +105,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
 
         public bool IsExternal => false;
 
-        public string GetServiceStorePath(string _) => "/service/path/";
+        public string GetServiceStorePath(string partitionName) => "/service/path/";
     }
 
     private class TestExternalBlobClient : IBlobClient
