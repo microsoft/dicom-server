@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Diagnostics;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Partition;
@@ -16,26 +15,20 @@ public static class DicomRequestContextExtensions
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
 
-        var partitionKey = dicomRequestContext.DataPartitionEntry?.PartitionKey;
-        EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
-        return partitionKey.Value;
+        return dicomRequestContext.DataPartitionEntry.PartitionKey;
     }
 
     public static string GetPartitionName(this IDicomRequestContext dicomRequestContext)
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
 
-        var partitionName = dicomRequestContext.DataPartitionEntry?.PartitionName;
-        Debug.Assert(partitionName.Length > 0);
-        return partitionName;
+        return dicomRequestContext.DataPartitionEntry?.PartitionName;
     }
 
     public static PartitionEntry GetPartitionEntry(this IDicomRequestContext dicomRequestContext)
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
 
-        var partition = dicomRequestContext.DataPartitionEntry;
-        Debug.Assert(partition is not null);
-        return partition;
+        return dicomRequestContext.DataPartitionEntry;
     }
 }
