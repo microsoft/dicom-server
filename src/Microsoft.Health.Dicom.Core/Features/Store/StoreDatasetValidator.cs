@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -80,9 +81,13 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
 
         // validate input data elements
-        if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version) || _enableFullDicomItemValidation)
+        if (_enableFullDicomItemValidation)
         {
             ValidateAllItems(dicomDataset, validationResultBuilder);
+        }
+        else if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
+        {
+            await ValidateAllItemsWithLeniencyAsync(dicomDataset, validationResultBuilder);
         }
         else
         {
@@ -180,7 +185,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private void ValidateAllItems(
+    private static void ValidateAllItems(
         DicomDataset dicomDataset,
         StoreValidationResultBuilder validationResultBuilder)
     {
@@ -192,33 +197,96 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             }
             catch (DicomValidationException ex)
             {
-                if (EnableDropMetadata(_dicomRequestContextAccessor.RequestContext.Version))
+                validationResultBuilder.Add(ex, item.Tag);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validate all items with leniency applied.
+    /// </summary>
+    /// <param name="dicomDataset">Dataset to validate</param>
+    /// <param name="validationResultBuilder">Result builder to keep validation results in as validation runs</param>
+    /// <remarks>
+    /// We only need to validate SQ and DicomElement types. The only other type under DicomItem
+    /// is DicomFragmentSequence, which does not implement validation and can be skipped.
+    /// An example of a type of DicomFragmentSequence is DicomOtherByteFragment.
+    /// See https://fo-dicom.github.io/stable/v5/api/FellowOakDicom.DicomItem.html
+    /// </remarks>
+    private async Task ValidateAllItemsWithLeniencyAsync(
+        DicomDataset dicomDataset,
+        StoreValidationResultBuilder validationResultBuilder)
+    {
+        IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
+        var stack = new Stack<DicomDataset>();
+        stack.Push(dicomDataset);
+        while (stack.Count > 0)
+        {
+            DicomDataset ds = stack.Pop();
+
+            // add to stack to keep iterating when SQ type, otherwise validate
+            foreach (DicomItem item in ds)
+            {
+                if (item is DicomSequence sequence)
                 {
-                    if (RequiredCoreTags.Contains(item.Tag))
+                    foreach (DicomDataset childDs in sequence)
                     {
-                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: true);
+                        stack.Push(childDs);
                     }
-                    else
-                    {
-                        validationResultBuilder.Add(ex, item.Tag);
-                    }
-                    _storeMeter.ValidateAllValidationError.Add(
-                        1,
-                        new[]
-                        {
-                            new KeyValuePair<string, object>("ExceptionContent", ex.Content),
-                            new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
-                            new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
-                            new KeyValuePair<string, object>("Tag", item.Tag.ToString())
-                        });
                 }
-                else
+                else if (item is DicomElement de)
                 {
-                    validationResultBuilder.Add(ex, item.Tag);
+                    string value = ds.GetString(de.Tag);
+                    try
+                    {
+                        ValidateItemWithLeniency(value, de, queryTags);
+                    }
+                    catch (DicomValidationException ex)
+                    {
+                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
+
+                        _storeMeter.V2ValidationError.Add(
+                            1,
+                            TelemetryDimension(item, IsIndexableTag(queryTags, item)));
+                    }
                 }
             }
         }
     }
+
+    private void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    {
+        if (value != null && value.EndsWith('\0'))
+        {
+            ValidateWithoutNullPadding(value, de, queryTags);
+        }
+        else
+        {
+            de.Validate();
+        }
+    }
+
+    private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomItem de)
+    {
+        return queryTags.Any(x => x.Tag == de.Tag);
+    }
+
+    private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    {
+        de.ValueRepresentation.ValidateString(value.TrimEnd('\0'));
+        _storeMeter.V2ValidationNullPaddedPassing.Add(
+            1,
+            TelemetryDimension(de, IsIndexableTag(queryTags, de)));
+    }
+
+    private static KeyValuePair<string, object>[] TelemetryDimension(DicomItem item, bool isIndexableTag) =>
+        new[]
+        {
+            new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
+            new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
+            new KeyValuePair<string, object>("Tag", item.Tag.ToString()),
+            new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
+        };
 
     private static bool EnableDropMetadata(int? version)
     {

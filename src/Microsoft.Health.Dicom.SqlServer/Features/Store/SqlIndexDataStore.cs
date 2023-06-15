@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -82,22 +83,34 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.RetrieveDeletedInstancesWithPropertiesAsync(batchSize, maxRetries, cancellationToken);
+    }
+
     public async Task<int> RetrieveNumExhaustedDeletedInstanceAttemptsAsync(int maxNumberOfRetries, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(maxNumberOfRetries, cancellationToken);
     }
 
-    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
+    public async Task EndCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, FileProperties fileProperties, bool allowExpiredTags = false, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, allowExpiredTags, hasFrameMetadata, cancellationToken);
+        await store.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, fileProperties, allowExpiredTags, hasFrameMetadata, cancellationToken);
     }
 
     public async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.BeginUpdateInstanceAsync(partitionKey, versions, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    {
+        ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.BeginUpdateInstancesAsync(partitionKey, studyInstanceUid, cancellationToken);
     }
 
     public async Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default)

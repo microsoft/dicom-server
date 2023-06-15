@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -55,11 +57,10 @@ public class DicomStoreServiceTests
     private readonly IStoreResponseBuilder _storeResponseBuilder = Substitute.For<IStoreResponseBuilder>();
     private readonly IStoreDatasetValidator _dicomDatasetValidator = Substitute.For<IStoreDatasetValidator>();
     private readonly IStoreOrchestrator _storeOrchestrator = Substitute.For<IStoreOrchestrator>();
-    private readonly IElementMinimumValidator _minimumValidator = Substitute.For<IElementMinimumValidator>();
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorV2 = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IDicomRequestContextAccessor _dicomRequestContextAccessorLatestApi = Substitute.For<IDicomRequestContextAccessor>();
     private readonly IDicomRequestContext _dicomRequestContext = Substitute.For<IDicomRequestContext>();
-    private readonly IDicomRequestContext _dicomRequestContextV2 = Substitute.For<IDicomRequestContext>();
+    private readonly IDicomRequestContext _dicomRequestContextLatestApi = Substitute.For<IDicomRequestContext>();
     private readonly StoreMeter _storeMeter = new StoreMeter();
     private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
     {
@@ -73,8 +74,9 @@ public class DicomStoreServiceTests
     {
         _storeResponseBuilder.BuildResponse(Arg.Any<string>()).Returns(DefaultResponse);
         _dicomRequestContextAccessor.RequestContext.Returns(_dicomRequestContext);
-        _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
-        _dicomRequestContextV2.Version.Returns(2);
+        _dicomRequestContextAccessorLatestApi.RequestContext.Returns(_dicomRequestContextLatestApi);
+        _dicomRequestContextLatestApi.Version.Returns(Convert.ToInt32(DicomApiVersions.Latest.TrimStart('v'), CultureInfo
+        .CurrentCulture));
 
         _dicomDatasetValidator
             .ValidateAsync(Arg.Any<DicomDataset>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -87,20 +89,17 @@ public class DicomStoreServiceTests
             _dicomRequestContextAccessor,
             _storeMeter,
             NullLogger<StoreService>.Instance,
-            Options.Create(new FeatureConfiguration { EnableLatestApiVersion = false }),
+            Options.Create(new FeatureConfiguration { }),
             _telemetryClient);
-
-        IOptions<FeatureConfiguration> featureConfiguration = Options.Create(
-            new FeatureConfiguration { EnableLatestApiVersion = true });
 
         _storeServiceDropData = new StoreService(
             new StoreResponseBuilder(new MockUrlResolver()),
-            CreateStoreDatasetValidatorWithDropDataEnabled(_dicomRequestContextAccessorV2),
+            CreateStoreDatasetValidatorWithDropDataEnabled(_dicomRequestContextAccessorLatestApi),
             _storeOrchestrator,
-            _dicomRequestContextAccessorV2,
+            _dicomRequestContextAccessorLatestApi,
             _storeMeter,
             NullLogger<StoreService>.Instance,
-            featureConfiguration,
+            Options.Create(new FeatureConfiguration { }),
             _telemetryClient);
 
         DicomValidationBuilderExtension.SkipValidation(null);
@@ -487,6 +486,27 @@ public class DicomStoreServiceTests
 
         _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(default, DefaultStoreValidationResult);
         _storeResponseBuilder.Received(1).AddFailure(_dicomDataset2, TestConstants.ProcessingFailureReasonCode);
+    }
+
+    [Fact]
+    public async Task GivenAnExternalStoreExceptionWhenStoring_WhenProcessed_ThenExpectDataStoreExceptionRethrownAndResponseBuilderNotUsed()
+    {
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+
+        dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
+
+        _storeOrchestrator
+            .When(dicomStoreService => dicomStoreService.StoreDicomInstanceEntryAsync(dicomInstanceEntry, DefaultCancellationToken))
+            .Do(_ => throw new DataStoreException("Simulated failure.", isExternal: true));
+
+        DataStoreException exception = await Assert.ThrowsAsync<DataStoreException>(async () => await _storeService.ProcessAsync(new[] { dicomInstanceEntry }, null, cancellationToken: DefaultCancellationToken));
+
+        Assert.True(exception.IsExternal);
+
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().BuildResponse(Arg.Any<string>(), Arg.Any<bool>());
+
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddSuccess(Arg.Any<DicomDataset>(), Arg.Any<StoreValidationResult>());
+        _storeResponseBuilder.DidNotReceiveWithAnyArgs().AddFailure(Arg.Any<DicomDataset>(), Arg.Any<ushort>());
     }
 
     [Fact]

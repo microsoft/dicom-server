@@ -15,6 +15,8 @@ using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -38,6 +40,7 @@ public class StoreOrchestrator : IStoreOrchestrator
     private readonly IDeleteService _deleteService;
     private readonly IQueryTagService _queryTagService;
     private readonly ILogger<StoreOrchestrator> _logger;
+    private readonly bool _isExternalStoreEnabled;
 
     public StoreOrchestrator(
         IDicomRequestContextAccessor contextAccessor,
@@ -46,6 +49,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         IIndexDataStore indexDataStore,
         IDeleteService deleteService,
         IQueryTagService queryTagService,
+        IOptions<FeatureConfiguration> featureConfiguration,
         ILogger<StoreOrchestrator> logger)
     {
         _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
@@ -54,6 +58,8 @@ public class StoreOrchestrator : IStoreOrchestrator
         _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
         _queryTagService = EnsureArg.IsNotNull(queryTagService, nameof(queryTagService));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
@@ -74,25 +80,28 @@ public class StoreOrchestrator : IStoreOrchestrator
         var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
-        var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(watermark);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
+        var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
 
         try
         {
             // We have successfully created the index, store the files.
-            Task<long> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
-            Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, watermark, cancellationToken);
+            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, dicomInstanceEntry, cancellationToken);
+            Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, version, cancellationToken);
             await Task.WhenAll(
                 storeFileTask,
-                StoreInstanceMetadataAsync(dicomDataset, watermark, cancellationToken),
+                StoreInstanceMetadataAsync(dicomDataset, version, cancellationToken),
                 frameRangeTask);
+
+            FileProperties fileProperties = await storeFileTask;
 
             bool hasFrameMetadata = await frameRangeTask;
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, queryTags, hasFrameMetadata: hasFrameMetadata, cancellationToken: cancellationToken);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, version, queryTags, ShouldStoreFileProperties(fileProperties), hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
-            return await storeFileTask;
+
+            return fileProperties.ContentLength;
         }
         catch (Exception)
         {
@@ -104,19 +113,19 @@ public class StoreOrchestrator : IStoreOrchestrator
         }
     }
 
-    private async Task<long> StoreFileAsync(
+    private FileProperties ShouldStoreFileProperties(FileProperties fileProperties)
+    {
+        return _isExternalStoreEnabled ? fileProperties : null;
+    }
+
+    private async Task<FileProperties> StoreFileAsync(
         VersionedInstanceIdentifier versionedInstanceIdentifier,
         IDicomInstanceEntry dicomInstanceEntry,
         CancellationToken cancellationToken)
     {
         Stream stream = await dicomInstanceEntry.GetStreamAsync(cancellationToken);
 
-        await _fileStore.StoreFileAsync(
-            versionedInstanceIdentifier.Version,
-            stream,
-            cancellationToken);
-
-        return stream.Length;
+        return await _fileStore.StoreFileAsync(versionedInstanceIdentifier.Version, stream, cancellationToken);
     }
 
     private Task StoreInstanceMetadataAsync(

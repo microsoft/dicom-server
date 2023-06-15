@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -9,6 +9,7 @@ using System.Data;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -33,14 +34,17 @@ internal class SqlExtendedQueryTagErrorStoreV6 : SqlExtendedQueryTagErrorStoreV4
 
     public override SchemaVersion Version => SchemaVersion.V6;
 
-    public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsGte(limit, 1, nameof(limit));
+        EnsureArg.IsInRange(offset, 0, int.MaxValue, nameof(offset));
+
         List<ExtendedQueryTagError> results = new List<ExtendedQueryTagError>();
 
         using SqlConnectionWrapper sqlConnectionWrapper = await ConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
-        VLatest.GetExtendedQueryTagErrorsV6.PopulateCommand(sqlCommandWrapper, tagPath, limit, offset);
+        VLatest.GetExtendedQueryTagErrorsV6.PopulateCommand(sqlCommandWrapper, tagPath, limit, (int)offset);
 
         try
         {

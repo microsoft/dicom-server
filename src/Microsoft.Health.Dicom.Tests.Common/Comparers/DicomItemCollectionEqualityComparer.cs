@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,14 +14,14 @@ public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable
 {
     public static DicomItemCollectionEqualityComparer Default { get; } = new DicomItemCollectionEqualityComparer();
 
-    private readonly IEnumerable<DicomTag> _ignoredTags;
+    private readonly ISet<DicomTag> _ignoredTags;
 
     public DicomItemCollectionEqualityComparer()
-        : this(new DicomTag[] { DicomTag.ImplementationVersionName })
+        : this(new HashSet<DicomTag> { DicomTag.ImplementationVersionName })
     {
     }
 
-    public DicomItemCollectionEqualityComparer(IEnumerable<DicomTag> ignoredTags)
+    public DicomItemCollectionEqualityComparer(ISet<DicomTag> ignoredTags)
     {
         EnsureArg.IsNotNull(ignoredTags, nameof(ignoredTags));
         _ignoredTags = ignoredTags;
@@ -37,7 +37,6 @@ public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable
 
         IEqualityComparer<DicomItem> dicomItemComparer = new DicomItemEqualityComparer();
 
-        ISet<DicomTag> ignoredSet = new HashSet<DicomTag>(_ignoredTags);
         IDictionary<DicomTag, DicomItem> xDict = x.ToDictionary(item => item.Tag);
         IDictionary<DicomTag, DicomItem> yDict = y.ToDictionary(item => item.Tag);
 
@@ -48,7 +47,7 @@ public class DicomItemCollectionEqualityComparer : IEqualityComparer<IEnumerable
 
         foreach (DicomTag tag in xDict.Keys)
         {
-            if (ignoredSet.Contains(tag))
+            if (_ignoredTags.Contains(tag))
             {
                 continue;
             }

@@ -4,11 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
+using FellowOakDicom.IO.Writer;
+using FellowOakDicom.IO;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 
@@ -63,5 +68,28 @@ public static class DicomFileExtensions
         {
             throw new FrameNotFoundException();
         }
+    }
+
+    /// <summary>
+    /// Given a dicom file, the method will return the length of the dataset.
+    /// </summary>
+    /// <param name="dcmFile"> Dicom file</param>
+    /// <param name="recyclableMemoryStreamManager">RecyclableMemoryStreamManager to get Memory stream</param>
+    /// <returns>Dataset size</returns>
+    public static async Task<long> GetByteLengthAsync(this DicomFile dcmFile, RecyclableMemoryStreamManager recyclableMemoryStreamManager)
+    {
+        EnsureArg.IsNotNull(dcmFile, nameof(dcmFile));
+        EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+
+        DicomDataset dataset = dcmFile.Dataset;
+
+        var writeOptions = new DicomWriteOptions();
+        using MemoryStream resultStream = recyclableMemoryStreamManager.GetStream();
+
+        var target = new StreamByteTarget(resultStream);
+        var writer = new DicomFileWriter(writeOptions);
+        await writer.WriteAsync(target, dcmFile.FileMetaInfo, dataset);
+
+        return resultStream.Length;
     }
 }

@@ -31,7 +31,6 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
-    private readonly ExportTestOptions _options;
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instanceManager;
 
@@ -41,11 +40,6 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
     {
         _client = EnsureArg.IsNotNull(fixture, nameof(fixture)).GetDicomWebClient();
         _instanceManager = new DicomInstancesManager(_client);
-
-        IConfigurationSection exportSection = TestEnvironment.Variables.GetSection("Tests:Export");
-
-        _options = new ExportTestOptions();
-        exportSection.Bind(_options);
     }
 
     [Fact]
@@ -93,95 +87,83 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             { DicomIdentifier.ForInstance(instance9), instance9 },
         };
 
-        BlobContainerClient containerClient = CreateContainerClient();
-
         // Upload files
         await Task.WhenAll(instances.Select(x => _instanceManager.StoreAsync(new DicomFile(x.Value))));
 
-        // Create new container if necessary
-        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+        // Begin Export
+        ExportTestOptions options = GetExportTestOptions(TestEnvironment.Variables);
+        BlobContainerClient containerClient = options.CreateTestContainerClient();
+        await using IAsyncDisposable scope = await ContainerScope.CreateAsync(containerClient);
 
-        try
+        DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
+            ExportSource.ForIdentifiers(
+                DicomIdentifier.ForStudy(studyUid1),
+                DicomIdentifier.ForSeries(studyUid2, seriesUid2),
+                DicomIdentifier.ForInstance(instance7),
+                DicomIdentifier.ForInstance(unknownStudyUid1, unknownSeriesUid1, unknownSopInstanceUid1),
+                DicomIdentifier.ForSeries(unknownStudyUid2, unknownSeriesUid2),
+                DicomIdentifier.ForInstance(instance8),
+                DicomIdentifier.ForInstance(instance9),
+                DicomIdentifier.ForStudy(unknownStudyUid3)),
+            options.Destination);
+
+        // Wait for the operation to complete
+        DicomOperationReference operation = await response.GetValueAsync();
+        IOperationState<DicomOperation> state = await _client.WaitForCompletionAsync(operation.Id);
+        Assert.Equal(OperationStatus.Succeeded, state.Status);
+
+        string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/errors.log";
+        var results = state.Results as ExportResults;
+        Assert.NotNull(results);
+        Assert.EndsWith(expectedErrorLog, results.ErrorHref.AbsoluteUri, StringComparison.Ordinal);
+        Assert.Equal(instances.Count, results.Exported);
+        Assert.Equal(3, results.Skipped);
+
+        // Validate the export by querying the blob container
+        List<BlobItem> actual = await containerClient
+            .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
+            .Where(x => x.Name.EndsWith(".dcm"))
+            .ToListAsync();
+
+        Assert.Equal(instances.Count, actual.Count);
+        foreach (BlobItem blob in actual)
         {
-            // Begin Export
-            DicomWebResponse<DicomOperationReference> response = await _client.StartExportAsync(
-                ExportSource.ForIdentifiers(
-                    DicomIdentifier.ForStudy(studyUid1),
-                    DicomIdentifier.ForSeries(studyUid2, seriesUid2),
-                    DicomIdentifier.ForInstance(instance7),
-                    DicomIdentifier.ForInstance(unknownStudyUid1, unknownSeriesUid1, unknownSopInstanceUid1),
-                    DicomIdentifier.ForSeries(unknownStudyUid2, unknownSeriesUid2),
-                    DicomIdentifier.ForInstance(instance8),
-                    DicomIdentifier.ForInstance(instance9),
-                    DicomIdentifier.ForStudy(unknownStudyUid3)),
-                _options.Destination);
+            BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
+            using Stream data = await blobClient.OpenReadAsync();
+            DicomFile file = await GetDicomFileAsync(data);
 
-            // Wait for the operation to complete
-            DicomOperationReference operation = await response.GetValueAsync();
-            IOperationState<DicomOperation> state = await _client.WaitForCompletionAsync(operation.Id);
-#pragma warning disable CS0618
-            Assert.Equal(OperationStatus.Completed, state.Status);
-#pragma warning restore CS0618
+            DicomIdentifier identifier = DicomIdentifier.ForInstance(file.Dataset);
+            Assert.True(instances.TryGetValue(identifier, out DicomDataset expected));
+            Assert.Equal(GetExpectedPath(operation.Id, identifier), blob.Name);
 
-            string expectedErrorLog = $"{operation.Id.ToString(OperationId.FormatSpecifier)}/errors.log";
-            var results = state.Results as ExportResults;
-            Assert.NotNull(results);
-            Assert.EndsWith(expectedErrorLog, results.ErrorHref.AbsoluteUri, StringComparison.Ordinal);
-            Assert.Equal(instances.Count, results.Exported);
-            Assert.Equal(3, results.Skipped);
-
-            // Validate the export by querying the blob container
-            List<BlobItem> actual = await containerClient
-                .GetBlobsAsync(prefix: operation.Id.ToString(OperationId.FormatSpecifier))
-                .Where(x => x.Name.EndsWith(".dcm"))
-                .ToListAsync();
-
-            Assert.Equal(instances.Count, actual.Count);
-            foreach (BlobItem blob in actual)
-            {
-                BlobClient blobClient = containerClient.GetBlobClient(blob.Name);
-                using Stream data = await blobClient.OpenReadAsync();
-                DicomFile file = await GetDicomFileAsync(data);
-
-                DicomIdentifier identifier = DicomIdentifier.ForInstance(file.Dataset);
-                Assert.True(instances.TryGetValue(identifier, out DicomDataset expected));
-                Assert.Equal(GetExpectedPath(operation.Id, identifier), blob.Name);
-
-                await AssertEqualBinaryAsync(expected, data);
-                instances.Remove(identifier);
-            }
-
-            // Check for errors
-            BlobClient errorBlobClient = containerClient.GetBlobClient(expectedErrorLog);
-            using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
-
-            var errors = new List<JsonElement>();
-
-            string line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                errors.Add(JsonSerializer.Deserialize<JsonElement>(line));
-            }
-
-            Assert.True(errors.Count >= 3); // Duplicate scheduling may append error multiple times
-            Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}");
-            Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid2}/{unknownSeriesUid2}");
-            Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid3}");
-
-            // Make sure there aren't any unknown identifiers!
-            Assert.All(
-                errors.Select(e => e.GetProperty("identifier").GetString()),
-                id => Assert.True(
-                    id == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}" ||
-                    id == $"{unknownStudyUid2}/{unknownSeriesUid2}" ||
-                    id == $"{unknownStudyUid3}"));
-
+            await AssertEqualBinaryAsync(expected, data);
+            instances.Remove(identifier);
         }
-        finally
+
+        // Check for errors
+        BlobClient errorBlobClient = containerClient.GetBlobClient(expectedErrorLog);
+        using var reader = new StreamReader(await errorBlobClient.OpenReadAsync());
+
+        var errors = new List<JsonElement>();
+
+        string line;
+        while ((line = reader.ReadLine()) != null)
         {
-            // Clean up test container
-            await containerClient.DeleteAsync();
+            errors.Add(JsonSerializer.Deserialize<JsonElement>(line));
         }
+
+        Assert.True(errors.Count >= 3); // Duplicate scheduling may append error multiple times
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}");
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid2}/{unknownSeriesUid2}");
+        Assert.Contains(errors, e => e.GetProperty("identifier").GetString() == $"{unknownStudyUid3}");
+
+        // Make sure there aren't any unknown identifiers!
+        Assert.All(
+            errors.Select(e => e.GetProperty("identifier").GetString()),
+            id => Assert.True(
+                id == $"{unknownStudyUid1}/{unknownSeriesUid1}/{unknownSopInstanceUid1}" ||
+                id == $"{unknownStudyUid2}/{unknownSeriesUid2}" ||
+                id == $"{unknownStudyUid3}"));
     }
 
     public Task InitializeAsync()
@@ -189,18 +171,6 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
 
     public Task DisposeAsync()
         => _instanceManager.DisposeAsync().AsTask();
-
-    private BlobContainerClient CreateContainerClient()
-    {
-        if (_options.BlobContainerUri != null)
-        {
-            return _options.UseManagedIdentity
-                ? new BlobContainerClient(_options.BlobContainerUri, new DefaultAzureCredential())
-                : new BlobContainerClient(_options.BlobContainerUri);
-        }
-
-        return new BlobContainerClient(_options.ConnectionString, _options.BlobContainerName);
-    }
 
     private static async Task AssertEqualBinaryAsync(DicomDataset expected, Stream actual)
     {
@@ -231,30 +201,73 @@ public class ExportTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartu
             identifer.SeriesInstanceUid,
             identifer.SopInstanceUid);
 
+    private static ExportTestOptions GetExportTestOptions(IConfiguration configuration)
+    {
+        var options = new ExportTestOptions();
+        configuration.GetSection("Tests:Export").Bind(options);
+
+        return options;
+    }
+
     private sealed class ExportTestOptions : AzureBlobConnectionOptions
     {
+        // Depending on the test setup, the "Sink" (i.e. the Azure Storage connection) may
+        // look different from that used by the test, so optionally it can be overridden.
+        // For example, this may be the case if the web app is running via docker-compose with Azurite.
         public AzureBlobConnectionOptions Sink { get; set; }
+
+        public string BlobContainerName { get; } = Guid.NewGuid().ToString("D");
+
+        // The BlobContainerUri is always based on the export test's connection
+        private Uri BlobContainerUri => BlobServiceUri == null ? null : new Uri(BlobServiceUri, BlobContainerName);
 
         public ExportDataOptions<ExportDestinationType> Destination
         {
             get
             {
                 AzureBlobConnectionOptions options = Sink ?? this;
-                return options.BlobContainerUri != null
-                    ? ExportDestination.ForAzureBlobStorage(options.BlobContainerUri, options.UseManagedIdentity)
-                    : ExportDestination.ForAzureBlobStorage(options.ConnectionString, options.BlobContainerName);
+                return options.BlobServiceUri != null
+                    ? ExportDestination.ForAzureBlobStorage(BlobContainerUri, options.UseManagedIdentity)
+                    : ExportDestination.ForAzureBlobStorage(options.ConnectionString, BlobContainerName);
             }
+        }
+
+        public BlobContainerClient CreateTestContainerClient()
+        {
+            if (BlobServiceUri != null)
+            {
+                return UseManagedIdentity
+                    ? new BlobContainerClient(BlobContainerUri, new DefaultAzureCredential())
+                    : new BlobContainerClient(BlobContainerUri);
+            }
+
+            return new BlobContainerClient(ConnectionString, BlobContainerName);
         }
     }
 
     private class AzureBlobConnectionOptions
     {
-        public Uri BlobContainerUri { get; set; }
+        public Uri BlobServiceUri { get; set; }
 
         public string ConnectionString { get; set; } = "UseDevelopmentStorage=true";
 
-        public string BlobContainerName { get; set; } = "export-e2e-test";
-
         public bool UseManagedIdentity { get; set; }
+    }
+
+    private sealed class ContainerScope : IAsyncDisposable
+    {
+        private readonly BlobContainerClient _client;
+
+        private ContainerScope(BlobContainerClient client)
+            => _client = client;
+
+        public static async Task<IAsyncDisposable> CreateAsync(BlobContainerClient client)
+        {
+            await client.CreateIfNotExistsAsync();
+            return new ContainerScope(client);
+        }
+
+        public ValueTask DisposeAsync()
+            => new ValueTask(_client.DeleteIfExistsAsync());
     }
 }

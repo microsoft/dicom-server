@@ -54,6 +54,7 @@ public class InProcTestDicomWebServer : TestDicomWebServer
         {
             { "DicomServer:Features:EnableExport", "true" },
             { "DicomServer:Features:EnableDataPartitions", enableDataPartitions.ToString() },
+            { "DicomServer:Features:EnableUpdate", "true" },
             { "DicomServer:Features:EnableLatestApiVersion", enableLatestApiVersion.ToString() },
         };
 
@@ -83,6 +84,8 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 {
                     TestEnvironment.Variables["security_enabled"] = "true";
                 }
+
+                config.AddEnvironmentVariables();
             })
             .ConfigureServices(serviceCollection =>
             {

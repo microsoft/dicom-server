@@ -23,7 +23,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(tagEntries, nameof(tagEntries));
         string jsonString = JsonSerializer.Serialize(tagEntries, JsonSerializerOptions);
-        var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
+        var uri = new Uri($"/{ApiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Post, uri);
         {
             request.Content = new StringContent(jsonString);
@@ -39,7 +39,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
 
-        var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
+        var uri = new Uri($"/{ApiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Delete, uri);
 
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
@@ -50,12 +50,12 @@ public partial class DicomWebClient : IDicomWebClient
         return new DicomWebResponse(response);
     }
 
-    public async Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<IReadOnlyList<GetExtendedQueryTagEntry>>> GetExtendedQueryTagsAsync(int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsGte(limit, 1, nameof(limit));
         EnsureArg.IsGte(offset, 0, nameof(offset));
 
-        var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}?{DicomWebConstants.LimitParameter}={limit}&{DicomWebConstants.OffsetParameter}={offset}", UriKind.Relative);
+        var uri = new Uri($"/{ApiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}?{DicomWebConstants.LimitParameter}={limit}&{DicomWebConstants.OffsetParameter}={offset}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
         await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
@@ -66,7 +66,7 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
 
-        var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
+        var uri = new Uri($"/{ApiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
@@ -74,7 +74,7 @@ public partial class DicomWebClient : IDicomWebClient
         return new DicomWebResponse<GetExtendedQueryTagEntry>(response, ValueFactory<GetExtendedQueryTagEntry>);
     }
 
-    public async Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<IReadOnlyList<ExtendedQueryTagError>>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(tagPath, nameof(tagPath));
         EnsureArg.IsGte(limit, 1, nameof(limit));
@@ -83,7 +83,7 @@ public partial class DicomWebClient : IDicomWebClient
         var uri = new Uri(
             string.Format(
                 CultureInfo.InvariantCulture,
-                $"/{_apiVersion}{DicomWebConstants.BaseErrorsUriFormat}?{DicomWebConstants.LimitParameter}={limit}&{DicomWebConstants.OffsetParameter}={offset}",
+                $"/{ApiVersion}{DicomWebConstants.BaseErrorsUriFormat}?{DicomWebConstants.LimitParameter}={limit}&{DicomWebConstants.OffsetParameter}={offset}",
                 tagPath),
             UriKind.Relative);
 
@@ -99,7 +99,7 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNull(newValue, nameof(newValue));
         EnsureArg.EnumIsDefined(newValue.QueryStatus, nameof(newValue));
         string jsonString = JsonSerializer.Serialize(newValue, JsonSerializerOptions);
-        var uri = new Uri($"/{_apiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
+        var uri = new Uri($"/{ApiVersion}{DicomWebConstants.BaseExtendedQueryTagUri}/{tagPath}", UriKind.Relative);
 
         using var request = new HttpRequestMessage(
 #if NETSTANDARD2_0

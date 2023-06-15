@@ -17,11 +17,11 @@ public static class DicomWebConstants
     public const string BaseSeriesUriFormat = BaseStudyUriFormat + "/series/{1}";
     public const string BaseRetrieveSeriesMetadataUriFormat = BaseSeriesUriFormat + "/metadata";
     public const string BaseInstanceUriFormat = BaseSeriesUriFormat + "/instances/{2}";
-    public const string BaseRetrieveInstanceRenderedUriFormat = BaseInstanceUriFormat + "/rendered";
+    public const string BaseRetrieveInstanceRenderedUriFormat = BaseInstanceUriFormat + "/rendered?quality={3}";
     public const string BaseRetrieveInstanceThumbnailUriFormat = BaseInstanceUriFormat + "/thumbnail";
     public const string BaseRetrieveInstanceMetadataUriFormat = BaseInstanceUriFormat + "/metadata";
     public const string BaseRetrieveFramesUriFormat = BaseInstanceUriFormat + "/frames/{3}";
-    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered";
+    public const string BaseRetrieveFrameRenderedUriFormat = BaseRetrieveFramesUriFormat + "/rendered?quality={4}";
     public const string BaseRetrieveFramesThumbnailUriFormat = BaseRetrieveFramesUriFormat + "/thumbnail";
     public const string PartitionsUriString = "/partitions";
     public const string StudiesUriString = "/studies";
@@ -47,6 +47,8 @@ public static class DicomWebConstants
     public const string OriginalDicomTransferSyntax = "*";
 
     public const string TransferSyntaxHeaderName = "transfer-syntax";
+
+    public const string RequestOriginalVersion = "msdicom-request-original";
 
     public const string ApplicationDicomMediaType = "application/dicom";
     public const string ApplicationDicomJsonMediaType = "application/dicom+json";

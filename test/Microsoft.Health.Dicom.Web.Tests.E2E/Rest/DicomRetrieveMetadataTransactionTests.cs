@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
         _instancesManager = new DicomInstancesManager(_client);
-        _apiVersion = DicomApiVersions.V1;
+        _apiVersion = DicomApiVersions.V2;
     }
 
     [Theory]
@@ -140,17 +140,19 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
 
     private static DicomDataset GenerateNewDataSet()
     {
-        return new DicomDataset()
+        return new DicomDataset
         {
             { DicomTag.SeriesDescription, "A Test Series" },
             { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
-            new DicomSequence(DicomTag.RegistrationSequence, new DicomDataset()
-            {
-                { DicomTag.PatientName, "Test^Patient" },
-                { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
-            }),
+            new DicomSequence(
+                DicomTag.RegistrationSequence,
+                new DicomDataset
+                {
+                    { DicomTag.PatientName, "Test^Patient" },
+                    { DicomTag.PixelData, new byte[] { 1, 2, 3 } },
+                }),
             { DicomTag.StudyDate, DateTime.UtcNow },
-            { new DicomTag(0007, 0008), "Private Tag" },
+            { DicomVR.LO, new DicomTag(0007, 0008), "Private Tag" },
         };
     }
 

@@ -10,7 +10,6 @@
 
 namespace Microsoft.Health.Dicom.SqlServer {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -40,7 +39,7 @@ namespace Microsoft.Health.Dicom.SqlServer {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SqlServer.DicomSqlServerResource", typeof(DicomSqlServerResource).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.Health.Dicom.SqlServer.DicomSqlServerResource", typeof(DicomSqlServerResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -85,6 +84,15 @@ namespace Microsoft.Health.Dicom.SqlServer {
         internal static string ExtendedQueryTagNotFoundWhenAddingError {
             get {
                 return ResourceManager.GetString("ExtendedQueryTagNotFoundWhenAddingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change feed cannot be filtered by time while sorted by sequence number..
+        /// </summary>
+        internal static string InvalidChangeFeedQuery {
+            get {
+                return ResourceManager.GetString("InvalidChangeFeedQuery", resourceCulture);
             }
         }
         

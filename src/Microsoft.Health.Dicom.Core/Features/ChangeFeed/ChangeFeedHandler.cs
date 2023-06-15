@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ public class ChangeFeedHandler : BaseHandler, IRequestHandler<ChangeFeedRequest,
             throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        IReadOnlyCollection<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Offset, request.Limit, request.IncludeMetadata, cancellationToken);
+        IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedService.GetChangeFeedAsync(request.Range, request.Offset, request.Limit, request.Order, request.IncludeMetadata, cancellationToken);
 
         return new ChangeFeedResponse(changeFeedEntries);
     }

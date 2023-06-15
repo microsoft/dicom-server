@@ -5,11 +5,13 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
+using Microsoft.Health.Dicom.Core.Web;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
@@ -139,7 +141,7 @@ public class AcceptHeaderHandlerTests
         AcceptHeader requestedAcceptHeader1 = new AcceptHeader(
             ValidStudyAcceptHeaderDescriptor.MediaType,
             ValidStudyAcceptHeaderDescriptor.PayloadType,
-            ValidStudyAcceptHeaderDescriptor.AcceptableTransferSyntaxes.First(),
+            DicomTransferSyntaxUids.Original,
             quality: 0.3
         );
 
@@ -160,6 +162,28 @@ public class AcceptHeaderHandlerTests
         AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
             ResourceType.Study,
             new[] { requestedAcceptHeader1, requestedAcceptHeader2, requestedAcceptHeader3 }
+        );
+
+        Assert.Equivalent(requestedAcceptHeader2, matchedAcceptHeader, strict: true);
+    }
+
+    [Fact]
+    public void GivenMultipleMatchedAcceptHeaderNoQuality_WhenTransferSyntaxRequested_ThenShouldReturnOriginal()
+    {
+        AcceptHeader requestedAcceptHeader1 = new AcceptHeader(
+                payloadType: PayloadTypes.MultipartRelated,
+                mediaType: KnownContentTypes.ImageJpeg2000,
+                transferSyntax: DicomTransferSyntax.JPEG2000Lossless.UID.UID);
+
+        AcceptHeader requestedAcceptHeader2 = new AcceptHeader(
+                payloadType: PayloadTypes.SinglePart,
+                mediaType: KnownContentTypes.ApplicationOctetStream,
+                transferSyntax: DicomTransferSyntaxUids.Original);
+
+
+        AcceptHeader matchedAcceptHeader = _handler.GetValidAcceptHeader(
+            ResourceType.Frames,
+            new[] { requestedAcceptHeader1, requestedAcceptHeader2 }
         );
 
         Assert.Equivalent(requestedAcceptHeader2, matchedAcceptHeader, strict: true);

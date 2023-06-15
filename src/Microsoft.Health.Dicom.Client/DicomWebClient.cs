@@ -31,7 +31,6 @@ namespace Microsoft.Health.Dicom.Client;
 [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers are responsible for disposing of return values.")]
 public partial class DicomWebClient : IDicomWebClient
 {
-    private readonly string _apiVersion;
     internal static readonly JsonSerializerOptions JsonSerializerOptions = CreateJsonSerializerOptions();
 
     /// <summary>
@@ -39,16 +38,17 @@ public partial class DicomWebClient : IDicomWebClient
     /// </summary>
     /// <param name="httpClient">HttpClient</param>
     /// <param name="apiVersion">Pin the DicomWebClient to a specific server API version.</param>
-    public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.V1)
+    public DicomWebClient(HttpClient httpClient, string apiVersion = DicomApiVersions.Latest)
     {
         EnsureArg.IsNotNull(httpClient, nameof(httpClient));
 
         HttpClient = httpClient;
-        _apiVersion = apiVersion;
+        ApiVersion = apiVersion;
         GetMemoryStream = () => new MemoryStream();
     }
 
     public HttpClient HttpClient { get; }
+    public string ApiVersion { get; }
 
     /// <summary>
     /// Func used to obtain a <see cref="MemoryStream" />. The default value returns a new memory stream.
@@ -111,7 +111,7 @@ public partial class DicomWebClient : IDicomWebClient
 
     private Uri GenerateRequestUri(string relativePath, string partitionName = default)
     {
-        var uriString = "/" + _apiVersion;
+        var uriString = "/" + ApiVersion;
 
         if (!string.IsNullOrEmpty(partitionName))
         {

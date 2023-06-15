@@ -26,6 +26,8 @@ public class DefaultDicomRequestContext : IDicomRequestContext
 
     public long BytesTranscoded { get; set; }
 
+    public long BytesRendered { get; set; }
+
     public long ResponseSize { get; set; }
 
     public int PartCount { get; set; }
@@ -48,5 +50,5 @@ public class DefaultDicomRequestContext : IDicomRequestContext
 
     public IDictionary<string, StringValues> ResponseHeaders { get; set; }
 
-    public int? Version { get; set; }
+    public int Version { get; set; }
 }

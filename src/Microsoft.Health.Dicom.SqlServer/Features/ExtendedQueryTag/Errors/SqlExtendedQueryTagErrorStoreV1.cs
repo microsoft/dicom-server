@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ internal class SqlExtendedQueryTagErrorStoreV1 : ISqlExtendedQueryTagErrorStore
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
 
-    public virtual Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, int offset, CancellationToken cancellationToken = default)
+    public virtual Task<IReadOnlyList<ExtendedQueryTagError>> GetExtendedQueryTagErrorsAsync(string tagPath, int limit, long offset, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

@@ -52,6 +52,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
 
     public IFileStore FileStore { get; set; }
 
+    public IFileStore ExternalFileStore { get; set; }
+
     public IMetadataStore MetadataStore { get; set; }
 
     public RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; }
@@ -75,7 +77,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
 
         await blobClientInitializer.InitializeDataStoreAsync(new List<IBlobContainerInitializer> { blobContainerInitializer, metadataContainerInitializer });
 
-        FileStore = new BlobFileStore(_blobClient, Substitute.For<DicomFileNameWithPrefix>(), optionsMonitor, Options.Create(Substitute.For<BlobOperationOptions>()), NullLogger<BlobFileStore>.Instance);
+        ExternalFileStore = new BlobFileStore(new TestExternalBlobClient(_blobClient, _blobContainerConfiguration.ContainerName), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), NullLogger<BlobFileStore>.Instance);
+        FileStore = new BlobFileStore(new TestInternalBlobClient(_blobClient, _blobContainerConfiguration.ContainerName), Substitute.For<DicomFileNameWithPrefix>(), Options.Create(Substitute.For<BlobOperationOptions>()), NullLogger<BlobFileStore>.Instance);
         MetadataStore = new BlobMetadataStore(_blobClient, RecyclableMemoryStreamManager, NameWithPrefix, optionsMonitor, Options.Create(AppSerializerOptions.Json), new BlobStoreMeter(), new BlobRetrieveMeter(), NullLogger<BlobMetadataStore>.Instance);
     }
 
@@ -89,5 +92,33 @@ public class DataStoreTestsFixture : IAsyncLifetime
             BlobContainerClient metadataContainer = _blobClient.GetBlobContainerClient(_metadataContainerConfiguration.ContainerName);
             await metadataContainer.DeleteIfExistsAsync();
         }
+    }
+
+    private class TestInternalBlobClient : IBlobClient
+    {
+        public TestInternalBlobClient(BlobServiceClient blobClient, string containerName)
+        {
+            BlobContainerClient = blobClient.GetBlobContainerClient(containerName);
+        }
+
+        public virtual BlobContainerClient BlobContainerClient { get; }
+
+        public bool IsExternal => false;
+
+        public string ServiceStorePath => "";
+    }
+
+    private class TestExternalBlobClient : IBlobClient
+    {
+        public TestExternalBlobClient(BlobServiceClient blobClient, string containerName)
+        {
+            BlobContainerClient = blobClient.GetBlobContainerClient(containerName);
+        }
+
+        public virtual BlobContainerClient BlobContainerClient { get; }
+
+        public bool IsExternal => true;
+
+        public string ServiceStorePath => "/service/path/";
     }
 }

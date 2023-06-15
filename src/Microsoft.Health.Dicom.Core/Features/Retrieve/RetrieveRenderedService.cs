@@ -27,6 +27,7 @@ using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.IO;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
 public class RetrieveRenderedService : IRetrieveRenderedService
@@ -65,17 +66,23 @@ public class RetrieveRenderedService : IRetrieveRenderedService
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
+        if (request.Quality < 1 || request.Quality > 100)
+        {
+            throw new BadRequestException(DicomCoreResource.InvalidImageQuality);
+        }
+
         // To keep track of how long render operation is taking
         Stopwatch sw = new Stopwatch();
 
         int partitionKey = _dicomRequestContextAccessor.RequestContext.GetPartitionKey();
+        _dicomRequestContextAccessor.RequestContext.PartCount = 1;
         AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
 
         try
         {
             // this call throws NotFound when zero instance found
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken)).First();
+                ResourceType.Instance, partitionKey, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
 
             FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, true, cancellationToken);
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, cancellationToken);
@@ -84,11 +91,13 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);
             DicomPixelData dicomPixelData = dicomFile.GetPixelDataAndValidateFrames(new[] { request.FrameNumber });
 
-            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), cancellationToken);
+            Stream resultStream = await ConvertToImage(dicomFile, request.FrameNumber, returnHeader.MediaType.ToString(), request.Quality, cancellationToken);
             string outputContentType = returnHeader.MediaType.ToString();
 
             sw.Stop();
             _logger.LogInformation("Render from dicom to {OutputContentType}, uncompressed file size was {UncompressedFrameSize}, output frame size is {OutputFrameSize} and took {ElapsedMilliseconds} ms", outputContentType, stream.Length, resultStream.Length, sw.ElapsedMilliseconds);
+
+            _dicomRequestContextAccessor.RequestContext.BytesRendered = resultStream.Length;
 
             return new RetrieveRenderedResponse(resultStream, resultStream.Length, outputContentType);
         }
@@ -102,7 +111,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
 
     }
 
-    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, CancellationToken cancellationToken)
+    private async Task<Stream> ConvertToImage(DicomFile dicomFile, int frameNumber, string mediaType, int quality, CancellationToken cancellationToken)
     {
         try
         {
@@ -110,7 +119,18 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             using var img = dicomImage.RenderImage(frameNumber);
             using var sharpImage = img.AsSharpImage();
             MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
-            await sharpImage.SaveAsJpegAsync(resultStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder(), cancellationToken: cancellationToken);
+
+            if (mediaType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
+            {
+                JpegEncoder jpegEncoder = new JpegEncoder();
+                jpegEncoder.Quality = quality;
+                await sharpImage.SaveAsJpegAsync(resultStream, jpegEncoder, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await sharpImage.SaveAsPngAsync(resultStream, new SixLabors.ImageSharp.Formats.Png.PngEncoder(), cancellationToken: cancellationToken);
+            }
+
             resultStream.Position = 0;
 
             return resultStream;
@@ -130,9 +150,20 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         {
             throw new NotAcceptableException(DicomCoreResource.MultipleAcceptHeadersNotSupported);
         }
-        else if (acceptHeaders.Count == 1 && acceptHeaders.First().MediaType != null && !StringSegment.Equals(acceptHeaders.First().MediaType, KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase))
+
+        if (acceptHeaders.Count == 1)
         {
-            throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            var mediaType = acceptHeaders.First()?.MediaType;
+
+            if (mediaType == null || (!StringSegment.Equals(mediaType.ToString(), KnownContentTypes.ImageJpeg, StringComparison.InvariantCultureIgnoreCase) && !StringSegment.Equals(mediaType.ToString(), KnownContentTypes.ImagePng, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new NotAcceptableException(DicomCoreResource.NotAcceptableHeaders);
+            }
+
+            if (StringSegment.Equals(mediaType.ToString(), KnownContentTypes.ImagePng, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return new AcceptHeader(KnownContentTypes.ImagePng, PayloadTypes.SinglePart);
+            }
         }
 
         return new AcceptHeader(KnownContentTypes.ImageJpeg, PayloadTypes.SinglePart);

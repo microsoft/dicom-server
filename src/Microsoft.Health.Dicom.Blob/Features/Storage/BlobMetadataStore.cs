@@ -117,12 +117,12 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public Task<DicomDataset> GetInstanceMetadataAsync(long version, CancellationToken cancellationToken)
+    public async Task<DicomDataset> GetInstanceMetadataAsync(long version, CancellationToken cancellationToken)
     {
         try
         {
             BlockBlobClient blobClient = GetInstanceBlockBlobClient(version);
-            return ExecuteAsync(async t =>
+            return await ExecuteAsync(async t =>
             {
                 // TODO: When the JsonConverter for DicomDataset does not need to Seek, we can use DownloadStreaming instead
                 BlobDownloadResult result = await blobClient.DownloadContentAsync(t);
@@ -213,8 +213,35 @@ public class BlobMetadataStore : IMetadataStore
             return await ExecuteAsync(async t =>
             {
                 BlobDownloadResult result = await cloudBlockBlob.DownloadContentAsync(cancellationToken);
+
+                _logger.LogInformation("Successfully downloaded frame range metadata using fallback logic.");
+
                 return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
             }, cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task CopyInstanceFramesRangeAsync(long version, CancellationToken cancellationToken)
+    {
+        var blobClientWithSpace = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
+        var copyBlobClient = GetInstanceFramesRangeBlobClient(version);
+        if (!await copyBlobClient.ExistsAsync(cancellationToken) && await blobClientWithSpace.ExistsAsync(cancellationToken))
+        {
+            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClientWithSpace.Uri, options: null, cancellationToken);
+            await operation.WaitForCompletionAsync(cancellationToken);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task DeleteMigratedFramesRangeIfExistsAsync(long version, CancellationToken cancellationToken)
+    {
+        var blobClientWithSpace = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
+        var blobClient = GetInstanceFramesRangeBlobClient(version);
+
+        if (await blobClient.ExistsAsync(cancellationToken))
+        {
+            await ExecuteAsync(t => blobClientWithSpace.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
         }
     }
 

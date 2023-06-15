@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -10,6 +11,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Query;
+using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Tests.Common.Serialization;
 using Xunit;
 
@@ -83,12 +85,29 @@ public static class ValidationHelpers
         }
     }
 
+    public static void ValidateResponseDatasetV2(
+        QueryResource resource,
+        DicomDataset storedInstance,
+        DicomDataset responseInstance)
+    {
+        DicomDataset expectedDataset = storedInstance.Clone();
+        IReadOnlyCollection<DicomTag> returnTags = GetExpectedReturnTags(resource, expectedDataset);
+        expectedDataset.Remove((di) => !returnTags.Contains(di.Tag));
+
+        // Compare result datasets by serializing.
+        Assert.Equal(
+            JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
+            JsonSerializer.Serialize(responseInstance, AppSerializerOptions.Json));
+        Assert.Equal(expectedDataset.ToString(), responseInstance.ToString());
+    }
+
     public static void ValidateResponseDataset(
         QueryResource resource,
         DicomDataset storedInstance,
         DicomDataset responseInstance)
     {
         DicomDataset expectedDataset = storedInstance.Clone();
+
         HashSet<DicomTag> levelTags = new HashSet<DicomTag>();
         switch (resource)
         {
@@ -143,11 +162,58 @@ public static class ValidationHelpers
         {
             return !levelTags.Contains(di.Tag);
         });
-
         // Compare result datasets by serializing.
         Assert.Equal(
             JsonSerializer.Serialize(expectedDataset, AppSerializerOptions.Json),
             JsonSerializer.Serialize(responseInstance, AppSerializerOptions.Json));
         Assert.Equal(expectedDataset.Count(), responseInstance.Count());
+    }
+
+    private static IReadOnlyCollection<DicomTag> GetExpectedReturnTags(QueryResource resource, DicomDataset expectedDataset)
+    {
+        QueryExpression expression = new QueryExpression(
+            resource,
+            new QueryIncludeField(new List<DicomTag>()),
+            false,
+            0,
+            0,
+            GetQueryFilterConditions(resource, expectedDataset),
+            Array.Empty<string>());
+        QueryResponseBuilder queryResponseBuilder = new QueryResponseBuilder(expression, useNewDefaults: true);
+        IReadOnlyCollection<DicomTag> returnTags = queryResponseBuilder.ReturnTags;
+        return returnTags;
+    }
+
+    private static IReadOnlyCollection<QueryFilterCondition> GetQueryFilterConditions(
+        QueryResource resource,
+        DicomDataset expectedDataset)
+    {
+        // Since filter conditions add to the tags returned, we also have to generate filters based on type of request
+        // we are making so we can programmatically verify expected vs response dataset
+        var filters = new Dictionary<DicomTag, QueryFilterCondition>() { };
+        switch (resource)
+        {
+            case QueryResource.AllStudies:
+                QueryParser.AddInstanceUidFilter(expectedDataset.GetString(DicomTag.StudyInstanceUID), filters);
+                break;
+            case QueryResource.AllSeries:
+                QueryParser.AddSeriesUidFilter(expectedDataset.GetString(DicomTag.SeriesInstanceUID), filters);
+                break;
+            case QueryResource.AllInstances:
+                QueryParser.AddInstanceUidFilter(expectedDataset.GetString(DicomTag.StudyInstanceUID), filters);
+                break;
+            case QueryResource.StudySeries:
+                QueryParser.AddInstanceUidFilter(expectedDataset.GetString(DicomTag.StudyInstanceUID), filters);
+                break;
+            case QueryResource.StudyInstances:
+                QueryParser.AddInstanceUidFilter(expectedDataset.GetString(DicomTag.StudyInstanceUID), filters);
+                break;
+            case QueryResource.StudySeriesInstances:
+                QueryParser.AddInstanceUidFilter(expectedDataset.GetString(DicomTag.StudyInstanceUID), filters);
+                QueryParser.AddSeriesUidFilter(expectedDataset.GetString(DicomTag.SeriesInstanceUID), filters);
+                break;
+        }
+
+        return filters.Values;
     }
 }

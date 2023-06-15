@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -30,11 +32,18 @@ public class StoreOrchestratorTests
     private const string DefaultSeriesInstanceUid = "2";
     private const string DefaultSopInstanceUid = "3";
     private const long DefaultVersion = 1;
+
     private static readonly VersionedInstanceIdentifier DefaultVersionedInstanceIdentifier = new VersionedInstanceIdentifier(
         DefaultStudyInstanceUid,
         DefaultSeriesInstanceUid,
         DefaultSopInstanceUid,
         DefaultVersion);
+
+    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    {
+        Path = String.Empty,
+        ETag = String.Empty
+    };
 
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -44,6 +53,7 @@ public class StoreOrchestratorTests
     private readonly IDeleteService _deleteService = Substitute.For<IDeleteService>();
     private readonly IQueryTagService _queryTagService = Substitute.For<IQueryTagService>();
     private readonly IDicomRequestContextAccessor _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
+    private readonly IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
     private readonly StoreOrchestrator _storeOrchestrator;
 
     private readonly DicomDataset _dicomDataset;
@@ -77,6 +87,7 @@ public class StoreOrchestratorTests
 
         _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
         var logger = NullLogger<StoreOrchestrator>.Instance;
+        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
         _storeOrchestrator = new StoreOrchestrator(
             _contextAccessor,
             _fileStore,
@@ -84,12 +95,19 @@ public class StoreOrchestratorTests
             _indexDataStore,
             _deleteService,
             _queryTagService,
+            _options,
             logger);
     }
 
     [Fact]
     public async Task GivenFilesAreSuccessfullyStored_WhenStoringFile_ThenStatusShouldBeUpdatedToCreated()
     {
+        _fileStore.StoreFileAsync(
+                DefaultVersionedInstanceIdentifier.Version,
+                _stream,
+                cancellationToken: DefaultCancellationToken)
+            .Returns(DefaultFileProperties);
+
         await _storeOrchestrator.StoreDicomInstanceEntryAsync(_dicomInstanceEntry, DefaultCancellationToken);
 
         await ValidateStatusUpdateAsync();
@@ -110,7 +128,7 @@ public class StoreOrchestratorTests
 
         await ValidateCleanupAsync();
 
-        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default);
+        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default, default);
     }
 
     [Fact]
@@ -128,7 +146,7 @@ public class StoreOrchestratorTests
 
         await ValidateCleanupAsync();
 
-        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default);
+        await _indexDataStore.DidNotReceiveWithAnyArgs().EndCreateInstanceIndexAsync(default, default, default, default, default, default);
     }
 
     [Fact]
@@ -154,11 +172,14 @@ public class StoreOrchestratorTests
             .EndCreateInstanceIndexAsync(
                 1,
                 _dicomDataset,
-                DefaultVersionedInstanceIdentifier.Version,
+                DefaultVersion,
                 expectedTags,
-                false,
-                false,
-                DefaultCancellationToken);
+                fileProperties: Arg.Is<FileProperties>(
+                    p => p.Path == DefaultFileProperties.Path
+                         && p.ETag == DefaultFileProperties.ETag),
+                allowExpiredTags: false,
+                hasFrameMetadata: false,
+                cancellationToken: DefaultCancellationToken);
 
     private Task ValidateCleanupAsync()
         => _deleteService

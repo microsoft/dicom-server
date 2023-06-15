@@ -10,13 +10,18 @@ namespace Microsoft.Health.Dicom.Core.Messages.Retrieve;
 public class RetrieveRenderedRequest : IRequest<RetrieveRenderedResponse>
 {
 
-    public RetrieveRenderedRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, ResourceType resourceType, int frameNumber, IReadOnlyCollection<AcceptHeader> acceptHeaders)
+    public RetrieveRenderedRequest(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, ResourceType resourceType, int frameNumber, int quality, IReadOnlyCollection<AcceptHeader> acceptHeaders)
     {
         StudyInstanceUid = studyInstanceUid;
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
         ResourceType = resourceType;
-        FrameNumber = frameNumber;
+
+        // Per DICOMWeb spec (http://dicom.nema.org/medical/dicom/current/output/html/part18.html#sect_9.5.1.2.1)
+        // frame number in the URI is 1-based, unlike fo-dicom representation where it's 0-based.
+        FrameNumber = frameNumber - 1;
+
+        Quality = quality;
         AcceptHeaders = acceptHeaders;
     }
 
@@ -31,4 +36,6 @@ public class RetrieveRenderedRequest : IRequest<RetrieveRenderedResponse>
     public string SopInstanceUid { get; }
 
     public int FrameNumber { get; }
+
+    public int Quality { get; }
 }

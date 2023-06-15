@@ -74,7 +74,7 @@ BEGIN
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
+            UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
@@ -113,7 +113,7 @@ BEGIN
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
+            UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
@@ -150,7 +150,7 @@ BEGIN
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
+            UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES
@@ -187,7 +187,7 @@ BEGIN
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
+            UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, TagValueUtc, ResourceType)
             VALUES
@@ -225,7 +225,7 @@ BEGIN
             AND ISNULL(T.SopInstanceKey3, @instanceKey) = @instanceKey
         WHEN MATCHED AND @watermark > T.Watermark THEN
             -- When index already exist, update only when watermark is newer
-            UPDATE SET T.Watermark = @watermark, T.TagValue = S.TagValue
+            UPDATE SET T.Watermark = @watermark, T.TagValue = ISNULL(S.TagValue, T.TagValue)
         WHEN NOT MATCHED THEN
             INSERT (TagKey, TagValue, PartitionKey, SopInstanceKey1, SopInstanceKey2, SopInstanceKey3, Watermark, ResourceType)
             VALUES

@@ -30,6 +30,7 @@ using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Api.Logging;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -52,6 +53,7 @@ public static class DicomServerServiceCollectionExtensions
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+        serverBuilder.Services.AddHostedService<StartMigrateFrameRangeBlobService>();
         return serverBuilder;
     }
 
@@ -99,6 +101,8 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.Retrieve));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramRangeBlobConfiguration));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.UpdateServiceSettings));
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -149,6 +153,8 @@ public static class DicomServerServiceCollectionExtensions
         services.TryAddSingleton<RecyclableMemoryStreamManager>();
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
+
+        CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
         return new DicomServerBuilder(services);
     }

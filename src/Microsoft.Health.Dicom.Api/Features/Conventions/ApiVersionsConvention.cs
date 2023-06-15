@@ -35,12 +35,11 @@ internal class ApiVersionsConvention : IControllerConvention
 
     /// <summary>
     /// Add upcoming API versions here so they can be used for private previews.
-    /// When upcomingVersion is ready for GA, move upcomingVerion to allSupportedVersion and remove from here.
+    /// When upcomingVersion is ready for GA, move upcomingVersion to allSupportedVersion and remove from here.
     /// </summary>
-    private static readonly IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>()
-    { };
+    internal static IReadOnlyList<ApiVersion> UpcomingVersion = new List<ApiVersion>() { };
 
-    private const int CurrentVersion = 2;
+    internal const int CurrentVersion = 2;
     private readonly bool _isLatestApiVersionEnabled;
 
     public ApiVersionsConvention(IOptions<FeatureConfiguration> featureConfiguration)
@@ -56,7 +55,8 @@ internal class ApiVersionsConvention : IControllerConvention
 
         var controllerIntroducedInVersion = controllerModel.Attributes
             .Where(a => a.GetType() == typeof(IntroducedInApiVersionAttribute))
-            .Select(a => ((IntroducedInApiVersionAttribute)a).Version)
+            .Cast<IntroducedInApiVersionAttribute>()
+            .Select(x => x.Version)
             .SingleOrDefault();
 
         IEnumerable<ApiVersion> versions = AllSupportedVersions;
@@ -64,14 +64,20 @@ internal class ApiVersionsConvention : IControllerConvention
         {
             versions = GetAllSupportedVersions(controllerIntroducedInVersion.Value, CurrentVersion);
         }
-
+        // when upcomingVersion is ready for GA, move upcomingVersion to allSupportedVersion
         versions = _isLatestApiVersionEnabled == true ? versions.Union(UpcomingVersion) : versions;
-
         controller.HasApiVersions(versions);
+
+        var inactiveActions = controllerModel.Actions.Where(x => !IsEnabled(x, versions)).ToList();
+        foreach (ActionModel action in inactiveActions)
+        {
+            controllerModel.Actions.Remove(action);
+        }
+
         return true;
     }
 
-    internal static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int start, int end)
+    private static IReadOnlyList<ApiVersion> GetAllSupportedVersions(int start, int end)
     {
         if (start < 1)
         {
@@ -88,4 +94,23 @@ internal class ApiVersionsConvention : IControllerConvention
             .ToList();
     }
 
+    private static bool IsEnabled(ActionModel actionModel, IEnumerable<ApiVersion> enabled)
+    {
+        HashSet<ApiVersion> actionVersions = actionModel.Attributes
+            .Where(a => a is MapToApiVersionAttribute)
+            .Cast<MapToApiVersionAttribute>()
+            .SelectMany(x => x.Versions)
+            .ToHashSet();
+
+        if (actionVersions.Count == 0)
+            return true;
+
+        foreach (ApiVersion version in enabled)
+        {
+            if (actionVersions.Contains(version))
+                return true;
+        }
+
+        return false;
+    }
 }

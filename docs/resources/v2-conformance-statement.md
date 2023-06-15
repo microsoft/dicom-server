@@ -72,7 +72,7 @@ The following DICOM elements are required to be present in every DICOM file atte
 - SOPClassUID
 - PatientID
 
-> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`.
+> Note: All identifiers must be between 1 and 64 characters long, and only contain alpha numeric characters or the following special characters: `.`, `-`. PatientID is validated based on its LO VR type.
 
 Each file stored must have a unique combination of StudyInstanceUID, SeriesInstanceUID and SopInstanceUID. The warning code `45070` will be returned if a file with the same identifiers already exists.
 
@@ -83,6 +83,8 @@ In previous versions, a Store request would fail if any of the [required](#store
 
 Failed validation of attributes not required by the API will still result in the file being stored and a warning will be given about each failing attribute per instance.
 When a sequence contains an attribute that fails validation, or when there are multiple issues with a single attribute, only the first failing attribute reason will be noted.
+
+If an attribute is padded with nulls, the attribute will be indexed when searchable and will be stored as is in dicom+json metadata. No validation warning will be provided.
 
 ### Store Response Status Codes
 
@@ -277,7 +279,9 @@ This Retrieve Transaction offers support for retrieving stored studies, series, 
 | GET    | ../studies/{study}/series/{series}/metadata                             | Retrieves the metadata for all instances within a series. |
 | GET    | ../studies/{study}/series/{series}/instances/{instance}                 | Retrieves a single instance. |
 | GET    | ../studies/{study}/series/{series}/instances/{instance}/metadata        | Retrieves the metadata for a single instance. |
+| GET    | ../studies/{study}/series/{series}/instances/{instance}/rendered        | Retrieves an instance rendered into an image format |
 | GET    | ../studies/{study}/series/{series}/instances/{instance}/frames/{frames} | Retrieves one or many frames from a single instance. To specify more than one frame, a comma separate each frame to return, e.g. /studies/1/series/2/instance/3/frames/4,5,6 |
+| GET    | ../studies/{study}/series/{series}/instances/{instance}/frames/{frame}/rendered | Retrieves a single frame rendered into an image format |
 
 ### Retrieve instances within Study or Series
 
@@ -345,11 +349,27 @@ Retrieving metadata will not return attributes with the following value represen
 | OW      | Other Word             |
 | UN      | Unknown                |
 
+Retrieved metadata will include the null character when the attribute was padded with nulls and stored as is.
+
 ### Retrieve Metadata Cache Validation (for Study, Series, or Instance)
 
 Cache validation is supported using the `ETag` mechanism. In the response of a metadata reqeuest, ETag is returned as one of the headers. This ETag can be cached and added as `If-None-Match` header in the later requests for the same metadata. Two types of responses are possible if the data exists:
 - Data has not changed since the last request: HTTP 304 (Not Modified) response will be sent with no body.
 - Data has changed since the last request: HTTP 200 (OK) response will be sent with updated ETag. Required data will also be returned as part of the body.
+
+### Retrieve Rendered Image (For Instance or Frame)
+The following `Accept` header(s) are supported for retrieving a rendered image an instance or a frame:
+
+- `image/jpeg`
+- `image/png`
+
+In the case that no `Accept` header is specified the service will render an `image/jpeg` by default.
+
+The service only supports rendering of a single frame. If rendering is requested for an instance with multiple frames then only the first frame will be rendered as an image by default.
+
+When specifying a particular frame to return, frame indexing starts at 1.
+
+The `quality` query parameter is also supported. An integer value between `1-100` inclusive (1 being worst quality, and 100 being best quality) may be passed as the value for the query paramater. This will only be used for images rendered as `jpeg`, and will be ignored for `png` render requests. If not specified will default to `100`.
 
 ### Retrieve Response Status Codes
 
@@ -360,8 +380,8 @@ Cache validation is supported using the `ETag` mechanism. In the response of a m
 | 400 (Bad Request)            | The request was badly formatted. For example, the provided study instance identifier did not conform the expected UID format or the requested transfer-syntax encoding is not supported. |
 | 401 (Unauthorized)           | The client is not authenticated. |
 | 403 (Forbidden)              | The user isn't authorized. |
-| 404 (Not Found)              | The specified DICOM resource could not be found. |
-| 406 (Not Acceptable)         | The specified `Accept` header is not supported. |
+| 404 (Not Found)              | The specified DICOM resource could not be found or for rendered request the instance did not contain pixel data |
+| 406 (Not Acceptable)         | The specified `Accept` header is not supported or for rendered and transcode requests the file requested was too large  |
 | 503 (Service Unavailable)    | The service is unavailable or busy. Please try again later. |
 
 ## Search (QIDO-RS)
@@ -559,6 +579,7 @@ The query API will return one of the following status codes in the response:
 - Matching is case in-sensitive and accent sensitive for other string VR types.
 - Only the first value will be indexed of a single valued data element that incorrectly has multiple values.
 - Using the default attributes or limiting the number of results requested will maximize performance.
+- When an attribute was stored using null padding, it can be searched for with or without the null padding in uri encoding. Results retrieved will be for attributes stored both with and without null padding.
 
 ## Delete
 

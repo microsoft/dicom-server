@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -14,6 +14,7 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Models;
@@ -75,7 +76,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
 
             try
             {
-                return (long)(await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken));
+                return (long)await sqlCommandWrapper.ExecuteScalarAsync(cancellationToken);
             }
             catch (SqlException ex)
             {
@@ -123,12 +124,19 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         DicomDataset dicomDataset,
         long watermark,
         IEnumerable<QueryTag> queryTags,
-        bool allowExpiredTags = false,
-        bool hasFrameMetadata = false,
-        CancellationToken cancellationToken = default)
+        FileProperties fileProperties,
+        bool allowExpiredTags,
+        bool hasFrameMetadata,
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
+
+        if (fileProperties != null)
+        {
+            // if we are passing in fileProperties, it means we're using a new binary, but with an old schema
+            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+        }
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -251,7 +259,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         }
     }
 
-    private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    protected virtual async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -326,5 +334,11 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
 
             }
         }
+    }
+
+    public override async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<VersionedInstanceIdentifier> results = await RetrieveDeletedInstancesAsync(batchSize, maxRetries, cancellationToken);
+        return results.Select(x => new InstanceMetadata(x, new InstanceProperties())).ToList();
     }
 }

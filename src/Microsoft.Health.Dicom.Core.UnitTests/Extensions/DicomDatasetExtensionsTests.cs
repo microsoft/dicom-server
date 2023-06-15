@@ -583,6 +583,100 @@ public class DicomDatasetExtensionsTests
         Assert.Throws<DatasetValidationException>(() => dataset.ValidateAllRequirements(WorkitemRequestType.Update));
     }
 
+    [Fact]
+    public void GivenNullDataset_WhenTryGetLargeDicomItemIsCalled_ThrowsException()
+    {
+        DicomDataset dataset = null;
+        DicomItem largeDicomItem;
+
+        Assert.Throws<ArgumentNullException>(() => Core.Extensions.DicomDatasetExtensions.TryGetLargeDicomItem(dataset, 1, 10, out largeDicomItem));
+    }
+
+    [Fact]
+    public void GivenInvalidObjectSize_WhenTryGetLargeDicomItemIsCalled_ThrowsException()
+    {
+        var dataset = new DicomDataset();
+        DicomItem largeDicomItem;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => dataset.TryGetLargeDicomItem(-1, 10, out largeDicomItem));
+        Assert.Throws<ArgumentOutOfRangeException>(() => dataset.TryGetLargeDicomItem(1, -1, out largeDicomItem));
+    }
+
+    [Fact]
+    public void GivenInputWithNoLargeItem_WhenTryGetLargeDicomItemIsCalled_ReturnNullLargeItem()
+    {
+        var dataset = new DicomDataset
+        {
+            { DicomTag.PatientID, "TEST" },
+            { DicomTag.AccessionNumber, "12345678" }
+        };
+        DicomItem largeDicomItem;
+
+        var result = dataset.TryGetLargeDicomItem(1000, 10000, out largeDicomItem);
+
+        Assert.False(result);
+        Assert.Null(largeDicomItem);
+    }
+
+    [Fact]
+    public void GivenInputWithLargeItem_WhenTryGetLargeDicomItemIsCalled_ReturnLargeItem()
+    {
+        var buffer = new byte[5000];
+        var dataset = new DicomDataset
+        {
+            { DicomTag.PixelData, buffer },
+            { DicomTag.PatientID, "TEST" },
+        };
+        DicomItem largeDicomItem;
+
+        var result = dataset.TryGetLargeDicomItem(1000, 10000, out largeDicomItem);
+
+        Assert.True(result);
+        Assert.NotNull(largeDicomItem);
+    }
+
+    [Fact]
+    public void GivenInputWithNoLargeItem_WhenTryGetLargeDicomItemIsCalled_ReturnLargeItemWhichMatchMaxLargeSize()
+    {
+        var buffer = new byte[500];
+        var dataset = new DicomDataset
+        {
+            { DicomTag.PixelData, buffer },
+            { DicomTag.PatientID, "TEST" },
+        };
+        DicomItem largeDicomItem;
+
+        var result = dataset.TryGetLargeDicomItem(100, 501, out largeDicomItem);
+
+        Assert.True(result);
+        Assert.NotNull(largeDicomItem);
+        Assert.Equal(DicomTag.PixelData, largeDicomItem.Tag);
+    }
+
+
+    [Fact]
+    public void TryGetLargeDicomItem_Returns_TotalSize_And_LargeDicomItem()
+    {
+        var dicomItem = new DicomUniqueIdentifier(DicomTag.SOPClassUID, "1.2.840.10008.5.1.4.1.1.7");
+        var dataset = new DicomDataset
+        {
+            dicomItem,
+            new DicomShortString(DicomTag.SOPInstanceUID, "1.2.3.4.5"),
+            new DicomCodeString(DicomTag.Modality, "MR")
+        };
+        var element = new DicomOtherWord(DicomTag.PixelData, new ushort[] { 1, 2, 3, 4 });
+        dataset.Add(element);
+
+        var minLargeObjectsizeInBytes = 8;
+        var maxLargeObjectsizeInBytes = 100;
+        DicomItem largeDicomItem;
+
+        var result = dataset.TryGetLargeDicomItem(minLargeObjectsizeInBytes, maxLargeObjectsizeInBytes, out largeDicomItem);
+
+        Assert.True(result);
+        Assert.Equal(dicomItem, largeDicomItem);
+    }
+
     public static IEnumerable<object[]> ValidAttributeRequirements()
     {
         yield return new object[] { DicomTag.PatientBirthName, new DicomPersonName(DicomTag.PatientBirthName, "foo"), RequirementCode.OneOne };

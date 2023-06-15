@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ public class GetExtendedQueryTagsService : IGetExtendedQueryTagsService
         return new GetExtendedQueryTagResponse(extendedQueryTag.ToGetExtendedQueryTagEntry(_urlResolver));
     }
 
-    public async Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(int limit, int offset = 0, CancellationToken cancellationToken = default)
+    public async Task<GetExtendedQueryTagsResponse> GetExtendedQueryTagsAsync(int limit, long offset = 0, CancellationToken cancellationToken = default)
     {
         IReadOnlyList<ExtendedQueryTagStoreJoinEntry> extendedQueryTags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(limit, offset, cancellationToken);
         return new GetExtendedQueryTagsResponse(extendedQueryTags.Select(x => x.ToGetExtendedQueryTagEntry(_urlResolver)));

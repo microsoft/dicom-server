@@ -3,16 +3,22 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.ApplicationInsights;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -24,8 +30,10 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 {
     private readonly IGuidFactory _guidFactory;
     private readonly IDicomOperationsClient _client;
-    private readonly IUrlResolver _urlResolver;
     private readonly IDicomRequestContextAccessor _contextAccessor;
+    private readonly TelemetryClient _telemetryClient;
+    private readonly ILogger<UpdateInstanceOperationService> _logger;
+    private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -40,18 +48,24 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     public UpdateInstanceOperationService(
         IGuidFactory guidFactory,
         IDicomOperationsClient client,
-        IUrlResolver iUrlResolver,
-        IDicomRequestContextAccessor contextAccessor)
+        IDicomRequestContextAccessor contextAccessor,
+        TelemetryClient telemetryClient,
+        IOptions<JsonSerializerOptions> jsonSerializerOptions,
+        ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
         EnsureArg.IsNotNull(client, nameof(client));
-        EnsureArg.IsNotNull(iUrlResolver, nameof(iUrlResolver));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
         _client = client;
-        _urlResolver = iUrlResolver;
         _contextAccessor = contextAccessor;
+        _telemetryClient = telemetryClient;
+        _logger = logger;
+        _jsonSerializerOptions = jsonSerializerOptions;
     }
 
     public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
@@ -74,10 +88,27 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
             .FirstOrDefaultAsync(cancellationToken);
 
         if (activeOperation != null)
-            throw new ExistingUpdateOperationException(activeOperation);
+            throw new ExistingOperationException(activeOperation, "update");
 
-        var operationId = _guidFactory.Create();
-        var operation = new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
-        return new UpdateInstanceResponse(operation);
+        Guid operationId = _guidFactory.Create();
+
+        EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
+        EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
+
+        int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+
+        try
+        {
+            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+
+            string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
+            _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);
+            return new UpdateInstanceResponse(operation);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to start update operation");
+            throw;
+        }
     }
 }

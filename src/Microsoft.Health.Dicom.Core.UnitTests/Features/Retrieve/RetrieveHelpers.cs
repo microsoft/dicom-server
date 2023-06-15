@@ -39,11 +39,11 @@ public class RetrieveHelpers
         return ds;
     }
 
-    public static async Task<KeyValuePair<DicomFile, Stream>> StreamAndStoredFileFromDataset(DicomDataset dataset, RecyclableMemoryStreamManager recyclableMemoryStreamManager, int frames = 0, bool disposeStreams = false)
+    public static async Task<KeyValuePair<DicomFile, Stream>> StreamAndStoredFileFromDataset(DicomDataset dataset, RecyclableMemoryStreamManager recyclableMemoryStreamManager, int rows = 5, int columns = 5, int frames = 0, bool disposeStreams = false)
     {
         // Create DicomFile associated with input dataset with random pixel data.
         var dicomFile = new DicomFile(dataset);
-        Samples.AppendRandomPixelData(5, 5, frames, dicomFile);
+        Samples.AppendRandomPixelData(rows, columns, frames, dicomFile);
 
         if (disposeStreams)
         {

@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NSubstitute" />
+    <PackageReference Include="OpenTelemetry" />
+    <PackageReference Include="OpenTelemetry.Exporter.InMemory" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="All" />
   </ItemGroup>
@@ -34,6 +36,12 @@
     </None>
     <None Include="Indexing\ReindexDurableFunctionTests.*.cs">
       <DependentUpon>ReindexDurableFunctionTests.cs</DependentUpon>
+    </None>
+    <None Include="Migration\MigrationDurableFunctionTests.*.cs">
+      <DependentUpon>MigrationDurableFunctionTests.cs</DependentUpon>
+    </None>
+    <None Include="Update\UpdateDurableFunctionTests.*.cs">
+      <DependentUpon>UpdateDurableFunctionTests.cs</DependentUpon>
     </None>
   </ItemGroup>
 
