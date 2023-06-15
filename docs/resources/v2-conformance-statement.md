@@ -20,6 +20,7 @@ The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade
 Additionally, the following non-standard API(s) are supported:
 - [Change Feed](../concepts/change-feed.md)
 - [Extended Query Tags](../concepts/extended-query-tags.md)
+- [Bulk update](../concepts/bulk-update.md)
 
 All paths below include an implicit base URL of the server, such as `https://localhost:63838` when running locally.
 

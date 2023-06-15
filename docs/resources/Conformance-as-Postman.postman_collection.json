@@ -1230,6 +1230,37 @@
 			"response": []
 		},
 		{
+			"name": "Bulk-update-study",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"studyInstanceUids\": [\"{{study1}}\"],\r\n    \"changeDataset\": { \r\n        \"00100010\": { \r\n            \"vr\": \"PN\", \r\n            \"Value\": \r\n            [\r\n                { \r\n                    \"Alphabetic\": \"New Patient Name\" \r\n                }\r\n            ] \r\n        } \r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/studies/$bulkupdate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"studies",
+						"$bulkupdate"
+					]
+				}
+			},
+			"description": "This request updates a multiple studies.\r\n\r\n> Bulk update is not part of the DICOM standard, but has been added for convenience.\r\n\r\n_Details:_\r\n* Path: ../studies/$bulkupdate\r\n* Method: Bulk Update\r\n* Headers: No special headers needed",
+			"response": []
+		},
+		{
 			"name": "Get-operation",
 			"event": [
 				{
