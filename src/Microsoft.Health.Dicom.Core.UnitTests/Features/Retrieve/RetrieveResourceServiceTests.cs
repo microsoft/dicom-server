@@ -254,7 +254,7 @@ public class RetrieveResourceServiceTests
     public async Task GivenSpecificTransferSyntax_WhenRetrieveRequestForStudy_ThenInstancesInStudyAreTranscodedSuccesfully()
     {
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
-        var instanceMetadata = new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, DefaultPartition.Key), new InstanceProperties());
+        var instanceMetadata = new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, DefaultPartition.PartitionEntry), new InstanceProperties());
         _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
