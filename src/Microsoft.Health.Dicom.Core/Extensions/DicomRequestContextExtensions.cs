@@ -20,6 +20,7 @@ public static class DicomRequestContextExtensions
         EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
         return partitionKey.Value;
     }
+
     public static string GetPartitionName(this IDicomRequestContext dicomRequestContext)
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
@@ -28,6 +29,7 @@ public static class DicomRequestContextExtensions
         Debug.Assert(partitionName.Length > 0);
         return partitionName;
     }
+
     public static PartitionEntry GetPartitionEntry(this IDicomRequestContext dicomRequestContext)
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));

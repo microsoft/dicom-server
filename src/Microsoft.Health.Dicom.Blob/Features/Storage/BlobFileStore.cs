@@ -273,7 +273,7 @@ public class BlobFileStore : IFileStore
         }
     }
 
-    private protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, string partitionName)
+    protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, string partitionName)
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
         string fullPath = _blobClient.GetServiceStorePath(partitionName) + blobName;

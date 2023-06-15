@@ -105,7 +105,8 @@ public class StoreController : ControllerBase
         {
             throw new DicomUpdateFeatureDisabledException();
         }
-        if ((_dicomUpdateEnabled || _dataPartitionsEnabled) && _externalStoreEnabled)
+
+        if (_externalStoreEnabled)
         {
             throw new DicomUpdateFeatureDisabledException();
         }

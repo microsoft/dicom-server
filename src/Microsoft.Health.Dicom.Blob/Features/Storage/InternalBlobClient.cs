@@ -30,7 +30,5 @@ internal class InternalBlobClient : IBlobClient
     public BlobContainerClient BlobContainerClient => _client.GetBlobContainerClient(_containerName);
 
     public string GetServiceStorePath(string partitionName)
-    {
-        return string.Empty;
-    }
+        => string.Empty;
 }

@@ -123,8 +123,6 @@ public class RetrieveMetadataService : IRetrieveMetadataService
     private static bool IsCacheValid(string eTag, string ifNoneMatch)
         => !string.IsNullOrEmpty(ifNoneMatch) && string.Equals(ifNoneMatch, eTag, StringComparison.OrdinalIgnoreCase);
 
-    private PartitionEntry GetPartitionEntry() => _contextAccessor.RequestContext.GetPartitionEntry();
-
-    private int GetPartitionKey()
-        => _contextAccessor.RequestContext.GetPartitionKey();
+    private PartitionEntry GetPartitionEntry()
+        => _contextAccessor.RequestContext.GetPartitionEntry();
 }
