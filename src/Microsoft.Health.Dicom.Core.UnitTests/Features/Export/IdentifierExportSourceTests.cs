@@ -61,22 +61,22 @@ public class IdentifierExportSourceTests
         };
 
         _store
-            .GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, "10", tokenSource.Token)
+            .GetInstanceIdentifiersInStudyAsync(_partition, "10", tokenSource.Token)
             .Returns(expected[0..3]);
         _store
-            .GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, "11", tokenSource.Token)
+            .GetInstanceIdentifiersInStudyAsync(_partition, "11", tokenSource.Token)
             .Returns(Array.Empty<VersionedInstanceIdentifier>());
         _store
-            .GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, "100", "200", tokenSource.Token)
+            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "200", tokenSource.Token)
             .Returns(expected[3..6]);
         _store
-            .GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, "100", "201", tokenSource.Token)
+            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "201", tokenSource.Token)
             .Returns(Array.Empty<VersionedInstanceIdentifier>());
         _store
-            .GetInstanceIdentifierAsync(_partition.PartitionKey, "1000", "2000", "3000", tokenSource.Token)
+            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3000", tokenSource.Token)
             .Returns(new VersionedInstanceIdentifier[] { expected[6] });
         _store
-            .GetInstanceIdentifierAsync(_partition.PartitionKey, "1000", "2000", "3001", tokenSource.Token)
+            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3001", tokenSource.Token)
             .Returns(Array.Empty<VersionedInstanceIdentifier>());
 
         // Enumerate
@@ -87,22 +87,22 @@ public class IdentifierExportSourceTests
         // Check Results
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, "10", tokenSource.Token);
+            .GetInstanceIdentifiersInStudyAsync(_partition, "10", tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, "11", tokenSource.Token);
+            .GetInstanceIdentifiersInStudyAsync(_partition, "11", tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, "100", "200", tokenSource.Token);
+            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "200", tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, "100", "201", tokenSource.Token);
+            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "201", tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierAsync(_partition.PartitionKey, "1000", "2000", "3000", tokenSource.Token);
+            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3000", tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierAsync(_partition.PartitionKey, "1000", "2000", "3001", tokenSource.Token);
+            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3001", tokenSource.Token);
 
         Assert.Same(expected[0], actual[0].Identifier);
         Assert.Same(expected[1], actual[1].Identifier);

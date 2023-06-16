@@ -47,9 +47,9 @@ internal sealed class IdentifierExportSource : IExportSource
             // Attempt to read the data
             IReadOnlyList<VersionedInstanceIdentifier> instances = identifier.Type switch
             {
-                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(_partition.PartitionKey, identifier.StudyInstanceUid, cancellationToken),
-                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
-                _ => await _instanceStore.GetInstanceIdentifierAsync(_partition.PartitionKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
+                ResourceType.Study => await _instanceStore.GetInstanceIdentifiersInStudyAsync(_partition, identifier.StudyInstanceUid, cancellationToken),
+                ResourceType.Series => await _instanceStore.GetInstanceIdentifiersInSeriesAsync(_partition, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, cancellationToken),
+                _ => await _instanceStore.GetInstanceIdentifierAsync(_partition, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, cancellationToken),
             };
 
             if (instances.Count == 0)

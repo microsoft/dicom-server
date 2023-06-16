@@ -66,7 +66,8 @@ public class UpdateInstanceService : IUpdateInstanceService
     {
         _logger.LogInformation("Begin deleting instance blob {FileIdentifier}.", fileIdentifier);
 
-        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, cancellationToken);
+        // Note: External store not supported with update yet. Pass in partition name once supported
+        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, String.Empty, cancellationToken);
         Task metadataTask = _metadataStore.DeleteInstanceMetadataIfExistsAsync(fileIdentifier, cancellationToken);
 
         await Task.WhenAll(fileTask, metadataTask);
@@ -97,7 +98,8 @@ public class UpdateInstanceService : IUpdateInstanceService
             _logger.LogInformation("Begin downloading original file {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
             // If not pre-updated get the file stream, GetFileAsync will open the stream
-            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, cancellationToken);
+            // // pass in partition name once update supported by external store #104373
+            using Stream stream = await _fileStore.GetFileAsync(originFileIdentifier, string.Empty, cancellationToken);
 
             // Read the file and check if there is any large DICOM item in the file.
             DicomFile dcmFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand, LargeObjectSizeInBytes);

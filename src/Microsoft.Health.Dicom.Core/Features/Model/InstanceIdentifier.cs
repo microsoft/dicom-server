@@ -5,6 +5,7 @@
 
 using System;
 using EnsureThat;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -16,7 +17,23 @@ public class InstanceIdentifier
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
-        int partitionKey = default)
+        PartitionEntry partitionEntry)
+        : this(
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid,
+            partitionEntry?.PartitionKey ?? throw new ArgumentNullException(nameof(partitionEntry)),
+            partitionEntry?.PartitionName ?? throw new ArgumentNullException(nameof(partitionEntry)))
+    {
+        EnsureArg.IsNotNull(partitionEntry, nameof(partitionEntry));
+    }
+
+    public InstanceIdentifier(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        int partitionKey = default,
+        string partitionName = default)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -26,6 +43,7 @@ public class InstanceIdentifier
         SeriesInstanceUid = seriesInstanceUid;
         SopInstanceUid = sopInstanceUid;
         PartitionKey = partitionKey;
+        PartitionName = partitionName;
     }
 
     public string StudyInstanceUid { get; }
@@ -36,6 +54,10 @@ public class InstanceIdentifier
 
     public int PartitionKey { get; }
 
+    public string PartitionName { get; }
+
+    public PartitionEntry PartitionEntry { get; }
+
     public override bool Equals(object obj)
     {
         if (obj is InstanceIdentifier identifier)
@@ -44,7 +66,6 @@ public class InstanceIdentifier
                     SeriesInstanceUid.Equals(identifier.SeriesInstanceUid, EqualsStringComparison) &&
                     SopInstanceUid.Equals(identifier.SopInstanceUid, EqualsStringComparison);
         }
-
         return false;
     }
 

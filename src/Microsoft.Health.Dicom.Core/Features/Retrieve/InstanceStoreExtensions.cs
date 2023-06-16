@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Messages;
 
 namespace Microsoft.Health.Dicom.Core.Features.Retrieve;
@@ -19,7 +20,7 @@ public static class InstanceStoreExtensions
     public static async Task<IReadOnlyList<InstanceMetadata>> GetInstancesWithProperties(
             this IInstanceStore instanceStore,
             ResourceType resourceType,
-            int partitionKey,
+            PartitionEntry partitionEntry,
             string studyInstanceUid,
             string seriesInstanceUid,
             string sopInstanceUid,
@@ -27,7 +28,7 @@ public static class InstanceStoreExtensions
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
 
-        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+        IReadOnlyList<InstanceMetadata> instancesToRetrieve = await instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
 
         if (!instancesToRetrieve.Any())
         {

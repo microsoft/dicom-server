@@ -58,7 +58,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _retrieveMeter = new RetrieveMeter();
         _nameWithPrefix = storagefixture.NameWithPrefix;
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = DefaultPartition.PartitionEntry;
 
         _retrieveMetadataService = new RetrieveMetadataService(
             _instanceStore,
@@ -185,7 +185,6 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
     // Note that tests must use unique watermarks to ensure their metadata files do not collide with each other
     private (VersionedDicomDataset First, VersionedDicomDataset Second) SetupDatasetList(
         ResourceType resourceType,
-        int partitionKey = DefaultPartition.Key,
         CancellationToken cancellationToken = default)
     {
         var instanceProperty1 = new InstanceProperties { OriginalVersion = _firstOriginalVersion };
@@ -209,7 +208,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {
@@ -220,7 +219,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         else
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(partitionKey, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {

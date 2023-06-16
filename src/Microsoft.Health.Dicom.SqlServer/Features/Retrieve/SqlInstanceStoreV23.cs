@@ -8,6 +8,7 @@ using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -24,7 +25,7 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
 
     public override SchemaVersion Version => SchemaVersion.V23;
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(PartitionEntry partitionEntry, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -34,7 +35,7 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
             VLatest.GetInstanceWithProperties.PopulateCommand(
                 sqlCommandWrapper,
                 validStatus: (byte)IndexStatus.Created,
-                partitionKey,
+                partitionEntry.PartitionKey,
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid);
@@ -58,7 +59,7 @@ internal class SqlInstanceStoreV23 : SqlInstanceStoreV10
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
                                 watermark,
-                                partitionKey),
+                                partitionEntry),
                             new InstanceProperties() { TransferSyntaxUid = rTransferSyntaxUid, HasFrameMetadata = rHasFrameMetadata }));
                 }
             }

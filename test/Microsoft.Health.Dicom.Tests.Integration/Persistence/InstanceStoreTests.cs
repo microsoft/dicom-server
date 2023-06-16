@@ -293,7 +293,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         await _indexDataStore.EndUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUID1, dicomDataset);
 
-        var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.Key, studyInstanceUID1)).ToList();
+        var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, studyInstanceUID1)).ToList();
 
         // Verify the instances are updated with updated information
         Assert.Equal(instances.Count, instanceMetadata.Count());

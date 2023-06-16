@@ -70,12 +70,12 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, stream);
+                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, DefaultPartition.Name, stream);
 
                 Assert.NotNull(fileProperties);
             }
 
-            var file = await _fixture.FileStore.GetFileAsync(version);
+            var file = await _fixture.FileStore.GetFileAsync(version, DefaultPartition.Name);
 
             Assert.NotNull(file);
         }
@@ -89,7 +89,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.Equal(1, retrievedInstanceCount);
 
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.PartitionName));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }

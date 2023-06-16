@@ -5,6 +5,7 @@
 
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 
 namespace Microsoft.Health.Dicom.Core.Extensions;
 
@@ -14,8 +15,20 @@ public static class DicomRequestContextExtensions
     {
         EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
 
-        var partitionKey = dicomRequestContext.DataPartitionEntry?.PartitionKey;
-        EnsureArg.IsTrue(partitionKey.HasValue, nameof(partitionKey));
-        return partitionKey.Value;
+        return dicomRequestContext.DataPartitionEntry.PartitionKey;
+    }
+
+    public static string GetPartitionName(this IDicomRequestContext dicomRequestContext)
+    {
+        EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
+
+        return dicomRequestContext.DataPartitionEntry.PartitionName;
+    }
+
+    public static PartitionEntry GetPartitionEntry(this IDicomRequestContext dicomRequestContext)
+    {
+        EnsureArg.IsNotNull(dicomRequestContext, nameof(dicomRequestContext));
+
+        return dicomRequestContext.DataPartitionEntry;
     }
 }

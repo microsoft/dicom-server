@@ -37,7 +37,9 @@ public class StoreOrchestratorTests
         DefaultStudyInstanceUid,
         DefaultSeriesInstanceUid,
         DefaultSopInstanceUid,
-        DefaultVersion);
+        DefaultVersion,
+        DefaultPartition.Key,
+        DefaultPartition.Name);
 
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {
@@ -104,6 +106,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
                 DefaultVersionedInstanceIdentifier.Version,
+                DefaultVersionedInstanceIdentifier.PartitionName,
                 _stream,
                 cancellationToken: DefaultCancellationToken)
             .Returns(DefaultFileProperties);
@@ -118,6 +121,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
             DefaultVersionedInstanceIdentifier.Version,
+            DefaultVersionedInstanceIdentifier.PartitionName,
             _stream,
             cancellationToken: DefaultCancellationToken)
             .Throws(new Exception());

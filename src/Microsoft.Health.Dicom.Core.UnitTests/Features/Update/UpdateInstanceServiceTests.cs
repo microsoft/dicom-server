@@ -84,7 +84,7 @@ public class UpdateInstanceServiceTests
     {
         long fileIdentifier = 1234;
         await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier);
-        await _fileStore.Received(1).DeleteFileIfExistsAsync(fileIdentifier, CancellationToken.None);
+        await _fileStore.Received(1).DeleteFileIfExistsAsync(fileIdentifier, String.Empty, CancellationToken.None);
         await _metadataStore.Received(1).DeleteInstanceMetadataIfExistsAsync(fileIdentifier, CancellationToken.None);
     }
 
@@ -112,7 +112,7 @@ public class UpdateInstanceServiceTests
         var binaryData = await BinaryData.FromStreamAsync(copyStream);
         copyStream.Position = 0;
 
-        _fileStore.GetFileAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.GetFileAsync(fileIdentifier, String.Empty, cancellationToken).Returns(streamAndStoredFile.Value);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -128,7 +128,7 @@ public class UpdateInstanceServiceTests
         await _updateInstanceService.UpdateInstanceBlobAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
 
         await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, cancellationToken);
-        await _fileStore.Received(1).GetFileAsync(fileIdentifier, cancellationToken);
+        await _fileStore.Received(1).GetFileAsync(fileIdentifier, String.Empty, cancellationToken);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
         await _metadataStore.Received(1).StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken);
         await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Arg.Any<FrameRange>(), cancellationToken);
@@ -169,7 +169,7 @@ public class UpdateInstanceServiceTests
         var binaryData = await BinaryData.FromStreamAsync(copyStream);
         copyStream.Position = 0;
 
-        _fileStore.GetFileAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.GetFileAsync(fileIdentifier, String.Empty, cancellationToken).Returns(streamAndStoredFile.Value);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -187,7 +187,7 @@ public class UpdateInstanceServiceTests
         streamAndStoredFile.Key.Dataset.Remove(DicomTag.PixelData);
         var firstBlockLength = await DicomFileExtensions.GetByteLengthAsync(streamAndStoredFile.Key, new RecyclableMemoryStreamManager());
         await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, cancellationToken);
-        await _fileStore.Received(1).GetFileAsync(fileIdentifier, cancellationToken);
+        await _fileStore.Received(1).GetFileAsync(fileIdentifier, String.Empty, cancellationToken);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
         await _metadataStore.Received(1).StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken);
         await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Arg.Is<FrameRange>(x => x.Length == firstBlockLength), cancellationToken);
@@ -238,7 +238,7 @@ public class UpdateInstanceServiceTests
         var firstBlock = new KeyValuePair<string, long>(Convert.ToBase64String(Guid.NewGuid().ToByteArray()), stream.Length);
 
         _fileStore.CopyFileAsync(fileIdentifier, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
-        _fileStore.GetFileAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.GetFileAsync(fileIdentifier, String.Empty, cancellationToken).Returns(streamAndStoredFile.Value);
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
         _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
@@ -257,7 +257,7 @@ public class UpdateInstanceServiceTests
         streamAndStoredFile.Key.Dataset.Remove(DicomTag.PixelData);
 
         await _fileStore.Received(1).CopyFileAsync(fileIdentifier, newFileIdentifier, cancellationToken);
-        await _fileStore.DidNotReceive().GetFileAsync(fileIdentifier, cancellationToken);
+        await _fileStore.DidNotReceive().GetFileAsync(fileIdentifier, string.Empty, cancellationToken);
         await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
         await _metadataStore.Received(1).StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken);
         await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Arg.Is<FrameRange>(x => x.Length == firstBlockLength), cancellationToken);
