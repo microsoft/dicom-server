@@ -6,7 +6,7 @@ RUN set -x && \
 USER nonroot
 
 # Copy the DICOMcast project and build it
-FROM mcr.microsoft.com/dotnet/sdk:7.0.304-alpine3.17-amd64@sha256:45b411573edcd70797d256421b5672b50abe15a7a3dd3008d0e3aa959149e7bf AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.304-alpine3.17-amd64@sha256:8b9cf316909433656ec8315ffc5e860cd57cb6bdb91a4b913aeef780baee3eec AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 WORKDIR /dicom-server
