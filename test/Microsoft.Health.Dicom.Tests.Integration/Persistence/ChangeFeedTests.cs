@@ -167,7 +167,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
 
-        var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
+        var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version, PartitionEntry.Default);
 
         if (instanceFullyCreated)
         {

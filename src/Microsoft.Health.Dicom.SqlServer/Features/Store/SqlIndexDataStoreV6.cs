@@ -217,7 +217,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         {
             VLatest.DeleteDeletedInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
-                versionedInstanceIdentifier.PartitionKey,
+                versionedInstanceIdentifier.PartitionEntry.PartitionKey,
                 versionedInstanceIdentifier.StudyInstanceUid,
                 versionedInstanceIdentifier.SeriesInstanceUid,
                 versionedInstanceIdentifier.SopInstanceUid,
@@ -241,7 +241,7 @@ internal class SqlIndexDataStoreV6 : SqlIndexDataStoreV5
         {
             VLatest.IncrementDeletedInstanceRetryV6.PopulateCommand(
                 sqlCommandWrapper,
-                versionedInstanceIdentifier.PartitionKey,
+                versionedInstanceIdentifier.PartitionEntry.PartitionKey,
                 versionedInstanceIdentifier.StudyInstanceUid,
                 versionedInstanceIdentifier.SeriesInstanceUid,
                 versionedInstanceIdentifier.SopInstanceUid,

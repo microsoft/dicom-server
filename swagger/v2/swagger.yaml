@@ -3323,9 +3323,6 @@ components:
         partitionName:
           type: string
           nullable: true
-        createdDate:
-          type: string
-          format: date-time
       additionalProperties: false
     QueryStatus:
       enum:

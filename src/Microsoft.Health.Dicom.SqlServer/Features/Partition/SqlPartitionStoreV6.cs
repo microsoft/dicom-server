@@ -50,8 +50,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 
                         return new PartitionEntry(
                             rPartitionKey,
-                            rPartitionName,
-                            rCreatedDate);
+                            rPartitionName);
                     }
                 }
             }
@@ -87,8 +86,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 
                     results.Add(new PartitionEntry(
                         rPartitionKey,
-                        rPartitionName,
-                        rCreatedDate));
+                        rPartitionName));
                 }
             }
 
@@ -114,8 +112,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 
                     return new PartitionEntry(
                         rPartitionKey,
-                        rPartitionName,
-                        rCreatedDate);
+                        rPartitionName);
                 }
             }
 

@@ -212,8 +212,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
                 .Returns(
                     new List<InstanceMetadata>
                     {
-                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
-                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version, PartitionEntry.Default), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version, PartitionEntry.Default), instanceProperty2),
                     });
         }
         else
@@ -223,8 +223,8 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
                 .Returns(
                     new List<InstanceMetadata>
                     {
-                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
-                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version, PartitionEntry.Default), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version, PartitionEntry.Default), instanceProperty2),
                     });
         }
 

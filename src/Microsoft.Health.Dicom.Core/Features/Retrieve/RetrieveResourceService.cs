@@ -125,10 +125,10 @@ public class RetrieveResourceService : IRetrieveResourceService
             if (needsTranscoding)
             {
                 _logger.LogInformation("Transcoding Instance");
-                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.PartitionName, false, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.PartitionEntry.PartitionName, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
+                Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionEntry.PartitionName, cancellationToken);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
@@ -347,12 +347,12 @@ public class RetrieveResourceService : IRetrieveResourceService
 
     private static string GenerateInstanceCacheKey(InstanceIdentifier instanceIdentifier)
     {
-        return $"{instanceIdentifier.PartitionKey}/{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}";
+        return $"{instanceIdentifier.PartitionEntry.PartitionKey}/{instanceIdentifier.StudyInstanceUid}/{instanceIdentifier.SeriesInstanceUid}/{instanceIdentifier.SopInstanceUid}";
     }
 
     private async Task<InstanceMetadata> GetInstanceMetadata(InstanceIdentifier instanceIdentifier, CancellationToken cancellationToken)
     {
-        var partitionEntry = new PartitionEntry(instanceIdentifier.PartitionKey, instanceIdentifier.PartitionName);
+        var partitionEntry = new PartitionEntry(instanceIdentifier.PartitionEntry.PartitionKey, instanceIdentifier.PartitionEntry.PartitionName);
         IEnumerable<InstanceMetadata> retrieveInstances = await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance,
                 partitionEntry,

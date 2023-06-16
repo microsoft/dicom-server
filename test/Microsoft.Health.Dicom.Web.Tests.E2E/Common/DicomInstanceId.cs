@@ -8,29 +8,32 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
+using PartitionEntry = Microsoft.Health.Dicom.Client.Models.PartitionEntry;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
 internal class DicomInstanceId
 {
     private const StringComparison EqualsStringComparison = StringComparison.Ordinal;
-    public DicomInstanceId(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, string partitionName)
+    public DicomInstanceId(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, PartitionEntry partitionEntry)
     {
         StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         SeriesInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
         SopInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
-        PartitionName = partitionName;
+        PartitionEntry = partitionEntry;
     }
 
     public string StudyInstanceUid { get; }
     public string SeriesInstanceUid { get; }
     public string SopInstanceUid { get; }
-    public string PartitionName { get; }
+    public PartitionEntry PartitionEntry { get; }
 
-    public static DicomInstanceId FromDicomFile(DicomFile dicomFile, string partitionName = default)
+    public static DicomInstanceId FromDicomFile(DicomFile dicomFile, PartitionEntry partitionEntry = null)
     {
-        InstanceIdentifier instanceIdentifier = dicomFile.Dataset.ToInstanceIdentifier();
-        return new DicomInstanceId(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, partitionName);
+        partitionEntry = partitionEntry ?? PartitionEntry.Default;
+        InstanceIdentifier instanceIdentifier = dicomFile.Dataset.ToInstanceIdentifier(DefaultPartition.PartitionEntry);
+        return new DicomInstanceId(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, partitionEntry);
     }
 
     public override bool Equals(object obj)
@@ -40,12 +43,12 @@ internal class DicomInstanceId
             return StudyInstanceUid.Equals(instanceId.StudyInstanceUid, EqualsStringComparison) &&
                     SeriesInstanceUid.Equals(instanceId.SeriesInstanceUid, EqualsStringComparison) &&
                     SopInstanceUid.Equals(instanceId.SopInstanceUid, EqualsStringComparison) &&
-                    PartitionName.Equals(instanceId.PartitionName, EqualsStringComparison);
+                    PartitionEntry.PartitionName.Equals(instanceId.PartitionEntry.PartitionName, EqualsStringComparison);
         }
 
         return false;
     }
 
-    public override int GetHashCode() => HashCode.Combine(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, PartitionName);
+    public override int GetHashCode() => HashCode.Combine(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, PartitionEntry.PartitionName);
 
 }

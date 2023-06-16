@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Operations;
 using NSubstitute;
 using Xunit;
@@ -123,7 +124,7 @@ public class UrlResolverTests
 
         _httpContext.Request.RouteValues.Add(KnownActionParameterNames.Version, version);
 
-        var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, PartitionEntry.Default);
 
         _urlResolver.ResolveRetrieveInstanceUri(instance);
 

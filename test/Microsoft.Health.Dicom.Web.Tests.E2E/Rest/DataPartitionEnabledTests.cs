@@ -16,6 +16,8 @@ using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
+using DefaultPartition = Microsoft.Health.Dicom.Client.Models.DefaultPartition;
+using PartitionEntry = Microsoft.Health.Dicom.Client.Models.PartitionEntry;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
@@ -35,47 +37,47 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     [Trait("Category", "bvt-dp")]
     public async Task WhenRetrievingPartitions_TheServerShouldReturnAllPartitions()
     {
-        var newPartition1 = TestUidGenerator.Generate();
-        var newPartition2 = TestUidGenerator.Generate();
+        var newPartition1 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
+        var newPartition2 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition2);
 
         using DicomWebResponse<IEnumerable<PartitionEntry>> response3 = await _client.GetPartitionsAsync();
         Assert.True(response3.IsSuccessStatusCode);
 
         IEnumerable<PartitionEntry> values = await response3.GetValueAsync();
 
-        Assert.Contains(values, x => x.PartitionName == newPartition1);
-        Assert.Contains(values, x => x.PartitionName == newPartition2);
+        Assert.Contains(values, x => x.PartitionName == newPartition1.PartitionName);
+        Assert.Contains(values, x => x.PartitionName == newPartition2.PartitionName);
     }
 
     [Fact]
     [Trait("Category", "bvt-dp")]
     public async Task GivenDatasetWithNewPartitionName_WhenStoring_TheServerShouldReturnWithNewPartition()
     {
-        var newPartition = TestUidGenerator.Generate();
+        var newPartition = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         string studyInstanceUID = TestUidGenerator.Generate();
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition);
 
         Assert.True(response.IsSuccessStatusCode);
 
         ValidationHelpers.ValidateReferencedSopSequence(
             await response.GetValueAsync(),
-            ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition));
+            ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition.PartitionName));
     }
 
     [Fact]
     [Trait("Category", "bvt-dp")]
     public async Task GivenDatasetWithNewPartitionName_WhenStoringWithStudyUid_TheServerShouldReturnWithNewPartition()
     {
-        var newPartition = TestUidGenerator.Generate();
+        var newPartition = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
@@ -86,15 +88,15 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         ValidationHelpers.ValidateReferencedSopSequence(
             await response.GetValueAsync(),
-            ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition));
+            ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition.PartitionName));
     }
 
     [Fact]
     [Trait("Category", "bvt-dp")]
     public async Task WhenRetrievingWithPartitionName_TheServerShouldReturnOnlyTheSpecifiedPartition()
     {
-        var newPartition1 = "partition1";
-        var newPartition2 = "partition2";
+        var newPartition1 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
+        var newPartition2 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         string studyInstanceUID = TestUidGenerator.Generate();
         string seriesInstanceUID = TestUidGenerator.Generate();
@@ -102,13 +104,13 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition2);
 
-        using DicomWebResponse<DicomFile> response3 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1);
+        using DicomWebResponse<DicomFile> response3 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1.PartitionName);
         Assert.True(response3.IsSuccessStatusCode);
 
-        using DicomWebResponse<DicomFile> response4 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+        using DicomWebResponse<DicomFile> response4 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2.PartitionName);
         Assert.True(response4.IsSuccessStatusCode);
     }
 
@@ -116,8 +118,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     [Trait("Category", "bvt-dp")]
     public async Task WhenRendereingWithPartitionName_TheServerShouldReturnOnlyTheSpecifiedPartition()
     {
-        var newPartition1 = "partition1";
-        var newPartition2 = "partition2";
+        var newPartition1 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
+        var newPartition2 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         string studyInstanceUID = TestUidGenerator.Generate();
         string seriesInstanceUID = TestUidGenerator.Generate();
@@ -125,13 +127,13 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 3);
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition2);
 
-        using DicomWebResponse<Stream> response3 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1);
+        using DicomWebResponse<Stream> response3 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1.PartitionName);
         Assert.True(response3.IsSuccessStatusCode);
 
-        using DicomWebResponse<Stream> response4 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+        using DicomWebResponse<Stream> response4 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2.PartitionName);
         Assert.True(response4.IsSuccessStatusCode);
     }
 
@@ -139,8 +141,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     [Trait("Category", "bvt-dp")]
     public async Task GivenDatasetInstancesWithDifferentPartitions_WhenDeleted_OneDeletedAndOtherRemains()
     {
-        var newPartition1 = TestUidGenerator.Generate();
-        var newPartition2 = TestUidGenerator.Generate();
+        var newPartition1 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
+        var newPartition2 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         string studyInstanceUID = TestUidGenerator.Generate();
         string seriesInstanceUID = TestUidGenerator.Generate();
@@ -148,15 +150,15 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition2);
 
-        using DicomWebResponse response3 = await _client.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, newPartition1);
+        using DicomWebResponse response3 = await _client.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, newPartition1.PartitionName);
         Assert.True(response3.IsSuccessStatusCode);
 
-        await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1));
+        await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1.PartitionName));
 
-        using DicomWebResponse<DicomFile> response5 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2);
+        using DicomWebResponse<DicomFile> response5 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition2.PartitionName);
         Assert.True(response5.IsSuccessStatusCode);
     }
 
@@ -164,8 +166,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     [Trait("Category", "bvt-dp")]
     public async Task GivenMatchingStudiesInDifferentPartitions_WhenSearchForStudySeriesLevel_OnePartitionMatchesResult()
     {
-        var newPartition1 = TestUidGenerator.Generate();
-        var newPartition2 = TestUidGenerator.Generate();
+        var newPartition1 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
+        var newPartition2 = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
 
         var studyUid = TestUidGenerator.Generate();
 
@@ -181,10 +183,10 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
              { DicomTag.Modality, "MRI" },
         });
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { file1 }, partitionName: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { file2 }, partitionName: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { file1 }, partitionEntry: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { file2 }, partitionEntry: newPartition2);
 
-        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesAsync(studyUid, "Modality=MRI", newPartition1);
+        using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesAsync(studyUid, "Modality=MRI", newPartition1.PartitionName);
 
         DicomDataset[] datasets = await response.ToArrayAsync();
 
@@ -196,13 +198,13 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     [Trait("Category", "bvt-dp")]
     public async Task GivenAnInstance_WhenRetrievingChangeFeedWithPartition_ThenPartitionNameIsReturned()
     {
-        var newPartition = TestUidGenerator.Generate();
+        var newPartition = new PartitionEntry(DefaultPartition.Key, TestUidGenerator.Generate());
         string studyInstanceUID = TestUidGenerator.Generate();
         string seriesInstanceUID = TestUidGenerator.Generate();
         string sopInstanceUID = TestUidGenerator.Generate();
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionName: newPartition);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partitionEntry: newPartition);
         Assert.True(response1.IsSuccessStatusCode);
 
         long initialSequence;
@@ -213,7 +215,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
             initialSequence = changeFeedEntry.Sequence;
 
-            Assert.Equal(newPartition, changeFeedEntry.PartitionName);
+            Assert.Equal(newPartition.PartitionName, changeFeedEntry.PartitionName);
             Assert.Equal(studyInstanceUID, changeFeedEntry.StudyInstanceUid);
             Assert.Equal(seriesInstanceUID, changeFeedEntry.SeriesInstanceUid);
             Assert.Equal(sopInstanceUID, changeFeedEntry.SopInstanceUid);
@@ -225,7 +227,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
             Assert.Single(changeFeedResults);
             Assert.Null(changeFeedResults[0].Metadata);
-            Assert.Equal(newPartition, changeFeedResults[0].PartitionName);
+            Assert.Equal(newPartition.PartitionName, changeFeedResults[0].PartitionName);
             Assert.Equal(ChangeFeedState.Current, changeFeedResults[0].State);
         }
     }

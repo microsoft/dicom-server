@@ -216,7 +216,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
                 instances[^3].StudyInstanceUid,
                 instances[^3].SeriesInstanceUid,
                 instances[^3].SopInstanceUid,
-                DefaultPartition.Key));
+                PartitionEntry.Default));
 
         IReadOnlyList<WatermarkRange> batches;
 

@@ -16,6 +16,8 @@ public class PartitionEntry
 
     public DateTimeOffset CreatedDate { get; set; }
 
+    public static PartitionEntry Default => new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+
     public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate = default)
     {
         PartitionKey = partitionKey;

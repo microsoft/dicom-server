@@ -277,7 +277,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark2);
 
         // delete instance
-        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, DefaultPartition.Key));
+        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, PartitionEntry.Default));
 
         // check errors
         var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), int.MaxValue, 0);
@@ -318,7 +318,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, errorCode, watermark2);
 
         // delete instance1
-        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, DefaultPartition.Key));
+        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, PartitionEntry.Default));
 
         // check errors
         Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), 1, 0));
@@ -441,7 +441,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, ValidationErrorCode.UidIsInvalid, watermark);
 
         // Delete instance
-        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, DefaultPartition.Key));
+        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, PartitionEntry.Default));
 
         var tagEntry1 = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag1.GetPath());
         Assert.Equal(0, tagEntry1.ErrorCount);

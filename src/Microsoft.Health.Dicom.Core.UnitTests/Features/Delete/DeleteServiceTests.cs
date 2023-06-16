@@ -295,11 +295,11 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionName, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionEntry.PartitionName, CancellationToken.None);
 
             await _fileDataStore
                .Received(numberOfDeletedInstances)
-               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.PartitionName, CancellationToken.None);
+               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.PartitionEntry.PartitionName, CancellationToken.None);
 
             await _metadataStore
                 .Received(numberOfDeletedInstances)
@@ -334,7 +334,7 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionName, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionEntry.PartitionName, CancellationToken.None);
         }
 
         await _indexDataStore

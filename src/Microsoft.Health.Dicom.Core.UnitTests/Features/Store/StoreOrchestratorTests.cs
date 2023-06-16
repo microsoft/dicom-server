@@ -106,7 +106,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
                 DefaultVersionedInstanceIdentifier.Version,
-                DefaultVersionedInstanceIdentifier.PartitionName,
+                DefaultVersionedInstanceIdentifier.PartitionEntry.PartitionName,
                 _stream,
                 cancellationToken: DefaultCancellationToken)
             .Returns(DefaultFileProperties);
@@ -121,7 +121,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
             DefaultVersionedInstanceIdentifier.Version,
-            DefaultVersionedInstanceIdentifier.PartitionName,
+            DefaultVersionedInstanceIdentifier.PartitionEntry.PartitionName,
             _stream,
             cancellationToken: DefaultCancellationToken)
             .Throws(new Exception());

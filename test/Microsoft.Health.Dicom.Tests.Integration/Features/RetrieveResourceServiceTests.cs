@@ -155,7 +155,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
             CancellationToken.None);
 
-        ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+        ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier(DefaultPartition.PartitionEntry).SeriesInstanceUid == _firstSeriesInstanceUid));
         ValidateDicomRequestIsPopulated();
     }
 
@@ -224,7 +224,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
         foreach (DicomDataset expectedDataset in expectedDatasets)
         {
-            DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedDataset.ToInstanceIdentifier()));
+            DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier(DefaultPartition.PartitionEntry).Equals(expectedDataset.ToInstanceIdentifier(DefaultPartition.PartitionEntry)));
 
             // If the same transfer syntax as original, the files should be exactly the same
             if (expectedDataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)

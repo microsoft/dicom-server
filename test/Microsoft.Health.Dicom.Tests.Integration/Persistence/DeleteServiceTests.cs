@@ -53,8 +53,8 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     {
         var newDataSet = CreateValidMetadataDataset();
 
-        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newDataSet);
-        var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
+        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(PartitionEntry.Default.PartitionKey, newDataSet);
+        var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version, PartitionEntry.Default);
 
         if (persistMetadata)
         {
@@ -89,7 +89,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.Equal(1, retrievedInstanceCount);
 
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.PartitionName));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.PartitionEntry.PartitionName));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }
