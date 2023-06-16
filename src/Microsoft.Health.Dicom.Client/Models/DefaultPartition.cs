@@ -9,5 +9,5 @@ public static class DefaultPartition
 {
     public const string Name = "Microsoft.Default";
     public const int Key = 1;
-    public static readonly PartitionEntry PartitionEntry = new PartitionEntry(Key, Name);
+    public static readonly Partition Partition = new Partition(Key, Name);
 }

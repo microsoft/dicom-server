@@ -39,7 +39,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         {
             try
             {
-                await _dicomWebClient.DeleteInstanceAsync(id.StudyInstanceUid, id.SeriesInstanceUid, id.SopInstanceUid, id.PartitionEntry?.PartitionName);
+                await _dicomWebClient.DeleteInstanceAsync(id.StudyInstanceUid, id.SeriesInstanceUid, id.SopInstanceUid, id.Partition?.PartitionName);
             }
             catch (DicomWebException)
             {
@@ -48,14 +48,14 @@ internal class DicomInstancesManager : IAsyncDisposable
         }
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, Partition partition = null, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-        _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partitionEntry));
-        return await _dicomWebClient.StoreAsync(dicomFile, studyInstanceUid, partitionEntry?.PartitionName, cancellationToken);
+        _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partition));
+        return await _dicomWebClient.StoreAsync(dicomFile, studyInstanceUid, partition?.PartitionName, cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(HttpContent content, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(HttpContent content, Partition partition = null, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
     {
         EnsureArg.IsNotNull(content, nameof(content));
         // Null instanceId indiates Store will fail
@@ -63,21 +63,21 @@ internal class DicomInstancesManager : IAsyncDisposable
         {
             _instanceIds.Add(instanceId);
         }
-        return await _dicomWebClient.StoreAsync(content, partitionEntry?.PartitionName, cancellationToken);
+        return await _dicomWebClient.StoreAsync(content, partition?.PartitionName, cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = default, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(IEnumerable<DicomFile> dicomFiles, string studyInstanceUid = default, Partition partition = null, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
         foreach (var file in dicomFiles)
         {
-            _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partitionEntry));
+            _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partition));
         }
 
-        return await _dicomWebClient.StoreAsync(dicomFiles, studyInstanceUid, partitionEntry?.PartitionName, cancellationToken);
+        return await _dicomWebClient.StoreAsync(dicomFiles, studyInstanceUid, partition?.PartitionName, cancellationToken);
     }
 
-    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = default, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
+    public async Task<DicomWebResponse<DicomDataset>> StoreAsync(Stream stream, string studyInstanceUid = default, Partition partition = null, CancellationToken cancellationToken = default, DicomInstanceId instanceId = default)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
 
@@ -86,14 +86,14 @@ internal class DicomInstancesManager : IAsyncDisposable
         {
             _instanceIds.Add(instanceId);
         }
-        return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partitionEntry?.PartitionName, cancellationToken);
+        return await _dicomWebClient.StoreAsync(stream, studyInstanceUid, partition?.PartitionName, cancellationToken);
     }
 
-    public async Task StoreIfNotExistsAsync(DicomFile dicomFile, bool doNotDelete = false, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default)
+    public async Task StoreIfNotExistsAsync(DicomFile dicomFile, bool doNotDelete = false, Partition partition = null, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-        var dicomInstanceId = DicomInstanceId.FromDicomFile(dicomFile, partitionEntry);
+        var dicomInstanceId = DicomInstanceId.FromDicomFile(dicomFile, partition);
 
         try
         {
@@ -101,7 +101,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         }
         catch (DicomWebException)
         {
-            await _dicomWebClient.StoreAsync(dicomFile, dicomInstanceId.StudyInstanceUid, partitionEntry?.PartitionName, cancellationToken);
+            await _dicomWebClient.StoreAsync(dicomFile, dicomInstanceId.StudyInstanceUid, partition?.PartitionName, cancellationToken);
 
             if (!doNotDelete)
             {
@@ -110,12 +110,12 @@ internal class DicomInstancesManager : IAsyncDisposable
         }
     }
 
-    public async Task<OperationStatus> UpdateStudyAsync(List<string> studyInstanceUids, DicomDataset dicomDataset, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default)
+    public async Task<OperationStatus> UpdateStudyAsync(List<string> studyInstanceUids, DicomDataset dicomDataset, Partition partition = null, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(studyInstanceUids, nameof(studyInstanceUids));
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
-        DicomWebResponse<DicomOperationReference> response = await _dicomWebClient.UpdateStudyAsync(studyInstanceUids, dicomDataset, partitionEntry?.PartitionName, cancellationToken);
+        DicomWebResponse<DicomOperationReference> response = await _dicomWebClient.UpdateStudyAsync(studyInstanceUids, dicomDataset, partition?.PartitionName, cancellationToken);
         DicomOperationReference operation = await response.GetValueAsync();
 
         IOperationState<DicomOperation> result = await _dicomWebClient.WaitForCompletionAsync(operation.Id);
@@ -131,62 +131,62 @@ internal class DicomInstancesManager : IAsyncDisposable
 
     public async Task<DicomWebResponse> AddWorkitemAsync(IEnumerable<DicomDataset> dicomDatasets,
         string workitemInstanceUid,
-        PartitionEntry partitionEntry = null,
+        Partition partition = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDatasets, nameof(dicomDatasets));
 
         return await _dicomWebClient
-            .AddWorkitemAsync(dicomDatasets, workitemInstanceUid, partitionEntry?.PartitionName, cancellationToken)
+            .AddWorkitemAsync(dicomDatasets, workitemInstanceUid, partition?.PartitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 
-    public async Task<DicomWebResponse> QueryWorkitemAsync(string queryString, PartitionEntry partitionEntry = null, CancellationToken cancellationToken = default)
+    public async Task<DicomWebResponse> QueryWorkitemAsync(string queryString, Partition partition = null, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotEmptyOrWhiteSpace(queryString, nameof(queryString));
 
         return await _dicomWebClient
-            .QueryWorkitemAsync(queryString, partitionEntry?.PartitionName, cancellationToken)
+            .QueryWorkitemAsync(queryString, partition?.PartitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse> CancelWorkitemAsync(
         IEnumerable<DicomDataset> datasets,
         string workitemUid,
-        PartitionEntry partitionEntry = null,
+        Partition partition = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(datasets, nameof(datasets));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         return await _dicomWebClient
-            .CancelWorkitemAsync(datasets, workitemUid, partitionEntry?.PartitionName, cancellationToken)
+            .CancelWorkitemAsync(datasets, workitemUid, partition?.PartitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse> RetrieveWorkitemAsync(
         string workitemUid,
-        PartitionEntry partitionEntry = null,
+        Partition partition = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         return await _dicomWebClient
-            .RetrieveWorkitemAsync(workitemUid, partitionEntry?.PartitionName, cancellationToken)
+            .RetrieveWorkitemAsync(workitemUid, partition?.PartitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse> ChangeWorkitemStateAsync(
         DicomDataset requestDataset,
         string workitemUid,
-        PartitionEntry partitionEntry = null,
+        Partition partition = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(requestDataset, nameof(requestDataset));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         return await _dicomWebClient
-            .ChangeWorkitemStateAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, partitionEntry?.PartitionName, cancellationToken)
+            .ChangeWorkitemStateAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, partition?.PartitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -194,14 +194,14 @@ internal class DicomInstancesManager : IAsyncDisposable
         DicomDataset requestDataset,
         string workitemUid,
         string transactionUid = default,
-        PartitionEntry partitionEntry = null,
+        Partition partition = null,
         CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(requestDataset, nameof(requestDataset));
         EnsureArg.IsNotEmptyOrWhiteSpace(workitemUid, nameof(workitemUid));
 
         return await _dicomWebClient
-            .UpdateWorkitemAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, transactionUid, partitionEntry?.PartitionName, cancellationToken)
+            .UpdateWorkitemAsync(Enumerable.Repeat(requestDataset, 1), workitemUid, transactionUid, partition?.PartitionName, cancellationToken)
             .ConfigureAwait(false);
     }
 }

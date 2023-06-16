@@ -7,15 +7,15 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Client.Models;
 
-public class PartitionEntry
+public class Partition
 {
     public int PartitionKey { get; set; }
 
     public string PartitionName { get; set; }
 
-    public static PartitionEntry Default => new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
+    public static Partition Default => new Partition(DefaultPartition.Key, DefaultPartition.Name);
 
-    public PartitionEntry(int partitionKey, string partitionName)
+    public Partition(int partitionKey, string partitionName)
     {
         PartitionKey = partitionKey;
         PartitionName = EnsureArg.IsNotNull(partitionName, nameof(partitionName));
