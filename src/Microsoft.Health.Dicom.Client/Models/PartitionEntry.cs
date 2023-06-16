@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Client.Models;
@@ -14,14 +13,11 @@ public class PartitionEntry
 
     public string PartitionName { get; set; }
 
-    public DateTimeOffset CreatedDate { get; set; }
-
     public static PartitionEntry Default => new PartitionEntry(DefaultPartition.Key, DefaultPartition.Name);
 
-    public PartitionEntry(int partitionKey, string partitionName, DateTimeOffset createdDate = default)
+    public PartitionEntry(int partitionKey, string partitionName)
     {
         PartitionKey = partitionKey;
         PartitionName = EnsureArg.IsNotNull(partitionName, nameof(partitionName));
-        CreatedDate = createdDate;
     }
 }
