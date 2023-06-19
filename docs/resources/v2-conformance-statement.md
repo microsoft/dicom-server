@@ -372,6 +372,12 @@ When specifying a particular frame to return, frame indexing starts at 1.
 
 The `quality` query parameter is also supported. An integer value between `1-100` inclusive (1 being worst quality, and 100 being best quality) may be passed as the value for the query paramater. This will only be used for images rendered as `jpeg`, and will be ignored for `png` render requests. If not specified will default to `100`.
 
+### Retrieve original Image (For Instance and Metadata)
+
+If you have performed bulk update operation, you can retrieve the original image or metadata by specifying the `msdicom-request-original` header. The value of the header can be `true` or `false`. If the value is `true`, the original image or metadata will be returned. If the value is `false`, the updated image or metadata will be returned. If the value is not specified, the updated image or metadata will be returned.
+
+> Note: For more information on list of endpoints supported, please refer to [Bulk update retrieve](../concepts/bulk-update.md#retrieve-wado-rs).
+
 ### Retrieve Response Status Codes
 
 | Code                         | Description |
@@ -597,6 +603,7 @@ Parameters `study`, `series` and `instance` correspond to the DICOM attributes S
 There are no restrictions on the request's `Accept` header, `Content-Type` header or body content.
 
 > Note: After a Delete transaction the deleted instances will not be recoverable.
+> If you have performed bulk update and delete operations, both the versions are deleted and not recoverable. For more information, see [Bulk update](../concepts/bulk-update.md#delete).
 
 ### Response Status Codes
 

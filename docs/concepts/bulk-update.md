@@ -1,60 +1,5 @@
 # Bulk update overview
-Bulk update is a feature that enables updates of DICOM attributes/metadata without needing to delete and re-add. Currently only patient attributes can be updated using the bulk update API.  Supported attributes include those included in the [Patient Identification Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-2) and the [Patient Demographic Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-3) that are not sequences. 
-
-After a study is updated, there are two versions of the instances that can be retrieved: the original, unmodified instances and the latest version with updated attributes.  Intermediate versions are not persisted.  
-
-## Feature Enablement
-The bulk update feature can be enabled by setting the configuration key `DicomServer:Features:EnableUpdate` to `true` through your local [appsettings.json](../../src/Microsoft.Health.Dicom.Web/appsettings.json) file or host-specific options.
-
-## API Design
-Following URIs assume an implicit DICOM service base URI. For example, the base URI of a DICOM server running locally would be `https://localhost:63838/`.
-Example requests can be sent in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json).
-
-### Bulk update study
-Bulk update endpoint starts a long running operation that updates all the instances in the study with the specified attributes.
-
-```http
-POST ...v1/studies/$bulkUpdate
-POST ...v1/partitions/{PartitionName}/studies/$bulkUpdate
-```
-
-#### Request Header
-
-| Name         | Required  | Type   | Description                     |
-| ------------ | --------- | ------ | ------------------------------- |
-| Content-Type | False     | string | `application/json` is supported |
-
-#### Request Body
-
-```json
-{
-    "studyInstanceUids": ["12.3.4.5"], 
-    "changeDataset": {
-        "00100010": {
-            "vr": "LO",
-            "Value": ["New patient name"]
-        }
-    }
-}
-```
-
-#### Responses
-
-```json
-{
-    "id": "1323c079a1b64efcb8943ef7707b5438",
-    "href": "../v1/operations/1323c079a1b64efcb8943ef7707b5438"
-}
-```
-
-| Name              | Type                                        | Description                                                  |
-| ----------------- | ------------------------------------------- | ------------------------------------------------------------ |
-| 202 (Accepted)    | [Operation Reference](#operation-reference) | Extended query tag(s) have been added, and a long-running operation has been started to re-index existing DICOM instances |
-| 400 (Bad Request) |                                             | Request body has invalid data                                |
-
-#### Limitations
-
-> Only Patient identificaton and demographic attributes are supported for bulk update.
+Bulk update is a feature that enables updates of DICOM attributes/metadata without needing to delete and re-add. The currently supported attributes include those in the [Patient Identification Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-2) and the [Patient Demographic Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-3) that are not sequences, also listed below.
 
 **Patient Identification Module**
 | Attribute Name   | Tag           | Description           |
@@ -96,12 +41,62 @@ POST ...v1/partitions/{PartitionName}/studies/$bulkUpdate
 | Patient Breed Description | (0010,2292) | The breed of the patient.See Section C.7.1.1.1.1.  |
 | Breed Registration Number | (0010,2295) | Identification number of a veterinary patient within the registry.  |
 
-> Maximum of 50 studies can be updated at once.
+After a study is updated, there are two versions of the instances that can be retrieved: the original, unmodified instances and the latest version with updated attributes.  Intermediate versions are not persisted.  
 
-> Only one update operation can be performed at a time.
+## Feature Enablement
+The bulk update feature can be enabled by setting the configuration key `DicomServer:Features:EnableUpdate` to `true` through your local [appsettings.json](../../src/Microsoft.Health.Dicom.Web/appsettings.json) file or host-specific options.
 
-### Get Operation
-Get a long-running operation.
+## API Design
+Following URIs assume an implicit DICOM service base URI. For example, the base URI of a DICOM server running locally would be `https://localhost:63838/`.
+Example requests can be sent in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json).
+
+### Bulk update study
+Bulk update endpoint starts a long running operation that updates all the instances in the study with the specified attributes.
+
+```http
+POST ...v1/studies/$bulkUpdate
+POST ...v1/partitions/{PartitionName}/studies/$bulkUpdate
+```
+
+#### Request Header
+
+| Name         | Required  | Type   | Description                     |
+| ------------ | --------- | ------ | ------------------------------- |
+| Content-Type | False     | string | `application/json` is supported |
+
+#### Request Body
+
+```json
+{
+    "studyInstanceUids": ["12.3.4.5"], 
+    "changeDataset": {
+        "00100010": {
+            "vr": "LO",
+            "Value": ["New patient name"]
+        }
+    }
+}
+```
+
+#### Responses
+Upon successfully starting an bulk update operation, the bulk update API returns a `202` status code. The body of the response contains a reference to the operation.
+
+```http
+HTTP/1.1 202 Accepted
+Content-Type: application/json
+{
+    "id": "1323c079a1b64efcb8943ef7707b5438",
+    "href": "../v1/operations/1323c079a1b64efcb8943ef7707b5438"
+}
+```
+
+| Name              | Type                                        | Description                                                  |
+| ----------------- | ------------------------------------------- | ------------------------------------------------------------ |
+| 202 (Accepted)    | [Operation Reference](#operation-reference) | Extended query tag(s) have been added, and a long-running operation has been started to re-index existing DICOM instances |
+| 400 (Bad Request) |                                             | Request body has invalid data                                |
+
+### Operation Status
+The above `href` URL can be polled for the current status of the export operation until completion. A terminal state is signified by a `200` status instead of `202`.
 
 ```http
 GET .../operations/{operationId}
@@ -141,6 +136,8 @@ GET .../operations/{operationId}
 
 The Retrieve Transaction feature provides the ability to retrieve stored studies, series, and instances, including both the original and latest versions.
 
+> Note: The supported endpoints for retrieving instances and metadata are listed below.
+
 | Method | Path                                                                    | Description |
 | :----- | :---------------------------------------------------------------------- | :---------- |
 | GET    | ../studies/{study}                                                      | Retrieves all instances within a study. |
@@ -152,13 +149,23 @@ The Retrieve Transaction feature provides the ability to retrieve stored studies
 
 In order to retrieve original version, `msdicom-request-original` header should be set to `true`.
 
+Example request to retrieve an orifginal version of an instance is shown below.
+
+```http 
+GET .../studies/{study}/series/{series}/instances/{instance}
+ ```
+
+Headers:
 ```
-- `msdicom-request-original=true
+- Accept: multipart/related; type="application/dicom"; transfer-syntax=*
+- msdicom-request-original: true
 ```
 
 ## Delete
 
 This transaction will delete both original and latest version of instances.
+
+> Note: After a Delete transaction the both the deleted instances will not be recoverable.
 
 ## Change Feed
 
@@ -169,3 +176,13 @@ Examples of the request and response of change feed action can be found [here](.
 ### Other APIs
 
 There is no change in other APIs. All the other APIs supports only latest version of instances.
+
+#### Limitations
+
+> Only Patient identificaton and demographic attributes are supported for bulk update.
+
+> Maximum of 50 studies can be updated at once.
+
+> Only one update operation can be performed at a time.
+
+> There is no way to delete only the latest version or revert back to original version.
