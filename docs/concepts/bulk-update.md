@@ -133,9 +133,9 @@ GET .../operations/{operationId}
 
 | Name            | Type                    | Description                                  |
 | --------------- | ----------------------- | -------------------------------------------- |
-| 200 (OK)        | [Operation](#operation) | The completed operation for the specified ID |
-| 202 (Accepted)  | [Operation](#operation) | The running operation for the specified ID   |
-| 404 (Not Found) |                         | The operation is not found                   |
+| 200 (OK)        | [Operation](#operation) | The operation with the specified ID has completed |
+| 202 (Accepted)  | [Operation](#operation) | The operation with the specified ID is running |
+| 404 (Not Found) |                         | Operation not found                   |
 
 ## Retrieve (WADO-RS)
 
