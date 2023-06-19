@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.IO;
 using NSubstitute;
@@ -61,7 +61,7 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
         var optionsConfiguration = Substitute.For<IOptions<DeletedInstanceCleanupConfiguration>>();
         optionsConfiguration.Value.Returns(cleanupConfiguration);
         var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
 
         DeleteService = new DeleteService(
             _sqlDataStoreTestsFixture.IndexDataStore,

@@ -11,9 +11,9 @@ using Microsoft.Health.Core.Features.Security.Authorization;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Security;
-using Microsoft.Health.Dicom.Core.Messages.Partition;
+using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition;
+namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 public class AddPartitionHandler : BaseHandler, IRequestHandler<AddPartitionRequest, AddPartitionResponse>
 {

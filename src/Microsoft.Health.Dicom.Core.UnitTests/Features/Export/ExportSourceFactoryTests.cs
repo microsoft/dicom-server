@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using NSubstitute;
 using Xunit;
@@ -22,7 +22,7 @@ public class ExportSourceFactoryTests
     {
         var factory = new ExportSourceFactory(Array.Empty<IExportSourceProvider>());
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => factory.CreateAsync(new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers), PartitionEntry.Default));
+            () => factory.CreateAsync(new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers), Partition.Default));
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class ExportSourceFactoryTests
         using var tokenSource = new CancellationTokenSource();
 
         var options = new IdentifierExportOptions();
-        var partition = PartitionEntry.Default;
+        var partition = Partition.Default;
         var source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers, options);
         IExportSource expected = Substitute.For<IExportSource>();
 

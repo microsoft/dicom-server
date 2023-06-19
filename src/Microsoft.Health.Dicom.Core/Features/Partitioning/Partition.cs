@@ -5,7 +5,7 @@
 
 using EnsureThat;
 
-namespace Microsoft.Health.Dicom.Client.Models;
+namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 public class Partition
 {

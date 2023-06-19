@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using FellowOakDicom;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -29,10 +29,10 @@ public interface IStoreResponseBuilder
     /// <param name="storeValidationResult">Store validation errors and warnings</param>
     /// <param name="warningReasonCode">The warning reason code.</param>
     /// <param name="buildWarningSequence">Whether to build response warning sequence or not.</param>
-    /// <param name="partitionEntry">Data Partition entry</param>
+    /// <param name="partition">Data Partition entry</param>
     void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
-        PartitionEntry partitionEntry,
+        Partition partition,
         ushort? warningReasonCode = null,
         bool buildWarningSequence = false);
 

@@ -14,7 +14,7 @@ using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 
@@ -98,6 +98,6 @@ internal class ExternalBlobClient : IBlobClient
     {
         return _isPartitionEnabled ?
             _externalStoreOptions.StorageDirectory + partitionName + "/" :
-            _externalStoreOptions.StorageDirectory + PartitionEntry.Default.PartitionName + "/";
+            _externalStoreOptions.StorageDirectory + Partition.DefaultName + "/";
     }
 }

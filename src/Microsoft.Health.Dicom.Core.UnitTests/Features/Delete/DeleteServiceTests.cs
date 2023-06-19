@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -56,7 +56,7 @@ public class DeleteServiceTests
         _transactionScope = Substitute.For<ITransactionScope>();
         transactionHandler.BeginTransaction().Returns(_transactionScope);
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
 
         _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor);
     }
@@ -72,7 +72,7 @@ public class DeleteServiceTests
             await _deleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                .DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
     }
 
@@ -88,7 +88,7 @@ public class DeleteServiceTests
             await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                .DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
     }
 
@@ -105,7 +105,7 @@ public class DeleteServiceTests
             await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                .DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
     }
 
@@ -135,7 +135,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(version: default, DefaultPartition.Name, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, Partition.Default.Name, CancellationToken.None);
 
         await _metadataStore
             .DidNotReceiveWithAnyArgs()
@@ -157,7 +157,7 @@ public class DeleteServiceTests
                 .ReturnsForAnyArgs(responseList);
 
             _fileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<long>(), DefaultPartition.Name, Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default.Name, Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -204,7 +204,7 @@ public class DeleteServiceTests
             .ReturnsForAnyArgs(responseList);
 
         _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<long>(), DefaultPartition.Name, Arg.Any<CancellationToken>())
+            .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default.Name, Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         _indexDataStore
@@ -243,7 +243,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(version: default, DefaultPartition.Name, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, Partition.Default.Name, CancellationToken.None);
     }
 
     [Theory]
@@ -295,11 +295,11 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionEntry.PartitionName, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition.Name, CancellationToken.None);
 
             await _fileDataStore
                .Received(numberOfDeletedInstances)
-               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.PartitionEntry.PartitionName, CancellationToken.None);
+               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.Partition.Name, CancellationToken.None);
 
             await _metadataStore
                 .Received(numberOfDeletedInstances)
@@ -334,7 +334,7 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.PartitionEntry.PartitionName, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition.Name, CancellationToken.None);
         }
 
         await _indexDataStore
@@ -354,7 +354,7 @@ public class DeleteServiceTests
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i, DefaultPartition.PartitionEntry), instanceProperties));
+            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i, Partition.Default), instanceProperties));
         }
 
         return deletedInstanceList;

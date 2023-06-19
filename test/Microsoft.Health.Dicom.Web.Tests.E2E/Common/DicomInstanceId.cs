@@ -9,7 +9,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using CorePartition = Microsoft.Health.Dicom.Core.Features.Partition;
+using CorePartition = Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 
@@ -32,7 +32,7 @@ internal class DicomInstanceId
     public static DicomInstanceId FromDicomFile(DicomFile dicomFile, Partition partition = null)
     {
         partition = partition ?? Partition.Default;
-        InstanceIdentifier instanceIdentifier = dicomFile.Dataset.ToInstanceIdentifier(CorePartition.PartitionEntry.Default);
+        InstanceIdentifier instanceIdentifier = dicomFile.Dataset.ToInstanceIdentifier(CorePartition.Partition.Default);
         return new DicomInstanceId(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, partition);
     }
 
@@ -43,12 +43,12 @@ internal class DicomInstanceId
             return StudyInstanceUid.Equals(instanceId.StudyInstanceUid, EqualsStringComparison) &&
                     SeriesInstanceUid.Equals(instanceId.SeriesInstanceUid, EqualsStringComparison) &&
                     SopInstanceUid.Equals(instanceId.SopInstanceUid, EqualsStringComparison) &&
-                    Partition.PartitionName.Equals(instanceId.Partition.PartitionName, EqualsStringComparison);
+                    Partition.Name.Equals(instanceId.Partition.Name, EqualsStringComparison);
         }
 
         return false;
     }
 
-    public override int GetHashCode() => HashCode.Combine(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Partition.PartitionName);
+    public override int GetHashCode() => HashCode.Combine(StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Partition.Name);
 
 }

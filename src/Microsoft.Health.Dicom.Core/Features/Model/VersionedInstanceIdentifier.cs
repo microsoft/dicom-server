@@ -3,7 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -14,8 +14,8 @@ public class VersionedInstanceIdentifier : InstanceIdentifier
         string seriesInstanceUid,
         string sopInstanceUid,
         long version,
-        PartitionEntry partitionEntry)
-        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry)
+        Partition partition)
+        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partition)
     {
         Version = version;
     }
@@ -25,9 +25,9 @@ public class VersionedInstanceIdentifier : InstanceIdentifier
         string seriesInstanceUid,
         string sopInstanceUid,
         long version,
-        int partitionKey = Partition.DefaultPartition.Key,
-        string partitionName = Partition.DefaultPartition.Name)
-        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new PartitionEntry(partitionKey, partitionName))
+        int partitionKey = Partition.DefaultKey,
+        string partitionName = Partition.DefaultName)
+        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new Partition(partitionKey, partitionName))
     {
         Version = version;
     }

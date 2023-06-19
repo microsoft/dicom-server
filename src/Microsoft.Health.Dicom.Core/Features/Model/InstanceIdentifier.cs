@@ -5,7 +5,7 @@
 
 using System;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -17,9 +17,9 @@ public class InstanceIdentifier
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
-        PartitionEntry partitionEntry)
+        Partition partition)
     {
-        PartitionEntry = EnsureArg.IsNotNull(partitionEntry, nameof(partitionEntry));
+        Partition = EnsureArg.IsNotNull(partition, nameof(partition));
         StudyInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         SeriesInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
         SopInstanceUid = EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
@@ -31,7 +31,7 @@ public class InstanceIdentifier
 
     public string SopInstanceUid { get; }
 
-    public PartitionEntry PartitionEntry { get; }
+    public Partition Partition { get; }
 
     public override bool Equals(object obj)
     {
@@ -45,8 +45,8 @@ public class InstanceIdentifier
     }
 
     public override int GetHashCode()
-        => (PartitionEntry.PartitionKey + StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
+        => (Partition.Key + StudyInstanceUid + SeriesInstanceUid + SopInstanceUid).GetHashCode(EqualsStringComparison);
 
     public override string ToString()
-        => $"PartitionKey: {PartitionEntry.PartitionKey}, StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
+        => $"PartitionKey: {Partition.Key}, StudyInstanceUID: {StudyInstanceUid}, SeriesInstanceUID: {SeriesInstanceUid}, SOPInstanceUID: {SopInstanceUid}";
 }

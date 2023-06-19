@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -78,7 +78,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -111,7 +111,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
@@ -135,7 +135,7 @@ public partial class UpdateDurableFunctionTests
 
         var expectedInput = new UpdateCheckpoint
         {
-            PartitionKey = DefaultPartition.Key,
+            PartitionKey = Partition.DefaultKey,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate()
@@ -164,7 +164,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -197,7 +197,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
@@ -225,7 +225,7 @@ public partial class UpdateDurableFunctionTests
 
         var expectedInput = new UpdateCheckpoint
         {
-            PartitionKey = DefaultPartition.Key,
+            PartitionKey = Partition.DefaultKey,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string>(),
             CreatedTime = createdTime,
@@ -288,7 +288,7 @@ public partial class UpdateDurableFunctionTests
 
         var expectedInput = new UpdateCheckpoint
         {
-            PartitionKey = DefaultPartition.Key,
+            PartitionKey = Partition.DefaultKey,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate()
@@ -329,7 +329,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .ThrowsAsync(new FunctionFailedException("Function failed"));
 
         context
@@ -407,7 +407,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -440,7 +440,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(Partition.DefaultKey, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
@@ -461,7 +461,7 @@ public partial class UpdateDurableFunctionTests
     private static UpdateCheckpoint GetUpdateCheckpoint()
         => new UpdateCheckpoint
         {
-            PartitionKey = DefaultPartition.Key,
+            PartitionKey = Partition.DefaultKey,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate(),

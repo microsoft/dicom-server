@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using NSubstitute;
@@ -38,8 +38,8 @@ public class StoreOrchestratorTests
         DefaultSeriesInstanceUid,
         DefaultSopInstanceUid,
         DefaultVersion,
-        DefaultPartition.Key,
-        DefaultPartition.Name);
+        Partition.DefaultKey,
+        Partition.Default.Name);
 
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {
@@ -87,7 +87,7 @@ public class StoreOrchestratorTests
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
             .Returns(_queryTags);
 
-        _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
+        _contextAccessor.RequestContext.DataPartition = new Partition(1, "Microsoft.Default");
         var logger = NullLogger<StoreOrchestrator>.Instance;
         _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
         _storeOrchestrator = new StoreOrchestrator(
@@ -106,7 +106,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
                 DefaultVersionedInstanceIdentifier.Version,
-                DefaultVersionedInstanceIdentifier.PartitionEntry.PartitionName,
+                DefaultVersionedInstanceIdentifier.Partition.Name,
                 _stream,
                 cancellationToken: DefaultCancellationToken)
             .Returns(DefaultFileProperties);
@@ -121,7 +121,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
             DefaultVersionedInstanceIdentifier.Version,
-            DefaultVersionedInstanceIdentifier.PartitionEntry.PartitionName,
+            DefaultVersionedInstanceIdentifier.Partition.Name,
             _stream,
             cancellationToken: DefaultCancellationToken)
             .Throws(new Exception());

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Api.Features.Partition;
 
@@ -53,9 +53,9 @@ public class DataPartitionFeatureValidatorService : IHostedService
                 {
                     var partitionService = scope.ServiceProvider.GetRequiredService<IPartitionService>();
 
-                    var partitionEntries = await partitionService.GetPartitionsAsync(cancellationToken);
+                    var partitions = await partitionService.GetPartitionsAsync(cancellationToken);
 
-                    if (partitionEntries.Entries.Count > 1)
+                    if (partitions.Entries.Count > 1)
                     {
                         throw new DataPartitionsFeatureCannotBeDisabledException();
                     }

@@ -7,7 +7,7 @@ using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 
@@ -83,7 +83,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
     /// <inheritdoc />
     public void AddSuccess(DicomDataset dicomDataset,
         StoreValidationResult storeValidationResult,
-        PartitionEntry partitionEntry,
+        Partition partition,
         ushort? warningReasonCode = null,
         bool buildWarningSequence = false)
     {
@@ -99,7 +99,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
             _dataset.Add(referencedSopSequence);
         }
 
-        var dicomInstance = dicomDataset.ToInstanceIdentifier(partitionEntry);
+        var dicomInstance = dicomDataset.ToInstanceIdentifier(partition);
 
         var referencedSop = new DicomDataset
         {

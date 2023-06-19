@@ -14,7 +14,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -48,7 +48,7 @@ public class RetrieveMetadataServiceTests
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _retrieveMeter = new RetrieveMeter();
 
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = DefaultPartition.PartitionEntry;
+        _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
         _retrieveMetadataService = new RetrieveMetadataService(
             _instanceStore,
             _metadataStore,
@@ -226,28 +226,28 @@ public class RetrieveMetadataServiceTests
         Assert.Equal(1, _dicomRequestContextAccessor.RequestContext.PartCount);
     }
 
-    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, PartitionEntry partitionEntry = null, InstanceProperties instanceProperty = null)
+    private List<InstanceMetadata> SetupInstanceIdentifiersList(ResourceType resourceType, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
         instanceProperty = instanceProperty ?? new InstanceProperties();
-        partitionEntry = partitionEntry ?? DefaultPartition.PartitionEntry;
+        partition = partition ?? Partition.Default;
 
         switch (resourceType)
         {
             case ResourceType.Study:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 0), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), version: 1), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Series:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 0), instanceProperty));
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, TestUidGenerator.Generate(), version: 1), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, _seriesInstanceUid, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _seriesInstanceUid, cancellationToken: DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
             case ResourceType.Instance:
                 dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, version: 0), instanceProperty));
-                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partitionEntry, _studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+                _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _seriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
                 break;
         }
 

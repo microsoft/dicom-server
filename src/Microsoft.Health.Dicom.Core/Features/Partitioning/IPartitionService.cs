@@ -5,9 +5,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Messages.Partition;
+using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition;
+namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 public interface IPartitionService
 {

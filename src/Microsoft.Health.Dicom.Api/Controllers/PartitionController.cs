@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Web;
 using DicomAudit = Microsoft.Health.Dicom.Api.Features.Audit;
 
@@ -43,7 +43,7 @@ public class PartitionController : ControllerBase
 
     [HttpGet]
     [Produces(KnownContentTypes.ApplicationJson)]
-    [ProducesResponseType(typeof(IEnumerable<PartitionEntry>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(IEnumerable<Partition>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
     [VersionedRoute(KnownRoutes.GetAllPartitionsRoute)]

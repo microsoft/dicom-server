@@ -18,7 +18,7 @@ using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
-using PartitionEntry = Microsoft.Health.Dicom.Core.Features.Partition.PartitionEntry;
+using Partition = Microsoft.Health.Dicom.Core.Features.Partitioning.Partition;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
@@ -297,7 +297,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         using DicomWebResponse<DicomDataset> response = await _instancesManagerV2.StoreAsync(new[] { dicomFile }, studyInstanceUid);
         DicomDataset dataset = await response.GetValueAsync();
 
-        return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, PartitionEntry.Default);
+        return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Partition.Default);
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)

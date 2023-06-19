@@ -3,19 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Partition;
+namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-public class GetPartitionRequest : IRequest<GetPartitionResponse>
+public class AddPartitionResponse
 {
-    public GetPartitionRequest(string paritionName)
+    public AddPartitionResponse(Features.Partitioning.Partition partition)
     {
-        PartitionName = paritionName;
+        Partition = partition;
     }
 
-    /// <summary>
-    /// Data Partition name
-    /// </summary>
-    public string PartitionName { get; }
+    public Features.Partitioning.Partition Partition { get; }
 }

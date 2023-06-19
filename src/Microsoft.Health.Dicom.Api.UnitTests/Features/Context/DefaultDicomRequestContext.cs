@@ -8,13 +8,13 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Api.UnitTests.Features.Context;
 
 public class DefaultDicomRequestContext : IDicomRequestContext
 {
-    public PartitionEntry DataPartitionEntry { get; set; }
+    public Partition DataPartition { get; set; }
 
     public string StudyInstanceUid { get; set; }
 

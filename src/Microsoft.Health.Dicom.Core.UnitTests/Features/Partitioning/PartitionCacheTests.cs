@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using NSubstitute;
 using Xunit;
 
-namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Partition;
+namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Partitioning;
 
 public class PartitionCacheTests
 {
@@ -29,11 +29,11 @@ public class PartitionCacheTests
 
         int numExecuted = 0;
 
-        Func<string, CancellationToken, Task<PartitionEntry>> mockAction = async (string partitionName, CancellationToken cancellationToken) =>
+        Func<string, CancellationToken, Task<Partition>> mockAction = async (string partitionName, CancellationToken cancellationToken) =>
         {
             await Task.Delay(200, cancellationToken);
             numExecuted++;
-            return new PartitionEntry(1, partitionName);
+            return new Partition(1, partitionName);
         };
 
         var threadList = Enumerable.Range(0, 5).Select(async _ => await partitionCache.GetAsync("", "", mockAction, CancellationToken.None)).ToList();

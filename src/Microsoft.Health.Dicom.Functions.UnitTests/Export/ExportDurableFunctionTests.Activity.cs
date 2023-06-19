@@ -12,7 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export;
@@ -40,7 +40,7 @@ public partial class ExportDurableFunctionTests
         var expectedInput = new ExportBatchArguments
         {
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
-            Partition = PartitionEntry.Default,
+            Partition = Partition.Default,
             Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
 

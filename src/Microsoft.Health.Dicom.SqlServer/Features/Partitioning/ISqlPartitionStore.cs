@@ -3,13 +3,14 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using MediatR;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Partition;
+namespace Microsoft.Health.Dicom.SqlServer.Features.Partitioning;
 
-public class GetPartitionsRequest : IRequest<GetPartitionsResponse>
+/// <summary>
+///  Sql version of IPartitionStore.
+/// </summary>
+internal interface ISqlPartitionStore : IPartitionStore, IVersioned
 {
-    public GetPartitionsRequest()
-    {
-    }
 }

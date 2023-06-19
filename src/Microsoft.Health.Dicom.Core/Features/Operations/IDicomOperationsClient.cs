@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -98,7 +98,7 @@ public interface IDicomOperationsClient
     /// <paramref name="specification"/>, <paramref name="errorHref"/>, or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, Partition partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously begins the update operation in the given <paramref name="updateSpecification"/>.

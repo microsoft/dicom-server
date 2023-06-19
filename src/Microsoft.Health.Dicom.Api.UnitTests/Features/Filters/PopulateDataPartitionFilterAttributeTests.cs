@@ -18,8 +18,8 @@ using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Partition;
-using Microsoft.Health.Dicom.Core.Messages.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 using NSubstitute;
 using Xunit;
 
@@ -65,7 +65,7 @@ public class PopulateDataPartitionFilterAttributeTests
         var routeValueDictionary = new RouteValueDictionary
         {
             { KnownActionParameterNames.StudyInstanceUid, "123" },
-            { KnownActionParameterNames.PartitionName, DefaultPartition.Name },
+            { KnownActionParameterNames.PartitionName, Partition.Default.Name },
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
@@ -75,7 +75,7 @@ public class PopulateDataPartitionFilterAttributeTests
 
         _mediator = Substitute.For<IMediator>();
         _mediator.Send(Arg.Any<GetPartitionRequest>())
-            .Returns(new GetPartitionResponse(PartitionEntry.Default));
+            .Returns(new GetPartitionResponse(Partition.Default));
 
         _featureConfiguration = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
 
@@ -130,7 +130,7 @@ public class PopulateDataPartitionFilterAttributeTests
     {
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>());
 
-        _dicomRequestContextAccessor.Received().RequestContext.DataPartitionEntry.PartitionKey = DefaultPartition.Key;
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartition.Key = Partition.DefaultKey;
     }
 
     [Fact]
@@ -144,11 +144,11 @@ public class PopulateDataPartitionFilterAttributeTests
         _mediator.Send(Arg.Any<GetPartitionRequest>())
             .Returns(new GetPartitionResponse(null));
         _mediator.Send(Arg.Any<AddPartitionRequest>())
-            .Returns(new AddPartitionResponse(new PartitionEntry(newPartitionKey, newPartitionName)));
+            .Returns(new AddPartitionResponse(new Partition(newPartitionKey, newPartitionName)));
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 
-        _dicomRequestContextAccessor.Received().RequestContext.DataPartitionEntry.PartitionKey = newPartitionKey;
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartition.Key = newPartitionKey;
     }
 
     [Fact]
@@ -162,10 +162,10 @@ public class PopulateDataPartitionFilterAttributeTests
         _mediator.Send(Arg.Any<GetPartitionRequest>())
             .Returns(new GetPartitionResponse(null));
         _mediator.Send(Arg.Any<AddPartitionRequest>())
-            .Returns(new AddPartitionResponse(new PartitionEntry(newPartitionKey, newPartitionName)));
+            .Returns(new AddPartitionResponse(new Partition(newPartitionKey, newPartitionName)));
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 
-        _dicomRequestContextAccessor.Received().RequestContext.DataPartitionEntry.PartitionKey = newPartitionKey;
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartition.Key = newPartitionKey;
     }
 }

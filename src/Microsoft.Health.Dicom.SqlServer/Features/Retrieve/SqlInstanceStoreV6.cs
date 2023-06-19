@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -29,30 +29,30 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
     public override SchemaVersion Version => SchemaVersion.V6;
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken);
     }
 
     public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
@@ -94,14 +94,14 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
     }
 
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(PartitionEntry partitionEntry, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
-        IEnumerable<VersionedInstanceIdentifier> indentifiers = await GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        IEnumerable<VersionedInstanceIdentifier> indentifiers = await GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
         return indentifiers.Select(i => new InstanceMetadata(i, new InstanceProperties())).ToList();
     }
 
     private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         CancellationToken cancellationToken,
         string seriesInstanceUid = null,
@@ -115,7 +115,7 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
             VLatest.GetInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
                 validStatus: (byte)IndexStatus.Created,
-                partitionEntry.PartitionKey,
+                partition.Key,
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid);
@@ -135,7 +135,7 @@ internal class SqlInstanceStoreV6 : SqlInstanceStoreV4
                             rSeriesInstanceUid,
                             rSopInstanceUid,
                             watermark,
-                            partitionEntry));
+                            partition));
                 }
             }
         }

@@ -870,7 +870,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PartitionEntry'
+                  $ref: '#/components/schemas/Partition'
         '204':
           description: No Content
         '400':
@@ -3219,13 +3219,13 @@ components:
         - canceled
         - succeeded
       type: string
-    PartitionEntry:
+    Partition:
       type: object
       properties:
-        partitionKey:
+        key:
           type: integer
           format: int32
-        partitionName:
+        name:
           type: string
           nullable: true
       additionalProperties: false

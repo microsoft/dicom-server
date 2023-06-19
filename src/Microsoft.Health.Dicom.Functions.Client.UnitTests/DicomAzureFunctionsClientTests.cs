@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
@@ -452,8 +452,8 @@ public class DicomAzureFunctionsClientTests
     [Fact]
     public async Task GivenNullArgs_WhenStartingExport_ThenThrowArgumentNullException()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), null, new Uri("https://errors.log"), PartitionEntry.Default));
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), null, PartitionEntry.Default));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), null, new Uri("https://errors.log"), Partition.Default));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), null, Partition.Default));
         await Assert.ThrowsAsync<ArgumentNullException>(() => _client.StartExportAsync(Guid.NewGuid(), new ExportSpecification(), new Uri("https://errors.log"), null));
     }
 
@@ -467,7 +467,7 @@ public class DicomAzureFunctionsClientTests
             Source = new ExportDataOptions<ExportSourceType>(ExportSourceType.Identifiers),
         };
         var errorHref = new Uri($"https://test.blob.core.windows.net/export/{operationId:N}/errors.log");
-        var partition = new PartitionEntry(17, "test");
+        var partition = new Partition(17, "test");
         var url = new Uri("http://foo.com/bar/operations/" + operationId.ToString(OperationId.FormatSpecifier));
 
         _durableClient
@@ -530,7 +530,7 @@ public class DicomAzureFunctionsClientTests
             .Returns(instanceId);
         _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
-        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, DefaultPartition.Key, source.Token);
+        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, Partition.DefaultKey, source.Token);
         Assert.Equal(operationId, actual.Id);
         Assert.Equal(uri, actual.Href);
 

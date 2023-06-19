@@ -12,7 +12,7 @@ using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -104,7 +104,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             var queryTags = tags.ToArray();
 
             // Delete by instance uid.
-            await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             // Study and series level tags should not be deleted.
             Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -148,7 +148,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             var queryTags = tags.ToArray();
 
             // Delete by first series uid.
-            await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+            await _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
             // Study level tags should not be deleted.
             Assert.Single(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -204,7 +204,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             var queryTags = tags.ToArray();
 
             // Delete by first study uid.
-            await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, Clock.UtcNow);
+            await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, Clock.UtcNow);
 
             // Study level query tags for the first study should be deleted.
             Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance1.StudyKey));
@@ -256,7 +256,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             var queryTags = tags.ToArray();
 
             // Delete by instance uid
-            await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+            await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
             // Ensure all tags regardless of level are removed as it is the only instance in series/study.
             Assert.Empty(await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.DateTimeData, queryTags[0].ExtendedQueryTagStoreEntry.Key, instance.StudyKey));

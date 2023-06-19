@@ -12,7 +12,7 @@ using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.IO;
@@ -78,7 +78,7 @@ public class TranscoderTests
         EnsureArg.IsNotNull(tsFrom, nameof(tsFrom));
         EnsureArg.IsNotNull(tsTo, nameof(tsTo));
         (DicomFile dicomFile, Stream stream) = await StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom);
-        dicomFile.Dataset.ToInstanceIdentifier(DefaultPartition.PartitionEntry);
+        dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
 
         Stream transcodedFile = await _transcoder.TranscodeFileAsync(stream, tsTo.UID.UID);
 
@@ -96,7 +96,7 @@ public class TranscoderTests
         EnsureArg.IsNotNull(tsFrom, nameof(tsFrom));
         EnsureArg.IsNotNull(tsTo, nameof(tsTo));
         DicomFile dicomFile = StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom).Result.dicomFile;
-        dicomFile.Dataset.ToInstanceIdentifier(DefaultPartition.PartitionEntry);
+        dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
 
         _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID);
     }
