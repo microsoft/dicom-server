@@ -1,5 +1,7 @@
 # Bulk update overview
-Bulk update is a feature that allows to perform updates of DICOM attributes/metadata without needing to delete/add. Currently only patient attributes can be updated using the bulk update API.  Supported attributes include those included in the [Patient Identification Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-2) and the [Patient Demographic Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-3) that are not sequences. Only the first and last version of the DICOM instances are stored in the server.
+Bulk update is a feature that enables updates of DICOM attributes/metadata without needing to delete and re-add. Currently only patient attributes can be updated using the bulk update API.  Supported attributes include those included in the [Patient Identification Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-2) and the [Patient Demographic Module](https://dicom.nema.org/dicom/2013/output/chtml/part03/sect_C.2.html#table_C.2-3) that are not sequences. 
+
+After a study is updated, there are two versions of the instances that can be retrieved: the original, unmodified instances and the latest version with updated attributes.  Intermediate versions are not persisted.  
 
 ## Feature Enablement
 The bulk update feature can be enabled by setting the configuration key `DicomServer:Features:EnableUpdate` to `true` through your local [appsettings.json](../../src/Microsoft.Health.Dicom.Web/appsettings.json) file or host-specific options.
