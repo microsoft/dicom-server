@@ -63,14 +63,20 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
     public async Task GivenRecords_WhenQueryWithWindows_ThenScopeResults()
     {
         // Insert data over time
-        DateTimeOffset start = DateTimeOffset.UtcNow;
-        VersionedInstanceIdentifier instance1 = await CreateInstanceAsync();
+        // Note: There may be clock skew between the SQL server and the DICOM server,
+        // so we'll try to account for it by waiting a bit and searching for the proper SQL server time
         await Task.Delay(1000);
+        VersionedInstanceIdentifier instance1 = await CreateInstanceAsync();
+        await Task.Delay(500);
         VersionedInstanceIdentifier instance2 = await CreateInstanceAsync();
         VersionedInstanceIdentifier instance3 = await CreateInstanceAsync();
+        await Task.Delay(1000);
+
+        ChangeFeedEntry first = await FindFirstChangeOrDefaultAsync(instance1, TimeSpan.FromMinutes(5));
+        Assert.NotNull(first);
 
         // Get all creation events
-        var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
+        TimeRange testRange = TimeRange.After(first.Timestamp);
         IReadOnlyList<ChangeFeedEntry> changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(testRange, 0, 10, ChangeFeedOrder.Time);
         Assert.Equal(3, changes.Count);
         Assert.Equal(instance1.Version, changes[0].CurrentVersion);
@@ -87,6 +93,29 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         // Fetch changes limited to window
         await ValidateSubsetAsync(testRange, changes[0], changes[1], changes[2]);
         await ValidateSubsetAsync(new TimeRange(changes[0].Timestamp, changes[2].Timestamp), changes[0], changes[1]);
+    }
+
+    private async Task<ChangeFeedEntry> FindFirstChangeOrDefaultAsync(InstanceIdentifier identifier, TimeSpan duration, int limit = 200)
+    {
+        int offset = 0;
+        IReadOnlyList<ChangeFeedEntry> changes;
+        DateTimeOffset start = DateTimeOffset.UtcNow.Add(-duration);
+
+        do
+        {
+            changes = await _fixture.DicomChangeFeedStore.GetChangeFeedAsync(TimeRange.After(start), offset, limit, ChangeFeedOrder.Time);
+            ChangeFeedEntry change = changes.FirstOrDefault(x =>
+                x.StudyInstanceUid == identifier.StudyInstanceUid &&
+                x.SeriesInstanceUid == identifier.SeriesInstanceUid &&
+                x.SopInstanceUid == identifier.SopInstanceUid);
+
+            if (change != null)
+                return change;
+
+            offset += limit;
+        } while (changes.Count == limit);
+
+        return null;
     }
 
     private async Task ValidateInsertFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
