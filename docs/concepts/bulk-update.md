@@ -153,14 +153,10 @@ Example request to retrieve an orifginal version of an instance is shown below.
 
 ```http 
 GET .../studies/{study}/series/{series}/instances/{instance}
+Accept: multipart/related; type="application/dicom"; transfer-syntax=*
+msdicom-request-original: true
+Content-Type: application/dicom
  ```
-
-Headers:
-```
-- Accept: multipart/related; type="application/dicom"; transfer-syntax=*
-- msdicom-request-original: true
-```
-
 ## Delete
 
 This transaction will delete both original and latest version of instances.
