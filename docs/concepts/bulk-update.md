@@ -11,7 +11,7 @@ Following URIs assume an implicit DICOM service base URI. For example, the base 
 Example requests can be sent in the [Postman collection](../resources/Conformance-as-Postman.postman_collection.json).
 
 ### Bulk update study
-Bulk update endpoint starts a long running operation that update all the instances in the study with the specified attributes.
+Bulk update endpoint starts a long running operation that updates all the instances in the study with the specified attributes.
 
 ```http
 POST ...v1/studies/$bulkUpdate
