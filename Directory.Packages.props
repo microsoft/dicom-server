@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="Azure.Core" Version="1.32.0" />
+    <PackageVersion Include="Azure.Core" Version="1.33.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Identity" Version="1.9.0" />
