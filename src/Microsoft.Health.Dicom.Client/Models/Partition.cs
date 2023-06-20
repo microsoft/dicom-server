@@ -13,11 +13,11 @@ public class Partition
 
     public const int DefaultKey = 1;
 
-    public int Key { get; set; }
+    public int Key { get; }
 
-    public string Name { get; set; }
+    public string Name { get; }
 
-    public static Partition Default => new Partition(DefaultKey, DefaultName);
+    public static Partition Default => new(DefaultKey, DefaultName);
 
     public Partition(int key, string name)
     {

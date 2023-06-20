@@ -130,7 +130,7 @@ public class PopulateDataPartitionFilterAttributeTests
     {
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, Substitute.For<ActionExecutionDelegate>());
 
-        _dicomRequestContextAccessor.Received().RequestContext.DataPartition.Key = Partition.DefaultKey;
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartition = Partition.Default;
     }
 
     [Fact]
@@ -138,17 +138,18 @@ public class PopulateDataPartitionFilterAttributeTests
     {
         var newPartitionKey = 3;
         var newPartitionName = "partition";
+        var newPartition = new Partition(newPartitionKey, newPartitionName);
 
         _controllerActionDescriptor.AttributeRouteInfo.Name = KnownRouteNames.PartitionStoreInstance;
 
         _mediator.Send(Arg.Any<GetPartitionRequest>())
             .Returns(new GetPartitionResponse(null));
         _mediator.Send(Arg.Any<AddPartitionRequest>())
-            .Returns(new AddPartitionResponse(new Partition(newPartitionKey, newPartitionName)));
+            .Returns(new AddPartitionResponse(newPartition));
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 
-        _dicomRequestContextAccessor.Received().RequestContext.DataPartition.Key = newPartitionKey;
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartition = newPartition;
     }
 
     [Fact]
@@ -156,16 +157,17 @@ public class PopulateDataPartitionFilterAttributeTests
     {
         var newPartitionKey = 3;
         var newPartitionName = "partition";
+        var newPartition = new Partition(newPartitionKey, newPartitionName);
 
         _controllerActionDescriptor.AttributeRouteInfo.Name = KnownRouteNames.PartitionedAddWorkitemInstance;
 
         _mediator.Send(Arg.Any<GetPartitionRequest>())
             .Returns(new GetPartitionResponse(null));
         _mediator.Send(Arg.Any<AddPartitionRequest>())
-            .Returns(new AddPartitionResponse(new Partition(newPartitionKey, newPartitionName)));
+            .Returns(new AddPartitionResponse(newPartition));
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 
-        _dicomRequestContextAccessor.Received().RequestContext.DataPartition.Key = newPartitionKey;
+        _dicomRequestContextAccessor.Received().RequestContext.DataPartition = newPartition;
     }
 }
