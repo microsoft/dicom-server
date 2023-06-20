@@ -77,7 +77,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveSeriesMetadataRequest_WhenStudyInstanceUidDoesNotExist_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        SetupInstanceIdentifiersList(ResourceType.Series);
+        SetupInstanceIdentifiersList(ResourceType.Series, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         string ifNoneMatch = null;
         InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(TestUidGenerator.Generate(), _seriesInstanceUid, ifNoneMatch, cancellationToken: DefaultCancellationToken));
@@ -87,7 +87,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveSeriesMetadataRequest_WhenSeriesInstanceUidDoesNotExist_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        SetupInstanceIdentifiersList(ResourceType.Series);
+        SetupInstanceIdentifiersList(ResourceType.Series, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         string ifNoneMatch = null;
         InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSeriesInstanceMetadataAsync(_studyInstanceUid, TestUidGenerator.Generate(), ifNoneMatch, cancellationToken: DefaultCancellationToken));
@@ -105,7 +105,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveSopInstanceMetadataRequest_WhenStudyAndSeriesDoesNotExist_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        SetupInstanceIdentifiersList(ResourceType.Instance);
+        SetupInstanceIdentifiersList(ResourceType.Instance, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         string ifNoneMatch = null;
         InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(TestUidGenerator.Generate(), TestUidGenerator.Generate(), _sopInstanceUid, ifNoneMatch, cancellationToken: DefaultCancellationToken));
@@ -115,7 +115,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveSopInstanceMetadataRequest_WhenSeriesInstanceUidDoesNotExist_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        SetupInstanceIdentifiersList(ResourceType.Instance);
+        SetupInstanceIdentifiersList(ResourceType.Instance, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         string ifNoneMatch = null;
         InstanceNotFoundException exception = await Assert.ThrowsAsync<InstanceNotFoundException>(() => _retrieveMetadataService.RetrieveSopInstanceMetadataAsync(_studyInstanceUid, TestUidGenerator.Generate(), _sopInstanceUid, ifNoneMatch, cancellationToken: DefaultCancellationToken));
@@ -125,7 +125,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestForStudy_WhenFailsToRetrieveSome_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().VersionedInstanceIdentifier.Version, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, Arg.Any<CancellationToken>()).Returns(new DicomDataset());
@@ -139,7 +139,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestForStudy_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study);
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Study, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new DicomDataset());
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new DicomDataset());
@@ -154,9 +154,16 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestWithOriginalVersionForStudy_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
+        IReadOnlyList<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(
             ResourceType.Study,
             instanceProperty: new InstanceProperties() { OriginalVersion = 5 });
+
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(
+            _dicomRequestContextAccessor.RequestContext.DataPartition,
+            _studyInstanceUid,
+            seriesInstanceUid: null,
+            sopInstanceUid: null,
+            DefaultCancellationToken).Returns(versionedInstanceIdentifiers);
 
         _metadataStore.GetInstanceMetadataAsync(5, DefaultCancellationToken).Returns(new DicomDataset());
 
@@ -173,7 +180,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestForSeries_WhenFailsToRetrieveSome_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().VersionedInstanceIdentifier.Version, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, Arg.Any<CancellationToken>()).Returns(new DicomDataset());
@@ -187,7 +194,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestForSeries_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series, _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new DicomDataset());
         _metadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifiers.Last().VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new DicomDataset());
@@ -202,7 +209,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestForInstance_WhenFailsToRetrieve_ThenDicomInstanceNotFoundExceptionIsThrownAsync()
     {
-        InstanceMetadata sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
+        InstanceMetadata sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance, _dicomRequestContextAccessor.RequestContext.DataPartition).First();
 
         _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier.VersionedInstanceIdentifier.Version, Arg.Any<CancellationToken>()).Throws(new InstanceNotFoundException());
 
@@ -215,7 +222,7 @@ public class RetrieveMetadataServiceTests
     [Fact]
     public async Task GivenRetrieveInstanceMetadataRequestForInstance_WhenIsSuccessful_ThenSuccessStatusCodeIsReturnedAsync()
     {
-        InstanceMetadata sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance).First();
+        InstanceMetadata sopInstanceIdentifier = SetupInstanceIdentifiersList(ResourceType.Instance, _dicomRequestContextAccessor.RequestContext.DataPartition).First();
 
         _metadataStore.GetInstanceMetadataAsync(sopInstanceIdentifier.VersionedInstanceIdentifier.Version, DefaultCancellationToken).Returns(new DicomDataset());
 

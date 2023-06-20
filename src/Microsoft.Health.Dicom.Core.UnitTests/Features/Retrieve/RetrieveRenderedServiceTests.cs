@@ -129,7 +129,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenFileSizeTooLarge_RenderForInstance_ThenNotFoundIsThrown()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
         long aboveMaxFileSize = new RetrieveConfiguration().MaxDicomFileSize + 1;
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = aboveMaxFileSize });
 
@@ -143,7 +143,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithFrames_WhenRenderRequestForNonExistingFrame_ThenNotFoundIsThrown()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
         Stream streamOfStoredFiles = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result.Value;
@@ -163,7 +163,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithFramesJpeg_WhenRetrieveRenderedForFrames_ThenEachFrameRenderedSuccesfully()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
@@ -225,7 +225,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithFramesJpeg_WhenRetrieveRenderedForFramesDifferentQuality_ThenEachFrameRenderedSuccesfully()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
@@ -291,7 +291,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithFramesPNG_WhenRetrieveRenderedForFrames_ThenEachFrameRenderedSuccesfully()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
@@ -353,7 +353,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenStoredInstances_WhenRetrieveRenderedWithoutSpecifyingAcceptHeaders_ThenRenderJpegSuccesfully()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
 
@@ -397,7 +397,7 @@ public class RetrieveRenderedServiceTests
         partition = partition ?? Partition.Default;
 
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, partition), instanceProperty));
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(partition, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(dicomInstanceIdentifiersList[0].VersionedInstanceIdentifier.Partition, _studyInstanceUid, _firstSeriesInstanceUid, _sopInstanceUid, DefaultCancellationToken).Returns(dicomInstanceIdentifiersList);
 
         return dicomInstanceIdentifiersList;
     }

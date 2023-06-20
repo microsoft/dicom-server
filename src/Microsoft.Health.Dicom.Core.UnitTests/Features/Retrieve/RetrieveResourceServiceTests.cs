@@ -255,13 +255,13 @@ public class RetrieveResourceServiceTests
     {
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         var instanceMetadata = new InstanceMetadata(new VersionedInstanceIdentifier(_studyInstanceUid, _firstSeriesInstanceUid, TestUidGenerator.Generate(), 0, Partition.Default), new InstanceProperties());
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
+        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, null, null, DefaultCancellationToken).Returns(new[] { instanceMetadata });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(instanceMetadata.VersionedInstanceIdentifier), _recyclableMemoryStreamManager);
 
-        _fileStore.GetFileAsync(0, Partition.Default.Name, DefaultCancellationToken).Returns(streamsAndStoredFile.Value);
-        _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFile.Value.Length });
+        _fileStore.GetFileAsync(0, _dicomRequestContextAccessor.RequestContext.DataPartition.Name, DefaultCancellationToken).Returns(streamsAndStoredFile.Value);
+        _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, _dicomRequestContextAccessor.RequestContext.DataPartition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFile.Value.Length });
         string transferSyntax = "1.2.840.10008.1.2.1";
         _retrieveTranscoder.TranscodeFileAsync(streamsAndStoredFile.Value, transferSyntax).Returns(streamsAndStoredFile.Value);
 
@@ -722,7 +722,7 @@ public class RetrieveResourceServiceTests
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
 
         instanceProperty = instanceProperty ?? new InstanceProperties();
-        partition = partition ?? Partition.Default;
+        partition = partition ?? _dicomRequestContextAccessor.RequestContext.DataPartition;
 
         switch (resourceType)
         {
