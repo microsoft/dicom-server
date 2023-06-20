@@ -108,7 +108,7 @@ Content-Type: application/json
         "StudyInstanceUid": "{uid}",
         "SeriesInstanceUid": "{uid}",
         "SopInstanceUid": "{uid}",
-        "Action": "create|delete",
+        "Action": "create|delete|update",
         "Timestamp": "2020-03-04T01:03:08.4834Z",
         "State": "current|replaced|deleted",
         "Metadata": {
@@ -120,7 +120,7 @@ Content-Type: application/json
         "StudyInstanceUid": "{uid}",
         "SeriesInstanceUid": "{uid}",
         "SopInstanceUid": "{uid}",
-        "Action": "create|delete",
+        "Action": "create|delete|update",
         "Timestamp": "2020-03-05T07:13:16.4834Z",
         "State": "current|replaced|deleted",
         "Metadata": {
@@ -155,7 +155,7 @@ Content-Type: application/json
     "StudyInstanceUid": "{uid}",
     "SeriesInstanceUid": "{uid}",
     "SopInstanceUid": "{uid}",
-    "Action": "create|delete",
+    "Action": "create|delete|update",
     "Timestamp": "2020-03-05T07:13:16.4834Z",
     "State": "current|replaced|deleted",
     "Metadata": {
