@@ -16,7 +16,6 @@ using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;

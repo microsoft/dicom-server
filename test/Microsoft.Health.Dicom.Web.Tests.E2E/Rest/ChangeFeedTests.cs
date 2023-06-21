@@ -28,6 +28,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
     private readonly IDicomWebClient _clientV2;
     private readonly DicomInstancesManager _instancesManagerV1;
     private readonly DicomInstancesManager _instancesManagerV2;
+    private readonly bool _externalStoreEnabled;
 
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
     {
@@ -35,6 +36,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _instancesManagerV1 = new DicomInstancesManager(_clientV1);
         _instancesManagerV2 = new DicomInstancesManager(_clientV2);
+        _externalStoreEnabled = Convert.ToBoolean(TestEnvironment.Variables["EnableExternalStore"], CultureInfo.InvariantCulture);
     }
 
     public Task InitializeAsync()
@@ -228,6 +230,42 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
             Assert.Single(changeFeedResults);
             Assert.Null(changeFeedResults[0].Metadata);
             Assert.Equal(ChangeFeedState.Current, changeFeedResults[0].State);
+        }
+    }
+
+    [Fact]
+    public async Task GivenAnInstance_WhenRetrievingChangeFeed_ThenExpectFilePathReturnedWhenExternalStoreUsed()
+    {
+        DateTimeOffset initialTimestamp;
+        await CreateFileAsync();
+
+        using (DicomWebResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeedLatest(ToQueryString(includeMetadata: false)))
+        {
+            ChangeFeedEntry changeFeedEntry = await response.GetValueAsync();
+
+            initialTimestamp = changeFeedEntry.Timestamp;
+            if (_externalStoreEnabled)
+            {
+                Assert.Matches(@"DICOM/Microsoft.Default\/\d*_\d*.dcm", changeFeedEntry.FilePath);
+            }
+            else
+            {
+                Assert.Null(changeFeedEntry.FilePath);
+            }
+        }
+
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeed(ToQueryString(startTime: initialTimestamp, includeMetadata: false)))
+        {
+            ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
+
+            if (_externalStoreEnabled)
+            {
+                Assert.Matches(@"DICOM/Microsoft.Default\/\d*_\d*.dcm", changeFeedResults[0].FilePath);
+            }
+            else
+            {
+                Assert.Null(changeFeedResults[0].FilePath);
+            }
         }
     }
 

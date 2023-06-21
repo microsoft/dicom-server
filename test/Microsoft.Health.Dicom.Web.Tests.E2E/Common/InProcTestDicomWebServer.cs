@@ -86,6 +86,10 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 }
 
                 config.AddEnvironmentVariables();
+                if (string.Equals(existingConfig["DicomServer:Features:EnableExternalStore"], bool.TrueString, StringComparison.OrdinalIgnoreCase))
+                {
+                    TestEnvironment.Variables["EnableExternalStore"] = "true";
+                }
             })
             .ConfigureServices(serviceCollection =>
             {
