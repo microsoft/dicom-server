@@ -9,7 +9,7 @@
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
+    <FhirServerPackageVersion>3.4.198</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <HealthcareSharedPackageVersion>6.2.107</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
