@@ -101,14 +101,20 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         ChangeFeedEntry[] testChanges;
 
         // Insert data over time
-        DateTimeOffset start = DateTimeOffset.UtcNow;
-        InstanceIdentifier instance1 = await CreateFileAsync();
+        // Note: There may be clock skew between the SQL server and the DICOM server,
+        // so we'll try to account for it by waiting a bit and searching for the proper SQL server time
         await Task.Delay(1000);
+        InstanceIdentifier instance1 = await CreateFileAsync();
+        await Task.Delay(500);
         InstanceIdentifier instance2 = await CreateFileAsync();
         InstanceIdentifier instance3 = await CreateFileAsync();
+        await Task.Delay(1000);
+
+        ChangeFeedEntry first = await FindFirstChangeOrDefaultAsync(instance1, TimeSpan.FromMinutes(5));
+        Assert.NotNull(first);
 
         // Get all creation events
-        var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
+        TimeRange testRange = TimeRange.After(first.Timestamp);
         using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeed(ToQueryString(testRange.Start, testRange.End, 0, 10)))
         {
             testChanges = await response.ToArrayAsync();
@@ -335,6 +341,36 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         DicomDataset dataset = await response.GetValueAsync();
 
         return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+    }
+
+    private async Task<ChangeFeedEntry> FindFirstChangeOrDefaultAsync(InstanceIdentifier identifier, TimeSpan duration, int limit = 200)
+    {
+        int offset = 0;
+        int resultCount;
+        DateTimeOffset start = DateTimeOffset.UtcNow.Add(-duration);
+
+        do
+        {
+            string queryString = ToQueryString(startTime: start, offset: offset, limit: limit);
+            using DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeed(queryString);
+
+            resultCount = 0;
+            await foreach (ChangeFeedEntry change in response)
+            {
+                if (change.StudyInstanceUid == identifier.StudyInstanceUid &&
+                    change.SeriesInstanceUid == identifier.SeriesInstanceUid &&
+                    change.SopInstanceUid == identifier.SopInstanceUid)
+                {
+                    return change;
+                }
+
+                resultCount++;
+            }
+
+            offset += limit;
+        } while (resultCount == limit);
+
+        return null;
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)
