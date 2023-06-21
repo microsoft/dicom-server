@@ -189,6 +189,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV36(SqlConnectionWrapperFactory),
+                new SqlChangeFeedStoreV39(SqlConnectionWrapperFactory),
             }));
 
         QueryStore = new SqlQueryStore(new VersionedCache<ISqlQueryStore>(

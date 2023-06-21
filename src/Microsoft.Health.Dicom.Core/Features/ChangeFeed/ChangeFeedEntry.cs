@@ -26,7 +26,8 @@ public class ChangeFeedEntry
         long? currentVersion,
         ChangeFeedState state,
         string partitionName = default,
-        DicomDataset metadata = null)
+        DicomDataset metadata = null,
+        string filePath = null)
     {
         EnsureArg.IsNotNull(studyInstanceUid);
         EnsureArg.IsNotNull(seriesInstanceUid);
@@ -43,11 +44,14 @@ public class ChangeFeedEntry
         CurrentVersion = currentVersion;
         PartitionName = partitionName;
         Metadata = metadata;
+        FilePath = filePath;
     }
 
     public long Sequence { get; }
 
     public string PartitionName { get; }
+
+    public string FilePath { get; }
 
     public string StudyInstanceUid { get; }
 

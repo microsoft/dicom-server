@@ -24,7 +24,8 @@ public class ChangeFeedEntry
         string sopInstanceUid,
         ChangeFeedState state,
         string partitionName = default,
-        DicomDataset metadata = null)
+        DicomDataset metadata = null,
+        string filePath = null)
     {
         EnsureArg.IsNotNull(studyInstanceUid);
         EnsureArg.IsNotNull(seriesInstanceUid);
@@ -39,6 +40,7 @@ public class ChangeFeedEntry
         State = state;
         PartitionName = partitionName;
         Metadata = metadata;
+        FilePath = filePath;
     }
 
     public long Sequence { get; }
@@ -50,6 +52,8 @@ public class ChangeFeedEntry
     public string SeriesInstanceUid { get; }
 
     public string SopInstanceUid { get; }
+
+    public string FilePath { get; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ChangeFeedAction Action { get; }

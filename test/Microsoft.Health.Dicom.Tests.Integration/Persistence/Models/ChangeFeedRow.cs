@@ -11,26 +11,6 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
 public class ChangeFeedRow
 {
-    public ChangeFeedRow(
-        long sequence,
-        DateTime timestamp,
-        int action,
-        string studyInstanceUid,
-        string seriesInstanceUid,
-        string sopInstanceUid,
-        long originalWatermark,
-        long? currentWatermark)
-    {
-        Sequence = sequence;
-        Timestamp = timestamp;
-        Action = action;
-        StudyInstanceUid = studyInstanceUid;
-        SeriesInstanceUid = seriesInstanceUid;
-        SopInstanceUid = sopInstanceUid;
-        OriginalWatermark = originalWatermark;
-        CurrentWatermark = currentWatermark;
-    }
-
     public ChangeFeedRow(SqlDataReader sqlDataReader)
     {
         EnsureArg.IsNotNull(sqlDataReader, nameof(sqlDataReader));
@@ -44,6 +24,10 @@ public class ChangeFeedRow
         if (!sqlDataReader.IsDBNull(7))
         {
             CurrentWatermark = sqlDataReader.GetInt64(7);
+        }
+        if (!sqlDataReader.IsDBNull(8))
+        {
+            FilePath = sqlDataReader.GetString(8);
         }
     }
 
@@ -62,4 +46,6 @@ public class ChangeFeedRow
     public long OriginalWatermark { get; }
 
     public long? CurrentWatermark { get; }
+
+    public string FilePath { get; }
 }

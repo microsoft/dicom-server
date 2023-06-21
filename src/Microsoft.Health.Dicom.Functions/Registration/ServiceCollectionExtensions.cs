@@ -21,8 +21,8 @@ using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Migration;
-using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Dicom.Functions.Update;
+using Microsoft.Health.Dicom.SqlServer.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Microsoft.Health.Operations.Functions.Management;
@@ -30,7 +30,7 @@ using Microsoft.Health.SqlServer.Configs;
 using Microsoft.IO;
 using Newtonsoft.Json;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace Microsoft.Health.Dicom.Functions.Registration;
 
 /// <summary>
 /// A <see langword="static"/> collection of methods for configuring DICOM Azure Functions.
