@@ -126,7 +126,7 @@ public class UrlResolverTests
 
         var instance = new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Partition.Default);
 
-        _urlResolver.ResolveRetrieveInstanceUri(instance);
+        _urlResolver.ResolveRetrieveInstanceUri(instance, false);
 
         ValidateUrlRouteContext(
             KnownRouteNames.RetrieveInstance,

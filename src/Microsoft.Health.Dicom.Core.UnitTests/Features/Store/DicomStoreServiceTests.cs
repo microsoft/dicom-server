@@ -96,7 +96,7 @@ public class DicomStoreServiceTests
             _telemetryClient);
 
         _storeServiceDropData = new StoreService(
-            new StoreResponseBuilder(new MockUrlResolver()),
+            new StoreResponseBuilder(new MockUrlResolver(), Options.Create(new FeatureConfiguration { })),
             CreateStoreDatasetValidatorWithDropDataEnabled(_dicomRequestContextAccessorLatestApi),
             _storeOrchestrator,
             _dicomRequestContextAccessorLatestApi,

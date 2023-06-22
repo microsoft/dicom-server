@@ -6,12 +6,15 @@
 using System;
 using System.Linq;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
@@ -34,11 +37,19 @@ public class StoreResponseBuilderTests
         sopInstanceUid: "12",
         sopClassUid: "13");
 
+    private readonly IOptions<FeatureConfiguration> _options;
+
 
     public StoreResponseBuilderTests()
     {
+        _options = Substitute.For<IOptions<FeatureConfiguration>>();
+        _options.Value.Returns(new FeatureConfiguration
+        {
+            EnableDataPartitions = false,
+        });
         _storeResponseBuilder = new StoreResponseBuilder(
-            _urlResolver);
+            _urlResolver,
+            _options);
     }
 
     [Theory]

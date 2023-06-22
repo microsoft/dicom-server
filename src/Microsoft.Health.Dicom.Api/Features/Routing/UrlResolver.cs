@@ -109,7 +109,7 @@ public sealed class UrlResolver : IUrlResolver
     }
 
     /// <inheritdoc />
-    public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
+    public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier, bool isPartitionEnabled)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
@@ -120,9 +120,12 @@ public sealed class UrlResolver : IUrlResolver
             { KnownActionParameterNames.SopInstanceUid, instanceIdentifier.SopInstanceUid },
         };
 
-        AddRouteValues(routeValues, out bool hasPartition);
+        if (isPartitionEnabled)
+        {
+            routeValues.Add(KnownActionParameterNames.PartitionName, instanceIdentifier.Partition.Name);
+        }
 
-        var routeName = hasPartition
+        var routeName = isPartitionEnabled
             ? KnownRouteNames.PartitionRetrieveInstance
             : KnownRouteNames.RetrieveInstance;
 

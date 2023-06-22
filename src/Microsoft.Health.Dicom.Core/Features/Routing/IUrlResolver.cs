@@ -45,8 +45,9 @@ public interface IUrlResolver
     /// Resovles the URI to retrieve an instance.
     /// </summary>
     /// <param name="instanceIdentifier">The identifier to the instance.</param>
+    /// <param name="isPartitionEnabled">Whether or not partition feature is enabled</param>
     /// <returns>An instance of <see cref="Uri"/> pointing to where the instance can be retrieved.</returns>
-    Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier);
+    Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier, bool isPartitionEnabled);
 
     /// <summary>
     /// Resovles the URI to retrieve a workitem instance.

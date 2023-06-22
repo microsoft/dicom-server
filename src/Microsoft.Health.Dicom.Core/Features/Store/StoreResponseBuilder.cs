@@ -6,6 +6,8 @@
 using System.Linq;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Routing;
@@ -24,13 +26,18 @@ public class StoreResponseBuilder : IStoreResponseBuilder
 
     private string _message;
 
+    private readonly bool _isPartitionEnabled;
+
     public StoreResponseBuilder(
-        IUrlResolver urlResolver
+        IUrlResolver urlResolver,
+        IOptions<FeatureConfiguration> featureConfiguration
     )
     {
         EnsureArg.IsNotNull(urlResolver, nameof(urlResolver));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
 
         _urlResolver = urlResolver;
+        _isPartitionEnabled = featureConfiguration.Value.EnableDataPartitions;
     }
 
     /// <inheritdoc />
@@ -104,7 +111,7 @@ public class StoreResponseBuilder : IStoreResponseBuilder
         var referencedSop = new DicomDataset
         {
             { DicomTag.ReferencedSOPInstanceUID, dicomDataset.GetSingleValue<string>(DicomTag.SOPInstanceUID) },
-            { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance).ToString() },
+            { DicomTag.RetrieveURL, _urlResolver.ResolveRetrieveInstanceUri(dicomInstance, _isPartitionEnabled).ToString() },
             { DicomTag.ReferencedSOPClassUID, dicomDataset.GetFirstValueOrDefault<string>(DicomTag.SOPClassUID) },
         };
 
