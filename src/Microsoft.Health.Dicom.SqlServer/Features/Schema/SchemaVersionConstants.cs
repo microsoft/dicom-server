@@ -8,7 +8,15 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
 public static class SchemaVersionConstants
 {
     public const int Min = (int)SchemaVersion.V34;
+<<<<<<< Updated upstream
     public const int Max = (int)SchemaVersion.V39;
+=======
+<<<<<<< Updated upstream
+    public const int Max = (int)SchemaVersion.V38;
+=======
+    public const int Max = (int)SchemaVersion.V40;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     public const int SupportExtendedQueryTagSchemaVersion = (int)SchemaVersion.V4;
     public const int SupportDTAndTMInExtendedQueryTagSchemaVersion = (int)SchemaVersion.V5;
     public const int SupportDataPartitionSchemaVersion = (int)SchemaVersion.V6;

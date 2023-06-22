@@ -123,6 +123,36 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         return results;
     }
 
+    public async Task<IReadOnlyList<FileProperty>> GetFilePropertiesAsync(long watermark)
+    {
+        var results = new List<FileProperty>();
+
+        using (var sqlConnection = new SqlConnection(_connectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.FileProperty.TableName}
+                        WHERE {VLatest.FileProperty.Watermark} = @watermark";
+
+                sqlCommand.Parameters.AddWithValue("@watermark", watermark);
+
+                using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                {
+                    if (await sqlDataReader.ReadAsync())
+                    {
+                        results.Add(new FileProperty(sqlDataReader));
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
     public async Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long version)
     {
         using (var sqlConnection = new SqlConnection(_connectionString))
