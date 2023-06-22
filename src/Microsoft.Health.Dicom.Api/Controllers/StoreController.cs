@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
+using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -93,6 +94,7 @@ public class StoreController : ControllerBase
     }
 
     [HttpPost]
+    [IntroducedInApiVersion(2)]
     [Consumes(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.BadRequest)]
