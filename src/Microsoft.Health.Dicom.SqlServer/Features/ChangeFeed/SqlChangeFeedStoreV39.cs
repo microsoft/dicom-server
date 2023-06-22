@@ -12,6 +12,7 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Models;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -55,17 +56,18 @@ internal class SqlChangeFeedStoreV39 : SqlChangeFeedStoreV36
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader
-            .ReadRow(
-                VLatest.ChangeFeed.Sequence,
-                VLatest.ChangeFeed.Timestamp,
-                VLatest.ChangeFeed.Action,
-                VLatest.Partition.PartitionName,
-                VLatest.ChangeFeed.StudyInstanceUid,
-                VLatest.ChangeFeed.SeriesInstanceUid,
-                VLatest.ChangeFeed.SopInstanceUid,
-                VLatest.ChangeFeed.OriginalWatermark,
-                VLatest.ChangeFeed.CurrentWatermark);
+            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark, string filePath) = reader
+                .ReadRow(
+                    VLatest.ChangeFeed.Sequence,
+                    VLatest.ChangeFeed.Timestamp,
+                    VLatest.ChangeFeed.Action,
+                    VLatest.Partition.PartitionName,
+                    VLatest.ChangeFeed.StudyInstanceUid,
+                    VLatest.ChangeFeed.SeriesInstanceUid,
+                    VLatest.ChangeFeed.SopInstanceUid,
+                    VLatest.ChangeFeed.OriginalWatermark,
+                    VLatest.ChangeFeed.CurrentWatermark,
+                    VLatest.FileProperty.FilePath.AsNullable());
 
             results.Add(new ChangeFeedEntry(
                 rSeq,
@@ -78,7 +80,7 @@ internal class SqlChangeFeedStoreV39 : SqlChangeFeedStoreV36
                 cWatermark,
                 ConvertWatermarkToCurrentState(oWatermark, cWatermark),
                 rPartitionName,
-                filePath: GetFilePath(reader)));
+                filePath: filePath));
         }
 
         return results;
@@ -106,18 +108,18 @@ internal class SqlChangeFeedStoreV39 : SqlChangeFeedStoreV36
         using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
         if (await reader.ReadAsync(cancellationToken))
         {
-            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark) = reader
-            .ReadRow(
-                VLatest.ChangeFeed.Sequence,
-                VLatest.ChangeFeed.Timestamp,
-                VLatest.ChangeFeed.Action,
-                VLatest.Partition.PartitionName,
-                VLatest.ChangeFeed.StudyInstanceUid,
-                VLatest.ChangeFeed.SeriesInstanceUid,
-                VLatest.ChangeFeed.SopInstanceUid,
-                VLatest.ChangeFeed.OriginalWatermark,
-                VLatest.ChangeFeed.CurrentWatermark);
-
+            (long rSeq, DateTimeOffset rTimestamp, int rAction, string rPartitionName, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid, long oWatermark, long? cWatermark, string filePath) = reader
+                .ReadRow(
+                    VLatest.ChangeFeed.Sequence,
+                    VLatest.ChangeFeed.Timestamp,
+                    VLatest.ChangeFeed.Action,
+                    VLatest.Partition.PartitionName,
+                    VLatest.ChangeFeed.StudyInstanceUid,
+                    VLatest.ChangeFeed.SeriesInstanceUid,
+                    VLatest.ChangeFeed.SopInstanceUid,
+                    VLatest.ChangeFeed.OriginalWatermark,
+                    VLatest.ChangeFeed.CurrentWatermark,
+                    VLatest.FileProperty.FilePath.AsNullable());
 
             return new ChangeFeedEntry(
                 rSeq,
@@ -130,19 +132,9 @@ internal class SqlChangeFeedStoreV39 : SqlChangeFeedStoreV36
                 cWatermark,
                 ConvertWatermarkToCurrentState(oWatermark, cWatermark),
                 rPartitionName,
-                filePath: GetFilePath(reader));
+                filePath: filePath);
         }
 
         return null;
-    }
-
-
-    private static string GetFilePath(SqlDataReader reader)
-    {
-        if (!reader.IsDBNull(9))
-        {
-            return reader.GetString(9);
-        }
-        return string.Empty;
     }
 }

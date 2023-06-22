@@ -36,7 +36,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _instancesManagerV1 = new DicomInstancesManager(_clientV1);
         _instancesManagerV2 = new DicomInstancesManager(_clientV2);
-        _externalStoreEnabled = Convert.ToBoolean(TestEnvironment.Variables["EnableExternalStore"], CultureInfo.InvariantCulture);
+        _externalStoreEnabled = bool.Parse(TestEnvironment.Variables["EnableExternalStore"] ?? "false");
     }
 
     public Task InitializeAsync()

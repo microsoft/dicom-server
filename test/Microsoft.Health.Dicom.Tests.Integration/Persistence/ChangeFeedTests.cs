@@ -62,8 +62,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1, expectedFileProperties);
 
         // delete and validate - file properties are null on deletes
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier
-        .StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
 
         // re-create the same instance without properties and validate properties are still null
@@ -153,10 +152,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         Assert.Equal(expectedCount, result.Count);
         Assert.Equal((int)ChangeFeedAction.Create, result.Last().Action);
         Assert.Equal(result.Last().OriginalWatermark, result.Last().CurrentWatermark);
-        if (expectedFileProperties is not null)
-        {
-            Assert.Equal(expectedFileProperties.Path, result.Last().FilePath);
-        }
+        Assert.Equal(expectedFileProperties?.Path, result.Last().FilePath);
 
         int i = 0;
         while (i < expectedCount - 1)

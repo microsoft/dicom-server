@@ -257,8 +257,25 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
                 sqlCommand.CommandText = @$"
-                        SELECT TOP({limit}) *
-                        FROM {VLatest.ChangeFeed.TableName}
+                        SELECT TOP({limit}) c.Sequence,
+                             c.Timestamp,
+                             c.Action,
+                             c.StudyInstanceUid,
+                             c.SeriesInstanceUid,
+                             c.SopInstanceUid,
+                             c.OriginalWatermark,
+                             c.CurrentWatermark,
+                             f.FilePath,
+                             p.PartitionName
+                        FROM {VLatest.ChangeFeed.TableName} as c
+                        INNER JOIN {VLatest.Partition.TableName} AS p
+                            ON p.PartitionKey = c.PartitionKey
+                        LEFT JOIN {VLatest.Instance.TableName} AS i
+                            ON i.StudyInstanceUid = c.StudyInstanceUid
+                            AND i.SeriesInstanceUid = c.SeriesInstanceUid
+                            AND i.SopInstanceUid = c.SopInstanceUid
+                        LEFT JOIN {VLatest.FileProperty.TableName} AS f
+                            ON f.InstanceKey = i.InstanceKey
                         WHERE {VLatest.ChangeFeed.Action} = @action
                         ORDER BY {VLatest.ChangeFeed.Sequence}";
 
