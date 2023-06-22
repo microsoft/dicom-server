@@ -10,7 +10,7 @@
     <PackageVersion Include="Azure.Storage.Queues" Version="12.14.0" />
     <PackageVersion Include="Azure.Storage.Common" Version="12.15.0" />
     <PackageVersion Include="Ensure.That" Version="10.1.0" />
-    <PackageVersion Include="fo-dicom" Version="5.1.0" />
+    <PackageVersion Include="fo-dicom" Version="5.1.1" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.10.6" />
     <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.23.3" />
