@@ -932,7 +932,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Partition'
+                  $ref: '#/components/schemas/PartitionEntry'
         '204':
           description: No Content
         '400':
@@ -3314,15 +3314,18 @@ components:
         - canceled
         - succeeded
       type: string
-    Partition:
+    PartitionEntry:
       type: object
       properties:
-        key:
+        PartitionKey:
           type: integer
           format: int32
-        name:
+        PartitionName:
           type: string
           nullable: true
+        createdDate:
+          type: string
+          format: date-time
       additionalProperties: false
     QueryStatus:
       enum:
