@@ -7,15 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-<<<<<<< Updated upstream
-    <LatestSchemaVersion>39</LatestSchemaVersion>
-=======
-<<<<<<< Updated upstream
-    <LatestSchemaVersion>38</LatestSchemaVersion>
-=======
     <LatestSchemaVersion>40</LatestSchemaVersion>
->>>>>>> Stashed changes
->>>>>>> Stashed changes
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
