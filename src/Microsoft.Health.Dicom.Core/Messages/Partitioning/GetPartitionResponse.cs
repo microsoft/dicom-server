@@ -4,14 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
+
 namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
 public class GetPartitionResponse
 {
-    public GetPartitionResponse(Features.Partitioning.Partition partition)
+    public GetPartitionResponse(Partition partition)
     {
         Partition = partition;
     }
 
-    public Features.Partitioning.Partition Partition { get; }
+    public Partition Partition { get; }
 }
