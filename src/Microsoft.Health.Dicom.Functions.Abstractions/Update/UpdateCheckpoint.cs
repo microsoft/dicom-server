@@ -19,6 +19,8 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 {
     public int NumberOfStudyCompleted { get; set; }
 
+    public int NumberOfStudyFailed { get; set; }
+
     public int TotalNumberOfStudies => StudyInstanceUids?.Count ?? 0;
 
     public int TotalNumberOfInstanceUpdated { get; set; }
@@ -45,5 +47,5 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 
     public IReadOnlyCollection<string> ResourceIds => null;
 
-    public object GetResults(JToken output) => new UpdateResult(NumberOfStudyCompleted, TotalNumberOfInstanceUpdated, Errors);
+    public object GetResults(JToken output) => new UpdateResult(NumberOfStudyCompleted - NumberOfStudyFailed, TotalNumberOfInstanceUpdated, NumberOfStudyFailed, Errors);
 }

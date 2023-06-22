@@ -11,14 +11,17 @@ public class UpdateResult
 {
     public int StudyUpdated { get; }
 
+    public int StudyFailed { get; }
+
     public long InstanceUpdated { get; }
 
     public IReadOnlyList<string> Errors { get; }
 
-    public UpdateResult(int studyUpdated, long instanceUpdated, IReadOnlyList<string> errors)
+    public UpdateResult(int studyUpdated, long instanceUpdated, int studyFailed, IReadOnlyList<string> errors)
     {
         StudyUpdated = studyUpdated;
         InstanceUpdated = instanceUpdated;
+        StudyFailed = studyFailed;
         Errors = errors;
     }
 }
