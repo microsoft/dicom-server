@@ -48,5 +48,11 @@ public enum SchemaVersion
     V35 = 35,
     V36 = 36,
     V37 = 37,
+<<<<<<< Updated upstream
     V38 = 38
+=======
+    V38 = 38,
+    V39 = 39,
+    V40 = 40,
+>>>>>>> Stashed changes
 }

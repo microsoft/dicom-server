@@ -11,6 +11,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -35,7 +36,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     private readonly IIndexDataStoreTestHelper _testHelper;
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly DateTimeOffset _startDateTime = Clock.UtcNow;
-    private readonly FileProperties _defaultPrivateProperties = new FileProperties { Path = "/", ETag = "e123" };
+    private readonly FileProperties _defaultFileProperties = new FileProperties { Path = "/", ETag = "e123" };
 
     public IndexDataStoreTests(SqlDataStoreTestsFixture fixture)
     {
@@ -215,6 +216,44 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
         Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
+    }
+
+    [Fact]
+    public async Task GivenAnExistingDicomInstanceWithFileProperties_WhenDeletedByInstanceId_ThenFilePropertiesOnInstanceShouldBeDeleted()
+    {
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        var identifier = dataset.ToInstanceIdentifier();
+        Instance instance = await CreateIndexAndVerifyInstance(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
+
+        Assert.NotEmpty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
+
+        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Clock.UtcNow);
+
+        Assert.Empty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
+
+        Assert.Collection(
+            await _testHelper.GetDeletedInstanceEntriesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid),
+            ValidateSingleDeletedInstance(instance));
+    }
+
+    [Fact]
+    public async Task GivenAnExistingDicomInstanceWithoutFileProperties_WhenDeletedByInstanceId_ThenInstanceStillDeleted()
+    {
+        DicomDataset dataset = Samples.CreateRandomInstanceDataset();
+        var identifier = dataset.ToInstanceIdentifier();
+        Instance instance = await CreateIndexAndVerifyInstance(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
+        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
+
+        Assert.NotEmpty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
+
+        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Clock.UtcNow);
+
+        Assert.Empty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
+
+        Assert.Collection(
+            await _testHelper.GetDeletedInstanceEntriesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid),
+            ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -587,7 +626,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         var queryTags = new[] { new QueryTag(tagEntry) };
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, queryTags);
         await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
-            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags, _defaultPrivateProperties));
+            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags, _defaultFileProperties));
     }
 
     [Fact]
