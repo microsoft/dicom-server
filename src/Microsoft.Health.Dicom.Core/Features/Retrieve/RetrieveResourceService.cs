@@ -128,19 +128,19 @@ public class RetrieveResourceService : IRetrieveResourceService
                 FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.PartitionName, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
+                using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
+                Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
-                IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
+                IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum = GetAsyncEnumerableTranscodedStreams(
                     isOriginalTransferSyntaxRequested,
-                    stream,
+                    transcodedStream,
                     instance,
                     requestedTransferSyntax);
 
                 return new RetrieveResourceResponse(
-                    transcodedStream,
+                    transcodedEnum,
                     validAcceptHeader.MediaType.ToString(),
                     validAcceptHeader.IsSinglePart);
-
             }
 
             // no transcoding
@@ -311,14 +311,13 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
     }
 
-    private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableTranscodedStreams(
+    private static async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableTranscodedStreams(
         bool isOriginalTransferSyntaxRequested,
-        Stream stream,
+        Stream transcodedStream,
         InstanceMetadata instanceMetadata,
         string requestedTransferSyntax)
     {
-        Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
-
+        await Task.FromResult(0);
         yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata), transcodedStream.Length);
     }
 
