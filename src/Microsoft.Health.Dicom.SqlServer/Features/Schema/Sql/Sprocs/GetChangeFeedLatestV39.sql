@@ -29,13 +29,13 @@ BEGIN
     INNER JOIN dbo.Partition p
         ON p.PartitionKey = c.PartitionKey
     -- Left join as instance may have been deleted
-    LEFT JOIN dbo.Instance AS i
+    LEFT OUTER JOIN dbo.Instance AS i
         ON i.StudyInstanceUid = c.StudyInstanceUid
         AND i.SeriesInstanceUid = c.SeriesInstanceUid
         AND i.SopInstanceUid = c.SopInstanceUid
     -- Left join as instance and property may have been deleted or we never inserted property for instance when not 
     -- using external store
-	LEFT JOIN dbo.FileProperty as f
+	LEFT OUTER JOIN dbo.FileProperty as f
 		ON f.InstanceKey = i.InstanceKey
     ORDER BY c.Sequence DESC
 END
