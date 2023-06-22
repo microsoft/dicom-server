@@ -17,7 +17,7 @@ public class Partition
 
     public string Name { get; }
 
-    public static Partition Default => new(DefaultKey, DefaultName);
+    public static Partition Default { get; } = new(DefaultKey, DefaultName);
 
     public Partition(int key, string name)
     {
