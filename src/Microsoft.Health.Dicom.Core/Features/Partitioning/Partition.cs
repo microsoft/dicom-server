@@ -24,7 +24,7 @@ public class Partition
 
     public DateTimeOffset CreatedDate { get; set; }
 
-    public static Partition Default => new(DefaultKey, DefaultName);
+    public static Partition Default { get; } = new(DefaultKey, DefaultName);
 
     public Partition(int key, string name, DateTimeOffset createdDate = default)
     {
