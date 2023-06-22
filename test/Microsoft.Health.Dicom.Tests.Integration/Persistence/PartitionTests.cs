@@ -56,7 +56,7 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
     [Fact]
     public async Task WhenGetPartitionIsCalledWithDefaultPartitionName_Then_DefaultPartitionRecordIsReturned()
     {
-        Partition partition = await _fixture.PartitionStore.GetPartitionAsync(Partition.Default.Name);
+        Partition partition = await _fixture.PartitionStore.GetPartitionAsync(Partition.DefaultName);
 
         Assert.Equal(Partition.DefaultKey, partition.Key);
     }

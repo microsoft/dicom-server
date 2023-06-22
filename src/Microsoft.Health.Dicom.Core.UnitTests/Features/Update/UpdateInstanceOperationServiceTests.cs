@@ -86,7 +86,7 @@ public class UpdateInstanceOperationServiceTests
            .StartUpdateOperationAsync(
                Arg.Any<Guid>(),
                Arg.Any<UpdateSpecification>(),
-               Partition.Default.Key,
+               Partition.DefaultKey,
                CancellationToken.None)
            .Returns(expected);
 

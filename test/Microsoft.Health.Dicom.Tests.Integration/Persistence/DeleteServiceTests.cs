@@ -70,12 +70,12 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, Partition.Default.Name, stream);
+                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, Partition.DefaultName, stream);
 
                 Assert.NotNull(fileProperties);
             }
 
-            var file = await _fixture.FileStore.GetFileAsync(version, Partition.Default.Name);
+            var file = await _fixture.FileStore.GetFileAsync(version, Partition.DefaultName);
 
             Assert.NotNull(file);
         }

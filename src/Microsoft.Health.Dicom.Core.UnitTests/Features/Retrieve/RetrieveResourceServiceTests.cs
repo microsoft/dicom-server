@@ -104,7 +104,7 @@ public class RetrieveResourceServiceTests
     public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForStudy_ThenNotFoundIsThrown()
     {
         List<InstanceMetadata> instances = SetupInstanceIdentifiersList(ResourceType.Study);
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
@@ -135,11 +135,11 @@ public class RetrieveResourceServiceTests
         var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
             x => RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier), _recyclableMemoryStreamManager).Result).ToList();
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
         int count = 0;
         foreach (var file in streamsAndStoredFiles)
         {
-            _fileStore.GetStreamingFileAsync(count, Partition.Default.Name, DefaultCancellationToken).Returns(file.Value);
+            _fileStore.GetStreamingFileAsync(count, Partition.DefaultName, DefaultCancellationToken).Returns(file.Value);
             count++;
         }
 
@@ -168,7 +168,7 @@ public class RetrieveResourceServiceTests
             ResourceType.Study,
             instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 5 });
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }, isOriginalVersionRequested: true),
@@ -178,11 +178,11 @@ public class RetrieveResourceServiceTests
 
         await _fileStore
             .Received(3)
-            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 5), Partition.Default.Name, DefaultCancellationToken);
+            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 5), Partition.DefaultName, DefaultCancellationToken);
 
         await _fileStore
             .Received(3)
-            .GetStreamingFileAsync(Arg.Is<long>(x => x == 5), Partition.Default.Name, DefaultCancellationToken);
+            .GetStreamingFileAsync(Arg.Is<long>(x => x == 5), Partition.DefaultName, DefaultCancellationToken);
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public class RetrieveResourceServiceTests
             ResourceType.Study,
             instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 5 });
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy() }),
@@ -203,11 +203,11 @@ public class RetrieveResourceServiceTests
 
         await _fileStore
             .Received(1)
-            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 0), Partition.Default.Name, DefaultCancellationToken);
+            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 0), Partition.DefaultName, DefaultCancellationToken);
 
         await _fileStore
             .Received(1)
-            .GetStreamingFileAsync(Arg.Is<long>(x => x == 0), Partition.Default.Name, DefaultCancellationToken);
+            .GetStreamingFileAsync(Arg.Is<long>(x => x == 0), Partition.DefaultName, DefaultCancellationToken);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public class RetrieveResourceServiceTests
             ResourceType.Instance,
             instanceProperty: new InstanceProperties() { HasFrameMetadata = true, OriginalVersion = 5, TransferSyntaxUid = "1.2.840.10008.1.2.4.90" });
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         // For each instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         var streamsAndStoredFiles = versionedInstanceIdentifiers.Select(
@@ -239,15 +239,15 @@ public class RetrieveResourceServiceTests
 
         await _fileStore
             .Received(1)
-            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 5), Partition.Default.Name, DefaultCancellationToken);
+            .GetFilePropertiesAsync(Arg.Is<long>(x => x == 5), Partition.DefaultName, DefaultCancellationToken);
 
         await _fileStore
             .DidNotReceive()
-            .GetStreamingFileAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken);
+            .GetStreamingFileAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken);
 
         await _fileStore
             .Received(1)
-            .GetFileAsync(Arg.Is<long>(x => x == 5), Partition.Default.Name, DefaultCancellationToken);
+            .GetFileAsync(Arg.Is<long>(x => x == 5), Partition.DefaultName, DefaultCancellationToken);
     }
 
     [Fact]
@@ -294,7 +294,7 @@ public class RetrieveResourceServiceTests
     public async Task GivenStoredInstancesWhereOneIsMissingFile_WhenRetrieveRequestForSeries_ThenNotFoundIsThrown()
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Series);
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
 
         // For each instance identifier but the last, set up the fileStore to return a stream containing a file associated with the identifier.
         for (int i = 0; i < versionedInstanceIdentifiers.Count - 1; i++)
@@ -325,11 +325,11 @@ public class RetrieveResourceServiceTests
             .Select(x => RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(x.VersionedInstanceIdentifier), _recyclableMemoryStreamManager).Result)
             .ToList();
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
         int count = 0;
         foreach (var file in streamsAndStoredFiles)
         {
-            _fileStore.GetStreamingFileAsync(count, Partition.Default.Name, DefaultCancellationToken).Returns(file.Value);
+            _fileStore.GetStreamingFileAsync(count, Partition.DefaultName, DefaultCancellationToken).Returns(file.Value);
             count++;
         }
 
@@ -386,7 +386,7 @@ public class RetrieveResourceServiceTests
         // Add multiple instances to validate that we return the requested instance and ignore the other(s).
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(ResourceType.Instance);
 
-        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.Default.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
+        _fileStore.GetFilePropertiesAsync(Arg.Any<long>(), Partition.DefaultName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = 1000 });
         // For the first instance identifier, set up the fileStore to return a stream containing a file associated with the identifier.
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier), _recyclableMemoryStreamManager).Result;
         _fileStore.GetStreamingFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
@@ -682,7 +682,7 @@ public class RetrieveResourceServiceTests
 
         await _fileStore.GetFileFrameAsync(
             Arg.Is<long>(x => x == 3),
-            Partition.Default.Name,
+            Partition.DefaultName,
             Arg.Any<FrameRange>(),
             Arg.Any<CancellationToken>());
     }
@@ -712,7 +712,7 @@ public class RetrieveResourceServiceTests
 
         await _fileStore.GetFileFrameAsync(
             Arg.Is<long>(x => x == 1),
-            Partition.Default.Name,
+            Partition.DefaultName,
             Arg.Any<FrameRange>(),
             Arg.Any<CancellationToken>());
     }

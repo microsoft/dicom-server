@@ -39,7 +39,7 @@ public class StoreOrchestratorTests
         DefaultSopInstanceUid,
         DefaultVersion,
         Partition.DefaultKey,
-        Partition.Default.Name);
+        Partition.DefaultName);
 
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {

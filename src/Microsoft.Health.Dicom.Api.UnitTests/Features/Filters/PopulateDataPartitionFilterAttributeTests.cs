@@ -65,7 +65,7 @@ public class PopulateDataPartitionFilterAttributeTests
         var routeValueDictionary = new RouteValueDictionary
         {
             { KnownActionParameterNames.StudyInstanceUid, "123" },
-            { KnownActionParameterNames.PartitionName, Partition.Default.Name },
+            { KnownActionParameterNames.PartitionName, Partition.DefaultName },
         };
         _actionExecutingContext.RouteData = new RouteData(routeValueDictionary);
 
