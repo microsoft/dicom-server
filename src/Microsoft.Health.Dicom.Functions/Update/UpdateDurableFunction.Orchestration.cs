@@ -58,6 +58,7 @@ public partial class UpdateDurableFunction
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instanceWatermarks.Count);
 
             var totalNoOfInstances = input.TotalNumberOfInstanceUpdated;
+            int numberofStudyFailed = input.NumberOfStudyFailed;
 
             if (instanceWatermarks.Count > 0)
             {
@@ -88,6 +89,8 @@ public partial class UpdateDurableFunction
 
                     input.Errors = errors;
 
+                    numberofStudyFailed++;
+
                     // Cleanup the new version when the update activity fails
                     await TryCleanupActivity(context, instanceWatermarks);
                 }
@@ -114,6 +117,7 @@ public partial class UpdateDurableFunction
                     ChangeDataset = input.ChangeDataset,
                     PartitionKey = input.PartitionKey,
                     NumberOfStudyCompleted = numberOfStudyCompleted,
+                    NumberOfStudyFailed = numberofStudyFailed,
                     TotalNumberOfInstanceUpdated = totalNoOfInstances,
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
@@ -123,14 +127,19 @@ public partial class UpdateDurableFunction
         {
             if (input.Errors?.Count > 0)
             {
-                logger.LogInformation("Update operation completed with errors.");
+                logger.LogWarning("Update operation completed with errors. {NumberOfStudyUpdated}, {NumberOfStudyFailed}, {TotalNumberOfInstanceUpdated}.",
+                    input.NumberOfStudyCompleted - input.NumberOfStudyFailed,
+                    input.NumberOfStudyFailed,
+                    input.TotalNumberOfInstanceUpdated);
 
                 // Throwing the exception so that it can set the operation status to Failed
                 throw new OperationErrorException("Update operation completed with errors.");
             }
             else
             {
-                logger.LogInformation("Update operation completed successfully");
+                logger.LogInformation("Update operation completed successfully. {NumberOfStudyUpdated}, {TotalNumberOfInstanceUpdated}.",
+                    input.NumberOfStudyCompleted,
+                    input.TotalNumberOfInstanceUpdated);
             }
 
             if (input.TotalNumberOfInstanceUpdated > 0)
