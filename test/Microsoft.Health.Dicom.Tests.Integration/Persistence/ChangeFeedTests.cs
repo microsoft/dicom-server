@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models;
@@ -25,6 +26,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 {
     private readonly ChangeFeedTestsFixture _fixture;
+    private const string FilePath = "/svc/1/TestFile.dcm";
 
     public ChangeFeedTests(ChangeFeedTestsFixture fixture)
     {
@@ -45,6 +47,27 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         // re-create the same instance and validate
         await CreateInstanceAsync(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 3);
+    }
+
+    [Fact]
+    public async Task GivenInstance_WhenSavedWithFileProperties_ChangeFeedEntryFilePathAvailable()
+    {
+        // create and validate
+        FileProperties expectedFileProperties = new FileProperties
+        {
+            ETag = Guid.NewGuid().ToString(),
+            Path = FilePath,
+        };
+        var dicomInstanceIdentifier = await CreateInstanceAsync(fileProperties: expectedFileProperties);
+        await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1, expectedFileProperties);
+
+        // delete and validate - file properties are null on deletes
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
+
+        // re-create the same instance without properties and validate properties are still null
+        await CreateInstanceAsync(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
+        await ValidateInsertFeedAsync(dicomInstanceIdentifier, 3, expectedFileProperties: null);
     }
 
     [Fact]
@@ -118,7 +141,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         return null;
     }
 
-    private async Task ValidateInsertFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+    private async Task ValidateInsertFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount, FileProperties expectedFileProperties = null)
     {
         IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
             dicomInstanceIdentifier.StudyInstanceUid,
@@ -129,6 +152,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         Assert.Equal(expectedCount, result.Count);
         Assert.Equal((int)ChangeFeedAction.Create, result.Last().Action);
         Assert.Equal(result.Last().OriginalWatermark, result.Last().CurrentWatermark);
+        Assert.Equal(expectedFileProperties?.Path, result.Last().FilePath);
 
         int i = 0;
         while (i < expectedCount - 1)
@@ -153,6 +177,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         foreach (ChangeFeedRow row in result)
         {
             Assert.Null(row.CurrentWatermark);
+            Assert.Null(row.FilePath);
         }
     }
 
@@ -184,7 +209,8 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         bool instanceFullyCreated = true,
         string studyInstanceUid = null,
         string seriesInstanceUid = null,
-        string sopInstanceUid = null)
+        string sopInstanceUid = null,
+        FileProperties fileProperties = null)
     {
         var newDataSet = new DicomDataset()
         {
@@ -200,7 +226,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         if (instanceFullyCreated)
         {
-            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version);
+            await _fixture.DicomIndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperties);
         }
 
         return versionedIdentifier;

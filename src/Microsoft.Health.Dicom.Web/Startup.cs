@@ -12,6 +12,7 @@ using Microsoft.Health.Development.IdentityProvider.Registration;
 using Microsoft.Health.Dicom.Core.Features.Security;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Functions.Client;
+using Microsoft.Health.Dicom.SqlServer.Registration;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 
