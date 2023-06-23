@@ -148,6 +148,12 @@ BEGIN
     AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
     AND     ResourceType = @imageResourceType
+    
+    -- Delete FileProperties of instance
+    DELETE FP
+    FROM dbo.FileProperty as FP
+    INNER JOIN @deletedInstances AS DI
+    ON FP.Watermark = DI.Watermark
 
     INSERT INTO dbo.DeletedInstance
     (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)

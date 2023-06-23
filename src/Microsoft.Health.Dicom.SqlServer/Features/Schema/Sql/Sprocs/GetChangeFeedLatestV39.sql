@@ -1,6 +1,6 @@
 /***************************************************************************************/
 -- STORED PROCEDURE
---     GetChangeFeedLatestV6
+--     GetChangeFeedLatestV39
 --
 -- FIRST SCHEMA VERSION
 --     6
