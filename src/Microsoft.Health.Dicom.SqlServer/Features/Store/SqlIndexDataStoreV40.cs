@@ -17,9 +17,6 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-/// <summary>
-/// Sql IndexDataStore version 6.
-/// </summary>
 internal class SqlIndexDataStoreV40 : SqlIndexDataStoreV37
 {
     public SqlIndexDataStoreV40(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
