@@ -107,6 +107,20 @@ public class StoreDatasetValidatorTestsV2
         Assert.Empty(result.InvalidTagErrors);
     }
 
+    [Fact]
+    public async Task GivenV2Enabled_WhenItemAnEmptyNotStringType_ExpectTagValidationNotSkippedAndErrorNotProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(new DicomSignedLong(DicomTag.PregnancyStatus, new int[] { }));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
     [Theory]
     [InlineData("X\0\0\0\0")]
     [InlineData("\0")]
