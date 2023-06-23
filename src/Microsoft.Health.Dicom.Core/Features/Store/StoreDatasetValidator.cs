@@ -32,7 +32,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly IQueryTagService _queryTagService;
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private readonly DicomVR[] _stringTypeVRs = new DicomVR[] { DicomVR.LO };
 
     private static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
@@ -239,7 +238,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 {
                     try
                     {
-                        if (_stringTypeVRs.Contains(de.ValueRepresentation))
+                        if (de.ValueRepresentation.ValueType == typeof(string))
                         {
                             string value = ds.GetString(de.Tag);
                             ValidateItemWithLeniency(value, de, queryTags);
