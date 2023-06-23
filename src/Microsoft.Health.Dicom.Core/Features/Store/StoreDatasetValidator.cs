@@ -32,6 +32,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly IQueryTagService _queryTagService;
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly DicomVR[] _stringTypeVRs = new DicomVR[] { DicomVR.LO };
 
     private static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
@@ -238,21 +239,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 {
                     try
                     {
-                        try
+                        if (_stringTypeVRs.Contains(de.ValueRepresentation))
                         {
                             string value = ds.GetString(de.Tag);
                             ValidateItemWithLeniency(value, de, queryTags);
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            if (ex is ArgumentOutOfRangeException)
-                            {
-                                de.Validate();
-                            }
-                            else
-                            {
-                                throw;
-                            }
+                            de.Validate();
                         }
                     }
                     catch (DicomValidationException ex)
@@ -265,7 +259,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    public virtual void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    private void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
         EnsureArg.IsNotNull(de);
         if (value != null && value.EndsWith('\0'))

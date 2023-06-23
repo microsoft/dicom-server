@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -109,7 +108,7 @@ public class StoreDatasetValidatorTestsV2
     }
 
     [Fact]
-    public async Task GivenV2Enabled_WhenItemADicomElementAndEmptyNotStringType_ExpectTagValidationNotSkippedAndErrorNotProduced()
+    public async Task GivenV2Enabled_WhenItemAnEmptyNotStringType_ExpectTagValidationNotSkippedAndErrorNotProduced()
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
         dicomDataset.Add(new DicomSignedLong(DicomTag.PregnancyStatus, new int[] { }));
@@ -120,22 +119,6 @@ public class StoreDatasetValidatorTestsV2
             new CancellationToken());
 
         Assert.Empty(result.InvalidTagErrors);
-    }
-
-    [Fact]
-    public async Task GivenV2Enabled_WhenUnknownExceptionThrownOnValidation_RethrowException()
-    {
-        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
-        string internalMessage = "Some internal fo-dicom exception we don't know about";
-        _dicomDatasetValidator
-            .WhenForAnyArgs(v => v.ValidateItemWithLeniency(Arg.Any<string>(), Arg.Any<DicomElement>(), Arg.Any<IReadOnlyCollection<QueryTag>>()))
-            .Throw(new Exception(internalMessage));
-
-        Exception thrownException = await Assert.ThrowsAsync<Exception>(() => _dicomDatasetValidator.ValidateAsync(
-            dicomDataset,
-            null));
-
-        Assert.Equal(internalMessage, thrownException.Message);
     }
 
     [Theory]
