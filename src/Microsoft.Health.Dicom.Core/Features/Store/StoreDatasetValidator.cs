@@ -65,7 +65,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     public async Task<StoreValidationResult> ValidateAsync(
         DicomDataset dicomDataset,
         string requiredStudyInstanceUid,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -260,7 +260,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
-        EnsureArg.IsNotNull(de);
         if (value != null && value.EndsWith('\0'))
         {
             ValidateWithoutNullPadding(value, de, queryTags);

@@ -25,7 +25,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 [Collection("Auto-Validation Collection")]
 public class StoreDatasetValidatorTestsV2
 {
-    private readonly StoreDatasetValidator _dicomDatasetValidator;
+    private readonly IStoreDatasetValidator _dicomDatasetValidator;
     private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
     private readonly IQueryTagService _queryTagService;
     private readonly List<QueryTag> _queryTags;
@@ -43,7 +43,7 @@ public class StoreDatasetValidatorTestsV2
         _storeMeter = new StoreMeter();
         _dicomRequestContextV2.Version.Returns(2);
         _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
-        _dicomDatasetValidator = Substitute.ForPartsOf<StoreDatasetValidator>(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
     }
 
     [Fact]
