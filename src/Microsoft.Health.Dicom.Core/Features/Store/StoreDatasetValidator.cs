@@ -65,7 +65,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     public async Task<StoreValidationResult> ValidateAsync(
         DicomDataset dicomDataset,
         string requiredStudyInstanceUid,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -236,26 +236,38 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 }
                 else if (item is DicomElement de)
                 {
-                    string value = ds.GetString(de.Tag);
                     try
                     {
-                        ValidateItemWithLeniency(value, de, queryTags);
+                        try
+                        {
+                            string value = ds.GetString(de.Tag);
+                            ValidateItemWithLeniency(value, de, queryTags);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is ArgumentOutOfRangeException)
+                            {
+                                de.Validate();
+                            }
+                            else
+                            {
+                                throw;
+                            }
+                        }
                     }
                     catch (DicomValidationException ex)
                     {
                         validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
-
-                        _storeMeter.V2ValidationError.Add(
-                            1,
-                            TelemetryDimension(item, IsIndexableTag(queryTags, item)));
+                        _storeMeter.V2ValidationError.Add(1, TelemetryDimension(item, IsIndexableTag(queryTags, item)));
                     }
                 }
             }
         }
     }
 
-    private void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    public virtual void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
+        EnsureArg.IsNotNull(de);
         if (value != null && value.EndsWith('\0'))
         {
             ValidateWithoutNullPadding(value, de, queryTags);

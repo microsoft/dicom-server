@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,7 +26,7 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
 [Collection("Auto-Validation Collection")]
 public class StoreDatasetValidatorTestsV2
 {
-    private readonly IStoreDatasetValidator _dicomDatasetValidator;
+    private readonly StoreDatasetValidator _dicomDatasetValidator;
     private readonly DicomDataset _dicomDataset = Samples.CreateRandomInstanceDataset().NotValidated();
     private readonly IQueryTagService _queryTagService;
     private readonly List<QueryTag> _queryTags;
@@ -43,7 +44,7 @@ public class StoreDatasetValidatorTestsV2
         _storeMeter = new StoreMeter();
         _dicomRequestContextV2.Version.Returns(2);
         _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
+        _dicomDatasetValidator = Substitute.ForPartsOf<StoreDatasetValidator>(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
     }
 
     [Fact]
@@ -105,6 +106,36 @@ public class StoreDatasetValidatorTestsV2
             new CancellationToken());
 
         Assert.Empty(result.InvalidTagErrors);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenItemADicomElementAndEmptyNotStringType_ExpectTagValidationNotSkippedAndErrorNotProduced()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(new DicomSignedLong(DicomTag.PregnancyStatus, new int[] { }));
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Empty(result.InvalidTagErrors);
+    }
+
+    [Fact]
+    public async Task GivenV2Enabled_WhenUnknownExceptionThrownOnValidation_RethrowException()
+    {
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        string internalMessage = "Some internal fo-dicom exception we don't know about";
+        _dicomDatasetValidator
+            .WhenForAnyArgs(v => v.ValidateItemWithLeniency(Arg.Any<string>(), Arg.Any<DicomElement>(), Arg.Any<IReadOnlyCollection<QueryTag>>()))
+            .Throw(new Exception(internalMessage));
+
+        Exception thrownException = await Assert.ThrowsAsync<Exception>(() => _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null));
+
+        Assert.Equal(internalMessage, thrownException.Message);
     }
 
     [Theory]
