@@ -1320,6 +1320,19 @@ BEGIN
            AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
            AND PartitionKey = @partitionKey
            AND ResourceType = @imageResourceType;
+    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
+    SELECT 1,
+           DI.PartitionKey,
+           DI.StudyInstanceUid,
+           DI.SeriesInstanceUid,
+           DI.SopInstanceUid,
+           DI.Watermark,
+           FP.FilePath
+    FROM   @deletedInstances AS DI
+           LEFT OUTER JOIN
+           dbo.FileProperty AS FP
+           ON FP.Watermark = DI.Watermark
+    WHERE  Status = @createdStatus;
     DELETE FP
     FROM   dbo.FileProperty AS FP
            INNER JOIN
@@ -1401,19 +1414,6 @@ BEGIN
                    AND PartitionKey = @partitionKey
                    AND ResourceType = @imageResourceType;
         END
-    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
-    SELECT 1,
-           DI.PartitionKey,
-           DI.StudyInstanceUid,
-           DI.SeriesInstanceUid,
-           DI.SopInstanceUid,
-           DI.Watermark,
-           FP.FilePath
-    FROM   @deletedInstances AS DI
-           LEFT OUTER JOIN
-           dbo.FileProperty AS FP
-           ON FP.Watermark = DI.Watermark
-    WHERE  Status = @createdStatus;
     UPDATE CF
     SET    CF.CurrentWatermark = NULL
     FROM   dbo.ChangeFeed AS CF WITH (FORCESEEK)

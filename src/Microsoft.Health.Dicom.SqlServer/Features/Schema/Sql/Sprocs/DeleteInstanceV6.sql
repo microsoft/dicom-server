@@ -148,6 +148,14 @@ BEGIN
     AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
     AND     ResourceType = @imageResourceType
+
+    INSERT INTO dbo.ChangeFeed
+    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
+    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark, FP.FilePath
+    FROM @deletedInstances as DI
+    LEFT OUTER JOIN dbo.FileProperty AS FP
+    ON FP.Watermark = DI.Watermark
+    WHERE Status = @createdStatus
     
     -- Delete FileProperties of instance
     DELETE FP
@@ -252,14 +260,6 @@ BEGIN
         AND     PartitionKey = @partitionKey
         AND     ResourceType = @imageResourceType
     END
-
-    INSERT INTO dbo.ChangeFeed
-    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
-    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark, FP.FilePath
-    FROM @deletedInstances as DI
-    LEFT OUTER JOIN dbo.FileProperty AS FP
-    ON FP.Watermark = DI.Watermark
-    WHERE Status = @createdStatus
 
     UPDATE CF
     SET CF.CurrentWatermark = NULL
