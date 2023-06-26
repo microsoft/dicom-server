@@ -42,7 +42,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         // delete and validate
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
-        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
+        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2, expectedFileProperties: null);
 
         // re-create the same instance and validate
         await CreateInstanceAsync(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
@@ -61,11 +61,11 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         var dicomInstanceIdentifier = await CreateInstanceAsync(fileProperties: expectedFileProperties);
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1, expectedFileProperties);
 
-        // delete and validate - file properties are null on deletes
+        // delete and validate - file properties are not null on deletes
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
-        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
+        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2, expectedFileProperties);
 
-        // re-create the same instance without properties and validate properties are still null
+        // re-create the same instance without properties and validate properties are null
         await CreateInstanceAsync(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 3, expectedFileProperties: null);
     }
@@ -163,7 +163,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         }
     }
 
-    private async Task ValidateDeleteFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+    private async Task ValidateDeleteFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount, FileProperties expectedFileProperties)
     {
         IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
             dicomInstanceIdentifier.StudyInstanceUid,
@@ -177,7 +177,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         foreach (ChangeFeedRow row in result)
         {
             Assert.Null(row.CurrentWatermark);
-            Assert.Null(row.FilePath);
+            Assert.Equal(expectedFileProperties?.Path, row.FilePath);
         }
     }
 

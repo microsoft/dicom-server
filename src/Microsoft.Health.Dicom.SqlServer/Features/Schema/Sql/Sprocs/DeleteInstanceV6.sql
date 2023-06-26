@@ -257,7 +257,7 @@ BEGIN
     (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
     SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark, FP.FilePath
     FROM @deletedInstances as DI
-    INNER JOIN dbo.FileProperty AS FP
+    LEFT OUTER JOIN dbo.FileProperty AS FP
     ON FP.Watermark = DI.Watermark
     WHERE Status = @createdStatus
 

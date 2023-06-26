@@ -304,7 +304,7 @@ BEGIN
            DI.Watermark,
            FP.FilePath
     FROM   @deletedInstances AS DI
-           INNER JOIN
+           LEFT OUTER JOIN
            dbo.FileProperty AS FP
            ON FP.Watermark = DI.Watermark
     WHERE  Status = @createdStatus;
