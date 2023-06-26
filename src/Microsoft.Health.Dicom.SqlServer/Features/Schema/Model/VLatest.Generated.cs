@@ -114,6 +114,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
+            internal readonly NullableNVarCharColumn FilePath = new NullableNVarCharColumn("FilePath", 4000);
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
             internal readonly Index IX_ChangeFeed_Sequence = new Index("IX_ChangeFeed_Sequence");

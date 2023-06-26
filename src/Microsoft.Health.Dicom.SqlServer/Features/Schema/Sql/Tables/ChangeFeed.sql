@@ -16,7 +16,8 @@ CREATE TABLE dbo.ChangeFeed (
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
     CurrentWatermark        BIGINT               NULL,
-    PartitionKey            INT                  NOT NULL DEFAULT 1    --FK
+    PartitionKey            INT                  NOT NULL DEFAULT 1,    --FK
+    FilePath                NVARCHAR(4000)       NULL,    -- Copied from FileProperty to avoid hash match on joins later
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Change feed is cross partition

@@ -81,9 +81,9 @@ BEGIN
     -- Currently this procedure is used only updating the status to created
     -- If that changes an if condition is needed.
     INSERT INTO dbo.ChangeFeed
-        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+        (Timestamp, Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
     VALUES
-        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark)
+        (@currentDate, 0, @partitionKey, @studyInstanceUid, @seriesInstanceUid, @sopInstanceUid, @watermark, @path)
 
     -- Update existing instance currentWatermark to latest
     UPDATE dbo.ChangeFeed

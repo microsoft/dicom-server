@@ -41,19 +41,10 @@ BEGIN
         c.SopInstanceUid,
         c.OriginalWatermark,
         c.CurrentWatermark,
-		f.FilePath
+		c.FilePath
     FROM dbo.ChangeFeed AS c WITH (HOLDLOCK)
     INNER JOIN dbo.Partition AS p
         ON p.PartitionKey = c.PartitionKey
-    -- Left join as instance may have been deleted
-    LEFT OUTER JOIN dbo.Instance AS i
-        ON i.StudyInstanceUid = c.StudyInstanceUid
-        AND i.SeriesInstanceUid = c.SeriesInstanceUid
-        AND i.SopInstanceUid = c.SopInstanceUid
-    -- Left join as instance and property may have been deleted or we never inserted property for instance when not 
-    -- using external store
-	LEFT OUTER JOIN dbo.FileProperty as f
-		ON f.InstanceKey = i.InstanceKey
     WHERE c.Timestamp >= @startTime AND c.Timestamp < @endTime
     ORDER BY c.Timestamp, c.Sequence
     OFFSET @offset ROWS
