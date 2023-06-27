@@ -1236,13 +1236,15 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @deletedInstances AS TABLE (
-        PartitionKey      INT         ,
-        StudyInstanceUid  VARCHAR (64),
-        SeriesInstanceUid VARCHAR (64),
-        SopInstanceUid    VARCHAR (64),
-        Status            TINYINT     ,
-        Watermark         BIGINT      ,
-        OriginalWatermark BIGINT      );
+        PartitionKey      INT          ,
+        StudyInstanceUid  VARCHAR (64) ,
+        SeriesInstanceUid VARCHAR (64) ,
+        SopInstanceUid    VARCHAR (64) ,
+        Status            TINYINT      ,
+        Watermark         BIGINT       ,
+        OriginalWatermark BIGINT       ,
+        InstanceKey       INT          ,
+        FilePath          VARCHAR (MAX) NULL);
     DECLARE @studyKey AS BIGINT;
     DECLARE @seriesKey AS BIGINT;
     DECLARE @instanceKey AS BIGINT;
@@ -1257,13 +1259,24 @@ BEGIN
            AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
            AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
     DELETE dbo.Instance
-    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark INTO @deletedInstances
+    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey, NULL INTO @deletedInstances (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Status, Watermark, OriginalWatermark, InstanceKey, FilePath)
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
            AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1;
+    UPDATE @deletedInstances
+    SET    FilePath = FP.FilePath
+    FROM   dbo.FileProperty AS FP
+           LEFT OUTER JOIN
+           @deletedInstances AS DI
+           ON DI.InstanceKey = FP.InstanceKey;
+    DELETE FP
+    FROM   dbo.FileProperty AS FP
+           INNER JOIN
+           @deletedInstances AS DI
+           ON FP.InstanceKey = DI.InstanceKey;
     DECLARE @deletedTags AS TABLE (
         TagKey BIGINT);
     DELETE XQTE
@@ -1320,24 +1333,6 @@ BEGIN
            AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
            AND PartitionKey = @partitionKey
            AND ResourceType = @imageResourceType;
-    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
-    SELECT 1,
-           DI.PartitionKey,
-           DI.StudyInstanceUid,
-           DI.SeriesInstanceUid,
-           DI.SopInstanceUid,
-           DI.Watermark,
-           FP.FilePath
-    FROM   @deletedInstances AS DI
-           LEFT OUTER JOIN
-           dbo.FileProperty AS FP
-           ON FP.Watermark = DI.Watermark
-    WHERE  Status = @createdStatus;
-    DELETE FP
-    FROM   dbo.FileProperty AS FP
-           INNER JOIN
-           @deletedInstances AS DI
-           ON FP.Watermark = DI.Watermark;
     INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
     SELECT PartitionKey,
            StudyInstanceUid,
@@ -1414,6 +1409,16 @@ BEGIN
                    AND PartitionKey = @partitionKey
                    AND ResourceType = @imageResourceType;
         END
+    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
+    SELECT 1,
+           DI.PartitionKey,
+           DI.StudyInstanceUid,
+           DI.SeriesInstanceUid,
+           DI.SopInstanceUid,
+           DI.Watermark,
+           DI.FilePath
+    FROM   @deletedInstances AS DI
+    WHERE  Status = @createdStatus;
     UPDATE CF
     SET    CF.CurrentWatermark = NULL
     FROM   dbo.ChangeFeed AS CF WITH (FORCESEEK)

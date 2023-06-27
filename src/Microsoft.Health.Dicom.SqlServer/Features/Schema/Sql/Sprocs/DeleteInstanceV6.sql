@@ -43,7 +43,9 @@ BEGIN
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
             Watermark BIGINT,
-            OriginalWatermark BIGINT)
+            OriginalWatermark BIGINT,
+            InstanceKey INT,
+            FilePath VARCHAR(MAX)   NULL)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
@@ -63,8 +65,8 @@ BEGIN
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark
-        INTO @deletedInstances
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey, NULL
+        INTO @deletedInstances ( PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Status, Watermark, OriginalWatermark, InstanceKey, FilePath) 
     WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
         AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
@@ -72,6 +74,18 @@ BEGIN
 
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
+        
+    -- Delete FileProperties of instance
+    UPDATE  @deletedInstances
+    SET FilePath = FP.FilePath 
+    FROM dbo.FileProperty as FP
+    LEFT OUTER JOIN @deletedInstances AS DI
+    ON DI.InstanceKey = FP.InstanceKey
+    
+    DELETE FP
+    FROM dbo.FileProperty as FP
+    INNER JOIN @deletedInstances AS DI
+    ON FP.InstanceKey = DI.InstanceKey
 
     -- Deleting tag errors
     DECLARE @deletedTags AS TABLE
@@ -148,20 +162,6 @@ BEGIN
     AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
     AND     ResourceType = @imageResourceType
-
-    INSERT INTO dbo.ChangeFeed
-    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
-    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark, FP.FilePath
-    FROM @deletedInstances as DI
-    LEFT OUTER JOIN dbo.FileProperty AS FP
-    ON FP.Watermark = DI.Watermark
-    WHERE Status = @createdStatus
-    
-    -- Delete FileProperties of instance
-    DELETE FP
-    FROM dbo.FileProperty as FP
-    INNER JOIN @deletedInstances AS DI
-    ON FP.Watermark = DI.Watermark
 
     INSERT INTO dbo.DeletedInstance
     (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
@@ -260,6 +260,12 @@ BEGIN
         AND     PartitionKey = @partitionKey
         AND     ResourceType = @imageResourceType
     END
+
+    INSERT INTO dbo.ChangeFeed
+    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
+    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark, DI.FilePath
+    FROM @deletedInstances as DI
+    WHERE Status = @createdStatus
 
     UPDATE CF
     SET CF.CurrentWatermark = NULL
