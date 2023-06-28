@@ -151,24 +151,23 @@ BEGIN
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
            AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
-    DELETE dbo.Instance
-    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey, NULL 
-    INTO @deletedInstances (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Status, Watermark, OriginalWatermark, InstanceKey, FilePath) 
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-           AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
+    DELETE i
+    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey, fp.FilePath INTO @deletedInstances
+    FROM   dbo.Instance AS i
+           LEFT OUTER JOIN
+           dbo.FileProperty AS fp
+           ON i.InstanceKey = fp.InstanceKey
+    WHERE  i.PartitionKey = @partitionKey
+           AND i.StudyInstanceUid = @studyInstanceUid
+           AND i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, i.SeriesInstanceUid)
+           AND i.SopInstanceUid = ISNULL(@sopInstanceUid, i.SopInstanceUid);
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1;
-    UPDATE  @deletedInstances
-    SET FilePath = FP.FilePath 
-    FROM dbo.FileProperty as FP
-    LEFT OUTER JOIN @deletedInstances AS DI
-    ON DI.InstanceKey = FP.InstanceKey;
     DELETE FP
-    FROM dbo.FileProperty as FP
-    INNER JOIN @deletedInstances AS DI
-    ON FP.InstanceKey = DI.InstanceKey;
+    FROM   dbo.FileProperty AS FP
+           INNER JOIN
+           @deletedInstances AS DI
+           ON DI.InstanceKey = FP.InstanceKey;
     DECLARE @deletedTags AS TABLE (
         TagKey BIGINT);
     DELETE XQTE
