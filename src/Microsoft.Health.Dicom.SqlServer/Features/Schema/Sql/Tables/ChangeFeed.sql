@@ -9,14 +9,15 @@
 **************************************************************/
 CREATE TABLE dbo.ChangeFeed (
     Sequence                BIGINT IDENTITY(1,1) NOT NULL,
-    Timestamp               DATETIMEOFFSET(7)    NOT NULL DEFAULT SYSDATETIMEOFFSET(), -- Automatically populate
+    Timestamp               DATETIMEOFFSET(7)    NOT NULL DEFAULT SYSDATETIMEOFFSET(),  -- Automatically populate
     Action                  TINYINT              NOT NULL,
     StudyInstanceUid        VARCHAR(64)          NOT NULL,
     SeriesInstanceUid       VARCHAR(64)          NOT NULL,
     SopInstanceUid          VARCHAR(64)          NOT NULL,
     OriginalWatermark       BIGINT               NOT NULL,
     CurrentWatermark        BIGINT               NULL,
-    PartitionKey            INT                  NOT NULL DEFAULT 1    --FK
+    PartitionKey            INT                  NOT NULL DEFAULT 1,                    -- FK
+    FilePath                NVARCHAR(4000)       NULL,                                  -- Copied from FileProperty to avoid hash match on joins later
 ) WITH (DATA_COMPRESSION = PAGE)
 
 -- Change feed is cross partition

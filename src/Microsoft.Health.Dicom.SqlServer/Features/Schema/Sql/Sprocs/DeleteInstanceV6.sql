@@ -43,7 +43,8 @@ BEGIN
             SopInstanceUid VARCHAR(64),
             Status TINYINT,
             Watermark BIGINT,
-            OriginalWatermark BIGINT)
+            OriginalWatermark BIGINT,
+            InstanceKey INT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
@@ -63,7 +64,7 @@ BEGIN
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey
         INTO @deletedInstances
     WHERE   PartitionKey = @partitionKey
         AND     StudyInstanceUid = @studyInstanceUid
@@ -72,6 +73,12 @@ BEGIN
 
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
+        
+    -- Delete FileProperties of instance
+    DELETE FP
+    FROM dbo.FileProperty as FP
+    INNER JOIN @deletedInstances AS DI
+    ON DI.InstanceKey = FP.InstanceKey
 
     -- Deleting tag errors
     DECLARE @deletedTags AS TABLE
@@ -148,12 +155,6 @@ BEGIN
     AND     SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
     AND     PartitionKey = @partitionKey
     AND     ResourceType = @imageResourceType
-    
-    -- Delete FileProperties of instance
-    DELETE FP
-    FROM dbo.FileProperty as FP
-    INNER JOIN @deletedInstances AS DI
-    ON FP.Watermark = DI.Watermark
 
     INSERT INTO dbo.DeletedInstance
     (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
@@ -255,8 +256,8 @@ BEGIN
 
     INSERT INTO dbo.ChangeFeed
     (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT 1, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark
-    FROM @deletedInstances
+    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark
+    FROM @deletedInstances as DI
     WHERE Status = @createdStatus
 
     UPDATE CF
