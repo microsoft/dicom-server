@@ -129,15 +129,14 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @deletedInstances AS TABLE (
-        PartitionKey      INT          ,
-        StudyInstanceUid  VARCHAR (64) ,
-        SeriesInstanceUid VARCHAR (64) ,
-        SopInstanceUid    VARCHAR (64) ,
-        Status            TINYINT      ,
-        Watermark         BIGINT       ,
-        OriginalWatermark BIGINT       ,
-        InstanceKey       INT          ,
-        FilePath          VARCHAR (MAX) NULL);
+        PartitionKey      INT         ,
+        StudyInstanceUid  VARCHAR (64),
+        SeriesInstanceUid VARCHAR (64),
+        SopInstanceUid    VARCHAR (64),
+        Status            TINYINT     ,
+        Watermark         BIGINT      ,
+        OriginalWatermark BIGINT      ,
+        InstanceKey       INT         );
     DECLARE @studyKey AS BIGINT;
     DECLARE @seriesKey AS BIGINT;
     DECLARE @instanceKey AS BIGINT;
@@ -151,16 +150,12 @@ BEGIN
            AND StudyInstanceUid = @studyInstanceUid
            AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
            AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
-    DELETE i
-    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey, fp.FilePath INTO @deletedInstances
-    FROM   dbo.Instance AS i
-           LEFT OUTER JOIN
-           dbo.FileProperty AS fp
-           ON i.InstanceKey = fp.InstanceKey
-    WHERE  i.PartitionKey = @partitionKey
-           AND i.StudyInstanceUid = @studyInstanceUid
-           AND i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, i.SeriesInstanceUid)
-           AND i.SopInstanceUid = ISNULL(@sopInstanceUid, i.SopInstanceUid);
+    DELETE dbo.Instance
+    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey INTO @deletedInstances
+    WHERE  PartitionKey = @partitionKey
+           AND StudyInstanceUid = @studyInstanceUid
+           AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+           AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1;
     DELETE FP
@@ -300,14 +295,13 @@ BEGIN
                    AND PartitionKey = @partitionKey
                    AND ResourceType = @imageResourceType;
         END
-    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
+    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 1,
            DI.PartitionKey,
            DI.StudyInstanceUid,
            DI.SeriesInstanceUid,
            DI.SopInstanceUid,
-           DI.Watermark,
-           DI.FilePath
+           DI.Watermark
     FROM   @deletedInstances AS DI
     WHERE  Status = @createdStatus;
     UPDATE CF

@@ -44,8 +44,7 @@ BEGIN
             Status TINYINT,
             Watermark BIGINT,
             OriginalWatermark BIGINT,
-            InstanceKey INT,
-            FilePath VARCHAR(MAX)   NULL)
+            InstanceKey INT)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
@@ -64,15 +63,13 @@ BEGIN
         AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
-    DELETE i
-        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey, fp.FilePath
+    DELETE  dbo.Instance
+        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey
         INTO @deletedInstances
-    FROM dbo.Instance i
-    LEFT OUTER JOIN dbo.FileProperty fp ON i.InstanceKey = fp.InstanceKey
-    WHERE   i.PartitionKey = @partitionKey
-        AND     i.StudyInstanceUid = @studyInstanceUid
-        AND     i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, i.SeriesInstanceUid)
-        AND     i.SopInstanceUid = ISNULL(@sopInstanceUid, i.SopInstanceUid)
+    WHERE   PartitionKey = @partitionKey
+        AND     StudyInstanceUid = @studyInstanceUid
+        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
+        AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
@@ -258,8 +255,8 @@ BEGIN
     END
 
     INSERT INTO dbo.ChangeFeed
-    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark, FilePath)
-    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark, DI.FilePath
+    (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
+    SELECT 1, DI.PartitionKey, DI.StudyInstanceUid, DI.SeriesInstanceUid, DI.SopInstanceUid, DI.Watermark
     FROM @deletedInstances as DI
     WHERE Status = @createdStatus
 
