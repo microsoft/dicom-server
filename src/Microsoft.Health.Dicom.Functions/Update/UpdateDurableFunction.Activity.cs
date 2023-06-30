@@ -16,6 +16,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
@@ -223,6 +224,32 @@ public partial class UpdateDurableFunction
             });
 
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously gets the input for update orchestration.
+    /// </summary>
+    /// <param name="context">Activity context which has blob name</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="GetUpdateOrchestrationInputAsync"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(GetUpdateOrchestrationInputAsync))]
+    public Task<UpdateOperationInput> GetUpdateOrchestrationInputAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    {
+        EnsureArg.IsNotNull(context, nameof(context));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        string blobName = context.GetInput<string>();
+
+        EnsureArg.IsNotNull(blobName, nameof(blobName));
+
+        logger.LogInformation("Getting update orchestration input");
+
+        return _systemStore.GetInputAsync<UpdateOperationInput>(blobName, CancellationToken.None);
     }
 
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);

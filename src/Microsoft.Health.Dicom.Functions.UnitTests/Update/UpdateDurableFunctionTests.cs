@@ -29,6 +29,7 @@ public partial class UpdateDurableFunctionTests
     private readonly UpdateOptions _options;
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
+    private readonly ISystemStore _systemStore;
     private readonly IUpdateInstanceService _updateInstanceService;
     private readonly UpdateMeter _updateMeter;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
@@ -47,9 +48,11 @@ public partial class UpdateDurableFunctionTests
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _updateMeter = new UpdateMeter();
         _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
+        _systemStore = Substitute.For<ISystemStore>();
         _updateDurableFunction = new UpdateDurableFunction(
             _indexStore,
             _instanceStore,
+            _systemStore,
             Options.Create(_options),
             _metadataStore,
             _fileStore,

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Operations;
 
 namespace Microsoft.Health.Dicom.Core.Features.Operations;
@@ -101,11 +100,10 @@ public interface IDicomOperationsClient
     Task<OperationReference> StartExportAsync(Guid operationId, ExportSpecification specification, Uri errorHref, PartitionEntry partition, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously begins the update operation in the given <paramref name="updateSpecification"/>.
+    /// Asynchronously begins the update operation.
     /// </summary>
     /// <param name="operationId">The desired ID for the long-running update operation.</param>
-    /// <param name="updateSpecification">The specification that details the update changed dataset for updating studies</param>
-    /// <param name="partitionKey">The partition containing the data to update.</param>
+    /// <param name="blobIdentifier">Blob identifier to fetch the DICOM update input</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartUpdateOperationAsync"/>
@@ -113,10 +111,10 @@ public interface IDicomOperationsClient
     /// to the newly started operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="updateSpecification"/> is <see langword="null"/>.
+    /// <paramref name="blobIdentifier"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, string blobIdentifier, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously migrate instance frame range files.

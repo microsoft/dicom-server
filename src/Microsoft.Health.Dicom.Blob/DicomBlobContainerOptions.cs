@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -27,4 +27,11 @@ public sealed class DicomBlobContainerOptions
     /// <value>The file container name.</value>
     [Required]
     public string File { get; set; }
+
+    /// <summary>
+    /// Gets or sets the container name for system.
+    /// </summary>
+    /// <value>The file container name.</value>
+    [Required]
+    public string System { get; set; }
 }

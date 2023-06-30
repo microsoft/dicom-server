@@ -58,6 +58,14 @@ public static class DicomFunctionsBuilderRegistrationExtensions
             .AddOptions<BlobContainerConfiguration>(Constants.MetadataContainerConfigurationName)
             .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.Metadata);
 
+        // System store
+        functionsBuilder.Services
+            .AddSingleton<SystemStoreConfigurationSection>()
+            .AddTransient<IStoreConfigurationSection>(sp => sp.GetRequiredService<SystemStoreConfigurationSection>())
+            .AddPersistence<ISystemStore, BlobSystemStore>()
+            .AddOptions<BlobContainerConfiguration>(Constants.SystemContainerConfigurationName)
+            .Configure<IOptionsMonitor<DicomBlobContainerOptions>>((c, o) => c.ContainerName = o.CurrentValue.System);
+
         // Blob Files
         FeatureConfiguration featureConfiguration = new FeatureConfiguration();
         configuration.GetSection("DicomServer").GetSection("Features").Bind(featureConfiguration);

@@ -3,9 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Update;
+using System.Collections.Generic;
 
-public class UpdateInput
+namespace Microsoft.Health.Dicom.Core.Features.Update;
+
+public class UpdateOperationInput
 {
-    public string InputIdentifier { get; set; }
+    public int PartitionKey { get; set; }
+
+    public IReadOnlyList<string> StudyInstanceUids { get; set; }
+
+    public string ChangeDataset { get; set; }
 }

@@ -21,6 +21,7 @@ public partial class UpdateDurableFunction
 {
     private readonly IIndexDataStore _indexStore;
     private readonly IInstanceStore _instanceStore;
+    private readonly ISystemStore _systemStore;
     private readonly UpdateOptions _options;
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
@@ -31,6 +32,7 @@ public partial class UpdateDurableFunction
     public UpdateDurableFunction(
         IIndexDataStore indexStore,
         IInstanceStore instanceStore,
+        ISystemStore systemStore,
         IOptions<UpdateOptions> configOptions,
         IMetadataStore metadataStore,
         IFileStore fileStore,
@@ -40,6 +42,7 @@ public partial class UpdateDurableFunction
     {
         _indexStore = EnsureArg.IsNotNull(indexStore, nameof(indexStore));
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
+        _systemStore = EnsureArg.IsNotNull(systemStore, nameof(systemStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));

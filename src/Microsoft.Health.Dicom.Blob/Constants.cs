@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -12,6 +12,9 @@ public static class Constants
 
     public const string MetadataStoreConfigurationSection = "DicomWeb:MetadataStore";
     public const string MetadataContainerConfigurationName = "dicomMetadata";
+
+    public const string SystemStoreConfigurationSection = "DicomWeb:SystemStore";
+    public const string SystemContainerConfigurationName = "dicomSystem";
 
     public const string WorkitemStoreConfigurationSection = "DicomWeb:WorkitemStore";
     public const string WorkitemContainerConfigurationName = "dicomWorkitem";

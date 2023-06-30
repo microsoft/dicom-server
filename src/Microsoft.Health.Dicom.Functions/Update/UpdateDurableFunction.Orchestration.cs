@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -44,16 +45,23 @@ public partial class UpdateDurableFunction
 
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
 
+        UpdateOperationInput updateInput = await context.CallActivityWithRetryAsync<UpdateOperationInput>(
+                nameof(GetUpdateOrchestrationInputAsync),
+                _options.RetryOptions,
+                input.InputIdentifier);
+
+        input.TotalNumberOfStudies = updateInput.StudyInstanceUids.Count;
+
         if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
         {
-            string studyInstanceUid = input.StudyInstanceUids[input.NumberOfStudyCompleted];
+            string studyInstanceUid = updateInput.StudyInstanceUids[input.NumberOfStudyCompleted];
 
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
             IReadOnlyList<InstanceFileState> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
-                new UpdateInstanceWatermarkArguments(input.PartitionKey, studyInstanceUid));
+                new UpdateInstanceWatermarkArguments(updateInput.PartitionKey, studyInstanceUid));
 
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instanceWatermarks.Count);
 
@@ -67,12 +75,12 @@ public partial class UpdateDurableFunction
                     await context.CallActivityWithRetryAsync(
                         nameof(UpdateInstanceBlobsAsync),
                         _options.RetryOptions,
-                        new UpdateInstanceBlobArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
+                        new UpdateInstanceBlobArguments(updateInput.PartitionKey, instanceWatermarks, updateInput.ChangeDataset));
 
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                        new CompleteStudyArguments(updateInput.PartitionKey, studyInstanceUid, updateInput.ChangeDataset));
 
                     totalNoOfInstances += instanceWatermarks.Count;
                 }
@@ -113,14 +121,13 @@ public partial class UpdateDurableFunction
             context.ContinueAsNew(
                 new UpdateCheckpoint
                 {
-                    StudyInstanceUids = input.StudyInstanceUids,
-                    ChangeDataset = input.ChangeDataset,
-                    PartitionKey = input.PartitionKey,
+                    TotalNumberOfStudies = updateInput.StudyInstanceUids.Count,
                     NumberOfStudyCompleted = numberOfStudyCompleted,
                     NumberOfStudyFailed = numberofStudyFailed,
                     TotalNumberOfInstanceUpdated = totalNoOfInstances,
                     Errors = input.Errors,
                     CreatedTime = input.CreatedTime ?? await context.GetCreatedTimeAsync(_options.RetryOptions),
+                    InputIdentifier = input.InputIdentifier,
                 });
         }
         else

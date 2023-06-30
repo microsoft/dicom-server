@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Health.Dicom.Functions.Update;
 using Xunit;
 
@@ -22,7 +21,7 @@ public class UpdateCheckpointTests
     [InlineData(4, 2, 50)]
     [InlineData(4, 0, 0)]
     public void GivenUpdateInput_WhenGettingPercentComplete_ThenReturnComputedProgress(int total, int completed, int expected)
-        => Assert.Equal(expected, new UpdateCheckpoint { StudyInstanceUids = Enumerable.Repeat<string>(".", total).ToList(), NumberOfStudyCompleted = completed }.PercentComplete);
+        => Assert.Equal(expected, new UpdateCheckpoint { TotalNumberOfStudies = total, NumberOfStudyCompleted = completed }.PercentComplete);
 
     [Fact]
     public void GivenCheckpoint_WhenRetrievingAdditionalProperties_ThenGetOperationSpecificValues()

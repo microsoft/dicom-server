@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -33,7 +34,9 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        var expectedInput = GetUpdateCheckpoint();
+        var expectedCheckpoint = GetUpdateCheckpoint();
+
+        var expectedInput = GetUpdateInput();
 
         var expectedInstances = new List<InstanceFileState>
         {
@@ -67,6 +70,13 @@ public partial class UpdateDurableFunctionTests
 
         context
             .GetInput<UpdateCheckpoint>()
+            .Returns(expectedCheckpoint);
+
+        context
+            .CallActivityWithRetryAsync<UpdateOperationInput>(
+                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
+                _options.RetryOptions,
+                Arg.Any<string>())
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
@@ -133,14 +143,18 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        var expectedInput = new UpdateCheckpoint
+        var expectedCheckpoint = new UpdateCheckpoint
+        {
+            CreatedTime = createdTime,
+        };
+
+        var expectedInput = new UpdateOperationInput
         {
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate()
-            },
-            CreatedTime = createdTime,
+            }
         };
 
         var expectedInstances = new List<InstanceFileState>();
@@ -153,6 +167,13 @@ public partial class UpdateDurableFunctionTests
 
         context
             .GetInput<UpdateCheckpoint>()
+            .Returns(expectedCheckpoint);
+
+        context
+            .CallActivityWithRetryAsync<UpdateOperationInput>(
+                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
+                _options.RetryOptions,
+                Arg.Any<string>())
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
@@ -223,16 +244,21 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        var expectedInput = new UpdateCheckpoint
+        var expectedCheckpoint = new UpdateCheckpoint
         {
-            PartitionKey = DefaultPartition.Key,
-            ChangeDataset = string.Empty,
-            StudyInstanceUids = new List<string>(),
             CreatedTime = createdTime,
             Errors = new List<string>()
             {
                 "Failed Study"
-            }
+            },
+            InputIdentifier = "blobName"
+        };
+
+        var expectedInput = new UpdateOperationInput
+        {
+            PartitionKey = DefaultPartition.Key,
+            ChangeDataset = string.Empty,
+            StudyInstanceUids = new List<string>()
         };
 
         // Arrange the input
@@ -241,6 +267,13 @@ public partial class UpdateDurableFunctionTests
 
         context
             .GetInput<UpdateCheckpoint>()
+            .Returns(expectedCheckpoint);
+
+        context
+            .CallActivityWithRetryAsync<UpdateOperationInput>(
+                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
+                _options.RetryOptions,
+                Arg.Any<string>())
             .Returns(expectedInput);
 
         // Invoke the orchestration
@@ -286,14 +319,20 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        var expectedInput = new UpdateCheckpoint
+        var expectedCheckpoint = new UpdateCheckpoint
         {
+            CreatedTime = createdTime,
+            InputIdentifier = "blobName"
+        };
+
+        var expectedInput = new UpdateOperationInput
+        {
+
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate()
             },
-            CreatedTime = createdTime,
         };
 
         var expectedInstancesWithNewWatermark = new List<InstanceFileState>
@@ -316,6 +355,13 @@ public partial class UpdateDurableFunctionTests
 
         context
             .GetInput<UpdateCheckpoint>()
+            .Returns(expectedCheckpoint);
+
+        context
+            .CallActivityWithRetryAsync<UpdateOperationInput>(
+                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
+                _options.RetryOptions,
+                Arg.Any<string>())
             .Returns(expectedInput);
 
         context
@@ -362,7 +408,9 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        var expectedInput = GetUpdateCheckpoint();
+        var expectedCheckpoint = GetUpdateCheckpoint();
+
+        var expectedInput = GetUpdateInput();
 
         var expectedInstances = new List<InstanceFileState>
         {
@@ -396,6 +444,12 @@ public partial class UpdateDurableFunctionTests
 
         context
             .GetInput<UpdateCheckpoint>()
+            .Returns(expectedCheckpoint);
+        context
+            .CallActivityWithRetryAsync<UpdateOperationInput>(
+                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
+                _options.RetryOptions,
+                Arg.Any<string>())
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
@@ -461,6 +515,13 @@ public partial class UpdateDurableFunctionTests
     private static UpdateCheckpoint GetUpdateCheckpoint()
         => new UpdateCheckpoint
         {
+            CreatedTime = DateTime.UtcNow,
+            InputIdentifier = "blobName"
+        };
+
+    private static UpdateOperationInput GetUpdateInput()
+        => new UpdateOperationInput
+        {
             PartitionKey = DefaultPartition.Key,
             ChangeDataset = string.Empty,
             StudyInstanceUids = new List<string> {
@@ -468,7 +529,6 @@ public partial class UpdateDurableFunctionTests
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate()
             },
-            CreatedTime = DateTime.UtcNow,
         };
 
     private static IDurableOrchestrationContext CreateContext(string operationId)

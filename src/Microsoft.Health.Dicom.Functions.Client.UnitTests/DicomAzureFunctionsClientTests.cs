@@ -23,7 +23,6 @@ using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
-using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
@@ -101,7 +100,6 @@ public class DicomAzureFunctionsClientTests
             _urlResolver,
             _resourceStore,
             Options.Create(_options),
-            Options.Create(jsonOptions),
             NullLogger<DicomAzureFunctionsClient>.Instance);
     }
 
@@ -113,22 +111,21 @@ public class DicomAzureFunctionsClientTests
         IUrlResolver urlResolver = Substitute.For<IUrlResolver>();
         IDicomOperationsResourceStore resourceStore = Substitute.For<IDicomOperationsResourceStore>();
         var options = Options.Create(new DicomFunctionOptions());
-        var jsonOptions = Options.Create(new JsonSerializerOptions());
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(null, urlResolver, resourceStore, options, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(null, urlResolver, resourceStore, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, null, resourceStore, options, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, null, resourceStore, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, null, options, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, null, options, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, null, jsonOptions, NullLogger<DicomAzureFunctionsClient>.Instance));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, null, NullLogger<DicomAzureFunctionsClient>.Instance));
 
         Assert.Throws<ArgumentNullException>(
-            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, options, jsonOptions, null));
+            () => new DicomAzureFunctionsClient(durableClientFactory, urlResolver, resourceStore, options, null));
     }
 
     [Fact]
@@ -516,7 +513,7 @@ public class DicomAzureFunctionsClientTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        var updateSpec = new UpdateSpecification(studyUids, ds);
+        var blobId = "blobId";
 
         var uri = new Uri("http://my-operation/" + operationId);
 
@@ -526,11 +523,11 @@ public class DicomAzureFunctionsClientTests
             .StartNewAsync(
                 FunctionNames.UpdateInstances,
                 instanceId,
-                Arg.Is<UpdateInput>(x => x.StudyInstanceUids.SequenceEqual(studyUids)))
+                Arg.Is<UpdateInput>(x => x.InputIdentifier == blobId))
             .Returns(instanceId);
         _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
-        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, DefaultPartition.Key, source.Token);
+        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, blobId, source.Token);
         Assert.Equal(operationId, actual.Id);
         Assert.Equal(uri, actual.Href);
 
@@ -539,7 +536,7 @@ public class DicomAzureFunctionsClientTests
             .StartNewAsync(
                 FunctionNames.UpdateInstances,
                 instanceId,
-                Arg.Is<UpdateInput>(x => x.StudyInstanceUids.SequenceEqual(studyUids)));
+                Arg.Is<UpdateInput>(x => x.InputIdentifier == blobId));
         _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
     }
 

@@ -33,7 +33,8 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<UpdateInstanceOperationService> _logger;
-    private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
+    private readonly ISystemStore _systemStore;
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -51,6 +52,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         IDicomRequestContextAccessor contextAccessor,
         TelemetryClient telemetryClient,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
+        ISystemStore systemStore,
         ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
@@ -58,6 +60,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        EnsureArg.IsNotNull(systemStore, nameof(systemStore));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
@@ -65,7 +68,8 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         _contextAccessor = contextAccessor;
         _telemetryClient = telemetryClient;
         _logger = logger;
-        _jsonSerializerOptions = jsonSerializerOptions;
+        _jsonSerializerOptions = jsonSerializerOptions.Value;
+        _systemStore = systemStore;
     }
 
     public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
@@ -99,9 +103,20 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 
         try
         {
-            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            string datasetToUpdate = JsonSerializer.Serialize(updateSpecification.ChangeDataset, _jsonSerializerOptions);
 
-            string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
+            var updateInput = new UpdateOperationInput
+            {
+                PartitionKey = partitionKey,
+                ChangeDataset = datasetToUpdate,
+                StudyInstanceUids = updateSpecification.StudyInstanceUids,
+            };
+
+            string blobIdentifier = await _systemStore.StoreInputAsync(updateInput, cancellationToken);
+
+            var operation = await _client.StartUpdateOperationAsync(operationId, blobIdentifier, cancellationToken);
+
+            string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions);
             _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);
             return new UpdateInstanceResponse(operation);
         }

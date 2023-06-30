@@ -52,7 +52,7 @@ public class UpdateInstanceOperationServiceTests
         _jsonSerializerOptions = new JsonSerializerOptions();
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
-        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, Options.Create(_jsonSerializerOptions), NullLogger<UpdateInstanceOperationService>.Instance);
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, Options.Create(_jsonSerializerOptions), Substitute.For<ISystemStore>(), NullLogger<UpdateInstanceOperationService>.Instance);
     }
 
     [Fact]
@@ -85,8 +85,7 @@ public class UpdateInstanceOperationServiceTests
         _client
            .StartUpdateOperationAsync(
                Arg.Any<Guid>(),
-               Arg.Any<UpdateSpecification>(),
-               PartitionEntry.Default.PartitionKey,
+               Arg.Any<string>(),
                CancellationToken.None)
            .Returns(expected);
 

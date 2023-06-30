@@ -73,6 +73,9 @@ public static class DicomServerBuilderBlobRegistrationExtensions
             .AddStorageDataStore<MetadataStoreConfigurationSection, IMetadataStore, BlobMetadataStore>(
                 configuration,
                 "MetadataHealthCheck")
+            .AddStorageDataStore<SystemStoreConfigurationSection, ISystemStore, BlobSystemStore>(
+                configuration,
+                "SystemHealthCheck")
             .AddStorageDataStore<WorkitemStoreConfigurationSection, IWorkitemStore, BlobWorkitemStore>(
                 configuration,
                 "WorkitemHealthCheck");
