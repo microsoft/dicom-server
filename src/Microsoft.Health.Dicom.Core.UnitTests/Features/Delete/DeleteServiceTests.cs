@@ -110,6 +110,20 @@ public class DeleteServiceTests
     }
 
     [Fact]
+    public async Task GivenADeleteInstanceRequestWithNonDefaultPartition_WhenDataStoreIsCalled_ThenNonDefaultPartitionIsUsed()
+    {
+        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(1, partitionEntry: new PartitionEntry(123, "ANonDefaultName"));
+
+        _indexDataStore
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(responseList);
+
+        (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+
+        await ValidateSuccessfulCleanupDeletedInstanceCall(success, responseList.Select(x => x.VersionedInstanceIdentifier).ToList(), retrievedInstanceCount);
+    }
+
+    [Fact]
     public async Task GivenNoDeletedInstances_WhenCleanupCalled_ThenNotCallStoresAndReturnsCorrectTuple()
     {
         _indexDataStore
@@ -344,17 +358,17 @@ public class DeleteServiceTests
         _transactionScope.Received(1).Complete();
     }
 
-    private static List<InstanceMetadata> GeneratedDeletedInstanceList(int numberOfResults, InstanceProperties instanceProperties = null)
+    private static List<InstanceMetadata> GeneratedDeletedInstanceList(int numberOfResults, InstanceProperties instanceProperties = null, PartitionEntry partitionEntry = null)
     {
         instanceProperties = instanceProperties ?? new InstanceProperties();
-
+        partitionEntry = partitionEntry ?? DefaultPartition.PartitionEntry;
         var deletedInstanceList = new List<InstanceMetadata>();
         for (int i = 0; i < numberOfResults; i++)
         {
             string studyInstanceUid = TestUidGenerator.Generate();
             string seriesInstanceUid = TestUidGenerator.Generate();
             string sopInstanceUid = TestUidGenerator.Generate();
-            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i, DefaultPartition.PartitionEntry), instanceProperties));
+            deletedInstanceList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, i, partitionEntry), instanceProperties));
         }
 
         return deletedInstanceList;
