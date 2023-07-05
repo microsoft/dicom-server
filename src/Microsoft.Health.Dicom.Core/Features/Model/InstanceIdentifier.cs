@@ -32,8 +32,8 @@ public class InstanceIdentifier
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
-        int partitionKey = default,
-        string partitionName = default)
+        int partitionKey = DefaultPartition.Key,
+        string partitionName = DefaultPartition.Name)
     {
         EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
@@ -44,6 +44,7 @@ public class InstanceIdentifier
         SopInstanceUid = sopInstanceUid;
         PartitionKey = partitionKey;
         PartitionName = partitionName;
+        PartitionEntry = new PartitionEntry(PartitionKey, PartitionName);
     }
 
     public string StudyInstanceUid { get; }
