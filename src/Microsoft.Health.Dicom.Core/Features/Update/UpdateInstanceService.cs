@@ -163,6 +163,9 @@ public class UpdateInstanceService : IUpdateInstanceService
 
     private async Task UpdateDatasetInFileAsync(long newFileIdentifier, DicomDataset datasetToUpdate, KeyValuePair<string, long> block = default, CancellationToken cancellationToken = default)
     {
+        const string SrcTag = nameof(UpdateDatasetInFileAsync) + "-src";
+        const string DestTag = nameof(UpdateDatasetInFileAsync) + "-dest";
+
         var stopwatch = new Stopwatch();
         _logger.LogInformation("Begin updating new file {NewFileIdentifier}", newFileIdentifier);
 
@@ -177,11 +180,11 @@ public class UpdateInstanceService : IUpdateInstanceService
 
         BinaryData data = await _fileStore.GetFileContentInRangeAsync(newFileIdentifier, new FrameRange(0, block.Value), cancellationToken);
 
-        using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(data);
+        using MemoryStream stream = _recyclableMemoryStreamManager.GetStream(tag: SrcTag, buffer: data);
         DicomFile dicomFile = await DicomFile.OpenAsync(stream);
         dicomFile.Dataset.AddOrUpdate(datasetToUpdate);
 
-        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream(tag: DestTag);
         await dicomFile.SaveAsync(resultStream);
 
         await _fileStore.UpdateFileBlockAsync(newFileIdentifier, block.Key, resultStream, cancellationToken);

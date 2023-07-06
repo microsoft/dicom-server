@@ -69,7 +69,6 @@ public class RetrieveResourceServiceTests
         _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = DefaultPartition.PartitionEntry;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
-        var loggerFactory = Substitute.For<ILoggerFactory>();
         _instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
         _framesRangeCache = Substitute.For<IFramesRangeCache>();
 
@@ -85,9 +84,7 @@ public class RetrieveResourceServiceTests
             _instanceMetadataCache,
             _framesRangeCache,
             retrieveConfigurationSnapshot,
-            _logger,
-            loggerFactory
-            );
+            _logger);
     }
 
     [Fact]
@@ -263,7 +260,7 @@ public class RetrieveResourceServiceTests
         _fileStore.GetFileAsync(0, DefaultPartition.Name, DefaultCancellationToken).Returns(streamsAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(instanceMetadata.VersionedInstanceIdentifier.Version, DefaultPartition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFile.Value.Length });
         string transferSyntax = "1.2.840.10008.1.2.1";
-        _retrieveTranscoder.TranscodeFileAsync(streamsAndStoredFile.Value, transferSyntax).Returns(streamsAndStoredFile.Value);
+        _retrieveTranscoder.TranscodeFileAsync(streamsAndStoredFile.Value, transferSyntax).Returns(CopyStream(streamsAndStoredFile.Value));
 
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
                new RetrieveResourceRequest(_studyInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetStudy(transferSyntax: transferSyntax) }),
@@ -513,7 +510,7 @@ public class RetrieveResourceServiceTests
         streamsAndStoredFiles.ForEach(x => _fileStore.GetFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.PartitionName, DefaultCancellationToken).Returns(x.Value));
         streamsAndStoredFiles.ForEach(x => _fileStore.GetStreamingFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.PartitionName, DefaultCancellationToken).Returns(x.Value));
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.PartitionName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFiles.First().Value.Length });
-        streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, requestedTransferSyntax).Returns(x.Value));
+        streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, requestedTransferSyntax).Returns(CopyStream(x.Value)));
 
         // act
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -593,7 +590,7 @@ public class RetrieveResourceServiceTests
         streamsAndStoredFiles.ForEach(x => _fileStore.GetStreamingFileAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.PartitionName, DefaultCancellationToken).Returns(x.Value));
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.PartitionName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFiles.First().Value.Length });
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers.First().VersionedInstanceIdentifier.PartitionName, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamsAndStoredFiles.First().Value.Length });
-        streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, requestedTransferSyntax).Returns(x.Value));
+        streamsAndStoredFiles.ForEach(x => _retrieveTranscoder.TranscodeFileAsync(x.Value, requestedTransferSyntax).Returns(CopyStream(x.Value)));
 
         // act
         RetrieveResourceResponse response = await _retrieveResourceService.GetInstanceResourceAsync(
@@ -798,6 +795,14 @@ public class RetrieveResourceServiceTests
     {
         IByteBuffer frameData = DicomPixelData.Create(dataset).GetFrame(frame);
         return _recyclableMemoryStreamManager.GetStream("RetrieveResourceServiceTests.GetFrameFromFile", frameData.Data, 0, frameData.Data.Length);
+    }
+
+    private Stream CopyStream(Stream source)
+    {
+        MemoryStream dest = _recyclableMemoryStreamManager.GetStream();
+        source.CopyTo(dest);
+        dest.Seek(0, SeekOrigin.Begin);
+        return dest;
     }
 
     private static void AssertPixelDataEqual(IByteBuffer expectedPixelData, Stream actualPixelData)

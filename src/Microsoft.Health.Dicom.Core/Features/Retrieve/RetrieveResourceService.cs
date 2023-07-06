@@ -50,8 +50,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IInstanceMetadataCache instanceMetadataCache,
         IFramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
-        ILogger<RetrieveResourceService> logger,
-        ILoggerFactory loggerFactory)
+        ILogger<RetrieveResourceService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
@@ -128,19 +127,21 @@ public class RetrieveResourceService : IRetrieveResourceService
                 FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.PartitionName, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
+                using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
+                Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
-                IAsyncEnumerable<RetrieveResourceInstance> transcodedStream = GetAsyncEnumerableTranscodedStreams(
-                    isOriginalTransferSyntaxRequested,
-                    stream,
-                    instance,
-                    requestedTransferSyntax);
+                IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
+                    GetTranscodedStreams(
+                        isOriginalTransferSyntaxRequested,
+                        transcodedStream,
+                        instance,
+                        requestedTransferSyntax)
+                    .ToAsyncEnumerable();
 
                 return new RetrieveResourceResponse(
-                    transcodedStream,
+                    transcodedEnum,
                     validAcceptHeader.MediaType.ToString(),
                     validAcceptHeader.IsSinglePart);
-
             }
 
             // no transcoding
@@ -311,14 +312,12 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
     }
 
-    private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableTranscodedStreams(
+    private static IEnumerable<RetrieveResourceInstance> GetTranscodedStreams(
         bool isOriginalTransferSyntaxRequested,
-        Stream stream,
+        Stream transcodedStream,
         InstanceMetadata instanceMetadata,
         string requestedTransferSyntax)
     {
-        Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
-
         yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata), transcodedStream.Length);
     }
 

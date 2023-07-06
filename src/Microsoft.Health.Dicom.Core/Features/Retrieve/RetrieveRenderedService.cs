@@ -118,7 +118,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             DicomImage dicomImage = new DicomImage(dicomFile.Dataset);
             using var img = dicomImage.RenderImage(frameNumber);
             using var sharpImage = img.AsSharpImage();
-            MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+            MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream(tag: nameof(ConvertToImage));
 
             if (mediaType.Equals(KnownContentTypes.ImageJpeg, StringComparison.OrdinalIgnoreCase))
             {
