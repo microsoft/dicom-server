@@ -15,10 +15,10 @@ public class Partition
 
     public const int DefaultKey = 1;
 
-    [JsonPropertyName("partitionKey")]
+    [JsonPropertyName("partitionKey")] // these explicit names are here for the REST schema
     public int Key { get; }
 
-    [JsonPropertyName("partitionName")]
+    [JsonPropertyName("partitionName")] // these explicit names are here for the REST schema
     public string Name { get; }
 
     public DateTimeOffset CreatedDate { get; set; }
