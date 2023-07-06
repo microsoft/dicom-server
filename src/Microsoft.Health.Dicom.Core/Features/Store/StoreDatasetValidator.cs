@@ -236,18 +236,22 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 }
                 else if (item is DicomElement de)
                 {
-                    string value = ds.GetString(de.Tag);
                     try
                     {
-                        ValidateItemWithLeniency(value, de, queryTags);
+                        if (de.ValueRepresentation.ValueType == typeof(string))
+                        {
+                            string value = ds.GetString(de.Tag);
+                            ValidateItemWithLeniency(value, de, queryTags);
+                        }
+                        else
+                        {
+                            de.Validate();
+                        }
                     }
                     catch (DicomValidationException ex)
                     {
                         validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
-
-                        _storeMeter.V2ValidationError.Add(
-                            1,
-                            TelemetryDimension(item, IsIndexableTag(queryTags, item)));
+                        _storeMeter.V2ValidationError.Add(1, TelemetryDimension(item, IsIndexableTag(queryTags, item)));
                     }
                 }
             }

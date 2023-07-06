@@ -11,14 +11,14 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.2.107</HealthcareSharedPackageVersion>
+    <HealthcareSharedPackageVersion>6.2.109</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
     <Hl7FhirPackageVersion>4.3.0</Hl7FhirPackageVersion>
     <IdentityModelTokenPackageVersion>6.31.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <OpenTelemetryVersion>1.5.0</OpenTelemetryVersion>
+    <OpenTelemetryVersion>1.5.1</OpenTelemetryVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

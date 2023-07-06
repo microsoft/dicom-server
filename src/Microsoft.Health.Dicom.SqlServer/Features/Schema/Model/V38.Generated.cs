@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V38
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -50,13 +50,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static EndUpdateInstanceProcedure EndUpdateInstance = new EndUpdateInstanceProcedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedByTimeProcedure GetChangeFeedByTime = new GetChangeFeedByTimeProcedure();
-        internal readonly static GetChangeFeedByTimeV39Procedure GetChangeFeedByTimeV39 = new GetChangeFeedByTimeV39Procedure();
         internal readonly static GetChangeFeedLatestProcedure GetChangeFeedLatest = new GetChangeFeedLatestProcedure();
         internal readonly static GetChangeFeedLatestByTimeProcedure GetChangeFeedLatestByTime = new GetChangeFeedLatestByTimeProcedure();
-        internal readonly static GetChangeFeedLatestByTimeV39Procedure GetChangeFeedLatestByTimeV39 = new GetChangeFeedLatestByTimeV39Procedure();
-        internal readonly static GetChangeFeedLatestV39Procedure GetChangeFeedLatestV39 = new GetChangeFeedLatestV39Procedure();
         internal readonly static GetChangeFeedLatestV6Procedure GetChangeFeedLatestV6 = new GetChangeFeedLatestV6Procedure();
-        internal readonly static GetChangeFeedV39Procedure GetChangeFeedV39 = new GetChangeFeedV39Procedure();
         internal readonly static GetChangeFeedV6Procedure GetChangeFeedV6 = new GetChangeFeedV6Procedure();
         internal readonly static GetCurrentAndNextWorkitemWatermarkProcedure GetCurrentAndNextWorkitemWatermark = new GetCurrentAndNextWorkitemWatermarkProcedure();
         internal readonly static GetExtendedQueryTagProcedure GetExtendedQueryTag = new GetExtendedQueryTagProcedure();
@@ -114,7 +110,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
-            internal readonly NullableNVarCharColumn FilePath = new NullableNVarCharColumn("FilePath", 4000);
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
             internal readonly Index IX_ChangeFeed_Sequence = new Index("IX_ChangeFeed_Sequence");
@@ -1113,28 +1108,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetChangeFeedByTimeV39Procedure : StoredProcedure
-        {
-            internal GetChangeFeedByTimeV39Procedure() : base("dbo.GetChangeFeedByTimeV39")
-            {
-            }
-
-            private readonly ParameterDefinition<System.DateTimeOffset> _startTime = new ParameterDefinition<System.DateTimeOffset>("@startTime", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
-            private readonly ParameterDefinition<System.DateTimeOffset> _endTime = new ParameterDefinition<System.DateTimeOffset>("@endTime", global::System.Data.SqlDbType.DateTimeOffset, false, 7);
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.DateTimeOffset startTime, System.DateTimeOffset endTime, System.Int32 limit, System.Int64 offset)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetChangeFeedByTimeV39";
-                _startTime.AddParameter(command.Parameters, startTime);
-                _endTime.AddParameter(command.Parameters, endTime);
-                _limit.AddParameter(command.Parameters, limit);
-                _offset.AddParameter(command.Parameters, offset);
-            }
-        }
-
         internal class GetChangeFeedLatestProcedure : StoredProcedure
         {
             internal GetChangeFeedLatestProcedure() : base("dbo.GetChangeFeedLatest")
@@ -1161,32 +1134,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetChangeFeedLatestByTimeV39Procedure : StoredProcedure
-        {
-            internal GetChangeFeedLatestByTimeV39Procedure() : base("dbo.GetChangeFeedLatestByTimeV39")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetChangeFeedLatestByTimeV39";
-            }
-        }
-
-        internal class GetChangeFeedLatestV39Procedure : StoredProcedure
-        {
-            internal GetChangeFeedLatestV39Procedure() : base("dbo.GetChangeFeedLatestV39")
-            {
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetChangeFeedLatestV39";
-            }
-        }
-
         internal class GetChangeFeedLatestV6Procedure : StoredProcedure
         {
             internal GetChangeFeedLatestV6Procedure() : base("dbo.GetChangeFeedLatestV6")
@@ -1197,24 +1144,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetChangeFeedLatestV6";
-            }
-        }
-
-        internal class GetChangeFeedV39Procedure : StoredProcedure
-        {
-            internal GetChangeFeedV39Procedure() : base("dbo.GetChangeFeedV39")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _limit = new ParameterDefinition<System.Int32>("@limit", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int64> _offset = new ParameterDefinition<System.Int64>("@offset", global::System.Data.SqlDbType.BigInt, false);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 limit, System.Int64 offset)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetChangeFeedV39";
-                _limit.AddParameter(command.Parameters, limit);
-                _offset.AddParameter(command.Parameters, offset);
             }
         }
 

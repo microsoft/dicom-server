@@ -2993,6 +2993,9 @@ components:
         partitionName:
           type: string
           nullable: true
+        filePath:
+          type: string
+          nullable: true
         studyInstanceUid:
           type: string
           nullable: true

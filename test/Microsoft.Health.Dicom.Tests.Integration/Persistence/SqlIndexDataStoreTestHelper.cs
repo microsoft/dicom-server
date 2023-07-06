@@ -123,6 +123,36 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         return results;
     }
 
+    public async Task<IReadOnlyList<FileProperty>> GetFilePropertiesAsync(long watermark)
+    {
+        var results = new List<FileProperty>();
+
+        using (var sqlConnection = new SqlConnection(_connectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.FileProperty.TableName}
+                        WHERE {VLatest.FileProperty.Watermark} = @watermark";
+
+                sqlCommand.Parameters.AddWithValue("@watermark", watermark);
+
+                using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                {
+                    if (await sqlDataReader.ReadAsync())
+                    {
+                        results.Add(new FileProperty(sqlDataReader));
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
     public async Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long version)
     {
         using (var sqlConnection = new SqlConnection(_connectionString))
@@ -205,11 +235,22 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
                 sqlCommand.CommandText = @$"
-                        SELECT *
-                        FROM {VLatest.ChangeFeed.TableName}
-                        WHERE {VLatest.ChangeFeed.StudyInstanceUid} = @studyInstanceUid
-                        AND {VLatest.ChangeFeed.SeriesInstanceUid} = @seriesInstanceUid
-                        AND {VLatest.ChangeFeed.SopInstanceUid} = @sopInstanceUid
+                        SELECT c.Sequence,
+                             c.Timestamp,
+                             c.Action,
+                             c.StudyInstanceUid,
+                             c.SeriesInstanceUid,
+                             c.SopInstanceUid,
+                             c.OriginalWatermark,
+                             c.CurrentWatermark,
+                             c.FilePath,
+                             p.PartitionName
+                        FROM {VLatest.ChangeFeed.TableName} as c
+                        INNER JOIN {VLatest.Partition.TableName} AS p
+                            ON p.PartitionKey = c.PartitionKey
+                        WHERE c.{VLatest.ChangeFeed.StudyInstanceUid} = @studyInstanceUid
+                            AND c.{VLatest.ChangeFeed.SeriesInstanceUid} = @seriesInstanceUid
+                            AND c.{VLatest.ChangeFeed.SopInstanceUid} = @sopInstanceUid
                         ORDER BY {VLatest.ChangeFeed.Sequence}";
 
                 sqlCommand.Parameters.AddWithValue("@studyInstanceUid", studyInstanceUid);
@@ -240,8 +281,25 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
             using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
             {
                 sqlCommand.CommandText = @$"
-                        SELECT TOP({limit}) *
-                        FROM {VLatest.ChangeFeed.TableName}
+                        SELECT TOP({limit}) c.Sequence,
+                             c.Timestamp,
+                             c.Action,
+                             c.StudyInstanceUid,
+                             c.SeriesInstanceUid,
+                             c.SopInstanceUid,
+                             c.OriginalWatermark,
+                             c.CurrentWatermark,
+                             f.FilePath,
+                             p.PartitionName
+                        FROM {VLatest.ChangeFeed.TableName} as c
+                        INNER JOIN {VLatest.Partition.TableName} AS p
+                            ON p.PartitionKey = c.PartitionKey
+                        LEFT JOIN {VLatest.Instance.TableName} AS i
+                            ON i.StudyInstanceUid = c.StudyInstanceUid
+                            AND i.SeriesInstanceUid = c.SeriesInstanceUid
+                            AND i.SopInstanceUid = c.SopInstanceUid
+                        LEFT JOIN {VLatest.FileProperty.TableName} AS f
+                            ON f.InstanceKey = i.InstanceKey
                         WHERE {VLatest.ChangeFeed.Action} = @action
                         ORDER BY {VLatest.ChangeFeed.Sequence}";
 
