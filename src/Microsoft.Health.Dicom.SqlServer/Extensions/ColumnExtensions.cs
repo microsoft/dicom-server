@@ -13,4 +13,7 @@ internal static class ColumnExtensions
 
     public static NullableUniqueIdentifierColumn AsNullable(this UniqueIdentifierColumn column)
         => new NullableUniqueIdentifierColumn(column.Metadata.Name);
+
+    public static NullableNVarCharColumn AsNullable(this NVarCharColumn column)
+        => new NullableNVarCharColumn(column.Metadata.Name, (int)column.Metadata.MaxLength);
 }

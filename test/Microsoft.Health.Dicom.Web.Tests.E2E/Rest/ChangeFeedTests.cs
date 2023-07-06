@@ -29,6 +29,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
     private readonly IDicomWebClient _clientV2;
     private readonly DicomInstancesManager _instancesManagerV1;
     private readonly DicomInstancesManager _instancesManagerV2;
+    private readonly bool _externalStoreEnabled;
 
     public ChangeFeedTests(HttpIntegrationTestFixture<Startup> fixture)
     {
@@ -36,6 +37,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         _clientV2 = fixture.GetDicomWebClient(DicomApiVersions.V2);
         _instancesManagerV1 = new DicomInstancesManager(_clientV1);
         _instancesManagerV2 = new DicomInstancesManager(_clientV2);
+        _externalStoreEnabled = bool.Parse(TestEnvironment.Variables["EnableExternalStore"] ?? "false");
     }
 
     public Task InitializeAsync()
@@ -100,14 +102,20 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         ChangeFeedEntry[] testChanges;
 
         // Insert data over time
-        DateTimeOffset start = DateTimeOffset.UtcNow;
-        InstanceIdentifier instance1 = await CreateFileAsync();
+        // Note: There may be clock skew between the SQL server and the DICOM server,
+        // so we'll try to account for it by waiting a bit and searching for the proper SQL server time
         await Task.Delay(1000);
+        InstanceIdentifier instance1 = await CreateFileAsync();
+        await Task.Delay(500);
         InstanceIdentifier instance2 = await CreateFileAsync();
         InstanceIdentifier instance3 = await CreateFileAsync();
+        await Task.Delay(1000);
+
+        ChangeFeedEntry first = await FindFirstChangeOrDefaultAsync(instance1, TimeSpan.FromMinutes(5));
+        Assert.NotNull(first);
 
         // Get all creation events
-        var testRange = new TimeRange(start.AddMilliseconds(-1), DateTimeOffset.UtcNow.AddMilliseconds(1));
+        TimeRange testRange = TimeRange.After(first.Timestamp);
         using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeed(ToQueryString(testRange.Start, testRange.End, 0, 10)))
         {
             testChanges = await response.ToArrayAsync();
@@ -232,6 +240,42 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         }
     }
 
+    [Fact]
+    public async Task GivenAnInstance_WhenRetrievingChangeFeed_ThenExpectFilePathReturnedWhenExternalStoreUsed()
+    {
+        DateTimeOffset initialTimestamp;
+        await CreateFileAsync();
+
+        using (DicomWebResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeedLatest(ToQueryString(includeMetadata: false)))
+        {
+            ChangeFeedEntry changeFeedEntry = await response.GetValueAsync();
+
+            initialTimestamp = changeFeedEntry.Timestamp;
+            if (_externalStoreEnabled)
+            {
+                Assert.Matches(@"DICOM/Microsoft.Default\/\d*_\d*.dcm", changeFeedEntry.FilePath);
+            }
+            else
+            {
+                Assert.Null(changeFeedEntry.FilePath);
+            }
+        }
+
+        using (DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeed(ToQueryString(startTime: initialTimestamp, includeMetadata: false)))
+        {
+            ChangeFeedEntry[] changeFeedResults = await response.ToArrayAsync();
+
+            if (_externalStoreEnabled)
+            {
+                Assert.Matches(@"DICOM/Microsoft.Default\/\d*_\d*.dcm", changeFeedResults[0].FilePath);
+            }
+            else
+            {
+                Assert.Null(changeFeedResults[0].FilePath);
+            }
+        }
+    }
+
     [Theory]
     [InlineData("foo", "2023-05-03T10:58:00Z")]
     [InlineData("2023-05-03T10:58:00Z", "bar")]
@@ -298,6 +342,36 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         DicomDataset dataset = await response.GetValueAsync();
 
         return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Partition.Default);
+    }
+
+    private async Task<ChangeFeedEntry> FindFirstChangeOrDefaultAsync(InstanceIdentifier identifier, TimeSpan duration, int limit = 200)
+    {
+        int offset = 0;
+        int resultCount;
+        DateTimeOffset start = DateTimeOffset.UtcNow.Add(-duration);
+
+        do
+        {
+            string queryString = ToQueryString(startTime: start, offset: offset, limit: limit);
+            using DicomWebAsyncEnumerableResponse<ChangeFeedEntry> response = await _clientV2.GetChangeFeed(queryString);
+
+            resultCount = 0;
+            await foreach (ChangeFeedEntry change in response)
+            {
+                if (change.StudyInstanceUid == identifier.StudyInstanceUid &&
+                    change.SeriesInstanceUid == identifier.SeriesInstanceUid &&
+                    change.SopInstanceUid == identifier.SopInstanceUid)
+                {
+                    return change;
+                }
+
+                resultCount++;
+            }
+
+            offset += limit;
+        } while (resultCount == limit);
+
+        return null;
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)
