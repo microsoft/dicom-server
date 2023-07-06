@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -36,11 +36,13 @@ public static class DicomModulesExtensions
             .HandleTransientHttpError() // HttpRequestException, 5XX and 408
             .WaitAndRetryAsync(8, retryAttempt => retryAttempt <= 3 ? TimeSpan.FromSeconds(retryAttempt) : TimeSpan.FromSeconds(5));
 
-        services.AddHttpClient<IDicomWebClient, DicomWebClient>((sp, client) =>
-        {
-            DicomWebConfiguration config = sp.GetRequiredService<IOptions<DicomWebConfiguration>>().Value;
-            client.BaseAddress = config.PrivateEndpoint == null ? config.Endpoint : config.PrivateEndpoint;
-        })
+        services.AddHttpClient<IDicomWebClient, DicomWebClient>(
+            (httpClient, sp) =>
+            {
+                DicomWebConfiguration config = sp.GetRequiredService<IOptions<DicomWebConfiguration>>().Value;
+                httpClient.BaseAddress = config.PrivateEndpoint == null ? config.Endpoint : config.PrivateEndpoint;
+                return new DicomWebClient(httpClient, DicomApiVersions.V1);
+            })
             .AddPolicyHandler(retryPolicy)
             .AddAuthenticationHandler(dicomWebConfigurationSection.GetSection(AuthenticationOptions.SectionName));
 
