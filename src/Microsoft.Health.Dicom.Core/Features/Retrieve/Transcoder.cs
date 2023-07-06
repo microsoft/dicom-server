@@ -70,7 +70,7 @@ public class Transcoder : ITranscoder
         var parsedDicomTransferSyntax = DicomTransferSyntax.Parse(requestedTransferSyntax);
 
         IByteBuffer resultByteBuffer = TranscodeFrame(dataset, frameIndex, parsedDicomTransferSyntax);
-        return _recyclableMemoryStreamManager.GetStream("RetrieveDicomResourceHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
+        return _recyclableMemoryStreamManager.GetStream(nameof(TranscodeFrame), resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
     }
 
     private IByteBuffer TranscodeFrame(DicomDataset dataset, int frameIndex, DicomTransferSyntax targetSyntax)
@@ -128,7 +128,7 @@ public class Transcoder : ITranscoder
             throw new TranscodingException();
         }
 
-        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream();
+        MemoryStream resultStream = _recyclableMemoryStreamManager.GetStream(tag: nameof(TranscodeFileAsync));
 
         if (dicomFile != null)
         {

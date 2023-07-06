@@ -84,7 +84,7 @@ public static class DicomFileExtensions
         DicomDataset dataset = dcmFile.Dataset;
 
         var writeOptions = new DicomWriteOptions();
-        using MemoryStream resultStream = recyclableMemoryStreamManager.GetStream();
+        using MemoryStream resultStream = recyclableMemoryStreamManager.GetStream(tag: nameof(GetByteLengthAsync));
 
         var target = new StreamByteTarget(resultStream);
         var writer = new DicomFileWriter(writeOptions);
