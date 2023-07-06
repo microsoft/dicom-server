@@ -9,17 +9,16 @@ using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Client.Models;
 
-[Serializable]
 public class Partition
 {
     public const string DefaultName = "Microsoft.Default";
 
     public const int DefaultKey = 1;
 
-    [JsonPropertyName("PartitionKey")]
+    [JsonPropertyName("partitionKey")]
     public int Key { get; }
 
-    [JsonPropertyName("PartitionName")]
+    [JsonPropertyName("partitionName")]
     public string Name { get; }
 
     public DateTimeOffset CreatedDate { get; set; }
