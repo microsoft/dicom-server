@@ -23,7 +23,8 @@ BEGIN
 
     SELECT  TOP (@count) p.PartitionName, d.PartitionKey, d.StudyInstanceUid, d.SeriesInstanceUid, d.SopInstanceUid, d.Watermark, d.OriginalWatermark
     FROM    dbo.DeletedInstance as d WITH (UPDLOCK, READPAST)
-    INNER JOIN dbo.Partition as p WITH (NOLOCK) ON p.PartitionKey = d.PartitionKey
+    INNER JOIN dbo.Partition as p WITH (NOLOCK)
+    ON p.PartitionKey = d.PartitionKey
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()
 END
