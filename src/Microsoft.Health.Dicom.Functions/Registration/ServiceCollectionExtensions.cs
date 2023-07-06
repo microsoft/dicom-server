@@ -27,7 +27,6 @@ using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Microsoft.Health.Operations.Functions.Management;
 using Microsoft.Health.SqlServer.Configs;
-using Microsoft.IO;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Registration;

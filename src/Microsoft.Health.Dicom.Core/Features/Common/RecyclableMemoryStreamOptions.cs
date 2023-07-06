@@ -3,12 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.IO;
 
 namespace Microsoft.Health.Dicom.Core.Features.Common;
 
+/// <summary>
+/// Represents the settings that may be configured for the shared instance of <see cref="RecyclableMemoryStreamManager"/>.
+/// </summary>
 public class RecyclableMemoryStreamOptions
 {
+    /// <summary>
+    /// The default <see cref="IConfigurationSection"/> name.
+    /// </summary>
     public const string DefaultSectionName = "RecyclableMemoryStream";
 
     /// <inheritdoc cref="RecyclableMemoryStreamManager.AggressiveBufferReturn"/>

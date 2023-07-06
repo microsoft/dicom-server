@@ -50,8 +50,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IInstanceMetadataCache instanceMetadataCache,
         IFramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
-        ILogger<RetrieveResourceService> logger,
-        ILoggerFactory loggerFactory)
+        ILogger<RetrieveResourceService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
@@ -131,11 +130,13 @@ public class RetrieveResourceService : IRetrieveResourceService
                 using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
                 Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
-                IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum = GetAsyncEnumerableTranscodedStreams(
-                    isOriginalTransferSyntaxRequested,
-                    transcodedStream,
-                    instance,
-                    requestedTransferSyntax);
+                IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
+                    GetTranscodedStreams(
+                        isOriginalTransferSyntaxRequested,
+                        transcodedStream,
+                        instance,
+                        requestedTransferSyntax)
+                    .ToAsyncEnumerable();
 
                 return new RetrieveResourceResponse(
                     transcodedEnum,
@@ -311,13 +312,12 @@ public class RetrieveResourceService : IRetrieveResourceService
         }
     }
 
-    private static async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableTranscodedStreams(
+    private static IEnumerable<RetrieveResourceInstance> GetTranscodedStreams(
         bool isOriginalTransferSyntaxRequested,
         Stream transcodedStream,
         InstanceMetadata instanceMetadata,
         string requestedTransferSyntax)
     {
-        await Task.FromResult(0);
         yield return new RetrieveResourceInstance(transcodedStream, GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata), transcodedStream.Length);
     }
 
