@@ -2630,7 +2630,7 @@ BEGIN
                         d.OriginalWatermark
     FROM   dbo.DeletedInstance AS d WITH (UPDLOCK, READPAST)
            INNER JOIN
-           dbo.Partition AS p WITH (NOLOCK)
+           dbo.Partition AS p
            ON p.PartitionKey = d.PartitionKey
     WHERE  RetryCount <= @maxRetries
            AND CleanupAfter < SYSUTCDATETIME();
