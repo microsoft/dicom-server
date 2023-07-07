@@ -27,6 +27,7 @@ using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 using DicomValidationException = FellowOakDicom.DicomValidationException;
 
@@ -540,6 +541,48 @@ public class DicomStoreServiceTests
         dicomInstanceEntry.GetDicomDatasetAsync(DefaultCancellationToken).Returns(_dicomDataset2);
 
         await ExecuteAndValidateAsync(dicomInstanceEntry);
+    }
+
+    [Fact]
+    public async Task GivenFetchCancellation_WhenProcessed_ThenItShouldHaveThrown()
+    {
+        using CancellationTokenSource tokenSource = new CancellationTokenSource();
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+        dicomInstanceEntry.GetDicomDatasetAsync(tokenSource.Token).Returns(ValueTask.FromException<DicomDataset>(new TaskCanceledException()));
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() => _storeService.ProcessAsync(
+            new IDicomInstanceEntry[] { dicomInstanceEntry },
+            null,
+            cancellationToken: tokenSource.Token));
+    }
+
+    [Fact]
+    public async Task GivenValidationCancellation_WhenProcessed_ThenItShouldHaveThrown()
+    {
+        using CancellationTokenSource tokenSource = new CancellationTokenSource();
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+        dicomInstanceEntry.GetDicomDatasetAsync(tokenSource.Token).Returns(_dicomDataset1);
+        _dicomDatasetValidator.ValidateAsync(_dicomDataset1, null, tokenSource.Token).ThrowsAsync<TaskCanceledException>();
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() => _storeService.ProcessAsync(
+            new IDicomInstanceEntry[] { dicomInstanceEntry },
+            null,
+            cancellationToken: tokenSource.Token));
+    }
+
+    [Fact]
+    public async Task GivenStowCancellation_WhenProcessed_ThenItShouldHaveThrown()
+    {
+        using CancellationTokenSource tokenSource = new CancellationTokenSource();
+        IDicomInstanceEntry dicomInstanceEntry = Substitute.For<IDicomInstanceEntry>();
+        dicomInstanceEntry.GetDicomDatasetAsync(tokenSource.Token).Returns(_dicomDataset1);
+        _storeOrchestrator.StoreDicomInstanceEntryAsync(dicomInstanceEntry, tokenSource.Token).ThrowsAsync(new DataStoreException(new TaskCanceledException()));
+
+        Exception actual = await Assert.ThrowsAsync<DataStoreException>(() => _storeService.ProcessAsync(
+            new IDicomInstanceEntry[] { dicomInstanceEntry },
+            null,
+            cancellationToken: tokenSource.Token));
+        Assert.IsType<TaskCanceledException>(actual.InnerException);
     }
 
     private Task ExecuteAndValidateAsync(params IDicomInstanceEntry[] dicomInstanceEntries)
