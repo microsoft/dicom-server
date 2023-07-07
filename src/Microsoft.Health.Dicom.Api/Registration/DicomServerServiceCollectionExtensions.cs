@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
@@ -34,7 +33,6 @@ using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
-using Microsoft.IO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Microsoft.AspNetCore.Builder;
@@ -150,7 +148,7 @@ public static class DicomServerServiceCollectionExtensions
         services.RegisterAssemblyModules(typeof(DicomMediatorExtensions).Assembly, dicomServerConfiguration.Features, dicomServerConfiguration.Services);
         services.AddTransient<IStartupFilter, DicomServerStartupFilter>();
 
-        services.TryAddSingleton<RecyclableMemoryStreamManager>();
+        services.AddRecyclableMemoryStreamManager(configurationRoot);
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
 

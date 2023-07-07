@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -67,7 +66,6 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
-        var loggerFactory = Substitute.For<ILoggerFactory>();
         var instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
         var framesRangeCache = Substitute.For<IFramesRangeCache>();
 
@@ -83,9 +81,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             instanceMetadataCache,
             framesRangeCache,
             retrieveConfigurationSnapshot,
-            NullLogger<RetrieveResourceService>.Instance,
-            loggerFactory
-            );
+            NullLogger<RetrieveResourceService>.Instance);
     }
 
     [Fact]
