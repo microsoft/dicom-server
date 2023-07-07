@@ -3225,10 +3225,10 @@ components:
     PartitionEntry:
       type: object
       properties:
-        PartitionKey:
+        partitionKey:
           type: integer
           format: int32
-        PartitionName:
+        partitionName:
           type: string
           nullable: true
         createdDate:

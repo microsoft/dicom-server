@@ -15,6 +15,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Microsoft.Health.Operations;
 using Xunit;
@@ -26,11 +27,13 @@ internal class DicomInstancesManager : IAsyncDisposable
 
     private readonly IDicomWebClient _dicomWebClient;
     private readonly ConcurrentBag<DicomInstanceId> _instanceIds;
+    private readonly bool _isDataPartitionEnabled;
 
     public DicomInstancesManager(IDicomWebClient dicomWebClient)
     {
         _dicomWebClient = EnsureArg.IsNotNull(dicomWebClient, nameof(dicomWebClient));
         _instanceIds = new ConcurrentBag<DicomInstanceId>();
+        _isDataPartitionEnabled = bool.Parse(TestEnvironment.Variables["EnableDataPartitions"] ?? "false");
     }
 
     public async ValueTask DisposeAsync()
@@ -39,13 +42,18 @@ internal class DicomInstancesManager : IAsyncDisposable
         {
             try
             {
-                await _dicomWebClient.DeleteInstanceAsync(id.StudyInstanceUid, id.SeriesInstanceUid, id.SopInstanceUid, id.Partition?.Name);
+                await _dicomWebClient.DeleteInstanceAsync(id.StudyInstanceUid, id.SeriesInstanceUid, id.SopInstanceUid, GetPartition(id.Partition));
             }
             catch (DicomWebException)
             {
 
             }
         }
+    }
+
+    private string GetPartition(Partition partition)
+    {
+        return _isDataPartitionEnabled ? partition?.Name : null;
     }
 
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, Partition partition = null, CancellationToken cancellationToken = default)
