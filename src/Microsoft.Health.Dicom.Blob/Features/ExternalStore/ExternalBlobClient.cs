@@ -97,6 +97,6 @@ internal class ExternalBlobClient : IBlobClient
     {
         return _isPartitionEnabled ?
             _externalStoreOptions.StorageDirectory + partitionName + "/" :
-            _externalStoreOptions.StorageDirectory + "/";
+            _externalStoreOptions.StorageDirectory;
     }
 }
