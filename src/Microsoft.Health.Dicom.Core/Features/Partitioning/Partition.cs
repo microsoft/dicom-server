@@ -6,6 +6,7 @@
 using System;
 using System.Text.Json.Serialization;
 using EnsureThat;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
@@ -18,9 +19,11 @@ public class Partition
     public const int DefaultKey = 1;
 
     [JsonPropertyName("partitionKey")] // these explicit names are here for the REST schema
+    [JsonProperty("partitionKey")] // necessary to not break functions that use the old Newtonsoft.Json
     public int Key { get; }
 
     [JsonPropertyName("partitionName")] // these explicit names are here for the REST schema
+    [JsonProperty("partitionName")] // necessary to not break functions that use the old Newtonsoft.Json
     public string Name { get; }
 
     public DateTimeOffset CreatedDate { get; set; }
