@@ -158,13 +158,6 @@ public class RetrieveMetadataServiceTests
             ResourceType.Study,
             instanceProperty: new InstanceProperties() { OriginalVersion = 5 });
 
-        _instanceStore.GetInstanceIdentifierWithPropertiesAsync(
-            _dicomRequestContextAccessor.RequestContext.DataPartition,
-            _studyInstanceUid,
-            seriesInstanceUid: null,
-            sopInstanceUid: null,
-            DefaultCancellationToken).Returns(versionedInstanceIdentifiers);
-
         _metadataStore.GetInstanceMetadataAsync(5, DefaultCancellationToken).Returns(new DicomDataset());
 
         string ifNoneMatch = null;
