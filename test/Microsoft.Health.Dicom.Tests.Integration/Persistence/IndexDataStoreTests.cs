@@ -512,8 +512,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid,
-                version,
-                Partition.DefaultKey);
+                version);
 
         await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
@@ -534,7 +533,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         DeletedInstance deletedEntry = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid)).First();
-        var versionedDicomInstanceIdentifier = new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark, Partition.DefaultKey);
+        var versionedDicomInstanceIdentifier = new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark);
         var retryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(versionedDicomInstanceIdentifier, Clock.UtcNow);
         Assert.Equal(1, retryCount);
     }
@@ -610,7 +609,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Empty(extendedTags);
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-        await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.DefaultKey, dataset, QueryTagService.CoreQueryTags);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset, QueryTagService.CoreQueryTags);
     }
 
     [Fact]
@@ -624,7 +623,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { DicomTag.PatientName.BuildAddExtendedQueryTagEntry() }, maxAllowedCount: 128, ready: true);
 
         var queryTags = new[] { new QueryTag(tagEntry) };
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.DefaultKey, dataset, queryTags);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset, queryTags);
         await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
             () => _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, watermark, queryTags, _defaultFileProperties));
     }

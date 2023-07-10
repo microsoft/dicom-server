@@ -80,7 +80,7 @@ public class StoreOrchestrator : IStoreOrchestrator
         _logger.LogInformation("Storing a DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partition.Key, dicomDataset, queryTags, cancellationToken);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dicomDataset, queryTags, cancellationToken);
         var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version, partition);
 
         try

@@ -51,13 +51,13 @@ public class IdentifierExportSourceTests
 
         var expected = new VersionedInstanceIdentifier[]
         {
-            new VersionedInstanceIdentifier("10", "10", "10", 1, _partition.Key),
-            new VersionedInstanceIdentifier("10", "10", "20", 3, _partition.Key),
-            new VersionedInstanceIdentifier("10", "20", "10", 1, _partition.Key),
-            new VersionedInstanceIdentifier("100", "200", "300", 2, _partition.Key),
-            new VersionedInstanceIdentifier("100", "200", "400", 7, _partition.Key),
-            new VersionedInstanceIdentifier("100", "200", "500", 2, _partition.Key),
-            new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition.Key),
+            new VersionedInstanceIdentifier("10", "10", "10", 1, _partition),
+            new VersionedInstanceIdentifier("10", "10", "20", 3, _partition),
+            new VersionedInstanceIdentifier("10", "20", "10", 1, _partition),
+            new VersionedInstanceIdentifier("100", "200", "300", 2, _partition),
+            new VersionedInstanceIdentifier("100", "200", "400", 7, _partition),
+            new VersionedInstanceIdentifier("100", "200", "500", 2, _partition),
+            new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition),
         };
 
         _store

@@ -16,6 +16,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
@@ -42,7 +43,7 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
-        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstancesAsync(arguments.PartitionKey, arguments.StudyInstanceUid, CancellationToken.None);
+        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstancesAsync(new Partition(arguments.PartitionKey, Partition.UnknownName), arguments.StudyInstanceUid, CancellationToken.None);
 
         logger.LogInformation("Beginning to update all instance watermarks");
 

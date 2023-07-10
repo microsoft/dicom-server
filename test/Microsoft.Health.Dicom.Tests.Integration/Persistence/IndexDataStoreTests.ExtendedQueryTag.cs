@@ -393,7 +393,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         dataset.Add(new DicomFloatingPointDouble(DicomTag.DopplerCorrectionAngle, 1.0 + index));
         dataset.Add(new DicomSignedLong(DicomTag.ReferencePixelX0, 1 + index));
         dataset.Add(new DicomPersonName(DicomTag.DistributionNameRETIRED, "abc^abc" + index));
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset, queryTags);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset, queryTags);
         await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, queryTags);
         return await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, watermark);
     }
@@ -409,7 +409,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
     private async Task<long> CreateInstanceIndexAsync(DicomDataset dicomDataset, IReadOnlyList<QueryTag> queryTags)
     {
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dicomDataset, queryTags);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dicomDataset, queryTags);
         await _indexDataStore.EndCreateInstanceIndexAsync(1, dicomDataset, watermark, queryTags);
         return watermark;
     }

@@ -14,20 +14,8 @@ public class VersionedInstanceIdentifier : InstanceIdentifier
         string seriesInstanceUid,
         string sopInstanceUid,
         long version,
-        Partition partition)
-        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partition)
-    {
-        Version = version;
-    }
-
-    public VersionedInstanceIdentifier(
-        string studyInstanceUid,
-        string seriesInstanceUid,
-        string sopInstanceUid,
-        long version,
-        int partitionKey = Partition.DefaultKey,
-        string partitionName = Partition.DefaultName)
-        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, new Partition(partitionKey, partitionName))
+        Partition partition = null)
+        : base(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partition ?? Partition.Default)
     {
         Version = version;
     }

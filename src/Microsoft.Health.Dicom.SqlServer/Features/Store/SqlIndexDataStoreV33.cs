@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -28,7 +29,7 @@ internal class SqlIndexDataStoreV33 : SqlIndexDataStoreV32
     }
 
     public override SchemaVersion Version => SchemaVersion.V33;
-    public override async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(Partition partition, string studyInstanceUid, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -37,7 +38,7 @@ internal class SqlIndexDataStoreV33 : SqlIndexDataStoreV32
         {
             VLatest.BeginUpdateInstanceV33.PopulateCommand(
                 sqlCommandWrapper,
-                partitionKey,
+                partition.Key,
                 studyInstanceUid);
 
             try
@@ -70,7 +71,7 @@ internal class SqlIndexDataStoreV33 : SqlIndexDataStoreV32
                                     rSeriesInstanceUid,
                                     rSopInstanceUid,
                                     watermark,
-                                    partitionKey),
+                                    partition),
                                 new InstanceProperties()
                                 {
                                     TransferSyntaxUid = rTransferSyntaxUid,

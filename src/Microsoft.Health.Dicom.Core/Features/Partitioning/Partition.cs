@@ -13,6 +13,8 @@ public class Partition
 {
     public const string DefaultName = "Microsoft.Default";
 
+    public const string UnknownName = "Unknown"; // use for older binaries where we are unable to get partition name and it is not known
+
     public const int DefaultKey = 1;
 
     [JsonPropertyName("partitionKey")] // these explicit names are here for the REST schema

@@ -36,7 +36,7 @@ public partial class UpdateDurableFunctionTests
 
         var versions = expected.Select(x => x.Version).ToList();
 
-        _indexStore.BeginUpdateInstancesAsync(Partition.DefaultKey, studyInstanceUid, CancellationToken.None).Returns(identifiers);
+        _indexStore.BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
         IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
             new UpdateInstanceWatermarkArguments(Partition.DefaultKey, studyInstanceUid),
@@ -44,7 +44,7 @@ public partial class UpdateDurableFunctionTests
 
         await _indexStore
            .Received(1)
-           .BeginUpdateInstancesAsync(Partition.DefaultKey, studyInstanceUid, cancellationToken: CancellationToken.None);
+           .BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, cancellationToken: CancellationToken.None);
 
         for (int i = 0; i < expected.Count; i++)
         {
@@ -184,14 +184,16 @@ public partial class UpdateDurableFunctionTests
     }
 
 
-    private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, int partitionKey = Partition.DefaultKey, InstanceProperties instanceProperty = null)
+    private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
+        instanceProperty ??= new InstanceProperties();
+        partition ??= Partition.Default;
 
         instanceProperty = instanceProperty ?? new InstanceProperties();
 
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0, partitionKey), instanceProperty));
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, partitionKey), instanceProperty));
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0, partition), instanceProperty));
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, partition), instanceProperty));
         return dicomInstanceIdentifiersList;
     }
 }

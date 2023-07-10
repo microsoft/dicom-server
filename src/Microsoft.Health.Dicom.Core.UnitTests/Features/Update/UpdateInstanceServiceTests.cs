@@ -273,11 +273,12 @@ public class UpdateInstanceServiceTests
         copyStream.Dispose();
     }
 
-    private static List<InstanceMetadata> SetupInstanceIdentifiersList(long version, int partitionKey = Partition.DefaultKey, InstanceProperties instanceProperty = null)
+    private static List<InstanceMetadata> SetupInstanceIdentifiersList(long version, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
-        instanceProperty = instanceProperty ?? new InstanceProperties();
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version, partitionKey), instanceProperty));
+        instanceProperty ??= new InstanceProperties();
+        partition ??= Partition.Default;
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version, partition), instanceProperty));
         return dicomInstanceIdentifiersList;
     }
 }

@@ -37,9 +37,7 @@ public class StoreOrchestratorTests
         DefaultStudyInstanceUid,
         DefaultSeriesInstanceUid,
         DefaultSopInstanceUid,
-        DefaultVersion,
-        Partition.DefaultKey,
-        Partition.DefaultName);
+        DefaultVersion);
 
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {
@@ -80,7 +78,7 @@ public class StoreOrchestratorTests
         _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
         _indexDataStore
-            .BeginCreateInstanceIndexAsync(Arg.Any<int>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
+            .BeginCreateInstanceIndexAsync(Arg.Any<Partition>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
             .Returns(DefaultVersion);
 
         _queryTagService
