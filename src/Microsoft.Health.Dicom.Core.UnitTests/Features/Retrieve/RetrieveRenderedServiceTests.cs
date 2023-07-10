@@ -163,7 +163,7 @@ public class RetrieveRenderedServiceTests
     [Fact]
     public async Task GivenStoredInstancesWithFramesJpeg_WhenRetrieveRenderedForFrames_ThenEachFrameRenderedSuccesfully()
     {
-        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
 
         KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
