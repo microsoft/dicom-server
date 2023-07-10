@@ -11,9 +11,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 public interface IPartitionStore
 {
-    Task<Partitioning.Partition> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
+    Task<Partition> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<Partitioning.Partition>> GetPartitionsAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<Partition>> GetPartitionsAsync(CancellationToken cancellationToken = default);
 
-    Task<Partitioning.Partition> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
+    Task<Partition> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default);
 }

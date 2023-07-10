@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
-public class PartitionCache : EphemeralMemoryCache<string, Partitioning.Partition>
+public class PartitionCache : EphemeralMemoryCache<string, Partition>
 {
     public PartitionCache(IOptions<DataPartitionConfiguration> configuration, ILoggerFactory loggerFactory, ILogger<PartitionCache> logger)
         : base(configuration, loggerFactory, logger)
