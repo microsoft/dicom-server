@@ -151,11 +151,12 @@ public class QueryService : IQueryService
             else
             {
                 Dictionary<DicomIdentifier, SeriesResult> map = seriesComputedResults.ToDictionary<SeriesResult, DicomIdentifier>(a => new DicomIdentifier(a.StudyInstanceUid, a.SeriesInstanceUid, default));
-                instanceMetadata = instanceMetadata.Select(x =>
-                {
-                    var ds = new DicomDataset(x);
-                    return ds.AddOrUpdate(map[new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default)].DicomDataset);
-                });
+                instanceMetadata = instanceMetadata.Where(x =>
+                    map.ContainsKey(new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default))).Select(x =>
+                    {
+                        var ds = new DicomDataset(x);
+                        return ds.AddOrUpdate(map[new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default)].DicomDataset);
+                    });
             }
         }
         if (getStudyResponse)
@@ -168,11 +169,12 @@ public class QueryService : IQueryService
             else
             {
                 Dictionary<string, StudyResult> map = studyComputedResults.ToDictionary<StudyResult, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
-                instanceMetadata = instanceMetadata.Select(x =>
-                {
-                    var ds = new DicomDataset(x);
-                    return ds.AddOrUpdate(map[x.GetSingleValue<string>(DicomTag.StudyInstanceUID)].DicomDataset);
-                });
+                instanceMetadata = instanceMetadata.Where(x =>
+                    map.ContainsKey(x.GetSingleValue<string>(DicomTag.StudyInstanceUID))).Select(x =>
+                    {
+                        var ds = new DicomDataset(x);
+                        return ds.AddOrUpdate(map[x.GetSingleValue<string>(DicomTag.StudyInstanceUID)].DicomDataset);
+                    });
             }
         }
 
