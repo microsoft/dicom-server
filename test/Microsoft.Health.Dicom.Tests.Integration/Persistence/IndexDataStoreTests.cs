@@ -163,10 +163,10 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
         IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
 
-        Assert.Equal(1, studyMetadataEntries.Count);
+        Assert.Single(studyMetadataEntries);
         Assert.Equal(conflictPatientName, studyMetadataEntries.First().PatientName);
 
-        Assert.Equal(1, seriesMetadataEntries.Count);
+        Assert.Single(seriesMetadataEntries);
         Assert.Equal(conflictModality, seriesMetadataEntries.First().Modality);
     }
 
@@ -193,11 +193,11 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
         IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
 
-        Assert.Equal(1, studyMetadataEntries.Count);
+        Assert.Single(studyMetadataEntries);
         Assert.Equal(dataset.GetString(DicomTag.PatientName), studyMetadataEntries.First().PatientName);
         Assert.Equal(dataset.GetString(DicomTag.StudyDescription), studyMetadataEntries.First().StudyDescription);
 
-        Assert.Equal(1, seriesMetadataEntries.Count);
+        Assert.Single(seriesMetadataEntries);
         Assert.Equal(dataset.GetString(DicomTag.Modality), seriesMetadataEntries.First().Modality);
     }
 

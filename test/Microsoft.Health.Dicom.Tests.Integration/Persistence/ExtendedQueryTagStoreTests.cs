@@ -198,7 +198,7 @@ public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         // Page 1
         tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(1, 0);
-        Assert.Equal(1, tags.Count);
+        Assert.Single(tags);
         AssertTag(keys[0], expected[0], tags[0], ExtendedQueryTagStatus.Adding);
 
         // Page 2
@@ -209,7 +209,7 @@ public class ExtendedQueryTagStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         // Page 3
         tags = await _extendedQueryTagStore.GetExtendedQueryTagsAsync(1, 3);
-        Assert.Equal(1, tags.Count);
+        Assert.Single(tags);
         AssertTag(keys[3], expected[3], tags[0], ExtendedQueryTagStatus.Adding);
     }
 

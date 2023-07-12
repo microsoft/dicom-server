@@ -115,7 +115,7 @@ public class ApiVersionsConventionTests
 
         // assert
         if (enableLatest)
-            Assert.Equal(1, controllerModel.Actions.Count);
+            Assert.Single(controllerModel.Actions);
         else
             Assert.Empty(controllerModel.Actions);
     }
