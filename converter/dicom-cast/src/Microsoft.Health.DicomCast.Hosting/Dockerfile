@@ -1,5 +1,5 @@
 # Define the "runtime" image which will run DICOMcast
-FROM mcr.microsoft.com/dotnet/aspnet:7.0.8-alpine3.17-amd64@sha256:1ad60e3de0cbd7c2a9517264a35562ed4b18e59bffcd7ccbc7fccbd2396b124c AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:7.0.9-alpine3.17-amd64@sha256:bbf461d58c859a231a99023445a9b8d81ee4b5f96c0d87a4479db6ddda284771 AS runtime
 RUN set -x && \
     addgroup nonroot && \
     adduser -S -D -H -s /sbin/nologin -G nonroot -g nonroot nonroot
