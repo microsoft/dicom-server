@@ -7,7 +7,7 @@
 
   <!-- Properties used by sql task to generate full script-->
   <PropertyGroup>
-    <LatestSchemaVersion>42</LatestSchemaVersion>
+    <LatestSchemaVersion>43</LatestSchemaVersion>
     <GeneratedFullScriptPath>Features\Schema\Migrations\$(LatestSchemaVersion).sql</GeneratedFullScriptPath>
   </PropertyGroup>
 
@@ -68,6 +68,7 @@
     <TSqlScript Include="Features\Schema\Sql\Scripts\Sequences.sql" />
     <TSqlScript Include="Features\Schema\Sql\Tables\*.sql" />
     <TSqlScript Include="Features\Schema\Sql\Types\*.sql" />
+    <None Remove="Features\Schema\Migrations\43.diff.sql" />
     <TSqlScript Include="Features\Schema\Sql\Scripts\WorkitemQueryTag.sql" />
   </ItemGroup>
 
