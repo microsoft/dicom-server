@@ -79,6 +79,7 @@ BEGIN
     FROM dbo.FileProperty as FP
     INNER JOIN @deletedInstances AS DI
     ON DI.InstanceKey = FP.InstanceKey
+    AND DI.Watermark = FP.Watermark
 
     -- Deleting tag errors
     DECLARE @deletedTags AS TABLE

@@ -3,13 +3,16 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
@@ -21,6 +24,13 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 
 public partial class UpdateDurableFunctionTests
 {
+
+    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    {
+        Path = String.Empty,
+        ETag = String.Empty
+    };
+
     [Fact]
     public async Task GivenInstanceMetadata_WhenUpdatingInstanceWatermark_ThenShouldMatchCorrectly()
     {
@@ -38,7 +48,7 @@ public partial class UpdateDurableFunctionTests
 
         _indexStore.BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
-        IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
+        IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkV2Async(
             new UpdateInstanceWatermarkArguments(Partition.DefaultKey, studyInstanceUid),
             NullLogger.Instance);
 
@@ -76,12 +86,13 @@ public partial class UpdateDurableFunctionTests
                 .UpdateInstanceBlobAsync(
                 instance,
                 Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                Partition.Default,
                 Arg.Any<CancellationToken>())
-                .Returns(Task.CompletedTask);
+                .Returns(DefaultFileProperties);
         }
 
-        await _updateDurableFunction.UpdateInstanceBlobsAsync(
-            new UpdateInstanceBlobArguments(Partition.DefaultKey, expected, dataset),
+        await _updateDurableFunction.UpdateInstanceBlobsV2Async(
+            new UpdateInstanceBlobArguments(expected, dataset, Partition.Default),
             NullLogger.Instance);
 
         foreach (var instance in expected)
@@ -91,6 +102,7 @@ public partial class UpdateDurableFunctionTests
                 .UpdateInstanceBlobAsync(
                 instance,
                 Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                Partition.Default,
                 Arg.Any<CancellationToken>());
         }
     }
@@ -100,20 +112,25 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
 
-        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), CancellationToken.None).Returns(Task.CompletedTask);
+        ReadOnlyCollection<WatermarkedFileProperties> watermarkedFileProperties = new ReadOnlyCollection<WatermarkedFileProperties>(new List<WatermarkedFileProperties>());
+        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), watermarkedFileProperties, CancellationToken.None).Returns(Task.CompletedTask);
 
         var ds = new DicomDataset
         {
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        await _updateDurableFunction.CompleteUpdateStudyAsync(
-            new CompleteStudyArguments(Partition.DefaultKey, studyInstanceUid, "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}"),
+        await _updateDurableFunction.CompleteUpdateStudyV2Async(
+            new CompleteStudyArguments(
+                Partition.DefaultKey,
+                studyInstanceUid,
+                "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}",
+                watermarkedFileProperties),
             NullLogger.Instance);
 
         await _indexStore
             .Received(1)
-            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), CancellationToken.None);
+            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), watermarkedFileProperties, CancellationToken.None);
     }
 
     [Fact]
@@ -129,24 +146,19 @@ public partial class UpdateDurableFunctionTests
                 NewVersion = x.InstanceProperties.NewVersion
             }).Take(1).ToList();
 
-        // Arrange input
-        IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
-
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
-        await _updateDurableFunction.CleanupNewVersionBlobAsync(
-            context,
+        await _updateDurableFunction.CleanupNewVersionBlobV2Async(
+            new CleanupNewVersionBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 
         // Assert behavior
-        context.Received(1).GetInput<IReadOnlyList<InstanceFileState>>();
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
     }
 
 
@@ -168,7 +180,7 @@ public partial class UpdateDurableFunctionTests
         context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -180,17 +192,15 @@ public partial class UpdateDurableFunctionTests
         context.Received(1).GetInput<IReadOnlyList<InstanceFileState>>();
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
     }
 
 
     private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
-        instanceProperty ??= new InstanceProperties();
+        instanceProperty ??= new InstanceProperties() { NewVersion = 2, OriginalVersion = 3 };
         partition ??= Partition.Default;
-
-        instanceProperty = instanceProperty ?? new InstanceProperties();
 
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0, partition), instanceProperty));
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, partition), instanceProperty));

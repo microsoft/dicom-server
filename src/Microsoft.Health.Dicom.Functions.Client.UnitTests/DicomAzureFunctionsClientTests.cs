@@ -530,7 +530,7 @@ public class DicomAzureFunctionsClientTests
             .Returns(instanceId);
         _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
-        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, Partition.DefaultKey, source.Token);
+        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, Partition.Default, source.Token);
         Assert.Equal(operationId, actual.Id);
         Assert.Equal(uri, actual.Href);
 

@@ -183,19 +183,19 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
 
         cancellationToken.ThrowIfCancellationRequested();
 
         string datasetToUpdate = JsonSerializer.Serialize(updateSpecification.ChangeDataset, _jsonSerializerOptions);
-        string instanceId = await _durableClient.StartNewAsync(
+        string instanceId = await _durableClient.StartNewAsync( // v2
             _options.Update.Name,
             operationId.ToString(OperationId.FormatSpecifier),
             new UpdateInput
             {
-                PartitionKey = partitionKey,
+                Partition = partition,
                 ChangeDataset = datasetToUpdate,
                 StudyInstanceUids = updateSpecification.StudyInstanceUids,
             });

@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Operations;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Messages.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -95,11 +96,11 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
         EnsureArg.IsNotNull(updateSpecification.ChangeDataset, nameof(updateSpecification.ChangeDataset));
 
-        int partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
+        Partition partition = _contextAccessor.RequestContext.GetPartition();
 
         try
         {
-            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partitionKey, cancellationToken);
+            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partition, cancellationToken);
 
             string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
             _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);

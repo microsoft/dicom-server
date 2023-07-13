@@ -162,7 +162,8 @@ public interface IIndexDataStore
     /// <param name="partitionKey">The partition key.</param>
     /// <param name="studyInstanceUid"></param>
     /// <param name="dicomDataset">The DICOM dataset to index.</param>
+    /// <param name="watermarkedFilePropertiesList">Properties of newly stored blob file from "update" for each watermark.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default);
+    Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList, CancellationToken cancellationToken = default);
 }

@@ -13,6 +13,7 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -103,6 +104,7 @@ internal class SqlIndexDataStoreV32 : SqlIndexDataStoreV23
         int partitionKey,
         string studyInstanceUid,
         DicomDataset dicomDataset,
+        IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

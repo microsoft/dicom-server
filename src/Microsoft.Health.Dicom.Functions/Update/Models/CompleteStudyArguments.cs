@@ -3,6 +3,9 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.Common;
+
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
 /// <summary>
@@ -11,15 +14,17 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 public sealed class CompleteStudyArguments
 {
     public int PartitionKey { get; }
+    public IReadOnlyList<WatermarkedFileProperties> WatermarkedFilePropertiesList { get; }
 
     public string StudyInstanceUid { get; }
 
     public string ChangeDataset { get; set; }
 
-    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
+    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList)
     {
         PartitionKey = partitionKey;
         StudyInstanceUid = studyInstanceUid;
         ChangeDataset = dicomDataset;
+        WatermarkedFilePropertiesList = watermarkedFilePropertiesList;
     }
 }

@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -39,6 +41,11 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private readonly IQueryStore _queryStore;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly SqlDataStoreTestsFixture _fixture;
+    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    {
+        Path = String.Empty,
+        ETag = String.Empty
+    };
 
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
     {
@@ -281,13 +288,24 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
+        List<WatermarkedFileProperties> watermarkedFilePropertiesList = new List<WatermarkedFileProperties>();
+        foreach (var instance in instances)
+        {
+            watermarkedFilePropertiesList.Add(new WatermarkedFileProperties
+            {
+                Watermark = instance.Watermark,
+                Path = "test/file.dcm",
+                ETag = "etag"
+            });
+        }
+
         // Update the instances with newWatermark
         await _indexDataStore.BeginUpdateInstancesAsync(new Partition(instance1.PartitionKey, Partition.UnknownName), studyInstanceUID1);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset);
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, watermarkedFilePropertiesList);
 
         var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -316,7 +334,9 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
             Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
             Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
         }
+        //Verify that file properties were updated
     }
+    // todo add test for not updTING PROPs when external store disabled
 
     private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
         => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];

@@ -4,12 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
 
 public class UpdateInput
 {
-    public int PartitionKey { get; set; }
+    public Partition Partition { get; set; }
 
     public IReadOnlyList<string> StudyInstanceUids { get; set; }
 

@@ -10,7 +10,9 @@ using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Registration;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -41,7 +43,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
         ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
-
+        IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList;
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
 
         if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
@@ -51,9 +53,9 @@ public partial class UpdateDurableFunction
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
             IReadOnlyList<InstanceFileState> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateInstanceWatermarkAsync),
+                nameof(UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                new UpdateInstanceWatermarkArguments(input.PartitionKey, studyInstanceUid));
+                new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
 
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instanceWatermarks.Count);
 
@@ -64,15 +66,15 @@ public partial class UpdateDurableFunction
             {
                 try
                 {
-                    await context.CallActivityWithRetryAsync(
-                        nameof(UpdateInstanceBlobsAsync),
+                    watermarkedFilePropertiesList = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
+                        nameof(UpdateInstanceBlobsV2Async),
                         _options.RetryOptions,
-                        new UpdateInstanceBlobArguments(input.PartitionKey, instanceWatermarks, input.ChangeDataset));
+                        new UpdateInstanceBlobArguments(instanceWatermarks, input.ChangeDataset, input.Partition));
 
                     await context.CallActivityWithRetryAsync(
-                        nameof(CompleteUpdateStudyAsync),
+                        nameof(CompleteUpdateStudyV2Async), // we store in sql blob file props here
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.PartitionKey, studyInstanceUid, input.ChangeDataset));
+                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, watermarkedFilePropertiesList));
 
                     totalNoOfInstances += instanceWatermarks.Count;
                 }
@@ -92,7 +94,7 @@ public partial class UpdateDurableFunction
                     numberofStudyFailed++;
 
                     // Cleanup the new version when the update activity fails
-                    await TryCleanupActivity(context, instanceWatermarks);
+                    await TryCleanupActivity(context, instanceWatermarks, input.Partition);
                 }
             }
 
@@ -105,9 +107,9 @@ public partial class UpdateDurableFunction
             else
             {
                 await context.CallActivityWithRetryAsync(
-                    nameof(DeleteOldVersionBlobAsync),
+                    nameof(DeleteOldVersionBlobV2Async),
                     _options.RetryOptions,
-                    instanceWatermarks);
+                    new CleanupNewVersionBlobArguments(instanceWatermarks, input.Partition));
             }
 
             context.ContinueAsNew(
@@ -115,7 +117,7 @@ public partial class UpdateDurableFunction
                 {
                     StudyInstanceUids = input.StudyInstanceUids,
                     ChangeDataset = input.ChangeDataset,
-                    PartitionKey = input.PartitionKey,
+                    Partition = input.Partition,
                     NumberOfStudyCompleted = numberOfStudyCompleted,
                     NumberOfStudyFailed = numberofStudyFailed,
                     TotalNumberOfInstanceUpdated = totalNoOfInstances,
@@ -150,14 +152,14 @@ public partial class UpdateDurableFunction
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]
-    private async Task TryCleanupActivity(IDurableOrchestrationContext context, IReadOnlyList<InstanceFileState> instanceWatermarks)
+    private async Task TryCleanupActivity(IDurableOrchestrationContext context, IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
         try
         {
             await context.CallActivityWithRetryAsync(
-                nameof(CleanupNewVersionBlobAsync),
+                nameof(CleanupNewVersionBlobV2Async),
                 _options.RetryOptions,
-                instanceWatermarks);
+                new CleanupNewVersionBlobArguments(instanceWatermarks, partition));
         }
         catch (Exception) { }
     }
