@@ -441,7 +441,7 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
             return;
         }
 
-        Assert.False(true, "Retrieved dataset doesnot match the stored dataset");
+        Assert.Fail("Retrieved dataset does not match the stored dataset");
     }
 
     private static void ValidateNoContent(DicomWebAsyncEnumerableResponse<DicomDataset> response)

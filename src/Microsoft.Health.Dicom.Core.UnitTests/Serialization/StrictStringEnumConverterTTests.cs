@@ -38,13 +38,14 @@ public class StrictStringEnumConverterTTests
         try
         {
             new StrictStringEnumConverter<QueryTagLevel>().Read(ref jsonReader, typeof(QueryTagLevel), DefaultOptions);
-            throw new ThrowsException(typeof(JsonException));
+            throw ThrowsException.ForNoException(typeof(JsonException));
         }
         catch (Exception e)
         {
             if (e.GetType() != typeof(JsonException))
             {
-                throw new ThrowsException(typeof(JsonException), e);
+                // TODO: Update with new method on next version of xUnit - https://github.com/xunit/xunit/issues/2741
+                throw ThrowsException.ForNoException(typeof(JsonException));
             }
         }
     }
