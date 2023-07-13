@@ -472,7 +472,7 @@ public class QueryParserTests
         var testStudyInstanceUid = TestUidGenerator.Generate();
         QueryExpression queryExpression = _queryParser
             .Parse(CreateParameters(new Dictionary<string, string>(), QueryResource.AllSeries, testStudyInstanceUid), QueryTagService.CoreQueryTags);
-        Assert.Equal(1, queryExpression.FilterConditions.Count);
+        Assert.Single(queryExpression.FilterConditions);
         var cond = queryExpression.FilterConditions.First() as StringSingleValueMatchCondition;
         Assert.NotNull(cond);
         Assert.Equal(testStudyInstanceUid, cond.Value);
