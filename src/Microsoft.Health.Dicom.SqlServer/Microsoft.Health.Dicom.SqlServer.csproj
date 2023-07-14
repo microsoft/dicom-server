@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.Health.SqlServer.Api" />
-    <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" />
+    <PackageReference Include="Microsoft.Health.Tools.Sql.Tasks" GeneratePathProperty="true" />
     <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
@@ -75,8 +75,10 @@
     <TInitSqlScript Include="Features\Schema\Sql\Scripts\TransactionCheck.sql" />
   </ItemGroup>
 
-  <!-- Target contains sql build tasks -->
-  <Import Project="$(NuGetPackageRoot)\microsoft.health.tools.sql.tasks\$(HealthcareSharedPackageVersion)\build\Sql.targets" />
+  <!-- Execute target for generate SQL scripts -->
+  <!-- Condition skips outer build when PkgMicrosoft_Health_Tools_Sql_Tasks is not yet populated -->
+  <!-- TODO: Package should import its own target file if it matches the name of the package -->
+  <Import Condition="'$(TargetFramework)' != ''" Project="$(PkgMicrosoft_Health_Tools_Sql_Tasks)\build\Sql.targets" />
 
   <Target Name="ComputeGeneratorInputs" BeforeTargets="GenerateFiles">
     <ItemGroup>
