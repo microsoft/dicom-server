@@ -289,18 +289,22 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
         List<WatermarkedFileProperties> watermarkedFilePropertiesList = new List<WatermarkedFileProperties>();
-        foreach (var instance in instances)
+
+        // Update the instances with newWatermark
+        IReadOnlyList<InstanceMetadata> updatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(
+            new Partition(instance1.PartitionKey, Partition.UnknownName),
+            studyInstanceUID1);
+
+        // generate file property per updated instance with new watermark
+        foreach (var updatedInstance in updatedInstanceMetadata)
         {
             watermarkedFilePropertiesList.Add(new WatermarkedFileProperties
             {
-                Watermark = instance.Watermark,
+                Watermark = updatedInstance.InstanceProperties.NewVersion.Value,
                 Path = "test/file.dcm",
                 ETag = "etag"
             });
         }
-
-        // Update the instances with newWatermark
-        await _indexDataStore.BeginUpdateInstancesAsync(new Partition(instance1.PartitionKey, Partition.UnknownName), studyInstanceUID1);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
@@ -311,7 +315,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         // Verify the instances are updated with updated information
         Assert.Equal(instances.Count, instanceMetadata.Count());
-
+ 
         for (int i = 0; i < instances.Count; i++)
         {
             Assert.Equal(instances[i].SopInstanceUid, instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid);
