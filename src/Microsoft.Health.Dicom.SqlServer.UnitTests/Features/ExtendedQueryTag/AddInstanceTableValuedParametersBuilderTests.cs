@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -41,14 +41,7 @@ public class AddInstanceTableValuedParametersBuilderTests
                 Assert.Equal(expectedValue, parameters.DoubleRows.First().TagValue);
                 break;
             case ExtendedQueryTagDataType.DateTimeData:
-                if (schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
-                {
-                    Assert.Equal(expectedValue, parameters.DateTimeRows.First().TagValue);
-                }
-                else
-                {
-                    Assert.Equal(expectedValue, parameters.DateTimeWithUtcRows.First().TagValue);
-                }
+                Assert.Equal(expectedValue, parameters.DateTimeWithUtcRows.First().TagValue);
                 break;
             case ExtendedQueryTagDataType.PersonNameData:
                 Assert.Equal(expectedValue, parameters.PersonNameRows.First().TagValue);
@@ -81,14 +74,7 @@ public class AddInstanceTableValuedParametersBuilderTests
                 Assert.Equal(expectedValue, parameters.DoubleRows.First().TagValue);
                 break;
             case ExtendedQueryTagDataType.DateTimeData:
-                if (schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
-                {
-                    Assert.Equal(expectedValue, parameters.DateTimeRows.First().TagValue);
-                }
-                else
-                {
-                    Assert.Equal(expectedValue, parameters.DateTimeWithUtcRows.First().TagValue);
-                }
+                Assert.Equal(expectedValue, parameters.DateTimeWithUtcRows.First().TagValue);
                 break;
             case ExtendedQueryTagDataType.PersonNameData:
                 Assert.Equal(expectedValue, parameters.PersonNameRows.First().TagValue);

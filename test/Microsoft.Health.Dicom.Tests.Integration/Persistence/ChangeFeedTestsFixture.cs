@@ -18,7 +18,7 @@ public class ChangeFeedTestsFixture : IAsyncLifetime
     public ChangeFeedTestsFixture()
     {
         _sqlDataStoreTestsFixture = new SqlDataStoreTestsFixture();
-        PreviousDicomChangeFeedStore = new SqlChangeFeedStoreV6(_sqlDataStoreTestsFixture.SqlConnectionWrapperFactory);
+        PreviousDicomChangeFeedStore = new SqlChangeFeedStoreV39(_sqlDataStoreTestsFixture.SqlConnectionWrapperFactory);
     }
 
     public IIndexDataStore DicomIndexDataStore => _sqlDataStoreTestsFixture.IndexDataStore;

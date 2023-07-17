@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
-using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
@@ -32,11 +31,6 @@ internal class WorkitemSqlQueryGenerator : BaseSqlQueryGenerator
         : base(stringBuilder, queryExpression, sqlQueryParameterManager, schemaVersion, partitionKey)
     {
         _queryExpression = queryExpression;
-
-        if ((int)schemaVersion < SchemaVersionConstants.SupportUpsRsSchemaVersion)
-        {
-            throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
-        }
 
         Build();
     }

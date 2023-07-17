@@ -118,16 +118,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlIndexDataStoreV1(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV2(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV3(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV4(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV5(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV6(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV10(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV23(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV32(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV33(SqlConnectionWrapperFactory),
-                new SqlIndexDataStoreV35(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV37(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV42(SqlConnectionWrapperFactory),
             }),
@@ -138,11 +128,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlInstanceStoreV1(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV4(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV6(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV10(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV23(SqlConnectionWrapperFactory),
-                new SqlInstanceStoreV32(SqlConnectionWrapperFactory),
+                new SqlInstanceStoreV34(SqlConnectionWrapperFactory),
             }));
 
         PartitionStore = new SqlPartitionStore(new VersionedCache<ISqlPartitionStore>(
@@ -158,9 +144,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             {
                 new SqlExtendedQueryTagStoreV1(),
                 new SqlExtendedQueryTagStoreV2(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV2>.Instance),
-                new SqlExtendedQueryTagStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV4>.Instance),
-                new SqlExtendedQueryTagStoreV8(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV8>.Instance),
-                new SqlExtendedQueryTagStoreV16(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV16>.Instance),
                 new SqlExtendedQueryTagStoreV36(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagStoreV36>.Instance),
             }));
 
@@ -170,7 +153,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
            {
                 new SqlExtendedQueryTagErrorStoreV1(),
                 new SqlExtendedQueryTagErrorStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV4>.Instance),
-                new SqlExtendedQueryTagErrorStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV6>.Instance),
                 new SqlExtendedQueryTagErrorStoreV36(SqlConnectionWrapperFactory, NullLogger<SqlExtendedQueryTagErrorStoreV36>.Instance),
            }));
 
@@ -179,8 +161,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlWorkitemStoreV9(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV9>.Instance),
-                new SqlWorkitemStoreV11(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV11>.Instance),
-                new SqlWorkitemStoreV14(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV14>.Instance)
+                new SqlWorkitemStoreV22(SqlConnectionWrapperFactory, NullLogger<SqlWorkitemStoreV22>.Instance)
             }));
 
         ChangeFeedStore = new SqlChangeFeedStore(new VersionedCache<ISqlChangeFeedStore>(
@@ -188,7 +169,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlChangeFeedStoreV4(SqlConnectionWrapperFactory),
-                new SqlChangeFeedStoreV6(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV36(SqlConnectionWrapperFactory),
                 new SqlChangeFeedStoreV39(SqlConnectionWrapperFactory),
             }));
@@ -198,7 +178,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
             new[]
             {
                 new SqlQueryStoreV4(SqlConnectionWrapperFactory, NullLogger<SqlQueryStoreV4>.Instance),
-                new SqlQueryStoreV6(SqlConnectionWrapperFactory, NullLogger<SqlQueryStoreV6>.Instance),
                 new SqlQueryStoreV27(SqlConnectionWrapperFactory, NullLogger<SqlQueryStoreV27>.Instance)
             }));
 
