@@ -38,7 +38,7 @@
     },
     {
       "groupName": "Hl7",
-      "matchPackagePrefixes": [
+      "excludePackagePrefixes": [
         "Hl7.Fhir."
       ]
     },
@@ -58,12 +58,6 @@
       "groupName": "Microsoft.AspNetCore.Mvc.Versioning",
       "matchPackagePrefixes": [
         "Microsoft.AspNetCore.Mvc.Versioning"
-      ]
-    },
-    {
-      "groupName": "Microsoft FHIR",
-      "matchPackagePrefixes": [
-        "Microsoft.Health.Fhir."
       ]
     },
     {
