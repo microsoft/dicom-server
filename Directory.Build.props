@@ -2,23 +2,17 @@
 
   <PropertyGroup>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <ApplicationInsightsPackageVersion>2.21.0</ApplicationInsightsPackageVersion>
     <Authors>Microsoft Health Team</Authors>
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
     <Deterministic>true</Deterministic>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <FhirServerPackageVersion>2.0.55</FhirServerPackageVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <HealthcareSharedPackageVersion>6.2.109</HealthcareSharedPackageVersion>
     <HighEntropyVA>true</HighEntropyVA>
-    <Hl7FhirPackageVersion>4.3.0</Hl7FhirPackageVersion>
-    <IdentityModelTokenPackageVersion>6.32.0</IdentityModelTokenPackageVersion>
     <LangVersion>Latest</LangVersion>
     <LtsVersion>net6.0</LtsVersion>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <OpenTelemetryVersion>1.5.1</OpenTelemetryVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Product>Microsoft Health</Product>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
