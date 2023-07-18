@@ -332,7 +332,70 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         return results;
     }
 
-    // End of V6
+    public override async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    {
+        var results = new List<InstanceMetadata>();
+
+        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
+        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        {
+            VLatest.BeginUpdateInstanceV33.PopulateCommand(
+                sqlCommandWrapper,
+                partitionKey,
+                studyInstanceUid);
+
+            try
+            {
+                using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+                {
+                    while (await reader.ReadAsync(cancellationToken))
+                    {
+                        (string rStudyInstanceUid,
+                            string rSeriesInstanceUid,
+                            string rSopInstanceUid,
+                            long watermark,
+                            string rTransferSyntaxUid,
+                            bool rHasFrameMetadata,
+                            long? originalWatermark,
+                            long? newWatermark) = reader.ReadRow(
+                               VLatest.Instance.StudyInstanceUid,
+                               VLatest.Instance.SeriesInstanceUid,
+                               VLatest.Instance.SopInstanceUid,
+                               VLatest.Instance.Watermark,
+                               VLatest.Instance.TransferSyntaxUid,
+                               VLatest.Instance.HasFrameMetadata,
+                               VLatest.Instance.OriginalWatermark,
+                               VLatest.Instance.NewWatermark);
+
+                        results.Add(
+                            new InstanceMetadata(
+                                new VersionedInstanceIdentifier(
+                                    rStudyInstanceUid,
+                                    rSeriesInstanceUid,
+                                    rSopInstanceUid,
+                                    watermark,
+                                    partitionKey),
+                                new InstanceProperties()
+                                {
+                                    TransferSyntaxUid = rTransferSyntaxUid,
+                                    HasFrameMetadata = rHasFrameMetadata,
+                                    OriginalVersion = originalWatermark,
+                                    NewVersion = newWatermark
+                                }));
+                    }
+                }
+                return results;
+            }
+            catch (SqlException ex)
+            {
+                throw ex.Number switch
+                {
+                    SqlErrorCodes.NotFound => new InstanceNotFoundException(),
+                    _ => new DataStoreException(ex),
+                };
+            }
+        }
+    }
 
     public override async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
     {
