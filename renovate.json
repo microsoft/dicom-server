@@ -12,9 +12,15 @@
   "labels": [
     "dependencies"
   ],
+  "dryRun": "true",
   "packageRules": [
     {
-      "ignorePaths": ["docker/sql/"]
+      "enabled": false,
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchCurrentValue": "ubuntu:focal",
+      "matchFileNames": ["docker/sql/Dockerfile"]
     },
     {
       "groupName": "ApplicationInsights",
