@@ -1,6 +1,6 @@
 # Version 2 DICOM Conformance Statement
 
-> API version 2 is in **Preview** and should be used only for testing.
+> API version 2 is the latest API version and should be used as API version 1 will be deprecated soon.
 
 The **Medical Imaging Server for DICOM** supports a subset of the DICOMweb&trade; Standard. Support includes:
 
