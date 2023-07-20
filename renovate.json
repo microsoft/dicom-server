@@ -19,7 +19,7 @@
       "matchDatasources": [
         "docker"
       ],
-      "matchCurrentValue": "ubuntu:focal",
+      "matchCurrentValue": "/^ubuntu:focal$/",
       "matchFileNames": ["docker/sql/Dockerfile"]
     },
     {
