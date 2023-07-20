@@ -5,11 +5,14 @@
 
 using System;
 using System.Diagnostics;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Core.Internal;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
@@ -19,6 +22,7 @@ using Microsoft.Health.DicomCast.Core.Features.Worker;
 using Microsoft.Health.DicomCast.Core.Features.Worker.FhirTransaction;
 using Microsoft.Health.Test.Utilities;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Polly.Timeout;
 using Xunit;
 
@@ -32,15 +36,21 @@ public class ChangeFeedProcessorTests
     private readonly IFhirTransactionPipeline _fhirTransactionPipeline = Substitute.For<IFhirTransactionPipeline>();
     private readonly ISyncStateService _syncStateService = Substitute.For<ISyncStateService>();
     private readonly IExceptionStore _exceptionStore = Substitute.For<IExceptionStore>();
+    private readonly IOptions<DicomCastConfiguration> _config = Substitute.For<IOptions<DicomCastConfiguration>>();
+    private readonly DicomCastConfiguration _dicomCastConfiguration = new DicomCastConfiguration();
     private readonly ChangeFeedProcessor _changeFeedProcessor;
 
     public ChangeFeedProcessorTests()
     {
+        _dicomCastConfiguration.Features.IgnoreJsonParsingErrors = true;
+        _config.Value.Returns(_dicomCastConfiguration);
+
         _changeFeedProcessor = new ChangeFeedProcessor(
             _changeFeedRetrieveService,
             _fhirTransactionPipeline,
             _syncStateService,
             _exceptionStore,
+            _config,
             NullLogger<ChangeFeedProcessor>.Instance);
 
         SetupSyncState();
@@ -77,6 +87,68 @@ public class ChangeFeedProcessorTests
         await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds[0], DefaultCancellationToken);
         await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds[1], DefaultCancellationToken);
         await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds[2], DefaultCancellationToken);
+    }
+
+    [Fact]
+    public async Task GivenMalformedChangeFeedEntries_WhenProcessed_BadEntryShouldBeSkipped()
+    {
+        const long Latest = 3L;
+        ChangeFeedEntry[] changeFeeds1 = new[]
+        {
+            ChangeFeedGenerator.Generate(1),
+        };
+        ChangeFeedEntry[] changeFeeds2 = new[]
+        {
+            ChangeFeedGenerator.Generate(Latest),
+        };
+
+        // Arrange
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Latest);
+
+        // call to retrieve batch has json exception
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).ThrowsAsync(new JsonException());
+
+        // get the items individually from the change feed
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, 1, DefaultCancellationToken).Returns(changeFeeds1);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(1, 1, DefaultCancellationToken).ThrowsAsync(new JsonException());
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(2, 1, DefaultCancellationToken).Returns(changeFeeds2);
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(Latest, 1, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).Returns(Array.Empty<ChangeFeedEntry>());
+
+        // Act
+        await ExecuteProcessAsync();
+
+        // Assert
+        await _changeFeedRetrieveService.Received(2).RetrieveLatestSequenceAsync(DefaultCancellationToken);
+
+        await _changeFeedRetrieveService.ReceivedWithAnyArgs(6).RetrieveChangeFeedAsync(default, default, default);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(0, 1, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(1, 1, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(2, 1, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(Latest, 1, DefaultCancellationToken);
+        await _changeFeedRetrieveService.Received(1).RetrieveChangeFeedAsync(Latest, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken);
+
+        await _fhirTransactionPipeline.ReceivedWithAnyArgs(2).ProcessAsync(default, default);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds1[0], DefaultCancellationToken);
+        await _fhirTransactionPipeline.Received(1).ProcessAsync(changeFeeds2[0], DefaultCancellationToken);
+    }
+
+    [Fact]
+    public async Task GivenMalformedChangeFeedEntries_WhenProcessedAndNotIgnoringErrors_ExceptionIsThrown()
+    {
+        const long Latest = 3L;
+        _dicomCastConfiguration.Features.IgnoreJsonParsingErrors = false;
+
+        // Arrange
+        _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Latest);
+
+        // call to retrieve batch has json exception
+        _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).ThrowsAsync(new JsonException());
+
+        // Act
+        await Assert.ThrowsAsync<JsonException>(() => ExecuteProcessAsync());
     }
 
     [Fact]

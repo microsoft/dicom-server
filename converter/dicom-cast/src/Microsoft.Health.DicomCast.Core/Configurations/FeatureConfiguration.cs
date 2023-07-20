@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -16,4 +16,9 @@ public class FeatureConfiguration
     /// Generate observations from dcm
     /// </summary>
     public bool GenerateObservations { get; set; }
+
+    /// <summary>
+    /// Ignore json parsing errors from DicomWebClient
+    /// </summary>
+    public bool IgnoreJsonParsingErrors { get; set; }
 }

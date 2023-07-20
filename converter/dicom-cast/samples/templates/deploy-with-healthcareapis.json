@@ -144,6 +144,13 @@
       "metadata": {
         "description": "Enforce validation of all tag values and do not store to FHIR even if only non-required tags are invalid"
       }
+    },
+    "ignoreJsonParsingErrors": {
+      "defaultValue": false,
+      "type": "Bool",
+      "metadata": {
+          "description": "Ignore json parsing errors for DICOM instances with malformed DICOM json"
+      }
     }
   },
   "variables": {
@@ -259,6 +266,9 @@
           },
           "enforceValidationOfTagValues": {
             "value": "[parameters('enforceValidationOfTagValues')]"
+          },
+          "ignoreJsonParsingErrors": {
+            "value": "[parameters('ignoreJsonParsingErrors')]"
           },
           "additionalEnvironmentVariables": {
             "value": "[variables('authenticationArray')]"
