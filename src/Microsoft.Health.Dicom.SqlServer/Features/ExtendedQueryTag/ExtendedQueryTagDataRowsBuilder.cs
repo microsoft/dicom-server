@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -87,10 +87,7 @@ internal static class ExtendedQueryTagDataRowsBuilder
                     AddDoubleRow(instance, doubleRows, queryTag, tagKey);
                     break;
                 case ExtendedQueryTagDataType.DateTimeData:
-                    if ((int)schemaVersion < SchemaVersionConstants.SupportDTAndTMInExtendedQueryTagSchemaVersion)
-                        AddDateTimeRow(instance, dateTimeRows, queryTag, tagKey);
-                    else
-                        AddDateTimeWithUtcRow(instance, dateTimeWithUtcRows, queryTag, tagKey);
+                    AddDateTimeWithUtcRow(instance, dateTimeWithUtcRows, queryTag, tagKey);
                     break;
                 case ExtendedQueryTagDataType.PersonNameData:
                     AddPersonNameRow(instance, personNameRows, queryTag, tagKey);
