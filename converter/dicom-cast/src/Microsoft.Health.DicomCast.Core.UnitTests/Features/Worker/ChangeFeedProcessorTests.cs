@@ -105,7 +105,7 @@ public class ChangeFeedProcessorTests
         // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Latest);
 
-        // group of 10 has a json issue
+        // call to retrieve batch has json exception
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).ThrowsAsync(new JsonException());
 
         // get the items individually from the change feed
@@ -144,7 +144,7 @@ public class ChangeFeedProcessorTests
         // Arrange
         _changeFeedRetrieveService.RetrieveLatestSequenceAsync(DefaultCancellationToken).Returns(Latest);
 
-        // group of 10 has a json issue
+        // call to retrieve batch has json exception
         _changeFeedRetrieveService.RetrieveChangeFeedAsync(0, ChangeFeedProcessor.DefaultLimit, DefaultCancellationToken).ThrowsAsync(new JsonException());
 
         // Act
