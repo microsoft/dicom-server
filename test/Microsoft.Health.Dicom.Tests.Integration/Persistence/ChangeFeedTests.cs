@@ -63,7 +63,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         // delete and validate - file properties are null on deletes
         await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
-        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
+        await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2, expectedFileProperties);
 
         // re-create the same instance without properties and validate properties are still null
         await CreateInstanceAsync(true, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid);
@@ -163,7 +163,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         }
     }
 
-    private async Task ValidateDeleteFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount)
+    private async Task ValidateDeleteFeedAsync(VersionedInstanceIdentifier dicomInstanceIdentifier, int expectedCount, FileProperties expectedFileProperties = null)
     {
         IReadOnlyList<ChangeFeedRow> result = await _fixture.DicomIndexDataStoreTestHelper.GetChangeFeedRowsAsync(
             dicomInstanceIdentifier.StudyInstanceUid,
@@ -177,7 +177,14 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         foreach (ChangeFeedRow row in result)
         {
             Assert.Null(row.CurrentWatermark);
-            Assert.Null(row.FilePath);
+            if (row.Action == (int)ChangeFeedAction.Create)
+            {
+                Assert.Equal(expectedFileProperties?.Path, row.FilePath);
+            }
+            else
+            {
+                Assert.Null(row.FilePath);
+            }
         }
     }
 
@@ -189,7 +196,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             dicomInstanceIdentifier.SopInstanceUid);
 
         Assert.NotNull(result);
-        Assert.Equal(0, result.Count);
+        Assert.Empty(result);
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)

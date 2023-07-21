@@ -8,7 +8,7 @@ variables:
   resourceGroupRegion: 'southcentralus'
   appServicePlanResourceGroup: 'msh-dicom-pr'
   appServicePlanName: $(appServicePlanResourceGroup)-$(resourceGroupRegion)
-  azureServiceConnectionOid: '44b9da1a-ae16-4c0e-90e1-a96745ea86c9'
+  azureServiceConnectionOid: '5e9db4f6-b680-4408-a85b-af0ad8ef185d'
   azureSubscriptionName: 'Dicom OSS'
   buildConfiguration: 'Release'
   imageTag: '$(build.BuildNumber)'

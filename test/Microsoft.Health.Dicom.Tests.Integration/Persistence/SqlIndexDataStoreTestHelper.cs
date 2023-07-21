@@ -243,17 +243,11 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
                              c.SopInstanceUid,
                              c.OriginalWatermark,
                              c.CurrentWatermark,
-                             f.FilePath,
+                             c.FilePath,
                              p.PartitionName
                         FROM {VLatest.ChangeFeed.TableName} as c
                         INNER JOIN {VLatest.Partition.TableName} AS p
                             ON p.PartitionKey = c.PartitionKey
-                        LEFT JOIN {VLatest.Instance.TableName} AS i
-                            ON i.StudyInstanceUid = @studyInstanceUid
-                            AND i.SeriesInstanceUid = @seriesInstanceUid
-                            AND i.SopInstanceUid = @sopInstanceUid
-                        LEFT JOIN {VLatest.FileProperty.TableName} AS f
-                            ON f.InstanceKey = i.InstanceKey
                         WHERE c.{VLatest.ChangeFeed.StudyInstanceUid} = @studyInstanceUid
                             AND c.{VLatest.ChangeFeed.SeriesInstanceUid} = @seriesInstanceUid
                             AND c.{VLatest.ChangeFeed.SopInstanceUid} = @sopInstanceUid

@@ -163,10 +163,10 @@ public class BlobFileStoreTests
     }
 
     [Fact]
-    public void GivenExternalStore_WhenGetServiceStorePathWithPartitionsDisabled_ThenPathReturnedUsesDefaultMsPartition()
+    public void GivenExternalStore_WhenGetServiceStorePathWithPartitionsDisabled_ThenPathReturnedDoesNotUsePartition()
     {
         InitializeExternalBlobFileStore(out BlobFileStore _, out ExternalBlobClient client, partitionsEnabled: false);
-        Assert.Equal(DefaultStorageDirectory + DefaultPartition.Name + "/", client.GetServiceStorePath("foo"));
+        Assert.Equal(DefaultStorageDirectory, client.GetServiceStorePath("foo"));
     }
 
     [Fact]

@@ -88,6 +88,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static IncrementDeletedInstanceRetryV6Procedure IncrementDeletedInstanceRetryV6 = new IncrementDeletedInstanceRetryV6Procedure();
         internal readonly static IndexInstanceV6Procedure IndexInstanceV6 = new IndexInstanceV6Procedure();
         internal readonly static RetrieveDeletedInstanceProcedure RetrieveDeletedInstance = new RetrieveDeletedInstanceProcedure();
+        internal readonly static RetrieveDeletedInstanceV42Procedure RetrieveDeletedInstanceV42 = new RetrieveDeletedInstanceV42Procedure();
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
         internal readonly static UpdateIndexWorkitemInstanceCoreProcedure UpdateIndexWorkitemInstanceCore = new UpdateIndexWorkitemInstanceCoreProcedure();
@@ -114,6 +115,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly BigIntColumn OriginalWatermark = new BigIntColumn("OriginalWatermark");
             internal readonly NullableBigIntColumn CurrentWatermark = new NullableBigIntColumn("CurrentWatermark");
             internal readonly IntColumn PartitionKey = new IntColumn("PartitionKey");
+            internal readonly NullableNVarCharColumn FilePath = new NullableNVarCharColumn("FilePath", 4000);
             internal readonly Index IXC_ChangeFeed = new Index("IXC_ChangeFeed");
             internal readonly Index IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid = new Index("IX_ChangeFeed_PartitionKey_StudyInstanceUid_SeriesInstanceUid_SopInstanceUid");
             internal readonly Index IX_ChangeFeed_Sequence = new Index("IX_ChangeFeed_Sequence");
@@ -2055,6 +2057,24 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.RetrieveDeletedInstance";
+                _count.AddParameter(command.Parameters, count);
+                _maxRetries.AddParameter(command.Parameters, maxRetries);
+            }
+        }
+
+        internal class RetrieveDeletedInstanceV42Procedure : StoredProcedure
+        {
+            internal RetrieveDeletedInstanceV42Procedure() : base("dbo.RetrieveDeletedInstanceV42")
+            {
+            }
+
+            private readonly ParameterDefinition<System.Int32> _count = new ParameterDefinition<System.Int32>("@count", global::System.Data.SqlDbType.Int, false);
+            private readonly ParameterDefinition<System.Int32> _maxRetries = new ParameterDefinition<System.Int32>("@maxRetries", global::System.Data.SqlDbType.Int, false);
+
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 count, System.Int32 maxRetries)
+            {
+                command.CommandType = global::System.Data.CommandType.StoredProcedure;
+                command.CommandText = "dbo.RetrieveDeletedInstanceV42";
                 _count.AddParameter(command.Parameters, count);
                 _maxRetries.AddParameter(command.Parameters, maxRetries);
             }

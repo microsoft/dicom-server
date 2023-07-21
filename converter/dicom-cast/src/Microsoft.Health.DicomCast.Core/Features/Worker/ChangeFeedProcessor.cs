@@ -5,11 +5,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Core;
 using Microsoft.Health.Dicom.Client.Models;
+using Microsoft.Health.DicomCast.Core.Configurations;
 using Microsoft.Health.DicomCast.Core.Exceptions;
 using Microsoft.Health.DicomCast.Core.Features.DicomWeb.Service;
 using Microsoft.Health.DicomCast.Core.Features.ExceptionStorage;
@@ -33,6 +37,7 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
     private readonly IFhirTransactionPipeline _fhirTransactionPipeline;
     private readonly ISyncStateService _syncStateService;
     private readonly IExceptionStore _exceptionStore;
+    private readonly DicomCastConfiguration _configuration;
     private readonly ILogger<ChangeFeedProcessor> _logger;
 
     public ChangeFeedProcessor(
@@ -40,12 +45,15 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
         IFhirTransactionPipeline fhirTransactionPipeline,
         ISyncStateService syncStateService,
         IExceptionStore exceptionStore,
+        IOptions<DicomCastConfiguration> dicomCastConfiguration,
         ILogger<ChangeFeedProcessor> logger)
     {
         _changeFeedRetrieveService = EnsureArg.IsNotNull(changeFeedRetrieveService, nameof(changeFeedRetrieveService));
         _fhirTransactionPipeline = EnsureArg.IsNotNull(fhirTransactionPipeline, nameof(fhirTransactionPipeline));
         _syncStateService = EnsureArg.IsNotNull(syncStateService, nameof(syncStateService));
         _exceptionStore = EnsureArg.IsNotNull(exceptionStore, nameof(exceptionStore));
+        EnsureArg.IsNotNull(dicomCastConfiguration, nameof(dicomCastConfiguration));
+        _configuration = EnsureArg.IsNotNull(dicomCastConfiguration.Value, nameof(dicomCastConfiguration.Value));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
@@ -60,10 +68,7 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
             {
                 // Retrieve the change feed for any changes after checking the sequence number of the latest event
                 long latest = await _changeFeedRetrieveService.RetrieveLatestSequenceAsync(cancellationToken);
-                IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await _changeFeedRetrieveService.RetrieveChangeFeedAsync(
-                    state.SyncedSequence,
-                    DefaultLimit,
-                    cancellationToken);
+                IReadOnlyList<ChangeFeedEntry> changeFeedEntries = await GetChangeFeedEntries(state, _configuration.Features.IgnoreJsonParsingErrors, cancellationToken);
 
                 // If there are no events because nothing available, then skip processing for now
                 // Note that there may be more events to read for API version v1 even if the Count < limit
@@ -85,6 +90,56 @@ public class ChangeFeedProcessor : IChangeFeedProcessor
                 await Task.Delay(pollIntervalDuringCatchup, cancellationToken);
             }
         }
+    }
+
+    private async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedEntries(SyncState state, bool ignoreJsonParsingErrors, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _changeFeedRetrieveService.RetrieveChangeFeedAsync(
+                            state.SyncedSequence,
+                            DefaultLimit,
+                            cancellationToken);
+        }
+        catch (JsonException)
+        {
+            if (!ignoreJsonParsingErrors)
+            {
+                throw;
+            }
+
+            return await GetChangeFeedEntriesOneByOne(state, cancellationToken);
+        }
+    }
+
+    private async Task<IReadOnlyList<ChangeFeedEntry>> GetChangeFeedEntriesOneByOne(SyncState state, CancellationToken cancellationToken)
+    {
+        long start = state.SyncedSequence;
+        IList<ChangeFeedEntry> changeFeedEntries = new List<ChangeFeedEntry>();
+
+        while (start < state.SyncedSequence + DefaultLimit)
+        {
+            try
+            {
+                var changeFeedEntry = await _changeFeedRetrieveService.RetrieveChangeFeedAsync(start, 1, cancellationToken);
+
+                if (changeFeedEntry == null || changeFeedEntry.Count == 0)
+                {
+                    return changeFeedEntries.AsReadOnly();
+                }
+
+                start++;
+                changeFeedEntries.Add(changeFeedEntry[0]);
+            }
+            catch (JsonException ex)
+            {
+                // ignore items that failed to parse
+                _logger.LogError(ex, "Changefeed entry with SequenceId {SequenceId} failed to be parsed by the DicomWebClient", start);
+                start++;
+            }
+        }
+
+        return changeFeedEntries.AsReadOnly();
     }
 
     private async Task ProcessChangeFeedEntriesAsync(IEnumerable<ChangeFeedEntry> changeFeedEntries, CancellationToken cancellationToken)

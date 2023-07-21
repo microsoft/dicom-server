@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -30,8 +30,6 @@ namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 /// </summary>
 public class BlobWorkitemStore : IWorkitemStore
 {
-    private const string AddWorkitemStreamTagName = nameof(BlobWorkitemStore) + "." + nameof(AddWorkitemAsync);
-
     private readonly BlobContainerClient _container;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
@@ -72,7 +70,7 @@ public class BlobWorkitemStore : IWorkitemStore
 
         try
         {
-            await using Stream stream = _recyclableMemoryStreamManager.GetStream(AddWorkitemStreamTagName);
+            await using Stream stream = _recyclableMemoryStreamManager.GetStream(tag: nameof(AddWorkitemAsync));
             await JsonSerializer.SerializeAsync(stream, dataset, _jsonSerializerOptions, cancellationToken);
 
             // Uploads the blob. Overwrites the blob if it exists, otherwise creates a new one.

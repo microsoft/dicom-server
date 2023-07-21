@@ -27,7 +27,6 @@ using Microsoft.Health.Extensions.DependencyInjection;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using Microsoft.Health.Operations.Functions.Management;
 using Microsoft.Health.SqlServer.Configs;
-using Microsoft.IO;
 using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Registration;
@@ -56,7 +55,7 @@ public static class ServiceCollectionExtensions
         services.RegisterModule<ServiceModule>();
 
         return new DicomFunctionsBuilder(services
-            .AddRecyclableMemoryStreamManager()
+            .AddRecyclableMemoryStreamManager(configuration)
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
             .AddFunctionsOptions<MigrationFilesOptions>(configuration, MigrationFilesOptions.SectionName)
@@ -97,18 +96,6 @@ public static class ServiceCollectionExtensions
         EnsureArg.IsNotNull(configuration, nameof(configuration));
 
         return builder.AddSqlServer(c => configuration.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(c));
-    }
-
-    private static IServiceCollection AddRecyclableMemoryStreamManager(this IServiceCollection services, Func<RecyclableMemoryStreamManager> factory = null)
-    {
-        EnsureArg.IsNotNull(services, nameof(services));
-
-        // The custom service provider used by Azure Functions cannot seem to resolve the
-        // RecyclableMemoryStreamManager ctor overloads without help, so we instantiate it ourselves
-        factory ??= () => new RecyclableMemoryStreamManager();
-        services.TryAddSingleton(factory());
-
-        return services;
     }
 
     private static IServiceCollection AddFellowOakDicomExtension(this IServiceCollection services)

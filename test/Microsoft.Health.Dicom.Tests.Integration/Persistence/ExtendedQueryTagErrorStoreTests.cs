@@ -76,7 +76,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
 
         // Page 1
         errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0);
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(errors[0].ErrorMessage, ValidationErrorCode.PersonNameExceedMaxGroups.GetMessage());
 
         // Page 2
@@ -87,7 +87,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
 
         // Page 3
         errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 3);
-        Assert.Equal(1, errors.Count);
+        Assert.Single(errors);
         Assert.Equal(errors[0].ErrorMessage, ValidationErrorCode.PersonNameGroupExceedMaxLength.GetMessage());
     }
 
@@ -137,7 +137,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark);
 
         var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
-        Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
+        Assert.Single(extendedQueryTagErrorBeforeTagDeletion);
 
         var extendedQueryTagBeforeTagDeletion = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
 
@@ -163,10 +163,10 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         ValidationErrorCode errorCode = ValidationErrorCode.MultipleValues;
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark);
         var extendedQueryTagErrorBeforeTagDeletion = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
-        Assert.Equal(1, extendedQueryTagErrorBeforeTagDeletion.Count);
+        Assert.Single(extendedQueryTagErrorBeforeTagDeletion);
 
         IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        Assert.Equal(1, instanceBeforeDeletion.Count);
+        Assert.Single(instanceBeforeDeletion);
 
         await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
@@ -174,7 +174,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
 
         IReadOnlyList<Instance> instanceAfterDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        Assert.Equal(0, instanceAfterDeletion.Count);
+        Assert.Empty(instanceAfterDeletion);
     }
 
     [Fact]

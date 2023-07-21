@@ -1,0 +1,94 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    ":dependencyDashboard",
+    ":semanticPrefixFixDepsChoreOthers",
+    "group:dotNetCore",
+    "group:monorepos",
+    "group:recommended",
+    "replacements:all",
+    "workarounds:all"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "ignorePaths": ["docker/sql/"],
+      "matchDatasources": ["docker"]
+    },
+    {
+      "groupName": "ApplicationInsights",
+      "matchPackagePatterns": [
+        "ApplicationInsights"
+      ]
+    },
+    {
+      "groupName": "Dotnet",
+      "matchPackageNames": [
+        "dotnet-sdk",
+        "mcr.microsoft.com/dotnet/aspnet",
+        "mcr.microsoft.com/dotnet/sdk"
+      ]
+    },
+    {
+      "excludePackagePrefixes": [
+        "Microsoft.Health.Fhir."
+      ],
+      "groupName": "Healthcare Shared Components",
+      "matchPackagePrefixes": [
+        "Microsoft.Health."
+      ]
+    },
+    {
+      "groupName": "Hl7",
+      "excludePackagePrefixes": [
+        "Hl7.Fhir."
+      ]
+    },
+    {
+      "groupName": "IdentityModel.Tokens",
+      "matchPackagePatterns": [
+        "IdentityModel.Tokens"
+      ]
+    },
+    {
+      "groupName": "IdentityServer4",
+      "matchPackagePrefixes": [
+        "IdentityServer4"
+      ]
+    },
+    {
+      "groupName": "Microsoft.AspNetCore.Mvc.Versioning",
+      "matchPackagePrefixes": [
+        "Microsoft.AspNetCore.Mvc.Versioning"
+      ]
+    },
+    {
+      "groupName": "OpenTelemetry",
+      "matchPackagePrefixes": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "groupName": "Swashbuckle.AspNetCore",
+      "matchPackagePrefixes": [
+        "Swashbuckle.AspNetCore."
+      ]
+    },
+    {
+      "groupName": "System.CommandLine",
+      "matchPackagePrefixes": [
+        "System.CommandLine"
+      ]
+    },
+    {
+      "groupName": "XUnit",
+      "matchPackagePrefixes": [
+        "xunit"
+      ]
+    }
+  ],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0
+}

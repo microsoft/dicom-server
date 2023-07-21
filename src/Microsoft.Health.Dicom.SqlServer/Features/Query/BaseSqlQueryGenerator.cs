@@ -252,18 +252,12 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
 
     protected void AppendPartitionJoinClause(string tableAlias1, string tableAlias2)
     {
-        if ((int)SchemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
-        {
-            StringBuilder.AppendLine($"AND {tableAlias1}.{VLatest.Partition.PartitionKey} = {tableAlias2}.{VLatest.Partition.PartitionKey}");
-        }
+        StringBuilder.AppendLine($"AND {tableAlias1}.{VLatest.Partition.PartitionKey} = {tableAlias2}.{VLatest.Partition.PartitionKey}");
     }
 
     protected void AppendPartitionWhereClause(string tableAlias)
     {
-        if ((int)SchemaVersion >= SchemaVersionConstants.SupportDataPartitionSchemaVersion)
-        {
-            StringBuilder.AppendLine($"AND {tableAlias}.{VLatest.Partition.PartitionKey} = {PartitionKey}");
-        }
+        StringBuilder.AppendLine($"AND {tableAlias}.{VLatest.Partition.PartitionKey} = {PartitionKey}");
     }
 
     protected void AppendFilterClause()

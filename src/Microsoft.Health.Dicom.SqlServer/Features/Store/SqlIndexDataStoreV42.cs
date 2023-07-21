@@ -17,17 +17,14 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-/// <summary>
-/// Sql IndexDataStore version 35.
-/// </summary>
-internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV33
+internal class SqlIndexDataStoreV42 : SqlIndexDataStoreV37
 {
-    public SqlIndexDataStoreV35(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV42(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V35;
+    public override SchemaVersion Version => SchemaVersion.V42;
 
     public override async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
     {
@@ -36,7 +33,7 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV33
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken, true))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.RetrieveDeletedInstanceV6.PopulateCommand(
+            VLatest.RetrieveDeletedInstanceV42.PopulateCommand(
                 sqlCommandWrapper,
                 batchSize,
                 maxRetries);
@@ -47,7 +44,8 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV33
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, long? originalWatermark) = reader.ReadRow(
+                        (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, long? originalWatermark) = reader.ReadRow(
+                            VLatest.Partition.PartitionName,
                             VLatest.DeletedInstance.PartitionKey,
                             VLatest.DeletedInstance.StudyInstanceUid,
                             VLatest.DeletedInstance.SeriesInstanceUid,
@@ -62,7 +60,8 @@ internal class SqlIndexDataStoreV35 : SqlIndexDataStoreV33
                                 seriesInstanceUid,
                                 sopInstanceUid,
                                 watermark,
-                                partitionKey),
+                                partitionKey,
+                                partitionName),
                             new InstanceProperties()
                             {
                                 OriginalVersion = originalWatermark

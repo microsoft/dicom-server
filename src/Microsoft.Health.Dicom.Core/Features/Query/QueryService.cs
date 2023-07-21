@@ -138,7 +138,7 @@ public class QueryService : IQueryService
         if (getFullMetadata)
         {
             instanceMetadata = await Task.WhenAll(
-                queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x.Version, cancellationToken)));
+                queryResult.DicomInstances.Select(x => _metadataStore.GetInstanceMetadataAsync(x.Version, cancellationToken)).ToList());
         }
         if (getSeriesResponse)
         {
@@ -146,16 +146,20 @@ public class QueryService : IQueryService
 
             if (instanceMetadata == null)
             {
-                instanceMetadata = seriesComputedResults.Select(x => x.DicomDataset);
+                instanceMetadata = seriesComputedResults.Select(x => x.DicomDataset).ToList();
             }
             else
             {
                 Dictionary<DicomIdentifier, SeriesResult> map = seriesComputedResults.ToDictionary<SeriesResult, DicomIdentifier>(a => new DicomIdentifier(a.StudyInstanceUid, a.SeriesInstanceUid, default));
-                instanceMetadata = instanceMetadata.Select(x =>
-                {
-                    var ds = new DicomDataset(x);
-                    return ds.AddOrUpdate(map[new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default)].DicomDataset);
-                });
+
+                // Added 'where' to filter the dataset if the particular StudyInstanceUID is not present in the computed list from database.
+                // This is to handle the edge case where the map doesn't have the StudyInstanceUID received from blob store.
+                instanceMetadata = instanceMetadata.Where(x =>
+                    map.ContainsKey(new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default))).Select(x =>
+                    {
+                        var ds = new DicomDataset(x);
+                        return ds.AddOrUpdate(map[new DicomIdentifier(x.GetSingleValue<string>(DicomTag.StudyInstanceUID), x.GetSingleValue<string>(DicomTag.SeriesInstanceUID), default)].DicomDataset);
+                    });
             }
         }
         if (getStudyResponse)
@@ -163,16 +167,20 @@ public class QueryService : IQueryService
             IReadOnlyCollection<StudyResult> studyComputedResults = await _queryStore.GetStudyResultAsync(partitionKey, versions, cancellationToken);
             if (instanceMetadata == null)
             {
-                instanceMetadata = studyComputedResults.Select(x => x.DicomDataset);
+                instanceMetadata = studyComputedResults.Select(x => x.DicomDataset).ToList();
             }
             else
             {
                 Dictionary<string, StudyResult> map = studyComputedResults.ToDictionary<StudyResult, string>(a => a.StudyInstanceUid, StringComparer.OrdinalIgnoreCase);
-                instanceMetadata = instanceMetadata.Select(x =>
-                {
-                    var ds = new DicomDataset(x);
-                    return ds.AddOrUpdate(map[x.GetSingleValue<string>(DicomTag.StudyInstanceUID)].DicomDataset);
-                });
+
+                // Added 'where' to filter the dataset if the particular StudyInstanceUID is not present in the computed list from database.
+                // This is to handle the edge case where the map doesn't have the StudyInstanceUID received from blob store.
+                instanceMetadata = instanceMetadata.Where(x =>
+                    map.ContainsKey(x.GetSingleValue<string>(DicomTag.StudyInstanceUID))).Select(x =>
+                    {
+                        var ds = new DicomDataset(x);
+                        return ds.AddOrUpdate(map[x.GetSingleValue<string>(DicomTag.StudyInstanceUID)].DicomDataset);
+                    });
             }
         }
 

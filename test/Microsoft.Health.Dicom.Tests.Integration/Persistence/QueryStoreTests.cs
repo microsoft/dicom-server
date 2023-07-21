@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -45,6 +46,35 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
         // test null conversions
         await _queryStore.GetStudyResultAsync(1, new List<long> { version });
         await _queryStore.GetSeriesResultAsync(1, new List<long> { version });
+    }
+
+    [Fact]
+    public async Task GivenLotOfInstances_WhenQueriedForStudyResult_ReturnsSuccessfully()
+    {
+        var dataset = new DicomDataset(DicomTransferSyntax.ExplicitVRLittleEndian)
+        {
+            { DicomTag.StudyInstanceUID, TestUidGenerator.Generate() }
+        };
+
+        int count = 1000;
+
+        var versions = new List<long>();
+
+        for (int i = 0; i < count; i++)
+        {
+            dataset.AddOrUpdate(DicomTag.SeriesInstanceUID, TestUidGenerator.Generate());
+            dataset.AddOrUpdate(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
+            dataset.AddOrUpdate(DicomTag.PatientID, TestUidGenerator.Generate());
+            dataset.AddOrUpdate(DicomTag.Modality, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
+
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+            await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
+            versions.Add(version);
+        }
+
+        var result = await _queryStore.GetStudyResultAsync(1, versions);
+
+        Assert.Equal(count, result.Count);
     }
 
     public Task InitializeAsync()

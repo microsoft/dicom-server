@@ -64,6 +64,6 @@ public class FrameHandler : IFrameHandler
 
         IByteBuffer resultByteBuffer = pixelData.GetFrame(frame);
 
-        return _recyclableMemoryStreamManager.GetStream("FrameHandler.GetFrameAsDicomData", resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
+        return _recyclableMemoryStreamManager.GetStream(nameof(GetFrameAsDicomData), resultByteBuffer.Data, 0, resultByteBuffer.Data.Length);
     }
 }
