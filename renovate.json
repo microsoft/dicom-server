@@ -14,7 +14,8 @@
   ],
   "packageRules": [
     {
-      "ignorePaths": ["docker/sql/"]
+      "ignorePaths": ["docker/sql/"],
+      "matchDatasources": ["docker"]
     },
     {
       "groupName": "ApplicationInsights",
