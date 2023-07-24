@@ -37,9 +37,10 @@
       ]
     },
     {
-      "groupName": "Hl7",
-      "excludePackagePrefixes": [
-        "Hl7.Fhir."
+      "enabled": false,
+      "groupName": "FHIR",
+      "matchPackagePatterns": [
+        "Fhir"
       ]
     },
     {
