@@ -51,7 +51,7 @@ jobs:
 
         $deployment = New-AzResourceGroupDeployment -Name "$(deploymentName)" -ResourceGroupName "$(resourceGroupName)" -TemplateFile $deployPath/default-azuredeploy.json -TemplateParameterObject $templateParameters -Verbose
 
-        Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get
+        Set-AzKeyVaultAccessPolicy -VaultName "$(deploymentName)" -ObjectId $(azureServiceConnectionOid) -PermissionsToSecrets list,get -BypassObjectIdValidation
 
         $storageAccountName = $deployment.Outputs['storageAccountName'].Value
         Write-Host "##vso[task.setvariable variable=azureStorageAccountName;isOutput=true]$storageAccountName"

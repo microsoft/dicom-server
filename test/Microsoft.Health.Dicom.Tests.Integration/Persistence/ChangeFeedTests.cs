@@ -196,7 +196,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             dicomInstanceIdentifier.SopInstanceUid);
 
         Assert.NotNull(result);
-        Assert.Equal(0, result.Count);
+        Assert.Empty(result);
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)

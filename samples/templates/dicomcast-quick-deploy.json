@@ -131,7 +131,8 @@
                     "fhirEndpoint":{"value": "[concat('https://',parameters('serviceName'),'-fhir','.azurewebsites.net')]"},
                     "patientSystemId": { "value": "[parameters('patientSystemId')]" },
                     "isIssuerIdUsed": { "value": "[parameters('isIssuerIdUsed')]" },
-                    "enforceValidationOfTagValues":{"value": false}
+                    "enforceValidationOfTagValues":{"value": false},
+                    "ignoreJsonParsingErrors": {"value": false}
                     }
                 }
             }
