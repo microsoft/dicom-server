@@ -14,10 +14,6 @@
   ],
   "packageRules": [
     {
-      "ignorePaths": ["docker/sql/"],
-      "matchDatasources": ["docker"]
-    },
-    {
       "groupName": "ApplicationInsights",
       "matchPackagePatterns": [
         "ApplicationInsights"
@@ -68,6 +64,16 @@
       "groupName": "OpenTelemetry",
       "matchPackagePrefixes": [
         "OpenTelemetry"
+      ]
+    },
+    {
+      "allowedVersions": "/^focal/",
+      "groupName": "SQL Base Image",
+      "includePaths": [
+        "docker/sql/Dockerfile"
+      ],
+      "matchPackageNames": [
+        "ubuntu"
       ]
     },
     {
