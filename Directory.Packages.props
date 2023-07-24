@@ -73,7 +73,7 @@
     <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="6.2.122" />
     <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="6.2.122" />
     <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
+    <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="2.3.58" />
     <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="6.2.122" />
     <PackageVersion Include="Microsoft.Health.Operations" Version="6.2.122" />
     <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="6.2.122" />
@@ -86,7 +86,7 @@
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
-    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.5" />
+    <PackageVersion Include="Microsoft.OpenApi" Version="1.6.6" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.0.52" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.6.3" />
