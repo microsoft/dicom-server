@@ -180,7 +180,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
     {
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
 
         if (flagToStoreInstance)
         {

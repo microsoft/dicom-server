@@ -48,7 +48,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static DeleteInstanceV6Procedure DeleteInstanceV6 = new DeleteInstanceV6Procedure();
         internal readonly static DeleteWorkitemProcedure DeleteWorkitem = new DeleteWorkitemProcedure();
         internal readonly static EndUpdateInstanceProcedure EndUpdateInstance = new EndUpdateInstanceProcedure();
-        internal readonly static EndUpdateInstanceV43Procedure EndUpdateInstanceV43 = new EndUpdateInstanceV43Procedure();
+        internal readonly static EndUpdateInstanceV44Procedure EndUpdateInstanceV44 = new EndUpdateInstanceV44Procedure();
         internal readonly static GetChangeFeedProcedure GetChangeFeed = new GetChangeFeedProcedure();
         internal readonly static GetChangeFeedByTimeProcedure GetChangeFeedByTime = new GetChangeFeedByTimeProcedure();
         internal readonly static GetChangeFeedByTimeV39Procedure GetChangeFeedByTimeV39 = new GetChangeFeedByTimeV39Procedure();
@@ -1075,9 +1075,9 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class EndUpdateInstanceV43Procedure : StoredProcedure
+        internal class EndUpdateInstanceV44Procedure : StoredProcedure
         {
-            internal EndUpdateInstanceV43Procedure() : base("dbo.EndUpdateInstanceV43")
+            internal EndUpdateInstanceV44Procedure() : base("dbo.EndUpdateInstanceV44")
             {
             }
 
@@ -1091,7 +1091,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.Nullable<System.DateTime> patientBirthDate, global::System.Collections.Generic.IEnumerable<FilePropertyTableTypeRow> insertFileProperties)
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.EndUpdateInstanceV43";
+                command.CommandText = "dbo.EndUpdateInstanceV44";
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
                 _patientId.AddParameter(command.Parameters, patientId);
@@ -1100,30 +1100,30 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _insertFileProperties.AddParameter(command.Parameters, insertFileProperties);
             }
 
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.Nullable<System.DateTime> patientBirthDate, EndUpdateInstanceV43TableValuedParameters tableValuedParameters)
+            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid, System.String patientId, System.String patientName, System.Nullable<System.DateTime> patientBirthDate, EndUpdateInstanceV44TableValuedParameters tableValuedParameters)
             {
                 PopulateCommand(command, partitionKey: partitionKey, studyInstanceUid: studyInstanceUid, patientId: patientId, patientName: patientName, patientBirthDate: patientBirthDate, insertFileProperties: tableValuedParameters.InsertFileProperties);
             }
         }
 
-        internal class EndUpdateInstanceV43TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, EndUpdateInstanceV43TableValuedParameters>
+        internal class EndUpdateInstanceV44TvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, EndUpdateInstanceV44TableValuedParameters>
         {
-            public EndUpdateInstanceV43TvpGenerator(ITableValuedParameterRowGenerator<TInput, FilePropertyTableTypeRow> FilePropertyTableTypeRowGenerator)
+            public EndUpdateInstanceV44TvpGenerator(ITableValuedParameterRowGenerator<TInput, FilePropertyTableTypeRow> FilePropertyTableTypeRowGenerator)
             {
                 this.FilePropertyTableTypeRowGenerator = FilePropertyTableTypeRowGenerator;
             }
 
             private readonly ITableValuedParameterRowGenerator<TInput, FilePropertyTableTypeRow> FilePropertyTableTypeRowGenerator;
 
-            public EndUpdateInstanceV43TableValuedParameters Generate(TInput input)
+            public EndUpdateInstanceV44TableValuedParameters Generate(TInput input)
             {
-                return new EndUpdateInstanceV43TableValuedParameters(FilePropertyTableTypeRowGenerator.GenerateRows(input));
+                return new EndUpdateInstanceV44TableValuedParameters(FilePropertyTableTypeRowGenerator.GenerateRows(input));
             }
         }
 
-        internal struct EndUpdateInstanceV43TableValuedParameters
+        internal struct EndUpdateInstanceV44TableValuedParameters
         {
-            internal EndUpdateInstanceV43TableValuedParameters(global::System.Collections.Generic.IEnumerable<FilePropertyTableTypeRow> InsertFileProperties)
+            internal EndUpdateInstanceV44TableValuedParameters(global::System.Collections.Generic.IEnumerable<FilePropertyTableTypeRow> InsertFileProperties)
             {
                 this.InsertFileProperties = InsertFileProperties;
             }

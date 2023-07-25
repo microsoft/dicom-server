@@ -19,6 +19,9 @@ The current implementation of DICOM Cast supports:
 - Configuration to ignore invalid tags when syncing data from the change feed to FHIR resource types.
     - If `EnforceValidationOfTagValues` is enabled then the change feed entry will not be written to the FHIR server unless every tag that is mapped (see below for mappings) is valid
     - If `EnforceValidationOfTagValues` is disabled (default) then as if a value is invalid, but not required to be mapped (see below for required tags for Patient and Imaging Study) then that particular tag will not be mapped but the rest of the change feed entry will be mapped to FHIR resources. If a required tag is invalid then the change feed entry will not be written to FHIR Server
+- Configuration to ignore Json parsing errors from DicomWebClient due to malformed DICOM json
+  - If `IgnoreJsonParsingErrors` is enabled, then the malformed changefeed entry will be skipped. This error will NOT be logged in the exceptions table due to not being able to parse out the Study, Series, and Instance UID necessary for an entry to the table
+  - If `IgnoreJsonParsingErrors` is disabled, an exception will be thrown when DICOM Cast tries to handle the malformed DICOM json
 - Storage of errors to Azure Table Storage
     - Errors when processing change feed entries are persisted in Azure Table Storage in different tables depending on the cause of the error.
         - `InvalidDicomTagExceptionTable`: Stores information about any tags that had invalid values. Entries in here does not necessarily mean that the entire change feed entry was not stored in FHIR, but that the particular value had a validation issue.

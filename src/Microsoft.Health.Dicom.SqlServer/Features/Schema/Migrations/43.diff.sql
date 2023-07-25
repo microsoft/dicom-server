@@ -1,14 +1,16 @@
-﻿/*************************************************************
-    Study result view to be used for getting computed column response
+SET XACT_ABORT ON
+BEGIN TRANSACTION
+/*************************************************************
+    Study View to be used for getting computed column response
 **************************************************************/
-IF NOT EXISTS 
+IF EXISTS 
 (
     SELECT *
     FROM    sys.views
     WHERE   Name = 'StudyResultView'
 )
 BEGIN
-    EXEC('CREATE VIEW dbo.StudyResultView
+    EXEC('ALTER VIEW dbo.StudyResultView
     WITH SCHEMABINDING
     AS
     SELECT  st.StudyInstanceUid,
@@ -25,9 +27,13 @@ BEGIN
             AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,
             (SELECT SUM(1) 
             FROM dbo.Instance i 
-            WHERE st.PartitionKey = i.PartitionKey
-            AND st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
+            WHERE st.StudyKey = i.StudyKey) AS NumberofStudyRelatedInstances,
             st.PartitionKey,
             st.StudyKey
     FROM dbo.Study st')
 END
+GO
+
+COMMIT TRANSACTION
+
+

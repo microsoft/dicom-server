@@ -196,7 +196,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             dicomInstanceIdentifier.SopInstanceUid);
 
         Assert.NotNull(result);
-        Assert.Equal(0, result.Count);
+        Assert.Empty(result);
     }
 
     private async Task ValidateSubsetAsync(TimeRange range, params ChangeFeedEntry[] expected)
@@ -227,7 +227,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             { DicomTag.PatientID, TestUidGenerator.Generate() },
         };
 
-        var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
+        var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), newDataSet);
 
         var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version, Partition.Default);
 

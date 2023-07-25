@@ -292,6 +292,13 @@
             "metadata": {
                 "description": "Enforce validation of all tag values when syncing from Dicom to FHIR using dicom-cast and do not store to FHIR even if only non-required tags are invalid"
             }
+        },
+        "ignoreJsonParsingErrors": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Ignore json parsing errors for DICOM instances with malformed DICOM json"
+            }
         }
     },
     "variables": {
@@ -401,7 +408,8 @@
                     "restartPolicy": { "value": "[parameters('dicomCastRestartPolicy')]" },
                     "dicomWebEndpoint": { "value": "[concat('https://',parameters('dicomServiceName'),'.azurewebsites.net')]" },
                     "fhirEndpoint": { "value": "[concat('https://',parameters('fhirServiceName'),'.azurewebsites.net')]" },
-                    "enforceValidationOfTagValues": { "value": "[parameters('enforceValidationOfTagValues')]" }
+                    "enforceValidationOfTagValues": { "value": "[parameters('enforceValidationOfTagValues')]" },
+                    "ignoreJsonParsingErrors": { "value": "[parameters('ignoreJsonParsingErrors')]" }
                 }
             }
         }

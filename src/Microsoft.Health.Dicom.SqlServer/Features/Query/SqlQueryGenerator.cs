@@ -146,18 +146,15 @@ internal class SqlQueryGenerator : BaseSqlQueryGenerator
             var sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SeriesKey";
             var sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.InstanceKey";
 
-            if ((int)SchemaVersion >= SchemaVersionConstants.SupportUpsRsSchemaVersion)
-            {
-                sopInstanceKey1Name = $"{extendedQueryTagTableAlias}.SopInstanceKey1";
-                sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SopInstanceKey2";
-                sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.SopInstanceKey3";
+            sopInstanceKey1Name = $"{extendedQueryTagTableAlias}.SopInstanceKey1";
+            sopInstanceKey2Name = $"{extendedQueryTagTableAlias}.SopInstanceKey2";
+            sopInstanceKey3Name = $"{extendedQueryTagTableAlias}.SopInstanceKey3";
 
-                StringBuilder
-                    .Append("AND ")
-                    .Append($"{extendedQueryTagTableAlias}.ResourceType")
-                    .Append(" = ")
-                    .AppendLine($"{(int)QueryTagResourceType.Image}");
-            }
+            StringBuilder
+                .Append("AND ")
+                .Append($"{extendedQueryTagTableAlias}.ResourceType")
+                .Append(" = ")
+                .AppendLine($"{(int)QueryTagResourceType.Image}");
 
             StringBuilder
                 .Append("AND ")

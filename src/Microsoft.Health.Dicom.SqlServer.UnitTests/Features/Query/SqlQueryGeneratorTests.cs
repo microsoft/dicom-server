@@ -92,7 +92,7 @@ FETCH NEXT 100 ROWS ONLY";
         Assert.Contains(expectedDistinctSelect, stringBuilder.ToString());
         Assert.Contains(expectedCrossApply, stringBuilder.ToString());
         Assert.Contains(expectedFilterAndPage, stringBuilder.ToString());
-        Assert.DoesNotContain(partitionFilter, stringBuilder.ToString());
+        Assert.Contains(partitionFilter, stringBuilder.ToString());
     }
 
     [Fact]
@@ -160,6 +160,7 @@ i.StudyInstanceUid
 FROM dbo.Study st
 INNER JOIN dbo.Series se
 ON se.StudyKey = st.StudyKey
+AND se.PartitionKey = st.PartitionKey
 INNER JOIN dbo.Instance i
 ON i.SeriesKey = se.SeriesKey";
 
@@ -195,7 +196,8 @@ FETCH NEXT 100 ROWS ONLY";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
-AND cts1.StudyKey = st.StudyKey
+AND cts1.ResourceType = 0
+AND cts1.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND cts1.TagKey=@p0
@@ -228,7 +230,8 @@ AND cts1.TagValue=@p1";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
 ON ctl1.PartitionKey = st.PartitionKey
-AND ctl1.StudyKey = st.StudyKey
+AND ctl1.ResourceType = 0
+AND ctl1.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND ctl1.TagKey=@p0
@@ -261,7 +264,8 @@ AND ctl1.TagValue=@p1";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDouble ctd1
 ON ctd1.PartitionKey = st.PartitionKey
-AND ctd1.StudyKey = st.StudyKey
+AND ctd1.ResourceType = 0
+AND ctd1.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND ctd1.TagKey=@p0
@@ -295,7 +299,8 @@ AND ctd1.TagValue=@p1";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.PartitionKey = st.PartitionKey
-AND ctdt1.StudyKey = st.StudyKey
+AND ctdt1.ResourceType = 0
+AND ctdt1.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND ctdt1.TagKey=@p0
@@ -330,7 +335,8 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.PartitionKey = st.PartitionKey
-AND ctdt1.StudyKey = st.StudyKey
+AND ctdt1.ResourceType = 0
+AND ctdt1.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND ctdt1.TagKey=@p0
@@ -368,7 +374,8 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagLong ctl1
 ON ctl1.PartitionKey = st.PartitionKey
-AND ctl1.StudyKey = st.StudyKey
+AND ctl1.ResourceType = 0
+AND ctl1.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND ctl1.TagKey=@p0
@@ -404,8 +411,9 @@ AND ctl1.TagValue BETWEEN @p1 AND @p2";
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
-AND cts1.StudyKey = st.StudyKey
-AND cts1.SeriesKey = se.SeriesKey
+AND cts1.ResourceType = 0
+AND cts1.SopInstanceKey1 = st.StudyKey
+AND cts1.SopInstanceKey2 = se.SeriesKey
 WHERE";
 
         string expectedFilter = @"AND se.Modality=@p0";
@@ -447,12 +455,14 @@ AND cts1.TagValue=@p2";
         // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
-AND cts1.StudyKey = st.StudyKey
-AND cts1.SeriesKey = se.SeriesKey
+AND cts1.ResourceType = 0
+AND cts1.SopInstanceKey1 = st.StudyKey
+AND cts1.SopInstanceKey2 = se.SeriesKey
 INNER JOIN dbo.ExtendedQueryTagString cts2
 ON cts2.PartitionKey = st.PartitionKey
-AND cts2.StudyKey = st.StudyKey
-AND cts2.SeriesKey = se.SeriesKey
+AND cts2.ResourceType = 0
+AND cts2.SopInstanceKey1 = st.StudyKey
+AND cts2.SopInstanceKey2 = se.SeriesKey
 WHERE";
 
         string expectedFilters = @"AND cts1.TagKey=@p0
@@ -502,16 +512,19 @@ AND cts2.TagValue=@p3";
         // ctl4 is associated with filter3 which is at the study level. This means the join should be on only the study key.
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = st.PartitionKey
-AND cts1.StudyKey = st.StudyKey
-AND cts1.SeriesKey = se.SeriesKey
-AND cts1.InstanceKey = i.InstanceKey
+AND cts1.ResourceType = 0
+AND cts1.SopInstanceKey1 = st.StudyKey
+AND cts1.SopInstanceKey2 = se.SeriesKey
+AND cts1.SopInstanceKey3 = i.InstanceKey
 INNER JOIN dbo.ExtendedQueryTagString cts2
 ON cts2.PartitionKey = st.PartitionKey
-AND cts2.StudyKey = st.StudyKey
-AND cts2.SeriesKey = se.SeriesKey
+AND cts2.ResourceType = 0
+AND cts2.SopInstanceKey1 = st.StudyKey
+AND cts2.SopInstanceKey2 = se.SeriesKey
 INNER JOIN dbo.ExtendedQueryTagLong ctl4
 ON ctl4.PartitionKey = st.PartitionKey
-AND ctl4.StudyKey = st.StudyKey
+AND ctl4.ResourceType = 0
+AND ctl4.SopInstanceKey1 = st.StudyKey
 WHERE";
 
         string expectedFilters = @"AND cts1.TagKey=@p0

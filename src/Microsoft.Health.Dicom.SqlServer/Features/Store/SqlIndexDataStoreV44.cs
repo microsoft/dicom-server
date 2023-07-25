@@ -23,7 +23,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 /// <summary>
 /// Sql IndexDataStore version 44
 /// </summary>
-internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV43
+internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV42
 {
     public SqlIndexDataStoreV44(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
