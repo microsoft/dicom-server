@@ -21,16 +21,16 @@ using Microsoft.Health.SqlServer.Features.Storage;
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
 /// <summary>
-/// Sql IndexDataStore version 43
+/// Sql IndexDataStore version 44
 /// </summary>
-internal class SqlIndexDataStoreV43 : SqlIndexDataStoreV42
+internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV43
 {
-    public SqlIndexDataStoreV43(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV44(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     {
     }
 
-    public override SchemaVersion Version => SchemaVersion.V43;
+    public override SchemaVersion Version => SchemaVersion.V44;
 
     public override async Task EndUpdateInstanceAsync(
         int partitionKey,
@@ -47,7 +47,7 @@ internal class SqlIndexDataStoreV43 : SqlIndexDataStoreV42
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.EndUpdateInstanceV43.PopulateCommand(
+            VLatest.EndUpdateInstanceV44.PopulateCommand(
                 sqlCommandWrapper,
                 partitionKey,
                 studyInstanceUid,

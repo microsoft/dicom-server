@@ -226,12 +226,12 @@ END
 GO
 
 /*************************************************************
-    EndUpdateInstanceV43 altered to take in rows of 
+    EndUpdateInstanceV44 altered to take in rows of 
     FileProperty from all of the updates blobs and insert them
     into table
 **************************************************************/
 
-CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV43
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV44
 @partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL, @insertFileProperties dbo.FilePropertyTableType READONLY
 AS
 BEGIN

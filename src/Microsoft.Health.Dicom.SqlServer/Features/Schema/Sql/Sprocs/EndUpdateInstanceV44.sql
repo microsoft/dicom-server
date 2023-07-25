@@ -3,7 +3,7 @@
 **************************************************************/
 --
 -- STORED PROCEDURE
---     EndUpdateInstanceV43
+--     EndUpdateInstanceV44
 --
 -- DESCRIPTION
 --     Bulk update all instances in a study, creates new entry in changefeed and fileProperty for each new file added.
@@ -23,7 +23,7 @@
 -- RETURN VALUE
 --     None
 --
-CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV43
+CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV44
     @partitionKey                       INT,
     @studyInstanceUid                   VARCHAR(64),
     @patientId                          NVARCHAR(64) = NULL,
