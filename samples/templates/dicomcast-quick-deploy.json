@@ -119,7 +119,7 @@
                 },
                 "parameters":{
                     "serviceName":{"value": "[concat(parameters('serviceName'),'-dcast')]"},
-                    "image":{"value": "dicomoss.azurecr.io/linux_dicom-cast"},
+                    "image":{"value": "dicomoss.azurecr.io/dicom-cast"},
                     "storageAccountSku":{"value": "Standard_LRS"},
                     "deployApplicationInsights":{"value": true},
                     "applicationInsightsLocation":{"value": "[resourceGroup().location]"},
