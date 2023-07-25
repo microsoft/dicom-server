@@ -87,7 +87,7 @@ public class BlobSystemStore : ISystemStore
     /// <inheritdoc />
     public async Task<TResult> GetInputAsync<TResult>(string name, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(name, nameof(name));
+        EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
 
         BlockBlobClient blobClient = GetBlockBlobClient(name);
 

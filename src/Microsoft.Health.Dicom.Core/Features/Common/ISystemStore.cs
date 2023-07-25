@@ -26,6 +26,6 @@ public interface ISystemStore
     /// </summary>
     /// <param name="name">Blob name</param>
     /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns></returns>
+    /// <returns>A task that represents the asynchronous get operation.</returns>
     Task<TResult> GetInputAsync<TResult>(string name, CancellationToken cancellationToken = default);
 }
