@@ -10,13 +10,13 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// </summary>
 public class UpdateInstanceWatermarkArguments
 {
-    public int PartitionKey { get; }
+    public string InputIdentifier { get; }
 
-    public string StudyInstanceUid { get; }
+    public int StudyInstanceIndex { get; }
 
-    public UpdateInstanceWatermarkArguments(int partitionKey, string studyInstanceUid)
+    public UpdateInstanceWatermarkArguments(string inputIdentifier, int studyInstanceIndex)
     {
-        PartitionKey = partitionKey;
-        StudyInstanceUid = studyInstanceUid;
+        InputIdentifier = inputIdentifier;
+        StudyInstanceIndex = studyInstanceIndex;
     }
 }

@@ -21,8 +21,6 @@ public sealed class UpdateCheckpoint : UpdateInput, IOrchestrationCheckpoint
 
     public int NumberOfStudyFailed { get; set; }
 
-    public int TotalNumberOfStudies { get; set; }
-
     public int TotalNumberOfInstanceUpdated { get; set; }
 
     public IReadOnlyList<string> Errors { get; set; }

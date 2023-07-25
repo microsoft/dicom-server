@@ -12,6 +12,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -36,10 +37,12 @@ public partial class UpdateDurableFunctionTests
 
         var versions = expected.Select(x => x.Version).ToList();
 
+        _systemStore.GetInputAsync<UpdateOperationInput>(Arg.Any<string>()).Returns(GetUpdateInput(studyInstanceUid));
+
         _indexStore.BeginUpdateInstancesAsync(DefaultPartition.Key, studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
         IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
-            new UpdateInstanceWatermarkArguments(DefaultPartition.Key, studyInstanceUid),
+            new UpdateInstanceWatermarkArguments(studyInstanceUid, 0),
             NullLogger.Instance);
 
         await _indexStore
@@ -68,7 +71,7 @@ public partial class UpdateDurableFunctionTests
             }).ToList();
 
         var versions = expected.Select(x => x.Version).ToList();
-        var dataset = "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}";
+        _systemStore.GetInputAsync<UpdateOperationInput>(Arg.Any<string>()).Returns(GetUpdateInput(studyInstanceUid));
 
         foreach (var instance in expected)
         {
@@ -81,7 +84,7 @@ public partial class UpdateDurableFunctionTests
         }
 
         await _updateDurableFunction.UpdateInstanceBlobsAsync(
-            new UpdateInstanceBlobArguments(DefaultPartition.Key, expected, dataset),
+            new UpdateInstanceBlobArguments(studyInstanceUid, expected, 0),
             NullLogger.Instance);
 
         foreach (var instance in expected)
@@ -107,8 +110,10 @@ public partial class UpdateDurableFunctionTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
+        _systemStore.GetInputAsync<UpdateOperationInput>(Arg.Any<string>()).Returns(GetUpdateInput(studyInstanceUid));
+
         await _updateDurableFunction.CompleteUpdateStudyAsync(
-            new CompleteStudyArguments(DefaultPartition.Key, studyInstanceUid, "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}"),
+            new CompleteStudyArguments(studyInstanceUid, 0),
             NullLogger.Instance);
 
         await _indexStore

@@ -8,4 +8,6 @@ namespace Microsoft.Health.Dicom.Functions.Update;
 public class UpdateInput
 {
     public string InputIdentifier { get; set; }
+
+    public int TotalNumberOfStudies { get; set; }
 }

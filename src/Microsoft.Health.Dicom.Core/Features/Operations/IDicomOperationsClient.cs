@@ -104,6 +104,7 @@ public interface IDicomOperationsClient
     /// </summary>
     /// <param name="operationId">The desired ID for the long-running update operation.</param>
     /// <param name="blobIdentifier">Blob identifier to fetch the DICOM update input</param>
+    /// <param name="totalNumberOfStudies">Total number of studies to update</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartUpdateOperationAsync"/>
@@ -114,7 +115,7 @@ public interface IDicomOperationsClient
     /// <paramref name="blobIdentifier"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, string blobIdentifier, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, string blobIdentifier, int totalNumberOfStudies, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously migrate instance frame range files.

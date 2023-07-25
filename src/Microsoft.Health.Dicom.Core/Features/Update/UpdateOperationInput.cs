@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
@@ -13,5 +14,5 @@ public class UpdateOperationInput
 
     public IReadOnlyList<string> StudyInstanceUids { get; set; }
 
-    public string ChangeDataset { get; set; }
+    public DicomDataset ChangeDataset { get; set; }
 }

@@ -103,18 +103,16 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 
         try
         {
-            string datasetToUpdate = JsonSerializer.Serialize(updateSpecification.ChangeDataset, _jsonSerializerOptions);
-
             var updateInput = new UpdateOperationInput
             {
                 PartitionKey = partitionKey,
-                ChangeDataset = datasetToUpdate,
+                ChangeDataset = updateSpecification.ChangeDataset,
                 StudyInstanceUids = updateSpecification.StudyInstanceUids,
             };
 
             string blobIdentifier = await _systemStore.StoreInputAsync(updateInput, cancellationToken);
 
-            var operation = await _client.StartUpdateOperationAsync(operationId, blobIdentifier, cancellationToken);
+            var operation = await _client.StartUpdateOperationAsync(operationId, blobIdentifier, updateSpecification.StudyInstanceUids.Count, cancellationToken);
 
             string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions);
             _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);

@@ -14,16 +14,16 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// </summary>
 public sealed class UpdateInstanceBlobArguments
 {
-    public int PartitionKey { get; }
-
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
 
-    public string ChangeDataset { get; }
+    public string InputIdentifier { get; }
 
-    public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
+    public int StudyInstanceIndex { get; }
+
+    public UpdateInstanceBlobArguments(string inputIdentifier, IReadOnlyList<InstanceFileState> instanceWatermarks, int studyInstanceIndex)
     {
-        PartitionKey = partitionKey;
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
-        ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
+        InputIdentifier = EnsureArg.IsNotNull(inputIdentifier, nameof(inputIdentifier));
+        StudyInstanceIndex = studyInstanceIndex;
     }
 }

@@ -177,7 +177,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, string blobIdentifier, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, string blobIdentifier, int totalNumberOfStudies, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(blobIdentifier, nameof(blobIdentifier));
 
@@ -189,6 +189,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
             new UpdateInput
             {
                 InputIdentifier = blobIdentifier,
+                TotalNumberOfStudies = totalNumberOfStudies
             });
 
         _logger.LogInformation("Successfully started new update operation instance with ID '{InstanceId}'.", instanceId);

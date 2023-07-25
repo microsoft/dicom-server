@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using FellowOakDicom;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -71,13 +72,6 @@ public partial class UpdateDurableFunctionTests
         context
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedCheckpoint);
-
-        context
-            .CallActivityWithRetryAsync<UpdateOperationInput>(
-                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
-                _options.RetryOptions,
-                Arg.Any<string>())
-            .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
@@ -88,7 +82,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -121,7 +115,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")));
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
@@ -146,16 +140,20 @@ public partial class UpdateDurableFunctionTests
         var expectedCheckpoint = new UpdateCheckpoint
         {
             CreatedTime = createdTime,
+            InputIdentifier = "blobName",
+            TotalNumberOfStudies = 1,
         };
 
         var expectedInput = new UpdateOperationInput
         {
             PartitionKey = DefaultPartition.Key,
-            ChangeDataset = string.Empty,
+            ChangeDataset = new DicomDataset(),
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate()
             }
         };
+
+        _systemStore.GetInputAsync<UpdateOperationInput>(Arg.Any<string>()).Returns(expectedInput);
 
         var expectedInstances = new List<InstanceFileState>();
 
@@ -170,12 +168,6 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedCheckpoint);
 
         context
-            .CallActivityWithRetryAsync<UpdateOperationInput>(
-                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
-                _options.RetryOptions,
-                Arg.Any<string>())
-            .Returns(expectedInput);
-        context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
@@ -185,7 +177,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -218,7 +210,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
@@ -257,9 +249,11 @@ public partial class UpdateDurableFunctionTests
         var expectedInput = new UpdateOperationInput
         {
             PartitionKey = DefaultPartition.Key,
-            ChangeDataset = string.Empty,
+            ChangeDataset = new DicomDataset(),
             StudyInstanceUids = new List<string>()
         };
+
+        _systemStore.GetInputAsync<UpdateOperationInput>(Arg.Any<string>()).Returns(expectedInput);
 
         // Arrange the input
         string operationId = OperationId.Generate();
@@ -268,13 +262,6 @@ public partial class UpdateDurableFunctionTests
         context
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedCheckpoint);
-
-        context
-            .CallActivityWithRetryAsync<UpdateOperationInput>(
-                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
-                _options.RetryOptions,
-                Arg.Any<string>())
-            .Returns(expectedInput);
 
         // Invoke the orchestration
         await Assert.ThrowsAsync<OperationErrorException>(() => _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance));
@@ -322,18 +309,21 @@ public partial class UpdateDurableFunctionTests
         var expectedCheckpoint = new UpdateCheckpoint
         {
             CreatedTime = createdTime,
-            InputIdentifier = "blobName"
+            InputIdentifier = "blobName",
+            TotalNumberOfStudies = 1,
         };
 
         var expectedInput = new UpdateOperationInput
         {
 
             PartitionKey = DefaultPartition.Key,
-            ChangeDataset = string.Empty,
+            ChangeDataset = new DicomDataset(),
             StudyInstanceUids = new List<string> {
                 TestUidGenerator.Generate()
             },
         };
+
+        _systemStore.GetInputAsync<UpdateOperationInput>(Arg.Any<string>()).Returns(expectedInput);
 
         var expectedInstancesWithNewWatermark = new List<InstanceFileState>
         {
@@ -358,13 +348,6 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedCheckpoint);
 
         context
-            .CallActivityWithRetryAsync<UpdateOperationInput>(
-                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
-                _options.RetryOptions,
-                Arg.Any<string>())
-            .Returns(expectedInput);
-
-        context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
@@ -375,7 +358,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")))
             .ThrowsAsync(new FunctionFailedException("Function failed"));
 
         context
@@ -445,12 +428,7 @@ public partial class UpdateDurableFunctionTests
         context
             .GetInput<UpdateCheckpoint>()
             .Returns(expectedCheckpoint);
-        context
-            .CallActivityWithRetryAsync<UpdateOperationInput>(
-                nameof(UpdateDurableFunction.GetUpdateOrchestrationInputAsync),
-                _options.RetryOptions,
-                Arg.Any<string>())
-            .Returns(expectedInput);
+
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
@@ -461,7 +439,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -494,7 +472,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(DefaultPartition.Key, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(0, expectedInstancesWithNewWatermark, "blobName")));
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
@@ -516,19 +494,8 @@ public partial class UpdateDurableFunctionTests
         => new UpdateCheckpoint
         {
             CreatedTime = DateTime.UtcNow,
-            InputIdentifier = "blobName"
-        };
-
-    private static UpdateOperationInput GetUpdateInput()
-        => new UpdateOperationInput
-        {
-            PartitionKey = DefaultPartition.Key,
-            ChangeDataset = string.Empty,
-            StudyInstanceUids = new List<string> {
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate()
-            },
+            InputIdentifier = "blobName",
+            TotalNumberOfStudies = 3,
         };
 
     private static IDurableOrchestrationContext CreateContext(string operationId)
@@ -538,11 +505,11 @@ public partial class UpdateDurableFunctionTests
         return context;
     }
 
-    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
+    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(int studyInstanceIndex, IReadOnlyList<InstanceFileState> instanceWatermarks, string inputIdentifier)
     {
-        return x => x.PartitionKey == partitionKey
+        return x => x.InputIdentifier == inputIdentifier
             && x.InstanceWatermarks == instanceWatermarks
-            && x.ChangeDataset == changeDataset;
+            && x.StudyInstanceIndex == studyInstanceIndex;
     }
 
     private static Expression<Predicate<UpdateCheckpoint>> GetPredicate(long instanceUpdated, int studyCompleted)

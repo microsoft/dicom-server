@@ -10,16 +10,13 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// </summary>
 public sealed class CompleteStudyArguments
 {
-    public int PartitionKey { get; }
+    public string InputIdentifier { get; }
 
-    public string StudyInstanceUid { get; }
+    public int StudyInstanceIndex { get; }
 
-    public string ChangeDataset { get; set; }
-
-    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
+    public CompleteStudyArguments(string inputIdentifier, int studyInstanceIndex)
     {
-        PartitionKey = partitionKey;
-        StudyInstanceUid = studyInstanceUid;
-        ChangeDataset = dicomDataset;
+        InputIdentifier = inputIdentifier;
+        StudyInstanceIndex = studyInstanceIndex;
     }
 }

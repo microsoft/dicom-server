@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -38,12 +37,15 @@ public partial class UpdateDurableFunction
     public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
-        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstancesAsync(arguments.PartitionKey, arguments.StudyInstanceUid, CancellationToken.None);
+        UpdateOperationInput updateInput = await _systemStore.GetInputAsync<UpdateOperationInput>(arguments.InputIdentifier, CancellationToken.None);
+
+        string studyInstanceUid = updateInput.StudyInstanceUids[arguments.StudyInstanceIndex];
+
+        IEnumerable<InstanceMetadata> instanceMetadata = await _indexStore.BeginUpdateInstancesAsync(updateInput.PartitionKey, studyInstanceUid, CancellationToken.None);
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
@@ -71,11 +73,15 @@ public partial class UpdateDurableFunction
     public async Task UpdateInstanceBlobsAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
+        EnsureArg.IsNotNull(arguments.InputIdentifier, nameof(arguments.InputIdentifier));
         EnsureArg.IsNotNull(arguments.InstanceWatermarks, nameof(arguments.InstanceWatermarks));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
-        DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
+        UpdateOperationInput updateInput = await _systemStore.GetInputAsync<UpdateOperationInput>(arguments.InputIdentifier, CancellationToken.None);
+
+        string studyInstanceUid = updateInput.StudyInstanceUids[arguments.StudyInstanceIndex];
+
+        DicomDataset datasetToUpdate = updateInput.ChangeDataset;
 
         int processed = 0;
 
@@ -129,18 +135,21 @@ public partial class UpdateDurableFunction
     public async Task CompleteUpdateStudyAsync([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
-        EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
+        EnsureArg.IsNotNull(arguments.InputIdentifier, nameof(arguments.InputIdentifier));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         logger.LogInformation("Completing updating operation for study.");
 
+        UpdateOperationInput updateInput = await _systemStore.GetInputAsync<UpdateOperationInput>(arguments.InputIdentifier, CancellationToken.None);
+
+        string studyInstanceUid = updateInput.StudyInstanceUids[arguments.StudyInstanceIndex];
+
         try
         {
             await _indexStore.EndUpdateInstanceAsync(
-                arguments.PartitionKey,
-                arguments.StudyInstanceUid,
-                GetDeserialzedDataset(arguments.ChangeDataset),
+                updateInput.PartitionKey,
+                studyInstanceUid,
+                updateInput.ChangeDataset,
                 CancellationToken.None);
 
             logger.LogInformation("Updating study completed successfully.");
@@ -225,32 +234,4 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
-
-    /// <summary>
-    /// Asynchronously gets the input for update orchestration.
-    /// </summary>
-    /// <param name="context">Activity context which has blob name</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="GetUpdateOrchestrationInputAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(GetUpdateOrchestrationInputAsync))]
-    public Task<UpdateOperationInput> GetUpdateOrchestrationInputAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        string blobName = context.GetInput<string>();
-
-        EnsureArg.IsNotNull(blobName, nameof(blobName));
-
-        logger.LogInformation("Getting update orchestration input");
-
-        return _systemStore.GetInputAsync<UpdateOperationInput>(blobName, CancellationToken.None);
-    }
-
-    private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
 }

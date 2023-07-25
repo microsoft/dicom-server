@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System.Text.Json;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -27,7 +26,6 @@ public partial class UpdateDurableFunction
     private readonly IFileStore _fileStore;
     private readonly IUpdateInstanceService _updateInstanceService;
     private readonly UpdateMeter _updateMeter;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public UpdateDurableFunction(
         IIndexDataStore indexStore,
@@ -37,8 +35,7 @@ public partial class UpdateDurableFunction
         IMetadataStore metadataStore,
         IFileStore fileStore,
         IUpdateInstanceService updateInstanceService,
-        UpdateMeter updateMeter,
-        IOptions<JsonSerializerOptions> jsonSerializerOptions)
+        UpdateMeter updateMeter)
     {
         _indexStore = EnsureArg.IsNotNull(indexStore, nameof(indexStore));
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -46,7 +43,6 @@ public partial class UpdateDurableFunction
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _updateInstanceService = EnsureArg.IsNotNull(updateInstanceService, nameof(updateInstanceService));
-        _jsonSerializerOptions = EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
         _updateMeter = EnsureArg.IsNotNull(updateMeter, nameof(updateMeter));
         _options = EnsureArg.IsNotNull(configOptions?.Value, nameof(configOptions));
     }

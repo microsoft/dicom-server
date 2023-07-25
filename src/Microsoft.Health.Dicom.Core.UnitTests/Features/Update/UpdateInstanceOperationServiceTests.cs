@@ -86,6 +86,7 @@ public class UpdateInstanceOperationServiceTests
            .StartUpdateOperationAsync(
                Arg.Any<Guid>(),
                Arg.Any<string>(),
+               Arg.Any<int>(),
                CancellationToken.None)
            .Returns(expected);
 

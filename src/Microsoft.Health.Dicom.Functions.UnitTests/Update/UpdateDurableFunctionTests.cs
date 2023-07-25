@@ -4,16 +4,16 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using System.Text.Json;
-using FellowOakDicom.Serialization;
+using FellowOakDicom;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Partition;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Features.Update;
-using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Dicom.Functions.Update;
+using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Operations.Functions.DurableTask;
 using NSubstitute;
 using OpenTelemetry;
@@ -32,7 +32,6 @@ public partial class UpdateDurableFunctionTests
     private readonly ISystemStore _systemStore;
     private readonly IUpdateInstanceService _updateInstanceService;
     private readonly UpdateMeter _updateMeter;
-    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private MeterProvider _meterProvider;
     private List<Metric> _exportedItems;
 
@@ -44,10 +43,7 @@ public partial class UpdateDurableFunctionTests
         _fileStore = Substitute.For<IFileStore>();
         _updateInstanceService = Substitute.For<IUpdateInstanceService>();
         _options = new UpdateOptions { RetryOptions = new ActivityRetryOptions() };
-        _jsonSerializerOptions = new JsonSerializerOptions();
-        _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _updateMeter = new UpdateMeter();
-        _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
         _systemStore = Substitute.For<ISystemStore>();
         _updateDurableFunction = new UpdateDurableFunction(
             _indexStore,
@@ -57,8 +53,7 @@ public partial class UpdateDurableFunctionTests
             _metadataStore,
             _fileStore,
             _updateInstanceService,
-            _updateMeter,
-            Options.Create(_jsonSerializerOptions));
+            _updateMeter);
         InitializeMetricExporter();
     }
 
@@ -70,4 +65,19 @@ public partial class UpdateDurableFunctionTests
             .AddInMemoryExporter(_exportedItems)
             .Build();
     }
+
+    private static UpdateOperationInput GetUpdateInput(string studyInstanceUID = null)
+        => new UpdateOperationInput
+        {
+            PartitionKey = DefaultPartition.Key,
+            ChangeDataset = new DicomDataset
+            {
+                { DicomTag.PatientName, "Patient Name" }
+            },
+            StudyInstanceUids = new List<string> {
+                studyInstanceUID ?? TestUidGenerator.Generate(),
+                TestUidGenerator.Generate(),
+                TestUidGenerator.Generate()
+            },
+        };
 }
