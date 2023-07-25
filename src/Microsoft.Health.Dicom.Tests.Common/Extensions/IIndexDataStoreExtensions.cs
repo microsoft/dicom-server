@@ -16,8 +16,8 @@ namespace Microsoft.Health.Dicom.Tests.Common.Extensions;
 
 public static class IIndexDataStoreExtensions
 {
-    public static Task<long> BeginCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, int partitionKey, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
-        => indexDataStore.BeginCreateInstanceIndexAsync(new Partition(partitionKey, Partition.DefaultName), dicomDataset, Array.Empty<QueryTag>(), cancellationToken);
+    public static Task<long> BeginCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, Partition partition, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+        => indexDataStore.BeginCreateInstanceIndexAsync(partition, dicomDataset, Array.Empty<QueryTag>(), cancellationToken);
 
     public static Task EndCreateInstanceIndexAsync(this IIndexDataStore indexDataStore, int partitionKey, DicomDataset dicomDataset, long watermark, FileProperties fileProperties = null, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
         => indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, watermark, Array.Empty<QueryTag>(), fileProperties, true, hasFrameMetadata, cancellationToken);

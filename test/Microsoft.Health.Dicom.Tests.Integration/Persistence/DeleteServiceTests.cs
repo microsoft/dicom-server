@@ -53,7 +53,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     {
         var newDataSet = CreateValidMetadataDataset();
 
-        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(Partition.DefaultKey, newDataSet);
+        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, newDataSet);
         var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version, Partition.Default);
 
         if (persistMetadata)

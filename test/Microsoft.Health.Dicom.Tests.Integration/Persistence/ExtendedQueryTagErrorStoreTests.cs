@@ -486,7 +486,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
     private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
         await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark);
         return watermark;
     }

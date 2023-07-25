@@ -191,7 +191,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
 
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
         await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.ReindexInstanceAsync(dataset, watermark, new[] { new QueryTag(tagStoreEntry) }));
     }
 
@@ -246,8 +246,8 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
         DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID);
 
-        Instance instance1 = await CreateInstanceIndexAsync(dataset1, partition1.Key);
-        Instance instance2 = await CreateInstanceIndexAsync(dataset2, partition2.Key);
+        Instance instance1 = await CreateInstanceIndexAsync(dataset1, partition1);
+        Instance instance2 = await CreateInstanceIndexAsync(dataset2, partition2);
 
         Assert.Equal(partition1.Key, instance1.PartitionKey);
         Assert.Equal(partition2.Key, instance2.PartitionKey);
@@ -321,13 +321,14 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
         => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
 
-    private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, int partitionKey = Partition.DefaultKey)
+    private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, Partition partition = null)
     {
+        partition ??= Partition.Default;
         string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dataset, watermark);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partition.Key, dataset, watermark);
 
         return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
     }
@@ -341,7 +342,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partition.Key, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dataset);
         return new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version, partition);
     }
 }
