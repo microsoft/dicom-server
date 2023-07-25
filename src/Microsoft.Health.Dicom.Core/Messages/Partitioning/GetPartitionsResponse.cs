@@ -5,18 +5,18 @@
 
 using System.Collections.Generic;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Partition;
+namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
 public class GetPartitionsResponse
 {
-    public GetPartitionsResponse(IReadOnlyCollection<PartitionEntry> entries)
+    public GetPartitionsResponse(IReadOnlyCollection<Partition> entries)
     {
         EnsureArg.IsNotNull(entries, nameof(entries));
 
         Entries = entries;
     }
 
-    public IReadOnlyCollection<PartitionEntry> Entries { get; }
+    public IReadOnlyCollection<Partition> Entries { get; }
 }

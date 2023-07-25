@@ -3,11 +3,19 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition;
+using MediatR;
 
-public static class DefaultPartition
+namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
+
+public class GetPartitionRequest : IRequest<GetPartitionResponse>
 {
-    public const string Name = "Microsoft.Default";
-    public const int Key = 1;
-    public static readonly PartitionEntry PartitionEntry = new PartitionEntry(Key, Name);
+    public GetPartitionRequest(string paritionName)
+    {
+        PartitionName = paritionName;
+    }
+
+    /// <summary>
+    /// Data Partition name
+    /// </summary>
+    public string PartitionName { get; }
 }

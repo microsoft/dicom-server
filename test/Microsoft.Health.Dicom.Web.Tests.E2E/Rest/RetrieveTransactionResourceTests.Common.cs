@@ -11,6 +11,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -49,14 +50,14 @@ public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegr
     private async Task<(InstanceIdentifier, DicomFile)> CreateAndStoreDicomFile(int numberOfFrames = 0)
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: numberOfFrames);
-        var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+        var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
         await _instancesManager.StoreAsync(new[] { dicomFile });
         return (dicomInstance, dicomFile);
     }
 
     private static InstanceIdentifier RandomizeInstanceIdentifier(DicomDataset dataset)
     {
-        InstanceIdentifier newId = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate());
+        InstanceIdentifier newId = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), Partition.Default);
         dataset.AddOrUpdate(DicomTag.StudyInstanceUID, newId.StudyInstanceUid);
         dataset.AddOrUpdate(DicomTag.SeriesInstanceUID, newId.SeriesInstanceUid);
         dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newId.SopInstanceUid);

@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
@@ -55,7 +55,7 @@ public sealed class ExportSourceFactory
     /// There is no provider configured for the value of the <see cref="ExportDataOptions{T}.Type"/> property.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    public Task<IExportSource> CreateAsync(ExportDataOptions<ExportSourceType> source, PartitionEntry partition, CancellationToken cancellationToken = default)
+    public Task<IExportSource> CreateAsync(ExportDataOptions<ExportSourceType> source, Partition partition, CancellationToken cancellationToken = default)
         => GetProvider(EnsureArg.IsNotNull(source, nameof(source)).Type).CreateAsync(source.Settings, partition, cancellationToken);
 
     /// <summary>

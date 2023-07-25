@@ -10,7 +10,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 using NSubstitute;
@@ -23,7 +23,7 @@ public class ExportServiceTests
     private const ExportSourceType SourceType = ExportSourceType.Identifiers;
     private const ExportDestinationType DestinationType = ExportDestinationType.AzureBlob;
 
-    private readonly PartitionEntry _partition = new PartitionEntry(123, "export-partition");
+    private readonly Partition _partition = new Partition(123, "export-partition");
     private readonly IExportSink _sink;
     private readonly IExportSourceProvider _sourceProvider;
     private readonly IExportSinkProvider _sinkProvider;
@@ -44,7 +44,7 @@ public class ExportServiceTests
         _guidFactory = Substitute.For<IGuidFactory>();
         _requestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _requestContext = Substitute.For<IDicomRequestContext>();
-        _requestContext.DataPartitionEntry.Returns(_partition);
+        _requestContext.DataPartition.Returns(_partition);
         _requestContextAccessor.RequestContext.Returns(_requestContext);
         _service = new ExportService(
             new ExportSourceFactory(new IExportSourceProvider[] { _sourceProvider }),

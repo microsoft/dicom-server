@@ -7,10 +7,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Partition;
+namespace Microsoft.Health.Dicom.SqlServer.Features.Partitioning;
 
 internal sealed class SqlPartitionStore : IPartitionStore
 {
@@ -19,19 +19,19 @@ internal sealed class SqlPartitionStore : IPartitionStore
     public SqlPartitionStore(VersionedCache<ISqlPartitionStore> cache)
         => _cache = EnsureArg.IsNotNull(cache, nameof(cache));
 
-    public async Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
+    public async Task<Partition> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
     {
         ISqlPartitionStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.AddPartitionAsync(partitionName, cancellationToken);
     }
 
-    public async Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Partition>> GetPartitionsAsync(CancellationToken cancellationToken = default)
     {
         ISqlPartitionStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetPartitionsAsync(cancellationToken);
     }
 
-    public async Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
+    public async Task<Partition> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
     {
         ISqlPartitionStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetPartitionAsync(partitionName, cancellationToken);

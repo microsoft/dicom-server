@@ -5,11 +5,11 @@
 
 using MediatR;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Partition;
+namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-public class GetPartitionRequest : IRequest<GetPartitionResponse>
+public class AddPartitionRequest : IRequest<AddPartitionResponse>
 {
-    public GetPartitionRequest(string paritionName)
+    public AddPartitionRequest(string paritionName)
     {
         PartitionName = paritionName;
     }

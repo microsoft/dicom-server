@@ -15,6 +15,7 @@ using FellowOakDicom.Imaging;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -127,7 +128,7 @@ public partial class RetrieveTransactionResourceTests
 
         DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 3);
         DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
-        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier(Partition.Default);
 
         await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
@@ -155,7 +156,7 @@ public partial class RetrieveTransactionResourceTests
 
         DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid, frames: 3);
         DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
-        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier();
+        InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier(Partition.Default);
 
         await _instancesManager.StoreAsync(new[] { dicomFile1 });
 

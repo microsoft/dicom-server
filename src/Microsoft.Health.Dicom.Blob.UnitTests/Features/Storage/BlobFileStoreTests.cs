@@ -25,7 +25,7 @@ using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Xunit;
@@ -98,7 +98,7 @@ public class BlobFileStoreTests
         client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws
         (new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, DefaultPartition.Name, Substitute.For<Stream>(), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Partition.DefaultName, Substitute.For<Stream>(), CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, new System.Exception().Message), ex.Message);
@@ -110,7 +110,7 @@ public class BlobFileStoreTests
         InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
         client.BlockBlobClient.UploadAsync(Arg.Any<Stream>(), Arg.Any<BlobUploadOptions>(), Arg.Any<CancellationToken>()).Throws(new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, DefaultPartition.Name, Substitute.For<Stream>(), CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.StoreFileAsync(1, Partition.DefaultName, Substitute.For<Stream>(), CancellationToken.None));
 
         Assert.False(ex.IsExternal);
         Assert.Equal(DicomCoreResource.DataStoreOperationFailed, ex.Message);
@@ -127,7 +127,7 @@ public class BlobFileStoreTests
             false,
             Arg.Any<CancellationToken>()).Throws(requestFailedException);
 
-        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, DefaultPartition.Name, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, Partition.DefaultName, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.BlobNotFound.ToString()), ex.Message);
@@ -148,7 +148,7 @@ public class BlobFileStoreTests
             false,
             Arg.Any<CancellationToken>()).Throws(requestFailedAuthException);
 
-        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, DefaultPartition.Name, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, Partition.DefaultName, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.AuthenticationFailed.ToString()), ex.Message);
@@ -175,7 +175,7 @@ public class BlobFileStoreTests
         InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
         client.BlockBlobClient.GetPropertiesAsync(Arg.Any<BlobRequestConditions>(), Arg.Any<CancellationToken>()).Throws(new System.Exception());
 
-        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.GetFilePropertiesAsync(1, DefaultPartition.Name, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreException>(() => blobFileStore.GetFilePropertiesAsync(1, Partition.DefaultName, CancellationToken.None));
 
         Assert.False(ex.IsExternal);
         Assert.Equal(DicomCoreResource.DataStoreOperationFailed, ex.Message);

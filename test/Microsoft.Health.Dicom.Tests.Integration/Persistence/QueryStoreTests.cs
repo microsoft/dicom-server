@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -40,7 +41,7 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
         dataset.Add(DicomTag.SeriesInstanceUID, TestUidGenerator.Generate());
         dataset.Add(DicomTag.SOPInstanceUID, TestUidGenerator.Generate());
         dataset.Add(DicomTag.PatientID, TestUidGenerator.Generate());
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
         await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
 
         // test null conversions
@@ -67,7 +68,7 @@ public class QueryStoreTests : IClassFixture<SqlDataStoreTestsFixture>, IAsyncLi
             dataset.AddOrUpdate(DicomTag.PatientID, TestUidGenerator.Generate());
             dataset.AddOrUpdate(DicomTag.Modality, Guid.NewGuid().ToString("N").Substring(0, 16).ToUpper());
 
-            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+            long version = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
             await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, version);
             versions.Add(version);
         }

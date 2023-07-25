@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Messages.Delete;
 using Microsoft.Health.Dicom.Core.Messages.Export;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.Operations;
-using Microsoft.Health.Dicom.Core.Messages.Partition;
+using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 using Microsoft.Health.Dicom.Core.Messages.Query;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages.Store;

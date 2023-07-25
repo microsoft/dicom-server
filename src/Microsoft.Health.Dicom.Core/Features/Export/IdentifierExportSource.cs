@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Models.Common;
@@ -26,10 +26,10 @@ internal sealed class IdentifierExportSource : IExportSource
     public ExportDataOptions<ExportSourceType> Description => _identifiers.Count > 0 ? CreateOptions(_identifiers) : null;
 
     private readonly IInstanceStore _instanceStore;
-    private readonly PartitionEntry _partition;
+    private readonly Partition _partition;
     private readonly Queue<DicomIdentifier> _identifiers;
 
-    public IdentifierExportSource(IInstanceStore instanceStore, PartitionEntry partition, IdentifierExportOptions options)
+    public IdentifierExportSource(IInstanceStore instanceStore, Partition partition, IdentifierExportOptions options)
     {
         _instanceStore = EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
         _partition = EnsureArg.IsNotNull(partition, nameof(partition));

@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -41,7 +41,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1);
 
         // delete and validate
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
 
         // re-create the same instance and validate
@@ -62,7 +62,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1, expectedFileProperties);
 
         // delete and validate - file properties are null on deletes
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2, expectedFileProperties);
 
         // re-create the same instance without properties and validate properties are still null
@@ -78,7 +78,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateNoChangeFeedAsync(dicomInstanceIdentifier);
 
         // delete and validate
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateNoChangeFeedAsync(dicomInstanceIdentifier);
     }
 
@@ -227,9 +227,9 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             { DicomTag.PatientID, TestUidGenerator.Generate() },
         };
 
-        var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(1, newDataSet);
+        var version = await _fixture.DicomIndexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), newDataSet);
 
-        var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
+        var versionedIdentifier = newDataSet.ToVersionedInstanceIdentifier(version, Partition.Default);
 
         if (instanceFullyCreated)
         {

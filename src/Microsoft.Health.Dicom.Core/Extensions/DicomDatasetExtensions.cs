@@ -15,6 +15,7 @@ using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Features.Workitem;
@@ -331,9 +332,9 @@ public static class DicomDatasetExtensions
     /// Creates an instance of <see cref="InstanceIdentifier"/> from <see cref="DicomDataset"/>.
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
-    /// <param name="partitionKey">Data Partition key</param>
+    /// <param name="partition">Data Partition entry</param>
     /// <returns>An instance of <see cref="InstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
-    public static InstanceIdentifier ToInstanceIdentifier(this DicomDataset dicomDataset, int partitionKey = default)
+    public static InstanceIdentifier ToInstanceIdentifier(this DicomDataset dicomDataset, Partition partition)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -342,7 +343,7 @@ public static class DicomDatasetExtensions
             dicomDataset.GetSingleValueOrDefault(DicomTag.StudyInstanceUID, string.Empty),
             dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
             dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
-            partitionKey);
+            partition);
     }
 
     /// <summary>
@@ -350,9 +351,9 @@ public static class DicomDatasetExtensions
     /// </summary>
     /// <param name="dicomDataset">The DICOM dataset to get the identifiers from.</param>
     /// <param name="version">The version.</param>
-    /// <param name="partitionKey">Data Partition key</param>
+    /// <param name="partition">Data Partition entry</param>
     /// <returns>An instance of <see cref="InstanceIdentifier"/> representing the <paramref name="dicomDataset"/>.</returns>
-    public static VersionedInstanceIdentifier ToVersionedInstanceIdentifier(this DicomDataset dicomDataset, long version, int partitionKey = default)
+    public static VersionedInstanceIdentifier ToVersionedInstanceIdentifier(this DicomDataset dicomDataset, long version, Partition partition)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
 
@@ -362,7 +363,7 @@ public static class DicomDatasetExtensions
             dicomDataset.GetSingleValueOrDefault(DicomTag.SeriesInstanceUID, string.Empty),
             dicomDataset.GetSingleValueOrDefault(DicomTag.SOPInstanceUID, string.Empty),
             version,
-            partitionKey);
+            partition);
     }
 
     /// <summary>

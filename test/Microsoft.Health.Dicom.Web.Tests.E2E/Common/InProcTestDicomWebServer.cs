@@ -90,6 +90,8 @@ public class InProcTestDicomWebServer : TestDicomWebServer
                 {
                     TestEnvironment.Variables["EnableExternalStore"] = "true";
                 }
+
+                TestEnvironment.Variables["EnableDataPartitions"] = enableDataPartitions.ToString();
             })
             .ConfigureServices(serviceCollection =>
             {

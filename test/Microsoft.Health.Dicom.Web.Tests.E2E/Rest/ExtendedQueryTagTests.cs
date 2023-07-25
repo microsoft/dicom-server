@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Operations;
 using Xunit;
 using FunctionsStartup = Microsoft.Health.Dicom.Functions.App.Startup;
+using Partition = Microsoft.Health.Dicom.Core.Features.Partitioning.Partition;
 using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
@@ -103,7 +104,7 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         // QIDO
         DicomWebAsyncEnumerableResponse<DicomDataset> queryResponse = await _v2Client.QueryInstancesAsync($"{filmTag.GetPath()}=0003");
         DicomDataset[] instances = await queryResponse.ToArrayAsync();
-        Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance2.ToInstanceIdentifier()));
+        Assert.Contains(instances, instance => instance.ToInstanceIdentifier(Partition.Default).Equals(instance2.ToInstanceIdentifier(Partition.Default)));
     }
 
     [Fact]
@@ -188,11 +189,11 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
 
         // Verify result
         DicomDataset[] instances = await response.ToArrayAsync();
-        Assert.Contains(instances, instance => instance.ToInstanceIdentifier().Equals(instance3.ToInstanceIdentifier()));
+        Assert.Contains(instances, instance => instance.ToInstanceIdentifier(Partition.Default).Equals(instance3.ToInstanceIdentifier(Partition.Default)));
 
         static bool IsDicomError(ExtendedQueryTagError error, DicomDataset instance)
         {
-            var identifier = instance.ToInstanceIdentifier();
+            var identifier = instance.ToInstanceIdentifier(Partition.Default);
             return error.StudyInstanceUid == identifier.StudyInstanceUid &&
                 error.SeriesInstanceUid == identifier.SeriesInstanceUid &&
                 error.SopInstanceUid == identifier.SopInstanceUid;

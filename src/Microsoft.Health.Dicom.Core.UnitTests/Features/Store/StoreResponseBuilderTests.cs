@@ -6,11 +6,15 @@
 using System;
 using System.Linq;
 using FellowOakDicom;
+using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Store;
 using Microsoft.Health.Dicom.Tests.Common;
+using NSubstitute;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Store;
@@ -33,11 +37,19 @@ public class StoreResponseBuilderTests
         sopInstanceUid: "12",
         sopClassUid: "13");
 
+    private readonly IOptions<FeatureConfiguration> _options;
+
 
     public StoreResponseBuilderTests()
     {
+        _options = Substitute.For<IOptions<FeatureConfiguration>>();
+        _options.Value.Returns(new FeatureConfiguration
+        {
+            EnableDataPartitions = false,
+        });
         _storeResponseBuilder = new StoreResponseBuilder(
-            _urlResolver);
+            _urlResolver,
+            _options);
     }
 
     [Theory]
@@ -55,7 +67,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenOnlySuccessEntry_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, Partition.Default);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -75,6 +87,7 @@ public class StoreResponseBuilderTests
         _storeResponseBuilder.AddSuccess(
             _dicomDataset1,
             DefaultStoreValidationResult,
+            Partition.Default,
             warningReasonCode: WarningReasonCodes.DatasetHasValidationWarnings);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null, returnWarning202: true);
@@ -89,6 +102,7 @@ public class StoreResponseBuilderTests
         _storeResponseBuilder.AddSuccess(
             _dicomDataset1,
             DefaultStoreValidationResult,
+            Partition.Default,
             warningReasonCode: null);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null, returnWarning202: true);
@@ -100,7 +114,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenBuilderHadNoErrors_WhenBuildWarningSequenceEnabled_ThenResponseHasEmptyFailedSequence()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, buildWarningSequence: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, Partition.Default, buildWarningSequence: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -140,7 +154,7 @@ public class StoreResponseBuilderTests
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
 
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, buildWarningSequence: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, Partition.Default, buildWarningSequence: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -168,10 +182,10 @@ public class StoreResponseBuilderTests
         StoreValidationResultBuilder builder = new StoreValidationResultBuilder();
         builder.Add(new Exception("There was an issue with an attribute"), DicomTag.PatientAge);
         StoreValidationResult storeValidationResult = builder.Build();
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, buildWarningSequence: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, storeValidationResult, Partition.Default, buildWarningSequence: true);
 
         //simulate validation pass
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, buildWarningSequence: true);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, Partition.Default, buildWarningSequence: true);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -199,7 +213,7 @@ public class StoreResponseBuilderTests
     public void GivenBothSuccessAndFailedEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
         _storeResponseBuilder.AddFailure(_dicomDataset1, TestConstants.ProcessingFailureReasonCode);
-        _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult, Partition.Default);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -226,8 +240,8 @@ public class StoreResponseBuilderTests
         _storeResponseBuilder.AddFailure(_dicomDataset1, failureReasonCode1);
         _storeResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode2);
 
-        _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult);
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset2, DefaultStoreValidationResult, Partition.Default);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, Partition.Default);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse(null);
 
@@ -269,7 +283,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenStudyInstanceUidAndThereIsOnlySuccessEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, Partition.Default);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse("1");
 
@@ -298,7 +312,7 @@ public class StoreResponseBuilderTests
     [Fact]
     public void GivenStudyInstanceUidAndThereAreSuccessAndFailureEntries_WhenResponseIsBuilt_ThenCorrectResponseShouldBeReturned()
     {
-        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult);
+        _storeResponseBuilder.AddSuccess(_dicomDataset1, DefaultStoreValidationResult, Partition.Default);
         _storeResponseBuilder.AddFailure(_dicomDataset2, failureReasonCode: 200);
 
         StoreResponse response = _storeResponseBuilder.BuildResponse("1");

@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Messages.Partition;
+using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-namespace Microsoft.Health.Dicom.Core.Features.Partition;
+namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 public class PartitionService : IPartitionService
 {
@@ -31,9 +31,9 @@ public class PartitionService : IPartitionService
 
         _logger.LogInformation("Creating partition with name '{PartitionName}'.", partitionName);
 
-        var partitionEntry = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
+        var partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
 
-        return new AddPartitionResponse(partitionEntry);
+        return new AddPartitionResponse(partition);
     }
 
     public async Task<GetPartitionResponse> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
@@ -42,8 +42,8 @@ public class PartitionService : IPartitionService
 
         _logger.LogInformation("Getting partition with name '{PartitionName}'.", partitionName);
 
-        var partitionEntry = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.GetPartitionAsync, cancellationToken);
-        return new GetPartitionResponse(partitionEntry);
+        var partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.GetPartitionAsync, cancellationToken);
+        return new GetPartitionResponse(partition);
     }
 
     public async Task<GetPartitionsResponse> GetPartitionsAsync(CancellationToken cancellationToken = default)

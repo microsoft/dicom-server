@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -41,7 +41,7 @@ public class QueryServiceTests
         _metadataStore = Substitute.For<IMetadataStore>();
         _queryTagService = Substitute.For<IQueryTagService>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _contextAccessor.RequestContext.DataPartition = Partition.Default;
 
         _queryService = new QueryService(
             _queryParser,

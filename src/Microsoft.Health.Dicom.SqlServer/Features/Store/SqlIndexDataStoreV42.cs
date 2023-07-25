@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -60,8 +61,7 @@ internal class SqlIndexDataStoreV42 : SqlIndexDataStoreV37
                                 seriesInstanceUid,
                                 sopInstanceUid,
                                 watermark,
-                                partitionKey,
-                                partitionName),
+                                new Partition(partitionKey, partitionName)),
                             new InstanceProperties()
                             {
                                 OriginalVersion = originalWatermark

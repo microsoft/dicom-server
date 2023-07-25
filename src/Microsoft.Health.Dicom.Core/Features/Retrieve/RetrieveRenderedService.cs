@@ -74,7 +74,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         // To keep track of how long render operation is taking
         Stopwatch sw = new Stopwatch();
 
-        var partitionEntry = _dicomRequestContextAccessor.RequestContext.GetPartitionEntry();
+        var partition = _dicomRequestContextAccessor.RequestContext.GetPartition();
         _dicomRequestContextAccessor.RequestContext.PartCount = 1;
         AcceptHeader returnHeader = GetValidRenderAcceptHeader(request.AcceptHeaders);
 
@@ -82,10 +82,10 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         {
             // this call throws NotFound when zero instance found
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
-                ResourceType.Instance, partitionEntry, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
+                ResourceType.Instance, partition, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
 
-            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partitionEntry.PartitionName, true, cancellationToken);
-            using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.PartitionName, cancellationToken);
+            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, true, cancellationToken);
+            using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition.Name, cancellationToken);
             sw.Start();
 
             DicomFile dicomFile = await DicomFile.OpenAsync(stream, FileReadOption.ReadLargeOnDemand);

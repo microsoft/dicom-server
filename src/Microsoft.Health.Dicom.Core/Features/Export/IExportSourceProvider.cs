@@ -7,7 +7,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Core.Features.Export;
@@ -42,7 +42,7 @@ public interface IExportSourceProvider
     /// <paramref name="options"/> or <paramref name="partition"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<IExportSource> CreateAsync(object options, PartitionEntry partition, CancellationToken cancellationToken = default);
+    Task<IExportSource> CreateAsync(object options, Partition partition, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously ensures that the given <paramref name="options"/> can be used to create a valid source.

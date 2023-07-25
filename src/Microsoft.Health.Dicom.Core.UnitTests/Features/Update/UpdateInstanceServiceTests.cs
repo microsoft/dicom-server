@@ -16,7 +16,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.UnitTests.Features.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -273,11 +273,12 @@ public class UpdateInstanceServiceTests
         copyStream.Dispose();
     }
 
-    private static List<InstanceMetadata> SetupInstanceIdentifiersList(long version, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
+    private static List<InstanceMetadata> SetupInstanceIdentifiersList(long version, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
-        instanceProperty = instanceProperty ?? new InstanceProperties();
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version, partitionKey), instanceProperty));
+        instanceProperty ??= new InstanceProperties();
+        partition ??= Partition.Default;
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), version, partition), instanceProperty));
         return dicomInstanceIdentifiersList;
     }
 }

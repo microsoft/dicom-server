@@ -12,7 +12,7 @@ using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -96,30 +96,30 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
     public override Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken);
     }
 
     public override async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
@@ -161,7 +161,7 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
     }
 
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(PartitionEntry partitionEntry, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -171,7 +171,7 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
             VLatest.GetInstanceWithPropertiesV32.PopulateCommand(
                 sqlCommandWrapper,
                 validStatus: (byte)IndexStatus.Created,
-                partitionEntry.PartitionKey,
+                partition.Key,
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid);
@@ -204,7 +204,7 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
                                 rSeriesInstanceUid,
                                 rSopInstanceUid,
                                 watermark,
-                                partitionEntry),
+                                partition),
                             new InstanceProperties()
                             {
                                 TransferSyntaxUid = rTransferSyntaxUid,
@@ -220,7 +220,7 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
     }
 
     private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         CancellationToken cancellationToken,
         string seriesInstanceUid = null,
@@ -234,7 +234,7 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
             VLatest.GetInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
                 validStatus: (byte)IndexStatus.Created,
-                partitionEntry.PartitionKey,
+                partition.Key,
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid);
@@ -254,7 +254,7 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
                             rSeriesInstanceUid,
                             rSopInstanceUid,
                             watermark,
-                            partitionEntry));
+                            partition));
                 }
             }
         }

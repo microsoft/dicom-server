@@ -13,7 +13,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -168,7 +168,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         Assert.Single(instanceBeforeDeletion);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0));
         Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
@@ -206,7 +206,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
         // delete instance
-        await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyUid1, DateTime.UtcNow);
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyUid1, DateTime.UtcNow);
 
         // check errors
         var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -242,7 +242,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
         // delete instance
-        await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyUid, seriesUid1, DateTime.UtcNow);
+        await _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyUid, seriesUid1, DateTime.UtcNow);
 
         // check errors
         var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -277,7 +277,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark2);
 
         // delete instance
-        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, DefaultPartition.Key));
+        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, Partition.Default));
 
         // check errors
         var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), int.MaxValue, 0);
@@ -318,7 +318,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, errorCode, watermark2);
 
         // delete instance1
-        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, DefaultPartition.Key));
+        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyUid1, seriesUid1, instanceUid1, Partition.Default));
 
         // check errors
         Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag1.GetPath(), 1, 0));
@@ -441,7 +441,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey2, ValidationErrorCode.UidIsInvalid, watermark);
 
         // Delete instance
-        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, DefaultPartition.Key));
+        await _indexDataStore.DeleteInstanceIndexAsync(new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Partition.Default));
 
         var tagEntry1 = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag1.GetPath());
         Assert.Equal(0, tagEntry1.ErrorCount);
@@ -471,7 +471,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         Assert.Equal(2, tagEntryBefore.ErrorCount);
 
         // Delete study
-        await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, DateTimeOffset.UtcNow);
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, DateTimeOffset.UtcNow);
 
         var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
         Assert.Equal(0, tagEntryAfter.ErrorCount);
@@ -486,7 +486,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
     private async Task<long> AddInstanceAsync(string studyId, string seriesId, string sopInstanceId)
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset(studyId, seriesId, sopInstanceId);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
         await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark);
         return watermark;
     }

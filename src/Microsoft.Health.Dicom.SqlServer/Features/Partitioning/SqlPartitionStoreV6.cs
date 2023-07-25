@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
 using Microsoft.Health.SqlServer.Features.Storage;
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Partition;
+namespace Microsoft.Health.Dicom.SqlServer.Features.Partitioning;
 
 internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 {
@@ -30,7 +30,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
 
     protected SqlConnectionWrapperFactory SqlConnectionWrapperFactory { get; }
 
-    public override async Task<PartitionEntry> AddPartitionAsync(string partitionName, CancellationToken cancellationToken)
+    public override async Task<Partition> AddPartitionAsync(string partitionName, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -48,7 +48,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
                            VLatest.Partition.PartitionName,
                            VLatest.Partition.CreatedDate);
 
-                        return new PartitionEntry(
+                        return new Partition(
                             rPartitionKey,
                             rPartitionName,
                             rCreatedDate);
@@ -67,9 +67,9 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
         return null;
     }
 
-    public override async Task<IEnumerable<PartitionEntry>> GetPartitionsAsync(CancellationToken cancellationToken)
+    public override async Task<IEnumerable<Partition>> GetPartitionsAsync(CancellationToken cancellationToken)
     {
-        var results = new List<PartitionEntry>();
+        var results = new List<Partition>();
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -85,7 +85,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
                        VLatest.Partition.PartitionName,
                        VLatest.Partition.CreatedDate);
 
-                    results.Add(new PartitionEntry(
+                    results.Add(new Partition(
                         rPartitionKey,
                         rPartitionName,
                         rCreatedDate));
@@ -96,7 +96,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
         }
     }
 
-    public override async Task<PartitionEntry> GetPartitionAsync(string partitionName, CancellationToken cancellationToken)
+    public override async Task<Partition> GetPartitionAsync(string partitionName, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -112,7 +112,7 @@ internal class SqlPartitionStoreV6 : SqlPartitionStoreV4
                        VLatest.Partition.PartitionName,
                        VLatest.Partition.CreatedDate);
 
-                    return new PartitionEntry(
+                    return new Partition(
                         rPartitionKey,
                         rPartitionName,
                         rCreatedDate);

@@ -17,6 +17,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
@@ -73,7 +74,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         }
     }
 
-    public override async Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
+    public override async Task<long> BeginCreateInstanceIndexAsync(Partition partition, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         EnsureArg.IsNotNull(queryTags, nameof(queryTags));
@@ -92,7 +93,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
 
             VLatest.AddInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
-                partitionKey,
+                partition.Key,
                 dicomDataset.GetString(DicomTag.StudyInstanceUID),
                 dicomDataset.GetString(DicomTag.SeriesInstanceUID),
                 dicomDataset.GetString(DicomTag.SOPInstanceUID),
@@ -185,7 +186,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                             seriesInstanceUid,
                             sopInstanceUid,
                             watermark,
-                            partitionKey));
+                            new Partition(partitionKey, Partition.UnknownName)));
                     }
                 }
                 catch (SqlException ex)
@@ -205,7 +206,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         {
             VLatest.DeleteDeletedInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
-                versionedInstanceIdentifier.PartitionKey,
+                versionedInstanceIdentifier.Partition.Key,
                 versionedInstanceIdentifier.StudyInstanceUid,
                 versionedInstanceIdentifier.SeriesInstanceUid,
                 versionedInstanceIdentifier.SopInstanceUid,
@@ -229,7 +230,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         {
             VLatest.IncrementDeletedInstanceRetryV6.PopulateCommand(
                 sqlCommandWrapper,
-                versionedInstanceIdentifier.PartitionKey,
+                versionedInstanceIdentifier.Partition.Key,
                 versionedInstanceIdentifier.StudyInstanceUid,
                 versionedInstanceIdentifier.SeriesInstanceUid,
                 versionedInstanceIdentifier.SopInstanceUid,
@@ -315,7 +316,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                                 seriesInstanceUid,
                                 sopInstanceUid,
                                 watermark,
-                                partitionKey),
+                                new Partition(partitionKey, Partition.UnknownName)),
                             new InstanceProperties()
                             {
                                 OriginalVersion = originalWatermark
@@ -332,7 +333,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         return results;
     }
 
-    public override async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default)
+    public override async Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(Partition partition, string studyInstanceUid, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -341,7 +342,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         {
             VLatest.BeginUpdateInstanceV33.PopulateCommand(
                 sqlCommandWrapper,
-                partitionKey,
+                partition.Key,
                 studyInstanceUid);
 
             try
@@ -374,7 +375,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                                     rSeriesInstanceUid,
                                     rSopInstanceUid,
                                     watermark,
-                                    partitionKey),
+                                    partition),
                                 new InstanceProperties()
                                 {
                                     TransferSyntaxUid = rTransferSyntaxUid,
@@ -397,7 +398,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         }
     }
 
-    public override async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
+    public override async Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(Partition partition, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default)
     {
         var results = new List<InstanceMetadata>();
 
@@ -407,7 +408,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
             List<WatermarkTableTypeRow> versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
             VLatest.BeginUpdateInstance.PopulateCommand(
                 sqlCommandWrapper,
-                partitionKey,
+                partition.Key,
                 versionRows);
 
             try
@@ -440,7 +441,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                                     rSeriesInstanceUid,
                                     rSopInstanceUid,
                                     watermark,
-                                    partitionKey),
+                                    partition),
                                 new InstanceProperties()
                                 {
                                     TransferSyntaxUid = rTransferSyntaxUid,

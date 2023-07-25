@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -66,7 +66,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string accessionNumber = dataset.GetString(DicomTag.AccessionNumber);
         string modality = dataset.GetString(DicomTag.Modality);
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
 
         IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
 
@@ -121,14 +121,14 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string partitionName1 = TestUidGenerator.Generate();
         string partitionName2 = TestUidGenerator.Generate();
 
-        var partitionEntry1 = await _partitionStore.AddPartitionAsync(partitionName1);
-        var partitionEntry2 = await _partitionStore.AddPartitionAsync(partitionName2);
+        var partition1 = await _partitionStore.AddPartitionAsync(partitionName1);
+        var partition2 = await _partitionStore.AddPartitionAsync(partitionName2);
 
-        await _indexDataStore.BeginCreateInstanceIndexAsync(partitionEntry1.PartitionKey, dataset);
-        await _indexDataStore.BeginCreateInstanceIndexAsync(partitionEntry2.PartitionKey, dataset);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(partition1, dataset);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(partition2, dataset);
 
-        IReadOnlyList<Instance> instances1 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry1.PartitionKey);
-        IReadOnlyList<Instance> instances2 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partitionEntry2.PartitionKey);
+        IReadOnlyList<Instance> instances1 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partition1.Key);
+        IReadOnlyList<Instance> instances2 = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, partition2.Key);
 
         Assert.NotNull(instances1);
         Assert.Single(instances1);
@@ -138,8 +138,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Instance instance1 = instances1[0];
         Instance instance2 = instances2[0];
 
-        Assert.Equal(partitionEntry1.PartitionKey, instance1.PartitionKey);
-        Assert.Equal(partitionEntry2.PartitionKey, instance2.PartitionKey);
+        Assert.Equal(partition1.Key, instance1.PartitionKey);
+        Assert.Equal(partition2.Key, instance2.PartitionKey);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         dataset.AddOrUpdate(DicomTag.Modality, conflictModality);
         dataset.AddOrUpdate(DicomTag.SOPInstanceUID, newInstance);
 
-        await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset);
 
         IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
         IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
@@ -177,7 +177,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset dataset = CreateTestDicomDataset();
         string studyInstanceUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesInstanceUid = dataset.GetString(DicomTag.SeriesInstanceUID);
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset);
         await _indexDataStore.EndCreateInstanceIndexAsync(1, dataset, watermark, Array.Empty<QueryTag>());
 
         // add another instance in the same study+series with null patientName and modality and validate previous data wins
@@ -188,7 +188,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         newdataset.AddOrUpdate(DicomTag.PatientName, conflictPatientName);
         newdataset.AddOrUpdate(DicomTag.Modality, conflictModality);
         newdataset.AddOrUpdate(DicomTag.StudyDescription, conflictStudyDescription);
-        await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newdataset);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, newdataset);
 
         IReadOnlyList<StudyMetadata> studyMetadataEntries = await _testHelper.GetStudyMetadataAsync(studyInstanceUid);
         IReadOnlyList<SeriesMetadata> seriesMetadataEntries = await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid);
@@ -209,7 +209,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
@@ -222,13 +222,13 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     public async Task GivenAnExistingDicomInstanceWithFileProperties_WhenDeletedByInstanceId_ThenFilePropertiesOnInstanceShouldBeDeleted()
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-        var identifier = dataset.ToInstanceIdentifier();
+        var identifier = dataset.ToInstanceIdentifier(Partition.Default);
         Instance instance = await CreateIndexAndVerifyInstance(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
+        await _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
 
         Assert.NotEmpty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
 
@@ -241,13 +241,13 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     public async Task GivenAnExistingDicomInstanceWithoutFileProperties_WhenDeletedByInstanceId_ThenInstanceStillDeleted()
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-        var identifier = dataset.ToInstanceIdentifier();
+        var identifier = dataset.ToInstanceIdentifier(Partition.Default);
         Instance instance = await CreateIndexAndVerifyInstance(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
+        await _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, instance.Watermark, Array.Empty<QueryTag>(), _defaultFileProperties);
 
         Assert.NotEmpty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
 
@@ -267,7 +267,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid2 = TestUidGenerator.Generate();
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.NotEmpty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
@@ -289,7 +289,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string seriesInstanceUid2 = TestUidGenerator.Generate();
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.NotEmpty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2));
@@ -308,7 +308,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
@@ -328,7 +328,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid2 = TestUidGenerator.Generate();
         Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-        await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
@@ -353,7 +353,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string seriesInstanceUid2 = TestUidGenerator.Generate();
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
-        await _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.NotEmpty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2));
@@ -372,7 +372,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
@@ -392,7 +392,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid2 = TestUidGenerator.Generate();
         Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-        await _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, studyInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2));
@@ -413,8 +413,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await Assert.ThrowsAsync<InstanceNotFoundException>(() => _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
     }
 
     [Fact]
@@ -425,14 +425,14 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await Assert.ThrowsAsync<SeriesNotFoundException>(() => _indexDataStore.DeleteSeriesIndexAsync(DefaultPartition.Key, studyInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await Assert.ThrowsAsync<SeriesNotFoundException>(() => _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, TestUidGenerator.Generate(), Clock.UtcNow));
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
     }
 
     [Fact]
     public async Task GivenANonExistentStudy_WhenDeletedByStudyInstanceUid_ThenExceptionThrown()
     {
-        await Assert.ThrowsAsync<StudyNotFoundException>(() => _indexDataStore.DeleteStudyIndexAsync(DefaultPartition.Key, TestUidGenerator.Generate(), Clock.UtcNow));
+        await Assert.ThrowsAsync<StudyNotFoundException>(() => _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, TestUidGenerator.Generate(), Clock.UtcNow));
     }
 
     [Fact]
@@ -444,9 +444,9 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-        await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset);
 
-        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset));
+        await Assert.ThrowsAsync<PendingInstanceException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset));
     }
 
     [Fact]
@@ -458,10 +458,10 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset);
+        await _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, version);
 
-        await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset));
+        await Assert.ThrowsAsync<InstanceAlreadyExistsException>(() => _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset));
     }
 
     [Fact]
@@ -473,7 +473,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset);
 
         Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
 
@@ -484,7 +484,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         // Make sure there is delay between.
         await Task.Delay(50);
 
-        await _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version);
+        await _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, version);
 
         IReadOnlyList<Instance> instances = await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -506,19 +506,18 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         DicomDataset dataset = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid).Dataset;
 
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset);
 
         VersionedInstanceIdentifier versionedInstanceIdentifier = new VersionedInstanceIdentifier(
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid,
-                version,
-                DefaultPartition.Key);
+                version);
 
         await _indexDataStore.DeleteInstanceIndexAsync(versionedInstanceIdentifier);
 
         await Assert.ThrowsAsync<InstanceNotFoundException>(
-            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, version));
+            () => _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, version));
 
         Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
     }
@@ -531,10 +530,10 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         DeletedInstance deletedEntry = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid)).First();
-        var versionedDicomInstanceIdentifier = new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark, DefaultPartition.Key);
+        var versionedDicomInstanceIdentifier = new VersionedInstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, deletedEntry.Watermark);
         var retryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(versionedDicomInstanceIdentifier, Clock.UtcNow);
         Assert.Equal(1, retryCount);
     }
@@ -557,12 +556,12 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         string sopInstanceUid = TestUidGenerator.Generate();
         Instance instance1 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         string sopInstanceUid2 = TestUidGenerator.Generate();
         Instance instance2 = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
 
         var numMatchRetryCount = await _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(0);
         Assert.Equal(2, numMatchRetryCount);
@@ -587,7 +586,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         // Delete first entry
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
         DeletedInstance first = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid)).Single();
 
         // Create and delete another entry
@@ -595,7 +594,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         string sopInstanceUid2 = TestUidGenerator.Generate();
         await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
-        await _indexDataStore.DeleteInstanceIndexAsync(DefaultPartition.Key, studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid2, Clock.UtcNow);
         DeletedInstance second = (await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2)).Single();
 
         Assert.True(first.DeletedDateTime < second.DeletedDateTime);
@@ -610,7 +609,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Empty(extendedTags);
 
         DicomDataset dataset = Samples.CreateRandomInstanceDataset();
-        await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, QueryTagService.CoreQueryTags);
+        await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset, QueryTagService.CoreQueryTags);
     }
 
     [Fact]
@@ -624,9 +623,9 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { DicomTag.PatientName.BuildAddExtendedQueryTagEntry() }, maxAllowedCount: 128, ready: true);
 
         var queryTags = new[] { new QueryTag(tagEntry) };
-        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, dataset, queryTags);
+        long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, dataset, queryTags);
         await Assert.ThrowsAsync<ExtendedQueryTagsOutOfDateException>(
-            () => _indexDataStore.EndCreateInstanceIndexAsync(DefaultPartition.Key, dataset, watermark, queryTags, _defaultFileProperties));
+            () => _indexDataStore.EndCreateInstanceIndexAsync(Partition.DefaultKey, dataset, watermark, queryTags, _defaultFileProperties));
     }
 
     [Fact]
@@ -639,8 +638,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
 
         Task.WaitAll(
-                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance1),
-                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance2));
+                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance1),
+                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance2));
     }
 
 
@@ -656,8 +655,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid2, seriesInstanceUid, sopInstanceUid);
 
         Task.WaitAll(
-                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance1),
-                _indexDataStore.BeginCreateInstanceIndexAsync(1, instance2));
+                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance1),
+                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance2));
     }
 
     private static void ValidateStudyMetadata(
@@ -738,10 +737,11 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         return dataset;
     }
 
-    private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key)
+    private async Task<Instance> CreateIndexAndVerifyInstance(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, Partition partition = null)
     {
+        partition ??= Partition.Default;
         DicomDataset dataset = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dataset);
         Instance instance = await _testHelper.GetInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, version);
         Assert.Equal(sopInstanceUid, instance.SopInstanceUid);
         return instance;

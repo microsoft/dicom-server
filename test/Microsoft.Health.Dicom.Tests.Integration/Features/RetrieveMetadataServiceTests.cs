@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
@@ -58,7 +58,7 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _retrieveMeter = new RetrieveMeter();
         _nameWithPrefix = storagefixture.NameWithPrefix;
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = DefaultPartition.PartitionEntry;
+        _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
 
         _retrieveMetadataService = new RetrieveMetadataService(
             _instanceStore,
@@ -208,23 +208,23 @@ public class RetrieveMetadataServiceTests : IClassFixture<DataStoreTestsFixture>
         if (resourceType == ResourceType.Study)
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {
-                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
-                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version, Partition.Default), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version, Partition.Default), instanceProperty2),
                     });
         }
         else
         {
             _instanceStore
-                .GetInstanceIdentifierWithPropertiesAsync(DefaultPartition.PartitionEntry, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
+                .GetInstanceIdentifierWithPropertiesAsync(_dicomRequestContextAccessor.RequestContext.DataPartition, _studyInstanceUid, seriesInstanceUid, cancellationToken: cancellationToken)
                 .Returns(
                     new List<InstanceMetadata>
                     {
-                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version), instanceProperty1),
-                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version), instanceProperty2),
+                        new InstanceMetadata(result1.Dataset.ToVersionedInstanceIdentifier(version: result1.Version, Partition.Default), instanceProperty1),
+                        new InstanceMetadata(result2.Dataset.ToVersionedInstanceIdentifier(version: result2.Version, Partition.Default), instanceProperty2),
                     });
         }
 

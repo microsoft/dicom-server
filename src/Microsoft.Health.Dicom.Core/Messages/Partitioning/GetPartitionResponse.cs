@@ -3,16 +3,17 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.Dicom.Core.Features.Partition;
 
-namespace Microsoft.Health.Dicom.Core.Messages.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
+
+namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
 public class GetPartitionResponse
 {
-    public GetPartitionResponse(PartitionEntry partitionEntry)
+    public GetPartitionResponse(Partition partition)
     {
-        PartitionEntry = partitionEntry;
+        Partition = partition;
     }
 
-    public PartitionEntry PartitionEntry { get; }
+    public Partition Partition { get; }
 }

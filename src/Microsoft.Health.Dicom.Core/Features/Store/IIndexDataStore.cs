@@ -11,6 +11,7 @@ using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
 
@@ -22,12 +23,12 @@ public interface IIndexDataStore
     /// <summary>
     /// Asynchronously begins the addition of a DICOM instance.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partition">The partition.</param>
     /// <param name="dicomDataset">The DICOM dataset to index.</param>
     /// <param name="queryTags">Queryable dicom tags</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
-    Task<long> BeginCreateInstanceIndexAsync(int partitionKey, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
+    Task<long> BeginCreateInstanceIndexAsync(Partition partition, DicomDataset dicomDataset, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously reindex a DICOM instance.
@@ -139,20 +140,20 @@ public interface IIndexDataStore
     /// <summary>
     /// Asynchronously updates a DICOM instance NewWatermark
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partition">The partition.</param>
     /// <param name="versions">List of instances watermark to update</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that with list of instance metadata with new watermark.</returns>
-    Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(int partitionKey, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default);
+    Task<IEnumerable<InstanceMetadata>> BeginUpdateInstanceAsync(Partition partition, IReadOnlyCollection<long> versions, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously updates a DICOM instance NewWatermark
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partition">The partition.</param>
     /// <param name="studyInstanceUid">StudyInstanceUID to update</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that with list of instance metadata with new watermark.</returns>
-    Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(int partitionKey, string studyInstanceUid, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<InstanceMetadata>> BeginUpdateInstancesAsync(Partition partition, string studyInstanceUid, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously bulk update all instances in a study, and update extendedquerytag with new watermark.

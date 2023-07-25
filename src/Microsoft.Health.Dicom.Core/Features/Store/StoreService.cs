@@ -19,6 +19,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Store;
@@ -139,6 +140,7 @@ public class StoreService : IStoreService
         StoreValidationResult storeValidatorResult = null;
 
         bool dropMetadata = _dicomRequestContextAccessor.RequestContext.Version is >= 2;
+        Partition partition = _dicomRequestContextAccessor.RequestContext.DataPartition;
 
         try
         {
@@ -171,7 +173,7 @@ public class StoreService : IStoreService
                     return null;
                 }
 
-                DropInvalidMetadata(storeValidatorResult, dicomDataset);
+                DropInvalidMetadata(storeValidatorResult, dicomDataset, partition);
 
                 // set warning code if none set yet when there were validation warnings
                 if (storeValidatorResult.InvalidTagErrors.Any())
@@ -226,6 +228,7 @@ public class StoreService : IStoreService
             _storeResponseBuilder.AddSuccess(
                 dicomDataset,
                 storeValidatorResult,
+                partition,
                 warningReasonCode,
                 buildWarningSequence: dropMetadata
             );
@@ -266,9 +269,9 @@ public class StoreService : IStoreService
         _storeResponseBuilder.AddFailure(dicomDataset, failureCode, storeValidatorResult);
     }
 
-    private void DropInvalidMetadata(StoreValidationResult storeValidatorResult, DicomDataset dicomDataset)
+    private void DropInvalidMetadata(StoreValidationResult storeValidatorResult, DicomDataset dicomDataset, Partition partition)
     {
-        var identifier = dicomDataset.ToInstanceIdentifier();
+        var identifier = dicomDataset.ToInstanceIdentifier(partition);
         foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
         {
             // drop invalid metadata
