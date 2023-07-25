@@ -71,7 +71,8 @@ BEGIN
         IF @@ROWCOUNT = 0
             THROW 50404, 'Study does not exist', 1
         
-        -- Insert new file properties from added blobs
+        -- Insert new file properties from added blobs, @insertFileProperties will be empty when external store not 
+        -- enabled
         INSERT INTO dbo.FileProperty 
         (InstanceKey, Watermark, FilePath, ETag)
         SELECT U.InstanceKey, I.Watermark, I.FilePath, I.ETag
@@ -94,7 +95,7 @@ BEGIN
             AND C.StudyInstanceUid = U.StudyInstanceUid
             AND C.SeriesInstanceUid = U.SeriesInstanceUid
             AND C.SopInstanceUid = U.SopInstanceUid
-        JOIN @insertFileProperties I
+        LEFT OUTER JOIN @insertFileProperties I
         ON I.Watermark = U.Watermark
 
     COMMIT TRANSACTION

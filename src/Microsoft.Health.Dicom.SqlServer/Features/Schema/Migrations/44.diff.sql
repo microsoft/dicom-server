@@ -291,7 +291,7 @@ BEGIN
             AND C.StudyInstanceUid = U.StudyInstanceUid
             AND C.SeriesInstanceUid = U.SeriesInstanceUid
             AND C.SopInstanceUid = U.SopInstanceUid
-        JOIN @insertFileProperties I
+        LEFT OUTER JOIN @insertFileProperties I
         ON I.Watermark = U.Watermark;
     COMMIT TRANSACTION;
 END

@@ -40,6 +40,7 @@ internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV42
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
+        EnsureArg.IsNotNull(watermarkedFilePropertiesList, nameof(watermarkedFilePropertiesList));
 
         List<FilePropertyTableTypeRow> filePropertiesRows = watermarkedFilePropertiesList.Select(watermarkedFileProperties
             => new FilePropertyTableTypeRow(watermarkedFileProperties.Watermark, watermarkedFileProperties.Path, watermarkedFileProperties.ETag)).ToList();

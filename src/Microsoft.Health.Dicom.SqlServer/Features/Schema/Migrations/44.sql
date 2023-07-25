@@ -1587,7 +1587,7 @@ BEGIN
               AND C.StudyInstanceUid = U.StudyInstanceUid
               AND C.SeriesInstanceUid = U.SeriesInstanceUid
               AND C.SopInstanceUid = U.SopInstanceUid
-           INNER JOIN
+           LEFT OUTER JOIN
            @insertFileProperties AS I
            ON I.Watermark = U.Watermark;
     COMMIT TRANSACTION;
@@ -3093,7 +3093,7 @@ IF NOT EXISTS (SELECT *
             st.StudyDescription,
             st.AccessionNumber,
             st.PatientBirthDate,
-            (SELECT STRING_AGG(Modality, '','')
+            (SELECT STRING_AGG(CONVERT(NVARCHAR(max), Modality), '','')
             FROM dbo.Series se 
             WHERE st.StudyKey = se.StudyKey
             AND st.PartitionKey = se.PartitionKey) AS ModalitiesInStudy,

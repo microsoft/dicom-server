@@ -531,11 +531,6 @@ CREATE TYPE dbo.ExtendedQueryTagKeyTableType_1 AS TABLE (
 CREATE TYPE dbo.WatermarkTableType AS TABLE (
     Watermark BIGINT);
 
-CREATE TYPE dbo.FilePropertyTableType AS TABLE (
-    Watermark BIGINT          NOT NULL,
-    FilePath  NVARCHAR (4000) NOT NULL,
-    ETag      NVARCHAR (4000) NOT NULL);
-
 INSERT  INTO dbo.WorkitemQueryTag (TagKey, TagPath, TagVR)
 VALUES                           ( NEXT VALUE FOR TagKeySequence, '00100010', 'PN');
 
@@ -1274,8 +1269,7 @@ BEGIN
     FROM   dbo.FileProperty AS FP
            INNER JOIN
            @deletedInstances AS DI
-           ON DI.InstanceKey = FP.InstanceKey
-              AND DI.Watermark = FP.Watermark;
+           ON DI.InstanceKey = FP.InstanceKey;
     DECLARE @deletedTags AS TABLE (
         TagKey BIGINT);
     DELETE XQTE
@@ -1522,74 +1516,6 @@ BEGIN
               AND C.StudyInstanceUid = U.StudyInstanceUid
               AND C.SeriesInstanceUid = U.SeriesInstanceUid
               AND C.SopInstanceUid = U.SopInstanceUid;
-    COMMIT TRANSACTION;
-END
-
-GO
-CREATE OR ALTER PROCEDURE dbo.EndUpdateInstanceV44
-@partitionKey INT, @studyInstanceUid VARCHAR (64), @patientId NVARCHAR (64)=NULL, @patientName NVARCHAR (325)=NULL, @patientBirthDate DATE=NULL, @insertFileProperties dbo.FilePropertyTableType READONLY
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRANSACTION;
-    DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @updatedInstances AS TABLE (
-        PartitionKey      INT         ,
-        StudyInstanceUid  VARCHAR (64),
-        SeriesInstanceUid VARCHAR (64),
-        SopInstanceUid    VARCHAR (64),
-        Watermark         BIGINT      ,
-        InstanceKey       BIGINT      );
-    DELETE @updatedInstances;
-    UPDATE dbo.Instance
-    SET    LastStatusUpdatedDate = @currentDate,
-           OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
-           Watermark             = NewWatermark,
-           NewWatermark          = NULL
-    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.InstanceKey INTO @updatedInstances
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid
-           AND Status = 1
-           AND NewWatermark IS NOT NULL;
-    UPDATE dbo.Study
-    SET    PatientId        = ISNULL(@patientId, PatientId),
-           PatientName      = ISNULL(@patientName, PatientName),
-           PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid;
-    IF @@ROWCOUNT = 0
-        THROW 50404, 'Study does not exist', 1;
-    INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
-    SELECT U.InstanceKey,
-           I.Watermark,
-           I.FilePath,
-           I.ETag
-    FROM   @insertFileProperties AS I
-           INNER JOIN
-           @updatedInstances AS U
-           ON U.Watermark = I.Watermark;
-    INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
-    SELECT 2,
-           PartitionKey,
-           StudyInstanceUid,
-           SeriesInstanceUid,
-           SopInstanceUid,
-           Watermark
-    FROM   @updatedInstances;
-    UPDATE C
-    SET    CurrentWatermark = U.Watermark,
-           FilePath         = I.FilePath
-    FROM   dbo.ChangeFeed AS C
-           INNER JOIN
-           @updatedInstances AS U
-           ON C.PartitionKey = U.PartitionKey
-              AND C.StudyInstanceUid = U.StudyInstanceUid
-              AND C.SeriesInstanceUid = U.SeriesInstanceUid
-              AND C.SopInstanceUid = U.SopInstanceUid
-           INNER JOIN
-           @insertFileProperties AS I
-           ON I.Watermark = U.Watermark;
     COMMIT TRANSACTION;
 END
 

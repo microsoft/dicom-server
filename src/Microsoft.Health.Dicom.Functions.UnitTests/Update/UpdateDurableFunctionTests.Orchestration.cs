@@ -80,9 +80,8 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                // Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
-                Arg.Any<UpdateInstanceBlobArguments>()
-                )
+                Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
+            )
             .Returns(watermarkedFilePropertiesList);
         context
             .CallActivityWithRetryAsync(
