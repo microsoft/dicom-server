@@ -57,6 +57,7 @@ public class UpdateInstanceServiceTests
             _metadataStore,
             _recyclableMemoryStreamManager,
             Options.Create(config),
+            Options.Create(new FeatureConfiguration { EnableExport = false }),
             _logger);
     }
 

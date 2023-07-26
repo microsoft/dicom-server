@@ -91,7 +91,7 @@ public partial class UpdateDurableFunctionTests
                 .Returns(DefaultFileProperties);
         }
 
-        await _updateDurableFunction.UpdateInstanceBlobsV2Async(
+        await _updateDurableFunction.UpdateInstanceBlobsAsync(
             new UpdateInstanceBlobArguments(expected, dataset, Partition.Default),
             NullLogger.Instance);
 

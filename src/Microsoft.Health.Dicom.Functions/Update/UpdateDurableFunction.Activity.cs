@@ -69,25 +69,8 @@ public partial class UpdateDurableFunction
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    /// [Obsolete("Please use GetInstanceBatchesV2Async instead.")]
-    [Obsolete("Please use UpdateInstanceBlobsV2Async instead.")]
     [FunctionName(nameof(UpdateInstanceBlobsAsync))]
     public async Task<IReadOnlyList<WatermarkedFileProperties>> UpdateInstanceBlobsAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
-        => await UpdateInstanceBlobsV2Async(arguments, logger);
-
-    /// <summary>
-    /// Asynchronously batches the instance watermarks and calls the update instance.
-    /// </summary>
-    /// <param name="arguments">BatchUpdateArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="UpdateInstanceBlobsV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
-    public async Task<IReadOnlyList<WatermarkedFileProperties>> UpdateInstanceBlobsV2Async([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));

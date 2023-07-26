@@ -67,7 +67,7 @@ public partial class UpdateDurableFunction
                 try
                 {
                     watermarkedFilePropertiesList = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                        nameof(UpdateInstanceBlobsV2Async),
+                        nameof(UpdateInstanceBlobsAsync),
                         _options.RetryOptions,
                         new UpdateInstanceBlobArguments(instanceWatermarks, input.ChangeDataset, input.Partition));
 

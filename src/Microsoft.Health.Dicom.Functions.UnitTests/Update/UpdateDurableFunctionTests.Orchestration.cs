@@ -78,7 +78,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
             )
@@ -112,7 +112,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
                 );
@@ -166,7 +166,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
@@ -199,7 +199,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
@@ -263,7 +263,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceBlobArguments>());
         await context
@@ -331,7 +331,7 @@ public partial class UpdateDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .ThrowsAsync(new FunctionFailedException("Function failed"));
@@ -409,7 +409,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
@@ -442,7 +442,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
                 _options.RetryOptions,
                Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
