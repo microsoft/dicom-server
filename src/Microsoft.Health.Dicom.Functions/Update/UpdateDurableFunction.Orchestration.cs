@@ -107,7 +107,7 @@ public partial class UpdateDurableFunction
             else
             {
                 await context.CallActivityWithRetryAsync(
-                    nameof(DeleteOldVersionBlobV2Async),
+                    nameof(DeleteOldVersionBlobAsync),
                     _options.RetryOptions,
                     new CleanupNewVersionBlobArguments(instanceWatermarks, input.Partition));
             }

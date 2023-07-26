@@ -172,35 +172,16 @@ public partial class UpdateDurableFunction
     /// <summary>
     /// Asynchronously delete all the old blobs if it has more than 2 version.
     /// </summary>
-    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="arguments">Activity context which has list of watermarks to cleanup</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
     /// A task representing the <see cref="DeleteOldVersionBlobAsync"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(DeleteOldVersionBlobAsync))]
-    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
-        await DeleteOldVersionBlobV2Async(new CleanupNewVersionBlobArguments(fileIdentifiers, Partition.Default), logger);
-    }
-
-    /// <summary>
-    /// Asynchronously delete all the old blobs if it has more than 2 version.
-    /// </summary>
-    /// <param name="arguments">Activity context which has list of watermarks to cleanup</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="DeleteOldVersionBlobV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    [FunctionName(nameof(DeleteOldVersionBlobV2Async))]
-    public async Task DeleteOldVersionBlobV2Async([ActivityTrigger] CleanupNewVersionBlobArguments arguments, ILogger logger)
+    [FunctionName(nameof(DeleteOldVersionBlobAsync))]
+    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] CleanupNewVersionBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
