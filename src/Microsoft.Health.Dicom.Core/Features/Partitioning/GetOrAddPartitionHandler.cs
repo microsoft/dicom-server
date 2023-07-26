@@ -15,17 +15,17 @@ using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
 
-public class GetPartitionHandler : BaseHandler, IRequestHandler<GetPartitionRequest, GetPartitionResponse>
+public class GetOrAddPartitionHandler : BaseHandler, IRequestHandler<GetOrAddPartitionRequest, GetOrAddPartitionResponse>
 {
     private readonly IPartitionService _partitionService;
 
-    public GetPartitionHandler(IAuthorizationService<DataActions> authorizationService, IPartitionService partitionService)
+    public GetOrAddPartitionHandler(IAuthorizationService<DataActions> authorizationService, IPartitionService partitionService)
         : base(authorizationService)
     {
         _partitionService = EnsureArg.IsNotNull(partitionService, nameof(partitionService));
     }
 
-    public async Task<GetPartitionResponse> Handle(GetPartitionRequest request, CancellationToken cancellationToken)
+    public async Task<GetOrAddPartitionResponse> Handle(GetOrAddPartitionRequest request, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
@@ -34,6 +34,6 @@ public class GetPartitionHandler : BaseHandler, IRequestHandler<GetPartitionRequ
             throw new UnauthorizedDicomActionException(DataActions.Read);
         }
 
-        return await _partitionService.GetPartitionAsync(request.PartitionName, cancellationToken);
+        return await _partitionService.GetOrAddPartitionAsync(request.PartitionName, request.AddIfNotExists, cancellationToken);
     }
 }

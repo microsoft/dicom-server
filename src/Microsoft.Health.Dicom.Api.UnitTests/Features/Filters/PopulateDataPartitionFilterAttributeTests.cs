@@ -74,8 +74,8 @@ public class PopulateDataPartitionFilterAttributeTests
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
 
         _mediator = Substitute.For<IMediator>();
-        _mediator.Send(Arg.Any<GetPartitionRequest>())
-            .Returns(new GetPartitionResponse(Partition.Default));
+        _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
+            .Returns(new GetOrAddPartitionResponse(Partition.Default));
 
         _featureConfiguration = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
 
@@ -142,10 +142,8 @@ public class PopulateDataPartitionFilterAttributeTests
 
         _controllerActionDescriptor.AttributeRouteInfo.Name = KnownRouteNames.PartitionStoreInstance;
 
-        _mediator.Send(Arg.Any<GetPartitionRequest>())
-            .Returns(new GetPartitionResponse(null));
-        _mediator.Send(Arg.Any<AddPartitionRequest>())
-            .Returns(new AddPartitionResponse(newPartition));
+        _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
+            .Returns(new GetOrAddPartitionResponse(null));
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 
@@ -161,10 +159,8 @@ public class PopulateDataPartitionFilterAttributeTests
 
         _controllerActionDescriptor.AttributeRouteInfo.Name = KnownRouteNames.PartitionedAddWorkitemInstance;
 
-        _mediator.Send(Arg.Any<GetPartitionRequest>())
-            .Returns(new GetPartitionResponse(null));
-        _mediator.Send(Arg.Any<AddPartitionRequest>())
-            .Returns(new AddPartitionResponse(newPartition));
+        _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
+            .Returns(new GetOrAddPartitionResponse(null));
 
         await _filterAttribute.OnActionExecutionAsync(_actionExecutingContext, _nextActionDelegate);
 

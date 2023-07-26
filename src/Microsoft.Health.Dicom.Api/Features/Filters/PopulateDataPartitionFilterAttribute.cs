@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -16,7 +16,6 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Validation;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters;
 
@@ -65,33 +64,9 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
         {
             var partitionName = value?.ToString();
 
-            PartitionNameValidator.Validate(partitionName);
+            var partitionResponse = await _mediator.GetOrAddPartitionAsync(partitionName, _partitionCreationSupportedRouteNames.Contains(routeName));
 
-            var partitionResponse = await _mediator.GetPartitionAsync(partitionName);
-
-            if (partitionResponse?.Partition != null)
-            {
-                dicomRequestContext.DataPartition = partitionResponse.Partition;
-            }
-            // Only for STOW and Add workitem, we create partition based on the request.
-            // For all other requests, we validate whether it exists and process based on the result
-            else if (_partitionCreationSupportedRouteNames.Contains(routeName))
-            {
-                try
-                {
-                    var response = await _mediator.AddPartitionAsync(partitionName);
-                    dicomRequestContext.DataPartition = response.Partition;
-                }
-                catch (DataPartitionAlreadyExistsException)
-                {
-                    partitionResponse = await _mediator.GetPartitionAsync(partitionName);
-                    dicomRequestContext.DataPartition = partitionResponse.Partition;
-                }
-            }
-            else
-            {
-                throw new DataPartitionsNotFoundException();
-            }
+            dicomRequestContext.DataPartition = partitionResponse.Partition;
         }
 
         await base.OnActionExecutionAsync(context, next);

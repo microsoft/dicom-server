@@ -7,12 +7,18 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-public class AddPartitionRequest : IRequest<AddPartitionResponse>
+public class GetOrAddPartitionRequest : IRequest<GetOrAddPartitionResponse>
 {
-    public AddPartitionRequest(string paritionName)
+    public GetOrAddPartitionRequest(string partitionName, bool addIfNotExists)
     {
-        PartitionName = paritionName;
+        PartitionName = partitionName;
+        AddIfNotExists = addIfNotExists;
     }
+
+    /// <summary>
+    /// Should the request attempt add if the partition doesn't exist.
+    /// </summary>
+    public bool AddIfNotExists { get; set; }
 
     /// <summary>
     /// Data Partition name

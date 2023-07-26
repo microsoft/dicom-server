@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Extensions.Logging;
+using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Validation;
 using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -25,25 +27,47 @@ public class PartitionService : IPartitionService
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    public async Task<AddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(partitionName, nameof(partitionName));
+    // public async Task<AddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
+    // {
+    //     EnsureArg.IsNotNull(partitionName, nameof(partitionName));
+    //
+    //     _logger.LogInformation("Creating partition with name '{PartitionName}'.", partitionName);
+    //
+    //     var partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
+    //
+    //     return new AddPartitionResponse(partition);
+    // }
 
-        _logger.LogInformation("Creating partition with name '{PartitionName}'.", partitionName);
-
-        var partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
-
-        return new AddPartitionResponse(partition);
-    }
-
-    public async Task<GetPartitionResponse> GetPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
+    public async Task<GetOrAddPartitionResponse> GetOrAddPartitionAsync(string partitionName, bool addIfNotExists, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partitionName, nameof(partitionName));
 
         _logger.LogInformation("Getting partition with name '{PartitionName}'.", partitionName);
 
+        PartitionNameValidator.Validate(partitionName);
+
         var partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.GetPartitionAsync, cancellationToken);
-        return new GetPartitionResponse(partition);
+
+        if (partition != null)
+        {
+            return new GetOrAddPartitionResponse(partition);
+        }
+
+        if (addIfNotExists)
+        {
+            try
+            {
+                partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
+                return new GetOrAddPartitionResponse(partition);
+            }
+            catch (DataPartitionAlreadyExistsException)
+            {
+                partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.GetPartitionAsync, cancellationToken);
+                return new GetOrAddPartitionResponse(partition);
+            }
+        }
+
+        throw new DataPartitionsNotFoundException();
     }
 
     public async Task<GetPartitionsResponse> GetPartitionsAsync(CancellationToken cancellationToken = default)
