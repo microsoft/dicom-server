@@ -36,26 +36,8 @@ public partial class UpdateDurableFunction
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    [Obsolete("Please use UpdateInstanceWatermarkV2Async instead.")]
     [FunctionName(nameof(UpdateInstanceWatermarkAsync))]
     public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
-    {
-        return await UpdateInstanceWatermarkV2Async(arguments, logger);
-    }
-
-    /// <summary>
-    /// Asynchronously update instance new watermark.
-    /// </summary>
-    /// <param name="arguments">BatchUpdateArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="UpdateInstanceWatermarkV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(UpdateInstanceWatermarkV2Async))]
-    public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));

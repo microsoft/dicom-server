@@ -72,7 +72,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
@@ -106,7 +106,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
@@ -160,7 +160,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
@@ -193,7 +193,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
@@ -257,7 +257,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
@@ -324,7 +324,7 @@ public partial class UpdateDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
@@ -403,7 +403,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
@@ -436,7 +436,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context

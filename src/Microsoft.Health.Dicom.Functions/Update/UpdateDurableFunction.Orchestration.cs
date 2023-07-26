@@ -53,7 +53,7 @@ public partial class UpdateDurableFunction
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
             IReadOnlyList<InstanceFileState> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateInstanceWatermarkV2Async),
+                nameof(UpdateInstanceWatermarkAsync),
                 _options.RetryOptions,
                 new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
 

@@ -16,11 +16,6 @@ public class UpdateInstanceWatermarkArguments
 
     public string StudyInstanceUid { get; }
 
-    public UpdateInstanceWatermarkArguments(int partitionKey, string studyInstanceUid) : this(new Partition(partitionKey, Partition.UnknownName), studyInstanceUid)
-    {
-        PartitionKey = partitionKey;
-    }
-
     public UpdateInstanceWatermarkArguments(Partition partition, string studyInstanceUid)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
