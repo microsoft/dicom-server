@@ -120,7 +120,7 @@ public partial class UpdateDurableFunctionTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        await _updateDurableFunction.CompleteUpdateStudyV2Async(
+        await _updateDurableFunction.CompleteUpdateStudyAsync(
             new CompleteStudyArguments(
                 Partition.DefaultKey,
                 studyInstanceUid,

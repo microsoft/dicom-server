@@ -85,7 +85,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(watermarkedFilePropertiesList);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>())
             .Returns(Task.CompletedTask);
@@ -119,7 +119,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context
@@ -172,7 +172,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>())
             .Returns(Task.CompletedTask);
@@ -205,7 +205,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context
@@ -269,7 +269,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context
@@ -415,7 +415,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>())
             .Returns(Task.CompletedTask);
@@ -448,7 +448,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context

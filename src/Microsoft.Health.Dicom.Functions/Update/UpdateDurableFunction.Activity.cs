@@ -140,26 +140,8 @@ public partial class UpdateDurableFunction
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    [Obsolete("Please use UpdateInstanceBlobsV2Async instead.")]
     [FunctionName(nameof(CompleteUpdateStudyAsync))]
     public async Task CompleteUpdateStudyAsync([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
-    {
-        await CompleteUpdateStudyV2Async(arguments, logger);
-    }
-
-    /// <summary>
-    /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
-    /// </summary>
-    /// <param name="arguments">CompleteInstanceArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CompleteUpdateStudyV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(CompleteUpdateStudyV2Async))]
-    public async Task CompleteUpdateStudyV2Async([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
