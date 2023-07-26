@@ -27,17 +27,6 @@ public class PartitionService : IPartitionService
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
-    // public async Task<AddPartitionResponse> AddPartitionAsync(string partitionName, CancellationToken cancellationToken = default)
-    // {
-    //     EnsureArg.IsNotNull(partitionName, nameof(partitionName));
-    //
-    //     _logger.LogInformation("Creating partition with name '{PartitionName}'.", partitionName);
-    //
-    //     var partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.AddPartitionAsync, cancellationToken);
-    //
-    //     return new AddPartitionResponse(partition);
-    // }
-
     public async Task<GetOrAddPartitionResponse> GetOrAddPartitionAsync(string partitionName, bool addIfNotExists, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partitionName, nameof(partitionName));
