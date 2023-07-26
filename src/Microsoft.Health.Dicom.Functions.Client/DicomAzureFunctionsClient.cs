@@ -190,7 +190,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         cancellationToken.ThrowIfCancellationRequested();
 
         string datasetToUpdate = JsonSerializer.Serialize(updateSpecification.ChangeDataset, _jsonSerializerOptions);
-        string instanceId = await _durableClient.StartNewAsync( // v2
+        string instanceId = await _durableClient.StartNewAsync(
             _options.Update.Name,
             operationId.ToString(OperationId.FormatSpecifier),
             new UpdateInput

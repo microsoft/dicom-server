@@ -123,6 +123,36 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         return results;
     }
 
+    public async Task<PartitionModel> GetPartitionAsync(int partitionKey)
+    {
+        PartitionModel partitionModel = null;
+
+        using (var sqlConnection = new SqlConnection(_connectionString))
+        {
+            await sqlConnection.OpenAsync();
+
+            using (SqlCommand sqlCommand = sqlConnection.CreateCommand())
+            {
+                sqlCommand.CommandText = @$"
+                        SELECT *
+                        FROM {VLatest.Partition.TableName}
+                        WHERE {VLatest.Partition.PartitionKey} = @partitionKey";
+
+                sqlCommand.Parameters.AddWithValue("@partitionKey", partitionKey);
+
+                using (SqlDataReader sqlDataReader = await sqlCommand.ExecuteReaderAsync())
+                {
+                    if (await sqlDataReader.ReadAsync())
+                    {
+                        partitionModel = new PartitionModel(sqlDataReader);
+                    }
+                }
+            }
+        }
+
+        return partitionModel;
+    }
+
     public async Task<IReadOnlyList<FileProperty>> GetFilePropertiesAsync(long watermark)
     {
         var results = new List<FileProperty>();

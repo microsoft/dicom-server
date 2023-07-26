@@ -24,6 +24,7 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
+using Partition = Microsoft.Health.Dicom.Core.Features.Partitioning.Partition;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 
@@ -288,9 +289,11 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
+        PartitionModel partitionModel = await _indexDataStoreTestHelper.GetPartitionAsync(instance1.PartitionKey);
+
         // Update the instances with newWatermark
         await _indexDataStore.BeginUpdateInstancesAsync(
-            new Partition(instance1.PartitionKey, Partition.UnknownName),
+            new Partition((int)partitionModel.Key, partitionModel.Name),
             studyInstanceUID1);
 
         var dicomDataset = new DicomDataset();
