@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
-using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -175,21 +174,16 @@ public partial class UpdateDurableFunctionTests
                 NewVersion = x.InstanceProperties.NewVersion
             }).Take(1).ToList();
 
-        // Arrange input
-        IDurableActivityContext context = Substitute.For<IDurableActivityContext>();
-        context.GetInput<IReadOnlyList<InstanceFileState>>().Returns(expected);
-
         _updateInstanceService
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
         await _updateDurableFunction.DeleteOldVersionBlobAsync(
-            context,
+            new CleanupNewVersionBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 
         // Assert behavior
-        context.Received(1).GetInput<IReadOnlyList<InstanceFileState>>();
         await _updateInstanceService
             .Received(1)
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());

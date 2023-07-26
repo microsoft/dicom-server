@@ -72,7 +72,7 @@ public partial class UpdateDurableFunction
                         new UpdateInstanceBlobArguments(instanceWatermarks, input.ChangeDataset, input.Partition));
 
                     await context.CallActivityWithRetryAsync(
-                        nameof(CompleteUpdateStudyV2Async),
+                        nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
                         new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, watermarkedFilePropertiesList));
 
