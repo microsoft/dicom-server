@@ -210,37 +210,16 @@ public partial class UpdateDurableFunction
     /// <summary>
     /// Asynchronously delete the new blob when there is a failure while updating the study instances.
     /// </summary>
-    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="arguments">arguments which have a list of watermarks to cleanup along with partition they belong to</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
     /// A task representing the <see cref="CleanupNewVersionBlobAsync"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [Obsolete("Please use CleanupNewVersionBlobV2Async instead.")]
-    [FunctionName(nameof(CleanupNewVersionBlobAsync))]
-    public async Task CleanupNewVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-        await CleanupNewVersionBlobV2Async(
-            new CleanupNewVersionBlobArguments(context.GetInput<IReadOnlyList<InstanceFileState>>(), Partition.Default),
-            logger);
-    }
-
-    /// <summary>
-    /// Asynchronously delete the new blob when there is a failure while updating the study instances.
-    /// </summary>
-    /// <param name="arguments">arguments which have a list of watermarks to cleanup along with partition they belong to</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CleanupNewVersionBlobV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
-    [FunctionName(nameof(CleanupNewVersionBlobV2Async))]
-    public async Task CleanupNewVersionBlobV2Async([ActivityTrigger] CleanupNewVersionBlobArguments arguments, ILogger logger)
+    [FunctionName(nameof(CleanupNewVersionBlobAsync))]
+    public async Task CleanupNewVersionBlobAsync([ActivityTrigger] CleanupNewVersionBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));

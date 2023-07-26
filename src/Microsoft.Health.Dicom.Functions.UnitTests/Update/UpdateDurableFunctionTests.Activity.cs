@@ -151,7 +151,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Call the activity
-        await _updateDurableFunction.CleanupNewVersionBlobV2Async(
+        await _updateDurableFunction.CleanupNewVersionBlobAsync(
             new CleanupNewVersionBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 

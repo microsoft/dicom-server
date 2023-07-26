@@ -338,7 +338,7 @@ public partial class UpdateDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CleanupNewVersionBlobV2Async),
+                nameof(UpdateDurableFunction.CleanupNewVersionBlobAsync),
                 _options.RetryOptions,
                 Arg.Any<List<InstanceFileState>>())
             .Returns(Task.CompletedTask);
@@ -350,7 +350,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CleanupNewVersionBlobV2Async),
+                nameof(UpdateDurableFunction.CleanupNewVersionBlobAsync),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark)));
 

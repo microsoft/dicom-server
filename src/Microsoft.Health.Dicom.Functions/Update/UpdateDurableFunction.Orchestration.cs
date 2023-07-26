@@ -157,7 +157,7 @@ public partial class UpdateDurableFunction
         try
         {
             await context.CallActivityWithRetryAsync(
-                nameof(CleanupNewVersionBlobV2Async),
+                nameof(CleanupNewVersionBlobAsync),
                 _options.RetryOptions,
                 new CleanupNewVersionBlobArguments(instanceWatermarks, partition));
         }
