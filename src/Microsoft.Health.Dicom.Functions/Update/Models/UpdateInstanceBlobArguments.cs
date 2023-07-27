@@ -23,12 +23,6 @@ public sealed class UpdateInstanceBlobArguments
 
     public string ChangeDataset { get; }
 
-    public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
-    : this(instanceWatermarks, changeDataset, new Partition(partitionKey, Partition.UnknownName))
-    {
-        PartitionKey = partitionKey;
-    }
-
     public UpdateInstanceBlobArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset, Partition partition)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
