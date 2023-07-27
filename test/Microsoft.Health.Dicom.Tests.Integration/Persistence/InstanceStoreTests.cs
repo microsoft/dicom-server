@@ -374,23 +374,26 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
-        // Verify Changefeed entries had file path updated
-        var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetUpdatedChangeFeedRowsAsync(4);
-        Assert.True(changeFeedEntries.Any());
-        foreach (ChangeFeedRow row in changeFeedEntries)
-        {
-            filePropertiesByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
-            Assert.Equal(actual.Path, row.FilePath);
-        }
-
-        // Verify that file properties were inserted
+        // Verify Changefeed entries had file path updated and file properties were inserted
         foreach (var instanceMetadata in instanceMetadatas)
         {
             IReadOnlyList<FileProperty> fileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(instanceMetadata.GetVersion(false));
-            filePropertiesByWatermark.TryGetValue(instanceMetadata.GetVersion(false), out var actual);
-            Assert.Equal(actual.Watermark, fileProperties[0].Watermark);
-            Assert.Equal(actual.Path, fileProperties[0].FilePath);
-            Assert.Equal(actual.ETag, fileProperties[0].ETag);
+            filePropertiesByWatermark.TryGetValue(instanceMetadata.GetVersion(false), out var actualFileProperty);
+            Assert.Equal(actualFileProperty.Watermark, fileProperties[0].Watermark);
+            Assert.Equal(actualFileProperty.Path, fileProperties[0].FilePath);
+            Assert.Equal(actualFileProperty.ETag, fileProperties[0].ETag);
+
+            var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetChangeFeedRowsAsync(
+                instanceMetadata.VersionedInstanceIdentifier.StudyInstanceUid,
+                instanceMetadata.VersionedInstanceIdentifier.SeriesInstanceUid,
+                instanceMetadata.VersionedInstanceIdentifier.SopInstanceUid
+                );
+            Assert.True(changeFeedEntries.Any());
+            foreach (ChangeFeedRow row in changeFeedEntries)
+            {
+                filePropertiesByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
+                Assert.Equal(actual.Path, row.FilePath);
+            }
         }
     }
 

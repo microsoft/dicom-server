@@ -278,6 +278,12 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
                         FROM {VLatest.ChangeFeed.TableName} as c
                         INNER JOIN {VLatest.Partition.TableName} AS p
                             ON p.PartitionKey = c.PartitionKey
+                        LEFT JOIN {VLatest.Instance.TableName} AS i
+                            ON i.StudyInstanceUid = c.StudyInstanceUid
+                            AND i.SeriesInstanceUid = c.SeriesInstanceUid
+                            AND i.SopInstanceUid = c.SopInstanceUid
+                        LEFT JOIN {VLatest.FileProperty.TableName} AS f
+                            ON f.InstanceKey = i.InstanceKey
                         WHERE c.{VLatest.ChangeFeed.StudyInstanceUid} = @studyInstanceUid
                             AND c.{VLatest.ChangeFeed.SeriesInstanceUid} = @seriesInstanceUid
                             AND c.{VLatest.ChangeFeed.SopInstanceUid} = @sopInstanceUid
