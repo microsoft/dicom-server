@@ -59,7 +59,6 @@
       }
     },
     "imageTag": {
-      "defaultValue": "",
       "type": "String",
       "metadata": {
           "description": "Image tag. Ex: 10.0.479. You can find the latest https://github.com/microsoft/dicom-server/tags"
