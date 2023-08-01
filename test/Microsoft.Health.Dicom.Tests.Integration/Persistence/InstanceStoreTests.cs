@@ -24,14 +24,13 @@ using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
-using Partition = Microsoft.Health.Dicom.Core.Features.Partitioning.Partition;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 
 /// <summary>
 ///  Tests for InstanceStore.
 /// </summary>
-public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 {
     private readonly IInstanceStore _instanceStore;
     private readonly IIndexDataStore _indexDataStore;
@@ -42,7 +41,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private readonly IQueryStore _queryStore;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly SqlDataStoreTestsFixture _fixture;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    private static readonly FileProperties DefaultFileProperties = new FileProperties
     {
         Path = String.Empty,
         ETag = String.Empty
@@ -71,7 +70,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         var instance4 = await AddRandomInstanceAsync();
         await AddRandomInstanceAsync();
 
-        System.Collections.Generic.IReadOnlyList<VersionedInstanceIdentifier> instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(
+        IReadOnlyList<VersionedInstanceIdentifier> instances = await _instanceStore.GetInstanceIdentifiersByWatermarkRangeAsync(
             new WatermarkRange(instance1.Version, instance4.Version),
             IndexStatus.Creating);
 
@@ -105,15 +104,15 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         // Simulate re-indexing, which may re-index an instance which may re-index
         // the instances for a particular study or series out-of-order
         await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
-        ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey)).Single();
         Assert.Equal(tagValue2, row.TagValue); // Added
 
         await _indexDataStore.ReindexInstanceAsync(dataset3, instance3.Watermark, new[] { queryTag });
-        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey)).Single();
         Assert.Equal(tagValue3, row.TagValue); // Overwrite
 
         await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
-        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey)).Single();
         Assert.Equal(tagValue3, row.TagValue); // Do not overwrite
     }
 
@@ -140,7 +139,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
         await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
 
-        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
+        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey)).First();
         Assert.Equal(tagValue2, row.TagValue);
     }
 
@@ -226,7 +225,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
                 instances[^3].SopInstanceUid,
                 Partition.Default));
 
-        System.Collections.Generic.IReadOnlyList<WatermarkRange> batches;
+        IReadOnlyList<WatermarkRange> batches;
 
         // No Max Watermark
         batches = await _instanceStore.GetInstanceBatchesAsync(3, 2, IndexStatus.Creating);
@@ -268,7 +267,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var identifier = await AddRandomInstanceAsync(partition);
 
-        var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Partition.DefaultKey);
+        var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
         Assert.Empty(instances);
     }
 
@@ -314,7 +313,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         }
 
         // Verify if the new patient name is updated
-        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new long[] { instanceMetadatas.First().VersionedInstanceIdentifier.Version });
+        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new[] { instanceMetadatas.First().VersionedInstanceIdentifier.Version });
 
         Assert.True(result.Any());
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
