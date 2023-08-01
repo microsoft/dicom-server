@@ -39,7 +39,6 @@ public class StoreController : ControllerBase
     private readonly ILogger<StoreController> _logger;
     private readonly bool _dicomUpdateEnabled;
     private readonly bool _dataPartitionsEnabled;
-    private readonly bool _externalStoreEnabled;
 
     public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
     {
@@ -51,7 +50,6 @@ public class StoreController : ControllerBase
         _logger = logger;
         _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
         _dataPartitionsEnabled = featureConfiguration.Value.EnableDataPartitions;
-        _externalStoreEnabled = featureConfiguration.Value.EnableExternalStore;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -104,11 +102,6 @@ public class StoreController : ControllerBase
         // Using Data partitions feature flag to enable/disable update feature since existing users already use it and we can
         // avoid multiple feature flags toggling for private preview .
         if (!_dicomUpdateEnabled && !_dataPartitionsEnabled)
-        {
-            throw new DicomUpdateFeatureDisabledException();
-        }
-
-        if (_externalStoreEnabled)
         {
             throw new DicomUpdateFeatureDisabledException();
         }
