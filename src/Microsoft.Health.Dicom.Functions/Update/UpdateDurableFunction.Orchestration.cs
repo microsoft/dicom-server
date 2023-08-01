@@ -109,7 +109,7 @@ public partial class UpdateDurableFunction
                 await context.CallActivityWithRetryAsync(
                     nameof(DeleteOldVersionBlobAsync),
                     _options.RetryOptions,
-                    new CleanupNewVersionBlobArguments(instanceWatermarks, input.Partition));
+                    new CleanupBlobArguments(instanceWatermarks, input.Partition));
             }
 
             context.ContinueAsNew(
@@ -159,7 +159,7 @@ public partial class UpdateDurableFunction
             await context.CallActivityWithRetryAsync(
                 nameof(CleanupNewVersionBlobAsync),
                 _options.RetryOptions,
-                new CleanupNewVersionBlobArguments(instanceWatermarks, partition));
+                new CleanupBlobArguments(instanceWatermarks, partition));
         }
         catch (Exception) { }
     }

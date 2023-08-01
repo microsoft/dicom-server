@@ -151,7 +151,7 @@ public partial class UpdateDurableFunctionTests
 
         // Call the activity
         await _updateDurableFunction.CleanupNewVersionBlobAsync(
-            new CleanupNewVersionBlobArguments(expected, Partition.Default),
+            new CleanupBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 
         // Assert behavior
@@ -180,7 +180,7 @@ public partial class UpdateDurableFunctionTests
 
         // Call the activity
         await _updateDurableFunction.DeleteOldVersionBlobAsync(
-            new CleanupNewVersionBlobArguments(expected, Partition.Default),
+            new CleanupBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 
         // Assert behavior

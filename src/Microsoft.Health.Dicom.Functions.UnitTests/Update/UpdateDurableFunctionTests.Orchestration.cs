@@ -491,7 +491,7 @@ public partial class UpdateDurableFunctionTests
                     ;
     }
 
-    private static Expression<Predicate<CleanupNewVersionBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks)
+    private static Expression<Predicate<CleanupBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks)
     {
         return x =>
                 x.InstanceWatermarks == instanceWatermarks

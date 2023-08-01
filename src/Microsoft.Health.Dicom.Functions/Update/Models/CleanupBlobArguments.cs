@@ -9,12 +9,12 @@ using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
-public sealed class CleanupNewVersionBlobArguments
+public sealed class CleanupBlobArguments
 {
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
     public Partition Partition { get; }
 
-    public CleanupNewVersionBlobArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
+    public CleanupBlobArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
         this.InstanceWatermarks = instanceWatermarks;
         this.Partition = partition;

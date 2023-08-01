@@ -181,7 +181,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(DeleteOldVersionBlobAsync))]
-    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] CleanupNewVersionBlobArguments arguments, ILogger logger)
+    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));
@@ -219,7 +219,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CleanupNewVersionBlobAsync))]
-    public async Task CleanupNewVersionBlobAsync([ActivityTrigger] CleanupNewVersionBlobArguments arguments, ILogger logger)
+    public async Task CleanupNewVersionBlobAsync([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(logger, nameof(logger));

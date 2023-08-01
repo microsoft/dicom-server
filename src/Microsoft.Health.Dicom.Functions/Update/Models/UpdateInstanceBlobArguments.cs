@@ -15,8 +15,6 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// </summary>
 public sealed class UpdateInstanceBlobArguments
 {
-    public int PartitionKey { get; }
-
     public Partition Partition { get; set; }
 
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
@@ -27,7 +25,6 @@ public sealed class UpdateInstanceBlobArguments
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
         Partition = partition;
-        PartitionKey = partition.Key;
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
         ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }
