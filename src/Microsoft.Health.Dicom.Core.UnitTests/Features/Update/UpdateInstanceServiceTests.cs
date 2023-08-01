@@ -35,6 +35,7 @@ public class UpdateInstanceServiceTests
     private readonly IMetadataStore _metadataStore;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly UpdateInstanceService _updateInstanceService;
+    private readonly UpdateInstanceService _updateInstanceServiceWithExternalStore;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {
@@ -57,7 +58,15 @@ public class UpdateInstanceServiceTests
             _metadataStore,
             _recyclableMemoryStreamManager,
             Options.Create(config),
-            Options.Create(new FeatureConfiguration { EnableExport = false }),
+            Options.Create(new FeatureConfiguration { EnableExternalStore = false }),
+            _logger);
+
+        _updateInstanceServiceWithExternalStore = new UpdateInstanceService(
+            _fileStore,
+            _metadataStore,
+            _recyclableMemoryStreamManager,
+            Options.Create(config),
+            Options.Create(new FeatureConfiguration { EnableExternalStore = true }),
             _logger);
     }
 
@@ -94,8 +103,7 @@ public class UpdateInstanceServiceTests
     {
         long fileIdentifier = 1234;
         await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier, Partition.Default);
-        await _fileStore.Received(1).DeleteFileIfExistsAsync(fileIdentifier, Partition.DefaultName, CancellationToken
-        .None);
+        await _fileStore.Received(1).DeleteFileIfExistsAsync(fileIdentifier, Partition.DefaultName, CancellationToken.None);
         await _metadataStore.Received(1).DeleteInstanceMetadataIfExistsAsync(fileIdentifier, CancellationToken.None);
     }
 
@@ -137,7 +145,9 @@ public class UpdateInstanceServiceTests
             cancellationToken)
          .Returns(new Uri("http://contoso.com"));
 
-        await _updateInstanceService.UpdateInstanceBlobAsync(instanceFileIdentifier, datasetToUpdate, Partition.Default, cancellationToken);
+        FileProperties result = await _updateInstanceService.UpdateInstanceBlobAsync(instanceFileIdentifier, datasetToUpdate, Partition.Default, cancellationToken);
+
+        Assert.Null(result); // file properties should only be passed along when external store is enabled
 
         await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, cancellationToken);
         await _fileStore.Received(1).GetFileAsync(fileIdentifier, Partition.DefaultName, cancellationToken);
@@ -151,6 +161,52 @@ public class UpdateInstanceServiceTests
             Arg.Any<Stream>(),
             Arg.Is<IDictionary<string, long>>(x => x.Count == 1),
             cancellationToken);
+
+        streamAndStoredFile.Value.Dispose();
+        copyStream.Dispose();
+    }
+
+    [Fact]
+    public async Task GivenValidInput_WhenCallingUpdateBlobAsyncAndExternalStoreEnabled_ExpectFilePropertiesArePassedAlong()
+    {
+        long fileIdentifier = 123;
+        long newFileIdentifier = 456;
+        List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier);
+        var instanceFileIdentifier = new InstanceFileState { Version = fileIdentifier, NewVersion = newFileIdentifier };
+        var datasetToUpdate = new DicomDataset();
+        var cancellationToken = CancellationToken.None;
+
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(
+            RetrieveHelpers.GenerateDatasetsFromIdentifiers(
+                versionedInstanceIdentifiers.First().VersionedInstanceIdentifier),
+                _recyclableMemoryStreamManager,
+                frames: 3).Result;
+
+        MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
+        await streamAndStoredFile.Value.CopyToAsync(copyStream);
+        copyStream.Position = 0;
+        streamAndStoredFile.Value.Position = 0;
+
+        var binaryData = await BinaryData.FromStreamAsync(copyStream);
+        copyStream.Position = 0;
+
+        _fileStore.GetFileAsync(fileIdentifier, Arg.Any<string>(), cancellationToken).Returns(streamAndStoredFile.Value);
+        _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
+        _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
+        _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Arg.Any<Partition>(), Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
+        _fileStore.UpdateFileBlockAsync(newFileIdentifier, Partition.Default, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken).Returns(DefaultFileProperties);
+
+        _fileStore.StoreFileInBlocksAsync(
+            newFileIdentifier,
+            Partition.Default,
+            Arg.Any<Stream>(),
+            Arg.Any<IDictionary<string, long>>(),
+            cancellationToken)
+         .Returns(new Uri("http://contoso.com"));
+
+        FileProperties result = await _updateInstanceServiceWithExternalStore.UpdateInstanceBlobAsync(instanceFileIdentifier, datasetToUpdate, Partition.Default, cancellationToken);
+
+        Assert.Equivalent(DefaultFileProperties, result);
 
         streamAndStoredFile.Value.Dispose();
         copyStream.Dispose();
