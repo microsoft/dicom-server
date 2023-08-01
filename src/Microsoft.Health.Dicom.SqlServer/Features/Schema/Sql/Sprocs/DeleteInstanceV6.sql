@@ -74,7 +74,7 @@ BEGIN
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
         
-    -- Delete FileProperties of instance
+    -- Delete FileProperties of instance. No need to add filepath to change feed as file is deleted.
     DELETE FP
     FROM dbo.FileProperty as FP
     INNER JOIN @deletedInstances AS DI

@@ -183,6 +183,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             }
             else
             {
+                // DELETE change feed entry should not have a file path
                 Assert.Null(row.FilePath);
             }
         }
