@@ -105,16 +105,13 @@ public partial class UpdateDurableFunction
                 {
                     long newFileIdentifier = instance.NewVersion.Value;
                     FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
-                    if (fileProperties is not null)
+                    propertiesByWatermark.Add(new WatermarkedFileProperties
                     {
-                        propertiesByWatermark.Add(new WatermarkedFileProperties
-                        {
-                            Watermark = newFileIdentifier,
-                            ContentLength = fileProperties.ContentLength,
-                            ETag = fileProperties.ETag,
-                            Path = fileProperties.Path
-                        });
-                    }
+                        Watermark = newFileIdentifier,
+                        ContentLength = fileProperties.ContentLength,
+                        ETag = fileProperties.ETag,
+                        Path = fileProperties.Path
+                    });
                 });
 
             logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",

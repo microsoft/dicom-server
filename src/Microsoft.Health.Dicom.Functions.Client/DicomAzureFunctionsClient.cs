@@ -183,7 +183,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     }
 
     /// <inheritdoc/>
-    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, CancellationToken cancellationToken = default)
+    public async Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, bool externalStoreEnabled, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(updateSpecification, nameof(updateSpecification));
 
@@ -198,6 +198,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
                 Partition = partition,
                 ChangeDataset = datasetToUpdate,
                 StudyInstanceUids = updateSpecification.StudyInstanceUids,
+                ExternalStoreEnabled = externalStoreEnabled,
             });
 
         _logger.LogInformation("Successfully started new update operation instance with ID '{InstanceId}'.", instanceId);

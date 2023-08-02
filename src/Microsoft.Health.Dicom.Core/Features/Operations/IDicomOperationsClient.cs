@@ -106,6 +106,7 @@ public interface IDicomOperationsClient
     /// <param name="operationId">The desired ID for the long-running update operation.</param>
     /// <param name="updateSpecification">The specification that details the update changed dataset for updating studies</param>
     /// <param name="partition">The partition containing the data to update.</param>
+    /// <param name="externalStoreEnabled"></param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartUpdateOperationAsync"/>
@@ -116,7 +117,7 @@ public interface IDicomOperationsClient
     /// <paramref name="updateSpecification"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, bool externalStoreEnabled, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously migrate instance frame range files.

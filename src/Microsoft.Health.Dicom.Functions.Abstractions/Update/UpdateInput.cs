@@ -15,4 +15,6 @@ public class UpdateInput
     public IReadOnlyList<string> StudyInstanceUids { get; set; }
 
     public string ChangeDataset { get; set; }
+
+    public bool ExternalStoreEnabled { get; set; }
 }

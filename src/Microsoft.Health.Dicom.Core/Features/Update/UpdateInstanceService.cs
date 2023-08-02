@@ -30,7 +30,6 @@ public class UpdateInstanceService : IUpdateInstanceService
     private readonly IMetadataStore _metadataStore;
     private readonly ILogger<UpdateInstanceService> _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
-    private readonly bool _externalStoreEnabled;
     private readonly int _largeDicomItemSizeInBytes;
     private readonly int _stageBlockSizeInBytes;
     private const int LargeObjectSizeInBytes = 1000;
@@ -40,10 +39,8 @@ public class UpdateInstanceService : IUpdateInstanceService
         IMetadataStore metadataStore,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
         IOptions<UpdateConfiguration> updateConfiguration,
-        IOptions<FeatureConfiguration> featureConfiguration,
         ILogger<UpdateInstanceService> logger)
     {
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
         _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
         _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
@@ -51,7 +48,6 @@ public class UpdateInstanceService : IUpdateInstanceService
         var configuration = EnsureArg.IsNotNull(updateConfiguration?.Value, nameof(updateConfiguration));
         _largeDicomItemSizeInBytes = configuration.LargeDicomItemsizeInBytes;
         _stageBlockSizeInBytes = configuration.StageBlockSizeInBytes;
-        _externalStoreEnabled = featureConfiguration.Value.EnableExternalStore;
     }
 
     /// <inheritdoc />
@@ -198,7 +194,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         stopwatch.Stop();
 
         _logger.LogInformation("Updating new file {NewFileIdentifier} completed successfully. {TotalTimeTakenInMs} ms", newFileIdentifier, stopwatch.ElapsedMilliseconds);
-        return _externalStoreEnabled ? fileProperties : null;
+        return fileProperties;
     }
 
     private IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength)

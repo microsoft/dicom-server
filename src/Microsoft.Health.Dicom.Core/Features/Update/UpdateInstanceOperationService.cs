@@ -13,6 +13,7 @@ using FellowOakDicom;
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -35,6 +36,8 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<UpdateInstanceOperationService> _logger;
     private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
+    private readonly bool _externalStoreEnabled;
+
 
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
@@ -52,6 +55,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         IDicomRequestContextAccessor contextAccessor,
         TelemetryClient telemetryClient,
         IOptions<JsonSerializerOptions> jsonSerializerOptions,
+        IOptions<FeatureConfiguration> featureConfiguration,
         ILogger<UpdateInstanceOperationService> logger)
     {
         EnsureArg.IsNotNull(guidFactory, nameof(guidFactory));
@@ -59,6 +63,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
         EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         EnsureArg.IsNotNull(jsonSerializerOptions?.Value, nameof(jsonSerializerOptions));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _guidFactory = guidFactory;
@@ -67,6 +72,8 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
         _telemetryClient = telemetryClient;
         _logger = logger;
         _jsonSerializerOptions = jsonSerializerOptions;
+        _externalStoreEnabled = featureConfiguration.Value.EnableExternalStore;
+
     }
 
     public async Task<UpdateInstanceResponse> QueueUpdateOperationAsync(
@@ -100,7 +107,7 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
 
         try
         {
-            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partition, cancellationToken);
+            var operation = await _client.StartUpdateOperationAsync(operationId, updateSpecification, partition, _externalStoreEnabled, cancellationToken);
 
             string input = JsonSerializer.Serialize(updateSpecification, _jsonSerializerOptions.Value);
             _telemetryClient.ForwardOperationLogTrace("Dicom update operation", operationId.ToString(), input);
