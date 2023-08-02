@@ -16,8 +16,7 @@ public class UpdateInstanceWatermarkArguments
 
     public UpdateInstanceWatermarkArguments(Partition partition, string studyInstanceUid)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
-        Partition = partition;
+        Partition = EnsureArg.IsNotNull(partition, nameof(partition));
         StudyInstanceUid = studyInstanceUid;
     }
 }

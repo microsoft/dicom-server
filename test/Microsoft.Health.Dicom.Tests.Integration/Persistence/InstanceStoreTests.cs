@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,11 +40,6 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     private readonly IQueryStore _queryStore;
     private readonly IChangeFeedStore _changeFeedStore;
     private readonly SqlDataStoreTestsFixture _fixture;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties
-    {
-        Path = String.Empty,
-        ETag = String.Empty
-    };
 
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
     {
@@ -385,8 +379,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
             var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetChangeFeedRowsAsync(
                 instanceMetadata.VersionedInstanceIdentifier.StudyInstanceUid,
                 instanceMetadata.VersionedInstanceIdentifier.SeriesInstanceUid,
-                instanceMetadata.VersionedInstanceIdentifier.SopInstanceUid
-                );
+                instanceMetadata.VersionedInstanceIdentifier.SopInstanceUid);
             Assert.True(changeFeedEntries.Any());
             foreach (ChangeFeedRow row in changeFeedEntries)
             {

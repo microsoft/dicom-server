@@ -14,6 +14,7 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 public sealed class CompleteStudyArguments
 {
     public int PartitionKey { get; }
+
     public IReadOnlyList<WatermarkedFileProperties> WatermarkedFilePropertiesList { get; }
 
     public string StudyInstanceUid { get; }

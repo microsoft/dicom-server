@@ -708,28 +708,25 @@ public partial class UpdateDurableFunctionTests
     private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
     {
         return x =>
-                    x.InstanceWatermarks == instanceWatermarks
-                    && x.ChangeDataset == changeDataset
-                    && x.Partition == partition
-                    ;
+            x.InstanceWatermarks == instanceWatermarks
+            && x.ChangeDataset == changeDataset
+            && x.Partition == partition;
     }
 
     private static Expression<Predicate<CompleteStudyArguments>> GetPredicate(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList, bool expectEmptyList = false)
     {
         return x =>
-                x.PartitionKey == partitionKey
-                && x.StudyInstanceUid == studyInstanceUid
-                && x.ChangeDataset == dicomDataset
-                && expectEmptyList ? x.WatermarkedFilePropertiesList.IsNullOrEmpty() : x.WatermarkedFilePropertiesList == watermarkedFilePropertiesList
-            ;
+            x.PartitionKey == partitionKey
+            && x.StudyInstanceUid == studyInstanceUid
+            && x.ChangeDataset == dicomDataset
+            && expectEmptyList ? x.WatermarkedFilePropertiesList.IsNullOrEmpty() : x.WatermarkedFilePropertiesList == watermarkedFilePropertiesList;
     }
 
     private static Expression<Predicate<CleanupBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks)
     {
         return x =>
-                x.InstanceWatermarks == instanceWatermarks
-                && x.Partition == partition
-            ;
+            x.InstanceWatermarks == instanceWatermarks
+            && x.Partition == partition;
     }
     private static Expression<Predicate<UpdateCheckpoint>> GetPredicate(long instanceUpdated, int studyCompleted)
     {

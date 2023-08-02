@@ -3,9 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,10 +22,10 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 public partial class UpdateDurableFunctionTests
 {
 
-    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    private static readonly FileProperties DefaultFileProperties = new FileProperties
     {
-        Path = String.Empty,
-        ETag = String.Empty
+        Path = "default/path/0.dcm",
+        ETag = "123"
     };
 
     [Fact]
@@ -91,7 +89,7 @@ public partial class UpdateDurableFunctionTests
         }
 
         await _updateDurableFunction.UpdateInstanceBlobsAsync(
-            new UpdateInstanceBlobArguments(expected, dataset, Partition.Default),
+            new UpdateInstanceBlobArguments(Partition.Default, expected, dataset),
             NullLogger.Instance);
 
         foreach (var instance in expected)
@@ -111,7 +109,7 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
 
-        ReadOnlyCollection<WatermarkedFileProperties> watermarkedFileProperties = new ReadOnlyCollection<WatermarkedFileProperties>(new List<WatermarkedFileProperties>());
+        var watermarkedFileProperties = new List<WatermarkedFileProperties>();
         _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), watermarkedFileProperties, CancellationToken.None).Returns(Task.CompletedTask);
 
         var ds = new DicomDataset
@@ -193,7 +191,7 @@ public partial class UpdateDurableFunctionTests
     private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
-        instanceProperty ??= new InstanceProperties() { NewVersion = 2, OriginalVersion = 3 };
+        instanceProperty ??= new InstanceProperties { NewVersion = 2, OriginalVersion = 3 };
         partition ??= Partition.Default;
 
         dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0, partition), instanceProperty));

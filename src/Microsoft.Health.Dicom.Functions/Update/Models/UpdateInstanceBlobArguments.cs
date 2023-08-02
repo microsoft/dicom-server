@@ -21,10 +21,9 @@ public sealed class UpdateInstanceBlobArguments
 
     public string ChangeDataset { get; }
 
-    public UpdateInstanceBlobArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset, Partition partition)
+    public UpdateInstanceBlobArguments(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
-        Partition = partition;
+        Partition = EnsureArg.IsNotNull(partition, nameof(partition));
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
         ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }

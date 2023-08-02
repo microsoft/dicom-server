@@ -77,6 +77,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
                 Assert.NotNull(fileProperties);
 
                 await _fixture.IndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperties);
+
                 // ensure properties were saved
                 Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(version));
             }

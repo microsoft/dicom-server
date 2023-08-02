@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -123,7 +122,7 @@ public partial class UpdateDurableFunction
         }
 
         logger.LogInformation("Completed updating all instance blobs");
-        return new ReadOnlyCollection<WatermarkedFileProperties>(propertiesByWatermark);
+        return propertiesByWatermark;
     }
 
     /// <summary>

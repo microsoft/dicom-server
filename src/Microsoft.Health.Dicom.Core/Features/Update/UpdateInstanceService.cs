@@ -59,8 +59,7 @@ public class UpdateInstanceService : IUpdateInstanceService
         EnsureArg.IsNotNull(partition, nameof(partition));
 
         Task<FileProperties> updateInstanceFileTask = UpdateInstanceFileAsync(instanceFileIdentifier, datasetToUpdate, partition, cancellationToken);
-        Task updateInstanceMetadataTask = UpdateInstanceMetadataAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
-        await Task.WhenAll(updateInstanceFileTask, updateInstanceMetadataTask);
+        await UpdateInstanceMetadataAsync(instanceFileIdentifier, datasetToUpdate, cancellationToken);
         return await updateInstanceFileTask;
     }
 
