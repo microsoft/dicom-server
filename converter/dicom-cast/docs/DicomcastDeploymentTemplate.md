@@ -151,7 +151,7 @@
         "serviceName": "[toLower(parameters('serviceName'))]",
         "virtualNetworkName": "[parameters('virtualNetworkName')]",
         "subnetName": "[parameters('subnetName')]",
-        "keyvaultName": "testneudicomcast",
+        "keyvaultName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(variables('serviceName')))), uniquestring(resourceGroup().id))]",
         "containerGroupResourceId": "[resourceId('Microsoft.ContainerInstance/containerGroups/', variables('serviceName'))]",
         "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
