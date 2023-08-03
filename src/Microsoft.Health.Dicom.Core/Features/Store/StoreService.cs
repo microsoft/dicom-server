@@ -191,24 +191,18 @@ public class StoreService : IStoreService
                 }
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-            switch (ex)
+            ushort failureCode = ex switch
             {
-                case DicomValidationException _:
-                    failureCode = FailureReasonCodes.ValidationFailure;
-                    break;
-
-                case DatasetValidationException dicomDatasetValidationException:
-                    failureCode = dicomDatasetValidationException.FailureCode;
-                    break;
-
-                case ValidationException _:
-                    failureCode = FailureReasonCodes.ValidationFailure;
-                    break;
-            }
+                DatasetValidationException dve => dve.FailureCode,
+                DicomValidationException or ValidationException => FailureReasonCodes.ValidationFailure,
+                _ => FailureReasonCodes.ProcessingFailure,
+            };
 
             LogValidationFailedDelegate(_logger, index, failureCode, ex);
 
@@ -234,26 +228,22 @@ public class StoreService : IStoreService
             );
             return length;
         }
+        catch (ConditionalExternalException cee) when (cee.IsExternal)
+        {
+            throw;
+        }
+        catch (DataStoreException dse) when (dse.InnerException is OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
-            ushort failureCode = FailureReasonCodes.ProcessingFailure;
-
-            switch (ex)
+            ushort failureCode = ex switch
             {
-                case DataStoreException { IsExternal: true }:
-                    throw;
-
-                case DataStoreRequestFailedException { IsExternal: true }:
-                    throw;
-
-                case PendingInstanceException _:
-                    failureCode = FailureReasonCodes.PendingSopInstance;
-                    break;
-
-                case InstanceAlreadyExistsException _:
-                    failureCode = FailureReasonCodes.SopInstanceAlreadyExists;
-                    break;
-            }
+                PendingInstanceException => FailureReasonCodes.PendingSopInstance,
+                InstanceAlreadyExistsException => FailureReasonCodes.SopInstanceAlreadyExists,
+                _ => FailureReasonCodes.ProcessingFailure,
+            };
 
             LogFailedToStoreDelegate(_logger, index, failureCode, ex);
 
