@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -41,7 +41,7 @@ public class QueryServiceTests
         _metadataStore = Substitute.For<IMetadataStore>();
         _queryTagService = Substitute.For<IQueryTagService>();
         _contextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _contextAccessor.RequestContext.DataPartition = Partition.Default;
 
         _queryService = new QueryService(
             _queryParser,
@@ -274,6 +274,27 @@ public class QueryServiceTests
         await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async void GivenRequest_WhenStudiesDeletedFromDBAfterQueryResultBeforeComputeCalled_RequestShouldSucceed()
+    {
+        var includeFields = new QueryIncludeField(new List<DicomTag>() { DicomTag.PatientAdditionalPosition, DicomTag.ProposedStudySequence, DicomTag.ModalitiesInStudy });
+        VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
+        _queryParser.Parse(default, default).ReturnsForAnyArgs(
+            new QueryExpression(QueryResource.AllStudies, includeFields, default, 0, 0, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
+        _queryStore.QueryAsync(Arg.Any<int>(), Arg.Any<QueryExpression>(), Arg.Any<CancellationToken>()).ReturnsForAnyArgs(new QueryResult(new List<VersionedInstanceIdentifier>() { identifier }));
+        _contextAccessor.RequestContext.Version = 2;
+        var studyResults = new List<StudyResult>();
+        var metadataResult = GenerateMetadataStoreResponse(identifier);
+        _queryStore.GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>()).Returns(studyResults);
+        _metadataStore.GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>()).Returns(metadataResult);
+
+        var response = await _queryService.QueryAsync(new QueryParameters(), CancellationToken.None);
+
+        await _queryStore.Received().GetStudyResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _queryStore.DidNotReceive().GetSeriesResultAsync(Arg.Any<int>(), Arg.Any<IReadOnlyCollection<long>>(), Arg.Any<CancellationToken>());
+        await _metadataStore.Received().GetInstanceMetadataAsync(Arg.Any<long>(), Arg.Any<CancellationToken>());
+        Assert.Empty(response.ResponseDataset);
+    }
 
     private static IReadOnlyCollection<StudyResult> GenerateStudyResults(string studyInstanceUid)
     {

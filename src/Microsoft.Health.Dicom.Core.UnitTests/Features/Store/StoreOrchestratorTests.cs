@@ -17,7 +17,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Store.Entries;
 using NSubstitute;
@@ -37,9 +37,7 @@ public class StoreOrchestratorTests
         DefaultStudyInstanceUid,
         DefaultSeriesInstanceUid,
         DefaultSopInstanceUid,
-        DefaultVersion,
-        DefaultPartition.Key,
-        DefaultPartition.Name);
+        DefaultVersion);
 
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {
@@ -80,14 +78,14 @@ public class StoreOrchestratorTests
         _dicomInstanceEntry.GetStreamAsync(DefaultCancellationToken).Returns(_stream);
 
         _indexDataStore
-            .BeginCreateInstanceIndexAsync(Arg.Any<int>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
+            .BeginCreateInstanceIndexAsync(Arg.Any<Partition>(), _dicomDataset, Arg.Any<IEnumerable<QueryTag>>(), DefaultCancellationToken)
             .Returns(DefaultVersion);
 
         _queryTagService
             .GetQueryTagsAsync(Arg.Any<CancellationToken>())
             .Returns(_queryTags);
 
-        _contextAccessor.RequestContext.DataPartitionEntry = new PartitionEntry(1, "Microsoft.Default");
+        _contextAccessor.RequestContext.DataPartition = new Partition(1, "Microsoft.Default");
         var logger = NullLogger<StoreOrchestrator>.Instance;
         _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
         _storeOrchestrator = new StoreOrchestrator(
@@ -106,7 +104,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
                 DefaultVersionedInstanceIdentifier.Version,
-                DefaultVersionedInstanceIdentifier.PartitionName,
+                DefaultVersionedInstanceIdentifier.Partition.Name,
                 _stream,
                 cancellationToken: DefaultCancellationToken)
             .Returns(DefaultFileProperties);
@@ -121,7 +119,7 @@ public class StoreOrchestratorTests
     {
         _fileStore.StoreFileAsync(
             DefaultVersionedInstanceIdentifier.Version,
-            DefaultVersionedInstanceIdentifier.PartitionName,
+            DefaultVersionedInstanceIdentifier.Partition.Name,
             _stream,
             cancellationToken: DefaultCancellationToken)
             .Throws(new Exception());

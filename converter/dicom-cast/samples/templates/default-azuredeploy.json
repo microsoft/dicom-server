@@ -11,10 +11,16 @@
             }
         },
         "image": {
-            "defaultValue": "dicomoss.azurecr.io/linux_dicom-cast",
+            "defaultValue": "dicomoss.azurecr.io/dicom-cast",
             "type": "String",
             "metadata": {
-                "description": "Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+                "description": "Container image to deploy. Should be of the form repoName/imagename for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+            }
+        },
+        "imageTag": {
+            "type": "String",
+            "metadata": {
+                "description": "Image tag. Ex: 10.0.479. You can find the latest https://github.com/microsoft/dicom-server/tags"
             }
         },
         "storageAccountSku": {
@@ -115,6 +121,13 @@
                 "description": "Enforce validation of all tag values and do not store to FHIR even if only non-required tags are invalid"
             }
         },
+        "ignoreJsonParsingErrors": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Ignore json parsing errors for DICOM instances with malformed DICOM json"
+            }
+        },
         "additionalEnvironmentVariables": {
             "defaultValue": [],
             "type": "array",
@@ -151,6 +164,10 @@
                 "value": "[parameters('enforceValidationOfTagValues')]"
             },
             {
+                "name": "DicomCast__Features__IgnoreJsonParsingErrors",
+                "value": "[parameters('ignoreJsonParsingErrors')]"
+            },
+            {
               "name": "Patient__PatientSystemId",
               "value": "[parameters('patientSystemId')]"
             },
@@ -177,7 +194,7 @@
                     {
                         "name": "[variables('serviceName')]",
                         "properties": {
-                            "image": "[parameters('image')]",
+                            "image": "[concat(parameters('image'), ':', parameters('imageTag'))]",
                             "resources": {
                                 "requests": {
                                     "cpu": "[parameters('cpuCores')]",

@@ -69,9 +69,9 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
 
             var partitionResponse = await _mediator.GetPartitionAsync(partitionName);
 
-            if (partitionResponse?.PartitionEntry != null)
+            if (partitionResponse?.Partition != null)
             {
-                dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                dicomRequestContext.DataPartition = partitionResponse.Partition;
             }
             // Only for STOW and Add workitem, we create partition based on the request.
             // For all other requests, we validate whether it exists and process based on the result
@@ -80,12 +80,12 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
                 try
                 {
                     var response = await _mediator.AddPartitionAsync(partitionName);
-                    dicomRequestContext.DataPartitionEntry = response.PartitionEntry;
+                    dicomRequestContext.DataPartition = response.Partition;
                 }
                 catch (DataPartitionAlreadyExistsException)
                 {
                     partitionResponse = await _mediator.GetPartitionAsync(partitionName);
-                    dicomRequestContext.DataPartitionEntry = partitionResponse.PartitionEntry;
+                    dicomRequestContext.DataPartition = partitionResponse.Partition;
                 }
             }
             else

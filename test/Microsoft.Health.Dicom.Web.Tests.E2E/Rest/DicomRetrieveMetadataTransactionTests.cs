@@ -192,7 +192,7 @@ public class DicomRetrieveMetadataTransactionTests : IClassFixture<HttpIntegrati
             return;
         }
 
-        Assert.False(true, "Retrieved dataset doesnot match the stored dataset");
+        Assert.Fail("Retrieved dataset does not match the stored dataset");
     }
 
     private static void ValidateResponseMetadataDataset(DicomDataset storedDataset, DicomDataset retrievedDataset)

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Features.Validation;
@@ -270,7 +270,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)));
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)));
 
         _orchestrator
             .When(orc => orc.GetWorkitemBlobAsync(Arg.Any<WorkitemMetadataStoreEntry>(), Arg.Any<CancellationToken>()))
@@ -288,7 +288,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -313,7 +313,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -339,7 +339,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -373,7 +373,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -407,7 +407,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -441,7 +441,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -476,7 +476,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite
@@ -511,7 +511,7 @@ public sealed class WorkitemServiceTests
 
         _orchestrator
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, DefaultPartition.Key)
+            .Returns(Task.FromResult(new WorkitemMetadataStoreEntry(workitemInstanceUid, 1, 101, Partition.DefaultKey)
             {
                 ProcedureStepState = ProcedureStepState.Scheduled,
                 Status = WorkitemStoreStatus.ReadWrite

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 
@@ -23,7 +23,7 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         _connectionString = connectionString;
     }
 
-    public async Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid, int partitionKey = DefaultPartition.Key)
+    public async Task<IReadOnlyList<StudyMetadata>> GetStudyMetadataAsync(string studyInstanceUid, int partitionKey = Partition.DefaultKey)
     {
         using (var sqlConnection = new SqlConnection(_connectionString))
         {
@@ -55,7 +55,7 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         }
     }
 
-    public async Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid, int partitionKey = DefaultPartition.Key)
+    public async Task<IReadOnlyList<SeriesMetadata>> GetSeriesMetadataAsync(string seriesInstanceUid, int partitionKey = Partition.DefaultKey)
     {
         using (var sqlConnection = new SqlConnection(_connectionString))
         {
@@ -87,7 +87,7 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         }
     }
 
-    public async Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key)
+    public async Task<IReadOnlyList<Instance>> GetInstancesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = Partition.DefaultKey)
     {
         var results = new List<Instance>();
 
@@ -187,7 +187,7 @@ public class SqlIndexDataStoreTestHelper : IIndexDataStoreTestHelper
         }
     }
 
-    public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = DefaultPartition.Key)
+    public async Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = Partition.DefaultKey)
     {
         using (var sqlConnection = new SqlConnection(_connectionString))
         {

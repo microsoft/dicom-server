@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -34,13 +34,13 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
     public virtual SchemaVersion Version => SchemaVersion.V1;
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         string seriesInstanceUid,
         string sopInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid, sopInstanceUid);
     }
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersByWatermarkRangeAsync(
@@ -52,20 +52,20 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
     }
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInSeriesAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         string seriesInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken, seriesInstanceUid);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken, seriesInstanceUid);
     }
 
     public virtual Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifiersInStudyAsync(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         CancellationToken cancellationToken)
     {
-        return GetInstanceIdentifierImp(partitionEntry, studyInstanceUid, cancellationToken);
+        return GetInstanceIdentifierImp(partition, studyInstanceUid, cancellationToken);
     }
 
     public virtual Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesAsync(
@@ -79,7 +79,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
     }
 
     private async Task<IReadOnlyList<VersionedInstanceIdentifier>> GetInstanceIdentifierImp(
-        PartitionEntry partitionEntry,
+        Partition partition,
         string studyInstanceUid,
         CancellationToken cancellationToken,
         string seriesInstanceUid = null,
@@ -112,7 +112,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
                             rSeriesInstanceUid,
                             rSopInstanceUid,
                             watermark,
-                            partitionEntry));
+                            partition));
                 }
             }
         }
@@ -120,7 +120,7 @@ internal class SqlInstanceStoreV1 : ISqlInstanceStore
         return results;
     }
 
-    public virtual Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(PartitionEntry partitionEntry, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
+    public virtual Task<IReadOnlyList<InstanceMetadata>> GetInstanceIdentifierWithPropertiesAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid = null, string sopInstanceUid = null, CancellationToken cancellationToken = default)
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }

@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
@@ -60,7 +60,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         _frameHandler = Substitute.For<IFrameHandler>();
 
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
-        _dicomRequestContextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
 
         _acceptHeaderHandler = new AcceptHeaderHandler(NullLogger<AcceptHeaderHandler>.Instance);
         _recyclableMemoryStreamManager = blobStorageFixture.RecyclableMemoryStreamManager;
@@ -151,7 +151,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             new RetrieveResourceRequest(_studyInstanceUid, _firstSeriesInstanceUid, new[] { AcceptHeaderHelpers.CreateAcceptHeaderForGetSeries() }),
             CancellationToken.None);
 
-        ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier().SeriesInstanceUid == _firstSeriesInstanceUid));
+        ValidateResponseDicomFiles(await response.GetStreamsAsync(), datasets.Select(ds => ds).Where(ds => ds.ToInstanceIdentifier(Partition.Default).SeriesInstanceUid == _firstSeriesInstanceUid));
         ValidateDicomRequestIsPopulated();
     }
 
@@ -180,7 +180,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
     private async Task StoreDatasetsAndInstances(DicomDataset dataset, bool flagToStoreInstance)
     {
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(1, dataset);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), dataset);
 
         if (flagToStoreInstance)
         {
@@ -194,7 +194,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             stream.Position = 0;
             await _fileStore.StoreFileAsync(
                 version,
-                DefaultPartition.Name,
+                Partition.DefaultName,
                 stream);
         }
 
@@ -220,7 +220,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
 
         foreach (DicomDataset expectedDataset in expectedDatasets)
         {
-            DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier().Equals(expectedDataset.ToInstanceIdentifier()));
+            DicomFile actualFile = responseDicomFiles.First(x => x.Dataset.ToInstanceIdentifier(Partition.Default).Equals(expectedDataset.ToInstanceIdentifier(Partition.Default)));
 
             // If the same transfer syntax as original, the files should be exactly the same
             if (expectedDataset.InternalTransferSyntax == actualFile.Dataset.InternalTransferSyntax)

@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using EnsureThat;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Context;
 
@@ -46,7 +46,7 @@ public class DicomRequestContext : IDicomRequestContext
         CorrelationId = correlationId;
         RequestHeaders = requestHeaders;
         ResponseHeaders = responseHeaders;
-        DataPartitionEntry = PartitionEntry.Default;
+        DataPartition = Partition.Default;
     }
 
     public string Method { get; }
@@ -61,7 +61,7 @@ public class DicomRequestContext : IDicomRequestContext
 
     public string AuditEventType { get; set; }
 
-    public PartitionEntry DataPartitionEntry { get; set; }
+    public Partition DataPartition { get; set; }
 
     public string StudyInstanceUid { get; set; }
 

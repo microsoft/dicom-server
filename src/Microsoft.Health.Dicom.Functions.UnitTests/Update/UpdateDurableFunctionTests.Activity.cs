@@ -11,7 +11,7 @@ using FellowOakDicom;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
 using Microsoft.Health.Dicom.Tests.Common;
 using NSubstitute;
@@ -36,15 +36,15 @@ public partial class UpdateDurableFunctionTests
 
         var versions = expected.Select(x => x.Version).ToList();
 
-        _indexStore.BeginUpdateInstancesAsync(DefaultPartition.Key, studyInstanceUid, CancellationToken.None).Returns(identifiers);
+        _indexStore.BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
         IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
-            new UpdateInstanceWatermarkArguments(DefaultPartition.Key, studyInstanceUid),
+            new UpdateInstanceWatermarkArguments(Partition.DefaultKey, studyInstanceUid),
             NullLogger.Instance);
 
         await _indexStore
            .Received(1)
-           .BeginUpdateInstancesAsync(DefaultPartition.Key, studyInstanceUid, cancellationToken: CancellationToken.None);
+           .BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, cancellationToken: CancellationToken.None);
 
         for (int i = 0; i < expected.Count; i++)
         {
@@ -81,7 +81,7 @@ public partial class UpdateDurableFunctionTests
         }
 
         await _updateDurableFunction.UpdateInstanceBlobsAsync(
-            new UpdateInstanceBlobArguments(DefaultPartition.Key, expected, dataset),
+            new UpdateInstanceBlobArguments(Partition.DefaultKey, expected, dataset),
             NullLogger.Instance);
 
         foreach (var instance in expected)
@@ -100,7 +100,7 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
 
-        _indexStore.EndUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUid, new DicomDataset(), CancellationToken.None).Returns(Task.CompletedTask);
+        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), CancellationToken.None).Returns(Task.CompletedTask);
 
         var ds = new DicomDataset
         {
@@ -108,12 +108,12 @@ public partial class UpdateDurableFunctionTests
         };
 
         await _updateDurableFunction.CompleteUpdateStudyAsync(
-            new CompleteStudyArguments(DefaultPartition.Key, studyInstanceUid, "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}"),
+            new CompleteStudyArguments(Partition.DefaultKey, studyInstanceUid, "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}"),
             NullLogger.Instance);
 
         await _indexStore
             .Received(1)
-            .EndUpdateInstanceAsync(DefaultPartition.Key, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), CancellationToken.None);
+            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), CancellationToken.None);
     }
 
     [Fact]
@@ -184,14 +184,16 @@ public partial class UpdateDurableFunctionTests
     }
 
 
-    private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, int partitionKey = DefaultPartition.Key, InstanceProperties instanceProperty = null)
+    private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, Partition partition = null, InstanceProperties instanceProperty = null)
     {
         var dicomInstanceIdentifiersList = new List<InstanceMetadata>();
+        instanceProperty ??= new InstanceProperties();
+        partition ??= Partition.Default;
 
         instanceProperty = instanceProperty ?? new InstanceProperties();
 
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0, partitionKey), instanceProperty));
-        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, partitionKey), instanceProperty));
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 0, partition), instanceProperty));
+        dicomInstanceIdentifiersList.Add(new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1, partition), instanceProperty));
         return dicomInstanceIdentifiersList;
     }
 }

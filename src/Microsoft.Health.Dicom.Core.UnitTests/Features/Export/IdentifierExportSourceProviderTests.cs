@@ -5,7 +5,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -34,7 +34,7 @@ public class IdentifierExportSourceProviderTests
             },
         };
 
-        IExportSource source = await _provider.CreateAsync(options, PartitionEntry.Default);
+        IExportSource source = await _provider.CreateAsync(options, Partition.Default);
         Assert.IsType<IdentifierExportSource>(source);
     }
 

@@ -21,7 +21,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
@@ -86,11 +86,11 @@ public class UpdateInstanceOperationServiceTests
            .StartUpdateOperationAsync(
                Arg.Any<Guid>(),
                Arg.Any<UpdateSpecification>(),
-               PartitionEntry.Default.PartitionKey,
+               Partition.DefaultKey,
                CancellationToken.None)
            .Returns(expected);
 
-        _contextAccessor.RequestContext.DataPartitionEntry = PartitionEntry.Default;
+        _contextAccessor.RequestContext.DataPartition = Partition.Default;
         var response = await _updateInstanceOperationService.QueueUpdateOperationAsync(updateSpec, CancellationToken.None);
 
         Assert.Equal(expected.Href.ToString(), response.Operation.Href.ToString());

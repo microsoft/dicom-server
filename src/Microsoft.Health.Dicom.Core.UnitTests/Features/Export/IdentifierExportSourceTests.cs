@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Health.Dicom.Core.Features.Export;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Models.Common;
 using Microsoft.Health.Dicom.Core.Models.Export;
@@ -22,13 +22,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Export;
 public class IdentifierExportSourceTests
 {
     private readonly IInstanceStore _store;
-    private readonly PartitionEntry _partition;
+    private readonly Partition _partition;
     private readonly IdentifierExportOptions _options;
 
     public IdentifierExportSourceTests()
     {
         _store = Substitute.For<IInstanceStore>();
-        _partition = new PartitionEntry(99, "test");
+        _partition = new Partition(99, "test");
         _options = new IdentifierExportOptions();
     }
 
@@ -51,13 +51,13 @@ public class IdentifierExportSourceTests
 
         var expected = new VersionedInstanceIdentifier[]
         {
-            new VersionedInstanceIdentifier("10", "10", "10", 1, _partition.PartitionKey),
-            new VersionedInstanceIdentifier("10", "10", "20", 3, _partition.PartitionKey),
-            new VersionedInstanceIdentifier("10", "20", "10", 1, _partition.PartitionKey),
-            new VersionedInstanceIdentifier("100", "200", "300", 2, _partition.PartitionKey),
-            new VersionedInstanceIdentifier("100", "200", "400", 7, _partition.PartitionKey),
-            new VersionedInstanceIdentifier("100", "200", "500", 2, _partition.PartitionKey),
-            new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition.PartitionKey),
+            new VersionedInstanceIdentifier("10", "10", "10", 1, _partition),
+            new VersionedInstanceIdentifier("10", "10", "20", 3, _partition),
+            new VersionedInstanceIdentifier("10", "20", "10", 1, _partition),
+            new VersionedInstanceIdentifier("100", "200", "300", 2, _partition),
+            new VersionedInstanceIdentifier("100", "200", "400", 7, _partition),
+            new VersionedInstanceIdentifier("100", "200", "500", 2, _partition),
+            new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition),
         };
 
         _store

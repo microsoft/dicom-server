@@ -53,4 +53,5 @@ public enum SchemaVersion
     V40 = 40,
     V41 = 41,
     V42 = 42,
+    V43 = 43,
 }

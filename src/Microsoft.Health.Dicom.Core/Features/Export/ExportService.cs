@@ -10,7 +10,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Operations;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Operations;
 
@@ -59,7 +59,7 @@ internal sealed class ExportService : IExportService
         };
 
         // Start the operation
-        PartitionEntry partition = _accessor.RequestContext.DataPartitionEntry;
+        Partition partition = _accessor.RequestContext.DataPartition;
         return await _client.StartExportAsync(operationId, specification, errorHref, partition, cancellationToken);
     }
 }

@@ -12,5 +12,5 @@ namespace Microsoft.Health.Dicom.Client;
 
 public partial interface IDicomWebClient
 {
-    Task<DicomWebResponse<IEnumerable<PartitionEntry>>> GetPartitionsAsync(CancellationToken cancellationToken = default);
+    Task<DicomWebResponse<IEnumerable<Partition>>> GetPartitionsAsync(CancellationToken cancellationToken = default);
 }

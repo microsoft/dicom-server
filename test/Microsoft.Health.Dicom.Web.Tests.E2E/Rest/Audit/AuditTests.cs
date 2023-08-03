@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -79,7 +80,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
     public async Task GivenRetrieveRequestForFrame_WhenResourceIsFound_ThenAuditLogEntriesShouldBeCreated()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 1);
-        var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+        var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
         await _instancesManager.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
 
         await ExecuteAndValidate(
@@ -188,7 +189,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid);
-        InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+        InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
 
         await ExecuteAndValidate(
             () => _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid),
@@ -245,7 +246,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid);
-        InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+        InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
         await _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid);
 
         return dicomInstance;

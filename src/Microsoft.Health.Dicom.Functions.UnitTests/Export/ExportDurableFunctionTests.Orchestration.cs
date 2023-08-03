@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Health.Dicom.Core.Features.Export;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Export.Models;
@@ -35,7 +35,7 @@ public partial class ExportDurableFunctionTests
             },
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
-            Partition = PartitionEntry.Default,
+            Partition = Partition.Default,
             Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
         var batches = new ExportDataOptions<ExportSourceType>[]
@@ -143,7 +143,7 @@ public partial class ExportDurableFunctionTests
             CreatedTime = DateTime.UtcNow,
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
-            Partition = PartitionEntry.Default,
+            Partition = Partition.Default,
             Progress = new ExportProgress(1234, 56),
             Source = new ExportDataOptions<ExportSourceType>(SourceType, new IdentifierExportOptions()),
         };
@@ -222,7 +222,7 @@ public partial class ExportDurableFunctionTests
             CreatedTime = DateTime.UtcNow,
             Destination = new ExportDataOptions<ExportDestinationType>(DestinationType, new AzureBlobExportOptions()),
             ErrorHref = new Uri($"http://storage/errors/{operationId}.json"),
-            Partition = PartitionEntry.Default,
+            Partition = Partition.Default,
             Progress = new ExportProgress(78910, 0),
             Source = null,
         };

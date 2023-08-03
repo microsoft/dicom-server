@@ -34,7 +34,7 @@ public class MockUrlResolver : IUrlResolver
         return new Uri("/" + tagPath + "/errors", UriKind.Relative);
     }
 
-    public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier)
+    public Uri ResolveRetrieveInstanceUri(InstanceIdentifier instanceIdentifier, bool isPartitionEnabled)
     {
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 

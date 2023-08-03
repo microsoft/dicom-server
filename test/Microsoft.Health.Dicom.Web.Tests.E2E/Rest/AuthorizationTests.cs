@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Xunit;
@@ -29,7 +30,7 @@ public class AuthorizationTests : IClassFixture<HttpIntegrationTestFixture<Start
         if (AuthenticationSettings.SecurityEnabled)
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 1);
-            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier();
+            var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
 
             IDicomWebClient client = _fixture.GetDicomWebClient(TestApplications.GlobalAdminServicePrincipal, TestUsers.User1);
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(

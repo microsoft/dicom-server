@@ -26,6 +26,6 @@ public static class IIndexDataStoreExtensions
         EnsureArg.IsNotNull(instanceIdentifier, nameof(instanceIdentifier));
 
         await indexDataStore.DeleteInstanceIndexAsync(
-            instanceIdentifier.PartitionKey, instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, Clock.UtcNow, cancellationToken);
+            instanceIdentifier.Partition.Key, instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, Clock.UtcNow, cancellationToken);
     }
 }

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using Microsoft.Health.Core.Features.Context;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Context;
 
@@ -24,7 +24,7 @@ public interface IDicomRequestContext : IRequestContext
 
     int PartCount { get; set; }
 
-    PartitionEntry DataPartitionEntry { get; set; }
+    Partition DataPartition { get; set; }
 
     // Opportunity for the core to change based on the caller version
     int Version { get; set; }

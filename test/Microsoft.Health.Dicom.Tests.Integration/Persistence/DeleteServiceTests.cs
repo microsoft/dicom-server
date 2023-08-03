@@ -11,7 +11,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Xunit;
@@ -53,8 +53,8 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     {
         var newDataSet = CreateValidMetadataDataset();
 
-        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(DefaultPartition.Key, newDataSet);
-        var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version);
+        var version = await _fixture.IndexDataStore.BeginCreateInstanceIndexAsync(Partition.Default, newDataSet);
+        var versionedDicomInstanceIdentifier = newDataSet.ToVersionedInstanceIdentifier(version, Partition.Default);
 
         if (persistMetadata)
         {
@@ -70,12 +70,12 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
             await using (MemoryStream stream = _fixture.RecyclableMemoryStreamManager.GetStream("GivenDeletedInstances_WhenCleanupCalled_FilesAndTriesAreRemoved.fileData", fileData, 0, fileData.Length))
             {
-                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, DefaultPartition.Name, stream);
+                FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, Partition.DefaultName, stream);
 
                 Assert.NotNull(fileProperties);
             }
 
-            var file = await _fixture.FileStore.GetFileAsync(version, DefaultPartition.Name);
+            var file = await _fixture.FileStore.GetFileAsync(version, Partition.DefaultName);
 
             Assert.NotNull(file);
         }
@@ -89,7 +89,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.Equal(1, retrievedInstanceCount);
 
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.PartitionName));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.Partition.Name));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }

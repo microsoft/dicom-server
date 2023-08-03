@@ -10,7 +10,7 @@ using System.Text;
 using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
-using Microsoft.Health.Dicom.Core.Features.Partition;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Query;
 using Microsoft.Health.Dicom.Core.Features.Query.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Workitem;
@@ -43,7 +43,7 @@ public class WorkitemSqlQueryGeneratorTests
 
         SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
         var parm = new SqlQueryParameterManager(sqlParameterCollection);
-        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, DefaultPartition.Key);
+        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, Partition.DefaultKey);
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = w.PartitionKey
@@ -79,7 +79,7 @@ AND cts1.TagValue=@p1";
 
         SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
         var parm = new SqlQueryParameterManager(sqlParameterCollection);
-        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, DefaultPartition.Key);
+        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, Partition.DefaultKey);
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagDateTime ctdt1
 ON ctdt1.PartitionKey = w.PartitionKey
@@ -118,7 +118,7 @@ AND ctdt1.TagValue BETWEEN @p1 AND @p2";
 
         SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
         var parm = new SqlQueryParameterManager(sqlParameterCollection);
-        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, DefaultPartition.Key);
+        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, Partition.DefaultKey);
 
         string expectedExtendedQueryTagTableFilter = @"INNER JOIN dbo.ExtendedQueryTagString cts1
 ON cts1.PartitionKey = w.PartitionKey
@@ -160,7 +160,7 @@ AND cts2.TagValue=@p3";
         var query = new BaseQueryExpression(includeField, true, 10, 0, filters);
         SqlParameterCollection sqlParameterCollection = CreateSqlParameterCollection();
         var parm = new SqlQueryParameterManager(sqlParameterCollection);
-        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, DefaultPartition.Key);
+        new WorkitemSqlQueryGenerator(stringBuilder, query, parm, SqlServer.Features.Schema.SchemaVersion.V9, Partition.DefaultKey);
 
         string expectedParam = $"\"Fall 6*\"";
 

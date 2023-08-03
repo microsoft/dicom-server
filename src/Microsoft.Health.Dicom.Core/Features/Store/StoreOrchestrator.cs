@@ -73,21 +73,20 @@ public class StoreOrchestrator : IStoreOrchestrator
 
         DicomDataset dicomDataset = await dicomInstanceEntry.GetDicomDatasetAsync(cancellationToken);
 
-        string dicomInstanceIdentifier = dicomDataset.ToInstanceIdentifier().ToString();
+        var partition = _contextAccessor.RequestContext.GetPartition();
+
+        string dicomInstanceIdentifier = dicomDataset.ToInstanceIdentifier(partition).ToString();
 
         _logger.LogInformation("Storing a DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 
-        var partitionKey = _contextAccessor.RequestContext.GetPartitionKey();
-        string partitionName = _contextAccessor.RequestContext.GetPartitionName();
-
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync(cancellationToken: cancellationToken);
-        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partitionKey, dicomDataset, queryTags, cancellationToken);
-        var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version);
+        long version = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dicomDataset, queryTags, cancellationToken);
+        var versionedInstanceIdentifier = dicomDataset.ToVersionedInstanceIdentifier(version, partition);
 
         try
         {
             // We have successfully created the index, store the files.
-            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, partitionName, dicomInstanceEntry, cancellationToken);
+            Task<FileProperties> storeFileTask = StoreFileAsync(versionedInstanceIdentifier, partition.Name, dicomInstanceEntry, cancellationToken);
             Task<bool> frameRangeTask = StoreFileFramesRangeAsync(dicomDataset, version, cancellationToken);
             await Task.WhenAll(
                 storeFileTask,
@@ -98,7 +97,7 @@ public class StoreOrchestrator : IStoreOrchestrator
 
             bool hasFrameMetadata = await frameRangeTask;
 
-            await _indexDataStore.EndCreateInstanceIndexAsync(partitionKey, dicomDataset, version, queryTags, ShouldStoreFileProperties(fileProperties), hasFrameMetadata, cancellationToken: cancellationToken);
+            await _indexDataStore.EndCreateInstanceIndexAsync(partition.Key, dicomDataset, version, queryTags, ShouldStoreFileProperties(fileProperties), hasFrameMetadata, cancellationToken: cancellationToken);
 
             _logger.LogInformation("Successfully stored the DICOM instance: '{DicomInstance}'.", dicomInstanceIdentifier);
 

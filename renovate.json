@@ -1,0 +1,101 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    ":dependencyDashboard",
+    ":semanticPrefixFixDepsChoreOthers",
+    "group:dotNetCore",
+    "group:monorepos",
+    "group:recommended",
+    "replacements:all",
+    "workarounds:all"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "groupName": "ApplicationInsights",
+      "matchPackagePatterns": [
+        "ApplicationInsights"
+      ]
+    },
+    {
+      "groupName": "Dotnet",
+      "matchPackageNames": [
+        "dotnet-sdk",
+        "mcr.microsoft.com/dotnet/aspnet",
+        "mcr.microsoft.com/dotnet/sdk"
+      ]
+    },
+    {
+      "excludePackagePrefixes": [
+        "Microsoft.Health.Fhir."
+      ],
+      "groupName": "Healthcare Shared Components",
+      "matchPackagePrefixes": [
+        "Microsoft.Health."
+      ]
+    },
+    {
+      "enabled": false,
+      "groupName": "FHIR",
+      "matchPackagePatterns": [
+        "Fhir"
+      ]
+    },
+    {
+      "groupName": "IdentityModel.Tokens",
+      "matchPackagePatterns": [
+        "IdentityModel.Tokens"
+      ]
+    },
+    {
+      "groupName": "IdentityServer4",
+      "matchPackagePrefixes": [
+        "IdentityServer4"
+      ]
+    },
+    {
+      "groupName": "Microsoft.AspNetCore.Mvc.Versioning",
+      "matchPackagePrefixes": [
+        "Microsoft.AspNetCore.Mvc.Versioning"
+      ]
+    },
+    {
+      "groupName": "OpenTelemetry",
+      "matchPackagePrefixes": [
+        "OpenTelemetry"
+      ]
+    },
+    {
+      "allowedVersions": "/^focal/",
+      "groupName": "SQL Base Image",
+      "includePaths": [
+        "docker/sql/Dockerfile"
+      ],
+      "matchPackageNames": [
+        "ubuntu"
+      ]
+    },
+    {
+      "groupName": "Swashbuckle.AspNetCore",
+      "matchPackagePrefixes": [
+        "Swashbuckle.AspNetCore."
+      ]
+    },
+    {
+      "groupName": "System.CommandLine",
+      "matchPackagePrefixes": [
+        "System.CommandLine"
+      ]
+    },
+    {
+      "groupName": "XUnit",
+      "matchPackagePrefixes": [
+        "xunit"
+      ]
+    }
+  ],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0
+}
