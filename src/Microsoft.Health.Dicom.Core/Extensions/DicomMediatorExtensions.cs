@@ -227,15 +227,6 @@ public static class DicomMediatorExtensions
         return mediator.Send(new OperationStateRequest(operationId), cancellationToken);
     }
 
-    public static Task<GetOrAddPartitionResponse> GetOrAddPartitionAsync(
-       this IMediator mediator,
-       string partitionName,
-       CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
-    }
-
     public static Task<GetPartitionResponse> GetPartitionAsync(
        this IMediator mediator,
        string partitionName,
@@ -243,6 +234,15 @@ public static class DicomMediatorExtensions
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
         return mediator.Send(new GetPartitionRequest(partitionName), cancellationToken);
+    }
+
+    public static Task<GetOrAddPartitionResponse> GetOrAddPartitionAsync(
+       this IMediator mediator,
+       string partitionName,
+       CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
     }
 
     public static Task<GetPartitionsResponse> GetPartitionsAsync(
