@@ -65,24 +65,24 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Health.Abstractions" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Api" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Blob" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Client" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Core" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.122" />
+    <PackageVersion Include="Microsoft.Health.Abstractions" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Api" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Blob" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Client" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Core" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="6.2.125" />
     <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
-    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Operations" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.SqlServer" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="6.2.122" />
+    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Operations" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.SqlServer" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="6.2.125" />
+    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="6.2.125" />
     <PackageVersion Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.3.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.32.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.32.1" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
@@ -103,7 +103,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.32.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Text.Json" Version="$(SdkPackageVersion)" />
