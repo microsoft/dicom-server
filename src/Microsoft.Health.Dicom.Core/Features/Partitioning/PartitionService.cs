@@ -64,6 +64,12 @@ public class PartitionService : IPartitionService
         PartitionNameValidator.Validate(partitionName);
 
         Partition partition = await _partitionCache.GetAsync(partitionName, partitionName, _partitionStore.GetPartitionAsync, cancellationToken);
+
+        if (partition == null)
+        {
+            throw new DataPartitionsNotFoundException();
+        }
+
         return new GetPartitionResponse(partition);
     }
 

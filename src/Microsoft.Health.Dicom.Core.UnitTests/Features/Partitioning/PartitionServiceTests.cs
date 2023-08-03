@@ -15,7 +15,6 @@ using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Messages.Partitioning;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NSubstitute.ReceivedExtensions;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Partitioning;
@@ -48,6 +47,14 @@ public class PartitionServiceTests
         Assert.Equal(1, result.Partition.Key);
 
         await _partitionStore.DidNotReceiveWithAnyArgs().AddPartitionAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenANonExistingPartition_WhenAttemptingToGet_ThrowsDataPartitionNotFound()
+    {
+        _partitionStore.GetPartitionAsync("notfound", CancellationToken.None).Returns((Partition)null);
+
+        await Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _partitionService.GetPartitionAsync("notfound", CancellationToken.None));
     }
 
     [Fact]
