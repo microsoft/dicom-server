@@ -77,6 +77,9 @@ public class PopulateDataPartitionFilterAttributeTests
         _mediator.Send(Arg.Any<GetOrAddPartitionRequest>())
             .Returns(new GetOrAddPartitionResponse(Partition.Default));
 
+        _mediator.Send(Arg.Any<GetPartitionRequest>())
+            .Returns(new GetPartitionResponse(Partition.Default));
+
         _featureConfiguration = Options.Create(new FeatureConfiguration { EnableDataPartitions = true });
 
         _filterAttribute = new PopulateDataPartitionFilterAttribute(_dicomRequestContextAccessor, _mediator, _featureConfiguration);
