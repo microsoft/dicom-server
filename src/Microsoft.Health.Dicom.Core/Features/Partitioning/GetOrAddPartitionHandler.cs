@@ -29,11 +29,11 @@ public class GetOrAddPartitionHandler : BaseHandler, IRequestHandler<GetOrAddPar
     {
         EnsureArg.IsNotNull(request, nameof(request));
 
-        if (await AuthorizationService.CheckAccess(DataActions.Read, cancellationToken) != DataActions.Read)
+        if (await AuthorizationService.CheckAccess(DataActions.Write, cancellationToken) != DataActions.Write)
         {
-            throw new UnauthorizedDicomActionException(DataActions.Read);
+            throw new UnauthorizedDicomActionException(DataActions.Write);
         }
 
-        return await _partitionService.GetOrAddPartitionAsync(request.PartitionName, request.AddIfNotExists, cancellationToken);
+        return await _partitionService.GetOrAddPartitionAsync(request.PartitionName, cancellationToken);
     }
 }

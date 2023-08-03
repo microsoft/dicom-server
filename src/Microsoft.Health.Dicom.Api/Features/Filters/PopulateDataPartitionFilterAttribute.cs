@@ -16,6 +16,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Context;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Api.Features.Filters;
 
@@ -62,11 +63,19 @@ public sealed class PopulateDataPartitionFilterAttribute : ActionFilterAttribute
 
         if (_isPartitionEnabled)
         {
-            var partitionName = value?.ToString();
+            string partitionName = value?.ToString();
 
-            var partitionResponse = await _mediator.GetOrAddPartitionAsync(partitionName, _partitionCreationSupportedRouteNames.Contains(routeName));
+            Partition partition;
+            if (_partitionCreationSupportedRouteNames.Contains(routeName))
+            {
+                partition = (await _mediator.GetOrAddPartitionAsync(partitionName)).Partition;
+            }
+            else
+            {
+                partition = (await _mediator.GetPartitionAsync(partitionName)).Partition;
+            }
 
-            dicomRequestContext.DataPartition = partitionResponse.Partition;
+            dicomRequestContext.DataPartition = partition;
         }
 
         await base.OnActionExecutionAsync(context, next);

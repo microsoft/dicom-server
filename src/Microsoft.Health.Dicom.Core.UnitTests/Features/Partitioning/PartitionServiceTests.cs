@@ -42,7 +42,7 @@ public class PartitionServiceTests
         var returnThis = new Partition(1, "test", DateTimeOffset.Now);
         _partitionStore.GetPartitionAsync("test", Arg.Any<CancellationToken>()).Returns(returnThis);
 
-        GetOrAddPartitionResponse result = await _partitionService.GetOrAddPartitionAsync("test", false, CancellationToken.None);
+        GetOrAddPartitionResponse result = await _partitionService.GetOrAddPartitionAsync("test", CancellationToken.None);
 
         Assert.Equal("test", result.Partition.Name);
         Assert.Equal(1, result.Partition.Key);
@@ -51,27 +51,25 @@ public class PartitionServiceTests
     }
 
     [Fact]
-    public async Task GivenAGetOrAddRequestWithNoAdd_WhenPartitionDoesntExists_ThrowsPartitionNotFound()
-    {
-        _partitionStore.GetPartitionAsync("test", Arg.Any<CancellationToken>()).Returns((Partition)null);
-
-        await Assert.ThrowsAsync<DataPartitionsNotFoundException>(async () => await _partitionService.GetOrAddPartitionAsync("test", false, CancellationToken.None));
-    }
-
-    [Fact]
     public async Task GivenAnInvalidPartition_WhenAttemptingToGet_ThrowsInvalidPartition()
     {
-        await Assert.ThrowsAsync<InvalidPartitionNameException>(async () => await _partitionService.GetOrAddPartitionAsync("test#$", false, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidPartitionNameException>(async () => await _partitionService.GetPartitionAsync("test#$", CancellationToken.None));
     }
 
     [Fact]
-    public async Task GivenAGetOrAddRequestWithAdd_WhenPartitionDoesntExist_CreatesAndReturnsPartition()
+    public async Task GivenAnInvalidPartition_WhenAttemptingToGetOrAdd_ThrowsInvalidPartition()
+    {
+        await Assert.ThrowsAsync<InvalidPartitionNameException>(async () => await _partitionService.GetOrAddPartitionAsync("test#$", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task GivenAGetOrAddRequest_WhenPartitionDoesntExist_CreatesAndReturnsPartition()
     {
         var returnThis = new Partition(1, "test", DateTimeOffset.Now);
         _partitionStore.GetPartitionAsync("test", Arg.Any<CancellationToken>()).Returns((Partition)null);
         _partitionStore.AddPartitionAsync("test", Arg.Any<CancellationToken>()).Returns(returnThis);
 
-        GetOrAddPartitionResponse result = await _partitionService.GetOrAddPartitionAsync("test", true, CancellationToken.None);
+        GetOrAddPartitionResponse result = await _partitionService.GetOrAddPartitionAsync("test", CancellationToken.None);
 
         Assert.Equal("test", result.Partition.Name);
         Assert.Equal(1, result.Partition.Key);
@@ -80,14 +78,14 @@ public class PartitionServiceTests
     }
 
     [Fact]
-    public async Task GivenAGetOrAddRequestWithAdd_WhenPartitionCreatedInMeantime_ReturnsPartition()
+    public async Task GivenAGetOrAddRequest_WhenPartitionCreatedInMeantime_ReturnsPartition()
     {
         var returnThis = new Partition(1, "test", DateTimeOffset.Now);
         _partitionStore.GetPartitionAsync("test", Arg.Any<CancellationToken>())
             .Returns(_ => null, _ => returnThis);
         _partitionStore.AddPartitionAsync("test", Arg.Any<CancellationToken>()).ThrowsAsyncForAnyArgs(new DataPartitionAlreadyExistsException());
 
-        GetOrAddPartitionResponse result = await _partitionService.GetOrAddPartitionAsync("test", true, CancellationToken.None);
+        GetOrAddPartitionResponse result = await _partitionService.GetOrAddPartitionAsync("test", CancellationToken.None);
 
         Assert.Equal("test", result.Partition.Name);
         Assert.Equal(1, result.Partition.Key);

@@ -7,9 +7,9 @@ using MediatR;
 
 namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
-public class GetOrAddPartitionRequest : IRequest<GetOrAddPartitionResponse>
+public class GetPartitionRequest : IRequest<GetPartitionResponse>
 {
-    public GetOrAddPartitionRequest(string partitionName)
+    public GetPartitionRequest(string partitionName)
     {
         PartitionName = partitionName;
     }

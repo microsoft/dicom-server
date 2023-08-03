@@ -230,11 +230,19 @@ public static class DicomMediatorExtensions
     public static Task<GetOrAddPartitionResponse> GetOrAddPartitionAsync(
        this IMediator mediator,
        string partitionName,
-       bool addIfNotExists,
        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new GetOrAddPartitionRequest(partitionName, addIfNotExists), cancellationToken);
+        return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
+    }
+
+    public static Task<GetPartitionResponse> GetPartitionAsync(
+       this IMediator mediator,
+       string partitionName,
+       CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(mediator, nameof(mediator));
+        return mediator.Send(new GetPartitionRequest(partitionName), cancellationToken);
     }
 
     public static Task<GetPartitionsResponse> GetPartitionsAsync(
