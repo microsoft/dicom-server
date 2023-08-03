@@ -232,7 +232,7 @@ public class StoreService : IStoreService
         {
             throw;
         }
-        catch (DataStoreException dse) when (dse.InnerException is TaskCanceledException)
+        catch (DataStoreException dse) when (dse.InnerException is OperationCanceledException)
         {
             throw;
         }
