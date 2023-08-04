@@ -44,6 +44,7 @@ BEGIN
                 SeriesInstanceUid VARCHAR(64),
                 SopInstanceUid VARCHAR(64),
                 Watermark BIGINT,
+                OriginalWatermark BIGINT,
                 InstanceKey BIGINT)
 
         DELETE FROM @updatedInstances
@@ -53,7 +54,7 @@ BEGIN
             OriginalWatermark = ISNULL(OriginalWatermark, Watermark),
             Watermark = NewWatermark,
             NewWatermark = NULL
-        OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.InstanceKey INTO @updatedInstances
+        OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.OriginalWatermark, deleted.InstanceKey INTO @updatedInstances
         WHERE PartitionKey = @partitionKey
             AND StudyInstanceUid = @studyInstanceUid
             AND Status = 1
@@ -70,6 +71,14 @@ BEGIN
         -- The study does not exist. May be deleted
         IF @@ROWCOUNT = 0
             THROW 50404, 'Study does not exist', 1
+        
+        -- Delete from file properties any rows with "stale" watermarks if we will be inserting new ones
+        IF EXISTS (SELECT 1 FROM @insertFileProperties)
+        DELETE FP
+        FROM dbo.FileProperty as FP
+        INNER JOIN @updatedInstances U
+        ON U.InstanceKey = FP.InstanceKey
+        WHERE U.OriginalWatermark != FP.Watermark
         
         -- Insert new file properties from added blobs, @insertFileProperties will be empty when external store not 
         -- enabled

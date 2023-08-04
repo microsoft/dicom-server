@@ -1274,8 +1274,7 @@ BEGIN
     FROM   dbo.FileProperty AS FP
            INNER JOIN
            @deletedInstances AS DI
-           ON DI.InstanceKey = FP.InstanceKey
-              AND DI.Watermark = FP.Watermark;
+           ON DI.InstanceKey = FP.InstanceKey;
     DECLARE @deletedTags AS TABLE (
         TagKey BIGINT);
     DELETE XQTE
@@ -1540,6 +1539,7 @@ BEGIN
         SeriesInstanceUid VARCHAR (64),
         SopInstanceUid    VARCHAR (64),
         Watermark         BIGINT      ,
+        OriginalWatermark BIGINT      ,
         InstanceKey       BIGINT      );
     DELETE @updatedInstances;
     UPDATE dbo.Instance
@@ -1547,7 +1547,7 @@ BEGIN
            OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
            Watermark             = NewWatermark,
            NewWatermark          = NULL
-    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.InstanceKey INTO @updatedInstances
+    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.OriginalWatermark, deleted.InstanceKey INTO @updatedInstances
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND Status = 1
@@ -1560,6 +1560,14 @@ BEGIN
            AND StudyInstanceUid = @studyInstanceUid;
     IF @@ROWCOUNT = 0
         THROW 50404, 'Study does not exist', 1;
+    IF EXISTS (SELECT 1
+               FROM   @insertFileProperties)
+        DELETE FP
+        FROM   dbo.FileProperty AS FP
+               INNER JOIN
+               @updatedInstances AS U
+               ON U.InstanceKey = FP.InstanceKey
+        WHERE  U.OriginalWatermark != FP.Watermark;
     INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
     SELECT U.InstanceKey,
            I.Watermark,

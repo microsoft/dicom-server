@@ -155,7 +155,6 @@ public partial class UpdateDurableFunction
     {
         // when external store not enabled, do not update file properties
         return input.ExternalStoreEnabled ? watermarkedFilePropertiesList : new List<WatermarkedFileProperties>();
-
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]
