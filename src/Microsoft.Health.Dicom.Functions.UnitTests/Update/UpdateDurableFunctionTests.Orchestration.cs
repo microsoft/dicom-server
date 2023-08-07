@@ -73,26 +73,26 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
             )
             .Returns(watermarkedFilePropertiesList);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
@@ -107,20 +107,20 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
                 );
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context
@@ -181,20 +181,20 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
             )
             .Returns(watermarkedFilePropertiesList);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 // Arg.Any<CompleteStudyArguments>())
                 // int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList
@@ -202,7 +202,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
@@ -217,20 +217,20 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
                 );
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, watermarkedFilePropertiesList)));
         context
@@ -291,20 +291,20 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
             )
             .Returns(watermarkedFilePropertiesList);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 // Arg.Any<CompleteStudyArguments>())
                 // int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList
@@ -312,7 +312,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
@@ -327,20 +327,20 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset))
                 );
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, null, expectEmptyList: true)));
         context
@@ -382,25 +382,25 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
@@ -415,19 +415,19 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context
@@ -546,14 +546,14 @@ public partial class UpdateDurableFunctionTests
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .ThrowsAsync(new FunctionFailedException("Function failed"));
@@ -572,7 +572,7 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CleanupNewVersionBlobAsync),
+                nameof(UpdateDurableFunction.CleanupNewVersionBlobV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark)));
 
@@ -625,25 +625,25 @@ public partial class UpdateDurableFunctionTests
             .Returns(expectedInput);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
             .Returns(expectedInstancesWithNewWatermark);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                 Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.DeleteOldVersionBlobAsync),
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
@@ -658,19 +658,19 @@ public partial class UpdateDurableFunctionTests
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateDurableFunction.UpdateInstanceWatermarkAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                nameof(UpdateDurableFunction.UpdateInstanceBlobsAsync),
+                nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
                Arg.Is(GetPredicate(Partition.Default, expectedInstancesWithNewWatermark, expectedInput.ChangeDataset)));
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
-                nameof(UpdateDurableFunction.CompleteUpdateStudyAsync),
+                nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArguments>());
         context

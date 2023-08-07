@@ -12,9 +12,9 @@ public class UpdateInput
 {
     public Partition Partition { get; set; }
 
+    public int PartitionKey { get; set; }
+
     public IReadOnlyList<string> StudyInstanceUids { get; set; }
 
     public string ChangeDataset { get; set; }
-
-    public bool ExternalStoreEnabled { get; set; }
 }

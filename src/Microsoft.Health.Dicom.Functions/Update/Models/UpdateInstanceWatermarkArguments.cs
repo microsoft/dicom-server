@@ -12,7 +12,15 @@ public class UpdateInstanceWatermarkArguments
 {
     public Partition Partition { get; }
 
+    public int PartitionKey { get; }
+
     public string StudyInstanceUid { get; }
+
+    public UpdateInstanceWatermarkArguments(int partitionKey, string studyInstanceUid)
+        : this(new Partition(partitionKey, Partition.UnknownName), studyInstanceUid)
+    {
+        PartitionKey = partitionKey;
+    }
 
     public UpdateInstanceWatermarkArguments(Partition partition, string studyInstanceUid)
     {

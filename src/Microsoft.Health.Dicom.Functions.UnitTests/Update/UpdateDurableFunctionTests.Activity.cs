@@ -88,7 +88,7 @@ public partial class UpdateDurableFunctionTests
                 .Returns(DefaultFileProperties);
         }
 
-        await _updateDurableFunction.UpdateInstanceBlobsAsync(
+        await _updateDurableFunction.UpdateInstanceBlobsV2Async(
             new UpdateInstanceBlobArguments(Partition.Default, expected, dataset),
             NullLogger.Instance);
 
@@ -117,7 +117,7 @@ public partial class UpdateDurableFunctionTests
             { DicomTag.PatientName, "Patient Name" }
         };
 
-        await _updateDurableFunction.CompleteUpdateStudyAsync(
+        await _updateDurableFunction.CompleteUpdateStudyV2Async(
             new CompleteStudyArguments(
                 Partition.DefaultKey,
                 studyInstanceUid,
@@ -148,7 +148,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Call the activity
-        await _updateDurableFunction.CleanupNewVersionBlobAsync(
+        await _updateDurableFunction.CleanupNewVersionBlobV2Async(
             new CleanupBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 
@@ -177,7 +177,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Call the activity
-        await _updateDurableFunction.DeleteOldVersionBlobAsync(
+        await _updateDurableFunction.DeleteOldVersionBlobV2Async(
             new CleanupBlobArguments(expected, Partition.Default),
             NullLogger.Instance);
 

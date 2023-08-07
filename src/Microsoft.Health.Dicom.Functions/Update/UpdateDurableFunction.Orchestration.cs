@@ -45,6 +45,7 @@ public partial class UpdateDurableFunction
         ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
         IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList;
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
+        input.Partition ??= new Partition(input.PartitionKey, Partition.UnknownName);
 
         if (input.NumberOfStudyCompleted < input.TotalNumberOfStudies)
         {
@@ -53,7 +54,7 @@ public partial class UpdateDurableFunction
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
             IReadOnlyList<InstanceFileState> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
-                nameof(UpdateInstanceWatermarkAsync),
+                nameof(UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
 
@@ -67,12 +68,12 @@ public partial class UpdateDurableFunction
                 try
                 {
                     watermarkedFilePropertiesList = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
-                        nameof(UpdateInstanceBlobsAsync),
+                        nameof(UpdateInstanceBlobsV2Async),
                         _options.RetryOptions,
                         new UpdateInstanceBlobArguments(input.Partition, instanceWatermarks, input.ChangeDataset));
 
                     await context.CallActivityWithRetryAsync(
-                        nameof(CompleteUpdateStudyAsync),
+                        nameof(CompleteUpdateStudyV2Async),
                         _options.RetryOptions,
                         new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetWatermarkedFilePropertiesList(watermarkedFilePropertiesList)));
 
@@ -107,7 +108,7 @@ public partial class UpdateDurableFunction
             else
             {
                 await context.CallActivityWithRetryAsync(
-                    nameof(DeleteOldVersionBlobAsync),
+                    nameof(DeleteOldVersionBlobV2Async),
                     _options.RetryOptions,
                     new CleanupBlobArguments(instanceWatermarks, input.Partition));
             }
@@ -118,6 +119,7 @@ public partial class UpdateDurableFunction
                     StudyInstanceUids = input.StudyInstanceUids,
                     ChangeDataset = input.ChangeDataset,
                     Partition = input.Partition,
+                    PartitionKey = input.PartitionKey,
                     NumberOfStudyCompleted = numberOfStudyCompleted,
                     NumberOfStudyFailed = numberofStudyFailed,
                     TotalNumberOfInstanceUpdated = totalNoOfInstances,
@@ -163,7 +165,7 @@ public partial class UpdateDurableFunction
         try
         {
             await context.CallActivityWithRetryAsync(
-                nameof(CleanupNewVersionBlobAsync),
+                nameof(CleanupNewVersionBlobV2Async),
                 _options.RetryOptions,
                 new CleanupBlobArguments(instanceWatermarks, partition));
         }

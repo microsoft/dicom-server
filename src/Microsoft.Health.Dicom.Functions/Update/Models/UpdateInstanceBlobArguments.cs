@@ -15,11 +15,19 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// </summary>
 public sealed class UpdateInstanceBlobArguments
 {
+    public int PartitionKey { get; }
+
     public Partition Partition { get; set; }
 
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
 
     public string ChangeDataset { get; }
+
+    public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
+        : this(new Partition(partitionKey, Partition.UnknownName), instanceWatermarks, changeDataset)
+    {
+        PartitionKey = partitionKey;
+    }
 
     public UpdateInstanceBlobArguments(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
     {

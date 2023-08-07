@@ -21,6 +21,11 @@ public sealed class CompleteStudyArguments
 
     public string ChangeDataset { get; set; }
 
+    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
+        : this(partitionKey, studyInstanceUid, dicomDataset, new List<WatermarkedFileProperties>())
+    {
+    }
+
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList)
     {
         PartitionKey = partitionKey;
