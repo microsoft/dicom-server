@@ -532,7 +532,7 @@ CREATE TYPE dbo.WatermarkTableType AS TABLE (
     Watermark BIGINT);
 
 CREATE TYPE dbo.FilePropertyTableType AS TABLE (
-    Watermark BIGINT          NOT NULL,
+    Watermark BIGINT          NOT NULL UNIQUE INDEX IXC_FilePropertyTableType CLUSTERED,
     FilePath  NVARCHAR (4000) NOT NULL,
     ETag      NVARCHAR (4000) NOT NULL);
 
@@ -1533,25 +1533,28 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @currentDate AS DATETIME2 (7) = SYSUTCDATETIME();
-    DECLARE @updatedInstances AS TABLE (
+    CREATE TABLE #updatedInstances (
         PartitionKey      INT         ,
         StudyInstanceUid  VARCHAR (64),
         SeriesInstanceUid VARCHAR (64),
         SopInstanceUid    VARCHAR (64),
-        Watermark         BIGINT      ,
+        Watermark         BIGINT       INDEX IXC_UpdatedInstances CLUSTERED,
         OriginalWatermark BIGINT      ,
-        InstanceKey       BIGINT      );
-    DELETE @updatedInstances;
+        InstanceKey       BIGINT      
+    );
+    DELETE #updatedInstances;
     UPDATE dbo.Instance
     SET    LastStatusUpdatedDate = @currentDate,
            OriginalWatermark     = ISNULL(OriginalWatermark, Watermark),
            Watermark             = NewWatermark,
            NewWatermark          = NULL
-    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.OriginalWatermark, deleted.InstanceKey INTO @updatedInstances
+    OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.OriginalWatermark, deleted.InstanceKey INTO #updatedInstances
     WHERE  PartitionKey = @partitionKey
            AND StudyInstanceUid = @studyInstanceUid
            AND Status = 1
            AND NewWatermark IS NOT NULL;
+    CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstances
+        ON #updatedInstances(Watermark);
     UPDATE dbo.Study
     SET    PatientId        = ISNULL(@patientId, PatientId),
            PatientName      = ISNULL(@patientName, PatientName),
@@ -1565,7 +1568,7 @@ BEGIN
         DELETE FP
         FROM   dbo.FileProperty AS FP
                INNER JOIN
-               @updatedInstances AS U
+               #updatedInstances AS U
                ON U.InstanceKey = FP.InstanceKey
         WHERE  U.OriginalWatermark != FP.Watermark;
     INSERT INTO dbo.FileProperty (InstanceKey, Watermark, FilePath, ETag)
@@ -1575,7 +1578,7 @@ BEGIN
            I.ETag
     FROM   @insertFileProperties AS I
            INNER JOIN
-           @updatedInstances AS U
+           #updatedInstances AS U
            ON U.Watermark = I.Watermark;
     INSERT INTO dbo.ChangeFeed (Action, PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, OriginalWatermark)
     SELECT 2,
@@ -1584,13 +1587,13 @@ BEGIN
            SeriesInstanceUid,
            SopInstanceUid,
            Watermark
-    FROM   @updatedInstances;
+    FROM   #updatedInstances;
     UPDATE C
     SET    CurrentWatermark = U.Watermark,
            FilePath         = I.FilePath
     FROM   dbo.ChangeFeed AS C
            INNER JOIN
-           @updatedInstances AS U
+           #updatedInstances AS U
            ON C.PartitionKey = U.PartitionKey
               AND C.StudyInstanceUid = U.StudyInstanceUid
               AND C.SeriesInstanceUid = U.SeriesInstanceUid

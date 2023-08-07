@@ -93,7 +93,7 @@ CREATE TYPE dbo.WatermarkTableType AS TABLE
 *************************************************************/
 CREATE TYPE dbo.FilePropertyTableType AS TABLE
 (
-    Watermark   BIGINT          NOT NULL,
+    Watermark   BIGINT          NOT NULL INDEX IXC_FilePropertyTableType CLUSTERED UNIQUE,
     FilePath    NVARCHAR (4000) NOT NULL,
     ETag        NVARCHAR (4000) NOT NULL
 )
