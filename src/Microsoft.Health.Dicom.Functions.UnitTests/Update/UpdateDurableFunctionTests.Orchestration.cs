@@ -208,7 +208,7 @@ public partial class UpdateDurableFunctionTests
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
-        await _updateDurableFunction.UpdateInstancesAsync(context, NullLogger.Instance);
+        await _updateDurableFunctionWithExternalStore.UpdateInstancesAsync(context, NullLogger.Instance);
 
         // Assert behavior
         context

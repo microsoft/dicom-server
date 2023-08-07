@@ -74,7 +74,7 @@ public partial class UpdateDurableFunction
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateStudyAsync),
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetWatermarkedFilePropertiesList(input, watermarkedFilePropertiesList)));
+                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetWatermarkedFilePropertiesList(watermarkedFilePropertiesList)));
 
                     totalNoOfInstances += instanceWatermarks.Count;
                 }
@@ -151,10 +151,10 @@ public partial class UpdateDurableFunction
         }
     }
 
-    private static IReadOnlyList<WatermarkedFileProperties> GetWatermarkedFilePropertiesList(UpdateCheckpoint input, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList)
+    private IReadOnlyList<WatermarkedFileProperties> GetWatermarkedFilePropertiesList(IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList)
     {
         // when external store not enabled, do not update file properties
-        return input.ExternalStoreEnabled ? watermarkedFilePropertiesList : new List<WatermarkedFileProperties>();
+        return _externalStoreEnabled ? watermarkedFilePropertiesList : new List<WatermarkedFileProperties>();
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]

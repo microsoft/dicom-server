@@ -17,7 +17,6 @@ using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -40,7 +39,6 @@ public class UpdateInstanceOperationServiceTests
     private readonly IDicomRequestContextAccessor _contextAccessor;
     private readonly TelemetryClient _telemetryClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
-    private const bool ExternalStoreEnabled = false;
 
     public UpdateInstanceOperationServiceTests()
     {
@@ -54,7 +52,7 @@ public class UpdateInstanceOperationServiceTests
         _jsonSerializerOptions = new JsonSerializerOptions();
         _jsonSerializerOptions.Converters.Add(new DicomJsonConverter(writeTagsAsKeywords: true, autoValidate: false, numberSerializationMode: NumberSerializationMode.PreferablyAsNumber));
         _jsonSerializerOptions.Converters.Add(new ExportDataOptionsJsonConverter());
-        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, Options.Create(_jsonSerializerOptions), Options.Create(new FeatureConfiguration { EnableExternalStore = ExternalStoreEnabled }), NullLogger<UpdateInstanceOperationService>.Instance);
+        _updateInstanceOperationService = new UpdateInstanceOperationService(_guidFactory, _client, _contextAccessor, _telemetryClient, Options.Create(_jsonSerializerOptions), NullLogger<UpdateInstanceOperationService>.Instance);
     }
 
     [Fact]
@@ -89,7 +87,6 @@ public class UpdateInstanceOperationServiceTests
                Arg.Any<Guid>(),
                Arg.Any<UpdateSpecification>(),
                Partition.Default,
-               ExternalStoreEnabled,
                CancellationToken.None)
            .Returns(expected);
 
