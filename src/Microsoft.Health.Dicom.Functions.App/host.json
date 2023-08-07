@@ -100,5 +100,14 @@
         "MaxTimeInterval": "00:00:20"
       }
     }
+  },
+  "ExternalBlobStore": {
+    "BlobContainerUri": null,
+    "StorageDirectory": "DICOM/"
+  },
+  "DicomServer": {
+    "Features": {
+      "EnableExternalStore": false
+    }
   }
 }
