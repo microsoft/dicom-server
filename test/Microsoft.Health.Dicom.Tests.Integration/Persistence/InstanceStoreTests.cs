@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -38,7 +37,6 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly IPartitionStore _partitionStore;
     private readonly IQueryStore _queryStore;
-    private readonly IChangeFeedStore _changeFeedStore;
     private readonly SqlDataStoreTestsFixture _fixture;
 
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
@@ -51,7 +49,6 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
         _partitionStore = EnsureArg.IsNotNull(fixture?.PartitionStore, nameof(fixture.PartitionStore));
         _queryStore = EnsureArg.IsNotNull(fixture?.QueryStore, nameof(fixture.QueryStore));
-        _changeFeedStore = EnsureArg.IsNotNull(fixture?.ChangeFeedStore, nameof(fixture.ChangeFeedStore));
     }
 
     [Fact]
@@ -311,76 +308,6 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 
         Assert.True(result.Any());
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
-
-        // Verify Changefeed entries are inserted
-        var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetUpdatedChangeFeedRowsAsync(4);
-        Assert.True(changeFeedEntries.Any());
-        for (int i = 0; i < instances.Count; i++)
-        {
-            Assert.Equal(instanceMetadatas[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalWatermark);
-            Assert.Equal(instanceMetadatas[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
-            Assert.Equal(instanceMetadatas[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
-            // when no file properties passed in and not using external store, change feed file path remains null
-            Assert.Null(changeFeedEntries[i].FilePath);
-        }
-    }
-
-    [Fact]
-    public async Task GivenInstances_WhenBulkUpdateInstancesInAStudyAndFilePropertiesPassedIn_ThenItShouldAlsoInsertFilePathOnChangeFeed()
-    {
-        var studyInstanceUID1 = TestUidGenerator.Generate();
-        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
-        DicomDataset dataset2 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
-        DicomDataset dataset3 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
-        DicomDataset dataset4 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
-        dataset4.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
-
-        var instance1 = await CreateInstanceIndexAsync(dataset1);
-        await CreateInstanceIndexAsync(dataset2);
-        await CreateInstanceIndexAsync(dataset3);
-        await CreateInstanceIndexAsync(dataset4);
-
-        Dictionary<long, WatermarkedFileProperties> filePropertiesByWatermark = new Dictionary<long, WatermarkedFileProperties>();
-
-        // Update the instances with newWatermark
-        IReadOnlyList<InstanceMetadata> updatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(
-            new Partition(instance1.PartitionKey, Partition.UnknownName),
-            studyInstanceUID1);
-
-        // generate file property per updated instance with new watermark
-        foreach (var updatedInstance in updatedInstanceMetadata)
-        {
-            filePropertiesByWatermark.Add(
-                updatedInstance.InstanceProperties.NewVersion.Value,
-                new WatermarkedFileProperties
-                {
-                    Watermark = updatedInstance.InstanceProperties.NewVersion.Value,
-                    Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
-                    ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}"
-                });
-        }
-
-        var dicomDataset = new DicomDataset();
-        dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
-
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, filePropertiesByWatermark.Values.ToList());
-
-        var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
-
-        // Verify Changefeed entries had file path updated
-        foreach (var instanceMetadata in instanceMetadatas)
-        {
-            var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetChangeFeedRowsAsync(
-                instanceMetadata.VersionedInstanceIdentifier.StudyInstanceUid,
-                instanceMetadata.VersionedInstanceIdentifier.SeriesInstanceUid,
-                instanceMetadata.VersionedInstanceIdentifier.SopInstanceUid);
-            Assert.True(changeFeedEntries.Any());
-            foreach (ChangeFeedRow row in changeFeedEntries)
-            {
-                filePropertiesByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
-                Assert.Equal(actual.Path, row.FilePath);
-            }
-        }
     }
 
     [Fact]
