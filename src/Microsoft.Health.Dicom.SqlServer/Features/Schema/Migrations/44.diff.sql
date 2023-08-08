@@ -41,7 +41,7 @@ BEGIN
         StudyInstanceUid  VARCHAR (64),
         SeriesInstanceUid VARCHAR (64),
         SopInstanceUid    VARCHAR (64),
-        Watermark         BIGINT       INDEX IXC_UpdatedInstances CLUSTERED,
+        Watermark         BIGINT      ,
         OriginalWatermark BIGINT      ,
         InstanceKey       BIGINT      
     );
