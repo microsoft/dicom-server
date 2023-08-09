@@ -468,7 +468,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         int partitionKey,
         string studyInstanceUid,
         DicomDataset dicomDataset,
-        IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList,
+        IReadOnlyList<InstanceMetadata> instanceMetadatas,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));

@@ -65,23 +65,15 @@ public partial class UpdateDurableFunctionTests
     public async Task GivenInstanceMetadata_WhenUpdatingBlobInBatches_ThenShouldUpdateCorrectly()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid);
-        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
-            new InstanceFileState
-            {
-                Version = x.VersionedInstanceIdentifier.Version,
-                OriginalVersion = x.InstanceProperties.OriginalVersion,
-                NewVersion = x.InstanceProperties.NewVersion
-            }).ToList();
+        var expected = GetInstanceIdentifiersList(studyInstanceUid);
 
-        var versions = expected.Select(x => x.Version).ToList();
         var dataset = "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}";
 
         foreach (var instance in expected)
         {
             _updateInstanceService
                 .UpdateInstanceBlobAsync(
-                instance,
+                instance.ToInstanceFileState(),
                 Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
                 Partition.Default,
                 Arg.Any<CancellationToken>())
@@ -97,7 +89,7 @@ public partial class UpdateDurableFunctionTests
             await _updateInstanceService
                 .Received(1)
                 .UpdateInstanceBlobAsync(
-                instance,
+                    Arg.Is(GetPredicate(instance.ToInstanceFileState())),
                 Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
                 Partition.Default,
                 Arg.Any<CancellationToken>());
@@ -109,8 +101,8 @@ public partial class UpdateDurableFunctionTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
 
-        var watermarkedFileProperties = new List<WatermarkedFileProperties>();
-        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), watermarkedFileProperties, CancellationToken.None).Returns(Task.CompletedTask);
+        var instanceMetadatas = new List<InstanceMetadata>();
+        _indexStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, new DicomDataset(), instanceMetadatas, CancellationToken.None).Returns(Task.CompletedTask);
 
         var ds = new DicomDataset
         {
@@ -122,12 +114,12 @@ public partial class UpdateDurableFunctionTests
                 Partition.DefaultKey,
                 studyInstanceUid,
                 "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}",
-                watermarkedFileProperties),
+                instanceMetadatas),
             NullLogger.Instance);
 
         await _indexStore
             .Received(1)
-            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), watermarkedFileProperties, CancellationToken.None);
+            .EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUid, Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"), instanceMetadatas, CancellationToken.None);
     }
 
     [Fact]

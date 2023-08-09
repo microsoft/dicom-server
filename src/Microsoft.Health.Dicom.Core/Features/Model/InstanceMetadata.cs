@@ -28,4 +28,14 @@ public class InstanceMetadata
 
         return VersionedInstanceIdentifier.Version;
     }
+
+    public InstanceFileState ToInstanceFileState()
+    {
+        return new InstanceFileState
+        {
+            Version = VersionedInstanceIdentifier.Version,
+            OriginalVersion = InstanceProperties.OriginalVersion,
+            NewVersion = InstanceProperties.NewVersion
+        };
+    }
 }

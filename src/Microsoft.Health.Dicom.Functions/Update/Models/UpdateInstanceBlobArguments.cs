@@ -21,18 +21,21 @@ public sealed class UpdateInstanceBlobArguments
 
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
 
+    public IReadOnlyList<InstanceMetadata> InstanceMetadatas { get; }
+
     public string ChangeDataset { get; }
 
     public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
-        : this(new Partition(partitionKey, Partition.UnknownName), instanceWatermarks, changeDataset)
+        : this(new Partition(partitionKey, Partition.UnknownName), new List<InstanceMetadata>(), changeDataset)
     {
         PartitionKey = partitionKey;
+        InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
     }
 
-    public UpdateInstanceBlobArguments(Partition partition, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
+    public UpdateInstanceBlobArguments(Partition partition, IReadOnlyList<InstanceMetadata> instances, string changeDataset)
     {
         Partition = EnsureArg.IsNotNull(partition, nameof(partition));
-        InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
+        InstanceMetadatas = EnsureArg.IsNotNull(instances, nameof(instances));
         ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }
 }

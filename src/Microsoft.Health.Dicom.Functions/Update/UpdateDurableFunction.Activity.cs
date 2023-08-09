@@ -39,9 +39,15 @@ public partial class UpdateDurableFunction
     public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        return await UpdateInstanceWatermarkV2Async(
+        var metadatas = await UpdateInstanceWatermarkV2Async(
             new UpdateInstanceWatermarkArguments(new Partition(arguments.PartitionKey, Partition.UnknownName), arguments.StudyInstanceUid),
             logger);
+        return metadatas.Select(x => new InstanceFileState
+        {
+            Version = x.VersionedInstanceIdentifier.Version,
+            OriginalVersion = x.InstanceProperties.OriginalVersion,
+            NewVersion = x.InstanceProperties.NewVersion
+        }).ToList();
     }
 
     /// <summary>
@@ -56,7 +62,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceWatermarkV2Async))]
-    public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
+    public async Task<IReadOnlyList<InstanceMetadata>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
@@ -68,13 +74,7 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
-        return instanceMetadata.Select(x =>
-            new InstanceFileState
-            {
-                Version = x.VersionedInstanceIdentifier.Version,
-                OriginalVersion = x.InstanceProperties.OriginalVersion,
-                NewVersion = x.InstanceProperties.NewVersion
-            }).ToList();
+        return instanceMetadata.ToList();
     }
 
     /// <summary>
@@ -92,36 +92,8 @@ public partial class UpdateDurableFunction
     public async Task UpdateInstanceBlobsAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-
-        await UpdateInstanceBlobsV2Async(
-            new UpdateInstanceBlobArguments(
-                new Partition(
-                    arguments.PartitionKey,
-                    Partition.UnknownName),
-                arguments.InstanceWatermarks,
-                arguments.ChangeDataset),
-            logger);
-
-    }
-
-    /// <summary>
-    /// Asynchronously batches the instance watermarks and calls the update instance.
-    /// </summary>
-    /// <param name="arguments">BatchUpdateArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="UpdateInstanceBlobsV2Async"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
-    public async Task<IReadOnlyList<WatermarkedFileProperties>> UpdateInstanceBlobsV2Async([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
         EnsureArg.IsNotNull(arguments.InstanceWatermarks, nameof(arguments.InstanceWatermarks));
-        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.InstanceWatermarks));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
@@ -130,7 +102,6 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
 
-        List<WatermarkedFileProperties> propertiesByWatermark = new List<WatermarkedFileProperties>();
         while (processed < arguments.InstanceWatermarks.Count)
         {
             int batchSize = Math.Min(_options.BatchSize, arguments.InstanceWatermarks.Count - processed);
@@ -150,15 +121,7 @@ public partial class UpdateDurableFunction
                 },
                 async (instance, token) =>
                 {
-                    long newFileIdentifier = instance.NewVersion.Value;
-                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
-                    propertiesByWatermark.Add(new WatermarkedFileProperties
-                    {
-                        Watermark = newFileIdentifier,
-                        ContentLength = fileProperties.ContentLength,
-                        ETag = fileProperties.ETag,
-                        Path = fileProperties.Path
-                    });
+                    await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, new Partition(arguments.PartitionKey, Partition.UnknownName), token);
                 });
 
             logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
@@ -170,7 +133,78 @@ public partial class UpdateDurableFunction
         }
 
         logger.LogInformation("Completed updating all instance blobs");
-        return propertiesByWatermark;
+
+        // await UpdateInstanceBlobsV2Async(arguments, logger);
+    }
+
+    /// <summary>
+    /// Asynchronously batches the instance watermarks and calls the update instance.
+    /// </summary>
+    /// <param name="arguments">BatchUpdateArguments</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="UpdateInstanceBlobsV2Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
+    public async Task<IReadOnlyList<InstanceMetadata>> UpdateInstanceBlobsV2Async([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
+        EnsureArg.IsNotNull(arguments.InstanceMetadatas, nameof(arguments.InstanceMetadatas));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
+
+        int processed = 0;
+
+        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadatas.Count);
+
+        List<InstanceMetadata> updatedInstances = new List<InstanceMetadata>();
+        while (processed < arguments.InstanceMetadatas.Count)
+        {
+            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceMetadatas.Count - processed);
+            var batch = arguments.InstanceMetadatas.Skip(processed).Take(batchSize).ToList();
+
+            logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
+                    batch[0],
+                    batch[^1],
+                    batchSize);
+
+            await Parallel.ForEachAsync(
+                batch,
+                new ParallelOptions
+                {
+                    CancellationToken = default,
+                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
+                },
+                async (instance, token) =>
+                {
+                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance.ToInstanceFileState(), datasetToUpdate, arguments.Partition, token);
+                    updatedInstances.Add(
+                        new InstanceMetadata(
+                            instance.VersionedInstanceIdentifier,
+                            new InstanceProperties
+                            {
+                                fileProperties = fileProperties,
+                                NewVersion = instance.InstanceProperties.NewVersion,
+                                OriginalVersion = instance.InstanceProperties.OriginalVersion
+                            }));
+                });
+
+            logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
+                batch[0],
+                batch[^1],
+                batchSize);
+
+            processed += batchSize;
+        }
+
+        logger.LogInformation("Completed updating all instance blobs");
+        return updatedInstances;
     }
 
     /// <summary>
@@ -192,8 +226,7 @@ public partial class UpdateDurableFunction
             new CompleteStudyArguments(
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
-                arguments.ChangeDataset,
-                new List<WatermarkedFileProperties>()),
+                arguments.ChangeDataset),
             logger);
     }
 
@@ -214,7 +247,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
-        EnsureArg.IsNotNull(arguments.WatermarkedFilePropertiesList, nameof(arguments.WatermarkedFilePropertiesList));
+        EnsureArg.IsNotNull(arguments.InstanceMetadatas, nameof(arguments.InstanceMetadatas));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         logger.LogInformation("Completing updating operation for study.");
@@ -225,7 +258,7 @@ public partial class UpdateDurableFunction
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
                 GetDeserialzedDataset(arguments.ChangeDataset),
-                arguments.WatermarkedFilePropertiesList,
+                arguments.InstanceMetadatas,
                 CancellationToken.None);
 
             logger.LogInformation("Updating study completed successfully.");

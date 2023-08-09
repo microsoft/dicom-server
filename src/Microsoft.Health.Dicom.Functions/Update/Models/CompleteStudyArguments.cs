@@ -4,7 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
-using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
@@ -15,22 +15,22 @@ public sealed class CompleteStudyArguments
 {
     public int PartitionKey { get; }
 
-    public IReadOnlyList<WatermarkedFileProperties> WatermarkedFilePropertiesList { get; }
+    public IReadOnlyList<InstanceMetadata> InstanceMetadatas { get; }
 
     public string StudyInstanceUid { get; }
 
     public string ChangeDataset { get; set; }
 
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
-        : this(partitionKey, studyInstanceUid, dicomDataset, new List<WatermarkedFileProperties>())
+        : this(partitionKey, studyInstanceUid, dicomDataset, new List<InstanceMetadata>())
     {
     }
 
-    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList)
+    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadatas)
     {
         PartitionKey = partitionKey;
         StudyInstanceUid = studyInstanceUid;
         ChangeDataset = dicomDataset;
-        WatermarkedFilePropertiesList = watermarkedFilePropertiesList;
+        InstanceMetadatas = instanceMetadatas;
     }
 }

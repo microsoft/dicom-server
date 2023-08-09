@@ -12,7 +12,7 @@ using FellowOakDicom;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
-using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -36,14 +36,19 @@ internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV42
         int partitionKey,
         string studyInstanceUid,
         DicomDataset dicomDataset,
-        IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList,
+        IReadOnlyList<InstanceMetadata> instanceMetadatas,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-        EnsureArg.IsNotNull(watermarkedFilePropertiesList, nameof(watermarkedFilePropertiesList));
+        EnsureArg.IsNotNull(instanceMetadatas, nameof(instanceMetadatas));
 
-        List<FilePropertyTableTypeRow> filePropertiesRows = watermarkedFilePropertiesList.Select(watermarkedFileProperties
-            => new FilePropertyTableTypeRow(watermarkedFileProperties.Watermark, watermarkedFileProperties.Path, watermarkedFileProperties.ETag)).ToList();
+        List<FilePropertyTableTypeRow> filePropertiesRows = instanceMetadatas.Select(instanceMetadata
+            => new FilePropertyTableTypeRow(
+                instanceMetadata.InstanceProperties.NewVersion.Value,
+                instanceMetadata.InstanceProperties.fileProperties.Path,
+                instanceMetadata.InstanceProperties.fileProperties.ETag
+                ))
+            .ToList();
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())

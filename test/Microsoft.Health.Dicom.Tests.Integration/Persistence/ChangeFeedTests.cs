@@ -146,7 +146,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<WatermarkedFileProperties>());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
 
         var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -183,12 +183,12 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             studyInstanceUID1);
 
         // generate file property per updated instance with new watermark
-        Dictionary<long, WatermarkedFileProperties> filePropertiesByWatermark = CreateFileProperties(updatedInstanceMetadata);
+        Dictionary<long, InstanceMetadata> metadatasByWatermark = CreateInstanceMetadatasWithFileProperties(updatedInstanceMetadata);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, filePropertiesByWatermark.Values.ToList());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, metadatasByWatermark.Values.ToList());
 
         var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -202,26 +202,32 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             Assert.True(changeFeedEntries.Any());
             foreach (ChangeFeedRow row in changeFeedEntries)
             {
-                filePropertiesByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
-                Assert.Equal(actual.Path, row.FilePath);
+                metadatasByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
+                Assert.Equal(actual.InstanceProperties.fileProperties.Path, row.FilePath);
             }
         }
     }
 
-    private static Dictionary<long, WatermarkedFileProperties> CreateFileProperties(IReadOnlyList<InstanceMetadata> updatedInstanceMetadata)
+    private static Dictionary<long, InstanceMetadata> CreateInstanceMetadatasWithFileProperties(IReadOnlyList<InstanceMetadata> instanceMetadatas)
     {
-        Dictionary<long, WatermarkedFileProperties> filePropertiesByWatermark = new Dictionary<long, WatermarkedFileProperties>();
-        foreach (var updatedInstance in updatedInstanceMetadata)
+        Dictionary<long, InstanceMetadata> updatedInstanceMetadata = new Dictionary<long, InstanceMetadata>();
+        foreach (var updatedInstance in instanceMetadatas)
         {
-            filePropertiesByWatermark.Add(updatedInstance.InstanceProperties.NewVersion.Value, new WatermarkedFileProperties
-            {
-                Watermark = updatedInstance.InstanceProperties.NewVersion.Value,
-                Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
-                ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}"
-            });
+            updatedInstanceMetadata.Add(updatedInstance.InstanceProperties.NewVersion.Value, new InstanceMetadata(
+                updatedInstance.VersionedInstanceIdentifier,
+                new InstanceProperties
+                {
+                    fileProperties = new FileProperties
+                    {
+                        Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
+                        ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}"
+                    },
+                    NewVersion = updatedInstance.InstanceProperties.NewVersion,
+                    OriginalVersion = updatedInstance.InstanceProperties.OriginalVersion
+                }));
         }
 
-        return filePropertiesByWatermark;
+        return updatedInstanceMetadata;
     }
 
     private async Task<ChangeFeedEntry> FindFirstChangeOrDefaultAsync(InstanceIdentifier identifier, TimeSpan duration, int limit = 200)

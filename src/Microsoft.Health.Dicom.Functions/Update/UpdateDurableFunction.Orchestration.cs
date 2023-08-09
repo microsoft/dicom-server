@@ -5,12 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EnsureThat;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Registration;
@@ -43,7 +43,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
         ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
-        IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList;
+        IReadOnlyList<InstanceMetadata> instanceMetadatas;
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
         input.Partition ??= new Partition(input.PartitionKey, Partition.UnknownName);
 
@@ -53,31 +53,33 @@ public partial class UpdateDurableFunction
 
             logger.LogInformation("Beginning to update all instances new watermark in a study.");
 
-            IReadOnlyList<InstanceFileState> instanceWatermarks = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceFileState>>(
+            IReadOnlyList<InstanceMetadata> instances = await context
+                .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
+            var instanceWatermarks = instances.Select(x => x.ToInstanceFileState()).ToList();
 
-            logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instanceWatermarks.Count);
+            logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instances.Count);
 
             var totalNoOfInstances = input.TotalNumberOfInstanceUpdated;
             int numberofStudyFailed = input.NumberOfStudyFailed;
 
-            if (instanceWatermarks.Count > 0)
+            if (instances.Count > 0)
             {
                 try
                 {
-                    watermarkedFilePropertiesList = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkedFileProperties>>(
+                    instanceMetadatas = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                         nameof(UpdateInstanceBlobsV2Async),
                         _options.RetryOptions,
-                        new UpdateInstanceBlobArguments(input.Partition, instanceWatermarks, input.ChangeDataset));
+                        new UpdateInstanceBlobArguments(input.Partition, instances, input.ChangeDataset));
 
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateStudyV2Async),
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetWatermarkedFilePropertiesList(watermarkedFilePropertiesList)));
+                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadatas(instanceMetadatas)));
 
-                    totalNoOfInstances += instanceWatermarks.Count;
+                    totalNoOfInstances += instances.Count;
                 }
                 catch (FunctionFailedException ex)
                 {
@@ -103,7 +105,7 @@ public partial class UpdateDurableFunction
 
             if (input.TotalNumberOfStudies != numberOfStudyCompleted)
             {
-                logger.LogInformation("Completed updating the instances for a study. {Updated}. Continuing with new execution...", instanceWatermarks.Count);
+                logger.LogInformation("Completed updating the instances for a study. {Updated}. Continuing with new execution...", instances.Count);
             }
             else
             {
@@ -153,10 +155,10 @@ public partial class UpdateDurableFunction
         }
     }
 
-    private IReadOnlyList<WatermarkedFileProperties> GetWatermarkedFilePropertiesList(IReadOnlyList<WatermarkedFileProperties> watermarkedFilePropertiesList)
+    private IReadOnlyList<InstanceMetadata> GetInstanceMetadatas(IReadOnlyList<InstanceMetadata> instanceMetadatas)
     {
         // when external store not enabled, do not update file properties
-        return _externalStoreEnabled ? watermarkedFilePropertiesList : new List<WatermarkedFileProperties>();
+        return _externalStoreEnabled ? instanceMetadatas : new List<InstanceMetadata>();
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]

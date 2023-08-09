@@ -16,7 +16,7 @@ public sealed class CleanupBlobArguments
 
     public CleanupBlobArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
-        this.InstanceWatermarks = instanceWatermarks;
-        this.Partition = partition;
+        InstanceWatermarks = instanceWatermarks;
+        Partition = partition;
     }
 }

@@ -289,7 +289,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<WatermarkedFileProperties>());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
 
         var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -327,18 +327,10 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         Assert.Single(updatedInstanceMetadata);
         var updatedInstance = updatedInstanceMetadata[0];
 
-        // generate file property
-        var expectedNewWatermarkedFileProperties = new WatermarkedFileProperties
-        {
-            Watermark = updatedInstance.InstanceProperties.NewVersion.Value,
-            Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
-            ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}",
-        };
-
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<WatermarkedFileProperties>() { expectedNewWatermarkedFileProperties });
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(updatedInstance) });
 
         var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
         Assert.Single(instanceMetadatas);
@@ -346,7 +338,7 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 
         // ensure new property inserted
         IReadOnlyList<FileProperty> newFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(retrievedInstance.GetVersion(false));
-        Assert.Equal(expectedNewWatermarkedFileProperties.Watermark, newFileProperties[0].Watermark);
+        Assert.Equal(retrievedInstance.VersionedInstanceIdentifier.Version, newFileProperties[0].Watermark);
 
         // ensure the original property is still there
         IReadOnlyList<FileProperty> originalFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(originalInstance.Watermark);
@@ -356,15 +348,9 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "NewFirstName_NewLastName");
 
         IReadOnlyList<InstanceMetadata> secondUpdatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(new Partition(originalInstance.PartitionKey, Partition.UnknownName), studyInstanceUID1);
-
-        // generate file property
-        var secondExpectedNewWatermarkedFileProperties = new WatermarkedFileProperties
-        {
-            Watermark = secondUpdatedInstanceMetadata[0].InstanceProperties.NewVersion.Value,
-            Path = $"test/file_{secondUpdatedInstanceMetadata[0].InstanceProperties.NewVersion.Value}.dcm",
-            ETag = $"etag_{secondUpdatedInstanceMetadata[0].InstanceProperties.NewVersion.Value}",
-        };
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<WatermarkedFileProperties>() { secondExpectedNewWatermarkedFileProperties });
+        Assert.Single(secondUpdatedInstanceMetadata);
+        var secondUpdatedInstance = secondUpdatedInstanceMetadata[0];
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(secondUpdatedInstance) });
 
         var retrievedInstances = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
         Assert.Single(retrievedInstances);
@@ -385,6 +371,20 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         IReadOnlyList<FileProperty> inBetweenFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(inBetweenVersion.Value);
         Assert.Empty(inBetweenFileProperties);
     }
+
+    private static InstanceMetadata CreateExpectedInstance(InstanceMetadata updatedInstance) =>
+        new(
+            updatedInstance.VersionedInstanceIdentifier,
+            new InstanceProperties
+            {
+                fileProperties = new FileProperties
+                {
+                    Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
+                    ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}",
+                },
+                OriginalVersion = updatedInstance.InstanceProperties.OriginalVersion,
+                NewVersion = updatedInstance.InstanceProperties.NewVersion,
+            });
 
     private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
         => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
