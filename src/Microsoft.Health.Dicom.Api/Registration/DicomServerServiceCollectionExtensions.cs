@@ -23,7 +23,7 @@ using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Conventions;
-using Microsoft.Health.Dicom.Api.Features.Partition;
+using Microsoft.Health.Dicom.Api.Features.Partitioning;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Api.Logging;

@@ -1,4 +1,4 @@
-// -------------------------------------------------------------------------------------------------
+﻿// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -236,13 +236,13 @@ public static class DicomMediatorExtensions
         return mediator.Send(new GetPartitionRequest(partitionName), cancellationToken);
     }
 
-    public static Task<AddPartitionResponse> AddPartitionAsync(
+    public static Task<GetOrAddPartitionResponse> GetOrAddPartitionAsync(
        this IMediator mediator,
        string partitionName,
        CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(mediator, nameof(mediator));
-        return mediator.Send(new AddPartitionRequest(partitionName), cancellationToken);
+        return mediator.Send(new GetOrAddPartitionRequest(partitionName), cancellationToken);
     }
 
     public static Task<GetPartitionsResponse> GetPartitionsAsync(
