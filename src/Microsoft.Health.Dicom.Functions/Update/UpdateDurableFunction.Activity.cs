@@ -227,10 +227,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         return CompleteUpdateStudyV2Async(
-            new CompleteStudyArguments(
-                arguments.PartitionKey,
-                arguments.StudyInstanceUid,
-                arguments.ChangeDataset),
+            new CompleteStudyArguments(arguments.PartitionKey, arguments.StudyInstanceUid, arguments.ChangeDataset),
             logger);
     }
 
