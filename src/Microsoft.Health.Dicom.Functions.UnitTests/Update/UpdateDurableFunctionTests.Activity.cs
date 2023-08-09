@@ -45,9 +45,10 @@ public partial class UpdateDurableFunctionTests
 
         _indexStore.BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
-        IReadOnlyList<InstanceFileState> actual = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
+        IEnumerable<InstanceFileState> result = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
             new UpdateInstanceWatermarkArguments(Partition.Default, studyInstanceUid),
             NullLogger.Instance);
+        IReadOnlyList<InstanceFileState> actual = result.ToList();
 
         await _indexStore
            .Received(1)

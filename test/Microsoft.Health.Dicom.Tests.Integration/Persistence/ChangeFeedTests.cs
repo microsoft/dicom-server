@@ -183,12 +183,12 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             studyInstanceUID1);
 
         // generate file property per updated instance with new watermark
-        Dictionary<long, InstanceMetadata> metadatasByWatermark = CreateInstanceMetadatasWithFileProperties(updatedInstanceMetadata);
+        Dictionary<long, InstanceMetadata> metadataListByWatermark = CreateInstanceMetadatasWithFileProperties(updatedInstanceMetadata);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, metadatasByWatermark.Values.ToList());
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, metadataListByWatermark.Values.ToList());
 
         var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
@@ -202,7 +202,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             Assert.True(changeFeedEntries.Any());
             foreach (ChangeFeedRow row in changeFeedEntries)
             {
-                metadatasByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
+                metadataListByWatermark.TryGetValue(row.CurrentWatermark.Value, out var actual);
                 Assert.Equal(actual.InstanceProperties.fileProperties.Path, row.FilePath);
             }
         }

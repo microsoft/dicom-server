@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -37,18 +38,18 @@ public partial class UpdateDurableFunction
     /// </exception>
     [FunctionName(nameof(UpdateInstanceWatermarkAsync))]
     [Obsolete("To be removed with V1 cleanup.")]
-    public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
+    public async Task<IEnumerable<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        var metadatas = await UpdateInstanceWatermarkV2Async(
+        var metadataList = await UpdateInstanceWatermarkV2Async(
             new UpdateInstanceWatermarkArguments(new Partition(arguments.PartitionKey, Partition.UnknownName), arguments.StudyInstanceUid),
             logger);
-        return metadatas.Select(x => new InstanceFileState
+        return metadataList.Select(x => new InstanceFileState
         {
             Version = x.VersionedInstanceIdentifier.Version,
             OriginalVersion = x.InstanceProperties.OriginalVersion,
             NewVersion = x.InstanceProperties.NewVersion
-        }).ToList();
+        });
     }
 
     /// <summary>
@@ -57,13 +58,13 @@ public partial class UpdateDurableFunction
     /// <param name="arguments">BatchUpdateArguments</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="UpdateInstanceWatermarkV2Async"/> operation.
+    /// The result of the task contains the updated instances.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceWatermarkV2Async))]
-    public async Task<IReadOnlyList<InstanceMetadata>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
+    public async Task<IEnumerable<InstanceMetadata>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
@@ -75,7 +76,7 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Beginning to update all instance watermarks");
 
-        return instanceMetadata.ToList();
+        return instanceMetadata;
     }
 
     /// <summary>
@@ -145,7 +146,7 @@ public partial class UpdateDurableFunction
     /// <param name="arguments">BatchUpdateArguments</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="UpdateInstanceBlobsV2Async"/> operation.
+    /// The result of the task contains the updated instances with file properties representing newly created blobs.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
@@ -165,7 +166,7 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadataList.Count);
 
-        List<InstanceMetadata> updatedInstances = new List<InstanceMetadata>();
+        ConcurrentBag<InstanceMetadata> updatedInstances = new ConcurrentBag<InstanceMetadata>();
         while (processed < arguments.InstanceMetadataList.Count)
         {
             int batchSize = Math.Min(_options.BatchSize, arguments.InstanceMetadataList.Count - processed);
@@ -206,7 +207,7 @@ public partial class UpdateDurableFunction
         }
 
         logger.LogInformation("Completed updating all instance blobs");
-        return updatedInstances;
+        return updatedInstances.ToList();
     }
 
     /// <summary>
