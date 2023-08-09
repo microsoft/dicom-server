@@ -174,7 +174,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(context, nameof(context)).ThrowIfInvalidOperationId();
         logger = context.CreateReplaySafeLogger(EnsureArg.IsNotNull(logger, nameof(logger)));
         ReplaySafeCounter<int> replaySafeCounter = context.CreateReplaySafeCounter(_updateMeter.UpdatedInstances);
-        IReadOnlyList<InstanceMetadata> instanceMetadatas;
+        IReadOnlyList<InstanceMetadata> instanceMetadataList;
         UpdateCheckpoint input = context.GetInput<UpdateCheckpoint>();
         input.Partition ??= new Partition(input.PartitionKey, Partition.UnknownName);
 
@@ -186,9 +186,9 @@ public partial class UpdateDurableFunction
 
             IReadOnlyList<InstanceMetadata> instances = await context
                 .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
-                nameof(UpdateInstanceWatermarkV2Async),
-                _options.RetryOptions,
-                new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
+                    nameof(UpdateInstanceWatermarkV2Async),
+                    _options.RetryOptions,
+                    new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
             var instanceWatermarks = instances.Select(x => x.ToInstanceFileState()).ToList();
 
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instances.Count);
@@ -200,7 +200,7 @@ public partial class UpdateDurableFunction
             {
                 try
                 {
-                    instanceMetadatas = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
+                    instanceMetadataList = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                         nameof(UpdateInstanceBlobsV2Async),
                         _options.RetryOptions,
                         new UpdateInstanceBlobArguments(input.Partition, instances, input.ChangeDataset));
@@ -208,7 +208,7 @@ public partial class UpdateDurableFunction
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateStudyV2Async),
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadatas(instanceMetadatas)));
+                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadatas(instanceMetadataList)));
 
                     totalNoOfInstances += instances.Count;
                 }
@@ -286,10 +286,10 @@ public partial class UpdateDurableFunction
         }
     }
 
-    private IReadOnlyList<InstanceMetadata> GetInstanceMetadatas(IReadOnlyList<InstanceMetadata> instanceMetadatas)
+    private IReadOnlyList<InstanceMetadata> GetInstanceMetadatas(IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         // when external store not enabled, do not update file properties
-        return _externalStoreEnabled ? instanceMetadatas : new List<InstanceMetadata>();
+        return _externalStoreEnabled ? instanceMetadataList : new List<InstanceMetadata>();
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]

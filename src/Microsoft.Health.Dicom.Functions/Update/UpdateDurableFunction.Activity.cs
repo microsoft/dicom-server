@@ -153,7 +153,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
-        EnsureArg.IsNotNull(arguments.InstanceMetadatas, nameof(arguments.InstanceMetadatas));
+        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
         EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
@@ -161,13 +161,13 @@ public partial class UpdateDurableFunction
 
         int processed = 0;
 
-        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadatas.Count);
+        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceMetadataList.Count);
 
         List<InstanceMetadata> updatedInstances = new List<InstanceMetadata>();
-        while (processed < arguments.InstanceMetadatas.Count)
+        while (processed < arguments.InstanceMetadataList.Count)
         {
-            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceMetadatas.Count - processed);
-            var batch = arguments.InstanceMetadatas.Skip(processed).Take(batchSize).ToList();
+            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceMetadataList.Count - processed);
+            var batch = arguments.InstanceMetadataList.Skip(processed).Take(batchSize).ToList();
 
             logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
                     batch[0],
@@ -219,10 +219,10 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CompleteUpdateStudyAsync))]
-    public async Task CompleteUpdateStudyAsync([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
+    public Task CompleteUpdateStudyAsync([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
-        await CompleteUpdateStudyV2Async(
+        return CompleteUpdateStudyV2Async(
             new CompleteStudyArguments(
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
@@ -247,7 +247,7 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
-        EnsureArg.IsNotNull(arguments.InstanceMetadatas, nameof(arguments.InstanceMetadatas));
+        EnsureArg.IsNotNull(arguments.InstanceMetadataList, nameof(arguments.InstanceMetadataList));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         logger.LogInformation("Completing updating operation for study.");
@@ -258,7 +258,7 @@ public partial class UpdateDurableFunction
                 arguments.PartitionKey,
                 arguments.StudyInstanceUid,
                 GetDeserialzedDataset(arguments.ChangeDataset),
-                arguments.InstanceMetadatas,
+                arguments.InstanceMetadataList,
                 CancellationToken.None);
 
             logger.LogInformation("Updating study completed successfully.");
@@ -282,12 +282,12 @@ public partial class UpdateDurableFunction
     /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(DeleteOldVersionBlobAsync))]
-    public async Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    public Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
         IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
-        await DeleteOldVersionBlobV2Async(new CleanupBlobArguments(fileIdentifiers, Partition.Default), logger);
+        return DeleteOldVersionBlobV2Async(new CleanupBlobArguments(fileIdentifiers, Partition.Default), logger);
     }
 
     /// <summary>
@@ -341,12 +341,12 @@ public partial class UpdateDurableFunction
     /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CleanupNewVersionBlobAsync))]
-    public async Task CleanupNewVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
+    public Task CleanupNewVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context));
 
         IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
-        await CleanupNewVersionBlobV2Async(new CleanupBlobArguments(fileIdentifiers, Partition.Default), logger);
+        return CleanupNewVersionBlobV2Async(new CleanupBlobArguments(fileIdentifiers, Partition.Default), logger);
     }
 
     /// <summary>

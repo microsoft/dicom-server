@@ -63,7 +63,7 @@ public partial class UpdateDurableFunctionTests
             }
         };
 
-        List<InstanceMetadata> instanceMetadatas = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
 
         // Arrange the input
         string operationId = OperationId.Generate();
@@ -77,14 +77,14 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadatas, expectedInput.ChangeDataset))
+                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadataList, expectedInput.ChangeDataset))
             )
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
@@ -116,7 +116,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadatas, expectedInput.ChangeDataset))
+                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadataList, expectedInput.ChangeDataset))
                 );
         await context
             .Received(1)
@@ -170,7 +170,7 @@ public partial class UpdateDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
 
-        List<InstanceMetadata> instanceMetadatas = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark, studyInstanceUid);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark, studyInstanceUid);
 
         context
             .GetInput<UpdateCheckpoint>()
@@ -180,19 +180,19 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadatas, expectedInput.ChangeDataset))
+                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadataList, expectedInput.ChangeDataset))
             )
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, instanceMetadatas)))
+                Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, instanceMetadataList)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -219,14 +219,14 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadatas, expectedInput.ChangeDataset))
+                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadataList, expectedInput.ChangeDataset))
                 );
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, instanceMetadatas)));
+                Arg.Is(GetPredicate(expectedInput.Partition.Key, studyInstanceUid, expectedInput.ChangeDataset, instanceMetadataList)));
         context
             .Received(1)
             .ContinueAsNew(
@@ -236,7 +236,7 @@ public partial class UpdateDurableFunctionTests
 
     private static List<InstanceMetadata> CreateExpectedInstanceMetadatas(List<InstanceFileState> expectedInstancesWithNewWatermark, string studyInstanceUid = "0")
     {
-        List<InstanceMetadata> instanceMetadatas = expectedInstancesWithNewWatermark.Select(x => new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, "0", "0", x.Version), new InstanceProperties
+        List<InstanceMetadata> instanceMetadataList = expectedInstancesWithNewWatermark.Select(x => new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, "0", "0", x.Version), new InstanceProperties
         {
             fileProperties = new FileProperties
             {
@@ -244,7 +244,7 @@ public partial class UpdateDurableFunctionTests
                 Path = $"path-{x.NewVersion.ToString()}",
             }
         })).ToList();
-        return instanceMetadatas;
+        return instanceMetadataList;
     }
 
     [Fact]
@@ -286,7 +286,7 @@ public partial class UpdateDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
 
-        List<InstanceMetadata> instanceMetadatas = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
 
         context
             .GetInput<UpdateCheckpoint>()
@@ -296,14 +296,14 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadatas, expectedInput.ChangeDataset))
+                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadataList, expectedInput.ChangeDataset))
             )
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
@@ -335,7 +335,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadatas, expectedInput.ChangeDataset))
+                Arg.Is(GetPredicate(expectedInput.Partition, instanceMetadataList, expectedInput.ChangeDataset))
                 );
         await context
             .Received(1)
@@ -377,7 +377,7 @@ public partial class UpdateDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
 
-        List<InstanceMetadata> instanceMetadatas = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
 
         context
             .GetInput<UpdateCheckpoint>()
@@ -387,12 +387,12 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(Partition.Default, instanceMetadatas, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.Default, instanceMetadataList, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -425,7 +425,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(Partition.Default, instanceMetadatas, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(Partition.Default, instanceMetadataList, expectedInput.ChangeDataset)));
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
@@ -514,7 +514,7 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        List<InstanceMetadata> instanceMetadatas = new List<InstanceMetadata> { new InstanceMetadata(
+        List<InstanceMetadata> instanceMetadataList = new List<InstanceMetadata> { new InstanceMetadata(
             new VersionedInstanceIdentifier(
                 TestUidGenerator.Generate(),
                 TestUidGenerator.Generate(),
@@ -542,13 +542,13 @@ public partial class UpdateDurableFunctionTests
             )
             };
 
-        var expectedInstancesWithNewWatermark = instanceMetadatas.Select(x => x.ToInstanceFileState()).ToList();
+        var expectedInstancesWithNewWatermark = instanceMetadataList.Select(x => x.ToInstanceFileState()).ToList();
 
         var expectedInput = new UpdateCheckpoint
         {
             Partition = Partition.Default,
             ChangeDataset = string.Empty,
-            StudyInstanceUids = instanceMetadatas.Select(x => x.VersionedInstanceIdentifier.StudyInstanceUid).ToList(),
+            StudyInstanceUids = instanceMetadataList.Select(x => x.VersionedInstanceIdentifier.StudyInstanceUid).ToList(),
             CreatedTime = createdTime,
         };
 
@@ -563,13 +563,13 @@ public partial class UpdateDurableFunctionTests
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
-                _options.RetryOptions, Arg.Any<UpdateInstanceWatermarkArguments>()).Returns(instanceMetadatas);
+                _options.RetryOptions, Arg.Any<UpdateInstanceWatermarkArguments>()).Returns(instanceMetadataList);
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(Partition.Default, instanceMetadatas, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.Default, instanceMetadataList, expectedInput.ChangeDataset)))
             .ThrowsAsync(new FunctionFailedException("Function failed"));
 
         context
@@ -630,7 +630,7 @@ public partial class UpdateDurableFunctionTests
             }
         };
 
-        List<InstanceMetadata> instanceMetadatas = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
 
         // Arrange the input
         string operationId = OperationId.Generate();
@@ -644,12 +644,12 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
                 Arg.Any<UpdateInstanceWatermarkArguments>())
-            .Returns(instanceMetadatas);
+            .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Is(GetPredicate(Partition.Default, instanceMetadatas, expectedInput.ChangeDataset)))
+                Arg.Is(GetPredicate(Partition.Default, instanceMetadataList, expectedInput.ChangeDataset)))
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -682,7 +682,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-               Arg.Is(GetPredicate(Partition.Default, instanceMetadatas, expectedInput.ChangeDataset)));
+               Arg.Is(GetPredicate(Partition.Default, instanceMetadataList, expectedInput.ChangeDataset)));
         await context
             .Received(1)
             .CallActivityWithRetryAsync(
@@ -720,10 +720,10 @@ public partial class UpdateDurableFunctionTests
         return context;
     }
 
-    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceMetadata> instanceMetadatas, string changeDataset)
+    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceMetadata> instanceMetadataList, string changeDataset)
     {
         return x =>
-            x.InstanceMetadatas == instanceMetadatas
+            x.InstanceMetadataList == instanceMetadataList
             && x.ChangeDataset == changeDataset
             && x.Partition == partition;
     }
@@ -736,13 +736,13 @@ public partial class UpdateDurableFunctionTests
             && x.OriginalVersion == instanceFileState.OriginalVersion;
     }
 
-    private static Expression<Predicate<CompleteStudyArguments>> GetPredicate(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadatas, bool expectEmptyList = false)
+    private static Expression<Predicate<CompleteStudyArguments>> GetPredicate(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, bool expectEmptyList = false)
     {
         return x =>
             x.PartitionKey == partitionKey
             && x.StudyInstanceUid == studyInstanceUid
             && x.ChangeDataset == dicomDataset
-            && expectEmptyList ? x.InstanceMetadatas.IsNullOrEmpty() : x.InstanceMetadatas == instanceMetadatas;
+            && expectEmptyList ? x.InstanceMetadataList.IsNullOrEmpty() : x.InstanceMetadataList == instanceMetadataList;
     }
 
     private static Expression<Predicate<CleanupBlobArguments>> GetPredicate(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)

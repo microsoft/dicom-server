@@ -15,7 +15,7 @@ public sealed class CompleteStudyArguments
 {
     public int PartitionKey { get; }
 
-    public IReadOnlyList<InstanceMetadata> InstanceMetadatas { get; }
+    public IReadOnlyList<InstanceMetadata> InstanceMetadataList { get; }
 
     public string StudyInstanceUid { get; }
 
@@ -26,11 +26,11 @@ public sealed class CompleteStudyArguments
     {
     }
 
-    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadatas)
+    public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         PartitionKey = partitionKey;
         StudyInstanceUid = studyInstanceUid;
         ChangeDataset = dicomDataset;
-        InstanceMetadatas = instanceMetadatas;
+        InstanceMetadataList = instanceMetadataList;
     }
 }

@@ -36,13 +36,13 @@ internal class SqlIndexDataStoreV44 : SqlIndexDataStoreV42
         int partitionKey,
         string studyInstanceUid,
         DicomDataset dicomDataset,
-        IReadOnlyList<InstanceMetadata> instanceMetadatas,
+        IReadOnlyList<InstanceMetadata> instanceMetadataList,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
-        EnsureArg.IsNotNull(instanceMetadatas, nameof(instanceMetadatas));
+        EnsureArg.IsNotNull(instanceMetadataList, nameof(instanceMetadataList));
 
-        List<FilePropertyTableTypeRow> filePropertiesRows = instanceMetadatas.Select(instanceMetadata
+        List<FilePropertyTableTypeRow> filePropertiesRows = instanceMetadataList.Select(instanceMetadata
             => new FilePropertyTableTypeRow(
                 instanceMetadata.InstanceProperties.NewVersion.Value,
                 instanceMetadata.InstanceProperties.fileProperties.Path,

@@ -21,7 +21,7 @@ public sealed class UpdateInstanceBlobArguments
 
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
 
-    public IReadOnlyList<InstanceMetadata> InstanceMetadatas { get; }
+    public IReadOnlyList<InstanceMetadata> InstanceMetadataList { get; }
 
     public string ChangeDataset { get; }
 
@@ -35,7 +35,7 @@ public sealed class UpdateInstanceBlobArguments
     public UpdateInstanceBlobArguments(Partition partition, IReadOnlyList<InstanceMetadata> instances, string changeDataset)
     {
         Partition = EnsureArg.IsNotNull(partition, nameof(partition));
-        InstanceMetadatas = EnsureArg.IsNotNull(instances, nameof(instances));
+        InstanceMetadataList = EnsureArg.IsNotNull(instances, nameof(instances));
         ChangeDataset = EnsureArg.IsNotNull(changeDataset, nameof(changeDataset));
     }
 }

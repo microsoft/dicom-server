@@ -291,20 +291,20 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 
         await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
 
-        var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
         // Verify the instances are updated with updated information
-        Assert.Equal(instances.Count, instanceMetadatas.Count());
+        Assert.Equal(instances.Count, instanceMetadataList.Count());
 
         for (int i = 0; i < instances.Count; i++)
         {
-            Assert.Equal(instances[i].SopInstanceUid, instanceMetadatas[i].VersionedInstanceIdentifier.SopInstanceUid);
-            Assert.Equal(instances[i].Watermark, instanceMetadatas[i].InstanceProperties.OriginalVersion);
-            Assert.False(instanceMetadatas[i].InstanceProperties.NewVersion.HasValue);
+            Assert.Equal(instances[i].SopInstanceUid, instanceMetadataList[i].VersionedInstanceIdentifier.SopInstanceUid);
+            Assert.Equal(instances[i].Watermark, instanceMetadataList[i].InstanceProperties.OriginalVersion);
+            Assert.False(instanceMetadataList[i].InstanceProperties.NewVersion.HasValue);
         }
 
         // Verify if the new patient name is updated
-        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new[] { instanceMetadatas.First().VersionedInstanceIdentifier.Version });
+        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new[] { instanceMetadataList.First().VersionedInstanceIdentifier.Version });
 
         Assert.True(result.Any());
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
@@ -332,9 +332,9 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 
         await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(updatedInstance) });
 
-        var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
-        Assert.Single(instanceMetadatas);
-        var retrievedInstance = instanceMetadatas[0];
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        Assert.Single(instanceMetadataList);
+        var retrievedInstance = instanceMetadataList[0];
 
         // ensure new property inserted
         IReadOnlyList<FileProperty> newFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(retrievedInstance.GetVersion(false));

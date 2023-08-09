@@ -148,10 +148,10 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
 
-        var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
         // Verify if the new patient name is updated
-        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new[] { instanceMetadatas.First().VersionedInstanceIdentifier.Version });
+        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new[] { instanceMetadataList.First().VersionedInstanceIdentifier.Version });
 
         Assert.True(result.Any());
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
@@ -159,11 +159,11 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         // Verify Changefeed entries are inserted
         var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetUpdatedChangeFeedRowsAsync(4);
         Assert.True(changeFeedEntries.Any());
-        for (int i = 0; i < instanceMetadatas.Count; i++)
+        for (int i = 0; i < instanceMetadataList.Count; i++)
         {
-            Assert.Equal(instanceMetadatas[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalWatermark);
-            Assert.Equal(instanceMetadatas[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
-            Assert.Equal(instanceMetadatas[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
+            Assert.Equal(instanceMetadataList[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalWatermark);
+            Assert.Equal(instanceMetadataList[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
+            Assert.Equal(instanceMetadataList[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
             // when no file properties passed in and not using external store, change feed file path remains null
             Assert.Null(changeFeedEntries[i].FilePath);
         }
@@ -190,10 +190,10 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
 
         await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, metadatasByWatermark.Values.ToList());
 
-        var instanceMetadatas = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
         // Verify Changefeed entries had file path updated
-        foreach (var instanceMetadata in instanceMetadatas)
+        foreach (var instanceMetadata in instanceMetadataList)
         {
             var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetChangeFeedRowsAsync(
                 instanceMetadata.VersionedInstanceIdentifier.StudyInstanceUid,
@@ -208,10 +208,10 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         }
     }
 
-    private static Dictionary<long, InstanceMetadata> CreateInstanceMetadatasWithFileProperties(IReadOnlyList<InstanceMetadata> instanceMetadatas)
+    private static Dictionary<long, InstanceMetadata> CreateInstanceMetadatasWithFileProperties(IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         Dictionary<long, InstanceMetadata> updatedInstanceMetadata = new Dictionary<long, InstanceMetadata>();
-        foreach (var updatedInstance in instanceMetadatas)
+        foreach (var updatedInstance in instanceMetadataList)
         {
             updatedInstanceMetadata.Add(updatedInstance.InstanceProperties.NewVersion.Value, new InstanceMetadata(
                 updatedInstance.VersionedInstanceIdentifier,
