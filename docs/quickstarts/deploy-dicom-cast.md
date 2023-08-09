@@ -119,4 +119,4 @@ These three instances will be hosted within the same Resource Group and App Serv
 
 ## Summary
 
-In this Quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md).
+In this Quickstart, you will learned how to deploy DICOM Cast for your Medical Imaging Server for DICOM. Reference the [DICOM Cast Concept](../concepts/dicom-cast.md) to learn more. To start using DICOM Cast, see [Sync DICOM Metadata to FHIR&trade; with DICOM Cast](../how-to-guides/sync-dicom-metadata-to-fhir.md). To configure DICOM Cast with Private Link enabled DICOM Service and FHIR Service, see the instructions here: [DICOM Cast Configuration with Private Link enabled DICOM and FHIR](../../converter/dicom-cast/docs/workingWithPrivateLink.md) 
