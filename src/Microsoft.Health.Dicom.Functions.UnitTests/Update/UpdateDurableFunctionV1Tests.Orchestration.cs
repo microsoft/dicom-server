@@ -462,7 +462,7 @@ public partial class UpdateDurableFunctionTests
                     && x.ChangeDataset == changeDataset;
     }
 
-    private static UpdateCheckpoint GetUpdateCheckpointV1(bool externalStoreEnabled = false)
+    private static UpdateCheckpoint GetUpdateCheckpointV1()
         => new UpdateCheckpoint
         {
             PartitionKey = Partition.DefaultKey,

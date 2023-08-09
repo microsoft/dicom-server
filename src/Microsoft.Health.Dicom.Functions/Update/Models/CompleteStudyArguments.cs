@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
@@ -32,6 +33,6 @@ public sealed class CompleteStudyArguments
         PartitionKey = partitionKey;
         StudyInstanceUid = studyInstanceUid;
         ChangeDataset = dicomDataset;
-        InstanceMetadataList = instanceMetadataList;
+        InstanceMetadataList = EnsureArg.IsNotNull(instanceMetadataList, nameof(instanceMetadataList));
     }
 }

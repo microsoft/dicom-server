@@ -44,7 +44,6 @@ public class DicomAzureFunctionsClientTests
     private readonly IDicomOperationsResourceStore _resourceStore;
     private readonly DicomFunctionOptions _options;
     private readonly DicomAzureFunctionsClient _client;
-    private const bool ExternalStoreEnabled = false;
 
     public DicomAzureFunctionsClientTests()
     {

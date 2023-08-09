@@ -21,7 +21,6 @@ namespace Microsoft.Health.Dicom.Functions.UnitTests.Update;
 
 public partial class UpdateDurableFunctionTests
 {
-
     private static readonly FileProperties DefaultFileProperties = new FileProperties
     {
         Path = "default/path/0.dcm",
@@ -89,9 +88,7 @@ public partial class UpdateDurableFunctionTests
         {
             await _updateInstanceService
                 .Received(1)
-                .UpdateInstanceBlobAsync(
-                    Arg.Is(GetPredicate(instance.ToInstanceFileState())),
-                Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                .UpdateInstanceBlobAsync(Arg.Is(GetPredicate(instance.ToInstanceFileState())), Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
                 Partition.Default,
                 Arg.Any<CancellationToken>());
         }

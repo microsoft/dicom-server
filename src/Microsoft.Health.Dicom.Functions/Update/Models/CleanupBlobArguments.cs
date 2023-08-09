@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
@@ -16,7 +17,7 @@ public sealed class CleanupBlobArguments
 
     public CleanupBlobArguments(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
-        InstanceWatermarks = instanceWatermarks;
-        Partition = partition;
+        InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
+        Partition = EnsureArg.IsNotNull(partition, nameof(partition));
     }
 }

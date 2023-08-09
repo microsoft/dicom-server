@@ -137,7 +137,7 @@ public partial class UpdateDurableFunctionTests
         const int batchSize = 5;
         _options.BatchSize = batchSize;
 
-        var expectedInput = GetUpdateCheckpoint(externalStoreEnabled: true);
+        var expectedInput = GetUpdateCheckpoint();
         var studyInstanceUid = expectedInput.StudyInstanceUids[expectedInput.NumberOfStudyCompleted];
 
         var expectedInstances = new List<InstanceFileState>
@@ -253,7 +253,7 @@ public partial class UpdateDurableFunctionTests
         const int batchSize = 5;
         _options.BatchSize = batchSize;
 
-        var expectedInput = GetUpdateCheckpoint(externalStoreEnabled: false);
+        var expectedInput = GetUpdateCheckpoint();
         var studyInstanceUid = expectedInput.StudyInstanceUids[expectedInput.NumberOfStudyCompleted];
 
         var expectedInstances = new List<InstanceFileState>
@@ -700,7 +700,7 @@ public partial class UpdateDurableFunctionTests
     private static IDurableOrchestrationContext CreateContext()
         => CreateContext(OperationId.Generate());
 
-    private static UpdateCheckpoint GetUpdateCheckpoint(bool externalStoreEnabled = false)
+    private static UpdateCheckpoint GetUpdateCheckpoint()
         => new UpdateCheckpoint
         {
             Partition = Partition.Default,

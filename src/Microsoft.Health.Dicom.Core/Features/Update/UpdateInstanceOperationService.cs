@@ -36,7 +36,6 @@ public class UpdateInstanceOperationService : IUpdateInstanceOperationService
     private readonly ILogger<UpdateInstanceOperationService> _logger;
     private readonly IOptions<JsonSerializerOptions> _jsonSerializerOptions;
 
-
     private static readonly OperationQueryCondition<DicomOperation> Query = new OperationQueryCondition<DicomOperation>
     {
         Operations = new DicomOperation[] { DicomOperation.Update },
