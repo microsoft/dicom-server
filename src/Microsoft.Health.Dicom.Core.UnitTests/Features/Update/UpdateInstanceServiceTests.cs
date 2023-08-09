@@ -38,8 +38,8 @@ public class UpdateInstanceServiceTests
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private static readonly FileProperties DefaultFileProperties = new FileProperties()
     {
-        Path = String.Empty,
-        ETag = String.Empty
+        Path = "default/path/0.dcm",
+        ETag = "123"
     };
 
     public UpdateInstanceServiceTests()
