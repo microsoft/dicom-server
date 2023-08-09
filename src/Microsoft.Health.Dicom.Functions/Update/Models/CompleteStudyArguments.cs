@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 
@@ -22,7 +23,7 @@ public sealed class CompleteStudyArguments
     public string ChangeDataset { get; set; }
 
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
-        : this(partitionKey, studyInstanceUid, dicomDataset, new List<InstanceMetadata>())
+        : this(partitionKey, studyInstanceUid, dicomDataset, Array.Empty<InstanceMetadata>())
     {
     }
 

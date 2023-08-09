@@ -36,6 +36,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceWatermarkAsync))]
+    [Obsolete("To be removed with V1 cleanup.")]
     public async Task<IReadOnlyList<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -89,6 +90,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceBlobsAsync))]
+    [Obsolete("To be removed with V1 cleanup.")]
     public async Task UpdateInstanceBlobsAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -219,6 +221,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CompleteUpdateStudyAsync))]
+    [Obsolete("To be removed with V1 cleanup.")]
     public Task CompleteUpdateStudyAsync([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -282,6 +285,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(DeleteOldVersionBlobAsync))]
+    [Obsolete("To be removed with V1 cleanup.")]
     public Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context));
@@ -341,6 +345,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CleanupNewVersionBlobAsync))]
+    [Obsolete("To be removed with V1 cleanup.")]
     public Task CleanupNewVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
     {
         EnsureArg.IsNotNull(context, nameof(context));

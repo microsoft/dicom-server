@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -15,16 +16,19 @@ namespace Microsoft.Health.Dicom.Functions.Update.Models;
 /// </summary>
 public sealed class UpdateInstanceBlobArguments
 {
+    [Obsolete("To be removed with V1 cleanup.")]
     public int PartitionKey { get; }
 
     public Partition Partition { get; set; }
 
+    [Obsolete("To be removed with V1 cleanup.")]
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }
 
     public IReadOnlyList<InstanceMetadata> InstanceMetadataList { get; }
 
     public string ChangeDataset { get; }
 
+    [Obsolete("To be removed with V1 cleanup.")]
     public UpdateInstanceBlobArguments(int partitionKey, IReadOnlyList<InstanceFileState> instanceWatermarks, string changeDataset)
         : this(new Partition(partitionKey, Partition.UnknownName), new List<InstanceMetadata>(), changeDataset)
     {
