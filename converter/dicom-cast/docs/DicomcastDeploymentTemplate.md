@@ -1,3 +1,4 @@
+```json
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
@@ -11,16 +12,10 @@
             }
         },
         "image": {
-            "defaultValue": "dicomoss.azurecr.io/dicom-cast",
+            "defaultValue": "dicomoss.azurecr.io/linux_dicom-cast",
             "type": "String",
             "metadata": {
-                "description": "Container image to deploy. Should be of the form repoName/imagename for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
-            }
-        },
-        "imageTag": {
-            "type": "String",
-            "metadata": {
-                "description": "Image tag. Ex: 10.0.479. You can find the latest https://github.com/microsoft/dicom-server/tags"
+                "description": "Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
             }
         },
         "storageAccountSku": {
@@ -90,29 +85,29 @@
             }
         },
         "dicomWebEndpoint": {
-            "type": "string",
+            "type": "String",
             "metadata": {
                 "description": "The endpoint of the DICOM Web server."
             }
         },
         "fhirEndpoint": {
-            "type": "string",
+            "type": "String",
             "metadata": {
                 "description": "The endpoint of the FHIR server."
             }
         },
         "patientSystemId": {
-          "type": "string",
-          "metadata": {
-            "description": "Patient SystemId configured by the user"
-          }
+            "type": "String",
+            "metadata": {
+                "description": "Patient SystemId configured by the user"
+            }
         },
         "isIssuerIdUsed": {
-          "defaultValue": false,
-          "type": "Bool",
-          "metadata": {
-            "description": "Issuer id or patient system id used based on this boolean value"
-          }
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "Issuer id or patient system id used based on this boolean value"
+            }
         },
         "enforceValidationOfTagValues": {
             "defaultValue": false,
@@ -130,22 +125,41 @@
         },
         "additionalEnvironmentVariables": {
             "defaultValue": [],
-            "type": "array",
+            "type": "Array",
             "metadata": {
                 "description": "Array of additional enviornment variables with objects with properties 'name' and 'value'. ex: [{\"name\": \"testName\", \"value\": \"testValue\"}]"
+            }
+        },
+        "virtualNetworkName": {
+            "type": "String",
+            "metadata": {
+                "description": "Virtual network where ACi will be deployed to"
+            }
+        },
+        "subnetName": {
+            "type": "String",
+            "metadata": {
+                "description": "Subnet within a virtual network which is delegated to ACI"
             }
         }
     },
     "variables": {
+        "networkProfileName": "aci-networkProfile",
+        "interfaceConfigName": "eth0",
+        "interfaceIpConfig": "ipconfigprofile1",
         "isMAG": "[or(contains(resourceGroup().location,'usgov'),contains(resourceGroup().location,'usdod'))]",
         "serviceName": "[toLower(parameters('serviceName'))]",
+        "virtualNetworkName": "[parameters('virtualNetworkName')]",
+        "subnetName": "[parameters('subnetName')]",
+        "keyvaultName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(variables('serviceName')))), uniquestring(resourceGroup().id))]",
         "containerGroupResourceId": "[resourceId('Microsoft.ContainerInstance/containerGroups/', variables('serviceName'))]",
         "deployAppInsights": "[and(parameters('deployApplicationInsights'),not(variables('isMAG')))]",
         "appInsightsName": "[concat('AppInsights-', variables('serviceName'))]",
         "storageAccountName": "[concat(substring(replace(variables('serviceName'), '-', ''), 0, min(11, length(variables('serviceName')))), uniquestring(resourceGroup().id))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('serviceName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('serviceName'), '.vault.azure.net/'))]",
-        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('serviceName'))]",
+        "keyVaultEndpoint": "[if(variables('isMAG'), concat('https://', variables('keyvaultName'), '.vault.usgovcloudapi.net/'), concat('https://', variables('keyvaultName'), '.vault.azure.net/'))]",
+        "keyVaultResourceId": "[resourceId('Microsoft.KeyVault/vaults', variables('keyvaultName'))]",
+        "networkProfileResourceId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
         "environmentVariables": [
             {
                 "name": "Fhir__Endpoint",
@@ -168,16 +182,41 @@
                 "value": "[parameters('ignoreJsonParsingErrors')]"
             },
             {
-              "name": "Patient__PatientSystemId",
-              "value": "[parameters('patientSystemId')]"
+                "name": "Patient__PatientSystemId",
+                "value": "[parameters('patientSystemId')]"
             },
             {
-              "name": "Patient__IsIssuerIdUsed",
-              "value": "[parameters('isIssuerIdUsed')]"
+                "name": "Patient__IsIssuerIdUsed",
+                "value": "[parameters('isIssuerIdUsed')]"
             }
         ]
     },
     "resources": [
+        {
+            "type": "Microsoft.Network/networkProfiles",
+            "apiVersion": "2020-11-01",
+            "name": "[variables('serviceName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "containerNetworkInterfaceConfigurations": [
+                    {
+                        "name": "[variables('interfaceConfigName')]",
+                        "properties": {
+                            "ipConfigurations": [
+                                {
+                                    "name": "[variables('interfaceIpConfig')]",
+                                    "properties": {
+                                        "subnet": {
+                                            "id": "[variables('networkProfileResourceId')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
         {
             "type": "Microsoft.ContainerInstance/containerGroups",
             "apiVersion": "2018-10-01",
@@ -194,7 +233,7 @@
                     {
                         "name": "[variables('serviceName')]",
                         "properties": {
-                            "image": "[concat(parameters('image'), ':', parameters('imageTag'))]",
+                            "image": "[parameters('image')]",
                             "resources": {
                                 "requests": {
                                     "cpu": "[parameters('cpuCores')]",
@@ -206,6 +245,9 @@
                     }
                 ],
                 "osType": "Linux",
+                "networkProfile": {
+                    "id": "[resourceId('Microsoft.Network/networkProfiles', variables('serviceName'))]"
+                },
                 "restartPolicy": "[parameters('restartPolicy')]"
             }
         },
@@ -243,7 +285,7 @@
         {
             "type": "Microsoft.KeyVault/vaults",
             "apiVersion": "2015-06-01",
-            "name": "[variables('serviceName')]",
+            "name": "[variables('keyvaultName')]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[variables('containerGroupResourceId')]"
@@ -274,7 +316,7 @@
         {
             "type": "Microsoft.KeyVault/vaults/secrets",
             "apiVersion": "2015-06-01",
-            "name": "[concat(variables('serviceName'), '/TableStore--ConnectionString')]",
+            "name": "[concat(variables('keyvaultName'), '/TableStore--ConnectionString')]",
             "dependsOn": [
                 "[variables('keyVaultResourceId')]",
                 "[variables('storageResourceId')]"
@@ -287,11 +329,11 @@
     ],
     "outputs": {
         "containerTenantId": {
-            "type": "string",
+            "type": "String",
             "value": "[reference(variables('containerGroupResourceId'), '2018-10-01', 'Full').Identity.tenantId]"
         },
         "containerPrincipalId": {
-            "type": "string",
+            "type": "String",
             "value": "[reference(variables('containerGroupResourceId'), '2018-10-01', 'Full').Identity.principalId]"
         }
     }

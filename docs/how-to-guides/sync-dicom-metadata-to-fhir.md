@@ -65,7 +65,7 @@ For both your FHIR and DICOM servers, you will set the Audience and Authority fo
 | DICOM--Endpoint | ```<dicom-server-url>``` |
 | DicomWeb--Authentication--Enabled | true |
 | DicomWeb--Authentication--AuthenticationType | ManagedIdentity |
-| DicomWeb--Authentication--ManagedIdentityCredential--Resource | ```<dicom-server-url>``` |
+| DicomWeb--Authentication--ManagedIdentityCredential--Resource | ```<dicom-audience>``` |
 
 #### FHIR Server Secrets
 

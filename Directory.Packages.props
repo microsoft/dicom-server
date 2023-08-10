@@ -4,7 +4,7 @@
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.0" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Identity" Version="1.9.0" />
-    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.0.0-beta.13" />
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.0.0-beta.14" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.17.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.15.0" />
@@ -13,7 +13,7 @@
     <PackageVersion Include="fo-dicom" Version="5.1.1" />
     <PackageVersion Include="fo-dicom.Codecs" Version="5.10.8" />
     <PackageVersion Include="fo-dicom.Imaging.ImageSharp" Version="5.1.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.23.4" />
+    <PackageVersion Include="Google.Protobuf" Version="3.24.0" />
     <PackageVersion Include="HashDepot" Version="3.1.0" />
     <PackageVersion Include="Hl7.Fhir.R4" Version="4.3.0" />
     <PackageVersion Include="Hl7.Fhir.Support" Version="4.3.0" />
@@ -82,14 +82,14 @@
     <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="6.2.132" />
     <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="6.2.132" />
     <PackageVersion Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.3.0" />
-    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.32.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.32.1" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.7.0" />
     <PackageVersion Include="Microsoft.OpenApi" Version="1.6.6" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="1.1.1" />
     <PackageVersion Include="Microsoft.SqlServer.DACFx" Version="162.0.52" />
-    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.6.3" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="17.7.0" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="OpenTelemetry" Version="1.5.1" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.5.1" />
@@ -103,7 +103,7 @@
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.CommandLine.NamingConventionBinder" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Drawing.Common" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.32.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
     <PackageVersion Include="System.Linq.Async" Version="6.0.1" />
     <PackageVersion Include="System.Memory" Version="4.5.5" />
     <PackageVersion Include="System.Text.Json" Version="$(SdkPackageVersion)" />

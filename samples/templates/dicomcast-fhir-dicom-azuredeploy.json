@@ -218,10 +218,16 @@
             }
         },
         "image": {
-            "defaultValue": "dicomoss.azurecr.io/linux_dicom-cast",
+            "defaultValue": "dicomoss.azurecr.io/dicom-cast",
             "type": "String",
             "metadata": {
-                "description": "Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+                "description": "Container image to deploy. Should be of the form repoName/imagename for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+            }
+        },
+        "imageTag": {
+            "type": "String",
+            "metadata": {
+                "description": "Image tag. Ex: 10.0.479. You can find the latest https://github.com/microsoft/dicom-server/tags"
             }
         },
         "dicomCastStorageAccountSku": {
@@ -398,7 +404,7 @@
                 },
                 "parameters": {
                     "serviceName": { "value": "[parameters('dicomCastServiceName')]" },
-                    "image": { "value": "[parameters('image')]" },
+                    "image": { "value": "[concat(parameters('image'), ':', parameters('imageTag'))]" },
                     "storageAccountSku": { "value": "[parameters('dicomCastStorageAccountSku')]" },
                     "deployApplicationInsights": { "value": "[parameters('deployApplicationInsights')]" },
                     "applicationInsightsLocation": { "value": "[parameters('applicationInsightsLocation')]" },
