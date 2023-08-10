@@ -44,10 +44,10 @@ public partial class UpdateDurableFunctionTests
 
         _indexStore.BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
-        IEnumerable<InstanceFileState> result = await _updateDurableFunction.UpdateInstanceWatermarkAsync(
+        IEnumerable<InstanceMetadata> result = await _updateDurableFunction.UpdateInstanceWatermarkV2Async(
             new UpdateInstanceWatermarkArguments(Partition.Default, studyInstanceUid),
             NullLogger.Instance);
-        IReadOnlyList<InstanceFileState> actual = result.ToList();
+        IReadOnlyList<InstanceMetadata> actual = result.ToList();
 
         await _indexStore
            .Received(1)
@@ -55,9 +55,9 @@ public partial class UpdateDurableFunctionTests
 
         for (int i = 0; i < expected.Count; i++)
         {
-            Assert.Equal(expected[i].Version, actual[i].Version);
-            Assert.Equal(expected[i].OriginalVersion, actual[i].OriginalVersion);
-            Assert.Equal(expected[i].NewVersion, actual[i].NewVersion);
+            Assert.Equal(expected[i].Version, actual[i].VersionedInstanceIdentifier.Version);
+            Assert.Equal(expected[i].OriginalVersion, actual[i].InstanceProperties.OriginalVersion);
+            Assert.Equal(expected[i].NewVersion, actual[i].InstanceProperties.NewVersion);
         }
     }
 
