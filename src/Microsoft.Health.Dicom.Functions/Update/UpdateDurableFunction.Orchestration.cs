@@ -95,7 +95,7 @@ public partial class UpdateDurableFunction
                     numberofStudyFailed++;
 
                     // Cleanup the new version when the update activity fails
-                    await TryCleanupActivity(context, instanceWatermarks, new Partition(input.PartitionKey, Partition.UnknownName));
+                    await TryCleanupActivity(context, instanceWatermarks);
                 }
             }
 

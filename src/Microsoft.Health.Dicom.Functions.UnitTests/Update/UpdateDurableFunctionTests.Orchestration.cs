@@ -748,7 +748,7 @@ public partial class UpdateDurableFunctionTests
 
     private static Expression<Predicate<CleanupBlobArguments>> GetPredicate(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
-        return x => !x.InstanceWatermarks.IsNullOrEmpty() == false
+        return x => x.InstanceWatermarks.IsNullOrEmpty() == false
             && x.InstanceWatermarks[0].Version == instanceWatermarks[0].Version
             && x.InstanceWatermarks[1].Version == instanceWatermarks[1].Version
             && x.Partition == partition;

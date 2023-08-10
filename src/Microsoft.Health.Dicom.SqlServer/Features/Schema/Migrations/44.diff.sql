@@ -9,7 +9,7 @@ IF TYPE_ID(N'FilePropertyTableType') IS NULL
 BEGIN
 CREATE TYPE dbo.FilePropertyTableType AS TABLE
 (
-    Watermark BIGINT          NOT NULL UNIQUE INDEX IXC_FilePropertyTableType CLUSTERED,
+    Watermark BIGINT          NOT NULL INDEX IXC_FilePropertyTableType CLUSTERED,
     FilePath  NVARCHAR (4000) NOT NULL,
     ETag      NVARCHAR (4000) NOT NULL
 )
@@ -21,7 +21,7 @@ GO
 **************************************************************/
 
 /*************************************************************
-    EndUpdateInstanceV44 altered to take in rows of 
+    EndUpdateInstanceV44 altered to take in rows of
     FileProperty from all of the updates blobs and insert them
     into table. Prior to this insertion, we delete any rows on
     FileProperty that do not have original watermark as they
@@ -43,7 +43,7 @@ BEGIN
         SopInstanceUid    VARCHAR (64),
         Watermark         BIGINT      ,
         OriginalWatermark BIGINT      ,
-        InstanceKey       BIGINT      
+        InstanceKey       BIGINT
     );
     DELETE #updatedInstances;
     UPDATE dbo.Instance

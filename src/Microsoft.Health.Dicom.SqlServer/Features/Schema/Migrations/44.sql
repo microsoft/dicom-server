@@ -532,7 +532,7 @@ CREATE TYPE dbo.WatermarkTableType AS TABLE (
     Watermark BIGINT);
 
 CREATE TYPE dbo.FilePropertyTableType AS TABLE (
-    Watermark BIGINT          NOT NULL UNIQUE INDEX IXC_FilePropertyTableType CLUSTERED,
+    Watermark BIGINT          NOT NULL INDEX IXC_FilePropertyTableType CLUSTERED,
     FilePath  NVARCHAR (4000) NOT NULL,
     ETag      NVARCHAR (4000) NOT NULL);
 
