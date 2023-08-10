@@ -208,7 +208,7 @@ public partial class UpdateDurableFunction
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateStudyV2Async),
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadatas(instanceMetadataList)));
+                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadataList(instanceMetadataList)));
 
                     totalNoOfInstances += instances.Count;
                 }
@@ -286,7 +286,7 @@ public partial class UpdateDurableFunction
         }
     }
 
-    private IReadOnlyList<InstanceMetadata> GetInstanceMetadatas(IReadOnlyList<InstanceMetadata> instanceMetadataList)
+    private IReadOnlyList<InstanceMetadata> GetInstanceMetadataList(IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         // when external store not enabled, do not update file properties
         return _externalStoreEnabled ? instanceMetadataList : new List<InstanceMetadata>();

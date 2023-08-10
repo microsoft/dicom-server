@@ -63,7 +63,7 @@ public partial class UpdateDurableFunctionTests
             }
         };
 
-        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadataList(expectedInstancesWithNewWatermark);
 
         // Arrange the input
         string operationId = OperationId.Generate();
@@ -132,7 +132,7 @@ public partial class UpdateDurableFunctionTests
     }
 
     [Fact]
-    public async Task GivenNewOrchestrationWithInputAndExternalStoreEnabled_WhenUpdatingInstances_ThenInstanceMetadatasWithFilePropertiesPassedInToCompleteUpdate()
+    public async Task GivenNewOrchestrationWithInputAndExternalStoreEnabled_WhenUpdatingInstances_ThenInstanceMetadataListWithFilePropertiesPassedInToCompleteUpdate()
     {
         const int batchSize = 5;
         _options.BatchSize = batchSize;
@@ -170,7 +170,7 @@ public partial class UpdateDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
 
-        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark, studyInstanceUid);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadataList(expectedInstancesWithNewWatermark, studyInstanceUid);
 
         context
             .GetInput<UpdateCheckpoint>()
@@ -234,7 +234,7 @@ public partial class UpdateDurableFunctionTests
                 false);
     }
 
-    private static List<InstanceMetadata> CreateExpectedInstanceMetadatas(List<InstanceFileState> expectedInstancesWithNewWatermark, string studyInstanceUid = "0")
+    private static List<InstanceMetadata> CreateExpectedInstanceMetadataList(List<InstanceFileState> expectedInstancesWithNewWatermark, string studyInstanceUid = "0")
     {
         List<InstanceMetadata> instanceMetadataList = expectedInstancesWithNewWatermark.Select(x => new InstanceMetadata(new VersionedInstanceIdentifier(studyInstanceUid, "0", "0", x.Version), new InstanceProperties
         {
@@ -248,7 +248,7 @@ public partial class UpdateDurableFunctionTests
     }
 
     [Fact]
-    public async Task GivenNewOrchestrationWithInputAndExternalStoreNotEnabled_WhenUpdatingInstances_ThenEmptyInstanceMetadatasPassedInToCompleteUpdate()
+    public async Task GivenNewOrchestrationWithInputAndExternalStoreNotEnabled_WhenUpdatingInstances_ThenEmptyInstanceMetadataListPassedInToCompleteUpdate()
     {
         const int batchSize = 5;
         _options.BatchSize = batchSize;
@@ -286,7 +286,7 @@ public partial class UpdateDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
 
-        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadataList(expectedInstancesWithNewWatermark);
 
         context
             .GetInput<UpdateCheckpoint>()
@@ -377,7 +377,7 @@ public partial class UpdateDurableFunctionTests
         string operationId = OperationId.Generate();
         IDurableOrchestrationContext context = CreateContext(operationId);
 
-        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadataList(expectedInstancesWithNewWatermark);
 
         context
             .GetInput<UpdateCheckpoint>()
@@ -631,7 +631,7 @@ public partial class UpdateDurableFunctionTests
             }
         };
 
-        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadatas(expectedInstancesWithNewWatermark);
+        List<InstanceMetadata> instanceMetadataList = CreateExpectedInstanceMetadataList(expectedInstancesWithNewWatermark);
 
         // Arrange the input
         string operationId = OperationId.Generate();

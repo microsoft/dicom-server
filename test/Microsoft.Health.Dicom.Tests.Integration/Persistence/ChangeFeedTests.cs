@@ -183,7 +183,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
             studyInstanceUID1);
 
         // generate file property per updated instance with new watermark
-        Dictionary<long, InstanceMetadata> metadataListByWatermark = CreateInstanceMetadatasWithFileProperties(updatedInstanceMetadata);
+        Dictionary<long, InstanceMetadata> metadataListByWatermark = CreateInstanceMetadataListWithFileProperties(updatedInstanceMetadata);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
@@ -208,7 +208,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         }
     }
 
-    private static Dictionary<long, InstanceMetadata> CreateInstanceMetadatasWithFileProperties(IReadOnlyList<InstanceMetadata> instanceMetadataList)
+    private static Dictionary<long, InstanceMetadata> CreateInstanceMetadataListWithFileProperties(IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         Dictionary<long, InstanceMetadata> updatedInstanceMetadata = new Dictionary<long, InstanceMetadata>();
         foreach (var updatedInstance in instanceMetadataList)
