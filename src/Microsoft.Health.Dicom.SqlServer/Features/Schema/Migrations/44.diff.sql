@@ -58,6 +58,8 @@ BEGIN
            AND NewWatermark IS NOT NULL;
     CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstances
         ON #updatedInstances(Watermark);
+    CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstanceKeyWatermark
+        ON #UpdatedInstances(InstanceKey, OriginalWatermark);
     UPDATE dbo.Study
     SET    PatientId        = ISNULL(@patientId, PatientId),
            PatientName      = ISNULL(@patientName, PatientName),

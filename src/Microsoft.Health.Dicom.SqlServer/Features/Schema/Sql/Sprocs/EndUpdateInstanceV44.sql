@@ -59,21 +59,22 @@ BEGIN
             AND StudyInstanceUid = @studyInstanceUid
             AND Status = 1
             AND NewWatermark IS NOT NULL
-            
+
         CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstances ON #UpdatedInstances (Watermark)
+        CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstanceKeyWatermark ON #UpdatedInstances (InstanceKey, OriginalWatermark)
 
         -- Only updating patient information in a study
         UPDATE dbo.Study
-        SET PatientId = ISNULL(@patientId, PatientId), 
-            PatientName = ISNULL(@patientName, PatientName), 
+        SET PatientId = ISNULL(@patientId, PatientId),
+            PatientName = ISNULL(@patientName, PatientName),
             PatientBirthDate = ISNULL(@patientBirthDate, PatientBirthDate)
         WHERE PartitionKey = @partitionKey
-            AND StudyInstanceUid = @studyInstanceUid 
+            AND StudyInstanceUid = @studyInstanceUid
 
         -- The study does not exist. May be deleted
         IF @@ROWCOUNT = 0
             THROW 50404, 'Study does not exist', 1
-        
+
         -- Delete from file properties any rows with "stale" watermarks if we will be inserting new ones
         IF EXISTS (SELECT 1 FROM @insertFileProperties)
         DELETE FP
@@ -81,10 +82,10 @@ BEGIN
         INNER JOIN #UpdatedInstances U
         ON U.InstanceKey = FP.InstanceKey
         WHERE U.OriginalWatermark != FP.Watermark
-        
-        -- Insert new file properties from added blobs, @insertFileProperties will be empty when external store not 
+
+        -- Insert new file properties from added blobs, @insertFileProperties will be empty when external store not
         -- enabled
-        INSERT INTO dbo.FileProperty 
+        INSERT INTO dbo.FileProperty
         (InstanceKey, Watermark, FilePath, ETag)
         SELECT U.InstanceKey, I.Watermark, I.FilePath, I.ETag
         FROM @insertFileProperties I
