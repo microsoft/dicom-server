@@ -28,6 +28,6 @@ public class UpdateInstanceWatermarkArguments
     public UpdateInstanceWatermarkArguments(Partition partition, string studyInstanceUid)
     {
         Partition = EnsureArg.IsNotNull(partition, nameof(partition));
-        StudyInstanceUid = studyInstanceUid;
+        StudyInstanceUid = EnsureArg.IsNotEmptyOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
     }
 }

@@ -293,7 +293,8 @@ public partial class UpdateDurableFunction
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]
-    private async Task TryCleanupActivity(IDurableOrchestrationContext context, IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
+    [Obsolete("This function is obsolete and will be removed in upcoming release. Use UpdateInstancesAsyncV2 instead.")]
+    private async Task TryCleanupActivity(IDurableOrchestrationContext context, IReadOnlyList<InstanceFileState> instanceWatermarks)
     {
         try
         {

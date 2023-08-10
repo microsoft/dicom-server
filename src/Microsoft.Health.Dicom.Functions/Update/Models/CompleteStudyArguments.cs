@@ -25,14 +25,13 @@ public sealed class CompleteStudyArguments
 
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset)
         : this(partitionKey, studyInstanceUid, dicomDataset, Array.Empty<InstanceMetadata>())
-    {
-    }
+    { }
 
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         PartitionKey = partitionKey;
-        StudyInstanceUid = studyInstanceUid;
-        ChangeDataset = dicomDataset;
+        StudyInstanceUid = EnsureArg.IsNotEmptyOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        ChangeDataset = EnsureArg.IsNotNull(dicomDataset, nameof(dicomDataset));
         InstanceMetadataList = EnsureArg.IsNotNull(instanceMetadataList, nameof(instanceMetadataList));
     }
 }

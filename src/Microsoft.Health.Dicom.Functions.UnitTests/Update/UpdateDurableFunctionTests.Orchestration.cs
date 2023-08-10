@@ -514,18 +514,19 @@ public partial class UpdateDurableFunctionTests
 
         DateTime createdTime = DateTime.UtcNow;
 
-        List<InstanceMetadata> instanceMetadataList = new List<InstanceMetadata> { new InstanceMetadata(
-            new VersionedInstanceIdentifier(
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                TestUidGenerator.Generate(),
-                version: 1,
-                Partition.Default),
-            new InstanceProperties
-            {
-                fileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
-                NewVersion = 3
-            }
+        List<InstanceMetadata> instanceMetadataList = new List<InstanceMetadata> {
+            new InstanceMetadata(
+                new VersionedInstanceIdentifier(
+                    TestUidGenerator.Generate(),
+                    TestUidGenerator.Generate(),
+                    TestUidGenerator.Generate(),
+                    version: 1,
+                    Partition.Default),
+                new InstanceProperties
+                {
+                    fileProperties = new FileProperties { ETag = $"etag-{1}", Path = $"path-{1}" },
+                    NewVersion = 3
+                }
             ),
             new InstanceMetadata(
                 new VersionedInstanceIdentifier(
@@ -747,10 +748,10 @@ public partial class UpdateDurableFunctionTests
 
     private static Expression<Predicate<CleanupBlobArguments>> GetPredicate(IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
-        return x => x.InstanceWatermarks.IsNullOrEmpty() == false
-                    && x.InstanceWatermarks[0].Version == instanceWatermarks[0].Version
-                    && x.InstanceWatermarks[1].Version == instanceWatermarks[1].Version
-                    && x.Partition == partition;
+        return x => !x.InstanceWatermarks.IsNullOrEmpty() == false
+            && x.InstanceWatermarks[0].Version == instanceWatermarks[0].Version
+            && x.InstanceWatermarks[1].Version == instanceWatermarks[1].Version
+            && x.Partition == partition;
     }
     private static Expression<Predicate<UpdateCheckpoint>> GetPredicate(long instanceUpdated, int studyCompleted)
     {
