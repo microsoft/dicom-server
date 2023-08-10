@@ -152,7 +152,9 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
-    public async Task<ConcurrentBag<InstanceMetadata>> UpdateInstanceBlobsV2Async([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
+    public async Task<IReadOnlyCollection<InstanceMetadata>> UpdateInstanceBlobsV2Async(
+        [ActivityTrigger] UpdateInstanceBlobArguments arguments,
+        ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
