@@ -54,13 +54,20 @@ BEGIN
             OriginalWatermark = ISNULL(OriginalWatermark, Watermark),
             Watermark = NewWatermark,
             NewWatermark = NULL
-        OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.NewWatermark, deleted.OriginalWatermark, deleted.InstanceKey INTO #UpdatedInstances
+        OUTPUT deleted.PartitionKey, @studyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, inserted.Watermark, inserted.OriginalWatermark, deleted.InstanceKey INTO #UpdatedInstances
         WHERE PartitionKey = @partitionKey
-            AND StudyInstanceUid = @studyInstanceUid
-            AND Status = 1
-            AND NewWatermark IS NOT NULL
+          AND StudyInstanceUid = @studyInstanceUid
+          AND Status = 1
+          AND NewWatermark IS NOT NULL
 
-        CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstances ON #UpdatedInstances (Watermark)
+        IF NOT EXISTS (SELECT *
+                       FROM   sys.indexes
+                       WHERE  name = 'IXC_UpdatedInstances')
+            CREATE UNIQUE INDEX IXC_UpdatedInstances ON #UpdatedInstances (Watermark)
+
+        IF NOT EXISTS (SELECT *
+                       FROM   sys.indexes
+                       WHERE  name = 'IXC_UpdatedInstanceKeyWatermark')
         CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstanceKeyWatermark ON #UpdatedInstances (InstanceKey, OriginalWatermark)
 
         -- Only updating patient information in a study
