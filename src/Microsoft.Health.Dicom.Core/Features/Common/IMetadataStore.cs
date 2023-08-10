@@ -79,24 +79,4 @@ public interface IMetadataStore
     Task DeleteInstanceFramesRangeAsync(
         long version,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously copies instance frame range file.
-    /// </summary>
-    /// <param name="version">The DICOM instance version.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous copy operation.</returns>
-    Task CopyInstanceFramesRangeAsync(
-        long version,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously deletes a DICOM instance frame range file.
-    /// </summary>
-    /// <param name="version">The DICOM instance version.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteMigratedFramesRangeIfExistsAsync(
-        long version,
-        CancellationToken cancellationToken = default);
 }

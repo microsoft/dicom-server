@@ -219,30 +219,6 @@ public class BlobMetadataStore : IMetadataStore
         }
     }
 
-    /// <inheritdoc />
-    public async Task CopyInstanceFramesRangeAsync(long version, CancellationToken cancellationToken)
-    {
-        var blobClientWithSpace = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
-        var copyBlobClient = GetInstanceFramesRangeBlobClient(version);
-        if (!await copyBlobClient.ExistsAsync(cancellationToken) && await blobClientWithSpace.ExistsAsync(cancellationToken))
-        {
-            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClientWithSpace.Uri, options: null, cancellationToken);
-            await operation.WaitForCompletionAsync(cancellationToken);
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task DeleteMigratedFramesRangeIfExistsAsync(long version, CancellationToken cancellationToken)
-    {
-        var blobClientWithSpace = GetInstanceFramesRangeBlobClient(version, fallBackClient: true);
-        var blobClient = GetInstanceFramesRangeBlobClient(version);
-
-        if (await blobClient.ExistsAsync(cancellationToken))
-        {
-            await ExecuteAsync(t => blobClientWithSpace.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, t), cancellationToken);
-        }
-    }
-
     private BlockBlobClient GetInstanceFramesRangeBlobClient(long version, bool fallBackClient = false)
     {
         var blobName = fallBackClient ? _nameWithPrefix.GetInstanceFramesRangeFileNameWithSpace(version) : _nameWithPrefix.GetInstanceFramesRangeFileName(version);

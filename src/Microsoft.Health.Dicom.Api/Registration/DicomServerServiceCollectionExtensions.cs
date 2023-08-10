@@ -51,7 +51,6 @@ public static class DicomServerServiceCollectionExtensions
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
-        serverBuilder.Services.AddHostedService<StartMigrateFrameRangeBlobService>();
         return serverBuilder;
     }
 
@@ -99,7 +98,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.Retrieve));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramRangeBlobConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.UpdateServiceSettings));
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);

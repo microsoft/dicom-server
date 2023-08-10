@@ -89,5 +89,6 @@ internal class StoredProcedureCompatibleValidator
             KeyValuePair.Create(nameof(V8.IndexInstanceV2), 9),
             KeyValuePair.Create(nameof(V25.GetMaxDeletedChangeFeedWatermark), 26),
             KeyValuePair.Create(nameof(V25.GetDeletedChangeFeedByWatermarkOrTimeStamp), 26),
+            KeyValuePair.Create(nameof(V43.GetInstanceBatchesByTimeStamp), 44),
         }.ToImmutableDictionary();
 }

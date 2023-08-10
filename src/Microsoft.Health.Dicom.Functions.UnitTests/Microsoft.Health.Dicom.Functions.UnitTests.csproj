@@ -37,9 +37,6 @@
     <None Include="Indexing\ReindexDurableFunctionTests.*.cs">
       <DependentUpon>ReindexDurableFunctionTests.cs</DependentUpon>
     </None>
-    <None Include="Migration\MigrationDurableFunctionTests.*.cs">
-      <DependentUpon>MigrationDurableFunctionTests.cs</DependentUpon>
-    </None>
     <None Include="Update\UpdateDurableFunctionTests.*.cs">
       <DependentUpon>UpdateDurableFunctionTests.cs</DependentUpon>
     </None>
