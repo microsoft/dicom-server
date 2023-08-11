@@ -19,6 +19,8 @@
 --         * The name of the patient.
 --     @patientBirthDate
 --         * The patient's birth date.
+--     @insertFileProperties
+--         * A table type containing the file properties to insert.
 --
 -- RETURN VALUE
 --     None
