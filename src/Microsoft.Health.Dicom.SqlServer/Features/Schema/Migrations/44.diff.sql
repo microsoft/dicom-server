@@ -57,12 +57,12 @@ BEGIN
       AND Status = 1
       AND NewWatermark IS NOT NULL;
     IF NOT EXISTS (SELECT *
-                   FROM   sys.indexes
+                   FROM   tempdb.sys.indexes
                    WHERE  name = 'IXC_UpdatedInstances')
         CREATE UNIQUE INDEX IXC_UpdatedInstances
             ON #UpdatedInstances(Watermark);
     IF NOT EXISTS (SELECT *
-                   FROM   sys.indexes
+                   FROM   tempdb.sys.indexes
                    WHERE  name = 'IXC_UpdatedInstanceKeyWatermark')
         CREATE UNIQUE CLUSTERED INDEX IXC_UpdatedInstanceKeyWatermark
             ON #UpdatedInstances(InstanceKey, OriginalWatermark);
