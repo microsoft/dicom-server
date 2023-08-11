@@ -60,11 +60,14 @@ BEGIN
           AND Status = 1
           AND NewWatermark IS NOT NULL
 
+        -- Create index on temp table so we can join on watermark when we need to update change feed with file path.
         IF NOT EXISTS (SELECT *
                        FROM   sys.indexes
                        WHERE  name = 'IXC_UpdatedInstances')
             CREATE UNIQUE INDEX IXC_UpdatedInstances ON #UpdatedInstances (Watermark)
 
+        -- Create index on temp table so we can join on instance key and watermark when we need to insert file
+        -- properties when instance key alone is does not specify a unique row on the table
         IF NOT EXISTS (SELECT *
                        FROM   sys.indexes
                        WHERE  name = 'IXC_UpdatedInstanceKeyWatermark')
