@@ -19,6 +19,8 @@ using Microsoft.Health.Api.Features.Context;
 using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
+using Microsoft.Health.Core.Features.Health;
+using Microsoft.Health.CustomerManagedKey.Extensions;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
@@ -101,6 +103,7 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramRangeBlobConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.UpdateServiceSettings));
+        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.CustomerManagedKey));
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -151,6 +154,9 @@ public static class DicomServerServiceCollectionExtensions
         services.AddRecyclableMemoryStreamManager(configurationRoot);
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
+
+        services.AddHealthCheckPublisher();
+        services.AddCustomerKeyHealthCheck();
 
         CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 
