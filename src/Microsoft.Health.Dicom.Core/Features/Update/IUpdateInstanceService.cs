@@ -7,7 +7,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Update;
 
@@ -18,18 +20,19 @@ public interface IUpdateInstanceService
     /// </summary>
     /// <param name="instanceFileIdentifier">Instance watermark version combinations</param>
     /// <param name="datasetToUpdate">Dataset to update</param>
+    /// <param name="partition">Partition to update data within</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous UpdateInstanceBlobAsync operation</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="datasetToUpdate"/> is <see langword="null"/>.
     /// </exception>
-    public Task UpdateInstanceBlobAsync(InstanceFileState instanceFileIdentifier, DicomDataset datasetToUpdate, CancellationToken cancellationToken = default);
-
+    public Task<FileProperties> UpdateInstanceBlobAsync(InstanceFileState instanceFileIdentifier, DicomDataset datasetToUpdate, Partition partition, CancellationToken cancellationToken = default);
     /// <summary>
     /// Asynchronously deletes old blob
     /// </summary>
     /// <param name="fileIdentifier">Unique file identifier, watermark</param>
+    /// <param name="partition">Partition</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous DeleteInstanceBlobAsync operation</returns>
-    public Task DeleteInstanceBlobAsync(long fileIdentifier, CancellationToken cancellationToken = default);
+    public Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, CancellationToken cancellationToken = default);
 }

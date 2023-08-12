@@ -276,13 +276,13 @@ public class RetrieveResourceService : IRetrieveResourceService
     }
 
     private async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableStreams(
-        IEnumerable<InstanceMetadata> instanceMetadatas,
+        IEnumerable<InstanceMetadata> instanceMetadataList,
         bool isOriginalTransferSyntaxRequested,
         string requestedTransferSyntax,
         bool isOriginalVersionRequested,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        foreach (var instanceMetadata in instanceMetadatas)
+        foreach (var instanceMetadata in instanceMetadataList)
         {
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);

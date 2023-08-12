@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -28,7 +28,7 @@ namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
 /// <summary>
 ///  Tests for InstanceStore.
 /// </summary>
-public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
+public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
 {
     private readonly IInstanceStore _instanceStore;
     private readonly IIndexDataStore _indexDataStore;
@@ -37,7 +37,6 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
     private readonly IExtendedQueryTagStoreTestHelper _extendedQueryTagStoreTestHelper;
     private readonly IPartitionStore _partitionStore;
     private readonly IQueryStore _queryStore;
-    private readonly IChangeFeedStore _changeFeedStore;
     private readonly SqlDataStoreTestsFixture _fixture;
 
     public InstanceStoreTests(SqlDataStoreTestsFixture fixture)
@@ -50,7 +49,6 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         _extendedQueryTagStoreTestHelper = EnsureArg.IsNotNull(fixture?.ExtendedQueryTagStoreTestHelper, nameof(fixture.ExtendedQueryTagStoreTestHelper));
         _partitionStore = EnsureArg.IsNotNull(fixture?.PartitionStore, nameof(fixture.PartitionStore));
         _queryStore = EnsureArg.IsNotNull(fixture?.QueryStore, nameof(fixture.QueryStore));
-        _changeFeedStore = EnsureArg.IsNotNull(fixture?.ChangeFeedStore, nameof(fixture.ChangeFeedStore));
     }
 
     [Fact]
@@ -97,15 +95,15 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         // Simulate re-indexing, which may re-index an instance which may re-index
         // the instances for a particular study or series out-of-order
         await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
-        ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        ExtendedQueryTagDataRow row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey)).Single();
         Assert.Equal(tagValue2, row.TagValue); // Added
 
         await _indexDataStore.ReindexInstanceAsync(dataset3, instance3.Watermark, new[] { queryTag });
-        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey)).Single();
         Assert.Equal(tagValue3, row.TagValue); // Overwrite
 
         await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
-        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, null, null)).Single();
+        row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey)).Single();
         Assert.Equal(tagValue3, row.TagValue); // Do not overwrite
     }
 
@@ -132,7 +130,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
         await _indexDataStore.ReindexInstanceAsync(dataset2, instance2.Watermark, new[] { queryTag });
         await _indexDataStore.ReindexInstanceAsync(dataset1, instance1.Watermark, new[] { queryTag });
 
-        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey, null)).First();
+        var row = (await _extendedQueryTagStoreTestHelper.GetExtendedQueryTagDataAsync(ExtendedQueryTagDataType.StringData, tagStoreEntry.Key, instance1.StudyKey, instance1.SeriesKey)).First();
         Assert.Equal(tagValue2, row.TagValue);
     }
 
@@ -260,7 +258,7 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var identifier = await AddRandomInstanceAsync(partition);
 
-        var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid, Partition.DefaultKey);
+        var instances = await _indexDataStoreTestHelper.GetInstancesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
         Assert.Empty(instances);
     }
 
@@ -281,56 +279,139 @@ public partial class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture
 
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
+        PartitionModel partitionModel = await _indexDataStoreTestHelper.GetPartitionAsync(instance1.PartitionKey);
+
         // Update the instances with newWatermark
-        await _indexDataStore.BeginUpdateInstancesAsync(new Partition(instance1.PartitionKey, Partition.UnknownName), studyInstanceUID1);
+        await _indexDataStore.BeginUpdateInstancesAsync(
+            new Partition((int)partitionModel.Key, partitionModel.Name),
+            studyInstanceUID1);
 
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
-        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset);
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>());
 
-        var instanceMetadata = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
 
         // Verify the instances are updated with updated information
-        Assert.Equal(instances.Count, instanceMetadata.Count());
+        Assert.Equal(instances.Count, instanceMetadataList.Count());
 
         for (int i = 0; i < instances.Count; i++)
         {
-            Assert.Equal(instances[i].SopInstanceUid, instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid);
-            Assert.Equal(instances[i].Watermark, instanceMetadata[i].InstanceProperties.OriginalVersion);
-            Assert.False(instanceMetadata[i].InstanceProperties.NewVersion.HasValue);
+            Assert.Equal(instances[i].SopInstanceUid, instanceMetadataList[i].VersionedInstanceIdentifier.SopInstanceUid);
+            Assert.Equal(instances[i].Watermark, instanceMetadataList[i].InstanceProperties.OriginalVersion);
+            Assert.False(instanceMetadataList[i].InstanceProperties.NewVersion.HasValue);
         }
 
         // Verify if the new patient name is updated
-        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new long[] { instanceMetadata.First().VersionedInstanceIdentifier.Version });
+        var result = await _queryStore.GetStudyResultAsync(Partition.DefaultKey, new[] { instanceMetadataList.First().VersionedInstanceIdentifier.Version });
 
         Assert.True(result.Any());
         Assert.Equal("FirstName_NewLastName", result.First().PatientName);
-
-        // Verify Changefeed entries are inserted
-        var changeFeedEntries = await _fixture.IndexDataStoreTestHelper.GetUpdatedChangeFeedRowsAsync(4);
-        Assert.True(changeFeedEntries.Any());
-        for (int i = 0; i < instances.Count; i++)
-        {
-            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].OriginalWatermark);
-            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.Version, changeFeedEntries[i].CurrentWatermark);
-            Assert.Equal(instanceMetadata[i].VersionedInstanceIdentifier.SopInstanceUid, changeFeedEntries[i].SopInstanceUid);
-        }
     }
+
+    [Fact]
+    public async Task GivenInstances_WhenBulkUpdateInstancesInAStudyAndFilePropertiesPassedInMultipleTimes_ThenItShouldInsertNewPropertiesAndAlsoDeleteStaleFileProperties()
+    {
+        var studyInstanceUID1 = TestUidGenerator.Generate();
+        DicomDataset dataset1 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
+        dataset1.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
+
+        var originalInstance = await CreateInstanceIndexAsync(dataset1, createFileProperties: true);
+
+        // Update the instances with newWatermark
+        IReadOnlyList<InstanceMetadata> updatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(
+            new Partition(originalInstance.PartitionKey, Partition.UnknownName),
+            studyInstanceUID1);
+
+        Assert.Single(updatedInstanceMetadata);
+        var updatedInstance = updatedInstanceMetadata[0];
+
+        var dicomDataset = new DicomDataset();
+        dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
+
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(updatedInstance) });
+
+        var instanceMetadataList = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        Assert.Single(instanceMetadataList);
+        var retrievedInstance = instanceMetadataList[0];
+
+        // ensure new property inserted
+        IReadOnlyList<FileProperty> newFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(retrievedInstance.GetVersion(false));
+        Assert.Equal(retrievedInstance.VersionedInstanceIdentifier.Version, newFileProperties[0].Watermark);
+
+        // ensure the original property is still there
+        IReadOnlyList<FileProperty> originalFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(originalInstance.Watermark);
+        Assert.Single(originalFileProperties);
+
+        // Update instance one more time
+        dicomDataset.AddOrUpdate(DicomTag.PatientName, "NewFirstName_NewLastName");
+
+        IReadOnlyList<InstanceMetadata> secondUpdatedInstanceMetadata = await _indexDataStore.BeginUpdateInstancesAsync(new Partition(originalInstance.PartitionKey, Partition.UnknownName), studyInstanceUID1);
+        Assert.Single(secondUpdatedInstanceMetadata);
+        var secondUpdatedInstance = secondUpdatedInstanceMetadata[0];
+        await _indexDataStore.EndUpdateInstanceAsync(Partition.DefaultKey, studyInstanceUID1, dicomDataset, new List<InstanceMetadata>() { CreateExpectedInstance(secondUpdatedInstance) });
+
+        var retrievedInstances = (await _instanceStore.GetInstanceIdentifierWithPropertiesAsync(Partition.Default, studyInstanceUID1)).ToList();
+        Assert.Single(retrievedInstances);
+        var secondUpdateInstance = retrievedInstances[0];
+
+        // the new version of second updated instance is diff from first updated instance
+        var inBetweenVersion = updatedInstanceMetadata[0].InstanceProperties.NewVersion;
+        Assert.NotEqual(secondUpdateInstance.GetVersion(false), inBetweenVersion);
+        // ensure new property inserted
+        IReadOnlyList<FileProperty> secondNewFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(secondUpdateInstance.GetVersion(false));
+        Assert.Single(secondNewFileProperties);
+
+        // ensure the original property is still there
+        IReadOnlyList<FileProperty> secondOriginalFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(originalInstance.Watermark);
+        Assert.Single(secondOriginalFileProperties);
+
+        // ensure the in between original and newest was deleted, which is the in between version
+        IReadOnlyList<FileProperty> inBetweenFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(inBetweenVersion.Value);
+        Assert.Empty(inBetweenFileProperties);
+    }
+
+    private static InstanceMetadata CreateExpectedInstance(InstanceMetadata updatedInstance) =>
+        new(
+            updatedInstance.VersionedInstanceIdentifier,
+            new InstanceProperties
+            {
+                fileProperties = new FileProperties
+                {
+                    Path = $"test/file_{updatedInstance.InstanceProperties.NewVersion.Value}.dcm",
+                    ETag = $"etag_{updatedInstance.InstanceProperties.NewVersion.Value}",
+                },
+                OriginalVersion = updatedInstance.InstanceProperties.OriginalVersion,
+                NewVersion = updatedInstance.InstanceProperties.NewVersion,
+            });
 
     private async Task<ExtendedQueryTagStoreEntry> AddExtendedQueryTagAsync(AddExtendedQueryTagEntry addExtendedQueryTagEntry)
         => (await _extendedQueryTagStore.AddExtendedQueryTagsAsync(new[] { addExtendedQueryTagEntry }, 128))[0];
 
-    private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, Partition partition = null)
+    private async Task<Instance> CreateInstanceIndexAsync(DicomDataset dataset, Partition partition = null, bool createFileProperties = false)
     {
         partition ??= Partition.Default;
         string studyUid = dataset.GetString(DicomTag.StudyInstanceUID);
         string seriesUid = dataset.GetString(DicomTag.SeriesInstanceUID);
         string sopInstanceUid = dataset.GetString(DicomTag.SOPInstanceUID);
         long watermark = await _indexDataStore.BeginCreateInstanceIndexAsync(partition, dataset);
-        await _indexDataStore.EndCreateInstanceIndexAsync(partition.Key, dataset, watermark);
+        await _indexDataStore.EndCreateInstanceIndexAsync(partition.Key, dataset, watermark, CreateFileProperties(createFileProperties, watermark));
 
         return await _indexDataStoreTestHelper.GetInstanceAsync(studyUid, seriesUid, sopInstanceUid, watermark);
+    }
+
+    private static FileProperties CreateFileProperties(bool createFileProperty, long watermark)
+    {
+        if (createFileProperty)
+        {
+            return new FileProperties
+            {
+                Path = $"test/file_{watermark}.dcm",
+                ETag = $"etag_{watermark}",
+            };
+        }
+        return null;
     }
 
     private async Task<VersionedInstanceIdentifier> AddRandomInstanceAsync(Partition partition = null)

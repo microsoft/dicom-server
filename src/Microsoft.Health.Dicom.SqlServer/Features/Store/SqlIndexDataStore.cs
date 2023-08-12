@@ -114,9 +114,9 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.BeginUpdateInstancesAsync(partition, studyInstanceUid, cancellationToken);
     }
 
-    public async Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, CancellationToken cancellationToken = default)
+    public async Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
-        await store.EndUpdateInstanceAsync(partitionKey, studyInstanceUid, dicomDataset, cancellationToken);
+        await store.EndUpdateInstanceAsync(partitionKey, studyInstanceUid, dicomDataset, instanceMetadataList, cancellationToken);
     }
 }
