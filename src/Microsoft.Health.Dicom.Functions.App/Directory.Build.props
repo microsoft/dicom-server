@@ -2,6 +2,7 @@
 
   <!-- Resolve TargetFramework before the parent Directory.Build.props -->
   <PropertyGroup>
+    <DurableFunctionsVersion>3.0.0-preview.1</DurableFunctionsVersion>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 

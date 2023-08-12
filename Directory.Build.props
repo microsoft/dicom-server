@@ -6,6 +6,7 @@
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation. All rights reserved.</Copyright>
     <Deterministic>true</Deterministic>
+    <DurableFunctionsVersion Condition="'$(DurableFunctionsVersion)' == ''">2.10.0</DurableFunctionsVersion>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
