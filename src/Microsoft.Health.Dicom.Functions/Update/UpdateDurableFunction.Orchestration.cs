@@ -188,7 +188,7 @@ public partial class UpdateDurableFunction
                 .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                     nameof(UpdateInstanceWatermarkV2Async),
                     _options.RetryOptions,
-                    new UpdateInstanceWatermarkArguments(input.Partition, studyInstanceUid));
+                    new UpdateInstanceWatermarkArgumentsV2(input.Partition, studyInstanceUid));
             var instanceWatermarks = instances.Select(x => x.ToInstanceFileState()).ToList();
 
             logger.LogInformation("Updated all instances new watermark in a study. Found {InstanceCount} instance for study", instances.Count);
@@ -203,12 +203,12 @@ public partial class UpdateDurableFunction
                     instanceMetadataList = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                         nameof(UpdateInstanceBlobsV2Async),
                         _options.RetryOptions,
-                        new UpdateInstanceBlobArguments(input.Partition, instances, input.ChangeDataset));
+                        new UpdateInstanceBlobArgumentsV2(input.Partition, instances, input.ChangeDataset));
 
                     await context.CallActivityWithRetryAsync(
                         nameof(CompleteUpdateStudyV2Async),
                         _options.RetryOptions,
-                        new CompleteStudyArguments(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadataList(instanceMetadataList)));
+                        new CompleteStudyArgumentsV2(input.Partition.Key, studyInstanceUid, input.ChangeDataset, GetInstanceMetadataList(instanceMetadataList)));
 
                     totalNoOfInstances += instances.Count;
                 }
