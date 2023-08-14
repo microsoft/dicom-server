@@ -60,3 +60,7 @@ To test locally, you'll want to have two separate IDE windows open:
 This way, you can make a request via Postman or curl to the web server and the function host will pick up the request.
 This will allow you to debug and step through the function code. This is the closest we have to testing a full
 integration locally aside from using E2E tests.
+
+## Build Failures
+If there's build failures due to a function failing, you can check out the Application Insights app for logs to
+discern the cause. Do not ignore these. These should never be flaky and if any are, fix them.
