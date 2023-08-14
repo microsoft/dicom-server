@@ -45,7 +45,7 @@ public partial class UpdateDurableFunctionTests
         _indexStore.BeginUpdateInstancesAsync(Arg.Any<Partition>(), studyInstanceUid, CancellationToken.None).Returns(identifiers);
 
         IEnumerable<InstanceMetadata> result = await _updateDurableFunction.UpdateInstanceWatermarkV2Async(
-            new UpdateInstanceWatermarkArguments(Partition.Default, studyInstanceUid),
+            new UpdateInstanceWatermarkArgumentsV2(Partition.Default, studyInstanceUid),
             NullLogger.Instance);
         IReadOnlyList<InstanceMetadata> actual = result.ToList();
 
@@ -81,7 +81,7 @@ public partial class UpdateDurableFunctionTests
         }
 
         await _updateDurableFunction.UpdateInstanceBlobsV2Async(
-            new UpdateInstanceBlobArguments(Partition.Default, expected, dataset),
+            new UpdateInstanceBlobArgumentsV2(Partition.Default, expected, dataset),
             NullLogger.Instance);
 
         foreach (var instance in expected)
@@ -108,7 +108,7 @@ public partial class UpdateDurableFunctionTests
         };
 
         await _updateDurableFunction.CompleteUpdateStudyV2Async(
-            new CompleteStudyArguments(
+            new CompleteStudyArgumentsV2(
                 Partition.DefaultKey,
                 studyInstanceUid,
                 "{\"00100010\":{\"vr\":\"PN\",\"Value\":[{\"Alphabetic\":\"Patient Name\"}]}}",
