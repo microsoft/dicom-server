@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
@@ -36,6 +37,7 @@ public sealed class UpdateInstanceBlobArguments
         InstanceWatermarks = EnsureArg.IsNotNull(instanceWatermarks, nameof(instanceWatermarks));
     }
 
+    [JsonConstructor]
     public UpdateInstanceBlobArguments(Partition partition, IReadOnlyList<InstanceMetadata> instances, string changeDataset)
     {
         Partition = EnsureArg.IsNotNull(partition, nameof(partition));

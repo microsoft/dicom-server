@@ -6,6 +6,7 @@
 using System;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
@@ -25,6 +26,7 @@ public class UpdateInstanceWatermarkArguments
         PartitionKey = partitionKey;
     }
 
+    [JsonConstructor]
     public UpdateInstanceWatermarkArguments(Partition partition, string studyInstanceUid)
     {
         Partition = EnsureArg.IsNotNull(partition, nameof(partition));

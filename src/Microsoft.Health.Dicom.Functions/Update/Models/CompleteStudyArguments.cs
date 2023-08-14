@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Newtonsoft.Json;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
@@ -27,6 +28,7 @@ public sealed class CompleteStudyArguments
         : this(partitionKey, studyInstanceUid, dicomDataset, Array.Empty<InstanceMetadata>())
     { }
 
+    [JsonConstructor]
     public CompleteStudyArguments(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList)
     {
         PartitionKey = partitionKey;
