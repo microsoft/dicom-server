@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,6 +21,7 @@ using WebStartup = Microsoft.Health.Dicom.Web.Startup;
 namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 [Trait("Category", "dicomupdate")]
+[Collection("Update Collection")]
 public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup>>, IAsyncLifetime
 {
     private readonly IDicomWebClient _client;
