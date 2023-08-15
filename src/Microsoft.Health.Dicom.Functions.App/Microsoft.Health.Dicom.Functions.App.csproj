@@ -11,6 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Azure.Data.Tables is here for component governance -->
+    <PackageReference Include="Azure.Data.Tables" PrivateAssets="All" />
     <PackageReference Include="Ensure.That" />
     <PackageReference Include="Google.Protobuf" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" />
