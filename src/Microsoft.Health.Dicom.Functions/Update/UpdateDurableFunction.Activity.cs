@@ -42,7 +42,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         var metadataList = await UpdateInstanceWatermarkV2Async(
-            new UpdateInstanceWatermarkArguments(new Partition(arguments.PartitionKey, Partition.UnknownName), arguments.StudyInstanceUid),
+            new UpdateInstanceWatermarkArgumentsV2(new Partition(arguments.PartitionKey, Partition.UnknownName), arguments.StudyInstanceUid),
             logger);
         return metadataList.Select(x => new InstanceFileState
         {
@@ -64,7 +64,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(UpdateInstanceWatermarkV2Async))]
-    public async Task<IEnumerable<InstanceMetadata>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
+    public async Task<IEnumerable<InstanceMetadata>> UpdateInstanceWatermarkV2Async([ActivityTrigger] UpdateInstanceWatermarkArgumentsV2 arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.StudyInstanceUid, nameof(arguments.StudyInstanceUid));
@@ -153,7 +153,7 @@ public partial class UpdateDurableFunction
     /// </exception>
     [FunctionName(nameof(UpdateInstanceBlobsV2Async))]
     public async Task<IReadOnlyCollection<InstanceMetadata>> UpdateInstanceBlobsV2Async(
-        [ActivityTrigger] UpdateInstanceBlobArguments arguments,
+        [ActivityTrigger] UpdateInstanceBlobArgumentsV2 arguments,
         ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
@@ -229,7 +229,7 @@ public partial class UpdateDurableFunction
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         return CompleteUpdateStudyV2Async(
-            new CompleteStudyArguments(arguments.PartitionKey, arguments.StudyInstanceUid, arguments.ChangeDataset),
+            new CompleteStudyArgumentsV2(arguments.PartitionKey, arguments.StudyInstanceUid, arguments.ChangeDataset, Array.Empty<InstanceMetadata>()),
             logger);
     }
 
@@ -245,7 +245,7 @@ public partial class UpdateDurableFunction
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
     /// </exception>
     [FunctionName(nameof(CompleteUpdateStudyV2Async))]
-    public async Task CompleteUpdateStudyV2Async([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
+    public async Task CompleteUpdateStudyV2Async([ActivityTrigger] CompleteStudyArgumentsV2 arguments, ILogger logger)
     {
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));

@@ -76,7 +76,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>())
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>())
             .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -89,7 +89,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>())
+                Arg.Any<CompleteStudyArgumentsV2>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -110,7 +110,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>());
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -123,7 +123,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>());
+                Arg.Any<CompleteStudyArgumentsV2>());
         context
             .Received(1)
             .ContinueAsNew(
@@ -179,7 +179,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>())
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>())
             .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -213,7 +213,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>());
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -295,7 +295,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>())
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>())
             .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -329,7 +329,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>());
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -386,7 +386,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>())
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>())
             .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
@@ -398,7 +398,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>())
+                Arg.Any<CompleteStudyArgumentsV2>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -419,7 +419,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>());
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>());
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
@@ -431,7 +431,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>());
+                Arg.Any<CompleteStudyArgumentsV2>());
         context
             .Received(1)
             .ContinueAsNew(
@@ -483,19 +483,19 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>());
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>());
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceBlobsV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceBlobArguments>());
+                Arg.Any<UpdateInstanceBlobArgumentsV2>());
         await context
             .DidNotReceive()
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>());
+                Arg.Any<CompleteStudyArgumentsV2>());
         context
             .DidNotReceive()
             .ContinueAsNew(
@@ -564,7 +564,7 @@ public partial class UpdateDurableFunctionTests
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
-                _options.RetryOptions, Arg.Any<UpdateInstanceWatermarkArguments>()).Returns(instanceMetadataList);
+                _options.RetryOptions, Arg.Any<UpdateInstanceWatermarkArgumentsV2>()).Returns(instanceMetadataList);
 
         context
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -644,7 +644,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>())
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>())
             .Returns(instanceMetadataList);
         context
             .CallActivityWithRetryAsync(
@@ -656,7 +656,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>())
+                Arg.Any<CompleteStudyArgumentsV2>())
             .Returns(Task.CompletedTask);
         context
             .CallActivityWithRetryAsync(
@@ -677,7 +677,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
                 nameof(UpdateDurableFunction.UpdateInstanceWatermarkV2Async),
                 _options.RetryOptions,
-                Arg.Any<UpdateInstanceWatermarkArguments>());
+                Arg.Any<UpdateInstanceWatermarkArgumentsV2>());
         await context
             .Received(1)
             .CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -689,7 +689,7 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
-                Arg.Any<CompleteStudyArguments>());
+                Arg.Any<CompleteStudyArgumentsV2>());
         context
             .Received(1)
             .ContinueAsNew(
@@ -721,7 +721,7 @@ public partial class UpdateDurableFunctionTests
         return context;
     }
 
-    private static Expression<Predicate<UpdateInstanceBlobArguments>> GetPredicate(Partition partition, IReadOnlyList<InstanceMetadata> instanceMetadataList, string changeDataset)
+    private static Expression<Predicate<UpdateInstanceBlobArgumentsV2>> GetPredicate(Partition partition, IReadOnlyList<InstanceMetadata> instanceMetadataList, string changeDataset)
     {
         return x =>
             x.InstanceMetadataList == instanceMetadataList
@@ -737,7 +737,7 @@ public partial class UpdateDurableFunctionTests
             && x.OriginalVersion == instanceFileState.OriginalVersion;
     }
 
-    private static Expression<Predicate<CompleteStudyArguments>> GetPredicate(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, bool expectEmptyList = false)
+    private static Expression<Predicate<CompleteStudyArgumentsV2>> GetPredicate(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, bool expectEmptyList = false)
     {
         return x =>
             x.PartitionKey == partitionKey
