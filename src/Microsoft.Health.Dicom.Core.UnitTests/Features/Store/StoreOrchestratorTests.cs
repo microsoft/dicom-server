@@ -39,10 +39,10 @@ public class StoreOrchestratorTests
         DefaultSopInstanceUid,
         DefaultVersion);
 
-    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    private static readonly FileProperties DefaultFileProperties = new FileProperties
     {
-        Path = String.Empty,
-        ETag = String.Empty
+        Path = "default/path/0.dcm",
+        ETag = "123"
     };
 
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;

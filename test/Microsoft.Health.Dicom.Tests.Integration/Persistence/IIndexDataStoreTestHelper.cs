@@ -20,6 +20,8 @@ public interface IIndexDataStoreTestHelper
 
     Task<IReadOnlyList<FileProperty>> GetFilePropertiesAsync(long watermark);
 
+    Task<PartitionModel> GetPartitionAsync(int partitionKey);
+
     Task<Instance> GetInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long version);
 
     Task<IReadOnlyList<DeletedInstance>> GetDeletedInstanceEntriesAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, int partitionKey = Partition.DefaultKey);
