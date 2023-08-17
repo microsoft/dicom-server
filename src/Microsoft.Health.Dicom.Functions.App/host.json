@@ -52,7 +52,7 @@
         "MaxNumberOfAttempts": 4
       }
     },
-    "MigratingFiles": {
+    "Update": {
       "MaxParallelThreads": 5,
       "RetryOptions": {
         "BackoffCoefficient": 3,
