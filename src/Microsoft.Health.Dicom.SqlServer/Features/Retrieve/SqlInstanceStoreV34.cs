@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
@@ -43,40 +42,6 @@ internal class SqlInstanceStoreV34 : SqlInstanceStoreV1
         using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
 
         VLatest.GetInstanceBatches.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, maxWatermark);
-
-        try
-        {
-            var batches = new List<WatermarkRange>();
-            using SqlDataReader reader = await sqlCommandWrapper.ExecuteReaderAsync(cancellationToken);
-            while (await reader.ReadAsync(cancellationToken))
-            {
-                batches.Add(new WatermarkRange(reader.GetInt64(0), reader.GetInt64(1)));
-            }
-
-            return batches;
-        }
-        catch (SqlException ex)
-        {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    public override async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesByTimeStampAsync(
-        int batchSize,
-        int batchCount,
-        IndexStatus indexStatus,
-        DateTimeOffset startTimeStamp,
-        DateTimeOffset endTimeStamp,
-        long? maxWatermark = null,
-        CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsGt(batchSize, 0, nameof(batchSize));
-        EnsureArg.IsGt(batchCount, 0, nameof(batchCount));
-
-        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
-        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
-
-        VLatest.GetInstanceBatchesByTimeStamp.PopulateCommand(sqlCommandWrapper, batchSize, batchCount, (byte)indexStatus, startTimeStamp, endTimeStamp, maxWatermark);
 
         try
         {

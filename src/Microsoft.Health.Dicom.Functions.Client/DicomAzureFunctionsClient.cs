@@ -25,7 +25,6 @@ using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Operations;
 using Microsoft.Health.Operations.Functions.DurableTask;
@@ -205,25 +204,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
-    public async Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default)
-    {
-        EnsureArg.IsGt(endFilterTimeStamp, startFilterTimeStamp, nameof(endFilterTimeStamp));
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string instanceId = await _durableClient.StartNewAsync(
-            _options.Migration.Name,
-            operationId.ToString(OperationId.FormatSpecifier),
-            new MigratingFilesCheckpoint
-            {
-                Batching = _options.Migration.Batching,
-                StartFilterTimeStamp = startFilterTimeStamp,
-                EndFilterTimeStamp = endFilterTimeStamp,
-            });
-
-        _logger.LogInformation("Successfully started migration operation with ID '{InstanceId}'.", instanceId);
-    }
-
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
         Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,
@@ -262,7 +242,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         switch (type)
         {
             case DicomOperation.Export:
-            case DicomOperation.Migrate:
                 return null;
             case DicomOperation.Reindex:
                 IReadOnlyList<Uri> tagPaths = Array.Empty<Uri>();
@@ -291,7 +270,6 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         {
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
-            DicomOperation.Migrate => status.Input?.ToObject<MigratingFilesCheckpoint>() ?? new MigratingFilesCheckpoint(),
             DicomOperation.Update => status.Input?.ToObject<UpdateCheckpoint>() ?? new UpdateCheckpoint(),
             _ => NullOrchestrationCheckpoint.Value,
         };

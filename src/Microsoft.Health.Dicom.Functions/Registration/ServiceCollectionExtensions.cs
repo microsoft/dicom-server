@@ -21,7 +21,6 @@ using Microsoft.Health.Dicom.Core.Registration;
 using Microsoft.Health.Dicom.Functions.Configuration;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.Dicom.SqlServer.Registration;
 using Microsoft.Health.Extensions.DependencyInjection;
@@ -59,7 +58,6 @@ public static class ServiceCollectionExtensions
             .AddRecyclableMemoryStreamManager(configuration)
             .AddFellowOakDicomExtension()
             .AddFunctionsOptions<ExportOptions>(configuration, ExportOptions.SectionName)
-            .AddFunctionsOptions<MigrationFilesOptions>(configuration, MigrationFilesOptions.SectionName)
             .AddFunctionsOptions<QueryTagIndexingOptions>(configuration, QueryTagIndexingOptions.SectionName, bindNonPublicProperties: true)
             .AddFunctionsOptions<PurgeHistoryOptions>(configuration, PurgeHistoryOptions.SectionName, isDicomFunction: false)
             .AddFunctionsOptions<FeatureConfiguration>(configuration, "DicomServer:Features", isDicomFunction: false)
