@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
 
@@ -391,6 +393,45 @@ public partial class UpdateDurableFunction
             });
 
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously move all the original version blobs to cold access tier.
+    /// </summary>
+    /// <param name="arguments">arguments which have a list of watermarks to move to cold access tier along with partition they belong to</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="CleanupNewVersionBlobV2Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(SetOriginalBlobToColdAccessTierAsync))]
+    public async Task SetOriginalBlobToColdAccessTierAsync([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        IReadOnlyList<InstanceFileState> fileIdentifiers = arguments.InstanceWatermarks;
+        Partition partition = arguments.Partition;
+
+        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue).Count();
+        logger.LogInformation("Begin moving original version blob from hot to cold access tier. Total size {TotalCount}", fileCount);
+
+        await Parallel.ForEachAsync(
+           fileIdentifiers.Where(f => f.NewVersion.HasValue),
+           new ParallelOptions
+           {
+               CancellationToken = default,
+               MaxDegreeOfParallelism = _options.MaxParallelThreads,
+           },
+           async (fileIdentifier, token) =>
+           {
+               await _fileStore.SetBlobToColdAccessTierAsync(fileIdentifier.Version, partition, token);
+           });
+
+        logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);
     }
 
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
