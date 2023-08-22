@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,6 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Functions.Update.Models;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Health.Dicom.Functions.Update;
 
