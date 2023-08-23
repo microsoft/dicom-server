@@ -414,11 +414,13 @@ public partial class UpdateDurableFunction
         IReadOnlyList<InstanceFileState> fileIdentifiers = arguments.InstanceWatermarks;
         Partition partition = arguments.Partition;
 
-        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue).Count();
+        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue && !f.OriginalVersion.HasValue).Count();
         logger.LogInformation("Begin moving original version blob from hot to cold access tier. Total size {TotalCount}", fileCount);
 
+        // Set to cold tier only for first time update, not for subsequent updates. This is to avoid moving the blob to cold tier multiple times.
+        // If the original version is set, then it means that the instance is updated already.
         await Parallel.ForEachAsync(
-           fileIdentifiers.Where(f => f.NewVersion.HasValue),
+           fileIdentifiers.Where(f => f.NewVersion.HasValue && !f.OriginalVersion.HasValue),
            new ParallelOptions
            {
                CancellationToken = default,

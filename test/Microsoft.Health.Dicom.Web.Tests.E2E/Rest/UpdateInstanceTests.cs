@@ -39,13 +39,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     [Fact]
     public async Task WhenUpdatingDicomMetadataForASingleStudy_ThenItShouldUpdateCorrectly()
     {
-        // Current version of Azurite does not support changing to cold tier.
-        // PR has been merged to Azurite master branch. Once the next version of Azurite is released, we can enable in process testing.
-        if (_inProcess)
-        {
-            return;
-        }
-
         string studyInstanceUid = TestUidGenerator.Generate();
 
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
@@ -67,13 +60,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     [Fact]
     public async Task WhenUpdatingDicomMetadataForMultipleStudy_ThenItShouldUpdateCorrectly()
     {
-        // Current version of Azurite does not support changing to cold tier.
-        // PR has been merged to Azurite master branch. Once the next version of Azurite is released, we can enable in process testing.
-        if (_inProcess)
-        {
-            return;
-        }
-
         string studyInstanceUid1 = TestUidGenerator.Generate();
         string studyInstanceUid2 = TestUidGenerator.Generate();
 
