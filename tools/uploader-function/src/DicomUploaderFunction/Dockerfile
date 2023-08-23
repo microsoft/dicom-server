@@ -14,7 +14,7 @@ RUN cd /tools/uploader-function/src/DicomUploaderFunction && \
 
 # To enable ssh & remote debugging on app service change the base image to the one below
 # FROM mcr.microsoft.com/azure-functions/dotnet:4-appservice
-FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:83b85795d9198ed77be9e59440faeb3f711788c344f88009cc06984917dd22da
+FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:467ea33e264ceccd97c4f14fd9c4995f257afbec8ccd9a8f7b49286231cce9d3
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot
 
 COPY --from=installer-env ["/home/site/wwwroot", "/home/site/wwwroot"]
