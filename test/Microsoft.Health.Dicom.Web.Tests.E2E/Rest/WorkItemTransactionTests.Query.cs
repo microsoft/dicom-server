@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using FellowOakDicom;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Core;
@@ -146,6 +147,6 @@ public partial class WorkItemTransactionTests
             () => _client.QueryWorkitemAsync("PatientName=Foo&limit=500"));
 
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
-        Assert.Equal(exception.ResponseMessage, string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidQueryStringValue, "Limit", "The field Limit must be between 1 and 200."));
+        Assert.Equal(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.InvalidQueryStringValue, "Limit", HttpUtility.UrlEncode("The field Limit must be between 1 and 200.")), exception.ResponseMessage);
     }
 }
