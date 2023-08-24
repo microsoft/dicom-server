@@ -181,7 +181,7 @@ public partial class UpdateDurableFunctionTests
     public async Task GivenInstanceMetadataList_WhenChangeAccessTier_ThenShoulChangeSuccessfully()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
-        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default);
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2 });
         IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
             new InstanceFileState
             {
