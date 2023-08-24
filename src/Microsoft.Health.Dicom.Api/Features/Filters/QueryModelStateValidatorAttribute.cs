@@ -1,9 +1,11 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Web;
 using EnsureThat;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,7 +21,14 @@ public sealed class QueryModelStateValidatorAttribute : ActionFilterAttribute
         if (!context.ModelState.IsValid)
         {
             (string key, ModelStateEntry value) = context.ModelState.Where(x => x.Value.Errors.Count > 0).First();
-            throw new InvalidQueryStringValuesException(key, value.Errors[0].ErrorMessage);
+
+            string errorMessage = value.Errors[0].ErrorMessage;
+            if (Regex.IsMatch(errorMessage, @"<[^>]*>"))
+            {
+                errorMessage = HttpUtility.HtmlEncode(errorMessage);
+            }
+
+            throw new InvalidQueryStringValuesException(key, errorMessage);
         }
     }
 }

@@ -4,14 +4,13 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Globalization;
-using System.Web;
 
 namespace Microsoft.Health.Dicom.Core.Exceptions;
 
 public class InvalidQueryStringValuesException : ValidationException
 {
     public InvalidQueryStringValuesException(string key, string error)
-        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryStringValue, key, HttpUtility.UrlEncode(error)))
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.InvalidQueryStringValue, key, error))
     {
     }
 }
