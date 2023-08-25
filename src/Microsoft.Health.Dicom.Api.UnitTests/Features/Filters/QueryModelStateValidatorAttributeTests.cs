@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +40,6 @@ public class QueryModelStateValidatorAttributeTests
         _context.ModelState.Clear();
         _context.ModelState.AddModelError("frames", "This Shoud be <> escaped");
         var ex = Assert.Throws<InvalidQueryStringValuesException>(() => _validator.OnActionExecuting(_context));
-        Console.Write(ex.Message);
         Assert.Equal("The query parameter 'frames' is invalid. This Shoud be &lt;&gt; escaped", ex.Message);
     }
 
