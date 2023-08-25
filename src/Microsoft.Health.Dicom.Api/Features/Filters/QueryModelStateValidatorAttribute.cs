@@ -15,6 +15,8 @@ namespace Microsoft.Health.Dicom.Api.Features.Filters;
 
 public sealed class QueryModelStateValidatorAttribute : ActionFilterAttribute
 {
+    private static readonly Regex HtmlCharacters = new Regex("<[^>]*>", RegexOptions.Compiled);
+
     public override void OnActionExecuting(ActionExecutingContext context)
     {
         EnsureArg.IsNotNull(context, nameof(context));
@@ -23,7 +25,7 @@ public sealed class QueryModelStateValidatorAttribute : ActionFilterAttribute
             (string key, ModelStateEntry value) = context.ModelState.Where(x => x.Value.Errors.Count > 0).First();
 
             string errorMessage = value.Errors[0].ErrorMessage;
-            if (Regex.IsMatch(errorMessage, @"<[^>]*>"))
+            if (HtmlCharacters.IsMatch(errorMessage))
             {
                 errorMessage = HttpUtility.HtmlEncode(errorMessage);
             }
