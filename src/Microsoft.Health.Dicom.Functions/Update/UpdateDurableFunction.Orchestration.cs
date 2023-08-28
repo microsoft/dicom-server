@@ -238,9 +238,9 @@ public partial class UpdateDurableFunction
                 if (!isFailedToUpdateStudy)
                 {
                     await context.CallActivityWithRetryAsync(
-                     nameof(DeleteOldVersionBlobV2Async),
-                     _options.RetryOptions,
-                     new CleanupBlobArguments(instanceWatermarks, input.Partition));
+                        nameof(DeleteOldVersionBlobV2Async),
+                        _options.RetryOptions,
+                        new CleanupBlobArguments(instanceWatermarks, input.Partition));
 
                     await context.CallActivityWithRetryAsync(
                         nameof(SetOriginalBlobToColdAccessTierAsync),
