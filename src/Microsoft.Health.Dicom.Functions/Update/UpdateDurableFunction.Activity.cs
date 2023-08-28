@@ -399,7 +399,7 @@ public partial class UpdateDurableFunction
     /// <param name="arguments">arguments which have a list of watermarks to move to cold access tier along with partition they belong to</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
-    /// A task representing the <see cref="CleanupNewVersionBlobV2Async"/> operation.
+    /// A task representing the <see cref="SetOriginalBlobToColdAccessTierAsync"/> operation.
     /// </returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
