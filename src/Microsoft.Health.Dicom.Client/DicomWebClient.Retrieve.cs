@@ -106,6 +106,26 @@ public partial class DicomWebClient : IDicomWebClient
             cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<DicomWebResponse<Stream>> RetrieveInstanceStreamAsync(
+        string studyInstanceUid,
+        string seriesInstanceUid,
+        string sopInstanceUid,
+        string dicomTransferSyntax = DicomWebConstants.OriginalDicomTransferSyntax,
+        string partitionName = default,
+        bool requestOriginalVersion = default,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNullOrWhiteSpace(studyInstanceUid, nameof(studyInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(seriesInstanceUid, nameof(seriesInstanceUid));
+        EnsureArg.IsNotNullOrWhiteSpace(sopInstanceUid, nameof(sopInstanceUid));
+
+        return await RetrieveInstanceStreamAsync(
+            GenerateRequestUri(string.Format(CultureInfo.InvariantCulture, DicomWebConstants.BaseInstanceUriFormat, studyInstanceUid, seriesInstanceUid, sopInstanceUid), partitionName),
+            dicomTransferSyntax,
+            requestOriginalVersion,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<DicomWebResponse<Stream>> RetrieveRenderedInstanceAsync(
         string studyInstanceUid,
         string seriesInstanceUid,
@@ -265,6 +285,41 @@ public partial class DicomWebClient : IDicomWebClient
                 memoryStream.Seek(0, SeekOrigin.Begin);
 
                 return await DicomFile.OpenAsync(memoryStream).ConfigureAwait(false);
+            });
+    }
+
+    private async Task<DicomWebResponse<Stream>> RetrieveInstanceStreamAsync(
+        Uri requestUri,
+        string dicomTransferSyntax,
+        bool requestOriginalVersion,
+        CancellationToken cancellationToken)
+    {
+        EnsureArg.IsNotNull(requestUri, nameof(requestUri));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+        request.Headers.TryAddWithoutValidation(
+            "Accept",
+            CreateAcceptHeader(DicomWebConstants.MediaTypeApplicationDicom, dicomTransferSyntax));
+
+        if (requestOriginalVersion)
+        {
+            request.Headers.TryAddWithoutValidation(DicomWebConstants.RequestOriginalVersion, bool.TrueString);
+        }
+
+        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+            .ConfigureAwait(false);
+
+        await EnsureSuccessStatusCodeAsync(response).ConfigureAwait(false);
+
+        return new DicomWebResponse<Stream>(
+            response,
+            async content =>
+            {
+                MemoryStream memoryStream = GetMemoryStream();
+                await content.CopyToAsync(memoryStream).ConfigureAwait(false);
+                memoryStream.Seek(0, SeekOrigin.Begin);
+                return memoryStream;
             });
     }
 
