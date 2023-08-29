@@ -393,5 +393,46 @@ public partial class UpdateDurableFunction
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
+    /// <summary>
+    /// Asynchronously move all the original version blobs to cold access tier.
+    /// </summary>
+    /// <param name="arguments">arguments which have a list of watermarks to move to cold access tier along with partition they belong to</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="SetOriginalBlobToColdAccessTierAsync"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(SetOriginalBlobToColdAccessTierAsync))]
+    public async Task SetOriginalBlobToColdAccessTierAsync([ActivityTrigger] CleanupBlobArguments arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        IReadOnlyList<InstanceFileState> fileIdentifiers = arguments.InstanceWatermarks;
+        Partition partition = arguments.Partition;
+
+        int fileCount = fileIdentifiers.Where(f => f.NewVersion.HasValue && !f.OriginalVersion.HasValue).Count();
+        logger.LogInformation("Begin moving original version blob from hot to cold access tier. Total size {TotalCount}", fileCount);
+
+        // Set to cold tier only for first time update, not for subsequent updates. This is to avoid moving the blob to cold tier multiple times.
+        // If the original version is set, then it means that the instance is updated already.
+        await Parallel.ForEachAsync(
+           fileIdentifiers.Where(f => f.NewVersion.HasValue && !f.OriginalVersion.HasValue),
+           new ParallelOptions
+           {
+               CancellationToken = default,
+               MaxDegreeOfParallelism = _options.MaxParallelThreads,
+           },
+           async (fileIdentifier, token) =>
+           {
+               await _fileStore.SetBlobToColdAccessTierAsync(fileIdentifier.Version, partition, token);
+           });
+
+        logger.LogInformation("Original version blob is moved to cold access tier successfully. Total size {TotalCount}", fileCount);
+    }
+
     private DicomDataset GetDeserialzedDataset(string dataset) => JsonSerializer.Deserialize<DicomDataset>(dataset, _jsonSerializerOptions);
 }

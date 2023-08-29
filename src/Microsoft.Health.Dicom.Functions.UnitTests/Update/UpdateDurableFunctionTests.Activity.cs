@@ -177,6 +177,34 @@ public partial class UpdateDurableFunctionTests
             .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenChangeAccessTier_ThenShoulChangeSuccessfully()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, Partition.Default, new InstanceProperties { NewVersion = 2 });
+        IReadOnlyList<InstanceFileState> expected = identifiers.Select(x =>
+            new InstanceFileState
+            {
+                Version = x.VersionedInstanceIdentifier.Version,
+                OriginalVersion = x.InstanceProperties.OriginalVersion,
+                NewVersion = x.InstanceProperties.NewVersion
+            }).Take(1).ToList();
+
+        _fileStore
+            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.SetOriginalBlobToColdAccessTierAsync(
+            new CleanupBlobArguments(expected, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _fileStore
+            .Received(1)
+            .SetBlobToColdAccessTierAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
+    }
+
 
     private static List<InstanceMetadata> GetInstanceIdentifiersList(string studyInstanceUid, Partition partition = null, InstanceProperties instanceProperty = null)
     {

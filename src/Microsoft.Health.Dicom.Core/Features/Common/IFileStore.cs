@@ -128,4 +128,13 @@ public interface IFileStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously change blob access tier to cold tier.
+    /// </summary>
+    /// <param name="version">The DICOM instance version.</param>
+    /// <param name="partition">Partition to use when operating on file</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    Task SetBlobToColdAccessTierAsync(long version, Partition partition, CancellationToken cancellationToken = default);
 }
