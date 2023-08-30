@@ -80,8 +80,8 @@
     <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="6.2.141" />
     <PackageVersion Include="Microsoft.Health.SqlServer" Version="6.2.141" />
     <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="6.2.141" />
-    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="6.2.122" />
-    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="6.2.122" />
+    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="6.2.141" />
+    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="6.2.141" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="6.32.1" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
