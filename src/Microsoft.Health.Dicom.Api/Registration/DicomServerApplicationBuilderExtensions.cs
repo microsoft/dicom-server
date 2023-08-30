@@ -32,7 +32,7 @@ public static class DicomServerApplicationBuilderExtensions
 
         app.UseMvc();
 
-        app.UseHealthChecksExtensionWithoutPrerequisiteChecks(new PathString(KnownRoutes.HealthCheck));
+        app.UseCachedHealthChecks(new PathString(KnownRoutes.HealthCheck));
 
         // Update Fellow Oak DICOM services to use ASP.NET Core's service container
         DicomSetupBuilder.UseServiceProvider(app.ApplicationServices);

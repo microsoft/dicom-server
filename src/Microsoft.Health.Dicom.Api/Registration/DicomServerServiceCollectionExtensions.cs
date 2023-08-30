@@ -20,7 +20,6 @@ using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
 using Microsoft.Health.Core.Features.Health;
-using Microsoft.Health.CustomerManagedKey.Extensions;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
@@ -34,6 +33,8 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Encryption.Customer.Configs;
+using Microsoft.Health.Encryption.Customer.Extensions;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -47,13 +48,25 @@ public static class DicomServerServiceCollectionExtensions
     /// Add services for DICOM background workers.
     /// </summary>
     /// <param name="serverBuilder">The DICOM server builder instance.</param>
+    /// <param name="configuration">The configuration for the DICOM server.</param>
     /// <returns>The DICOM server builder instance.</returns>
-    public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder)
+    public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
     {
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
         serverBuilder.Services.AddHostedService<StartMigrateFrameRangeBlobService>();
+
+        serverBuilder.Services.AddCustomerKeyValidationBackgroundService(options =>
+        {
+            configuration.GetSection(CustomerManagedKeyOptions.CustomerManagedKey).Bind(options);
+        });
+
+        serverBuilder.Services.AddHealthCheckPublisher(options =>
+        {
+            configuration.GetSection("HealthCheckPublisher").Bind(options);
+        });
+
         return serverBuilder;
     }
 
@@ -103,7 +116,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramRangeBlobConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.UpdateServiceSettings));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.CustomerManagedKey));
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);
         services.RegisterAssemblyModules(typeof(InitializationModule).Assembly, dicomServerConfiguration);
@@ -154,9 +166,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddRecyclableMemoryStreamManager(configurationRoot);
 
         services.AddSingleton<ITelemetryInitializer, TelemetryInitializer>();
-
-        services.AddHealthCheckPublisher();
-        services.AddCustomerKeyHealthCheck();
 
         CustomDicomImplementation.SetDicomImplementationClassUIDAndVersion();
 

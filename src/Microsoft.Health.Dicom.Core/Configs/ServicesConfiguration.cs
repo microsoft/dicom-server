@@ -3,8 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using Microsoft.Health.CustomerManagedKey.Configs;
-
 namespace Microsoft.Health.Dicom.Core.Configs;
 
 public class ServicesConfiguration
@@ -26,6 +24,4 @@ public class ServicesConfiguration
     public FrameRangeMigrationConfiguration FramRangeBlobConfiguration { get; } = new FrameRangeMigrationConfiguration();
 
     public UpdateConfiguration UpdateServiceSettings { get; } = new UpdateConfiguration();
-
-    public CustomerManagedKeyOptions CustomerManagedKey { get; } = new CustomerManagedKeyOptions();
 }
