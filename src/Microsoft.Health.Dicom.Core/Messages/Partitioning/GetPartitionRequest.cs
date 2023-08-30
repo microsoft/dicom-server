@@ -9,9 +9,9 @@ namespace Microsoft.Health.Dicom.Core.Messages.Partitioning;
 
 public class GetPartitionRequest : IRequest<GetPartitionResponse>
 {
-    public GetPartitionRequest(string paritionName)
+    public GetPartitionRequest(string partitionName)
     {
-        PartitionName = paritionName;
+        PartitionName = partitionName;
     }
 
     /// <summary>

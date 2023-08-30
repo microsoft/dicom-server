@@ -41,11 +41,17 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
         var updateDicomDataset = new DicomDataset
         {
             { DicomTag.WorklistLabel, newWorklistLabel },
-            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
-            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
             {
-                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
-                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset
+                {
+                    { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+                    new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+                    {
+                        { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                        { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                    })
+                })
             }),
         };
         await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset)
@@ -81,7 +87,15 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
                 { DicomTag.CodeMeaning, "Sample-PerformedWorkitem-CodeMeaning" }
             }),
             { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow },
-            new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset()),
+            new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset
+                {
+                    { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+                    new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+                    {
+                        { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                        { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                    })
+                }),
         });
 
         await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset, transactionUid)

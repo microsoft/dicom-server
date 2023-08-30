@@ -15,7 +15,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
-namespace Microsoft.Health.Dicom.Api.Features.Partition;
+namespace Microsoft.Health.Dicom.Api.Features.Partitioning;
 
 /// <summary>
 /// This hosted service performs the check at startup to ensure user cannot disable DataPartitions feature flag

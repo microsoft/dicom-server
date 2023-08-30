@@ -27,7 +27,6 @@ using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Core.Serialization;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
-using Microsoft.Health.Dicom.Functions.Migration;
 using Microsoft.Health.Dicom.Functions.Update;
 using Microsoft.Health.FellowOakDicom.Serialization;
 using Microsoft.Health.Operations;
@@ -67,15 +66,6 @@ public class DicomAzureFunctionsClientTests
             Indexing = new FanOutFunctionOptions
             {
                 Name = FunctionNames.ReindexInstances,
-                Batching = new BatchingOptions
-                {
-                    MaxParallelCount = 1,
-                    Size = 100,
-                },
-            },
-            Migration = new FanOutFunctionOptions
-            {
-                Name = FunctionNames.MigrateFiles,
                 Batching = new BatchingOptions
                 {
                     MaxParallelCount = 1,
@@ -530,7 +520,7 @@ public class DicomAzureFunctionsClientTests
             .Returns(instanceId);
         _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
 
-        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, Partition.DefaultKey, source.Token);
+        OperationReference actual = await _client.StartUpdateOperationAsync(operationId, updateSpec, Partition.Default, source.Token);
         Assert.Equal(operationId, actual.Id);
         Assert.Equal(uri, actual.Href);
 
@@ -541,36 +531,5 @@ public class DicomAzureFunctionsClientTests
                 instanceId,
                 Arg.Is<UpdateInput>(x => x.StudyInstanceUids.SequenceEqual(studyUids)));
         _urlResolver.Received(1).ResolveOperationStatusUri(operationId);
-    }
-
-    [Fact]
-    public async Task GivenInput_WhenStartingMigration_ThenStartOrchestration()
-    {
-        string instanceId = OperationId.Generate();
-        var now = DateTime.UtcNow;
-        var operationId = Guid.Parse(instanceId);
-        var uri = new Uri("http://my-operation/" + operationId);
-        var startTimeStamp = now;
-        var endTimeStamp = now.AddDays(1);
-
-        using var source = new CancellationTokenSource();
-
-        _durableClient
-            .StartNewAsync(
-                FunctionNames.MigrateFiles,
-                instanceId,
-                Arg.Is<MigratingFilesInput>(x => x.StartFilterTimeStamp == now && x.EndFilterTimeStamp == now.AddDays(1)))
-            .Returns(instanceId);
-
-        _urlResolver.ResolveOperationStatusUri(operationId).Returns(uri);
-
-        await _client.StartMigratingFrameRangeBlobAsync(operationId, startTimeStamp, endTimeStamp, source.Token);
-
-        await _durableClient
-            .Received(1)
-            .StartNewAsync(
-                FunctionNames.MigrateFiles,
-                instanceId,
-                Arg.Is<MigratingFilesInput>(x => x.StartFilterTimeStamp == now && x.EndFilterTimeStamp == now.AddDays(1)));
     }
 }

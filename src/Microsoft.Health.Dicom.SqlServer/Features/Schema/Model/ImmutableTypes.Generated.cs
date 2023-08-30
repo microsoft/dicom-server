@@ -75,6 +75,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal System.Int32 TagKey { get; }
     }
 
+    internal class FilePropertyTableTypeTableValuedParameterDefinition : TableValuedParameterDefinition<FilePropertyTableTypeRow>
+    {
+        internal FilePropertyTableTypeTableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.FilePropertyTableType")
+        {
+        }
+
+        internal readonly BigIntColumn Watermark = new BigIntColumn("Watermark");
+        internal readonly NVarCharColumn FilePath = new NVarCharColumn("FilePath", 4000);
+        internal readonly NVarCharColumn ETag = new NVarCharColumn("ETag", 4000);
+
+        protected override global::System.Collections.Generic.IEnumerable<Column> Columns => new Column[] { Watermark, FilePath, ETag };
+
+        protected override void FillSqlDataRecord(global::Microsoft.Data.SqlClient.Server.SqlDataRecord record, FilePropertyTableTypeRow rowData)
+        {
+            Watermark.Set(record, 0, rowData.Watermark);
+            FilePath.Set(record, 1, rowData.FilePath);
+            ETag.Set(record, 2, rowData.ETag);
+        }
+    }
+
+    internal struct FilePropertyTableTypeRow
+    {
+        internal FilePropertyTableTypeRow(System.Int64 Watermark, System.String FilePath, System.String ETag)
+        {
+            this.Watermark = Watermark;
+            this.FilePath = FilePath;
+            this.ETag = ETag;
+        }
+
+        internal System.Int64 Watermark { get; }
+        internal System.String FilePath { get; }
+        internal System.String ETag { get; }
+    }
+
     internal class InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition : TableValuedParameterDefinition<InsertDateTimeExtendedQueryTagTableTypeV1Row>
     {
         internal InsertDateTimeExtendedQueryTagTableTypeV1TableValuedParameterDefinition(System.String parameterName) : base(parameterName, "dbo.InsertDateTimeExtendedQueryTagTableType_1")

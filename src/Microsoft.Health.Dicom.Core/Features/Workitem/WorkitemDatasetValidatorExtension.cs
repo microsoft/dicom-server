@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -533,11 +533,9 @@ internal static class WorkitemDatasetValidatorExtension
                 new RequirementDetail(DicomTag.PerformedWorkitemCodeSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.ThreeOne, GetUPSCodeSequenceMacroRequirements()),
                 new RequirementDetail(DicomTag.PerformedProcessingParametersSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.ThreeOne, GetUPSContentItemMacroRequirements()),
                 new RequirementDetail(DicomTag.PerformedProcedureStepEndDateTime, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.ThreeOne),
-                new RequirementDetail(DicomTag.OutputInformationSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.TwoTwo),
+                new RequirementDetail(DicomTag.OutputInformationSequence, requestType == WorkitemRequestType.Add ? RequirementCode.NotAllowed : RequirementCode.TwoTwo, GetReferencedInstancesAndAccessMacroRequirements())
             }),
         };
-
-        requirements.UnionWith(GetReferencedInstancesAndAccessMacroRequirements());
 
         return requirements;
     }

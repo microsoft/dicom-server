@@ -24,7 +24,7 @@ using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
 using Microsoft.Health.Dicom.Api.Features.Conventions;
-using Microsoft.Health.Dicom.Api.Features.Partition;
+using Microsoft.Health.Dicom.Api.Features.Partitioning;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Features.Swagger;
 using Microsoft.Health.Dicom.Api.Logging;
@@ -55,7 +55,6 @@ public static class DicomServerServiceCollectionExtensions
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
-        serverBuilder.Services.AddHostedService<StartMigrateFrameRangeBlobService>();
 
         serverBuilder.Services.AddCustomerKeyValidationBackgroundService(options =>
         {
@@ -114,7 +113,6 @@ public static class DicomServerServiceCollectionExtensions
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.Retrieve));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.InstanceMetadataCacheConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramesRangeCacheConfiguration));
-        services.AddSingleton(Options.Create(dicomServerConfiguration.Services.FramRangeBlobConfiguration));
         services.AddSingleton(Options.Create(dicomServerConfiguration.Services.UpdateServiceSettings));
 
         services.RegisterAssemblyModules(Assembly.GetExecutingAssembly(), dicomServerConfiguration);

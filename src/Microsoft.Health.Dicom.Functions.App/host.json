@@ -52,14 +52,6 @@
         "MaxNumberOfAttempts": 4
       }
     },
-    "MigratingFiles": {
-      "MaxParallelThreads": 5,
-      "RetryOptions": {
-        "BackoffCoefficient": 3,
-        "FirstRetryInterval": "00:01:00",
-        "MaxNumberOfAttempts": 4
-      }
-    },
     "Update": {
       "MaxParallelThreads": 5,
       "RetryOptions": {
@@ -89,7 +81,7 @@
     "Frequency": "0 0 * * *",
     "MinimumAgeDays": 7,
     "Statuses": [ "Completed" ],
-    "ExcludeFunctions": [ "MigratingFrameRangeFilesAsync", "UpdateInstancesAsync" ]
+    "ExcludeFunctions": [ "MigratingFrameRangeFilesAsync", "UpdateInstancesAsync", "UpdateInstancesV2Async" ]
   },
   "SqlServer": {
     "Retry": {
@@ -99,6 +91,15 @@
         "DeltaTime": "00:00:01",
         "MaxTimeInterval": "00:00:20"
       }
+    }
+  },
+  "ExternalBlobStore": {
+    "BlobContainerUri": null,
+    "StorageDirectory": "DICOM/"
+  },
+  "DicomServer": {
+    "Features": {
+      "EnableExternalStore": false
     }
   }
 }

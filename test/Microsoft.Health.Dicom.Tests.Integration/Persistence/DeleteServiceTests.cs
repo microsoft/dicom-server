@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
+using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
 using Xunit;
 
 namespace Microsoft.Health.Dicom.Tests.Integration.Persistence;
@@ -73,6 +75,11 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
                 FileProperties fileProperties = await _fixture.FileStore.StoreFileAsync(version, Partition.DefaultName, stream);
 
                 Assert.NotNull(fileProperties);
+
+                await _fixture.IndexDataStore.EndCreateInstanceIndexAsync(1, newDataSet, version, fileProperties);
+
+                // ensure properties were saved
+                Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(version));
             }
 
             var file = await _fixture.FileStore.GetFileAsync(version, Partition.DefaultName);
@@ -83,7 +90,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         return versionedDicomInstanceIdentifier;
     }
 
-    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier)
+    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob = false)
     {
         Assert.True(success);
         Assert.Equal(1, retrievedInstanceCount);
@@ -92,6 +99,12 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.Partition.Name));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
+        if (persistBlob)
+        {
+            // ensure properties were deleted
+            IReadOnlyList<FileProperty> fileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(versionedInstanceIdentifier.Version);
+            Assert.Empty(fileProperties);
+        }
     }
 
     private static DicomDataset CreateValidMetadataDataset()

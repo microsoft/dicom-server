@@ -15,7 +15,6 @@
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="OpenTelemetry.Api" />
     <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />

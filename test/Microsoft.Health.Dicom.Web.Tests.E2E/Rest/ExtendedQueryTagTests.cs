@@ -71,13 +71,11 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         Assert.True((await _v2InstanceManager.StoreAsync(new DicomFile(instance2))).IsSuccessStatusCode);
 
         // Add extended query tag
-#pragma warning disable CS0618
         Assert.Equal(
             OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(
                 new AddExtendedQueryTagEntry { Path = genderTag.GetPath(), VR = genderTag.GetDefaultVR().Code, Level = QueryTagLevel.Study },
                 new AddExtendedQueryTagEntry { Path = filmTag.GetPath(), VR = filmTag.GetDefaultVR().Code, Level = QueryTagLevel.Study }));
-#pragma warning restore CS0618
 
         // Check specific tag
         DicomWebResponse<GetExtendedQueryTagEntry> getResponse;
@@ -146,11 +144,9 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         await _v2InstanceManager.StoreAsync(new DicomFile(instance4));
 
         // Add extended query tags
-#pragma warning disable CS0618
         Assert.Equal(
             OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Path = tag.GetPath(), VR = tag.GetDefaultVR().Code, Level = QueryTagLevel.Instance }));
-#pragma warning restore CS0618
 
         // Check specific tag
         GetExtendedQueryTagEntry indexedTag = await _tagManager.GetTagAsync(tag.GetPath());
@@ -239,11 +235,9 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         await _tagManager.DeleteExtendedQueryTagAsync(tag.GetPath());
 
         // add extended query tag
-#pragma warning disable CS0618
         Assert.Equal(
             OperationStatus.Succeeded,
             await _tagManager.AddTagsAsync(new AddExtendedQueryTagEntry { Level = QueryTagLevel.Instance, Path = tag.GetPath() }));
-#pragma warning restore CS0618
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
         var dataSet = dicomFile.Dataset.NotValidated();

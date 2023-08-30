@@ -105,7 +105,7 @@ public interface IDicomOperationsClient
     /// </summary>
     /// <param name="operationId">The desired ID for the long-running update operation.</param>
     /// <param name="updateSpecification">The specification that details the update changed dataset for updating studies</param>
-    /// <param name="partitionKey">The partition containing the data to update.</param>
+    /// <param name="partition">The partition containing the data to update.</param>
     /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
     /// <returns>
     /// A task representing the <see cref="StartUpdateOperationAsync"/>
@@ -116,18 +116,5 @@ public interface IDicomOperationsClient
     /// <paramref name="updateSpecification"/> is <see langword="null"/>.
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, int partitionKey, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously migrate instance frame range files.
-    /// </summary>
-    /// <param name="operationId">The desired ID for the cleanup operation.</param>
-    /// <param name="startFilterTimeStamp">Start timestamp to filter instances.</param>
-    /// <param name="endFilterTimeStamp">End timestamp to filter instances.</param>
-    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
-    /// <returns>
-    /// A task representing the <see cref="StartMigratingFrameRangeBlobAsync"/> operation.
-    /// </returns>
-    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
-    Task StartMigratingFrameRangeBlobAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default);
+    Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, CancellationToken cancellationToken = default);
 }

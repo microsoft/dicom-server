@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -31,11 +31,17 @@ public partial class WorkItemTransactionTests
         var updateDicomDataset = new DicomDataset
         {
             { DicomTag.WorklistLabel, newWorklistLabel },
-            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
-            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
             {
-                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
-                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset
+                {
+                    { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+                    new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+                    {
+                        { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                        { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                    })
+                })
             }),
         };
 
@@ -80,11 +86,17 @@ public partial class WorkItemTransactionTests
         var updateDicomDataset = new DicomDataset
         {
             { DicomTag.WorklistLabel, newWorklistLabel },
-            { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
-            new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+            new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
             {
-                { DicomTag.ReferencedSOPClassUID, "1.2.3" },
-                { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset
+                {
+                    { DicomTag.TypeOfInstances, "SAMPLETYPEOFINST" },
+                    new DicomSequence(DicomTag.ReferencedSOPSequence, new DicomDataset
+                    {
+                        { DicomTag.ReferencedSOPClassUID, "1.2.3" },
+                        { DicomTag.ReferencedSOPInstanceUID, "1.2.3" }
+                    })
+                })
             }),
         };
 

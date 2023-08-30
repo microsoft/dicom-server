@@ -14,7 +14,13 @@
             "defaultValue": "dicomoss.azurecr.io/dicom-cast",
             "type": "String",
             "metadata": {
-                "description": "Container image to deploy. Should be of the form repoName/imagename:tag for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+                "description": "Container image to deploy. Should be of the form repoName/imagename for images stored in public Docker Hub, or a fully qualified URI for other registries. Images from private registries require additional registry credentials."
+            }
+        },
+        "imageTag": {
+            "type": "String",
+            "metadata": {
+                "description": "Image tag. Ex: 10.0.479. You can find the latest https://github.com/microsoft/dicom-server/tags"
             }
         },
         "storageAccountSku": {
@@ -188,7 +194,7 @@
                     {
                         "name": "[variables('serviceName')]",
                         "properties": {
-                            "image": "[parameters('image')]",
+                            "image": "[concat(parameters('image'), ':', parameters('imageTag'))]",
                             "resources": {
                                 "requests": {
                                     "cpu": "[parameters('cpuCores')]",

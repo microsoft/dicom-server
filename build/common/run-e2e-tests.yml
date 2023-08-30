@@ -1,3 +1,7 @@
+parameters:
+  externalStorageTests: true
+  skipUpdateTests: true
+
 steps:
 - task: DownloadBuildArtifacts@0
   inputs:
@@ -9,10 +13,17 @@ steps:
 - script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "Category!=bvt-dp" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults" -e DicomServer__Features__EnableExternalStore="false"
   displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
+  condition: eq(${{ parameters.skipUpdateTests }}, false)
+
+- script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "Category!=bvt-dp & Category!=dicomupdate" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults" -e DicomServer__Features__EnableExternalStore="false"
+  displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll'
+  workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
+  condition: eq(${{ parameters.skipUpdateTests }}, true)
 
 - script: dotnet test "Microsoft.Health.Dicom.Web.Tests.E2E.dll" --filter "Category!=bvt-dp & Category!=dicomupdate" --logger trx --results-directory "$(Agent.TempDirectory)/TestResults" -e DicomServer__Features__EnableExternalStore="true"
   displayName: 'dotnet test Microsoft.Health.Dicom.Web.Tests.E2E.dll with EnableExternalStore'
   workingDirectory: '$(System.ArtifactsDirectory)/IntegrationTests/Microsoft.Health.Dicom.Web.Tests.E2E'
+  condition: eq(${{ parameters.externalStorageTests }}, true)
 
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
