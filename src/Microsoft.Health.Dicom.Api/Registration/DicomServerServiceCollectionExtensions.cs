@@ -19,6 +19,7 @@ using Microsoft.Health.Api.Features.Context;
 using Microsoft.Health.Api.Features.Cors;
 using Microsoft.Health.Api.Features.Headers;
 using Microsoft.Health.Api.Modules;
+using Microsoft.Health.Core.Features.Health;
 using Microsoft.Health.Dicom.Api.Configs;
 using Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 using Microsoft.Health.Dicom.Api.Features.Context;
@@ -32,6 +33,8 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.FellowOakDicom;
 using Microsoft.Health.Dicom.Core.Features.Routing;
 using Microsoft.Health.Dicom.Core.Registration;
+using Microsoft.Health.Encryption.Customer.Configs;
+using Microsoft.Health.Encryption.Customer.Extensions;
 using Microsoft.Health.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -45,12 +48,22 @@ public static class DicomServerServiceCollectionExtensions
     /// Add services for DICOM background workers.
     /// </summary>
     /// <param name="serverBuilder">The DICOM server builder instance.</param>
+    /// <param name="configuration">The configuration for the DICOM server.</param>
     /// <returns>The DICOM server builder instance.</returns>
-    public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder)
+    public static IDicomServerBuilder AddBackgroundWorkers(this IDicomServerBuilder serverBuilder, IConfiguration configuration)
     {
         EnsureArg.IsNotNull(serverBuilder, nameof(serverBuilder));
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
+
+        serverBuilder.Services
+            .AddCustomerKeyValidationBackgroundService(options => configuration
+                .GetSection(CustomerManagedKeyOptions.CustomerManagedKey)
+                .Bind(options))
+            .AddHealthCheckPublisher(options => configuration
+                .GetSection("HealthCheckPublisher")
+                .Bind(options));
+
         return serverBuilder;
     }
 

@@ -47,7 +47,7 @@ public class Startup
             .AddSqlServer(Configuration)
             .AddKeyVaultClient(Configuration)
             .AddAzureFunctionsClient(Configuration)
-            .AddBackgroundWorkers()
+            .AddBackgroundWorkers(Configuration)
             .AddHostedServices();
 
         AddOpenTelemetryMetrics(services);
