@@ -4,9 +4,11 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using EnsureThat;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -31,4 +33,6 @@ internal class InternalBlobClient : IBlobClient
 
     public string GetServiceStorePath(string partitionName)
         => string.Empty;
+
+    public BlobRequestConditions GetConditions(FileProperties fileProperties) => null;
 }

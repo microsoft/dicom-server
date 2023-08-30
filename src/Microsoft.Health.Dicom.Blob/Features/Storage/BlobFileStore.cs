@@ -71,7 +71,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Uri> StoreFileInBlocksAsync(
+    public async Task<FileProperties> StoreFileInBlocksAsync(
         long version,
         Partition partition,
         Stream stream,
@@ -90,6 +90,7 @@ public class BlobFileStore : IFileStore
         return await ExecuteAsync(async () =>
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
+            FileProperties fileProperties = null;
             try
             {
                 foreach ((string blockId, long blockSize) in blockLengths)
@@ -102,13 +103,20 @@ public class BlobFileStore : IFileStore
                     await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
                 }
 
-                await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
+                BlobContentInfo info = await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
+                fileProperties = new FileProperties
+                {
+                    Path = blobClient.Name,
+                    ETag = info.ETag.ToString(),
+                    ContentLength = stream.Length,
+                };
             }
             finally
             {
                 ArrayPool<byte>.Shared.Return(buffer);
             }
-            return blobClient.Uri;
+
+            return fileProperties;
         });
     }
 
@@ -116,21 +124,23 @@ public class BlobFileStore : IFileStore
     public async Task<FileProperties> UpdateFileBlockAsync(
         long version,
         Partition partition,
+        FileProperties fileProperties,
         string blockId,
         Stream stream,
         CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
         EnsureArg.IsNotNull(partition, nameof(partition));
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition.Name);
-        _logger.LogInformation("Trying to read block list for DICOM instance file with watermark '{Version}'.", version);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
+        _logger.LogInformation("Trying to read block list for DICOM instance file with path '{Path}'.", fileProperties.Path);
 
         BlockList blockList = await ExecuteAsync<BlockList>(async () => await blobClient.GetBlockListAsync(
             BlockListTypes.Committed,
             snapshot: null,
-            conditions: null,
+            conditions: null,   // GetBlockListAsync does not support IfMatch conditions to check eTag
             cancellationToken));
 
         IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
@@ -167,12 +177,15 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task<Stream> GetFileAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
+        EnsureArg.IsNotNull(partition, nameof(partition));
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
 
         var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
+        blobOpenReadOptions.Conditions = _blobClient.GetConditions(fileProperties);
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
         // todo: RetrievableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrieved.
         // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetrievableStream
@@ -230,16 +243,18 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<BinaryData> GetFileContentInRangeAsync(long version, Partition partition, FrameRange range, CancellationToken cancellationToken)
+    public async Task<BinaryData> GetFileContentInRangeAsync(long version, Partition partition, FileProperties fileProperties, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
-        BlockBlobClient blob = GetInstanceBlockBlobClient(version, partition.Name);
-        _logger.LogInformation("Trying to read DICOM instance fileContent with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
+        BlockBlobClient blob = GetInstanceBlockBlobClient(version, partition, fileProperties);
+        _logger.LogInformation("Trying to read DICOM instance fileContent with Path '{Path}' on range {Offset}-{Length}.", fileProperties.Path, range.Offset, range.Length);
 
         var blobDownloadOptions = new BlobDownloadOptions
         {
-            Range = new HttpRange(range.Offset, range.Length)
+            Range = new HttpRange(range.Offset, range.Length),
+            Conditions = _blobClient.GetConditions(fileProperties),
         };
 
         return await ExecuteAsync(async () =>
@@ -250,15 +265,20 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, Partition partition, CancellationToken cancellationToken = default)
+    public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition.Name);
-        _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' firstBlock.", version);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
+        _logger.LogInformation("Trying to read DICOM instance file with path '{Path}' firstBlock.", fileProperties.Path);
 
         return await ExecuteAsync(async () =>
         {
-            BlockList blockList = await blobClient.GetBlockListAsync(BlockListTypes.Committed, snapshot: null, conditions: null, cancellationToken);
+            BlockList blockList = await blobClient.GetBlockListAsync(
+                BlockListTypes.Committed,
+                snapshot: null,
+                conditions: null, // GetBlockListAsync does not support IfMatch conditions to check eTag
+                cancellationToken);
 
             if (!blockList.CommittedBlocks.Any())
                 throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
@@ -269,24 +289,48 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, CancellationToken cancellationToken)
+    public async Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
-        var blobClient = GetInstanceBlockBlobClient(originalVersion, partition.Name);
+        var blobClient = GetInstanceBlockBlobClient(originalVersion, partition, fileProperties);
         var copyBlobClient = GetInstanceBlockBlobClient(newVersion, partition.Name);
-        _logger.LogInformation("Trying to copy DICOM instance file with watermark '{Version}' to new watermark '{NewVersion}.", originalVersion, newVersion);
+        _logger.LogInformation("Trying to copy DICOM instance file from path '{Path}' to new path with watermark'{NewVersion}'.", fileProperties.Path, newVersion);
 
-        if (!await copyBlobClient.ExistsAsync(cancellationToken))
-        {
-            var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: null, cancellationToken);
-            await operation.WaitForCompletionAsync(cancellationToken);
-        }
+        await ExecuteAsync(async () =>
+           {
+               BlobCopyFromUriOptions options = new BlobCopyFromUriOptions();
+               options.SourceConditions = _blobClient.GetConditions(fileProperties);
+
+               if (!await copyBlobClient.ExistsAsync(cancellationToken))
+               {
+                   var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: options, cancellationToken);
+                   return await operation.WaitForCompletionAsync(cancellationToken);
+               }
+
+               return null;
+           });
     }
 
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, string partitionName)
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
         string fullPath = _blobClient.GetServiceStorePath(partitionName) + blobName;
+        // does not throw, just appends uri with blobName
+        return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
+    }
+
+    protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, Partition partition, FileProperties fileProperties)
+    {
+        EnsureArg.IsNotNull(partition, nameof(partition));
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
+        if (_blobClient.IsExternal)
+        {
+            // does not throw, just appends uri with blobName
+            return _blobClient.BlobContainerClient.GetBlockBlobClient(fileProperties.Path);
+        }
+        string blobName = _nameWithPrefix.GetInstanceFileName(version);
+        string fullPath = _blobClient.GetServiceStorePath(partition.Name) + blobName;
         // does not throw, just appends uri with blobName
         return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
@@ -312,5 +356,23 @@ public class BlobFileStore : IFileStore
             _logger.LogError(ex, "Access to storage account failed");
             throw new DataStoreException(ex, _blobClient.IsExternal);
         }
+    }
+
+    public IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, int stageBlockSizeInBytes)
+    {
+        var blockLengths = new Dictionary<string, long>();
+        long fileSizeWithoutFirstBlock = streamLength - initialBlockLength;
+        int numStagesWithoutFirstBlock = (int)Math.Ceiling((double)fileSizeWithoutFirstBlock / stageBlockSizeInBytes) + 1;
+
+        long bytesRead = 0;
+        for (int i = 0; i < numStagesWithoutFirstBlock; i++)
+        {
+            long blockSize = i == 0 ? initialBlockLength : Math.Min(stageBlockSizeInBytes, streamLength - bytesRead);
+            string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            blockLengths.Add(blockId, blockSize);
+            bytesRead += blockSize;
+        }
+
+        return blockLengths;
     }
 }

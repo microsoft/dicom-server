@@ -25,32 +25,6 @@ namespace Microsoft.Health.Dicom.Functions.Update;
 
 public partial class UpdateDurableFunction
 {
-    /// <summary>
-    /// Asynchronously update instance new watermark.
-    /// </summary>
-    /// <param name="arguments">BatchUpdateArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="UpdateInstanceWatermarkAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(UpdateInstanceWatermarkAsync))]
-    [Obsolete("To be removed with V1 cleanup.")]
-    public async Task<IEnumerable<InstanceFileState>> UpdateInstanceWatermarkAsync([ActivityTrigger] UpdateInstanceWatermarkArguments arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        var metadataList = await UpdateInstanceWatermarkV2Async(
-            new UpdateInstanceWatermarkArgumentsV2(new Partition(arguments.PartitionKey, Partition.UnknownName), arguments.StudyInstanceUid),
-            logger);
-        return metadataList.Select(x => new InstanceFileState
-        {
-            Version = x.VersionedInstanceIdentifier.Version,
-            OriginalVersion = x.InstanceProperties.OriginalVersion,
-            NewVersion = x.InstanceProperties.NewVersion
-        });
-    }
 
     /// <summary>
     /// Asynchronously update instance new watermark.
@@ -77,67 +51,6 @@ public partial class UpdateDurableFunction
         logger.LogInformation("Beginning to update all instance watermarks");
 
         return instanceMetadata;
-    }
-
-    /// <summary>
-    /// Asynchronously batches the instance watermarks and calls the update instance.
-    /// </summary>
-    /// <param name="arguments">BatchUpdateArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="UpdateInstanceBlobsAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(UpdateInstanceBlobsAsync))]
-    [Obsolete("To be removed with V1 cleanup.")]
-    public async Task UpdateInstanceBlobsAsync([ActivityTrigger] UpdateInstanceBlobArguments arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        EnsureArg.IsNotNull(arguments.ChangeDataset, nameof(arguments.ChangeDataset));
-        EnsureArg.IsNotNull(arguments.InstanceWatermarks, nameof(arguments.InstanceWatermarks));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        DicomDataset datasetToUpdate = GetDeserialzedDataset(arguments.ChangeDataset);
-
-        int processed = 0;
-
-        logger.LogInformation("Beginning to update all instance blobs, Total count {TotalCount}", arguments.InstanceWatermarks.Count);
-
-        while (processed < arguments.InstanceWatermarks.Count)
-        {
-            int batchSize = Math.Min(_options.BatchSize, arguments.InstanceWatermarks.Count - processed);
-            var batch = arguments.InstanceWatermarks.Skip(processed).Take(batchSize).ToList();
-
-            logger.LogInformation("Beginning to update instance blobs for range [{Start}, {End}]. Total batch size {BatchSize}.",
-                    batch[0],
-                    batch[^1],
-                    batchSize);
-
-            await Parallel.ForEachAsync(
-                batch,
-                new ParallelOptions
-                {
-                    CancellationToken = default,
-                    MaxDegreeOfParallelism = _options.MaxParallelThreads,
-                },
-                async (instance, token) =>
-                {
-                    await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, new Partition(arguments.PartitionKey, Partition.UnknownName), token);
-                });
-
-            logger.LogInformation("Completed updating instance blobs starting with [{Start}, {End}]. Total batchSize {BatchSize}.",
-                batch[0],
-                batch[^1],
-                batchSize);
-
-            processed += batchSize;
-        }
-
-        logger.LogInformation("Completed updating all instance blobs");
-
-        // await UpdateInstanceBlobsV2Async(arguments, logger);
     }
 
     /// <summary>
@@ -188,7 +101,7 @@ public partial class UpdateDurableFunction
                 },
                 async (instance, token) =>
                 {
-                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance.ToInstanceFileState(), datasetToUpdate, arguments.Partition, token);
+                    FileProperties fileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(instance, datasetToUpdate, arguments.Partition, token);
                     updatedInstances.Add(
                         new InstanceMetadata(
                             instance.VersionedInstanceIdentifier,
@@ -210,27 +123,6 @@ public partial class UpdateDurableFunction
 
         logger.LogInformation("Completed updating all instance blobs");
         return updatedInstances;
-    }
-
-    /// <summary>
-    /// Asynchronously commits all the instances in a study and creates new entries for changefeed.
-    /// </summary>
-    /// <param name="arguments">CompleteInstanceArguments</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CompleteUpdateStudyAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(CompleteUpdateStudyAsync))]
-    [Obsolete("To be removed with V1 cleanup.")]
-    public Task CompleteUpdateStudyAsync([ActivityTrigger] CompleteStudyArguments arguments, ILogger logger)
-    {
-        EnsureArg.IsNotNull(arguments, nameof(arguments));
-        return CompleteUpdateStudyV2Async(
-            new CompleteStudyArgumentsV2(arguments.PartitionKey, arguments.StudyInstanceUid, arguments.ChangeDataset, Array.Empty<InstanceMetadata>()),
-            logger);
     }
 
     /// <summary>
@@ -276,27 +168,6 @@ public partial class UpdateDurableFunction
     /// <summary>
     /// Asynchronously delete all the old blobs if it has more than 2 version.
     /// </summary>
-    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="DeleteOldVersionBlobAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(DeleteOldVersionBlobAsync))]
-    [Obsolete("To be removed with V1 cleanup.")]
-    public Task DeleteOldVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-
-        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
-        return DeleteOldVersionBlobV2Async(new CleanupBlobArguments(fileIdentifiers, Partition.Default), logger);
-    }
-
-    /// <summary>
-    /// Asynchronously delete all the old blobs if it has more than 2 version.
-    /// </summary>
     /// <param name="arguments">Activity context which has list of watermarks to cleanup</param>
     /// <param name="logger">A diagnostic logger.</param>
     /// <returns>
@@ -331,27 +202,6 @@ public partial class UpdateDurableFunction
             });
 
         logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
-    }
-
-    /// <summary>
-    /// Asynchronously delete the new blob when there is a failure while updating the study instances.
-    /// </summary>
-    /// <param name="context">Activity context which has list of watermarks to cleanup</param>
-    /// <param name="logger">A diagnostic logger.</param>
-    /// <returns>
-    /// A task representing the <see cref="CleanupNewVersionBlobAsync"/> operation.
-    /// </returns>
-    /// <exception cref="ArgumentNullException">
-    /// <paramref name="context"/> or <paramref name="logger"/> is <see langword="null"/>.
-    /// </exception>
-    [FunctionName(nameof(CleanupNewVersionBlobAsync))]
-    [Obsolete("To be removed with V1 cleanup.")]
-    public Task CleanupNewVersionBlobAsync([ActivityTrigger] IDurableActivityContext context, ILogger logger)
-    {
-        EnsureArg.IsNotNull(context, nameof(context));
-
-        IReadOnlyList<InstanceFileState> fileIdentifiers = context.GetInput<IReadOnlyList<InstanceFileState>>();
-        return CleanupNewVersionBlobV2Async(new CleanupBlobArguments(fileIdentifiers, Partition.Default), logger);
     }
 
     /// <summary>

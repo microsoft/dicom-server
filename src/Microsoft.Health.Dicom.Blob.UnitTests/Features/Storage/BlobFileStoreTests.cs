@@ -240,6 +240,8 @@ public class BlobFileStoreTests
         {
             return "internal/";
         }
+
+        public BlobRequestConditions GetConditions(FileProperties fileProperties) => null;
     }
 
 }
