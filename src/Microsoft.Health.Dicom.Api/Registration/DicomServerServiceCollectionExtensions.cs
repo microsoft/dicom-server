@@ -56,15 +56,13 @@ public static class DicomServerServiceCollectionExtensions
         serverBuilder.Services.AddScoped<DeletedInstanceCleanupWorker>();
         serverBuilder.Services.AddHostedService<DeletedInstanceCleanupBackgroundService>();
 
-        serverBuilder.Services.AddCustomerKeyValidationBackgroundService(options =>
-        {
-            configuration.GetSection(CustomerManagedKeyOptions.CustomerManagedKey).Bind(options);
-        });
-
-        serverBuilder.Services.AddHealthCheckPublisher(options =>
-        {
-            configuration.GetSection("HealthCheckPublisher").Bind(options);
-        });
+        serverBuilder.Services
+            .AddCustomerKeyValidationBackgroundService(options => configuration
+                .GetSection(CustomerManagedKeyOptions.CustomerManagedKey)
+                .Bind(options))
+            .AddHealthCheckPublisher(options => configuration
+                .GetSection("HealthCheckPublisher")
+                .Bind(options));
 
         return serverBuilder;
     }
