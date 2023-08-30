@@ -28,7 +28,7 @@ public class DicomBlobHealthCheck<TStoreConfigurationSection> : BlobHealthCheck
     /// <param name="namedBlobContainerConfigurationAccessor">The IOptions accessor to get a named blob container version.</param>
     /// <param name="storeConfigurationSection"></param>
     /// <param name="testProvider">The test provider.</param>
-    /// <param name="customerKeyHealthCache">The publisher of the prerequisite health checks</param>
+    /// <param name="customerKeyHealthCache">The cached result of the customer key health status.</param>
     /// <param name="logger">The logger.</param>
     public DicomBlobHealthCheck(
         BlobServiceClient client,
