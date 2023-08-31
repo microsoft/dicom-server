@@ -128,7 +128,7 @@ public class UpdateInstanceService : IUpdateInstanceService
             }
 
             // Get the block lengths for the entire file in 4 MB chunks except for the first block, which will vary depends on the large item in the dataset
-            IDictionary<string, long> blockLengths = _fileStore.GetBlockLengths(stream.Length, firstBlockLength, _stageBlockSizeInBytes);
+            IDictionary<string, long> blockLengths = GetBlockLengths(stream.Length, firstBlockLength, _stageBlockSizeInBytes);
 
             _logger.LogInformation("Begin uploading instance file in blocks {OrignalFileIdentifier} - {NewFileIdentifier}", originFileIdentifier, newFileIdentifier);
 
@@ -196,6 +196,24 @@ public class UpdateInstanceService : IUpdateInstanceService
 
         _logger.LogInformation("Updating new file {NewFileIdentifier} completed successfully. {TotalTimeTakenInMs} ms", newFileIdentifier, stopwatch.ElapsedMilliseconds);
         return updatedFileProperties;
+    }
+
+    public static IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, long stageBlockSizeInBytes)
+    {
+        var blockLengths = new Dictionary<string, long>();
+        long fileSizeWithoutFirstBlock = streamLength - initialBlockLength;
+        int numStagesWithoutFirstBlock = (int)Math.Ceiling((double)fileSizeWithoutFirstBlock / stageBlockSizeInBytes) + 1;
+
+        long bytesRead = 0;
+        for (int i = 0; i < numStagesWithoutFirstBlock; i++)
+        {
+            long blockSize = i == 0 ? initialBlockLength : Math.Min(stageBlockSizeInBytes, streamLength - bytesRead);
+            string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            blockLengths.Add(blockId, blockSize);
+            bytesRead += blockSize;
+        }
+
+        return blockLengths;
     }
 
     // Removes all items in the list after the specified item tag

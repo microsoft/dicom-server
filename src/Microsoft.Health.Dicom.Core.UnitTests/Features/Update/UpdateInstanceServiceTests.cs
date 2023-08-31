@@ -41,6 +41,16 @@ public class UpdateInstanceServiceTests
         Path = "default/path/0.dcm",
         ETag = "123"
     };
+    private static readonly FileProperties DefaultCopiedFileProperties = new FileProperties()
+    {
+        Path = "default/path/1.dcm",
+        ETag = "456"
+    };
+    private static readonly FileProperties DefaultUpdatedFileProperties = new FileProperties()
+    {
+        Path = "default/path/1.dcm",
+        ETag = "789"
+    };
     private static readonly InstanceMetadata DefaultInstanceMetadata = new InstanceMetadata(
         new VersionedInstanceIdentifier(
         TestUidGenerator.Generate(),
@@ -108,6 +118,7 @@ public class UpdateInstanceServiceTests
     [Fact]
     public async Task GivenValidInput_WhenCallingUpdateBlobAsync_ShouldCallUpdateInstanceFileAsync_AndUpdateInstanceMetadataAsync()
     {
+        // data setup
         long fileIdentifier = 123;
         long newFileIdentifier = 456;
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(version: fileIdentifier, newVersion: newFileIdentifier);
@@ -128,37 +139,35 @@ public class UpdateInstanceServiceTests
         var binaryData = await BinaryData.FromStreamAsync(copyStream);
         copyStream.Position = 0;
 
+        // all calls for updating the blob
         _fileStore.GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken).Returns(streamAndStoredFile.Value);
+        _fileStore.StoreFileInBlocksAsync(
+                newFileIdentifier,
+                Partition.Default,
+                Arg.Any<Stream>(),
+                Arg.Any<IDictionary<string, long>>(),
+                cancellationToken)
+            .Returns(DefaultCopiedFileProperties);
+        _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
+        _fileStore.UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken).Returns(DefaultUpdatedFileProperties);
+
+        // calls for updating the metadata
         _metadataStore.GetInstanceMetadataAsync(fileIdentifier, cancellationToken).Returns(streamAndStoredFile.Key.Dataset);
         _metadataStore.StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken).Returns(Task.CompletedTask);
-        _fileStore.GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, Arg.Any<FrameRange>(), cancellationToken).Returns(binaryData);
-        _fileStore.UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, Arg.Any<string>(), copyStream, cancellationToken).Returns(DefaultFileProperties);
 
-        _fileStore.StoreFileInBlocksAsync(
-            newFileIdentifier,
-            Partition.Default,
-            Arg.Any<Stream>(),
-            Arg.Any<IDictionary<string, long>>(),
-            cancellationToken)
-         .Returns(DefaultFileProperties);
+        // test
+        FileProperties returnedFileProperties = await _updateInstanceService.UpdateInstanceBlobAsync(versionedInstanceIdentifiers.First(), datasetToUpdate, Partition.Default, cancellationToken);
 
-        FileProperties result = await _updateInstanceService.UpdateInstanceBlobAsync(versionedInstanceIdentifiers.First(), datasetToUpdate, Partition.Default, cancellationToken);
-
-        Assert.Null(result); // file properties should only be passed along when external store is enabled
-
+        // assert
+        // file properties with updated etag of copied file returned external store is enabled
+        Assert.Equal(DefaultUpdatedFileProperties.Path, returnedFileProperties.Path);
+        Assert.Equal(DefaultUpdatedFileProperties.ETag, returnedFileProperties.ETag);
+        // since our file had not been previously copied, we do not just update an already existing file
         await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
+        //  since our file had not been previously copied, we create a new file
         await _fileStore.Received(1).GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
-        await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
-        await _metadataStore.Received(1).StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken);
-        await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, Arg.Any<FrameRange>(), cancellationToken);
-        await _fileStore.Received(1).UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultFileProperties, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken);
-        await _fileStore.Received(1).StoreFileInBlocksAsync(
-            newFileIdentifier,
-            Partition.Default,
-            Arg.Any<Stream>(),
-            Arg.Is<IDictionary<string, long>>(x => x.Count == 1),
-            cancellationToken);
 
+        // cleanup
         streamAndStoredFile.Value.Dispose();
         copyStream.Dispose();
     }

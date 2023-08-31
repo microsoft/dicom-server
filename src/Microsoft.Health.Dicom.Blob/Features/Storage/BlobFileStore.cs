@@ -357,22 +357,4 @@ public class BlobFileStore : IFileStore
             throw new DataStoreException(ex, _blobClient.IsExternal);
         }
     }
-
-    public IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, int stageBlockSizeInBytes)
-    {
-        var blockLengths = new Dictionary<string, long>();
-        long fileSizeWithoutFirstBlock = streamLength - initialBlockLength;
-        int numStagesWithoutFirstBlock = (int)Math.Ceiling((double)fileSizeWithoutFirstBlock / stageBlockSizeInBytes) + 1;
-
-        long bytesRead = 0;
-        for (int i = 0; i < numStagesWithoutFirstBlock; i++)
-        {
-            long blockSize = i == 0 ? initialBlockLength : Math.Min(stageBlockSizeInBytes, streamLength - bytesRead);
-            string blockId = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-            blockLengths.Add(blockId, blockSize);
-            bytesRead += blockSize;
-        }
-
-        return blockLengths;
-    }
 }

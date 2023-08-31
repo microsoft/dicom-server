@@ -133,13 +133,4 @@ public interface IFileStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// USe to retrieve block length by blockId for a stream
-    /// </summary>
-    /// <param name="streamLength">Length of stream</param>
-    /// <param name="initialBlockLength">Initial block length</param>
-    /// <param name="stageBlockSizeInBytes">Stage block size in bytes</param>
-    /// <returns>dictionary of blockId and blockLength</returns>
-    IDictionary<string, long> GetBlockLengths(long streamLength, long initialBlockLength, int stageBlockSizeInBytes);
 }

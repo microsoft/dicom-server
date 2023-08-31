@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.IO;
 using Xunit;
 
@@ -175,7 +176,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
-            return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, _blobDataStore.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
+            return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, UpdateInstanceService.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
         }
     }
 }
