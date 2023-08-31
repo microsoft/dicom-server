@@ -67,6 +67,8 @@ public partial class UpdateDurableFunction
 
             if (instances.Count > 0)
             {
+                bool isFailedToUpdateStudy = false;
+
                 try
                 {
                     instanceMetadataList = await context.CallActivityWithRetryAsync<IReadOnlyList<InstanceMetadata>>(
@@ -83,6 +85,8 @@ public partial class UpdateDurableFunction
                 }
                 catch (FunctionFailedException ex)
                 {
+                    isFailedToUpdateStudy = true;
+
                     logger.LogError(ex, "Failed to update instances for study", ex);
                     var errors = new List<string>
                     {
@@ -99,6 +103,19 @@ public partial class UpdateDurableFunction
                     // Cleanup the new version when the update activity fails
                     await TryCleanupActivityV2(context, instanceWatermarks, input.Partition);
                 }
+
+                if (!isFailedToUpdateStudy)
+                {
+                    await context.CallActivityWithRetryAsync(
+                        nameof(DeleteOldVersionBlobV2Async),
+                        _options.RetryOptions,
+                        new CleanupBlobArguments(instanceWatermarks, input.Partition));
+
+                    await context.CallActivityWithRetryAsync(
+                        nameof(SetOriginalBlobToColdAccessTierAsync),
+                        _options.RetryOptions,
+                        new CleanupBlobArguments(instanceWatermarks, input.Partition));
+                }
             }
 
             var numberOfStudyCompleted = input.NumberOfStudyCompleted + 1;
@@ -106,13 +123,6 @@ public partial class UpdateDurableFunction
             if (input.TotalNumberOfStudies != numberOfStudyCompleted)
             {
                 logger.LogInformation("Completed updating the instances for a study. {Updated}. Continuing with new execution...", instances.Count);
-            }
-            else
-            {
-                await context.CallActivityWithRetryAsync(
-                    nameof(DeleteOldVersionBlobV2Async),
-                    _options.RetryOptions,
-                    new CleanupBlobArguments(instanceWatermarks, input.Partition));
             }
 
             context.ContinueAsNew(

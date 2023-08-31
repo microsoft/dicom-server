@@ -312,6 +312,19 @@ public class BlobFileStore : IFileStore
            });
     }
 
+    /// <inheritdoc />
+    public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsNotNull(partition, nameof(partition));
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition.Name);
+        _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
+
+        await ExecuteAsync(async () =>
+        {
+            return await blobClient.SetAccessTierAsync(AccessTier.Cold, cancellationToken: cancellationToken);
+        });
+    }
+
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, string partitionName)
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);

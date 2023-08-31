@@ -95,7 +95,13 @@ public partial class UpdateDurableFunctionTests
             .CallActivityWithRetryAsync(
                 nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
-                expectedInstances)
+                Arg.Any<CleanupBlobArguments>())
+            .Returns(Task.CompletedTask);
+        context
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
@@ -124,6 +130,18 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.CompleteUpdateStudyV2Async),
                 _options.RetryOptions,
                 Arg.Any<CompleteStudyArgumentsV2>());
+        await context
+            .Received(1)
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>());
+        await context
+            .Received(1)
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>());
         context
             .Received(1)
             .ContinueAsNew(
@@ -200,6 +218,12 @@ public partial class UpdateDurableFunctionTests
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
+        context
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>())
+            .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
         await _updateDurableFunctionWithExternalStore.UpdateInstancesV2Async(context, NullLogger.Instance);
@@ -232,6 +256,18 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Is<UpdateCheckpoint>(x => x.NumberOfStudyCompleted == 1),
                 false);
+        await context
+            .Received(1)
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>());
+        await context
+            .Received(1)
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>());
     }
 
     private static List<InstanceMetadata> CreateExpectedInstanceMetadataList(List<InstanceFileState> expectedInstancesWithNewWatermark, string studyInstanceUid = "0")
@@ -315,6 +351,12 @@ public partial class UpdateDurableFunctionTests
                 nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
                 _options.RetryOptions,
                 expectedInstances)
+            .Returns(Task.CompletedTask);
+        context
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>())
             .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
@@ -406,6 +448,12 @@ public partial class UpdateDurableFunctionTests
                 _options.RetryOptions,
                 expectedInstances)
             .Returns(Task.CompletedTask);
+        context
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>())
+            .Returns(Task.CompletedTask);
 
         // Invoke the orchestration
         await _updateDurableFunction.UpdateInstancesV2Async(context, NullLogger.Instance);
@@ -437,6 +485,18 @@ public partial class UpdateDurableFunctionTests
             .ContinueAsNew(
                 Arg.Any<UpdateCheckpoint>(),
                 false);
+        await context
+            .DidNotReceive()
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.DeleteOldVersionBlobV2Async),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>());
+        await context
+            .DidNotReceive()
+            .CallActivityWithRetryAsync(
+                nameof(UpdateDurableFunction.SetOriginalBlobToColdAccessTierAsync),
+                _options.RetryOptions,
+                Arg.Any<CleanupBlobArguments>());
 
         _meterProvider.ForceFlush();
         Assert.Empty(_exportedItems.Where(item => item.Name.Equals(_updateMeter.UpdatedInstances.Name, StringComparison.Ordinal)));
