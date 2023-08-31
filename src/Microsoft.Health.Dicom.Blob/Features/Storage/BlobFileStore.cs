@@ -131,11 +131,10 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(stream, nameof(stream));
         EnsureArg.IsNotNull(partition, nameof(partition));
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read block list for DICOM instance file with path '{Path}'.", fileProperties.Path);
+        _logger.LogInformation("Trying to read block list for DICOM instance file with path '{Path}'.", blobClient.Name);
 
         BlockList blockList = await ExecuteAsync<BlockList>(async () => await blobClient.GetBlockListAsync(
             BlockListTypes.Committed,
@@ -179,7 +178,6 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task<Stream> GetFileAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
@@ -246,10 +244,9 @@ public class BlobFileStore : IFileStore
     public async Task<BinaryData> GetFileContentInRangeAsync(long version, Partition partition, FileProperties fileProperties, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blob = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read DICOM instance fileContent with Path '{Path}' on range {Offset}-{Length}.", fileProperties.Path, range.Offset, range.Length);
+        _logger.LogInformation("Trying to read DICOM instance fileContent with Path '{Path}' on range {Offset}-{Length}.", blob.Name, range.Offset, range.Length);
 
         var blobDownloadOptions = new BlobDownloadOptions
         {
@@ -267,10 +264,9 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read DICOM instance file with path '{Path}' firstBlock.", fileProperties.Path);
+        _logger.LogInformation("Trying to read DICOM instance file with path '{Path}' firstBlock.", blobClient.Name);
 
         return await ExecuteAsync(async () =>
         {
@@ -291,11 +287,10 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         EnsureArg.IsNotNull(partition, nameof(partition));
         var blobClient = GetInstanceBlockBlobClient(originalVersion, partition, fileProperties);
         var copyBlobClient = GetInstanceBlockBlobClient(newVersion, partition.Name);
-        _logger.LogInformation("Trying to copy DICOM instance file from path '{Path}' to new path with watermark'{NewVersion}'.", fileProperties.Path, newVersion);
+        _logger.LogInformation("Trying to copy DICOM instance file from path '{Path}' to new path with watermark'{NewVersion}'.", blobClient.Name, newVersion);
 
         await ExecuteAsync(async () =>
            {
@@ -336,9 +331,9 @@ public class BlobFileStore : IFileStore
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, Partition partition, FileProperties fileProperties)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
-        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
         if (_blobClient.IsExternal)
         {
+            EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
             // does not throw, just appends uri with blobName
             return _blobClient.BlobContainerClient.GetBlockBlobClient(fileProperties.Path);
         }

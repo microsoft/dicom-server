@@ -22,6 +22,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly IFileStore _blobDataStore;
     private readonly Func<int> _getNextWatermark;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private static string ConditionNotMetMessage => "Received the following error code: ConditionNotMet";
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
     {
@@ -119,8 +120,6 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
     }
 
-
-
     [Fact]
     public async Task GivenFileWithETag_WhenOperatingOnFileWithDifferentETagForCondition_ThenExpectExceptions()
     {
@@ -140,8 +139,6 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         var copyFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.CopyFileAsync(version, _getNextWatermark(), Partition.Default, badFileProperties));
         Assert.Contains(ConditionNotMetMessage, copyFileEx.Message);
     }
-
-    private static string ConditionNotMetMessage => "Received the following error code: ConditionNotMet";
 
     [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenDataStoreRequestFailedExceptionShouldBeThrown()

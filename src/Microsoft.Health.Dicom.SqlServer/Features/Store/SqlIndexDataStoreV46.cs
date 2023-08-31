@@ -12,6 +12,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -65,8 +66,8 @@ internal class SqlIndexDataStoreV46 : SqlIndexDataStoreV44
                                VLatest.Instance.HasFrameMetadata,
                                VLatest.Instance.OriginalWatermark,
                                VLatest.Instance.NewWatermark,
-                               VLatest.FileProperty.FilePath,
-                               VLatest.FileProperty.ETag);
+                               VLatest.FileProperty.FilePath.AsNullable(),
+                               VLatest.FileProperty.ETag.AsNullable());
 
                         results.Add(
                             new InstanceMetadata(
@@ -82,11 +83,9 @@ internal class SqlIndexDataStoreV46 : SqlIndexDataStoreV44
                                     HasFrameMetadata = rHasFrameMetadata,
                                     OriginalVersion = originalWatermark,
                                     NewVersion = newWatermark,
-                                    fileProperties = new FileProperties()
-                                    {
-                                        Path = filePath,
-                                        ETag = eTag
-                                    }
+                                    fileProperties = string.IsNullOrEmpty(eTag) || string.IsNullOrEmpty(filePath)
+                                        ? null
+                                        : new FileProperties { ETag = eTag, Path = filePath }
                                 }));
                     }
                 }
