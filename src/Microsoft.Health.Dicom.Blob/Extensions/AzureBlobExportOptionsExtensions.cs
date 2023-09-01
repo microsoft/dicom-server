@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -7,7 +7,7 @@ using System;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using EnsureThat;
-using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Core.Features.Identity;
 using Microsoft.Health.Dicom.Core.Models.Export;
 
 namespace Microsoft.Health.Dicom.Blob.Extensions;
@@ -16,7 +16,7 @@ internal static class AzureBlobExportOptionsExtensions
 {
     public static BlobContainerClient GetBlobContainerClient(
         this AzureBlobExportOptions exportOptions,
-        IExternalOperationCredentialProvider credentialProvider,
+        IExternalCredentialProvider credentialProvider,
         BlobClientOptions options)
     {
         EnsureArg.IsNotNull(exportOptions, nameof(exportOptions));

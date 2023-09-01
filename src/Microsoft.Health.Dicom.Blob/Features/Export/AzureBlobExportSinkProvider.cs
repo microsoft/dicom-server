@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,6 +13,7 @@ using EnsureThat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Core.Features.Identity;
 using Microsoft.Health.Dicom.Blob.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Export;
@@ -30,7 +31,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     private readonly ISecretStore _secretStore;
     private readonly IFileStore _fileStore;
-    private readonly IExternalOperationCredentialProvider _credentialProvider;
+    private readonly IExternalCredentialProvider _credentialProvider;
     private readonly AzureBlobExportSinkProviderOptions _providerOptions;
     private readonly AzureBlobClientOptions _clientOptions;
     private readonly BlobOperationOptions _operationOptions;
@@ -39,7 +40,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
 
     public AzureBlobExportSinkProvider(
         IFileStore fileStore,
-        IExternalOperationCredentialProvider credentialProvider,
+        IExternalCredentialProvider credentialProvider,
         IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
         IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
         IOptionsSnapshot<BlobOperationOptions> operationOptions,
@@ -58,7 +59,7 @@ internal sealed class AzureBlobExportSinkProvider : ExportSinkProvider<AzureBlob
     public AzureBlobExportSinkProvider(
         ISecretStore secretStore,
         IFileStore fileStore,
-        IExternalOperationCredentialProvider credentialProvider,
+        IExternalCredentialProvider credentialProvider,
         IOptionsSnapshot<AzureBlobExportSinkProviderOptions> providerOptions,
         IOptionsSnapshot<AzureBlobClientOptions> clientOptions,
         IOptionsSnapshot<BlobOperationOptions> operationOptions,
