@@ -16,6 +16,7 @@ using Azure.Storage;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Core.Features.Identity;
 using Microsoft.Health.Dicom.Blob.Features.Export;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -32,7 +33,7 @@ public class AzureBlobExportSinkProviderTests
 {
     private readonly ISecretStore _secretStore;
     private readonly IFileStore _fileStore;
-    private readonly IExternalOperationCredentialProvider _credentialProvider;
+    private readonly IExternalCredentialProvider _credentialProvider;
     private readonly AzureBlobExportSinkProviderOptions _providerOptions;
     private readonly AzureBlobClientOptions _clientOptions;
     private readonly BlobOperationOptions _operationOptions;
@@ -44,7 +45,7 @@ public class AzureBlobExportSinkProviderTests
     {
         _secretStore = Substitute.For<ISecretStore>();
         _fileStore = Substitute.For<IFileStore>();
-        _credentialProvider = Substitute.For<IExternalOperationCredentialProvider>();
+        _credentialProvider = Substitute.For<IExternalCredentialProvider>();
         _providerOptions = new AzureBlobExportSinkProviderOptions { AllowPublicAccess = true, AllowSasTokens = true };
         _clientOptions = new AzureBlobClientOptions();
         _operationOptions = new BlobOperationOptions { Upload = new StorageTransferOptions() };
