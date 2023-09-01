@@ -181,7 +181,7 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.TryAddSingleton<IExternalCredentialProvider, DefaultExternalCredentialProvider>();
+        services.AddExternalCredentialProvider();
 
         services.AddSingleton<DeleteMeter>();
         services.AddSingleton<RetrieveMeter>();
