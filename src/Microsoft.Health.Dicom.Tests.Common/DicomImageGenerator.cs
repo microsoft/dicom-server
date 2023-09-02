@@ -1,9 +1,10 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.IO;
 using FellowOakDicom;
 using FellowOakDicom.Imaging;
 using FellowOakDicom.Imaging.Codec;
@@ -102,10 +103,12 @@ public class DicomImageGenerator
 
         for (int i = 0; i < frames; i++)
         {
-            var buffer = new MemoryByteBuffer(
-                (bitDepth == TestFileBitDepth.SixteenBit)
+            byte[] bytes = (bitDepth == TestFileBitDepth.SixteenBit)
                     ? GetBytesFor16BitImage(rows, cols, i)
-                    : GetBytesFor8BitImage(rows, cols, i));
+                    : GetBytesFor8BitImage(rows, cols, i);
+            var stream = new MemoryStream();
+            stream.Write(bytes, 0, bytes.Length);
+            var buffer = new StreamByteBuffer(stream, 0, bytes.Length);
 
             pixelData.AddFrame(buffer);
         }

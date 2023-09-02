@@ -255,6 +255,17 @@ public class StoreOrchestrator : IStoreOrchestrator
             size = fileByteBuffer.Size;
             result = true;
         }
+        else if (buffer is CompositeByteBuffer compositeByteBuffer)
+        {
+            foreach (var byteBuffer in compositeByteBuffer.Buffers)
+            {
+                if (TryGetBufferPosition(byteBuffer, out position, out size))
+                {
+                    result = true;
+                    break;
+                }
+            }
+        }
         return result;
     }
 }
