@@ -16,9 +16,12 @@ public sealed class RetrieveMeter : IDisposable
     {
         _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Retrieve", "1.0");
         RetrieveInstanceCount = _meter.CreateCounter<long>(nameof(RetrieveInstanceCount), description: "Total number of instances retrieved");
+        TranscodeInstanceCount = _meter.CreateCounter<long>(nameof(TranscodeInstanceCount), description: "Count of instance transcoded");
     }
 
     public Counter<long> RetrieveInstanceCount { get; }
+
+    public Counter<long> TranscodeInstanceCount { get; }
 
     public void Dispose()
         => _meter.Dispose();

@@ -20,6 +20,7 @@ using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 
@@ -38,6 +39,7 @@ public class RetrieveResourceService : IRetrieveResourceService
     private readonly ILogger<RetrieveResourceService> _logger;
     private readonly IInstanceMetadataCache _instanceMetadataCache;
     private readonly IFramesRangeCache _framesRangeCache;
+    private readonly RetrieveMeter _retrieveMeter;
 
     public RetrieveResourceService(
         IInstanceStore instanceStore,
@@ -50,6 +52,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         IInstanceMetadataCache instanceMetadataCache,
         IFramesRangeCache framesRangeCache,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
+        RetrieveMeter retrieveMeter,
         ILogger<RetrieveResourceService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -61,6 +64,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
         EnsureArg.IsNotNull(instanceMetadataCache, nameof(instanceMetadataCache));
         EnsureArg.IsNotNull(framesRangeCache, nameof(framesRangeCache));
+        _retrieveMeter = EnsureArg.IsNotNull(retrieveMeter, nameof(retrieveMeter));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
 
@@ -123,9 +127,10 @@ public class RetrieveResourceService : IRetrieveResourceService
             // transcoding of single instance
             if (needsTranscoding)
             {
-                _logger.LogInformation("Transcoding Instance");
                 FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.Partition.Name, false, cancellationToken);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
+                _logger.LogInformation("Transcoding Instance {Path} of size {ContentLength}", fileProperties.ContentLength, fileProperties.Path);
+                _retrieveMeter.TranscodeInstanceCount.Add(1, TelemetryDimension(fileProperties.ContentLength, _retrieveConfiguration.MaxDicomFileSize));
 
                 using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition.Name, cancellationToken);
                 Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
@@ -156,6 +161,13 @@ public class RetrieveResourceService : IRetrieveResourceService
             throw;
         }
     }
+
+    private static KeyValuePair<string, object>[] TelemetryDimension(long contentLength, long maxFileSize) =>
+        new[]
+        {
+            new KeyValuePair<string, object>("ContentLength", contentLength),
+            new KeyValuePair<string, object>("MaxFileSize", maxFileSize),
+        };
 
     private async Task<RetrieveResourceResponse> GetFrameResourceAsync(
         RetrieveResourceRequest message,
