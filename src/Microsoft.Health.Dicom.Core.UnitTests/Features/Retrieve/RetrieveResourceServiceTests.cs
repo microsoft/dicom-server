@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
@@ -55,6 +56,7 @@ public class RetrieveResourceServiceTests
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
     private readonly IInstanceMetadataCache _instanceMetadataCache;
     private readonly IFramesRangeCache _framesRangeCache;
+    private readonly RetrieveMeter _retrieveMeter;
 
     public RetrieveResourceServiceTests()
     {
@@ -71,6 +73,7 @@ public class RetrieveResourceServiceTests
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
         _instanceMetadataCache = Substitute.For<IInstanceMetadataCache>();
         _framesRangeCache = Substitute.For<IFramesRangeCache>();
+        _retrieveMeter = new RetrieveMeter();
 
         _metadataStore = Substitute.For<IMetadataStore>();
         _retrieveResourceService = new RetrieveResourceService(
@@ -84,6 +87,7 @@ public class RetrieveResourceServiceTests
             _instanceMetadataCache,
             _framesRangeCache,
             retrieveConfigurationSnapshot,
+            _retrieveMeter,
             _logger);
     }
 
