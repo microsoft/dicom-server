@@ -84,14 +84,13 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         var mediator = Substitute.For<IMediator>();
 
-        var sqlConnectionStringProvider = new DefaultSqlConnectionStringProvider(configOptions);
         SqlRetryLogicBaseProvider = SqlConfigurableRetryFactory.CreateExponentialRetryProvider(new SqlRetryLogicOption
         {
             NumberOfTries = 5,
             DeltaTime = TimeSpan.FromSeconds(1),
             MaxTimeInterval = TimeSpan.FromSeconds(20),
         });
-        var sqlConnectionFactory = new DefaultSqlConnectionBuilder(sqlConnectionStringProvider, SqlRetryLogicBaseProvider);
+        var sqlConnectionFactory = new DefaultSqlConnectionBuilder(configOptions, SqlRetryLogicBaseProvider);
 
         SqlTransactionHandler = new SqlTransactionHandler();
 
@@ -103,7 +102,6 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
         // TODO: Leverage DI across our XUnit projects
         IServiceProvider _schemaServices = new ServiceCollection()
-            .AddSingleton<ISqlConnectionStringProvider>(sqlConnectionStringProvider)
             .AddSingleton(SqlConnectionWrapperFactory)
             .AddSingleton<IReadOnlySchemaManagerDataStore>(schemaManagerDataStore)
             .AddSingleton(SchemaUpgradeRunner)

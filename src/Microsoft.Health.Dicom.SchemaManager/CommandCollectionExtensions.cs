@@ -77,6 +77,7 @@ public static class CommandCollectionExtensions
         {
             x.ConnectionString = config[OptionAliases.ConnectionString];
 
+#pragma warning disable CS0618 // Type or member is obsolete
             x.ManagedIdentityClientId = config[OptionAliases.ManagedIdentityClientId];
 
             string? authenticationTypeValue = config[OptionAliases.AuthenticationType];
@@ -86,6 +87,7 @@ public static class CommandCollectionExtensions
                 {
                     x.AuthenticationType = sqlServerAuthenticationType;
                 }
+#pragma warning restore CS0618 // Type or member is obsolete
             }
         });
 
