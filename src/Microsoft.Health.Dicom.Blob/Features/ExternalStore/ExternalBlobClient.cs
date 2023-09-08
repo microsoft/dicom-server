@@ -104,6 +104,7 @@ internal class ExternalBlobClient : IBlobClient
 
     public BlobRequestConditions GetConditions(FileProperties fileProperties)
     {
+        EnsureArg.IsNotNull(fileProperties);
         return new BlobRequestConditions // ensure file has not been changed since we last worked with it
         {
             IfMatch = new ETag(fileProperties.ETag),
