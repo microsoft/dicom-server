@@ -124,12 +124,11 @@ public class RetrieveResourceService : IRetrieveResourceService
                     string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceMultiInstanceTranscodingNotSupported, requestedTransferSyntax));
             }
 
-            FileProperties fileProperties = await GetFileProperties(partition, instance, version, needsTranscoding, cancellationToken: cancellationToken);
-
             // transcoding of single instance
             if (needsTranscoding)
             {
-                RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, instance.VersionedInstanceIdentifier.Partition.Name, false, fileProperties, cancellationToken);
+                FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition.Name, false, cancellationToken);
+                LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
                 using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition.Name, cancellationToken);
@@ -150,7 +149,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, cancellationToken);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, version, cancellationToken);
             return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
@@ -190,14 +189,14 @@ public class RetrieveResourceService : IRetrieveResourceService
 
         bool needsTranscoding = NeedsTranscoding(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instance);
 
-        // To get frame range metadata file, we use the original version of the instance, since we are not changing the pixel data
-        // else we use the current version.
-        long version = instance.InstanceProperties.OriginalVersion ?? instance.VersionedInstanceIdentifier.Version;
-        FileProperties fileProperties = await GetFileProperties(partition, instance, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata, cancellationToken);
         // need the entire DicomDataset for transcoding
         if (!needsTranscoding && instance.InstanceProperties.HasFrameMetadata)
         {
             _logger.LogInformation("Executing fast frame get.");
+
+            // To get frame range metadata file, we use the original version of the instance, since we are not changing the pixel data
+            // else we use the current version.
+            long version = instance.InstanceProperties.OriginalVersion ?? instance.VersionedInstanceIdentifier.Version;
 
             // get frame range
             IReadOnlyDictionary<int, FrameRange> framesRange = await _framesRangeCache.GetAsync(
@@ -218,8 +217,10 @@ public class RetrieveResourceService : IRetrieveResourceService
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
 
+        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, false, cancellationToken);
+        LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
+
         _logger.LogInformation("Downloading the entire instance for frame parsing");
-        RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, false, fileProperties, cancellationToken);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
         Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partition.Name, cancellationToken);
@@ -244,16 +245,14 @@ public class RetrieveResourceService : IRetrieveResourceService
 
     }
 
-    private async Task<FileProperties> GetFileProperties(Partition partition, InstanceMetadata instance, long version, bool needsTranscoding, bool hasFrameMetadata = false, CancellationToken cancellationToken = default)
+    private void LogFileSize(long size, long version, bool needsTranscoding, bool hasFrameMetadata = false)
     {
-        FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, false, cancellationToken);
         _logger.LogInformation(
             "Retrieving Instance for watermark {Watermark} of size {ContentLength}, isTranscoding is {NeedsTranscoding}",
-            version, fileProperties.ContentLength, needsTranscoding);
+            version, size, needsTranscoding);
         _retrieveMeter.RetrieveInstanceCount.Add(
             1,
-            RetrieveMeter.RetrieveInstanceCountTelemetryDimension(fileProperties.ContentLength, _retrieveConfiguration.MaxDicomFileSize, isTranscoding: needsTranscoding, hasFrameMetadata: hasFrameMetadata));
-        return fileProperties;
+            RetrieveMeter.RetrieveInstanceCountTelemetryDimension(size, _retrieveConfiguration.MaxDicomFileSize, isTranscoding: needsTranscoding, hasFrameMetadata: hasFrameMetadata));
     }
 
     private void SetTranscodingBillingProperties(long bytesTranscoded)
@@ -297,19 +296,23 @@ public class RetrieveResourceService : IRetrieveResourceService
         bool isOriginalTransferSyntaxRequested,
         string requestedTransferSyntax,
         bool isOriginalVersionRequested,
+        long requestedVersion,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        long streamTotalLength = 0;
         foreach (var instanceMetadata in instanceMetadataList)
         {
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
             Stream stream = await _blobDataStore.GetStreamingFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
+            streamTotalLength += fileProperties.ContentLength;
             yield return
                 new RetrieveResourceInstance(
                     stream,
                     GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
                     fileProperties.ContentLength);
         }
+        LogFileSize(streamTotalLength, requestedVersion, needsTranscoding: false, hasFrameMetadata: true);
     }
 
     private static async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFrameStreams(
@@ -345,6 +348,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         string responseTransferSyntax,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
+        long streamTotalLength = 0;
         // eager validation before yield return
         foreach (int frame in frames)
         {
@@ -356,9 +360,11 @@ public class RetrieveResourceService : IRetrieveResourceService
         {
             FrameRange frameRange = framesRange[frame];
             Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), frameRange, cancellationToken);
+            streamTotalLength += frameStream.Length;
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
+        LogFileSize(streamTotalLength, version, needsTranscoding: false, hasFrameMetadata: true);
     }
 
     private static string GenerateInstanceCacheKey(InstanceIdentifier instanceIdentifier)

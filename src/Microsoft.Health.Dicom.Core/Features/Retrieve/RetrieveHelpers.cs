@@ -32,18 +32,4 @@ internal static class RetrieveHelpers
 
         return fileProperties;
     }
-    public static void CheckFileSize(IFileStore blobDataStore, long maxDicomFileSize, long version, string partitionName, bool render, FileProperties fileProperties, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNull(blobDataStore, nameof(blobDataStore));
-
-        // limit the file size that can be read in memory
-        if (fileProperties.ContentLength > maxDicomFileSize)
-        {
-            if (render)
-            {
-                throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RenderFileTooLarge, maxDicomFileSize));
-            }
-            throw new NotAcceptableException(string.Format(CultureInfo.CurrentCulture, DicomCoreResource.RetrieveServiceFileTooBig, maxDicomFileSize));
-        }
-    }
 }
