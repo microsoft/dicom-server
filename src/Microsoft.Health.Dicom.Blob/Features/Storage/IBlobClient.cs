@@ -30,6 +30,6 @@ public interface IBlobClient
     /// Get conditions to apply to operation on blob.
     /// </summary>
     /// <param name="fileProperties">Properties of blob to use to generate conditions such as etag matching</param>
-    /// <returns></returns>
+    /// <returns>BlobRequestConditions to match on eTag</returns>
     BlobRequestConditions GetConditions(FileProperties fileProperties);
 }
