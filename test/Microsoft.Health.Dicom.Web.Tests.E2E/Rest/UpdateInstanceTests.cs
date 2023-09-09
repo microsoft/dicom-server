@@ -26,14 +26,12 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 {
     private readonly IDicomWebClient _client;
     private readonly DicomInstancesManager _instancesManager;
-    private readonly bool _externalStoreEnabled;
 
     public UpdateInstanceTests(WebJobsIntegrationTestFixture<WebStartup, FunctionsStartup> fixture)
     {
         EnsureArg.IsNotNull(fixture, nameof(fixture));
         _client = fixture.GetDicomWebClient();
         _instancesManager = new DicomInstancesManager(_client);
-        _externalStoreEnabled = bool.Parse(TestEnvironment.Variables["EnableExternalStore"] ?? "false");
     }
 
     [Fact]
