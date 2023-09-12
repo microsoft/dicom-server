@@ -24,7 +24,7 @@
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Health.Operations" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Microsoft.OpenApi" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" />
