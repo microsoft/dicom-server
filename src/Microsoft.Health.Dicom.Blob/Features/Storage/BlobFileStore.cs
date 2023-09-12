@@ -214,7 +214,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileFrameAsync(long version, string partitionName, FrameRange range, CancellationToken cancellationToken)
+    public async Task<(Stream, long)> GetFileFrameAsync(long version, string partitionName, FrameRange range, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 
@@ -225,7 +225,7 @@ public class BlobFileStore : IFileStore
         {
             var httpRange = new HttpRange(range.Offset, range.Length);
             Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
-            return result.Value.Content;
+            return (result.Value.Content, result.Value.Details.ContentLength);
         });
     }
 

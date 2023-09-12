@@ -359,8 +359,8 @@ public class RetrieveResourceService : IRetrieveResourceService
         foreach (int frame in frames)
         {
             FrameRange frameRange = framesRange[frame];
-            Stream frameStream = await _blobDataStore.GetFileFrameAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), frameRange, cancellationToken);
-            streamTotalLength += frameStream.Length;
+            (Stream frameStream, long streamLength) = await _blobDataStore.GetFileFrameAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), frameRange, cancellationToken);
+            streamTotalLength += streamLength;
 
             yield return new RetrieveResourceInstance(frameStream, responseTransferSyntax, frameRange.Length);
         }
