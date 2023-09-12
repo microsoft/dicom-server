@@ -82,6 +82,7 @@
     <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.7" />
     <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.7" />
     <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.7" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
