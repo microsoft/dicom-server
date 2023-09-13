@@ -127,6 +127,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             // transcoding of single instance
             if (needsTranscoding)
             {
+                _logger.LogInformation("Transcoding Instance");
                 FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, version, partition.Name, false, cancellationToken);
                 LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
@@ -216,11 +217,10 @@ public class RetrieveResourceService : IRetrieveResourceService
 
             return new RetrieveResourceResponse(fastFrames, mediaType, isSinglePart);
         }
+        _logger.LogInformation("Downloading the entire instance for frame parsing");
 
         FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, false, cancellationToken);
         LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
-
-        _logger.LogInformation("Downloading the entire instance for frame parsing");
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
         Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partition.Name, cancellationToken);
