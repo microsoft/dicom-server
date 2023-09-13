@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
@@ -40,9 +41,9 @@ public class RetrieveRenderedServiceTests
     private readonly ILogger<RetrieveRenderedService> _logger;
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
-    private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
     private readonly string _sopInstanceUid = TestUidGenerator.Generate();
     private static readonly CancellationToken DefaultCancellationToken = new CancellationTokenSource().Token;
+    private readonly RetrieveMeter _retrieveMeter;
 
 
     public RetrieveRenderedServiceTests(ITestOutputHelper output)
@@ -53,6 +54,7 @@ public class RetrieveRenderedServiceTests
         _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
         var retrieveConfigurationSnapshot = Substitute.For<IOptionsSnapshot<RetrieveConfiguration>>();
         retrieveConfigurationSnapshot.Value.Returns(new RetrieveConfiguration());
+        _retrieveMeter = new RetrieveMeter();
 
         _logger = output.ToLogger<RetrieveRenderedService>();
 
@@ -63,6 +65,7 @@ public class RetrieveRenderedServiceTests
             _dicomRequestContextAccessor,
             retrieveConfigurationSnapshot,
             _recyclableMemoryStreamManager,
+            _retrieveMeter,
             _logger
             );
 
