@@ -14,7 +14,9 @@ public class CommandLineOptions
 
     public string? ConnectionString { get; set; }
 
+    [Obsolete("Use Connection String instead for different authentication types.")]
     public SqlServerAuthenticationType? AuthenticationType { get; set; }
 
+    [Obsolete("Use Connection String instead for different authentication types.")]
     public string? ManagedIdentityClientId { get; set; }
 }

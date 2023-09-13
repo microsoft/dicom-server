@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 
 namespace Microsoft.Health.Dicom.Core.Features.Telemetry;
@@ -15,10 +16,23 @@ public sealed class RetrieveMeter : IDisposable
     public RetrieveMeter()
     {
         _meter = new Meter($"{OpenTelemetryLabels.BaseMeterName}.Retrieve", "1.0");
-        RetrieveInstanceCount = _meter.CreateCounter<long>(nameof(RetrieveInstanceCount), description: "Total number of instances retrieved");
+        RetrieveInstanceMetadataCount = _meter.CreateCounter<long>(nameof(RetrieveInstanceMetadataCount), description: "Count of metadata retrieved");
+        RetrieveInstanceCount = _meter.CreateCounter<long>(nameof(RetrieveInstanceCount), description: "Count of instances retrieved");
     }
 
+    public Counter<long> RetrieveInstanceMetadataCount { get; }
+
     public Counter<long> RetrieveInstanceCount { get; }
+
+    public static KeyValuePair<string, object>[] RetrieveInstanceCountTelemetryDimension(long contentLength, long maxFileSize, bool isTranscoding = false, bool hasFrameMetadata = false, bool isRendered = false) =>
+        new[]
+        {
+            new KeyValuePair<string, object>("ContentLength", contentLength),
+            new KeyValuePair<string, object>("MaxFileSize", maxFileSize),
+            new KeyValuePair<string, object>("IsTranscoding", isTranscoding),
+            new KeyValuePair<string, object>("IsRendered", isRendered),
+            new KeyValuePair<string, object>("HasFrameMetadata", hasFrameMetadata),
+        };
 
     public void Dispose()
         => _meter.Dispose();

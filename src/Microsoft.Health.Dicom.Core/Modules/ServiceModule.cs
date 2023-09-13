@@ -6,6 +6,7 @@
 using EnsureThat;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Health.Core.Features.Identity;
 using Microsoft.Health.Dicom.Core.Features.ChangeFeed;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Delete;
@@ -180,7 +181,7 @@ public class ServiceModule : IStartupModule
             .AsSelf()
             .AsImplementedInterfaces();
 
-        services.TryAddSingleton<IExternalOperationCredentialProvider, DefaultExternalOperationCredentialProvider>();
+        services.AddExternalCredentialProvider();
 
         services.AddSingleton<DeleteMeter>();
         services.AddSingleton<RetrieveMeter>();

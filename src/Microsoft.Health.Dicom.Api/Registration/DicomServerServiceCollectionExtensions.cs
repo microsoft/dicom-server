@@ -60,7 +60,7 @@ public static class DicomServerServiceCollectionExtensions
             .AddCustomerKeyValidationBackgroundService(options => configuration
                 .GetSection(CustomerManagedKeyOptions.CustomerManagedKey)
                 .Bind(options))
-            .AddHealthCheckPublisher(options => configuration
+            .AddHealthCheckCachePublisher(options => configuration
                 .GetSection("HealthCheckPublisher")
                 .Bind(options));
 

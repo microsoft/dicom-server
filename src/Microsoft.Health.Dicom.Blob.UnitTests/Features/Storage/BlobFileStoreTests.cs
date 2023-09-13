@@ -18,6 +18,7 @@ using Azure.Storage.Blobs.Specialized;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
+using Microsoft.Health.Core.Features.Identity;
 using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
 using Microsoft.Health.Dicom.Blob.Utilities;
@@ -207,7 +208,7 @@ public class BlobFileStoreTests
         var clientOptions = Substitute.For<IOptions<BlobServiceClientOptions>>();
         clientOptions.Value.Returns(Substitute.For<BlobServiceClientOptions>());
         externalBlobClient = new ExternalBlobClient(
-            Substitute.For<IExternalOperationCredentialProvider>(),
+            Substitute.For<IExternalCredentialProvider>(),
             externalStoreConfig,
             clientOptions,
             featureConfiguration);

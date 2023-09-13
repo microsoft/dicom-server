@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Core.Web;
@@ -38,6 +39,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
     private readonly RetrieveConfiguration _retrieveConfiguration;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly ILogger<RetrieveRenderedService> _logger;
+    private readonly RetrieveMeter _retrieveMeter;
 
     public RetrieveRenderedService(
         IInstanceStore instanceStore,
@@ -45,6 +47,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         IDicomRequestContextAccessor dicomRequestContextAccessor,
         IOptionsSnapshot<RetrieveConfiguration> retrieveConfiguration,
         RecyclableMemoryStreamManager recyclableMemoryStreamManager,
+        RetrieveMeter retrieveMeter,
         ILogger<RetrieveRenderedService> logger)
     {
         EnsureArg.IsNotNull(instanceStore, nameof(instanceStore));
@@ -52,6 +55,7 @@ public class RetrieveRenderedService : IRetrieveRenderedService
         EnsureArg.IsNotNull(dicomRequestContextAccessor, nameof(dicomRequestContextAccessor));
         EnsureArg.IsNotNull(retrieveConfiguration?.Value, nameof(retrieveConfiguration));
         EnsureArg.IsNotNull(recyclableMemoryStreamManager, nameof(recyclableMemoryStreamManager));
+        _retrieveMeter = EnsureArg.IsNotNull(retrieveMeter, nameof(retrieveMeter));
         EnsureArg.IsNotNull(logger, nameof(logger));
 
         _instanceStore = instanceStore;
@@ -84,7 +88,12 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             InstanceMetadata instance = (await _instanceStore.GetInstancesWithProperties(
                 ResourceType.Instance, partition, request.StudyInstanceUid, request.SeriesInstanceUid, request.SopInstanceUid, cancellationToken))[0];
 
-            await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, true, cancellationToken);
+            FileProperties fileProperties = await RetrieveHelpers.CheckFileSize(_blobDataStore, _retrieveConfiguration.MaxDicomFileSize, instance.VersionedInstanceIdentifier.Version, partition.Name, true, cancellationToken);
+            _logger.LogInformation(
+                "Retrieving rendered Instance for watermark {Watermark} of size {ContentLength}", instance.VersionedInstanceIdentifier.Version, fileProperties.ContentLength);
+            _retrieveMeter.RetrieveInstanceCount.Add(
+                1,
+                RetrieveMeter.RetrieveInstanceCountTelemetryDimension(fileProperties.ContentLength, _retrieveConfiguration.MaxDicomFileSize, isRendered: true));
 
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.fileProperties, cancellationToken);
             sw.Start();

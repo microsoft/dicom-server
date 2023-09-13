@@ -22,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Retrieve;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
 using Microsoft.Health.Dicom.Core.Messages.Retrieve;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
@@ -48,6 +49,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
     private readonly string _studyInstanceUid = TestUidGenerator.Generate();
     private readonly string _firstSeriesInstanceUid = TestUidGenerator.Generate();
     private readonly string _secondSeriesInstanceUid = TestUidGenerator.Generate();
+    private readonly RetrieveMeter _retrieveMeter;
 
     public RetrieveResourceServiceTests(DataStoreTestsFixture blobStorageFixture, SqlDataStoreTestsFixture sqlIndexStorageFixture)
     {
@@ -58,6 +60,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
         _fileStore = blobStorageFixture.FileStore;
         _retrieveTranscoder = Substitute.For<ITranscoder>();
         _frameHandler = Substitute.For<IFrameHandler>();
+        _retrieveMeter = new RetrieveMeter();
 
         _dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
@@ -81,6 +84,7 @@ public class RetrieveResourceServiceTests : IClassFixture<DataStoreTestsFixture>
             instanceMetadataCache,
             framesRangeCache,
             retrieveConfigurationSnapshot,
+            _retrieveMeter,
             NullLogger<RetrieveResourceService>.Instance);
     }
 
