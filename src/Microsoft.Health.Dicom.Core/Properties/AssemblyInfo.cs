@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Functions.UnitTests")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.SqlServer.UnitTests")]
+[assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Tests.Integration")]
 [assembly: InternalsVisibleTo("Microsoft.Health.Dicom.Web.Tests.E2E")]
 [assembly: NeutralResourcesLanguage("en-us")]
 [assembly: CLSCompliant(false)]
