@@ -150,7 +150,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             }
 
             // no transcoding
-            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, version, cancellationToken);
+            IAsyncEnumerable<RetrieveResourceInstance> responses = GetAsyncEnumerableStreams(retrieveInstances, isOriginalTransferSyntaxRequested, requestedTransferSyntax, message.IsOriginalVersionRequested, version, instance.InstanceProperties.HasFrameMetadata, cancellationToken);
             return new RetrieveResourceResponse(responses, validAcceptHeader.MediaType.ToString(), validAcceptHeader.IsSinglePart);
         }
         catch (DataStoreException e)
@@ -252,7 +252,7 @@ public class RetrieveResourceService : IRetrieveResourceService
             version, size, needsTranscoding);
         _retrieveMeter.RetrieveInstanceCount.Add(
             1,
-            RetrieveMeter.RetrieveInstanceCountTelemetryDimension(size, _retrieveConfiguration.MaxDicomFileSize, isTranscoding: needsTranscoding, hasFrameMetadata: hasFrameMetadata));
+            RetrieveMeter.RetrieveInstanceCountTelemetryDimension(size, isTranscoding: needsTranscoding, hasFrameMetadata: hasFrameMetadata));
     }
 
     private void SetTranscodingBillingProperties(long bytesTranscoded)
@@ -297,6 +297,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         string requestedTransferSyntax,
         bool isOriginalVersionRequested,
         long requestedVersion,
+        bool hasFrameMetadata,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         long streamTotalLength = 0;
@@ -312,7 +313,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                     GetResponseTransferSyntax(isOriginalTransferSyntaxRequested, requestedTransferSyntax, instanceMetadata),
                     fileProperties.ContentLength);
         }
-        LogFileSize(streamTotalLength, requestedVersion, needsTranscoding: false, hasFrameMetadata: true);
+        LogFileSize(streamTotalLength, requestedVersion, needsTranscoding: false, hasFrameMetadata: hasFrameMetadata);
     }
 
     private static async IAsyncEnumerable<RetrieveResourceInstance> GetAsyncEnumerableFrameStreams(
