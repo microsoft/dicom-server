@@ -232,6 +232,24 @@ public class BlobFileStoreTests
     }
 
     [Fact]
+    public async Task GivenInternalStore_WhenGetFileContentInRangeAsync_ThenExpectConditionsNotUsed()
+    {
+        InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
+
+        FrameRange range = new FrameRange(offset: 0, length: 100);
+
+        var expectedResult = Substitute.For<Response<BlobDownloadResult>>();
+        expectedResult.Value.Returns(Substitute.For<BlobDownloadResult>());
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).DownloadContentAsync(
+            Arg.Is<BlobDownloadOptions>(options =>
+                options.Conditions == null),
+            Arg.Any<CancellationToken>()).Returns(expectedResult);
+
+        var result = await blobFileStore.GetFileContentInRangeAsync(1, Partition.Default, _defaultFileProperties, range, CancellationToken.None);
+        Assert.Equal(expectedResult.Value.Content, result);
+    }
+
+    [Fact]
     public void GivenExternalStore_WhenGetServiceStorePathWithPartitionsEnabled_ThenPathReturnedContainsPartitionPassed()
     {
         string partitionName = "foo";
