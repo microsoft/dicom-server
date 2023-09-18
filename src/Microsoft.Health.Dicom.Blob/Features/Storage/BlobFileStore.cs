@@ -134,7 +134,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read block list for DICOM instance file with path '{Path}'.", blobClient.Name);
+        _logger.LogInformation("Trying to read block list for DICOM instance file with version '{Version}'.", version);
 
         BlockList blockList = await ExecuteAsync<BlockList>(async () => await blobClient.GetBlockListAsync(
             BlockListTypes.Committed,
@@ -230,7 +230,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(range, nameof(range));
 
         BlockBlobClient blob = GetInstanceBlockBlobClient(version, partitionName);
-        _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
+        _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
         return await ExecuteAsync(async () =>
         {
@@ -246,7 +246,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(range, nameof(range));
         EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blob = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read DICOM instance fileContent with Path '{Path}' on range {Offset}-{Length}.", blob.Name, range.Offset, range.Length);
+        _logger.LogInformation("Trying to read DICOM instance fileContent with version '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
         var blobDownloadOptions = new BlobDownloadOptions
         {
@@ -266,7 +266,7 @@ public class BlobFileStore : IFileStore
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read DICOM instance file with path '{Path}' firstBlock.", blobClient.Name);
+        _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' firstBlock.", version);
 
         return await ExecuteAsync(async () =>
         {
@@ -290,7 +290,7 @@ public class BlobFileStore : IFileStore
         EnsureArg.IsNotNull(partition, nameof(partition));
         var blobClient = GetInstanceBlockBlobClient(originalVersion, partition, fileProperties);
         var copyBlobClient = GetInstanceBlockBlobClient(newVersion, partition.Name);
-        _logger.LogInformation("Trying to copy DICOM instance file from path '{Path}' to new path with watermark'{NewVersion}'.", blobClient.Name, newVersion);
+        _logger.LogInformation("Trying to copy DICOM instance file from original version '{Version}' to new path with new version'{NewVersion}'.", originalVersion, newVersion);
 
         await ExecuteAsync(async () =>
            {
