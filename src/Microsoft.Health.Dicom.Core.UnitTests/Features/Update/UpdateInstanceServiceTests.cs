@@ -36,17 +36,17 @@ public class UpdateInstanceServiceTests
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly UpdateInstanceService _updateInstanceService;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
-    private static readonly FileProperties DefaultFileProperties = new FileProperties()
+    private static readonly FileProperties DefaultFileProperties = new FileProperties
     {
         Path = "default/path/0.dcm",
         ETag = "123"
     };
-    private static readonly FileProperties DefaultCopiedFileProperties = new FileProperties()
+    private static readonly FileProperties DefaultCopiedFileProperties = new FileProperties
     {
         Path = "default/path/1.dcm",
         ETag = "456"
     };
-    private static readonly FileProperties DefaultUpdatedFileProperties = new FileProperties()
+    private static readonly FileProperties DefaultUpdatedFileProperties = new FileProperties
     {
         Path = "default/path/1.dcm",
         ETag = "789"
@@ -162,11 +162,25 @@ public class UpdateInstanceServiceTests
         // file properties with updated etag of copied file returned external store is enabled
         Assert.Equal(DefaultUpdatedFileProperties.Path, returnedFileProperties.Path);
         Assert.Equal(DefaultUpdatedFileProperties.ETag, returnedFileProperties.ETag);
-        // since our file had not been previously copied, we do not just update an already existing file
-        await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
         //  since our file had not been previously copied, we create a new file
         await _fileStore.Received(1).GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
-
+        // all calls expected as received
+        await _fileStore.Received(1).GetFileAsync(fileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
+        await _fileStore.Received(1).StoreFileInBlocksAsync(
+            newFileIdentifier,
+            Partition.Default,
+            Arg.Any<Stream>(),
+            Arg.Is<IDictionary<string, long>>(x => x.Count == 1),
+            cancellationToken);
+        await _fileStore.Received(1).GetFileContentInRangeAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<FrameRange>(), cancellationToken);
+        _fileStore.UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken).Returns(DefaultUpdatedFileProperties);
+        await _fileStore.Received(1).UpdateFileBlockAsync(newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, Arg.Any<string>(), Arg.Any<Stream>(), cancellationToken);
+        await _metadataStore.Received(1).GetInstanceMetadataAsync(fileIdentifier, cancellationToken);
+        await _metadataStore.Received(1).StoreInstanceMetadataAsync(streamAndStoredFile.Key.Dataset, newFileIdentifier, cancellationToken);
+        // since our file had not been previously copied, we do not just update an already existing file
+        await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultFileProperties, cancellationToken);
+        // instead, we create a new file
+        await _fileStore.DidNotReceive().CopyFileAsync(fileIdentifier, newFileIdentifier, Partition.Default, DefaultCopiedFileProperties, cancellationToken);
         // cleanup
         streamAndStoredFile.Value.Dispose();
         copyStream.Dispose();
