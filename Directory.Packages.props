@@ -74,7 +74,7 @@
     <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.13" />
     <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.13" />
     <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
+    <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.294" />
     <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.13" />
     <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.13" />
     <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.13" />
