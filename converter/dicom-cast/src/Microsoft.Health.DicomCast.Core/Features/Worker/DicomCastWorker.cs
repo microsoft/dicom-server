@@ -110,11 +110,11 @@ public class DicomCastWorker : IDicomCastWorker
         {
             LogUnhandledExceptionDelegate(_logger, ex);
 
-            if ((ex is FhirException) && ((FhirException)ex).StatusCode == HttpStatusCode.Forbidden)
+            if (ex is FhirClientException fce && fce.StatusCode == HttpStatusCode.Forbidden)
             {
                 _dicomCastMeter.CastToFhirForbidden.Add(1);
             }
-            else if ((ex is DicomWebException) && ((DicomWebException)ex).StatusCode == HttpStatusCode.Forbidden)
+            else if (ex is DicomWebException dwe && dwe.StatusCode == HttpStatusCode.Forbidden)
             {
                 _dicomCastMeter.DicomToCastForbidden.Add(1);
             }
