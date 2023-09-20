@@ -789,12 +789,12 @@ public partial class UpdateDurableFunctionTests
             && x.Partition == partition;
     }
 
-    private static Expression<Predicate<InstanceFileState>> GetPredicate(InstanceFileState instanceFileState)
+    private static Expression<Predicate<InstanceMetadata>> GetPredicate(InstanceMetadata instance)
     {
         return x =>
-            x.NewVersion == instanceFileState.NewVersion
-            && x.Version == instanceFileState.Version
-            && x.OriginalVersion == instanceFileState.OriginalVersion;
+            x.InstanceProperties.NewVersion == instance.InstanceProperties.NewVersion
+            && x.VersionedInstanceIdentifier.Version == instance.VersionedInstanceIdentifier.Version
+            && x.InstanceProperties.OriginalVersion == instance.InstanceProperties.OriginalVersion;
     }
 
     private static Expression<Predicate<CompleteStudyArgumentsV2>> GetPredicate(int partitionKey, string studyInstanceUid, string dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, bool expectEmptyList = false)

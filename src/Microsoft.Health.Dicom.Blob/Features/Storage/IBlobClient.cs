@@ -4,6 +4,8 @@
 // -------------------------------------------------------------------------------------------------
 
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Storage;
 
@@ -23,4 +25,11 @@ public interface IBlobClient
     /// </summary>
     /// <param name="partitionName">Name of the partition</param>
     string GetServiceStorePath(string partitionName);
+
+    /// <summary>
+    /// Get conditions to apply to operation on blob.
+    /// </summary>
+    /// <param name="fileProperties">Properties of blob to use to generate conditions such as etag matching</param>
+    /// <returns>BlobRequestConditions to match on eTag</returns>
+    BlobRequestConditions GetConditions(FileProperties fileProperties);
 }

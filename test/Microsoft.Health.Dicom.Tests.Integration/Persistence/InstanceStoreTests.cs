@@ -272,10 +272,10 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         DicomDataset dataset4 = Samples.CreateRandomInstanceDataset(studyInstanceUID1);
         dataset4.AddOrUpdate(DicomTag.PatientName, "FirstName_LastName");
 
-        var instance1 = await CreateInstanceIndexAsync(dataset1);
-        var instance2 = await CreateInstanceIndexAsync(dataset2);
-        var instance3 = await CreateInstanceIndexAsync(dataset3);
-        var instance4 = await CreateInstanceIndexAsync(dataset4);
+        var instance1 = await CreateInstanceIndexAsync(dataset1, createFileProperties: true);
+        var instance2 = await CreateInstanceIndexAsync(dataset2, createFileProperties: true);
+        var instance3 = await CreateInstanceIndexAsync(dataset3, createFileProperties: true);
+        var instance4 = await CreateInstanceIndexAsync(dataset4, createFileProperties: true);
 
         var instances = new List<Instance> { instance1, instance2, instance3, instance4 };
 
@@ -327,6 +327,13 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         Assert.Single(updatedInstanceMetadata);
         var updatedInstance = updatedInstanceMetadata[0];
 
+        // When we begin to update the instance, we need to retrieve the file properties as they are in this moment
+        // so we know which blob file to go copy from when using external store
+        IReadOnlyList<FileProperty> fileProperties = await _indexDataStoreTestHelper.GetFilePropertiesAsync(updatedInstance.GetVersion(isOriginalVersionRequested: true));
+        var expectedOriginalFileProperty = fileProperties.First();
+        Assert.Equal(updatedInstance.InstanceProperties.fileProperties.ETag, expectedOriginalFileProperty.ETag);
+        Assert.Equal(updatedInstance.InstanceProperties.fileProperties.Path, expectedOriginalFileProperty.FilePath);
+
         var dicomDataset = new DicomDataset();
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "FirstName_NewLastName");
 
@@ -343,6 +350,8 @@ public class InstanceStoreTests : IClassFixture<SqlDataStoreTestsFixture>
         // ensure the original property is still there
         IReadOnlyList<FileProperty> originalFileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(originalInstance.Watermark);
         Assert.Single(originalFileProperties);
+        Assert.Equal(expectedOriginalFileProperty.ETag, originalFileProperties.First().ETag);
+        Assert.Equal(expectedOriginalFileProperty.FilePath, originalFileProperties.First().FilePath);
 
         // Update instance one more time
         dicomDataset.AddOrUpdate(DicomTag.PatientName, "NewFirstName_NewLastName");

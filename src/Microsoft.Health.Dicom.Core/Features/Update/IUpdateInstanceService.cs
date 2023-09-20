@@ -18,7 +18,7 @@ public interface IUpdateInstanceService
     /// <summary>
     /// Asynchronously update instance blobs
     /// </summary>
-    /// <param name="instanceFileIdentifier">Instance watermark version combinations</param>
+    /// <param name="instance">Instance to update</param>
     /// <param name="datasetToUpdate">Dataset to update</param>
     /// <param name="partition">Partition to update data within</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -26,7 +26,7 @@ public interface IUpdateInstanceService
     /// <exception cref="ArgumentNullException">
     /// <paramref name="datasetToUpdate"/> is <see langword="null"/>.
     /// </exception>
-    public Task<FileProperties> UpdateInstanceBlobAsync(InstanceFileState instanceFileIdentifier, DicomDataset datasetToUpdate, Partition partition, CancellationToken cancellationToken = default);
+    public Task<FileProperties> UpdateInstanceBlobAsync(InstanceMetadata instance, DicomDataset datasetToUpdate, Partition partition, CancellationToken cancellationToken = default);
     /// <summary>
     /// Asynchronously deletes old blob
     /// </summary>

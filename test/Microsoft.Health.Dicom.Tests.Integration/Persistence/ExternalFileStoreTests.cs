@@ -11,6 +11,7 @@ using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Core.Features.Update;
 using Microsoft.IO;
 using Xunit;
 
@@ -21,6 +22,9 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly IFileStore _blobDataStore;
     private readonly Func<int> _getNextWatermark;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private static string ConditionNotMetMessage => "Received the following error code: ConditionNotMet";
+    private static string SourceConditionNotMetMessage => "Received the following error code: SourceConditionNotMet";
+    private readonly bool _isDevEnv;
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
     {
@@ -28,6 +32,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         _blobDataStore = fixture.ExternalFileStore;
         _getNextWatermark = () => fixture.NextWatermark;
         _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
+        _isDevEnv = fixture.IsDevEnv;
     }
 
     [Fact]
@@ -44,7 +49,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.NotNull(fileProperties);
 
         // Should be able to retrieve.
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.DefaultName))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties))
         {
             Assert.Equal(
                 fileData,
@@ -55,7 +60,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
 
         // The file should no longer exists.
-        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.DefaultName));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties));
     }
 
     [Fact]
@@ -75,7 +80,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
 
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.DefaultName))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties2))
         {
             Assert.Equal(
                 fileData2,
@@ -97,7 +102,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // file is deleted
         await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
-        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.DefaultName));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties1));
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
@@ -108,7 +113,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         // while the path may be the same, the eTag is expected to be different on file rewrites
         Assert.NotEqual(fileProperties1.ETag, fileProperties2.ETag);
         // assert that content is the same
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.DefaultName))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties2))
         {
             Assert.Equal(
                 fileData2,
@@ -119,9 +124,29 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     }
 
     [Fact]
+    public async Task GivenFileWithETag_WhenOperatingOnFileWithDifferentETagForCondition_ThenExpectExceptions()
+    {
+        // Note that modifying metadata also changes the etag of the blob
+        var version = _getNextWatermark();
+
+        // store the file with committed blocks
+        FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
+
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+
+        Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
+
+        var getFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, badFileProperties));
+        Assert.Contains(ConditionNotMetMessage, getFileEx.Message);
+
+        var copyFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.CopyFileAsync(version, _getNextWatermark(), Partition.Default, badFileProperties));
+        Assert.Contains(ExpectedCopyFailedSubstring(), copyFileEx.Message);
+    }
+
+    [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenDataStoreRequestFailedExceptionShouldBeThrown()
     {
-        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(_getNextWatermark(), Partition.DefaultName));
+        await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.GetFileAsync(_getNextWatermark(), Partition.Default, new FileProperties()));
     }
 
     [Fact]
@@ -139,12 +164,24 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         }
     }
 
-    private async Task<FileProperties> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken =
-     default)
+    private async Task<FileProperties> AddFileAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
     {
         await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
         {
             return await _blobDataStore.StoreFileAsync(version, Partition.DefaultName, stream, cancellationToken);
         }
+    }
+
+    private async Task<FileProperties> AddFileInBlocksAsync(long version, byte[] bytes, string tag, CancellationToken cancellationToken = default)
+    {
+        await using (var stream = _recyclableMemoryStreamManager.GetStream(tag, bytes, 0, bytes.Length))
+        {
+            return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, UpdateInstanceService.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
+        }
+    }
+
+    private string ExpectedCopyFailedSubstring()
+    {
+        return _isDevEnv ? ConditionNotMetMessage : SourceConditionNotMetMessage;
     }
 }
