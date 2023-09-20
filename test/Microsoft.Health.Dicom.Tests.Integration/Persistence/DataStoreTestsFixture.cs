@@ -32,6 +32,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
     private readonly BlobContainerConfiguration _blobContainerConfiguration;
     private readonly BlobContainerConfiguration _metadataContainerConfiguration;
     private BlobServiceClient _blobClient;
+    public readonly bool IsDevEnv;
 
     private int _watermark = 0;
 
@@ -40,6 +41,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
         IConfiguration environment = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .Build();
+
+        IsDevEnv = environment["BlobStore:ConnectionString"] == null;
 
         _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
         _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };

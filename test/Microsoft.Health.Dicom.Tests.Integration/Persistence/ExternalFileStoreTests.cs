@@ -24,6 +24,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private static string ConditionNotMetMessage => "Received the following error code: ConditionNotMet";
     private static string SourceConditionNotMetMessage => "Received the following error code: SourceConditionNotMet";
+    private readonly bool _isDevEnv;
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
     {
@@ -31,6 +32,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         _blobDataStore = fixture.ExternalFileStore;
         _getNextWatermark = () => fixture.NextWatermark;
         _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
+        _isDevEnv = fixture.IsDevEnv;
     }
 
     [Fact]
@@ -138,7 +140,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.Contains(ConditionNotMetMessage, getFileEx.Message);
 
         var copyFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.CopyFileAsync(version, _getNextWatermark(), Partition.Default, badFileProperties));
-        Assert.Contains(SourceConditionNotMetMessage, copyFileEx.Message);
+        Assert.Contains(ExpectedCopyFailedSubstring(), copyFileEx.Message);
     }
 
     [Fact]
@@ -176,5 +178,10 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         {
             return await _blobDataStore.StoreFileInBlocksAsync(version, Partition.Default, stream, UpdateInstanceService.GetBlockLengths(stream.Length, stream.Length, (int)stream.Length), cancellationToken);
         }
+    }
+
+    private string ExpectedCopyFailedSubstring()
+    {
+        return _isDevEnv ? ConditionNotMetMessage : SourceConditionNotMetMessage;
     }
 }
