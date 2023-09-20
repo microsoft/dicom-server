@@ -42,7 +42,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
             .AddEnvironmentVariables()
             .Build();
 
-        IsDevEnv = environment["BlobStore:ConnectionString"] == null;
+        IsDevEnv = environment["BlobStore:ConnectionString"] == null || environment["BlobStore:ConnectionString"].Contains("UseDevelopmentStorage=true");
 
         _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
         _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
