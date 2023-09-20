@@ -28,10 +28,10 @@ public partial class WorkItemTransactionTests
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Retrieve
-        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid).ConfigureAwait(false);
+        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid);
         Assert.True(retrieveResponse.IsSuccessStatusCode);
 
-        var dataset = await retrieveResponse.GetValueAsync().ConfigureAwait(false);
+        var dataset = await retrieveResponse.GetValueAsync();
 
         // Verify
         Assert.NotNull(dataset);

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ public class FrameHandlerTests
     public async Task GivenDicomFileWithFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenExpectedFramesAreReturned(params int[] frames)
     {
         EnsureArg.IsNotNull(frames, nameof(frames));
-        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
+        (DicomFile file, Stream stream) = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3);
         IReadOnlyCollection<Stream> framesStream = await _frameHandler.GetFramesResourceAsync(stream, frames, true, "*");
         var framesOutput = framesStream.ToArray();
 
@@ -52,7 +52,7 @@ public class FrameHandlerTests
     [InlineData(0)]
     public async Task GivenDicomFileWithoutFrames_WhenRetrievingFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
     {
-        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers()).Result;
+        (DicomFile file, Stream stream) = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers());
         await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
     }
 
@@ -62,7 +62,7 @@ public class FrameHandlerTests
     [InlineData(0, 1, 2, 3)]
     public async Task GivenDicomFileWithFrames_WhenRetrievingNonExistentFrameWithOriginalTransferSyntax_ThenFrameNotFoundExceptionIsThrown(params int[] frames)
     {
-        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3).Result;
+        (DicomFile file, Stream stream) = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 3);
         await Assert.ThrowsAsync<FrameNotFoundException>(() => _frameHandler.GetFramesResourceAsync(stream, frames, true, "*"));
     }
 
@@ -70,7 +70,7 @@ public class FrameHandlerTests
     [MemberData(nameof(TestDataForInvokingTranscoderOrNotTests))]
     public async Task GivenDicomFileWithFrames_WhenRetrievingWithTransferSyntax_ThenTranscoderShouldBeInvokedAsExpected(bool originalTransferSyntaxRequested, string requestedRepresentation, bool shouldBeInvoked)
     {
-        (DicomFile file, Stream stream) = StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1).Result;
+        (DicomFile file, Stream stream) = await StreamAndStoredFileFromDataset(GenerateDatasetsFromIdentifiers(), 1);
         ITranscoder transcoder = Substitute.For<ITranscoder>();
         transcoder.TranscodeFrame(Arg.Any<DicomFile>(), Arg.Any<int>(), Arg.Any<string>()).Returns(_recyclableMemoryStreamManager.GetStream());
         FrameHandler frameHandler = new FrameHandler(transcoder, _recyclableMemoryStreamManager);

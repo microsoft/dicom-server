@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -32,14 +32,12 @@ public partial class WorkItemTransactionTests
             {DicomTag.ProcedureStepState, ProcedureStepStateConstants.InProgress },
         };
 
-        using var changeStateResponse = await _client.ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateDicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+        using var changeStateResponse = await _client.ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateDicomDataset, 1), workitemUid);
         Assert.True(changeStateResponse.IsSuccessStatusCode);
 
-        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid)
-            .ConfigureAwait(false);
+        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid);
         Assert.True(retrieveResponse.IsSuccessStatusCode);
-        var dataset = await retrieveResponse.GetValueAsync().ConfigureAwait(false);
+        var dataset = await retrieveResponse.GetValueAsync();
 
         Assert.NotNull(dataset);
         Assert.Equal(ProcedureStepState.InProgress, dataset.GetProcedureStepState());

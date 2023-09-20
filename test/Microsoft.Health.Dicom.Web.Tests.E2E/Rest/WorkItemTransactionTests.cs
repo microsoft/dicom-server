@@ -33,8 +33,7 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
     {
         // Create
         string workitemUid = TestUidGenerator.Generate();
-        await CreateWorkItemAndValidate(workitemUid)
-            .ConfigureAwait(false);
+        await CreateWorkItemAndValidate(workitemUid);
 
         // Update Workitem Transaction when the Workitem has not been claimed.
         string newWorklistLabel = "WORKLIST-SCHEDULED";
@@ -54,13 +53,11 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
                 })
             }),
         };
-        await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset)
-            .ConfigureAwait(false);
+        await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset);
 
         // Change Workitem State to In-Progress
         string transactionUid = TestUidGenerator.Generate();
-        await ChangeWorkitemStateAndValidate(workitemUid, transactionUid, ProcedureStepStateConstants.InProgress)
-            .ConfigureAwait(false);
+        await ChangeWorkitemStateAndValidate(workitemUid, transactionUid, ProcedureStepStateConstants.InProgress);
 
         // Update Workitem Transaction when the Workitem has been claimed.
         newWorklistLabel = "WORKLIST-IN-PROGRESS";
@@ -98,12 +95,10 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
                 }),
         });
 
-        await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset, transactionUid)
-            .ConfigureAwait(false);
+        await UpdateWorkitemAndValidate(workitemUid, newWorklistLabel, updateDicomDataset, transactionUid);
 
         // Change Workitem State to Completed
-        await ChangeWorkitemStateAndValidate(workitemUid, transactionUid, ProcedureStepStateConstants.Completed)
-            .ConfigureAwait(false);
+        await ChangeWorkitemStateAndValidate(workitemUid, transactionUid, ProcedureStepStateConstants.Completed);
     }
 
     [Fact]
@@ -112,12 +107,10 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
     {
         // Create
         string workitemUid = TestUidGenerator.Generate();
-        await CreateWorkItemAndValidate(workitemUid)
-            .ConfigureAwait(false);
+        await CreateWorkItemAndValidate(workitemUid);
 
         // Cancel Workitem
-        await CancelWorkitemAndValidate(workitemUid)
-            .ConfigureAwait(false);
+        await CancelWorkitemAndValidate(workitemUid);
     }
 
     private async Task CreateWorkItemAndValidate(string workitemUid)
@@ -130,22 +123,19 @@ public partial class WorkItemTransactionTests : IClassFixture<HttpIntegrationTes
 
     private async Task UpdateWorkitemAndValidate(string workitemUid, string newWorklistLabel, DicomDataset updateDicomDataset, string transactionUid = default)
     {
-        using var updateWorkitemScheduledResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid, transactionUid)
-            .ConfigureAwait(false);
+        using var updateWorkitemScheduledResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid, transactionUid);
         Assert.True(updateWorkitemScheduledResponse.IsSuccessStatusCode);
 
-        var dataset = await RetrieveWorkitemAndValidate(workitemUid)
-            .ConfigureAwait(false);
+        var dataset = await RetrieveWorkitemAndValidate(workitemUid);
         Assert.Equal(newWorklistLabel, dataset.GetString(DicomTag.WorklistLabel));
     }
 
     private async Task<DicomDataset> RetrieveWorkitemAndValidate(string workitemUid)
     {
-        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid)
-            .ConfigureAwait(false);
+        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid);
         Assert.True(retrieveResponse.IsSuccessStatusCode);
 
-        var dataset = await retrieveResponse.GetValueAsync().ConfigureAwait(false);
+        var dataset = await retrieveResponse.GetValueAsync();
         Assert.NotNull(dataset);
 
         return dataset;

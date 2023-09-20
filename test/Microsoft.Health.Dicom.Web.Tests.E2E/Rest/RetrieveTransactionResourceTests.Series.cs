@@ -144,8 +144,7 @@ public partial class RetrieveTransactionResourceTests
         using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveSeriesAsync(studyInstanceUid, seriesInstanceUid, dicomTransferSyntax: "*");
 
         // check response multi-part part content-type header
-        await using Stream stream = await response.Content.ReadAsStreamAsync(CancellationToken.None)
-            .ConfigureAwait(false);
+        await using Stream stream = await response.Content.ReadAsStreamAsync(CancellationToken.None);
         stream.Seek(0, SeekOrigin.Begin);
 
         MultipartSection part;
@@ -153,7 +152,7 @@ public partial class RetrieveTransactionResourceTests
         var multipartReader = new MultipartReader(HeaderUtilities.RemoveQuotes(media.Boundary).Value, stream, 100);
 
         List<string> partContentTypeHeader = new List<string>();
-        while ((part = await multipartReader.ReadNextSectionAsync(CancellationToken.None).ConfigureAwait(false)) != null)
+        while ((part = await multipartReader.ReadNextSectionAsync(CancellationToken.None)) != null)
         {
             partContentTypeHeader.Add(part.ContentType);
         }
