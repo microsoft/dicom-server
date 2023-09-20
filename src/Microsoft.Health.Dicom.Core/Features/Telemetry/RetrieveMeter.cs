@@ -24,10 +24,9 @@ public sealed class RetrieveMeter : IDisposable
 
     public Counter<long> RetrieveInstanceCount { get; }
 
-    public static KeyValuePair<string, object>[] RetrieveInstanceCountTelemetryDimension(long contentLength, bool isTranscoding = false, bool hasFrameMetadata = false, bool isRendered = false) =>
+    public static KeyValuePair<string, object>[] RetrieveInstanceCountTelemetryDimension(bool isTranscoding = false, bool hasFrameMetadata = false, bool isRendered = false) =>
         new[]
         {
-            new KeyValuePair<string, object>("ContentLength", contentLength),
             new KeyValuePair<string, object>("IsTranscoding", isTranscoding),
             new KeyValuePair<string, object>("IsRendered", isRendered),
             new KeyValuePair<string, object>("HasFrameMetadata", hasFrameMetadata),

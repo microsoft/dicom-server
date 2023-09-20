@@ -92,8 +92,8 @@ public class RetrieveRenderedService : IRetrieveRenderedService
             _logger.LogInformation(
                 "Retrieving rendered Instance for watermark {Watermark} of size {ContentLength}", instance.VersionedInstanceIdentifier.Version, fileProperties.ContentLength);
             _retrieveMeter.RetrieveInstanceCount.Add(
-                1,
-                RetrieveMeter.RetrieveInstanceCountTelemetryDimension(fileProperties.ContentLength, isRendered: true));
+                fileProperties.ContentLength,
+                RetrieveMeter.RetrieveInstanceCountTelemetryDimension(isRendered: true));
 
             using Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.fileProperties, cancellationToken);
             sw.Start();

@@ -251,8 +251,8 @@ public class RetrieveResourceService : IRetrieveResourceService
             "Retrieving Instance for watermark {Watermark} of size {ContentLength}, isTranscoding is {NeedsTranscoding}",
             version, size, needsTranscoding);
         _retrieveMeter.RetrieveInstanceCount.Add(
-            1,
-            RetrieveMeter.RetrieveInstanceCountTelemetryDimension(size, isTranscoding: needsTranscoding, hasFrameMetadata: hasFrameMetadata));
+            size,
+            RetrieveMeter.RetrieveInstanceCountTelemetryDimension(isTranscoding: needsTranscoding, hasFrameMetadata: hasFrameMetadata));
     }
 
     private void SetTranscodingBillingProperties(long bytesTranscoded)
