@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ public sealed class WorkitemServiceTests
     public async Task GivenNullDicomDataset_WhenProcessed_ThenArgumentNullExceptionIsThrown()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(
-            async () => await _target.ProcessAddAsync(null, string.Empty, CancellationToken.None).ConfigureAwait(false));
+            async () => await _target.ProcessAddAsync(null, string.Empty, CancellationToken.None));
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class WorkitemServiceTests
 
         _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
-        await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None);
 
         Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
     }
@@ -72,7 +72,7 @@ public sealed class WorkitemServiceTests
 
         _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         Assert.Equal(workitemInstanceUid, _dataset.GetString(DicomTag.SOPInstanceUID));
     }
@@ -84,7 +84,7 @@ public sealed class WorkitemServiceTests
 
         _dataset.Add(DicomTag.SOPInstanceUID, workitemInstanceUid);
 
-        await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, workitemInstanceUid, CancellationToken.None);
 
         _addDatasetValidator
             .Received()
@@ -102,7 +102,7 @@ public sealed class WorkitemServiceTests
             .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
             .Throw(new DatasetValidationException(ushort.MinValue, string.Empty));
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         await _orchestrator
             .DidNotReceive()
@@ -122,7 +122,7 @@ public sealed class WorkitemServiceTests
             .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
             .Throw(new DatasetValidationException(failureCode, errorMessage));
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         _responseBuilder
             .Received()
@@ -144,7 +144,7 @@ public sealed class WorkitemServiceTests
             .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
             .Throw(new Exception(errorMessage));
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         _responseBuilder
             .Received()
@@ -167,7 +167,7 @@ public sealed class WorkitemServiceTests
             .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
             .Throw(new WorkitemAlreadyExistsException());
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         _responseBuilder
             .Received()
@@ -190,7 +190,7 @@ public sealed class WorkitemServiceTests
             .When(orc => orc.AddWorkitemAsync(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)), Arg.Any<CancellationToken>()))
             .Throw(new Exception(workitemInstanceUid));
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         _responseBuilder
             .Received()
@@ -207,7 +207,7 @@ public sealed class WorkitemServiceTests
             .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
             .Throw(new ElementValidationException(string.Empty, DicomVR.UN, ValidationErrorCode.UnexpectedVR));
 
-        await _target.ProcessAddAsync(new DicomDataset(), string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(new DicomDataset(), string.Empty, CancellationToken.None);
 
         _responseBuilder.Received().BuildAddResponse();
 
@@ -215,7 +215,7 @@ public sealed class WorkitemServiceTests
             .When(dv => dv.Validate(Arg.Any<DicomDataset>()))
             .Throw(new ElementValidationException(string.Empty, DicomVR.UN, ValidationErrorCode.UnexpectedVR));
 
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         _responseBuilder.Received().BuildAddResponse();
     }
@@ -223,7 +223,7 @@ public sealed class WorkitemServiceTests
     [Fact]
     public async Task GivenWorkitemStoreSucceeded_WhenProcessed_ThenResponseBuilderAddSuccessIsCalled()
     {
-        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessAddAsync(_dataset, string.Empty, CancellationToken.None);
 
         _responseBuilder.Received().AddSuccess(Arg.Is<DicomDataset>(ds => ReferenceEquals(ds, _dataset)));
     }
@@ -238,7 +238,7 @@ public sealed class WorkitemServiceTests
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(null as WorkitemMetadataStoreEntry));
 
-        await _target.ProcessCancelAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessCancelAsync(_dataset, workitemInstanceUid, CancellationToken.None);
 
         _responseBuilder.Received()
             .AddFailure(
@@ -257,7 +257,7 @@ public sealed class WorkitemServiceTests
             .GetWorkitemMetadataAsync(Arg.Is<string>(uid => string.Equals(workitemInstanceUid, uid)), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(null as WorkitemMetadataStoreEntry));
 
-        await _target.ProcessCancelAsync(_dataset, workitemInstanceUid, CancellationToken.None).ConfigureAwait(false);
+        await _target.ProcessCancelAsync(_dataset, workitemInstanceUid, CancellationToken.None);
 
         _responseBuilder.Received().BuildCancelResponse();
     }

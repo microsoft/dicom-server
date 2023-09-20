@@ -107,11 +107,11 @@ public class UpdateInstanceServiceTests
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(
             RetrieveHelpers.GenerateDatasetsFromIdentifiers(
                 versionedInstanceIdentifiers.First().VersionedInstanceIdentifier),
                 _recyclableMemoryStreamManager,
-                frames: 3).Result;
+                frames: 3);
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
         await streamAndStoredFile.Value.CopyToAsync(copyStream);
@@ -166,13 +166,13 @@ public class UpdateInstanceServiceTests
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(
             RetrieveHelpers.GenerateDatasetsFromIdentifiers(
                 versionedInstanceIdentifiers.First().VersionedInstanceIdentifier),
                 _recyclableMemoryStreamManager,
                 rows: 200,
                 columns: 200,
-                frames: 100).Result;
+                frames: 100);
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
         await streamAndStoredFile.Value.CopyToAsync(copyStream);
@@ -229,13 +229,13 @@ public class UpdateInstanceServiceTests
         var datasetToUpdate = new DicomDataset();
         var cancellationToken = CancellationToken.None;
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(
             RetrieveHelpers.GenerateDatasetsFromIdentifiers(
                 versionedInstanceIdentifiers.First().VersionedInstanceIdentifier),
                 _recyclableMemoryStreamManager,
                 rows: 200,
                 columns: 200,
-                frames: 100).Result;
+                frames: 100);
         var firstBlockLength = await DicomFileExtensions.GetByteLengthAsync(streamAndStoredFile.Key, new RecyclableMemoryStreamManager());
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
