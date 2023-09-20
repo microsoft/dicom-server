@@ -23,6 +23,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly Func<int> _getNextWatermark;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private static string ConditionNotMetMessage => "Received the following error code: ConditionNotMet";
+    private static string SourceConditionNotMetMessage => "Received the following error code: SourceConditionNotMet";
 
     public ExternalFileStoreTests(DataStoreTestsFixture fixture)
     {
@@ -137,7 +138,7 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.Contains(ConditionNotMetMessage, getFileEx.Message);
 
         var copyFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.CopyFileAsync(version, _getNextWatermark(), Partition.Default, badFileProperties));
-        Assert.Contains(ConditionNotMetMessage, copyFileEx.Message);
+        Assert.Contains(SourceConditionNotMetMessage, copyFileEx.Message);
     }
 
     [Fact]
