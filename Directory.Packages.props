@@ -4,7 +4,7 @@
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageVersion Include="Azure.Identity" Version="1.10.1" />
-    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.0.0-beta.14" />
+    <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.0.0" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.18.0" />
     <PackageVersion Include="Azure.Storage.Queues" Version="12.16.0" />
@@ -65,23 +65,23 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="2.0.55" />
-    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.13" />
-    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.13" />
+    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.294" />
+    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.14" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />

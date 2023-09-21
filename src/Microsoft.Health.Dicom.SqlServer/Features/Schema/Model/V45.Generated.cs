@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V45
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -39,7 +39,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static AssignReindexingOperationProcedure AssignReindexingOperation = new AssignReindexingOperationProcedure();
         internal readonly static BeginUpdateInstanceProcedure BeginUpdateInstance = new BeginUpdateInstanceProcedure();
         internal readonly static BeginUpdateInstanceV33Procedure BeginUpdateInstanceV33 = new BeginUpdateInstanceV33Procedure();
-        internal readonly static BeginUpdateInstanceV46Procedure BeginUpdateInstanceV46 = new BeginUpdateInstanceV46Procedure();
         internal readonly static CompleteReindexingProcedure CompleteReindexing = new CompleteReindexingProcedure();
         internal readonly static DeleteDeletedInstanceProcedure DeleteDeletedInstance = new DeleteDeletedInstanceProcedure();
         internal readonly static DeleteDeletedInstanceV6Procedure DeleteDeletedInstanceV6 = new DeleteDeletedInstanceV6Procedure();
@@ -74,7 +73,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
         internal readonly static GetInstanceWithPropertiesProcedure GetInstanceWithProperties = new GetInstanceWithPropertiesProcedure();
         internal readonly static GetInstanceWithPropertiesV32Procedure GetInstanceWithPropertiesV32 = new GetInstanceWithPropertiesV32Procedure();
-        internal readonly static GetInstanceWithPropertiesV46Procedure GetInstanceWithPropertiesV46 = new GetInstanceWithPropertiesV46Procedure();
         internal readonly static GetInstancesByWatermarkRangeProcedure GetInstancesByWatermarkRange = new GetInstancesByWatermarkRangeProcedure();
         internal readonly static GetInstancesByWatermarkRangeV6Procedure GetInstancesByWatermarkRangeV6 = new GetInstancesByWatermarkRangeV6Procedure();
         internal readonly static GetPartitionProcedure GetPartition = new GetPartitionProcedure();
@@ -859,24 +857,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class BeginUpdateInstanceV46Procedure : StoredProcedure
-        {
-            internal BeginUpdateInstanceV46Procedure() : base("dbo.BeginUpdateInstanceV46")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.String studyInstanceUid)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.BeginUpdateInstanceV46";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-            }
-        }
-
         internal class CompleteReindexingProcedure : StoredProcedure
         {
             internal CompleteReindexingProcedure() : base("dbo.CompleteReindexing")
@@ -1610,30 +1590,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             {
                 command.CommandType = global::System.Data.CommandType.StoredProcedure;
                 command.CommandText = "dbo.GetInstanceWithPropertiesV32";
-                _validStatus.AddParameter(command.Parameters, validStatus);
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);
-                _seriesInstanceUid.AddParameter(command.Parameters, seriesInstanceUid);
-                _sopInstanceUid.AddParameter(command.Parameters, sopInstanceUid);
-            }
-        }
-
-        internal class GetInstanceWithPropertiesV46Procedure : StoredProcedure
-        {
-            internal GetInstanceWithPropertiesV46Procedure() : base("dbo.GetInstanceWithPropertiesV46")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Byte> _validStatus = new ParameterDefinition<System.Byte>("@validStatus", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.String> _studyInstanceUid = new ParameterDefinition<System.String>("@studyInstanceUid", global::System.Data.SqlDbType.VarChar, false, 64);
-            private readonly ParameterDefinition<System.String> _seriesInstanceUid = new ParameterDefinition<System.String>("@seriesInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-            private readonly ParameterDefinition<System.String> _sopInstanceUid = new ParameterDefinition<System.String>("@sopInstanceUid", global::System.Data.SqlDbType.VarChar, true, 64);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Byte validStatus, System.Int32 partitionKey, System.String studyInstanceUid, System.String seriesInstanceUid, System.String sopInstanceUid)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetInstanceWithPropertiesV46";
                 _validStatus.AddParameter(command.Parameters, validStatus);
                 _partitionKey.AddParameter(command.Parameters, partitionKey);
                 _studyInstanceUid.AddParameter(command.Parameters, studyInstanceUid);

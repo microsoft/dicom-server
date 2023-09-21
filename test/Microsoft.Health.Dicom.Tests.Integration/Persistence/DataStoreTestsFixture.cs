@@ -7,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -30,6 +32,7 @@ public class DataStoreTestsFixture : IAsyncLifetime
     private readonly BlobContainerConfiguration _blobContainerConfiguration;
     private readonly BlobContainerConfiguration _metadataContainerConfiguration;
     private BlobServiceClient _blobClient;
+    public readonly bool IsDevEnv;
 
     private int _watermark = 0;
 
@@ -38,6 +41,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
         IConfiguration environment = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .Build();
+
+        IsDevEnv = environment["BlobStore:ConnectionString"] == null || environment["BlobStore:ConnectionString"].Contains("UseDevelopmentStorage=true");
 
         _blobContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
         _metadataContainerConfiguration = new BlobContainerConfiguration { ContainerName = Guid.NewGuid().ToString() };
@@ -106,6 +111,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
         public bool IsExternal => false;
 
         public string GetServiceStorePath(string partitionName) => "/service/path/";
+
+        public BlobRequestConditions GetConditions(FileProperties fileProperties) => null;
     }
 
     private class TestExternalBlobClient : IBlobClient
@@ -120,5 +127,10 @@ public class DataStoreTestsFixture : IAsyncLifetime
         public bool IsExternal => true;
 
         public string GetServiceStorePath(string partitionName) => "/service/path/" + partitionName;
+
+        public BlobRequestConditions GetConditions(FileProperties fileProperties) => new BlobRequestConditions
+        {
+            IfMatch = new ETag(fileProperties.ETag),
+        };
     }
 }

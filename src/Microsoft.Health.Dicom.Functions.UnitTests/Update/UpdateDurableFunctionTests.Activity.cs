@@ -73,10 +73,10 @@ public partial class UpdateDurableFunctionTests
         {
             _updateInstanceService
                 .UpdateInstanceBlobAsync(
-                instance.ToInstanceFileState(),
-                Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
-                Partition.Default,
-                Arg.Any<CancellationToken>())
+                    instance,
+                    Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                    Partition.Default,
+                    Arg.Any<CancellationToken>())
                 .Returns(DefaultFileProperties);
         }
 
@@ -88,7 +88,7 @@ public partial class UpdateDurableFunctionTests
         {
             await _updateInstanceService
                 .Received(1)
-                .UpdateInstanceBlobAsync(Arg.Is(GetPredicate(instance.ToInstanceFileState())), Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
+                .UpdateInstanceBlobAsync(Arg.Is(GetPredicate(instance)), Arg.Is<DicomDataset>(x => x.GetSingleValue<string>(DicomTag.PatientName) == "Patient Name"),
                 Partition.Default,
                 Arg.Any<CancellationToken>());
         }

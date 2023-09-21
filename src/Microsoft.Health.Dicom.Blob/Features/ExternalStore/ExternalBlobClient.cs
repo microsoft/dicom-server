@@ -5,8 +5,10 @@
 
 using EnsureThat;
 using System;
+using Azure;
 using Azure.Core;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
@@ -14,6 +16,7 @@ using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Core.Features.Identity;
+using Microsoft.Health.Dicom.Core.Features.Common;
 
 namespace Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 
@@ -98,5 +101,14 @@ internal class ExternalBlobClient : IBlobClient
         return _isPartitionEnabled ?
             _externalStoreOptions.StorageDirectory + partitionName + "/" :
             _externalStoreOptions.StorageDirectory;
+    }
+
+    public BlobRequestConditions GetConditions(FileProperties fileProperties)
+    {
+        EnsureArg.IsNotNull(fileProperties);
+        return new BlobRequestConditions // ensure file has not been changed since we last worked with it
+        {
+            IfMatch = new ETag(fileProperties.ETag),
+        };
     }
 }

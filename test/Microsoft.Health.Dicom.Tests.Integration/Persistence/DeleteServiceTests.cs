@@ -35,13 +35,13 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
     [InlineData(true, false)]
     public async Task GivenDeletedInstance_WhenCleanupCalledWithDifferentStorePersistence_FilesAndTriesAreRemoved(bool persistBlob, bool persistMetadata)
     {
-        var dicomInstanceIdentifier = await CreateAndValidateValuesInStores(persistBlob, persistMetadata);
+        (var dicomInstanceIdentifier, var fileProperties) = await CreateAndValidateValuesInStores(persistBlob, persistMetadata);
         await DeleteAndValidateInstanceForCleanup(dicomInstanceIdentifier);
 
         await Task.Delay(3000, CancellationToken.None);
         (bool success, int retrievedInstanceCount) = await _fixture.DeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier);
+        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier, fileProperties: fileProperties);
     }
 
     private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -51,7 +51,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
     }
 
-    private async Task<VersionedInstanceIdentifier> CreateAndValidateValuesInStores(bool persistBlob, bool persistMetadata)
+    private async Task<(VersionedInstanceIdentifier, FileProperties)> CreateAndValidateValuesInStores(bool persistBlob, bool persistMetadata)
     {
         var newDataSet = CreateValidMetadataDataset();
 
@@ -80,30 +80,35 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
 
                 // ensure properties were saved
                 Assert.NotEmpty(await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(version));
+
+                var file = await _fixture.FileStore.GetFileAsync(version, Partition.Default, fileProperties);
+
+                Assert.NotNull(file);
+
+                return (versionedDicomInstanceIdentifier, fileProperties);
             }
-
-            var file = await _fixture.FileStore.GetFileAsync(version, Partition.DefaultName);
-
-            Assert.NotNull(file);
         }
 
-        return versionedDicomInstanceIdentifier;
+        return (versionedDicomInstanceIdentifier, null);
     }
 
-    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob = false)
+    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob = false, FileProperties fileProperties = null)
     {
         Assert.True(success);
         Assert.Equal(1, retrievedInstanceCount);
 
+        fileProperties ??= new FileProperties();
+
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.MetadataStore.GetInstanceMetadataAsync(versionedInstanceIdentifier.Version));
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.Partition.Name));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.Partition, fileProperties));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
         if (persistBlob)
         {
             // ensure properties were deleted
-            IReadOnlyList<FileProperty> fileProperties = await _fixture.IndexDataStoreTestHelper.GetFilePropertiesAsync(versionedInstanceIdentifier.Version);
-            Assert.Empty(fileProperties);
+            IReadOnlyList<FileProperty> retrievedFleProperties = await _fixture.IndexDataStoreTestHelper
+                .GetFilePropertiesAsync(versionedInstanceIdentifier.Version);
+            Assert.Empty(retrievedFleProperties);
         }
     }
 
