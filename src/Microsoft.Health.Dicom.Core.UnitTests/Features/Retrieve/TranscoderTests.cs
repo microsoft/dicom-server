@@ -87,7 +87,7 @@ public class TranscoderTests
 
     [Theory]
     [MemberData(nameof(Get16BitTranscoderCombos))]
-    public async void GivenSupported16bitTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ReturnedFileHasExpectedTransferSyntax(
+    public async Task GivenSupported16bitTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ReturnedFileHasExpectedTransferSyntax(
         DicomTransferSyntax tsFrom,
         DicomTransferSyntax tsTo,
         PhotometricInterpretation photometricInterpretation)

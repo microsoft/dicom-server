@@ -45,14 +45,12 @@ public partial class WorkItemTransactionTests
             }),
         };
 
-        using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+        using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid);
         Assert.True(updateWorkitemResponse.IsSuccessStatusCode);
 
-        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid)
-            .ConfigureAwait(false);
+        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid);
         Assert.True(retrieveResponse.IsSuccessStatusCode);
-        var dataset = await retrieveResponse.GetValueAsync().ConfigureAwait(false);
+        var dataset = await retrieveResponse.GetValueAsync();
 
         Assert.NotNull(dataset);
         Assert.Equal(newWorklistLabel, dataset.GetString(DicomTag.WorklistLabel));
@@ -76,8 +74,7 @@ public partial class WorkItemTransactionTests
             { DicomTag.ProcedureStepState, ProcedureStepStateConstants.InProgress }
         };
         using var changeStateResponse = await _client
-            .ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateRequestDicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+            .ChangeWorkitemStateAsync(Enumerable.Repeat(changeStateRequestDicomDataset, 1), workitemUid);
         Assert.True(changeStateResponse.IsSuccessStatusCode);
 
         string newWorklistLabel = "WORKLIST-TEST";
@@ -100,14 +97,12 @@ public partial class WorkItemTransactionTests
             }),
         };
 
-        using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid, transactionUid)
-            .ConfigureAwait(false);
+        using var updateWorkitemResponse = await _client.UpdateWorkitemAsync(Enumerable.Repeat(updateDicomDataset, 1), workitemUid, transactionUid);
         Assert.True(updateWorkitemResponse.IsSuccessStatusCode);
 
-        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid)
-            .ConfigureAwait(false);
+        using var retrieveResponse = await _client.RetrieveWorkitemAsync(workitemUid);
         Assert.True(retrieveResponse.IsSuccessStatusCode);
-        var dataset = await retrieveResponse.GetValueAsync().ConfigureAwait(false);
+        var dataset = await retrieveResponse.GetValueAsync();
 
         Assert.NotNull(dataset);
         Assert.Equal(newWorklistLabel, dataset.GetString(DicomTag.WorklistLabel));

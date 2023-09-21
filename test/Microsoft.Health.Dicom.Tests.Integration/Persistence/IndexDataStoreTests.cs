@@ -629,7 +629,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
     }
 
     [Fact]
-    public async void GivenMultipleNewInstancesInSameStudy_WhenAddedInParallel_ThenItShouldBeAdded()
+    public async Task GivenMultipleNewInstancesInSameStudy_WhenAddedInParallel_ThenItShouldBeAdded()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         string seriesInstanceUid = TestUidGenerator.Generate();
@@ -638,13 +638,13 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid, seriesInstanceUid);
 
         await Task.WhenAll(
-                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance1),
-                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance2));
+            _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance1),
+            _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance2));
     }
 
 
     [Fact]
-    public async void GivenMultipleNewInstancesInDifferentStudy_SameSeriesAndSopInstanceUID_ThenItShouldBeAdded()
+    public async Task GivenMultipleNewInstancesInDifferentStudy_SameSeriesAndSopInstanceUID_ThenItShouldBeAdded()
     {
         string studyInstanceUid1 = TestUidGenerator.Generate();
         string studyInstanceUid2 = TestUidGenerator.Generate();
@@ -655,8 +655,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         DicomDataset instance2 = CreateTestDicomDataset(studyInstanceUid2, seriesInstanceUid, sopInstanceUid);
 
         await Task.WhenAll(
-                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance1),
-                _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance2));
+            _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance1),
+            _indexDataStore.BeginCreateInstanceIndexAsync(new Partition(1, "clinic-one"), instance2));
     }
 
     private static void ValidateStudyMetadata(
