@@ -25,6 +25,8 @@ using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
+using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
@@ -36,6 +38,12 @@ public class BlobFileStoreTests
 {
     private const string DefaultBlobName = "foo/123.dcm";
     private const string DefaultStorageDirectory = "/test/";
+
+    private readonly FileProperties _defaultFileProperties = new FileProperties
+    {
+        Path = DefaultBlobName,
+        ETag = "45678"
+    };
 
     [Theory]
     [InlineData("a!/b")]
@@ -155,6 +163,143 @@ public class BlobFileStoreTests
     }
 
     [Fact]
+    public async Task GivenExternalStore_WhenGetFileAsync_ThenExpectConditionsUsed()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
+
+        RequestFailedException requestFailedException = new RequestFailedException(
+            status: 412,
+            message: "Condition was not met.",
+            errorCode: BlobErrorCode.ConditionNotMet.ToString(),
+            innerException: new Exception("Condition not met."));
+
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).OpenReadAsync(
+            Arg.Is<BlobOpenReadOptions>(options => options.Conditions.IfMatch.ToString() == _defaultFileProperties.ETag),
+            Arg.Any<CancellationToken>()).Throws(requestFailedException);
+
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetFileAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None));
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.ConditionNotMet.ToString()), ex.Message);
+    }
+
+    [Fact]
+    public async Task GivenInternalStore_WhenGetFileAsync_ThenExpectNoConditionsUsed()
+    {
+        InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
+
+        var expectedResult = Substitute.For<Stream>();
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).OpenReadAsync(
+            Arg.Any<BlobOpenReadOptions>(),
+            Arg.Any<CancellationToken>()).Returns(expectedResult);
+
+        var result = blobFileStore.GetFileAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None);
+        Assert.Equal(expectedResult, result.Result);
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).OpenReadAsync(
+            Arg.Is<BlobOpenReadOptions>(options => options.Conditions == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenExternalStore_WhenCopyFileAsync_ThenExpectConditionsUsed()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
+
+        RequestFailedException requestFailedException = new RequestFailedException(
+            status: 412,
+            message: "Condition was not met.",
+            errorCode: BlobErrorCode.ConditionNotMet.ToString(),
+            innerException: new Exception("Condition not met."));
+
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).StartCopyFromUriAsync(
+            Arg.Any<Uri>(),
+            Arg.Any<BlobCopyFromUriOptions>(),
+            Arg.Any<CancellationToken>()).Throws(requestFailedException);
+
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.CopyFileAsync(1, 2, Partition.Default, _defaultFileProperties, CancellationToken.None));
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.ConditionNotMet.ToString()), ex.Message);
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).StartCopyFromUriAsync(
+            Arg.Any<Uri>(),
+            Arg.Is<BlobCopyFromUriOptions>(options => options.SourceConditions.IfMatch.ToString() == _defaultFileProperties.ETag),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInternalStore_WhenCopyFileAsync_ThenExpectNoConditionsUsed()
+    {
+        InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
+
+        var expectedResult = Substitute.For<Response<long>>();
+        var operation = Substitute.For<CopyFromUriOperation>();
+        operation.WaitForCompletionAsync(Arg.Any<CancellationToken>()).Returns(expectedResult);
+
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).StartCopyFromUriAsync(
+            Arg.Any<Uri>(),
+            Arg.Any<BlobCopyFromUriOptions>(),
+            Arg.Any<CancellationToken>()).Returns(operation);
+
+        await blobFileStore.CopyFileAsync(1, 2, Partition.Default, _defaultFileProperties, CancellationToken.None);
+
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).StartCopyFromUriAsync(
+            Arg.Any<Uri>(),
+            Arg.Is<BlobCopyFromUriOptions>(options => options.SourceConditions == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenExternalStore_WhenGetFileContentInRangeAsync_ThenExpectConditionsUsed()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
+
+        FrameRange range = new FrameRange(offset: 0, length: 100);
+
+        RequestFailedException requestFailedException = new RequestFailedException(
+            status: 412,
+            message: "Condition was not met.",
+            errorCode: BlobErrorCode.ConditionNotMet.ToString(),
+            innerException: new Exception("Condition not met."));
+
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).DownloadContentAsync(
+            Arg.Any<BlobDownloadOptions>(),
+            Arg.Any<CancellationToken>()).Throws(requestFailedException);
+
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetFileContentInRangeAsync(1, Partition.Default, _defaultFileProperties, range, CancellationToken.None));
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.ConditionNotMet.ToString()), ex.Message);
+
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).DownloadContentAsync(
+            Arg.Is<BlobDownloadOptions>(options =>
+                options.Conditions.IfMatch.ToString() == _defaultFileProperties.ETag
+                && options.Range.Offset == range.Offset
+                && options.Range.Length == range.Length),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInternalStore_WhenGetFileContentInRangeAsync_ThenExpectConditionsNotUsed()
+    {
+        InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
+
+        FrameRange range = new FrameRange(offset: 0, length: 100);
+
+        var expectedResult = Substitute.For<Response<BlobDownloadResult>>();
+        expectedResult.Value.Returns(Substitute.For<BlobDownloadResult>());
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).DownloadContentAsync(
+            Arg.Any<BlobDownloadOptions>(),
+            Arg.Any<CancellationToken>()).Returns(expectedResult);
+
+        var result = await blobFileStore.GetFileContentInRangeAsync(1, Partition.Default, _defaultFileProperties, range, CancellationToken.None);
+        Assert.Equal(expectedResult.Value.Content, result);
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).DownloadContentAsync(
+            Arg.Is<BlobDownloadOptions>(options =>
+                options.Conditions == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public void GivenExternalStore_WhenGetServiceStorePathWithPartitionsEnabled_ThenPathReturnedContainsPartitionPassed()
     {
         string partitionName = "foo";
@@ -240,6 +385,8 @@ public class BlobFileStoreTests
         {
             return "internal/";
         }
+
+        public BlobRequestConditions GetConditions(FileProperties fileProperties) => null;
     }
 
 }

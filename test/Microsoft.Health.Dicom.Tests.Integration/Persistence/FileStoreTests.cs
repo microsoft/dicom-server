@@ -44,7 +44,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         Assert.NotNull(fileProperties);
 
         // Should be able to retrieve.
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.DefaultName))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties))
         {
             Assert.Equal(
                 fileData,
@@ -55,7 +55,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
 
         // The file should no longer exists.
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version, Partition.DefaultName));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties));
     }
 
     [Fact]
@@ -65,13 +65,14 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         var fileData1 = new byte[] { 4, 7, 2 };
 
-        Assert.NotNull(await AddFileAsync(version, fileData1, "fileDataTag"));
+        FileProperties fileProperties = await AddFileAsync(version, fileData1, "fileDataTag");
+        Assert.NotNull(fileProperties);
 
         var fileData2 = new byte[] { 1, 3, 5 };
 
         Assert.NotNull(await AddFileAsync(version, fileData2, "fileDataTag"));
 
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.DefaultName))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties))
         {
             Assert.Equal(
                 fileData2,
@@ -88,18 +89,19 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         // store the file
         var fileData1 = new byte[] { 4, 7, 2 };
-        Assert.NotNull(await AddFileAsync(version, fileData1, "fileDataTag"));
+        FileProperties fileProperties = await AddFileAsync(version, fileData1, "fileDataTag");
+        Assert.NotNull(fileProperties);
 
         // file is deleted
         await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.DefaultName);
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version, Partition.DefaultName));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties));
 
         // store file again with same path
         var fileData2 = new byte[] { 1, 3, 5 };
         Assert.NotNull(await AddFileAsync(version, fileData2, "fileDataTag"));
 
         // assert that content is the same
-        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.DefaultName))
+        await using (Stream resultStream = await _blobDataStore.GetFileAsync(version, Partition.Default, fileProperties))
         {
             Assert.Equal(
                 fileData2,
@@ -112,7 +114,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
     [Fact]
     public async Task GivenANonExistentFile_WhenRetrieving_ThenItemNotFoundExceptionShouldBeThrown()
     {
-        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(_getNextWatermark(), Partition.DefaultName));
+        await Assert.ThrowsAsync<ItemNotFoundException>(() => _blobDataStore.GetFileAsync(_getNextWatermark(), Partition.Default, new FileProperties()));
     }
 
     [Fact]

@@ -132,7 +132,7 @@ public class RetrieveResourceService : IRetrieveResourceService
                 LogFileSize(fileProperties.ContentLength, version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
                 SetTranscodingBillingProperties(fileProperties.ContentLength);
 
-                using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition.Name, cancellationToken);
+                using Stream stream = await _blobDataStore.GetFileAsync(version, instance.VersionedInstanceIdentifier.Partition, instance.InstanceProperties.fileProperties, cancellationToken);
                 Stream transcodedStream = await _transcoder.TranscodeFileAsync(stream, requestedTransferSyntax);
 
                 IAsyncEnumerable<RetrieveResourceInstance> transcodedEnum =
@@ -223,7 +223,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         LogFileSize(fileProperties.ContentLength, instance.VersionedInstanceIdentifier.Version, needsTranscoding, instance.InstanceProperties.HasFrameMetadata);
 
         // eagerly doing getFrames to validate frame numbers are valid before returning a response
-        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partition.Name, cancellationToken);
+        Stream stream = await _blobDataStore.GetFileAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.fileProperties, cancellationToken);
         IReadOnlyCollection<Stream> frameStreams = await _frameHandler.GetFramesResourceAsync(
             stream,
             message.Frames,
