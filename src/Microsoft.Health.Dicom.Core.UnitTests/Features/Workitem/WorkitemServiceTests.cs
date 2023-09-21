@@ -49,8 +49,7 @@ public sealed class WorkitemServiceTests
     [Fact]
     public async Task GivenNullDicomDataset_WhenProcessed_ThenArgumentNullExceptionIsThrown()
     {
-        await Assert.ThrowsAsync<ArgumentNullException>(
-            async () => await _target.ProcessAddAsync(null, string.Empty, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _target.ProcessAddAsync(null, string.Empty, CancellationToken.None));
     }
 
     [Fact]
