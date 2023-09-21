@@ -65,23 +65,23 @@
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="$(SdkPackageVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Primitives" Version="$(SdkPackageVersion)" />
-    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Abstractions" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Api" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Blob" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Client" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Core" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Encryption" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Development.IdentityProvider" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Extensions.BuildTimeCodeGenerator" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Extensions.DependencyInjection" Version="7.0.15" />
     <PackageVersion Include="Microsoft.Health.Fhir.R4.Client" Version="3.4.294" />
-    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.14" />
-    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.14" />
+    <PackageVersion Include="Microsoft.Health.Functions.Extensions" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Operations" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Operations.Functions" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.SqlServer" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.SqlServer.Api" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Test.Utilities" Version="7.0.15" />
+    <PackageVersion Include="Microsoft.Health.Tools.Sql.Tasks" Version="7.0.15" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="7.0.0" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="2.3.2" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.2.0" />
