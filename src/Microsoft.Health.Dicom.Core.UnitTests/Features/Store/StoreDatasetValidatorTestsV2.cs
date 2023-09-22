@@ -188,6 +188,27 @@ public class StoreDatasetValidatorTestsV2
     }
 
     [Fact]
+    public async Task GivenV2Enabled_WhenCoreTagUidWithLeadingZeroes_ExpectTagValidatedAndNoOnlyWarningProduced()
+    {
+        // For Core Tag validation like studyInstanceUid, we expect to use minimum validator which is more lenient
+        // than fo-dicom's validator and allows things like leading zeroes in the UID
+        // We want the validation to *not* produce any errors and therefore not cause any failures
+        // However, we do want to still produce a warning for the end user so they are aware their instance may have issues
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
+            validateItems: false,
+            studyInstanceUid: "1.3.6.1.4.1.55648.014924617884283217793330176991551322645.2.1");
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null,
+            new CancellationToken());
+
+        Assert.Single(result.InvalidTagErrors);
+        Assert.False(result.InvalidTagErrors.Values.First().IsRequiredCoreTag); // we only fail when invalid core tags are present
+        Assert.Contains("does not validate VR UI: components must not have leading zeros", result.InvalidTagErrors.Values.First().Error);
+    }
+
+    [Fact]
     public async Task GivenV2Enabled_WhenValidSequenceTag_ExpectTagValidatedAndNoErrorProduced()
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
