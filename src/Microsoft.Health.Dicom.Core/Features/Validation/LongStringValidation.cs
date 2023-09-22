@@ -15,9 +15,13 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 /// </summary>
 internal class LongStringValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement, bool withLeniency = false)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
+        if (withLeniency)
+        {
+            value = value.TrimEnd('\0');
+        }
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name);
     }

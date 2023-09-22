@@ -33,7 +33,8 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
-    private static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
+
+    public static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
@@ -203,10 +204,10 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     }
 
     /// <summary>
-    /// Validate all items with leniency applied.
+    /// Validate all items. Generate errors for core tags with leniency applied and generate warnings for all of DS items.
     /// </summary>
     /// <param name="dicomDataset">Dataset to validate</param>
-    /// <param name="validationResultBuilder">Result builder to keep validation results in as validation runs</param>
+    /// <param name="validationResultBuilder">Result builder to keep errors and warnings in as validation runs</param>
     /// <remarks>
     /// We only need to validate SQ and DicomElement types. The only other type under DicomItem
     /// is DicomFragmentSequence, which does not implement validation and can be skipped.
@@ -218,6 +219,59 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         StoreValidationResultBuilder validationResultBuilder)
     {
         IReadOnlyCollection<QueryTag> queryTags = await _queryTagService.GetQueryTagsAsync();
+
+        GenerateErrors(dicomDataset, validationResultBuilder, queryTags);
+
+        GenerateValidationWarnings(dicomDataset, validationResultBuilder, queryTags);
+    }
+
+    /// <summary>
+    ///  Generate errors on result by validating each core tag in dataset
+    /// </summary>
+    /// <remarks>
+    /// isCoreTag is utilized in store service when building a response and to know whether or not to create a failure or
+    /// success response. Anything added here results in a 409 conflict with errors in body.
+    /// </remarks>
+    /// <param name="dicomDataset"></param>
+    /// <param name="validationResultBuilder"></param>
+    /// <param name="queryTags"></param>
+    private void GenerateErrors(DicomDataset dicomDataset, StoreValidationResultBuilder validationResultBuilder,
+        IReadOnlyCollection<QueryTag> queryTags)
+    {
+        foreach (var requiredCoreTag in RequiredCoreTags)
+        {
+            try
+            {
+                // validate with additional leniency
+                var validationWarning =
+                    dicomDataset.ValidateDicomTag(requiredCoreTag, _minimumValidator, withLeniency: true);
+
+                validationResultBuilder.Add(validationWarning, requiredCoreTag);
+            }
+            catch (ElementValidationException ex)
+            {
+                validationResultBuilder.Add(ex, requiredCoreTag, isCoreTag: true);
+                _storeMeter.V2ValidationError.Add(1,
+                    TelemetryDimension(requiredCoreTag, IsIndexableTag(queryTags, requiredCoreTag)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generate warnings on the results by validating each item in dataset 
+    /// </summary>
+    /// <remarks>
+    /// isCoreTag is utilized in store service when building a response and to know whether or not to create a failure or
+    /// success response. Anything added here results in a 202 Accepted with warnings in body.
+    /// Since we are providing warnings as informational value, we want to use full fo-dicom validation and no leniency
+    /// or our minimum validators.
+    /// We also need to iterate through each item at a time to capture all validation issues for each and all items in
+    /// the dataset instead of just excepting at first issue as fo-dicom does.
+    /// Do not produce a warning when string invalid only due to null padding. 
+    /// </remarks>
+    private void GenerateValidationWarnings(DicomDataset dicomDataset, StoreValidationResultBuilder validationResultBuilder,
+        IReadOnlyCollection<QueryTag> queryTags)
+    {
         var stack = new Stack<DicomDataset>();
         stack.Push(dicomDataset);
         while (stack.Count > 0)
@@ -241,7 +295,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         if (de.ValueRepresentation.ValueType == typeof(string))
                         {
                             string value = ds.GetString(de.Tag);
-                            ValidateItemWithLeniency(value, de, queryTags);
+                            ValidateStringItemWithLeniency(value, de, queryTags);
                         }
                         else
                         {
@@ -250,7 +304,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                     }
                     catch (DicomValidationException ex)
                     {
-                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: RequiredCoreTags.Contains(item.Tag));
+                        validationResultBuilder.Add(ex, item.Tag, isCoreTag: false);
                         _storeMeter.V2ValidationError.Add(1, TelemetryDimension(item, IsIndexableTag(queryTags, item)));
                     }
                 }
@@ -258,7 +312,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         }
     }
 
-    private void ValidateItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
+    private void ValidateStringItemWithLeniency(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
         if (value != null && value.EndsWith('\0'))
         {
@@ -275,6 +329,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         return queryTags.Any(x => x.Tag == de.Tag);
     }
 
+    private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomTag tag)
+    {
+        return queryTags.Any(x => x.Tag == tag);
+    }
+
     private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
     {
         de.ValueRepresentation.ValidateString(value.TrimEnd('\0'));
@@ -284,11 +343,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     }
 
     private static KeyValuePair<string, object>[] TelemetryDimension(DicomItem item, bool isIndexableTag) =>
+        TelemetryDimension(item.Tag, isIndexableTag);
+
+    private static KeyValuePair<string, object>[] TelemetryDimension(DicomTag tag, bool isIndexableTag) =>
         new[]
         {
-            new KeyValuePair<string, object>("TagKeyword", item.Tag.DictionaryEntry.Keyword),
-            new KeyValuePair<string, object>("VR", item.ValueRepresentation.ToString()),
-            new KeyValuePair<string, object>("Tag", item.Tag.ToString()),
+            new KeyValuePair<string, object>("TagKeyword", tag.DictionaryEntry.Keyword),
+            new KeyValuePair<string, object>("VR", tag.GetDefaultVR()),
+            new KeyValuePair<string, object>("Tag", tag.ToString()),
             new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
         };
 

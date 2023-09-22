@@ -17,6 +17,7 @@ internal interface IElementValidation
     /// Validate DicomElement
     /// </summary>
     /// <param name="dicomElement">The dicom element</param>
+    /// <param name="withLeniency">Validate with additional leniency applied</param>
     /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement);
+    void Validate(DicomElement dicomElement, bool withLeniency = false);
 }

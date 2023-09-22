@@ -395,13 +395,28 @@ public static class DicomDatasetExtensions
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(queryTag, nameof(queryTag));
+
+        return dataset.ValidateDicomTag(queryTag.Tag, minimumValidator);
+    }
+
+    /// <summary>
+    /// Validate dicom tag in Dicom dataset.
+    /// </summary>
+    /// <param name="dataset">The dicom dataset.</param>
+    /// <param name="dicomTag">The dicom tag being validated.</param>
+    /// <param name="minimumValidator">The minimum validator.</param>
+    /// <param name="withLeniency">Whether or not to validate with additional leniency</param>
+    public static ValidationWarnings ValidateDicomTag(this DicomDataset dataset, DicomTag dicomTag, IElementMinimumValidator minimumValidator, bool withLeniency = false)
+    {
+        EnsureArg.IsNotNull(dataset, nameof(dataset));
+        EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
-        DicomElement dicomElement = dataset.GetDicomItem<DicomElement>(queryTag.Tag);
+        DicomElement dicomElement = dataset.GetDicomItem<DicomElement>(dicomTag);
 
         ValidationWarnings warning = ValidationWarnings.None;
         if (dicomElement != null)
         {
-            if (dicomElement.ValueRepresentation != queryTag.VR)
+            if (dicomElement.ValueRepresentation != dicomTag.GetDefaultVR())
             {
                 string name = dicomElement.Tag.GetFriendlyName();
                 DicomVR actualVR = dicomElement.ValueRepresentation;
@@ -409,7 +424,7 @@ public static class DicomDatasetExtensions
                     name,
                     actualVR,
                     ValidationErrorCode.UnexpectedVR,
-                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedVR, name, queryTag.VR, actualVR));
+                    string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedVR, name, dicomTag.GetDefaultVR(), actualVR));
             }
 
             if (dicomElement.Count > 1)
@@ -417,7 +432,7 @@ public static class DicomDatasetExtensions
                 warning |= ValidationWarnings.IndexedDicomTagHasMultipleValues;
             }
 
-            minimumValidator.Validate(dicomElement);
+            minimumValidator.Validate(dicomElement, withLeniency);
         }
         return warning;
     }

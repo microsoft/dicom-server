@@ -4,6 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
 using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Store;
@@ -25,4 +26,9 @@ public sealed class StoreValidationResult
     public ValidationWarnings WarningCodes { get; }
 
     public IReadOnlyDictionary<DicomTag, StoreErrorResult> InvalidTagErrors { get; }
+
+    public bool InvalidCoreTagErrorsPresent
+    {
+        get => InvalidTagErrors.Any(invalidTagError => invalidTagError.Value.IsRequiredCoreTag);
+    }
 }

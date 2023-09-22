@@ -167,7 +167,7 @@ public class StoreService : IStoreService
             if (dropMetadata)
             {
                 // if any core tag errors occured, log as failure and return. otherwise we drop the invalid tag
-                if (storeValidatorResult.InvalidTagErrors.Any(x => x.Value.IsRequiredCoreTag))
+                if (storeValidatorResult.InvalidCoreTagErrorsPresent)
                 {
                     LogFailure(index, dicomDataset, storeValidatorResult);
                     return null;
@@ -264,14 +264,17 @@ public class StoreService : IStoreService
         var identifier = dicomDataset.ToInstanceIdentifier(partition);
         foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
         {
-            // drop invalid metadata
-            dicomDataset.Remove(tag);
+            if (!StoreDatasetValidator.RequiredCoreTags.Contains(tag))
+            {
+                // drop invalid metadata if not a core tag
+                dicomDataset.Remove(tag);
 
-            string message = storeValidatorResult.InvalidTagErrors[tag].Error;
-            _telemetryClient.ForwardLogTrace(
-                $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
-                " However, it will still be present when retrieving study, series, or instance resources.",
-                identifier);
+                string message = storeValidatorResult.InvalidTagErrors[tag].Error;
+                _telemetryClient.ForwardLogTrace(
+                    $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
+                    " However, it will still be present when retrieving study, series, or instance resources.",
+                    identifier);
+            }
         }
     }
 

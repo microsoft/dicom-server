@@ -37,11 +37,15 @@ internal class ElementRequiredLengthValidation : IElementValidation
         ExpectedLength = expectedLength;
     }
 
-    public void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement, bool withLeniency = false)
     {
         DicomVR vr = dicomElement.ValueRepresentation;
         if (TryGetAsString(dicomElement, out string value))
         {
+            if (withLeniency)
+            {
+                value = value.TrimEnd('\0');
+            }
             ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), value);
         }
         else

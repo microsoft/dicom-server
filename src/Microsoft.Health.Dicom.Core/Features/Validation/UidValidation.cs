@@ -14,9 +14,13 @@ internal class UidValidation : IElementValidation
 {
     private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
-    public void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement, bool withLeniency = false)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
+        if (withLeniency)
+        {
+            value = value.TrimEnd('\0');
+        }
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
     }

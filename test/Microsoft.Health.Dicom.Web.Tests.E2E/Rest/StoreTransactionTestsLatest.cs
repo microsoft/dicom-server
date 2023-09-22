@@ -188,10 +188,35 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     }
 
     [Fact]
-    public async Task GivenInstanceWithCoreTagWithNullPadding_WhenStoreInstanceWithPartialValidation_ThenExpectOkAndNoWarnings()
+    public async Task GivenInstanceWithStudyUIDValidWithNullPadding_WhenStoreInstanceWithPartialValidation_ThenExpectOkAndNoWarnings()
     {
+        var validUID = TestUidGenerator.Generate();
+        var validWithNullPadding = validUID + "\0";
         DicomFile dicomFile1 = new DicomFile(
-            Samples.CreateRandomInstanceDataset(patientId: "123\0", validateItems: false));
+            Samples.CreateRandomInstanceDataset(studyInstanceUid: validWithNullPadding, validateItems: false));
+
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 }, studyInstanceUid: validUID);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        // assert on response
+        DicomDataset responseDataset = await response.GetValueAsync();
+        DicomSequence refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
+        Assert.Single(refSopSequence);
+
+        DicomDataset firstInstance = refSopSequence.Items[0];
+
+        // expect a comment sequence to be empty
+        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+        Assert.Empty(failedAttributesSequence);
+    }
+
+    [Fact]
+    public async Task GivenInstanceWithPatientIdValidWithNullPadding_WhenStoreInstanceWithPartialValidation_ThenExpectOkAndNoWarnings()
+    {
+        var validPatientIdWithNullPadding = "123\0";
+        DicomFile dicomFile1 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(patientId: validPatientIdWithNullPadding, validateItems: false));
 
         DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
@@ -207,6 +232,23 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         // expect a comment sequence to be empty
         DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
         Assert.Empty(failedAttributesSequence);
+    }
+
+    [Fact]
+    public async Task GivenInstanceWithPatientIdInvalidWithNullPadding_WhenStoreInstanceWithPartialValidation_ThenExpectConflict()
+    {
+        DicomFile dicomFile1 = new DicomFile(
+            Samples.CreateRandomInstanceDataset(patientId: "\0123\0", validateItems: false));
+
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
+
+        Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
+
+        Assert.False(exception.ResponseDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
+
+        ValidationHelpers.ValidateFailedSopSequence(
+            exception.ResponseDataset,
+            ResponseHelper.ConvertToFailedSopSequenceEntry(dicomFile1.Dataset, ValidationHelpers.ValidationFailedFailureCode));
     }
 
     [Fact]
