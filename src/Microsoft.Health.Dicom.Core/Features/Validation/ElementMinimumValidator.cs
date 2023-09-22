@@ -33,7 +33,7 @@ public class ElementMinimumValidator : IElementMinimumValidator
         { DicomVR.US, new ElementRequiredLengthValidation(2) },
     };
 
-    public void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement, bool withLeniency = false)
     {
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
         DicomVR vr = dicomElement.ValueRepresentation;
@@ -43,7 +43,7 @@ public class ElementMinimumValidator : IElementMinimumValidator
         }
         if (Validations.TryGetValue(vr, out IElementValidation validationRule))
         {
-            validationRule.Validate(dicomElement);
+            validationRule.Validate(dicomElement, withLeniency);
         }
         else
         {

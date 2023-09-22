@@ -59,7 +59,7 @@ internal class DicomInstancesManager : IAsyncDisposable
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(DicomFile dicomFile, string studyInstanceUid = default, Partition partition = null, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
-        _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partition));
+        _instanceIds.Add(DicomInstanceId.FromDicomFile(dicomFile, partition, studyInstanceUid));
         return await _dicomWebClient.StoreAsync(dicomFile, studyInstanceUid, partition?.Name, cancellationToken);
     }
 
@@ -79,7 +79,7 @@ internal class DicomInstancesManager : IAsyncDisposable
         EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
         foreach (var file in dicomFiles)
         {
-            _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partition));
+            _instanceIds.Add(DicomInstanceId.FromDicomFile(file, partition, studyInstanceUid));
         }
 
         return await _dicomWebClient.StoreAsync(dicomFiles, studyInstanceUid, partition?.Name, cancellationToken);

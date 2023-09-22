@@ -73,7 +73,7 @@ public class StoreDatasetValidatorTestsV2
             """does not validate VR LO: value contains invalid character""",
             result.InvalidTagErrors[DicomTag.PatientID].Error);
 
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>(), true);
     }
 
     [Fact]
@@ -90,7 +90,6 @@ public class StoreDatasetValidatorTestsV2
         Assert.True(result.InvalidTagErrors.Any());
         Assert.Single(result.InvalidTagErrors);
         Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]
@@ -259,7 +258,6 @@ public class StoreDatasetValidatorTestsV2
 
         Assert.Single(result.InvalidTagErrors);
         Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]
@@ -287,7 +285,6 @@ public class StoreDatasetValidatorTestsV2
 
         Assert.Single(result.InvalidTagErrors);
         Assert.Equal("""DICOM100: (300e,0004) - Content "NotAValidReviewDate" does not validate VR DA: one of the date values does not match the pattern YYYYMMDD""", result.InvalidTagErrors[DicomTag.ReviewDate].Error);
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>());
     }
 
     [Fact]

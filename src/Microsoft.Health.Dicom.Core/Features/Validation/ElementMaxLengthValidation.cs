@@ -22,9 +22,13 @@ internal class ElementMaxLengthValidation : IElementValidation
 
     public int MaxLength { get; }
 
-    public void Validate(DicomElement dicomElement)
+    public void Validate(DicomElement dicomElement, bool withLeniency = false)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
+        if (withLeniency)
+        {
+            value = value.TrimEnd('\0');
+        }
         Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
     }
 

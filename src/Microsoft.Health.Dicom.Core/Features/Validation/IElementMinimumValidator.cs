@@ -17,6 +17,7 @@ public interface IElementMinimumValidator
     /// Validate Dicom Element.
     /// </summary>
     /// <param name="dicomElement">The Dicom Element</param>
+    /// <param name="withLeniency">Whether or not to validate with additional leniency</param>
     /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement);
+    void Validate(DicomElement dicomElement, bool withLeniency = false);
 }

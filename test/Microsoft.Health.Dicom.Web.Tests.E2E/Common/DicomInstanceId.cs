@@ -29,11 +29,11 @@ internal class DicomInstanceId
     public string SopInstanceUid { get; }
     public Partition Partition { get; }
 
-    public static DicomInstanceId FromDicomFile(DicomFile dicomFile, Partition partition = null)
+    public static DicomInstanceId FromDicomFile(DicomFile dicomFile, Partition partition = null, string studyInstanceUid = null)
     {
         partition = partition ?? Partition.Default;
         InstanceIdentifier instanceIdentifier = dicomFile.Dataset.ToInstanceIdentifier(CorePartition.Partition.Default);
-        return new DicomInstanceId(instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, partition);
+        return new DicomInstanceId(studyInstanceUid ?? instanceIdentifier.StudyInstanceUid, instanceIdentifier.SeriesInstanceUid, instanceIdentifier.SopInstanceUid, partition);
     }
 
     public override bool Equals(object obj)
