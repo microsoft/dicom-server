@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -53,7 +53,8 @@ public class AuditHelper : IAuditHelper
     /// Should check for AuthX failure and print LogExecuted messages only if it is AuthX failure.
     /// This is no-op in DICOM as all the log executed messages are written at one place.
     /// </param>
-    public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, bool shouldCheckForAuthXFailure)
+    /// <param name="durationMs">The duration of the operation in milliseconds.</param>
+    public void LogExecuted(HttpContext httpContext, IClaimsExtractor claimsExtractor, bool shouldCheckForAuthXFailure, long? durationMs = null)
     {
         EnsureArg.IsNotNull(claimsExtractor, nameof(claimsExtractor));
         EnsureArg.IsNotNull(httpContext, nameof(httpContext));
