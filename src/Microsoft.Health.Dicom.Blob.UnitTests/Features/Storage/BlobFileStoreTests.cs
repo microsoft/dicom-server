@@ -193,8 +193,8 @@ public class BlobFileStoreTests
             Arg.Any<BlobOpenReadOptions>(),
             Arg.Any<CancellationToken>()).Returns(expectedResult);
 
-        var result = blobFileStore.GetFileAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None);
-        Assert.Equal(expectedResult, result.Result);
+        var result = await blobFileStore.GetFileAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None);
+        Assert.Equal(expectedResult, result);
         await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).OpenReadAsync(
             Arg.Is<BlobOpenReadOptions>(options => options.Conditions == null),
             Arg.Any<CancellationToken>());

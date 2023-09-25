@@ -150,7 +150,7 @@ public class RetrieveRenderedServiceTests
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
         // For the instance, set up the fileStore to return a stream containing the file associated with the identifier with 3 frames.
-        Stream streamOfStoredFiles = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result.Value;
+        Stream streamOfStoredFiles = (await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3)).Value;
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamOfStoredFiles);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamOfStoredFiles.Length });
 
@@ -169,7 +169,7 @@ public class RetrieveRenderedServiceTests
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList();
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
 
@@ -231,7 +231,7 @@ public class RetrieveRenderedServiceTests
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
 
@@ -297,7 +297,7 @@ public class RetrieveRenderedServiceTests
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
         _fileStore.GetFileAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition, DefaultFileProperties, DefaultCancellationToken).Returns(streamAndStoredFile.Value);
         _fileStore.GetFilePropertiesAsync(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Version, versionedInstanceIdentifiers[0].VersionedInstanceIdentifier.Partition.Name, DefaultCancellationToken).Returns(new FileProperties { ContentLength = streamAndStoredFile.Value.Length });
 
@@ -359,7 +359,7 @@ public class RetrieveRenderedServiceTests
     {
         List<InstanceMetadata> versionedInstanceIdentifiers = SetupInstanceIdentifiersList(partition: _dicomRequestContextAccessor.RequestContext.DataPartition);
 
-        KeyValuePair<DicomFile, Stream> streamAndStoredFile = RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3).Result;
+        KeyValuePair<DicomFile, Stream> streamAndStoredFile = await RetrieveHelpers.StreamAndStoredFileFromDataset(RetrieveHelpers.GenerateDatasetsFromIdentifiers(versionedInstanceIdentifiers[0].VersionedInstanceIdentifier), _recyclableMemoryStreamManager, frames: 3);
 
         MemoryStream copyStream = _recyclableMemoryStreamManager.GetStream();
         await streamAndStoredFile.Value.CopyToAsync(copyStream);

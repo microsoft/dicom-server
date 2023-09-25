@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using FellowOakDicom;
 using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -85,7 +86,7 @@ public class QueryServiceTests
     [InlineData(QueryResource.AllInstances)]
     [InlineData(QueryResource.StudyInstances)]
     [InlineData(QueryResource.StudySeriesInstances)]
-    public async void GivenRequestForInstances_WhenRetrievingQueriableExtendedQueryTags_ReturnsAllTags(QueryResource resourceType)
+    public async Task GivenRequestForInstances_WhenRetrievingQueriableExtendedQueryTags_ReturnsAllTags(QueryResource resourceType)
     {
         _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         var parameters = new QueryParameters
@@ -113,7 +114,7 @@ public class QueryServiceTests
     [Theory]
     [InlineData(QueryResource.AllSeries)]
     [InlineData(QueryResource.StudySeries)]
-    public async void GivenRequestForSeries_WhenRetrievingQueriableExtendedQueryTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
+    public async Task GivenRequestForSeries_WhenRetrievingQueriableExtendedQueryTags_ReturnsSeriesAndStudyTags(QueryResource resourceType)
     {
         _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         var parameters = new QueryParameters
@@ -139,7 +140,7 @@ public class QueryServiceTests
 
     [Theory]
     [InlineData(QueryResource.AllStudies)]
-    public async void GivenRequestForStudies_WhenRetrievingQueriableExtendedQueryTags_ReturnsStudyTags(QueryResource resourceType)
+    public async Task GivenRequestForStudies_WhenRetrievingQueriableExtendedQueryTags_ReturnsStudyTags(QueryResource resourceType)
     {
         _queryParser.Parse(default, default).ReturnsForAnyArgs(new QueryExpression(default, default, default, default, default, Array.Empty<QueryFilterCondition>(), Array.Empty<string>()));
         var parameters = new QueryParameters
@@ -165,7 +166,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenV2DefaultStudyExpected_OnlyStudyResultPathIsCalled()
+    public async Task GivenRequest_WhenV2DefaultStudyExpected_OnlyStudyResultPathIsCalled()
     {
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
@@ -181,7 +182,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenDefaultStudySeriesExpected_OnlyStudySeriesResultPathIsCalled()
+    public async Task GivenRequest_WhenDefaultStudySeriesExpected_OnlyStudySeriesResultPathIsCalled()
     {
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
@@ -203,7 +204,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenDefaultSeriesExpected_OnlySeriesResultPathIsCalled()
+    public async Task GivenRequest_WhenDefaultSeriesExpected_OnlySeriesResultPathIsCalled()
     {
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
@@ -219,7 +220,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenAllRequests_MetadataPathCalled()
+    public async Task GivenRequest_WhenAllRequests_MetadataPathCalled()
     {
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
         _queryParser.Parse(default, default).ReturnsForAnyArgs(
@@ -235,7 +236,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenAllRequestsAndComputedRequested_MetadataPathAndStudyResultCalled()
+    public async Task GivenRequest_WhenAllRequestsAndComputedRequested_MetadataPathAndStudyResultCalled()
     {
         var includeFields = new QueryIncludeField(new List<DicomTag>() { DicomTag.PatientAdditionalPosition, DicomTag.ProposedStudySequence, DicomTag.ModalitiesInStudy });
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
@@ -258,7 +259,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenDefaultSeriesWithComputedCalled_StudyPathIsNotCalled()
+    public async Task GivenRequest_WhenDefaultSeriesWithComputedCalled_StudyPathIsNotCalled()
     {
         var includeFields = new QueryIncludeField(new List<DicomTag>() { DicomTag.PatientAdditionalPosition, DicomTag.NumberOfSeriesRelatedInstances, DicomTag.Modality });
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);
@@ -275,7 +276,7 @@ public class QueryServiceTests
     }
 
     [Fact]
-    public async void GivenRequest_WhenStudiesDeletedFromDBAfterQueryResultBeforeComputeCalled_RequestShouldSucceed()
+    public async Task GivenRequest_WhenStudiesDeletedFromDBAfterQueryResultBeforeComputeCalled_RequestShouldSucceed()
     {
         var includeFields = new QueryIncludeField(new List<DicomTag>() { DicomTag.PatientAdditionalPosition, DicomTag.ProposedStudySequence, DicomTag.ModalitiesInStudy });
         VersionedInstanceIdentifier identifier = new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 1);

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ public class TranscoderTests
 
     [Theory]
     [MemberData(nameof(Get16BitTranscoderCombos))]
-    public void GivenSupported16bitTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ReturnedFileHasExpectedTransferSyntax(
+    public async Task GivenSupported16bitTransferSyntax_WhenRetrievingFrameAndAskingForConversion_ReturnedFileHasExpectedTransferSyntax(
         DicomTransferSyntax tsFrom,
         DicomTransferSyntax tsTo,
         PhotometricInterpretation photometricInterpretation)
@@ -95,7 +95,7 @@ public class TranscoderTests
         EnsureArg.IsNotNull(photometricInterpretation, nameof(photometricInterpretation));
         EnsureArg.IsNotNull(tsFrom, nameof(tsFrom));
         EnsureArg.IsNotNull(tsTo, nameof(tsTo));
-        DicomFile dicomFile = StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom).Result.dicomFile;
+        DicomFile dicomFile = (await StreamAndStoredFileFromDataset(photometricInterpretation, false, tsFrom)).dicomFile;
         dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
 
         _transcoder.TranscodeFrame(dicomFile, 1, tsTo.UID.UID);

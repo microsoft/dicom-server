@@ -29,24 +29,20 @@ public partial class WorkItemTransactionTests
         dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
 
         using var addResponse = await _client
-            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Cancel
         var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
         using var cancelResponse = await _client
-            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid);
         Assert.True(cancelResponse.IsSuccessStatusCode);
 
         // Query
         using var queryResponse = await _client
-            .QueryWorkitemAsync($"PatientName={patientName}")
-            .ConfigureAwait(false);
+            .QueryWorkitemAsync($"PatientName={patientName}");
         var responseDatasets = await queryResponse
-            .ToArrayAsync()
-            .ConfigureAwait(false);
+            .ToArrayAsync();
         var actualDataset = responseDatasets?.FirstOrDefault();
 
         // Verify
@@ -66,21 +62,18 @@ public partial class WorkItemTransactionTests
         dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
 
         using var addResponse = await _client
-            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Cancel
         var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
         using var cancelResponse1 = await _client
-            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+            .CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid);
         Assert.True(cancelResponse1.IsSuccessStatusCode);
 
         // Cancel
         var exception = await Assert
-            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid))
-            .ConfigureAwait(false);
+            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid));
 
         // Verify
         Assert.Equal("\"" + DicomCoreResource.WorkitemIsAlreadyCanceled + "\"", exception.ResponseMessage);
@@ -107,16 +100,14 @@ public partial class WorkItemTransactionTests
         dicomDataset.AddOrUpdate(DicomTag.PatientName, patientName);
 
         using var addResponse = await _client
-            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid)
-            .ConfigureAwait(false);
+            .AddWorkitemAsync(Enumerable.Repeat(dicomDataset, 1), workitemUid);
         Assert.True(addResponse.IsSuccessStatusCode);
 
         // Cancel
         var newWorkitemUid = TestUidGenerator.Generate();
         var cancelDicomDataset = Samples.CreateWorkitemCancelRequestDataset(@"Test Cancel");
         var exception = await Assert
-            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), newWorkitemUid))
-            .ConfigureAwait(false);
+            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), newWorkitemUid));
 
         // Verify
         Assert.Equal("\"" + DicomCoreResource.WorkitemInstanceNotFound + "\"", exception.ResponseMessage);

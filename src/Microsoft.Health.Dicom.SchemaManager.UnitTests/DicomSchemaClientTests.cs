@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema;
 using Microsoft.Health.SqlServer.Features.Schema.Manager;
@@ -22,7 +23,7 @@ public class DicomSchemaClientTests
     private readonly ISchemaManagerDataStore _schemaManagerDataStore = Substitute.For<ISchemaManagerDataStore>();
 
     [Fact]
-    public async void GivenCurrentVersionAboveOne_GetAvailableVersions_ShouldReturnCorrectVersionsAsync()
+    public async Task GivenCurrentVersionAboveOne_GetAvailableVersions_ShouldReturnCorrectVersionsAsync()
     {
         //Arrange
         int currentVersion = 5;
@@ -44,7 +45,7 @@ public class DicomSchemaClientTests
     }
 
     [Fact]
-    public async void GivenCurrentVersionOfMax_GetAvailableVersionsShouldReturnOneVersion()
+    public async Task GivenCurrentVersionOfMax_GetAvailableVersionsShouldReturnOneVersion()
     {
         //Arrange
         _schemaManagerDataStore.GetCurrentSchemaVersionAsync(default).Returns(SchemaVersionConstants.Max);
