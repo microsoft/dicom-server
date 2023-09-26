@@ -166,13 +166,13 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to delete DICOM instance file with watermark '{Version}'.", version);
 
-        await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
+        await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: _blobClient.GetConditions(fileProperties), cancellationToken));
     }
 
     /// <inheritdoc />

@@ -104,21 +104,12 @@ public class DeleteService : IDeleteService
                 {
                     try
                     {
-                        Task[] tasks = new[]
+                        Task[] tasks =
                         {
-                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition.Name, cancellationToken),
+                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken),
                             _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
                             _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
                         };
-
-                        if (deletedInstanceIdentifier.InstanceProperties.OriginalVersion.HasValue)
-                        {
-                            tasks = tasks.Concat(new[]
-                            {
-                                _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value,  deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition.Name, cancellationToken),
-                                _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken),
-                            }).ToArray();
-                        }
 
                         await Task.WhenAll(tasks);
 

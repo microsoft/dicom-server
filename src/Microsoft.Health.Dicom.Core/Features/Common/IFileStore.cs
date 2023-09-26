@@ -42,10 +42,11 @@ public interface IFileStore
     /// Asynchronously deletes a file from the file store if the file exists.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
-    /// <param name="partitionName">Name of the partition</param>
+    /// <param name="partition">Partition to use when operating on file</param>
+    /// <param name="fileProperties">blob file Properties</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteFileIfExistsAsync(long version, string partitionName, CancellationToken cancellationToken = default);
+    Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously get file properties

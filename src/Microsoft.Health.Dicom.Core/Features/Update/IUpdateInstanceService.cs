@@ -34,5 +34,5 @@ public interface IUpdateInstanceService
     /// <param name="partition">Partition</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous DeleteInstanceBlobAsync operation</returns>
-    public Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, CancellationToken cancellationToken = default);
+    public Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 }

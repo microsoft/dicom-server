@@ -64,12 +64,12 @@ public class UpdateInstanceService : IUpdateInstanceService
     }
 
     /// <inheritdoc />
-    public async Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, CancellationToken cancellationToken = default)
+    public async Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
         _logger.LogInformation("Begin deleting instance blob {FileIdentifier}.", fileIdentifier);
 
-        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, partition.Name, cancellationToken);
+        Task fileTask = _fileStore.DeleteFileIfExistsAsync(fileIdentifier, partition, fileProperties, cancellationToken);
         Task metadataTask = _metadataStore.DeleteInstanceMetadataIfExistsAsync(fileIdentifier, cancellationToken);
 
         await Task.WhenAll(fileTask, metadataTask);
