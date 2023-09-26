@@ -12,7 +12,6 @@ CREATE TABLE dbo.DeletedInstance
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
     PartitionKey        INT               NOT NULL DEFAULT 1,    --FK
-    FilePath            String            NULL,
     FilePath            NVARCHAR (4000)   NOT NULL,
     ETag                NVARCHAR (4000)   NOT NULL
     
