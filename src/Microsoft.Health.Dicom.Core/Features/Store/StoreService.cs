@@ -167,7 +167,7 @@ public class StoreService : IStoreService
             if (dropMetadata)
             {
                 // if any core tag errors occured, log as failure and return. otherwise we drop the invalid tag
-                if (storeValidatorResult.InvalidCoreTagErrorsPresent)
+                if (storeValidatorResult.HasCoreTagError)
                 {
                     LogFailure(index, dicomDataset, storeValidatorResult);
                     return null;

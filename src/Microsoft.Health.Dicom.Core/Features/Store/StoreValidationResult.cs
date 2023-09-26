@@ -27,8 +27,5 @@ public sealed class StoreValidationResult
 
     public IReadOnlyDictionary<DicomTag, StoreErrorResult> InvalidTagErrors { get; }
 
-    public bool InvalidCoreTagErrorsPresent
-    {
-        get => InvalidTagErrors.Any(invalidTagError => invalidTagError.Value.IsRequiredCoreTag);
-    }
+    public bool HasCoreTagError => InvalidTagErrors.Any(invalidTagError => invalidTagError.Value.IsRequiredCoreTag);
 }
