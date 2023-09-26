@@ -233,7 +233,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     /// </remarks>
     /// <param name="dicomDataset"></param>
     /// <param name="validationResultBuilder"></param>
-    /// <param name="queryTags"></param>
+    /// <param name="queryTags">Queryable dicom tags</param>
     private void GenerateErrors(DicomDataset dicomDataset, StoreValidationResultBuilder validationResultBuilder,
         IReadOnlyCollection<QueryTag> queryTags)
     {
