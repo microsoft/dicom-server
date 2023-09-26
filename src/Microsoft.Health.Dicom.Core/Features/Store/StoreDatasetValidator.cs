@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
@@ -32,6 +33,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly IQueryTagService _queryTagService;
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly ILogger _logger;
 
     public static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
@@ -47,7 +49,8 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         IElementMinimumValidator minimumValidator,
         IQueryTagService queryTagService,
         StoreMeter storeMeter,
-        IDicomRequestContextAccessor dicomRequestContextAccessor)
+        IDicomRequestContextAccessor dicomRequestContextAccessor,
+        ILogger<StoreDatasetValidator> logger)
     {
         EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration));
         EnsureArg.IsNotNull(minimumValidator, nameof(minimumValidator));
@@ -59,6 +62,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         _minimumValidator = minimumValidator;
         _queryTagService = queryTagService;
         _storeMeter = EnsureArg.IsNotNull(storeMeter, nameof(storeMeter));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     /// <inheritdoc/>
@@ -250,6 +254,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             catch (ElementValidationException ex)
             {
                 validationResultBuilder.Add(ex, requiredCoreTag, isCoreTag: true);
+                _logger.LogInformation("Dicom instance validation failed with error on required core tag {Tag} with id {Id}", requiredCoreTag.DictionaryEntry.Keyword, requiredCoreTag);
                 _storeMeter.V2ValidationError.Add(1,
                     TelemetryDimension(requiredCoreTag, IsIndexableTag(queryTags, requiredCoreTag)));
             }
@@ -304,6 +309,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                     catch (DicomValidationException ex)
                     {
                         validationResultBuilder.Add(ex, item.Tag, isCoreTag: false);
+                        if (item.Tag.IsPrivate)
+                        {
+                            _logger.LogInformation("Dicom instance validation succeeded, but with warning on a private tag");
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Dicom instance validation succeeded, but with warning on non-private tag {Tag} with id {Id}, where tag is indexable: {Indexable} and VR is {VR}", item.Tag.DictionaryEntry.Keyword, item.Tag, IsIndexableTag(queryTags, item), item.ValueRepresentation);
+                        }
                         _storeMeter.V2ValidationError.Add(1, TelemetryDimension(item, IsIndexableTag(queryTags, item)));
                     }
                 }
@@ -348,7 +361,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         new[]
         {
             new KeyValuePair<string, object>("TagKeyword", tag.DictionaryEntry.Keyword),
-            new KeyValuePair<string, object>("VR", tag.GetDefaultVR()),
+            new KeyValuePair<string, object>("VR", tag.GetDefaultVR().ToString()),
             new KeyValuePair<string, object>("Tag", tag.ToString()),
             new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
         };
