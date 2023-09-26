@@ -33,7 +33,6 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly StoreMeter _storeMeter;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
 
-
     public static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
         DicomTag.StudyInstanceUID,
