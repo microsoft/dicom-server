@@ -262,14 +262,14 @@ public class StoreService : IStoreService
     private void DropInvalidMetadata(StoreValidationResult storeValidatorResult, DicomDataset dicomDataset, Partition partition)
     {
         var identifier = dicomDataset.ToInstanceIdentifier(partition);
-        foreach (DicomTag tag in storeValidatorResult.InvalidTagErrors.Keys)
+        foreach (KeyValuePair<DicomTag, StoreErrorResult> error in storeValidatorResult.InvalidTagErrors)
         {
-            if (!StoreDatasetValidator.RequiredCoreTags.Contains(tag))
+            if (!StoreDatasetValidator.RequiredCoreTags.Contains(error.Key))
             {
                 // drop invalid metadata if not a core tag
-                dicomDataset.Remove(tag);
+                dicomDataset.Remove(error.Key);
 
-                string message = storeValidatorResult.InvalidTagErrors[tag].Error;
+                string message = error.Value.Error;
                 _telemetryClient.ForwardLogTrace(
                     $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
                     " However, it will still be present when retrieving study, series, or instance resources.",
