@@ -338,7 +338,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
 
     private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomItem de)
     {
-        return queryTags.Any(x => x.Tag == de.Tag);
+        return IsIndexableTag(queryTags, de.Tag);
     }
 
     private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomTag tag)
