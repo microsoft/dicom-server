@@ -247,7 +247,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
             {
                 // validate with additional leniency
                 var validationWarning =
-                    dicomDataset.ValidateDicomTag(requiredCoreTag, _minimumValidator, withLeniency: true);
+                    dicomDataset.ValidateDicomTag(requiredCoreTag, _minimumValidator, validationStyle: ValidationStyle.Default);
 
                 validationResultBuilder.Add(validationWarning, requiredCoreTag);
             }

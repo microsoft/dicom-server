@@ -12,12 +12,12 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class PersonNameValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         DicomVR vr = dicomElement.ValueRepresentation;
-        if (withLeniency)
+        if (validationStyle == ValidationStyle.Default)
         {
             value = value.TrimEnd('\0');
         }

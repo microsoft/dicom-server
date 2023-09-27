@@ -25,7 +25,7 @@ public class ElementMinimumValidatorTests
     [MemberData(nameof(SupportedDicomElements))]
     public void GivenSupportedVR_WhenValidating_ThenShouldPass(DicomElement dicomElement)
     {
-        _validator.Validate(dicomElement, false);
+        _validator.Validate(dicomElement);
     }
 
     public static IEnumerable<object[]> SupportedDicomElements()

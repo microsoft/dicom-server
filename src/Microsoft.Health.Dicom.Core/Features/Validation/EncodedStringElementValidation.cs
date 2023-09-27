@@ -12,30 +12,30 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class EncodedStringElementValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
         DicomVR vr = dicomElement.ValueRepresentation;
         switch (vr.Code)
         {
             case DicomVRCode.DT:
-                Validate(dicomElement, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid, withLeniency);
+                Validate(dicomElement, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid, validationStyle);
                 break;
             case DicomVRCode.IS:
-                Validate(dicomElement, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid, withLeniency);
+                Validate(dicomElement, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid, validationStyle);
                 break;
             case DicomVRCode.TM:
-                Validate(dicomElement, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid, withLeniency);
+                Validate(dicomElement, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid, validationStyle);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(dicomElement));
         };
     }
 
-    private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode, bool withLeniency)
+    private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
         string value = element.GetFirstValueOrDefault<string>();
 
-        if (withLeniency)
+        if (validationStyle == ValidationStyle.Default)
         {
             value = value.TrimEnd('\0');
         }

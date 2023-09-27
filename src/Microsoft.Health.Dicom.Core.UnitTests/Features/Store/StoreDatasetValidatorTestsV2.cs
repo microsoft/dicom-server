@@ -75,7 +75,7 @@ public class StoreDatasetValidatorTestsV2
             """does not validate VR LO: value contains invalid character""",
             result.InvalidTagErrors[DicomTag.PatientID].Error);
 
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>(), true);
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>(), ValidationStyle.Default);
     }
 
     [Fact]
