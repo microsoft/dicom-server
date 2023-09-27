@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -27,6 +27,7 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" />
     <PackageReference Include="Microsoft.Health.Abstractions" />
     <PackageReference Include="Microsoft.Health.Core" />
+    <PackageReference Include="Microsoft.Health.Encryption" />
     <PackageReference Include="Microsoft.Health.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Health.Operations" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
