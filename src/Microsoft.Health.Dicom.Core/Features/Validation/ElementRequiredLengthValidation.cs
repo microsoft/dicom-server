@@ -44,7 +44,7 @@ internal class ElementRequiredLengthValidation : IElementValidation
         {
             if (validationStyle == ValidationStyle.Default)
             {
-                value = value.TrimEnd('\0');
+                value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
             }
             ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), value);
         }

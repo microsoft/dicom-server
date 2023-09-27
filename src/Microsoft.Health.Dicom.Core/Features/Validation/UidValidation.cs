@@ -19,7 +19,7 @@ internal class UidValidation : IElementValidation
         string value = dicomElement.GetFirstValueOrDefault<string>();
         if (validationStyle == ValidationStyle.Default)
         {
-            value = value.TrimEnd('\0');
+            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
         }
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);

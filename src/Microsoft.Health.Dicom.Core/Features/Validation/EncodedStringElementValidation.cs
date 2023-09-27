@@ -37,7 +37,7 @@ internal class EncodedStringElementValidation : IElementValidation
 
         if (validationStyle == ValidationStyle.Default)
         {
-            value = value.TrimEnd('\0');
+            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
         }
 
         if (string.IsNullOrEmpty(value))

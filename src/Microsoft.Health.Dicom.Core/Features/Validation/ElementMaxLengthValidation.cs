@@ -27,7 +27,7 @@ internal class ElementMaxLengthValidation : IElementValidation
         string value = dicomElement.GetFirstValueOrDefault<string>();
         if (validationStyle == ValidationStyle.Default)
         {
-            value = value.TrimEnd('\0');
+            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
         }
         Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
     }
