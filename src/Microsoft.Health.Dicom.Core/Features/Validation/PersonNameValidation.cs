@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class PersonNameValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
+    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Default)
     {
         string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
