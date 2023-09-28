@@ -9,6 +9,7 @@ using Azure;
 using Azure.Core;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
@@ -29,6 +30,7 @@ internal class ExternalBlobClient : IBlobClient
     private readonly IExternalCredentialProvider _credentialProvider;
     private BlobContainerClient _blobContainerClient;
     private readonly bool _isPartitionEnabled;
+    private readonly ILogger _logger;
 
     /// <summary>
     /// Configures a blob client for an external store.
@@ -37,17 +39,21 @@ internal class ExternalBlobClient : IBlobClient
     /// <param name="externalStoreOptions">Options to use with configuring the external store.</param>
     /// <param name="blobClientOptions">Options to use when configuring the blob client.</param>
     /// <param name="featureConfiguration">Feature configuration.</param>
+    /// <param name="logger">A logger for diagnostic information.</param>
     public ExternalBlobClient(
         IExternalCredentialProvider credentialProvider,
         IOptions<ExternalBlobDataStoreConfiguration> externalStoreOptions,
         IOptions<BlobServiceClientOptions> blobClientOptions,
-        IOptions<FeatureConfiguration> featureConfiguration)
+        IOptions<FeatureConfiguration> featureConfiguration,
+        ILogger<ExternalBlobClient> logger)
     {
         _credentialProvider = EnsureArg.IsNotNull(credentialProvider, nameof(credentialProvider));
         _blobClientOptions = EnsureArg.IsNotNull(blobClientOptions?.Value, nameof(blobClientOptions));
         _externalStoreOptions = EnsureArg.IsNotNull(externalStoreOptions?.Value, nameof(externalStoreOptions));
         _externalStoreOptions.StorageDirectory = SanitizeServiceStorePath(_externalStoreOptions.StorageDirectory);
         _isPartitionEnabled = EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration)).Value.EnableDataPartitions;
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _logger.LogInformation("External blob client registered. Partition feature flag is set to {IsPartitionEnabled}", _isPartitionEnabled);
     }
 
     public bool IsExternal => true;
