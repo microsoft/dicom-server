@@ -188,11 +188,11 @@ public class BlobFileStore : IFileStore
         await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
     }
 
-    private static readonly Action<ILogger, string, Exception> LogBlobClientOperationDelegate =
-        LoggerMessage.Define<string>(
+    private static readonly Action<ILogger, string, bool, Exception> LogBlobClientOperationDelegate =
+        LoggerMessage.Define<string, bool>(
             LogLevel.Information,
             default,
-            "Operation '{OperationName}'processed.");
+            "Operation '{OperationName}' processed. Using external store {IsExternalStore}.");
 
     private static readonly Action<ILogger, string, long, Exception> LogBlobClientOperationWithStreamDelegate =
         LoggerMessage.Define<string, long>(
@@ -204,11 +204,11 @@ public class BlobFileStore : IFileStore
     {
         _blobFileStoreMeter.BlobFileStoreOperationCount.Add(
             1,
-            BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType));
+            BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
 
         if (streamLength == null)
         {
-            LogBlobClientOperationDelegate(_logger, operationName, null);
+            LogBlobClientOperationDelegate(_logger, operationName, _blobClient.IsExternal, null);
         }
         else
         {
@@ -216,7 +216,7 @@ public class BlobFileStore : IFileStore
             LogBlobClientOperationWithStreamDelegate(_logger, operationName, streamLength.Value, null);
             _blobFileStoreMeter.BlobFileStoreOperationStreamSize.Add(
                 lenght,
-                BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType));
+                BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
         }
     }
 

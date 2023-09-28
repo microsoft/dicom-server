@@ -56,12 +56,14 @@ public sealed class BlobFileStoreMeter : IDisposable
     /// </summary>
     /// <param name="operationName">Name of operation being hit</param>
     /// <param name="operationType">Represents whether operation is input (write) or output(read) </param>
+    /// <param name="isExternal">Whether or not this metric is being emitted for an external store</param>
     /// <returns></returns>
-    public static KeyValuePair<string, object>[] BlobFileStoreOperationTelemetryDimension(string operationName, OperationType operationType) =>
+    public static KeyValuePair<string, object>[] BlobFileStoreOperationTelemetryDimension(string operationName, OperationType operationType, bool isExternal) =>
         new[]
         {
             new KeyValuePair<string, object>("Operation", operationName),
             new KeyValuePair<string, object>("Type", operationType),
+            new KeyValuePair<string, object>("IsExternal", isExternal),
         };
 
     public void Dispose()
