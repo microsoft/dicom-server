@@ -262,7 +262,7 @@ public class StoreService : IStoreService
     private void DropInvalidMetadata(StoreValidationResult storeValidatorResult, DicomDataset dicomDataset, Partition partition)
     {
         var identifier = dicomDataset.ToInstanceIdentifier(partition);
-        foreach (KeyValuePair<DicomTag, StoreErrorResult> error in storeValidatorResult.InvalidTagErrors)
+        foreach ((DicomTag tag, StoreErrorResult result) in storeValidatorResult.InvalidTagErrors)
         {
             if (!StoreDatasetValidator.RequiredCoreTags.Contains(error.Key))
             {
