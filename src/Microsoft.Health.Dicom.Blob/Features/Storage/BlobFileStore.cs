@@ -202,18 +202,22 @@ public class BlobFileStore : IFileStore
 
     private void EmitTelemetry(string operationName, long? streamLength = null)
     {
+        _blobFileStoreMeter.BlobFileStoreOperationCount.Add(
+            1,
+            BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName));
+
         if (streamLength == null)
         {
             LogBlobClientOperationDelegate(_logger, operationName, null);
         }
         else
         {
+            var lenght = streamLength.Value;
             LogBlobClientOperationWithStreamDelegate(_logger, operationName, streamLength.Value, null);
+            _blobFileStoreMeter.BlobFileStoreOperationStreamSize.Add(
+                lenght,
+                BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName));
         }
-
-        _blobFileStoreMeter.BlobFileStoreOperationCount.Add(
-            1,
-            BlobFileStoreMeter.BlobFileStoreOperationCountTelemetryDimension(operationName, streamLength));
     }
 
     /// <inheritdoc />
