@@ -253,7 +253,7 @@ public class BlobFileStore : IFileStore
         {
             Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
 
-            EmitTelemetry("GetStreamingFileAsync", OperationType.Output, result.Value.Content.Length);
+            EmitTelemetry("GetStreamingFileAsync", OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
         });
@@ -293,7 +293,7 @@ public class BlobFileStore : IFileStore
             var httpRange = new HttpRange(range.Offset, range.Length);
             Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
 
-            EmitTelemetry("GetFileFrameAsync", OperationType.Output, result.Value.Content.Length);
+            EmitTelemetry("GetFileFrameAsync", OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
         });
