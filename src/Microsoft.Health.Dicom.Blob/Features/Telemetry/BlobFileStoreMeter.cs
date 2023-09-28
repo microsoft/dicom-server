@@ -5,6 +5,20 @@ using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Telemetry;
 
+/// <summary>
+/// Represents whether operation is input (write) or output(read) from perspective of I/O on the blob store
+/// </summary>
+public enum OperationType
+{
+    /// <summary>
+    /// For Operations that write data
+    /// </summary>
+    Input,
+    /// <summary>
+    /// For Operations that read data
+    /// </summary>
+    Output
+}
 public sealed class BlobFileStoreMeter : IDisposable
 {
     private readonly Meter _meter;
@@ -36,11 +50,13 @@ public sealed class BlobFileStoreMeter : IDisposable
     /// Sets telemetry dimensions on meter
     /// </summary>
     /// <param name="operationName">Name of operation being hit</param>
+    /// <param name="operationType">Represents whether operation is input (write) or output(read) </param>
     /// <returns></returns>
-    public static KeyValuePair<string, object>[] BlobFileStoreOperationTelemetryDimension(string operationName) =>
+    public static KeyValuePair<string, object>[] BlobFileStoreOperationTelemetryDimension(string operationName, OperationType operationType) =>
         new[]
         {
-            new KeyValuePair<string, object>("Operation", operationName)
+            new KeyValuePair<string, object>("Operation", operationName),
+            new KeyValuePair<string, object>("Type", operationType),
         };
 
     public void Dispose()
