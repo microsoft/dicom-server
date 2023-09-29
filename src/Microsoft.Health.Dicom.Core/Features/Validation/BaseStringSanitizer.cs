@@ -13,9 +13,9 @@ public static class BaseStringSanitizer
     /// <summary>
     /// Sanitizes string value to prep for validation
     /// </summary>
-    public static string Sanitize(string value, ValidationStyle validationStyle)
+    public static string Sanitize(string value, ValidationLevel validationLevel)
     {
-        return validationStyle == ValidationStyle.Default
+        return validationLevel == ValidationLevel.Default
             ? string.IsNullOrEmpty(value) ? value : RemoveNullPadding(value)
             : value;
     }

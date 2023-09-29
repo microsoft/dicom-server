@@ -6,9 +6,9 @@
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 /// <summary>
-/// A set of validation styles to pick from to run validations against
+/// A set of validation levels to pick from to run validations against
 /// </summary>
-public enum ValidationStyle
+public enum ValidationLevel
 {
     /// <summary>
     /// Default takes a more lenient approach with strings when running validation rules. It drops null padding on a string and then continues to

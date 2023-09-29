@@ -15,10 +15,10 @@ internal class DateValidation : IElementValidation
 {
     private const string DateFormatDA = "yyyyMMdd";
 
-    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
+    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
     {
         string name = dicomElement.Tag.GetFriendlyName();
-        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
+        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationLevel);
         if (string.IsNullOrEmpty(value))
         {
             return;

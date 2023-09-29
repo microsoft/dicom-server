@@ -22,9 +22,9 @@ internal class ElementMaxLengthValidation : IElementValidation
 
     public int MaxLength { get; }
 
-    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
+    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
     {
-        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
+        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationLevel);
         Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
     }
 

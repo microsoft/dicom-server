@@ -12,28 +12,28 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class EncodedStringElementValidation : IElementValidation
 {
-    public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
+    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
     {
         DicomVR vr = dicomElement.ValueRepresentation;
         switch (vr.Code)
         {
             case DicomVRCode.DT:
-                Validate(dicomElement, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid, validationStyle);
+                Validate(dicomElement, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid, validationLevel);
                 break;
             case DicomVRCode.IS:
-                Validate(dicomElement, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid, validationStyle);
+                Validate(dicomElement, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid, validationLevel);
                 break;
             case DicomVRCode.TM:
-                Validate(dicomElement, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid, validationStyle);
+                Validate(dicomElement, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid, validationLevel);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(dicomElement));
         };
     }
 
-    private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode, ValidationStyle validationStyle = ValidationStyle.Strict)
+    private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode, ValidationLevel validationLevel = ValidationLevel.Strict)
     {
-        string value = BaseStringSanitizer.Sanitize(element.GetFirstValueOrDefault<string>(), validationStyle);
+        string value = BaseStringSanitizer.Sanitize(element.GetFirstValueOrDefault<string>(), validationLevel);
 
         if (string.IsNullOrEmpty(value))
         {

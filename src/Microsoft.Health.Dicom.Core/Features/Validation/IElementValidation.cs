@@ -17,7 +17,7 @@ internal interface IElementValidation
     /// Validate DicomElement
     /// </summary>
     /// <param name="dicomElement">The dicom element</param>
-    /// <param name="validationStyle">Validate with specific style - strict or more leninent/default</param>
+    /// <param name="validationLevel">Validate with specific style - strict or more leninent/default</param>
     /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict);
+    void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict);
 }
