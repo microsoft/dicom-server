@@ -35,7 +35,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly ILogger _logger;
 
-    public static readonly HashSet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
+    private static readonly IReadOnlySet<DicomTag> RequiredCoreTags = new HashSet<DicomTag>()
     {
         DicomTag.StudyInstanceUID,
         DicomTag.SeriesInstanceUID,
@@ -344,6 +344,16 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     private static bool IsIndexableTag(IReadOnlyCollection<QueryTag> queryTags, DicomTag tag)
     {
         return queryTags.Any(x => x.Tag == tag);
+    }
+
+    /// <summary>
+    /// Check if a tag is a required core tag
+    /// </summary>
+    /// <param name="tag">tag to check if it is required</param>
+    /// <returns>whether or not tag is required</returns>
+    public static bool IsCoreTag(DicomTag tag)
+    {
+        return RequiredCoreTags.Contains(tag);
     }
 
     private void ValidateWithoutNullPadding(string value, DicomElement de, IReadOnlyCollection<QueryTag> queryTags)
