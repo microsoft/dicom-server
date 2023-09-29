@@ -42,10 +42,7 @@ internal class ElementRequiredLengthValidation : IElementValidation
         DicomVR vr = dicomElement.ValueRepresentation;
         if (TryGetAsString(dicomElement, out string value))
         {
-            if (validationStyle == ValidationStyle.Default)
-            {
-                value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
-            }
+            value = BaseStringValidation.Sanitize(value, validationStyle);
             ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), value);
         }
         else

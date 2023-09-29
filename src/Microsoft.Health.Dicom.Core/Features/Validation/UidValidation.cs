@@ -16,11 +16,7 @@ internal class UidValidation : IElementValidation
 
     public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
-        if (validationStyle == ValidationStyle.Default)
-        {
-            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
-        }
+        string value = BaseStringValidation.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
     }

@@ -33,12 +33,7 @@ internal class EncodedStringElementValidation : IElementValidation
 
     private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
-        string value = element.GetFirstValueOrDefault<string>();
-
-        if (validationStyle == ValidationStyle.Default)
-        {
-            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
-        }
+        string value = BaseStringValidation.Sanitize(element.GetFirstValueOrDefault<string>(), validationStyle);
 
         if (string.IsNullOrEmpty(value))
         {

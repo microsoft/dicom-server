@@ -14,13 +14,9 @@ internal class PersonNameValidation : IElementValidation
 {
     public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Default)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
         DicomVR vr = dicomElement.ValueRepresentation;
-        if (validationStyle == ValidationStyle.Default)
-        {
-            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
-        }
+        string value = BaseStringValidation.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
         if (string.IsNullOrEmpty(value))
         {
             // empty values allowed

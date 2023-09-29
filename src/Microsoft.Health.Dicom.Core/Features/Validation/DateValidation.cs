@@ -17,12 +17,8 @@ internal class DateValidation : IElementValidation
 
     public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
         string name = dicomElement.Tag.GetFriendlyName();
-        if (validationStyle == ValidationStyle.Default)
-        {
-            value = string.IsNullOrEmpty(value) ? value : value.TrimEnd('\0');
-        }
+        string value = BaseStringValidation.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
         if (string.IsNullOrEmpty(value))
         {
             return;
