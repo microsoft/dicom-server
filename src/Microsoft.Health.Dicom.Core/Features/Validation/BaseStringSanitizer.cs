@@ -6,9 +6,9 @@
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 /// <summary>
-/// 
+/// Use for base string sanitization shared across all string related validators
 /// </summary>
-public static class BaseStringValidation
+public static class BaseStringSanitizer
 {
     /// <summary>
     /// Sanitizes string value to prep for validation

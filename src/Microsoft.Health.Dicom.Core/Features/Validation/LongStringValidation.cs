@@ -17,7 +17,7 @@ internal class LongStringValidation : IElementValidation
 {
     public void Validate(DicomElement dicomElement, ValidationStyle validationStyle = ValidationStyle.Strict)
     {
-        string value = BaseStringValidation.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
+        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationStyle);
         string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name);
     }
