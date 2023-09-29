@@ -10,23 +10,6 @@ using FellowOakDicom;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-
-/// <summary>
-/// A set of validation styles to pick from to run validations against
-/// </summary>
-public enum ValidationStyle
-{
-    /// <summary>
-    /// Default takes a more lenient approach with strings when running validation rules. It drops null padding on a string and then continues to
-    /// perform all validation after.
-    /// </summary>
-    Default,
-    /// <summary>
-    /// Strict validation currently fails when a string value has null padding
-    /// </summary>
-    Strict
-}
-
 public class ElementMinimumValidator : IElementMinimumValidator
 {
     private static readonly IReadOnlyDictionary<DicomVR, IElementValidation> Validations = new Dictionary<DicomVR, IElementValidation>
