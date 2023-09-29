@@ -311,11 +311,11 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                         validationResultBuilder.Add(ex, item.Tag, isCoreTag: false);
                         if (item.Tag.IsPrivate)
                         {
-                            _logger.LogInformation("Dicom instance validation succeeded, but with warning on a private tag");
+                            _logger.LogInformation("Dicom instance validation succeeded but with warning on a private tag");
                         }
                         else
                         {
-                            _logger.LogInformation("Dicom instance validation succeeded, but with warning on non-private tag {Tag} with id {Id}, where tag is indexable: {Indexable} and VR is {VR}", item.Tag.DictionaryEntry.Keyword, item.Tag, IsIndexableTag(queryTags, item), item.ValueRepresentation);
+                            _logger.LogInformation("Dicom instance validation succeeded but with warning on non-private tag {Tag} with id {Id}, where tag is indexable: {Indexable} and VR is {VR}", item.Tag.DictionaryEntry.Keyword, item.Tag, IsIndexableTag(queryTags, item), item.ValueRepresentation);
                         }
                         _storeMeter.V2ValidationError.Add(1, TelemetryDimension(item, IsIndexableTag(queryTags, item)));
                     }
