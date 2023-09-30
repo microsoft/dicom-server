@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -79,9 +80,32 @@ public class BackgroundServiceHealthCheck : IHealthCheck
         }
         catch (DataStoreNotReadyException)
         {
-            return HealthCheckResult.Unhealthy("Unhealthy service.");
+            return await DetermineResultBasedOnSQLState(HealthCheckResult.Unhealthy("Unhealthy service."), cancellationToken);
         }
 
         return HealthCheckResult.Healthy("Successfully computed values for background service.");
+    }
+
+    private async Task<HealthCheckResult> DetermineResultBasedOnSQLState(HealthCheckResult defaultResult, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _indexDataStore.GetOldestDeletedAsync(cancellationToken);
+            return defaultResult;
+        }
+        // Error: Can not connect to the database in its current state. This error can be for various DB states (recovering, inacessible) but we assume that our DB will only hit this for Inaccessible state
+        catch (SqlException ex) when (ex.ErrorCode == 40925)
+        {
+            // DB is status in Inaccessible because the encryption key was inacessible for > 30 mins. User must reprovision or we need to revalidate key on SQL DB. 
+            return new HealthCheckResult(
+                HealthStatus.Degraded,
+                DegradedDescription,
+                ex,
+                new Dictionary<string, object> { { "Reason", HealthStatusReason.DataStoreStateDegraded } });
+        }
+        catch (SqlException)
+        {
+            return defaultResult;
+        }
     }
 }
