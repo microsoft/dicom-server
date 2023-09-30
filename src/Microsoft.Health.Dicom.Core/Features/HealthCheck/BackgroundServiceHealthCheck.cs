@@ -78,6 +78,16 @@ public class BackgroundServiceHealthCheck : IHealthCheck
             _deleteMeter.OldestRequestedDeletion.Add((await oldestWaitingToBeDeleted).ToUnixTimeSeconds());
             _deleteMeter.CountDeletionsMaxRetry.Add(await numReachedMaxedRetry);
         }
+        // Error: Can not connect to the database in its current state. This error can be for various DB states (recovering, inacessible) but we assume that our DB will only hit this for Inaccessible state
+        catch (SqlException ex) when (ex.ErrorCode == 40925)
+        {
+            // DB is status in Inaccessible because the encryption key was inacessible for > 30 mins. User must reprovision or we need to revalidate key on SQL DB. 
+            return new HealthCheckResult(
+                HealthStatus.Degraded,
+                DegradedDescription,
+                ex,
+                new Dictionary<string, object> { { "Reason", HealthStatusReason.DataStoreStateDegraded } });
+        }
         catch (DataStoreNotReadyException)
         {
             return await DetermineResultBasedOnSQLState(HealthCheckResult.Unhealthy("Unhealthy service."), cancellationToken);
