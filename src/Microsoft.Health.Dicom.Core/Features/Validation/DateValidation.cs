@@ -6,19 +6,18 @@
 using System;
 using System.Globalization;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class DateValidation : IElementValidation
+internal class DateValidation : StringElementValidation
 {
     private const string DateFormatDA = "yyyyMMdd";
 
-    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
+    protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        string name = dicomElement.Tag.GetFriendlyName();
-        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationLevel);
         if (string.IsNullOrEmpty(value))
         {
             return;
@@ -28,5 +27,11 @@ internal class DateValidation : IElementValidation
         {
             throw new ElementValidationException(name, DicomVR.DA, ValidationErrorCode.DateIsInvalid);
         }
+    }
+
+    protected override bool GetValue(DicomElement dicomElement, out string value)
+    {
+        value = dicomElement.GetFirstValueOrDefault<string>();
+        return string.IsNullOrEmpty(value);
     }
 }

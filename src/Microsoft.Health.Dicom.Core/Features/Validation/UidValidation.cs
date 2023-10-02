@@ -5,19 +5,18 @@
 
 using System.Text.RegularExpressions;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class UidValidation : IElementValidation
+internal class UidValidation : StringElementValidation
 {
     private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
-    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
+    protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationLevel);
-        string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
     }
 
@@ -50,5 +49,11 @@ internal class UidValidation : IElementValidation
         {
             throw new InvalidIdentifierException(name);
         }
+    }
+
+    protected override bool GetValue(DicomElement dicomElement, out string value)
+    {
+        value = dicomElement.GetFirstValueOrDefault<string>();
+        return string.IsNullOrEmpty(value);
     }
 }

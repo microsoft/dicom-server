@@ -5,6 +5,7 @@
 
 using System;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
@@ -13,12 +14,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 /// <summary>
 /// Validate Dicom VR LO 
 /// </summary>
-internal class LongStringValidation : IElementValidation
+internal class LongStringValidation : StringElementValidation
 {
-    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
+    protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationLevel);
-        string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name);
     }
 
@@ -35,6 +34,12 @@ internal class LongStringValidation : IElementValidation
         {
             throw new ElementValidationException(name, DicomVR.LO, ValidationErrorCode.InvalidCharacters);
         }
+    }
+
+    protected override bool GetValue(DicomElement dicomElement, out string value)
+    {
+        value = dicomElement.GetFirstValueOrDefault<string>();
+        return string.IsNullOrEmpty(value);
     }
 }
 

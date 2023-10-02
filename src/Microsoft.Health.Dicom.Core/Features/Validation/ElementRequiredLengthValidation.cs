@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -13,7 +14,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class ElementRequiredLengthValidation : IElementValidation
+internal class ElementRequiredLengthValidation : StringElementValidation
 {
     private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
     {
@@ -37,17 +38,15 @@ internal class ElementRequiredLengthValidation : IElementValidation
         ExpectedLength = expectedLength;
     }
 
-    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
+    protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        DicomVR vr = dicomElement.ValueRepresentation;
-        if (TryGetAsString(dicomElement, out string value))
+        if (!String.IsNullOrEmpty(value))
         {
-            value = BaseStringSanitizer.Sanitize(value, validationLevel);
-            ValidateStringLength(vr, dicomElement.Tag.GetFriendlyName(), value);
+            ValidateStringLength(vr, name, value);
         }
         else
         {
-            ValidateByteBufferLength(vr, dicomElement.Tag.GetFriendlyName(), dicomElement.Buffer);
+            ValidateByteBufferLength(vr, name, buffer);
         }
     }
 
@@ -64,7 +63,7 @@ internal class ElementRequiredLengthValidation : IElementValidation
         }
     }
 
-    private static bool TryGetAsString(DicomElement dicomElement, out string value)
+    protected override bool GetValue(DicomElement dicomElement, out string value)
     {
         value = string.Empty;
         if (StringVrs.Contains(dicomElement.ValueRepresentation))

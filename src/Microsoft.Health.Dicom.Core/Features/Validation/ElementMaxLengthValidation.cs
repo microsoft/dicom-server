@@ -7,12 +7,13 @@ using System.Diagnostics;
 using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class ElementMaxLengthValidation : IElementValidation
+internal class ElementMaxLengthValidation : StringElementValidation
 {
     public ElementMaxLengthValidation(int maxLength)
     {
@@ -22,10 +23,9 @@ internal class ElementMaxLengthValidation : IElementValidation
 
     public int MaxLength { get; }
 
-    public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict)
+    protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        string value = BaseStringSanitizer.Sanitize(dicomElement.GetFirstValueOrDefault<string>(), validationLevel);
-        Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
+        Validate(value, MaxLength, name, vr);
     }
 
     public static void Validate(string value, int maxLength, string name, DicomVR vr)
@@ -40,5 +40,11 @@ internal class ElementMaxLengthValidation : IElementValidation
                 ValidationErrorCode.ExceedMaxLength,
                 string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ErrorMessageExceedMaxLength, maxLength));
         }
+    }
+
+    protected override bool GetValue(DicomElement dicomElement, out string value)
+    {
+        value = dicomElement.GetFirstValueOrDefault<string>();
+        return string.IsNullOrEmpty(value);
     }
 }
