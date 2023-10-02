@@ -14,6 +14,7 @@
     <PackageReference Include="fo-dicom.Imaging.ImageSharp" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="Microsoft.ApplicationInsights" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
