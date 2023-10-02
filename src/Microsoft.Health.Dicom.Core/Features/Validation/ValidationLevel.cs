@@ -15,6 +15,7 @@ public enum ValidationLevel
     /// perform all validation after.
     /// </summary>
     Default,
+
     /// <summary>
     /// Strict validation currently fails when a string value has null padding
     /// </summary>

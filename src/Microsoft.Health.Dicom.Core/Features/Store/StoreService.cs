@@ -264,12 +264,12 @@ public class StoreService : IStoreService
         var identifier = dicomDataset.ToInstanceIdentifier(partition);
         foreach ((DicomTag tag, StoreErrorResult result) in storeValidatorResult.InvalidTagErrors)
         {
-            if (!StoreDatasetValidator.IsCoreTag(error.Key))
+            if (!StoreDatasetValidator.IsCoreTag(tag))
             {
                 // drop invalid metadata if not a core tag
-                dicomDataset.Remove(error.Key);
+                dicomDataset.Remove(tag);
 
-                string message = error.Value.Error;
+                string message = result.Error;
                 _telemetryClient.ForwardLogTrace(
                     $"{message}. This attribute will not be present when retrieving study, series, or instance metadata resources, nor can it be used in searches." +
                     " However, it will still be present when retrieving study, series, or instance resources.",
