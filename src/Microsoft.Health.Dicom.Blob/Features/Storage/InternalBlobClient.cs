@@ -24,7 +24,7 @@ internal class InternalBlobClient : IBlobClient
         IOptionsMonitor<BlobContainerConfiguration> optionsMonitor)
     {
         _client = EnsureArg.IsNotNull(blobServiceClient, nameof(blobServiceClient));
-        _containerName = EnsureArg.IsNotNull(optionsMonitor.Get(Constants.BlobContainerConfigurationName).ContainerName, nameof(optionsMonitor));
+        _containerName = EnsureArg.IsNotNull(optionsMonitor.Get(BlobConstants.BlobContainerConfigurationName).ContainerName, nameof(optionsMonitor));
     }
 
     public bool IsExternal => false;
