@@ -19,6 +19,7 @@ using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using NotSupportedException = Microsoft.Health.Dicom.Core.Exceptions.NotSupportedException;
 using ComponentModelValidationException = System.ComponentModel.DataAnnotations.ValidationException;
+using System.Linq;
 
 namespace Microsoft.Health.Dicom.Api.Features.Exceptions;
 
@@ -86,6 +87,7 @@ public class ExceptionHandlingMiddleware
             case ConnectionResetException:
             case OperationCanceledException:
             case DataStoreException e when e.InnerException is TaskCanceledException:
+            case DataStoreException ex when ex.InnerException is AggregateException && (ex.InnerException as AggregateException).InnerExceptions.Any(x => x is TaskCanceledException):
             case BadHttpRequestException:
             case IOException io when io.Message.Equals("The request stream was aborted.", StringComparison.OrdinalIgnoreCase):
                 statusCode = HttpStatusCode.BadRequest;

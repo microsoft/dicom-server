@@ -123,6 +123,30 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal(0, _context.Response.Body.Length);
     }
 
+    [Fact]
+    public async Task GivenAnAggregateExceptionHasTaskCanceled_WhenMiddlewareIsExecuted_ThenMessageShouldBeOverwritten()
+    {
+        var innerExceptions = new List<Exception>
+    {
+        new TaskCanceledException("Operation canceled"),
+        new ServiceUnavailableException()
+    };
+
+        var aggException = new AggregateException(innerExceptions);
+
+        ExceptionHandlingMiddleware baseExceptionMiddleware = CreateExceptionHandlingMiddleware(innerHttpContext => throw new DataStoreException(aggException));
+
+        baseExceptionMiddleware.ExecuteResultAsync(Arg.Any<HttpContext>(), Arg.Any<IActionResult>()).Returns(Task.CompletedTask);
+
+        await baseExceptionMiddleware.Invoke(_context);
+
+        await baseExceptionMiddleware
+            .Received()
+            .ExecuteResultAsync(
+                Arg.Any<HttpContext>(),
+                Arg.Is<ContentResult>(x => x.StatusCode.Value == (int)HttpStatusCode.BadRequest));
+    }
+
     private static ExceptionHandlingMiddleware CreateExceptionHandlingMiddleware(RequestDelegate nextDelegate)
     {
         return Substitute.ForPartsOf<ExceptionHandlingMiddleware>(nextDelegate, NullLogger<ExceptionHandlingMiddleware>.Instance);
