@@ -78,7 +78,7 @@ public class BlobFileStore : IFileStore
 
         BlobContentInfo info = await ExecuteAsync<BlobContentInfo>(async () => await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken));
 
-        EmitTelemetry("StoreFileAsync", OperationType.Input, stream.Length);
+        EmitTelemetry(nameof(StoreFileAsync), OperationType.Input, stream.Length);
 
         return new FileProperties
         {
@@ -123,7 +123,7 @@ public class BlobFileStore : IFileStore
 
                 BlobContentInfo info = await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
 
-                EmitTelemetry("StoreFileInBlocksAsync", OperationType.Input, stream.Length);
+                EmitTelemetry(nameof(StoreFileInBlocksAsync), OperationType.Input, stream.Length);
 
                 fileProperties = new FileProperties
                 {
@@ -178,7 +178,7 @@ public class BlobFileStore : IFileStore
             return await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
         });
 
-        EmitTelemetry("UpdateFileBlockAsync", OperationType.Input, stream.Length);
+        EmitTelemetry(nameof(UpdateFileBlockAsync), OperationType.Input, stream.Length);
 
         return new FileProperties
         {
@@ -195,7 +195,7 @@ public class BlobFileStore : IFileStore
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
         _logger.LogInformation("Trying to delete DICOM instance file with watermark '{Version}'.", version);
 
-        EmitTelemetry("DeleteFileIfExistsAsync", OperationType.Input);
+        EmitTelemetry(nameof(DeleteFileIfExistsAsync), OperationType.Input);
 
         await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
     }
@@ -237,7 +237,7 @@ public class BlobFileStore : IFileStore
         return await ExecuteAsync(async () =>
         {
             Stream stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
-            EmitTelemetry("GetFileAsync", OperationType.Output, stream.Length);
+            EmitTelemetry(nameof(GetFileAsync), OperationType.Output, stream.Length);
             return stream;
         });
     }
@@ -253,7 +253,7 @@ public class BlobFileStore : IFileStore
         {
             Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
 
-            EmitTelemetry("GetStreamingFileAsync", OperationType.Output, result.Value.Details.ContentLength);
+            EmitTelemetry(nameof(GetStreamingFileAsync), OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
         });
@@ -269,7 +269,7 @@ public class BlobFileStore : IFileStore
         {
             BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
 
-            EmitTelemetry("GetFilePropertiesAsync", OperationType.Output);
+            EmitTelemetry(nameof(GetFilePropertiesAsync), OperationType.Output);
 
             return new FileProperties
             {
@@ -293,7 +293,7 @@ public class BlobFileStore : IFileStore
             var httpRange = new HttpRange(range.Offset, range.Length);
             Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
 
-            EmitTelemetry("GetFileFrameAsync", OperationType.Output, result.Value.Details.ContentLength);
+            EmitTelemetry(nameof(GetFileFrameAsync), OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
         });
@@ -317,7 +317,7 @@ public class BlobFileStore : IFileStore
         {
             Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
 
-            EmitTelemetry("GetFileContentInRangeAsync", OperationType.Output, result.Value.Details.ContentLength);
+            EmitTelemetry(nameof(GetFileContentInRangeAsync), OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
         });
@@ -343,7 +343,7 @@ public class BlobFileStore : IFileStore
 
             BlobBlock firstBlock = blockList.CommittedBlocks.First();
 
-            EmitTelemetry("GetFirstBlockPropertyAsync", OperationType.Output);
+            EmitTelemetry(nameof(GetFirstBlockPropertyAsync), OperationType.Output);
             return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
         });
     }
@@ -369,7 +369,7 @@ public class BlobFileStore : IFileStore
                    var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: options, cancellationToken);
                    await operation.WaitForCompletionAsync(cancellationToken);
 
-                   EmitTelemetry("CopyFileAsync", OperationType.Input);
+                   EmitTelemetry(nameof(CopyFileAsync), OperationType.Input);
                    return true;
                }
 
@@ -387,7 +387,7 @@ public class BlobFileStore : IFileStore
         await ExecuteAsync(async () =>
         {
             Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, cancellationToken: cancellationToken);
-            EmitTelemetry("SetBlobToColdAccessTierAsync", OperationType.Input);
+            EmitTelemetry(nameof(SetBlobToColdAccessTierAsync), OperationType.Input);
             return response;
         });
     }
