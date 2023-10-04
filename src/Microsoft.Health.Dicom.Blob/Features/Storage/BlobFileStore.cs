@@ -123,7 +123,7 @@ public class BlobFileStore : IFileStore
 
                 BlobContentInfo info = await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
 
-                EmitTelemetry(nameof(StoreFileInBlocksAsync), OperationType.Input, stream.Length);
+                EmitTelemetry(nameof(StoreFileInBlocksAsync), OperationType.Input, info.Length);
 
                 fileProperties = new FileProperties
                 {
@@ -204,7 +204,7 @@ public class BlobFileStore : IFileStore
     {
         _blobFileStoreMeter.BlobFileStoreOperationCount.Add(
             1,
-            BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
+            BlobFileStoreMeter.CreateBlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
 
         if (streamLength == null)
         {
@@ -216,7 +216,7 @@ public class BlobFileStore : IFileStore
             LogBlobClientOperationWithStreamDelegate(_logger, operationName, streamLength.Value, null);
             _blobFileStoreMeter.BlobFileStoreOperationStreamSize.Add(
                 length,
-                BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
+                BlobFileStoreMeter.CreateBlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
         }
     }
 
