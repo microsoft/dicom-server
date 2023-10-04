@@ -10,20 +10,6 @@ using Microsoft.Health.Dicom.Core.Features.Telemetry;
 
 namespace Microsoft.Health.Dicom.Blob.Features.Telemetry;
 
-/// <summary>
-/// Represents whether operation is input (write) or output(read) from perspective of I/O on the blob store
-/// </summary>
-public enum OperationType
-{
-    /// <summary>
-    /// For Operations that write data
-    /// </summary>
-    Input,
-    /// <summary>
-    /// For Operations that read data
-    /// </summary>
-    Output
-}
 public sealed class BlobFileStoreMeter : IDisposable
 {
     private readonly Meter _meter;
