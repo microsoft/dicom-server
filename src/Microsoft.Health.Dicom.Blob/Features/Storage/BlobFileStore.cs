@@ -36,6 +36,18 @@ public class BlobFileStore : IFileStore
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly BlobFileStoreMeter _blobFileStoreMeter;
 
+    private static readonly Action<ILogger, string, bool, Exception> LogBlobClientOperationDelegate =
+        LoggerMessage.Define<string, bool>(
+            LogLevel.Information,
+            default,
+            "Operation '{OperationName}' processed. Using external store {IsExternalStore}.");
+
+    private static readonly Action<ILogger, string, long, Exception> LogBlobClientOperationWithStreamDelegate =
+        LoggerMessage.Define<string, long>(
+            LogLevel.Information,
+            default,
+            "Operation '{OperationName}' processed stream length '{StreamLength}'.");
+
     public BlobFileStore(
         IBlobClient blobClient,
         DicomFileNameWithPrefix nameWithPrefix,
@@ -187,18 +199,6 @@ public class BlobFileStore : IFileStore
 
         await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
     }
-
-    private static readonly Action<ILogger, string, bool, Exception> LogBlobClientOperationDelegate =
-        LoggerMessage.Define<string, bool>(
-            LogLevel.Information,
-            default,
-            "Operation '{OperationName}' processed. Using external store {IsExternalStore}.");
-
-    private static readonly Action<ILogger, string, long, Exception> LogBlobClientOperationWithStreamDelegate =
-        LoggerMessage.Define<string, long>(
-            LogLevel.Information,
-            default,
-            "Operation '{OperationName}' processed stream length '{StreamLength}'.");
 
     private void EmitTelemetry(string operationName, OperationType operationType, long? streamLength = null)
     {
