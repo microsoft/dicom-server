@@ -212,10 +212,10 @@ public class BlobFileStore : IFileStore
         }
         else
         {
-            var lenght = streamLength.Value;
+            var length = streamLength.Value;
             LogBlobClientOperationWithStreamDelegate(_logger, operationName, streamLength.Value, null);
             _blobFileStoreMeter.BlobFileStoreOperationStreamSize.Add(
-                lenght,
+                length,
                 BlobFileStoreMeter.BlobFileStoreOperationTelemetryDimension(operationName, operationType, _blobClient.IsExternal));
         }
     }
