@@ -10,6 +10,7 @@ using EnsureThat;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Health.Core.Extensions;
 using Microsoft.Health.Dicom.Azure;
 using Microsoft.Health.Dicom.Azure.KeyVault;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -91,7 +92,9 @@ public static class KeyVaultClientRegistrationExtensions
 
             services.AddAzureClients(builder =>
             {
-                IAzureClientBuilder<SecretClient, SecretClientOptions> clientBuilder = builder.AddSecretClient(section);
+                IAzureClientBuilder<SecretClient, SecretClientOptions> clientBuilder = builder
+                    .AddSecretClient(section)
+                    .WithRetryableCredential(section);
 
                 if (configureOptions != null)
                     clientBuilder.ConfigureOptions(configureOptions);

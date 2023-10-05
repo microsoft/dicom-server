@@ -43,16 +43,26 @@ public static class DicomSqlServerRegistrationExtensions
         IServiceCollection services = EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder)).Services;
 
         // Add core SQL services
+        IConfigurationSection config = EnsureArg
+            .IsNotNull(configurationRoot, nameof(configurationRoot))
+            .GetSection(SqlServerDataStoreConfiguration.SectionName);
+
         services
             .AddSqlServerConnection(
-                config =>
+                sqlOptions =>
                 {
-                    configurationRoot?.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(config);
-                    configureAction?.Invoke(config);
+                    config.Bind(sqlOptions);
+                    configureAction?.Invoke(sqlOptions);
                 })
             .AddSqlServerManagement<SchemaVersion>()
             .AddSqlServerApi()
             .AddBackgroundSqlSchemaVersionResolver();
+
+        // Optionally enable workload identity
+        DicomSqlServerOptions options = new();
+        config.Bind(options);
+        if (options.EnableWorkloadIdentity)
+            services.EnableWorkloadManagedIdentity();
 
         // Add SQL-specific implementations
         services
@@ -81,6 +91,12 @@ public static class DicomSqlServerRegistrationExtensions
         services
             .AddSqlServerConnection(configureAction)
             .AddForegroundSqlSchemaVersionResolver();
+
+        // Optionally enable workload identity
+        DicomSqlServerOptions options = new();
+        configureAction(options);
+        if (options.EnableWorkloadIdentity)
+            services.EnableWorkloadManagedIdentity();
 
         // Add SQL-specific implementations
         services
@@ -202,5 +218,10 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV22>());
 
         return services;
+    }
+
+    private sealed class DicomSqlServerOptions : SqlServerDataStoreConfiguration
+    {
+        public bool EnableWorkloadIdentity { get; set; }
     }
 }
