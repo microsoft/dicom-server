@@ -123,7 +123,7 @@ public class BlobFileStore : IFileStore
 
                 BlobContentInfo info = await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
 
-                EmitTelemetry(nameof(StoreFileInBlocksAsync), OperationType.Input, info.Length);
+                EmitTelemetry(nameof(StoreFileInBlocksAsync), OperationType.Input, stream.Length);
 
                 fileProperties = new FileProperties
                 {
