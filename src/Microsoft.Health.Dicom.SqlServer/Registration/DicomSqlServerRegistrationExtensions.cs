@@ -40,38 +40,18 @@ public static class DicomSqlServerRegistrationExtensions
         IConfiguration configurationRoot,
         Action<SqlServerDataStoreConfiguration> configureAction = null)
     {
-        IServiceCollection services = EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder)).Services;
+        EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
+        EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
 
-        // Add core SQL services
-        IConfigurationSection config = EnsureArg
-            .IsNotNull(configurationRoot, nameof(configurationRoot))
-            .GetSection(SqlServerDataStoreConfiguration.SectionName);
-
-        services
-            .AddSqlServerConnection(
-                sqlOptions =>
-                {
-                    config.Bind(sqlOptions);
-                    configureAction?.Invoke(sqlOptions);
-                })
+        dicomServerBuilder.Services
+            .AddCommonSqlServices(sqlOptions =>
+            {
+                configurationRoot.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(sqlOptions);
+                configureAction?.Invoke(sqlOptions);
+            })
             .AddSqlServerManagement<SchemaVersion>()
             .AddSqlServerApi()
-            .AddBackgroundSqlSchemaVersionResolver();
-
-        // Optionally enable workload identity
-        DicomSqlServerOptions options = new();
-        config.Bind(options);
-        if (options.EnableWorkloadIdentity)
-            services.EnableWorkloadManagedIdentity();
-
-        // Add SQL-specific implementations
-        services
-            .AddSqlChangeFeedStores()
-            .AddSqlExtendedQueryTagStores()
-            .AddSqlExtendedQueryTagErrorStores()
-            .AddSqlIndexDataStores()
-            .AddSqlInstanceStores()
-            .AddSqlPartitionStores()
+            .AddBackgroundSqlSchemaVersionResolver()
             .AddSqlQueryStores()
             .AddSqlWorkitemStores();
 
@@ -85,12 +65,17 @@ public static class DicomSqlServerRegistrationExtensions
         EnsureArg.IsNotNull(dicomFunctionsBuilder, nameof(dicomFunctionsBuilder));
         EnsureArg.IsNotNull(configureAction, nameof(configureAction));
 
-        IServiceCollection services = dicomFunctionsBuilder.Services;
-
-        // Add core SQL services
-        services
-            .AddSqlServerConnection(configureAction)
+        dicomFunctionsBuilder.Services
+            .AddCommonSqlServices(configureAction)
             .AddForegroundSqlSchemaVersionResolver();
+
+        return dicomFunctionsBuilder;
+    }
+
+    private static IServiceCollection AddCommonSqlServices(this IServiceCollection services, Action<SqlServerDataStoreConfiguration> configureAction)
+    {
+        // Add core SQL services
+        services.AddSqlServerConnection(configureAction);
 
         // Optionally enable workload identity
         DicomSqlServerOptions options = new();
@@ -98,7 +83,7 @@ public static class DicomSqlServerRegistrationExtensions
         if (options.EnableWorkloadIdentity)
             services.EnableWorkloadManagedIdentity();
 
-        // Add SQL-specific implementations
+        // Add SQL-specific data store implementations
         services
             .AddSqlExtendedQueryTagStores()
             .AddSqlExtendedQueryTagErrorStores()
@@ -107,7 +92,7 @@ public static class DicomSqlServerRegistrationExtensions
             .AddSqlPartitionStores()
             .AddSqlChangeFeedStores();
 
-        return dicomFunctionsBuilder;
+        return services;
     }
 
     private static IServiceCollection AddBackgroundSqlSchemaVersionResolver(this IServiceCollection services)
