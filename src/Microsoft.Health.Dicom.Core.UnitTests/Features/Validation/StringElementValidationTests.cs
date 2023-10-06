@@ -6,7 +6,6 @@
 using System;
 using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
-using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Validation;
 using Xunit;
 
@@ -23,12 +22,6 @@ public class StringElementValidationTests
                 throw new Exception(value);
             }
         }
-
-        protected override bool GetValue(DicomElement dicomElement, out string value)
-        {
-            value = dicomElement.GetFirstValueOrDefault<string>();
-            return string.IsNullOrEmpty(value);
-        }
     }
 
     private class StringValidationNotAllowedNulls : StringElementValidation
@@ -39,12 +32,6 @@ public class StringElementValidationTests
             {
                 throw new Exception(value);
             }
-        }
-
-        protected override bool GetValue(DicomElement dicomElement, out string value)
-        {
-            value = dicomElement.GetFirstValueOrDefault<string>();
-            return string.IsNullOrEmpty(value);
         }
 
         protected override bool IsNullOrEmpty(string value)

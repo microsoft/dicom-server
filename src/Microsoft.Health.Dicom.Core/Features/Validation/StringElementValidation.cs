@@ -18,7 +18,7 @@ internal abstract class StringElementValidation : IElementValidation
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
 
         string name = dicomElement.Tag.GetFriendlyName();
-        GetValue(dicomElement, out string value);
+        GetValueOrDefault(dicomElement, out string value);
         if (!string.IsNullOrEmpty(value) && validationLevel == ValidationLevel.Default)
             value = value.TrimEnd('\0');
 
@@ -33,10 +33,9 @@ internal abstract class StringElementValidation : IElementValidation
 
     protected abstract void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer);
 
-    protected virtual bool GetValue(DicomElement dicomElement, out string value)
+    protected virtual void GetValueOrDefault(DicomElement dicomElement, out string value)
     {
         value = dicomElement.GetFirstValueOrDefault<string>();
-        return string.IsNullOrEmpty(value);
     }
 
     protected virtual bool IsNullOrEmpty(string value)
