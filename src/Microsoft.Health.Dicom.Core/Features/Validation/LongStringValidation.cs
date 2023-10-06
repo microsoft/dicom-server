@@ -22,6 +22,11 @@ internal class LongStringValidation : StringElementValidation
 
     public static void Validate(string value, string name)
     {
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
         ElementMaxLengthValidation.Validate(value, 64, name, DicomVR.LO);
 
         if (value.Contains('\\', StringComparison.OrdinalIgnoreCase) || ValidationUtils.ContainsControlExceptEsc(value))
