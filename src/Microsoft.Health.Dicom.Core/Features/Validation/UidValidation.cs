@@ -14,7 +14,7 @@ internal class UidValidation : StringElementValidation
 {
     private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
-    protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
         Validate(value, name, allowEmpty: true);
     }

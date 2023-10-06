@@ -28,10 +28,10 @@ internal abstract class StringElementValidation : IElementValidation
             return;
         }
 
-        ValidateStringElement(name, value, dicomElement.ValueRepresentation, dicomElement.Buffer);
+        ValidateStringElement(name, dicomElement.ValueRepresentation, value, dicomElement.Buffer);
     }
 
-    protected abstract void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer);
+    protected abstract void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer);
 
     protected virtual bool GetValue(DicomElement dicomElement, out string value)
     {
