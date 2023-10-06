@@ -13,20 +13,21 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal abstract class StringElementValidation : IElementValidation
 {
+    protected virtual bool AllowNullOrEmpty => true;
+
     public void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Default)
     {
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
 
         string name = dicomElement.Tag.GetFriendlyName();
         GetValueOrDefault(dicomElement, out string value);
+
         if (!string.IsNullOrEmpty(value) && validationLevel == ValidationLevel.Default)
             value = value.TrimEnd('\0');
 
-        if (IsNullOrEmpty(value))
-        {
-            // By default we will allow null or empty string and not go further with validation
+        // By default we will allow null or empty string and not go further with validation
+        if (AllowNullOrEmpty && string.IsNullOrEmpty(value))
             return;
-        }
 
         ValidateStringElement(name, dicomElement.ValueRepresentation, value, dicomElement.Buffer);
     }
@@ -36,10 +37,5 @@ internal abstract class StringElementValidation : IElementValidation
     protected virtual void GetValueOrDefault(DicomElement dicomElement, out string value)
     {
         value = dicomElement.GetFirstValueOrDefault<string>();
-    }
-
-    protected virtual bool IsNullOrEmpty(string value)
-    {
-        return string.IsNullOrEmpty(value);
     }
 }

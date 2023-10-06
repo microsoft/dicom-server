@@ -16,7 +16,9 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class ElementRequiredLengthValidation : StringElementValidation
 {
-    private static readonly HashSet<DicomVR> StringVrs = new HashSet<DicomVR>()
+    protected override bool AllowNullOrEmpty => false;
+
+    private static readonly HashSet<DicomVR> StringVrs = new()
     {
        DicomVR.AE,
        DicomVR.AS,
@@ -84,10 +86,5 @@ internal class ElementRequiredLengthValidation : StringElementValidation
                 ValidationErrorCode.UnexpectedLength,
                 string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
         }
-    }
-
-    protected override bool IsNullOrEmpty(string value)
-    {
-        return false;
     }
 }

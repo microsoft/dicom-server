@@ -26,17 +26,14 @@ public class StringElementValidationTests
 
     private class StringValidationNotAllowedNulls : StringElementValidation
     {
+        protected override bool AllowNullOrEmpty => false;
+
         protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
         {
             if (string.IsNullOrEmpty(value) || value.Contains('\0'))
             {
                 throw new Exception(value);
             }
-        }
-
-        protected override bool IsNullOrEmpty(string value)
-        {
-            return false;
         }
     }
 

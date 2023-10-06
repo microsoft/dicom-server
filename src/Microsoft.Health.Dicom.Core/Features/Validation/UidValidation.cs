@@ -12,7 +12,10 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class UidValidation : StringElementValidation
 {
-    private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
+    protected override bool AllowNullOrEmpty => false;
+
+    private static readonly Regex ValidIdentifierCharactersFormat =
+        new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
     protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
@@ -48,10 +51,5 @@ internal class UidValidation : StringElementValidation
         {
             throw new InvalidIdentifierException(name);
         }
-    }
-
-    protected override bool IsNullOrEmpty(string value)
-    {
-        return false;
     }
 }
