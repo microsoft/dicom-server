@@ -9,7 +9,6 @@ using EnsureThat;
 using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -40,11 +39,5 @@ internal class ElementMaxLengthValidation : StringElementValidation
                 ValidationErrorCode.ExceedMaxLength,
                 string.Format(CultureInfo.CurrentCulture, DicomCoreResource.ErrorMessageExceedMaxLength, maxLength));
         }
-    }
-
-    protected override bool GetValue(DicomElement dicomElement, out string value)
-    {
-        value = dicomElement.GetFirstValueOrDefault<string>();
-        return string.IsNullOrEmpty(value);
     }
 }

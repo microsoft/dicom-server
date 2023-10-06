@@ -27,5 +27,9 @@ internal abstract class StringElementValidation : IElementValidation
 
     protected abstract void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer);
 
-    protected abstract bool GetValue(DicomElement dicomElement, out string value);
+    protected virtual bool GetValue(DicomElement dicomElement, out string value)
+    {
+        value = dicomElement.GetFirstValueOrDefault<string>();
+        return string.IsNullOrEmpty(value);
+    }
 }

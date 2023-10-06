@@ -8,7 +8,6 @@ using System.Globalization;
 using FellowOakDicom;
 using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
@@ -27,11 +26,5 @@ internal class DateValidation : StringElementValidation
         {
             throw new ElementValidationException(name, DicomVR.DA, ValidationErrorCode.DateIsInvalid);
         }
-    }
-
-    protected override bool GetValue(DicomElement dicomElement, out string value)
-    {
-        value = dicomElement.GetFirstValueOrDefault<string>();
-        return string.IsNullOrEmpty(value);
     }
 }
