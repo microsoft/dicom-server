@@ -16,6 +16,8 @@ public class LongStringValidationTests
     [Theory]
     [InlineData("")]
     [InlineData("012345678912")]
+    [InlineData("012345678912\0")]
+    [InlineData("\0")]
     [InlineData(null)]
     public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)
     {

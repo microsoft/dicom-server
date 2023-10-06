@@ -15,6 +15,7 @@ public class DicomUidValidationTests
 
     [Theory]
     [InlineData("13.14.520")]
+    [InlineData("13.14.520\0")]
     [InlineData("13")]
     public void GivenValidateUid_WhenValidating_ThenShouldPass(string value)
     {
@@ -24,6 +25,7 @@ public class DicomUidValidationTests
 
     [Theory]
     [InlineData("")]
+    [InlineData("\0")]
     [InlineData(null)]
     public void GivenValidateUid_WhenValidatingNullOrEmpty_ThenShouldNotPass(string value)
     {

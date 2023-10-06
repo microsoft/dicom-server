@@ -21,10 +21,14 @@ public class ElementMaxLengthValidationTests
         Assert.Equal(ValidationErrorCode.ExceedMaxLength, ex.ErrorCode);
     }
 
-    [Fact]
-    public void GivenValueInRange_WhenValidating_ThenShouldPass()
+    [Theory]
+    [InlineData("012345678912")]
+    [InlineData("")]
+    [InlineData("\0")]
+    [InlineData(null)]
+    public void GivenValueInRange_WhenValidating_ThenShouldPass(string value)
     {
-        new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912"));
+        new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, value));
     }
 
     [Fact]

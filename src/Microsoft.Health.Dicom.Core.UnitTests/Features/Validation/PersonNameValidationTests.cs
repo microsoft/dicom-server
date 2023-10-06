@@ -14,6 +14,7 @@ public class PersonNameValidationTests
 {
     [Theory]
     [InlineData("abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz")]
+    [InlineData("abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz\0")]
     [InlineData("")]
     [InlineData(null)]
     public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)

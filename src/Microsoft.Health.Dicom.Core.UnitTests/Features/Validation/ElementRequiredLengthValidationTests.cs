@@ -73,6 +73,7 @@ public class ElementRequiredLengthValidationTests
     [InlineData("", 1)]
     [InlineData(null, 0)]
     [InlineData(null, 1)]
+    [InlineData("123\0", 4)]
     public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldNotPass(string value, int requiredLength)
     {
         DicomElement element = new DicomAgeString(DicomTag.PatientAge, value);

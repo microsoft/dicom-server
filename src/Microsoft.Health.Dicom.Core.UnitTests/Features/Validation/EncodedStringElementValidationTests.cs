@@ -21,6 +21,7 @@ public class EncodedStringElementValidationTests
     [Theory]
     [InlineData("")]
     [InlineData(null)]
+    [InlineData("\0")]
     public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)
     {
         DicomElement element = new DicomTime(DicomTag.Time, value);
