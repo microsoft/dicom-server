@@ -65,14 +65,14 @@ internal class ElementRequiredLengthValidation : StringElementValidation
         }
     }
 
-    protected override void GetValueOrDefault(DicomElement dicomElement, out string value)
+    protected override string GetValueOrDefault(DicomElement dicomElement)
     {
-        value = string.Empty;
         if (StringVrs.Contains(dicomElement.ValueRepresentation))
         {
             // Only validate the first element
-            value = dicomElement.GetFirstValueOrDefault<string>();
+            return dicomElement.GetFirstValueOrDefault<string>();
         }
+        return string.Empty;
     }
 
     private void ValidateStringLength(DicomVR dicomVR, string name, string value)

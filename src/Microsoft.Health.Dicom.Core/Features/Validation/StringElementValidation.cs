@@ -20,7 +20,7 @@ internal abstract class StringElementValidation : IElementValidation
         EnsureArg.IsNotNull(dicomElement, nameof(dicomElement));
 
         string name = dicomElement.Tag.GetFriendlyName();
-        GetValueOrDefault(dicomElement, out string value);
+        string value = GetValueOrDefault(dicomElement);
 
         if (!string.IsNullOrEmpty(value) && validationLevel == ValidationLevel.Default)
             value = value.TrimEnd('\0');
@@ -34,8 +34,8 @@ internal abstract class StringElementValidation : IElementValidation
 
     protected abstract void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer);
 
-    protected virtual void GetValueOrDefault(DicomElement dicomElement, out string value)
+    protected virtual string GetValueOrDefault(DicomElement dicomElement)
     {
-        value = dicomElement.GetFirstValueOrDefault<string>();
+        return dicomElement.GetFirstValueOrDefault<string>();
     }
 }
