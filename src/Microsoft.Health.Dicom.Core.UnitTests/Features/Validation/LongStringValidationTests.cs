@@ -13,11 +13,14 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation;
 public class LongStringValidationTests
 {
 
-    [Fact]
-    public void GivenValidateLongString_WhenValidating_ThenShouldPass()
+    [Theory]
+    [InlineData("")]
+    [InlineData("012345678912")]
+    [InlineData(null)]
+    public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)
     {
-        new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, "012345678912"));
-        new LongStringValidation().Validate(new DicomLongString(DicomTag.WindowCenterWidthExplanation, (string)null));
+        DicomElement element = new DicomLongString(DicomTag.WindowCenterWidthExplanation, value);
+        new LongStringValidation().Validate(element);
     }
 
     [Fact]

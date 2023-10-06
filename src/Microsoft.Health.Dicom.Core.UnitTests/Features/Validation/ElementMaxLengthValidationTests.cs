@@ -33,4 +33,13 @@ public class ElementMaxLengthValidationTests
         // First one in range, second one out of range.
         new ElementMaxLengthValidation(12).Validate(new DicomIntegerString(DicomTag.DoseReferenceNumber, "012345678912", "0123456789121"));
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)
+    {
+        DicomElement element = new DicomIntegerString(DicomTag.DoseReferenceNumber, value);
+        new ElementMaxLengthValidation(4).Validate(element);
+    }
 }

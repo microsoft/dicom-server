@@ -22,6 +22,11 @@ internal class UidValidation : StringElementValidation
 
     public static bool IsValid(string value, bool allowEmpty = false)
     {
+        if (string.IsNullOrEmpty(value))
+        {
+            return allowEmpty;
+        }
+
         // trailling spaces are allowed
         value = value.TrimEnd(' ');
 
