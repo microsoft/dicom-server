@@ -22,6 +22,12 @@ internal abstract class StringElementValidation : IElementValidation
         if (!string.IsNullOrEmpty(value) && validationLevel == ValidationLevel.Default)
             value = value.TrimEnd('\0');
 
+        if (IsNullOrEmpty(value))
+        {
+            // By default we will allow null or empty string and not go further with validation
+            return;
+        }
+
         ValidateStringElement(name, value, dicomElement.ValueRepresentation, dicomElement.Buffer);
     }
 
@@ -30,6 +36,11 @@ internal abstract class StringElementValidation : IElementValidation
     protected virtual bool GetValue(DicomElement dicomElement, out string value)
     {
         value = dicomElement.GetFirstValueOrDefault<string>();
+        return string.IsNullOrEmpty(value);
+    }
+
+    protected virtual bool IsNullOrEmpty(string value)
+    {
         return string.IsNullOrEmpty(value);
     }
 }

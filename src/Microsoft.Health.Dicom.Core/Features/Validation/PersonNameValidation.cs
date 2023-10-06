@@ -14,12 +14,6 @@ internal class PersonNameValidation : StringElementValidation
 {
     protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            // empty values allowed
-            return;
-        }
-
         string[] groups = value.Split('=');
         if (groups.Length > 3)
         {

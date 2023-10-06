@@ -88,4 +88,9 @@ internal class ElementRequiredLengthValidation : StringElementValidation
                 string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ErrorMessageUnexpectedLength, ExpectedLength));
         }
     }
+
+    protected override bool IsNullOrEmpty(string value)
+    {
+        return false;
+    }
 }

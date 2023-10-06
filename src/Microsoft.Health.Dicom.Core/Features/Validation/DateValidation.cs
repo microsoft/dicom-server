@@ -17,11 +17,6 @@ internal class DateValidation : StringElementValidation
 
     protected override void ValidateStringElement(string name, string value, DicomVR vr, IByteBuffer buffer)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            return;
-        }
-
         if (!DateTime.TryParseExact(value, DateFormatDA, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out _))
         {
             throw new ElementValidationException(name, DicomVR.DA, ValidationErrorCode.DateIsInvalid);

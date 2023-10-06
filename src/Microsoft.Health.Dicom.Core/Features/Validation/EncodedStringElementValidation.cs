@@ -32,11 +32,6 @@ internal class EncodedStringElementValidation : StringElementValidation
 
     private static void Validate(string name, string value, DicomVR vr, IByteBuffer buffer, Action<string> validate, ValidationErrorCode errorCode)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            return;
-        }
-
         try
         {
             validate(value);

@@ -49,4 +49,9 @@ internal class UidValidation : StringElementValidation
             throw new InvalidIdentifierException(name);
         }
     }
+
+    protected override bool IsNullOrEmpty(string value)
+    {
+        return false;
+    }
 }
