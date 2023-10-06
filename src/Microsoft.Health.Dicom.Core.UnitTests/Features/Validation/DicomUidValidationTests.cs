@@ -22,6 +22,15 @@ public class DicomUidValidationTests
         new UidValidation().Validate(element);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void GivenValidateUid_WhenValidatingNullOrEmpty_ThenShouldNotPass(string value)
+    {
+        DicomElement element = new DicomUniqueIdentifier(DicomTag.DigitalSignatureUID, value);
+        new UidValidation().Validate(element);
+    }
+
     [Fact]
     public void GivenMultipleValues_WhenValidating_ThenShouldVaidateFirstOne()
     {

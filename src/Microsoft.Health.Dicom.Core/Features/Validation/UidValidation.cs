@@ -12,8 +12,6 @@ namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 internal class UidValidation : StringElementValidation
 {
-    protected override bool AllowNullOrEmpty => false;
-
     private static readonly Regex ValidIdentifierCharactersFormat =
         new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
@@ -24,11 +22,6 @@ internal class UidValidation : StringElementValidation
 
     public static bool IsValid(string value, bool allowEmpty = false)
     {
-        if (string.IsNullOrEmpty(value))
-        {
-            return allowEmpty;
-        }
-
         // trailling spaces are allowed
         value = value.TrimEnd(' ');
 
