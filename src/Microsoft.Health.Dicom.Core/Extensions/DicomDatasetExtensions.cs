@@ -405,8 +405,8 @@ public static class DicomDatasetExtensions
     /// <param name="dataset">The dicom dataset.</param>
     /// <param name="dicomTag">The dicom tag being validated.</param>
     /// <param name="minimumValidator">The minimum validator.</param>
-    /// <param name="withLeniency">Whether or not to validate with additional leniency</param>
-    public static ValidationWarnings ValidateDicomTag(this DicomDataset dataset, DicomTag dicomTag, IElementMinimumValidator minimumValidator, bool withLeniency = false)
+    /// <param name="validationLevel">Style of validation to enforce on running rules</param>
+    public static ValidationWarnings ValidateDicomTag(this DicomDataset dataset, DicomTag dicomTag, IElementMinimumValidator minimumValidator, ValidationLevel validationLevel = ValidationLevel.Strict)
     {
         EnsureArg.IsNotNull(dataset, nameof(dataset));
         EnsureArg.IsNotNull(dicomTag, nameof(dicomTag));
@@ -432,7 +432,7 @@ public static class DicomDatasetExtensions
                 warning |= ValidationWarnings.IndexedDicomTagHasMultipleValues;
             }
 
-            minimumValidator.Validate(dicomElement, withLeniency);
+            minimumValidator.Validate(dicomElement, validationLevel);
         }
         return warning;
     }

@@ -16,7 +16,17 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation;
 
 public class EncodedStringElementValidationTests
 {
-    private readonly EncodedStringElementValidation _validation = new EncodedStringElementValidation();
+    private readonly EncodedStringElementValidation _validation = new();
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("\0")]
+    public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)
+    {
+        DicomElement element = new DicomTime(DicomTag.Time, value);
+        _validation.Validate(element);
+    }
 
     [Theory]
     [MemberData(nameof(ValidElements))]

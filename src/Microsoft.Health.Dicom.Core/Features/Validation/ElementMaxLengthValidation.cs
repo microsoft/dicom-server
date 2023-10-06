@@ -7,12 +7,12 @@ using System.Diagnostics;
 using System.Globalization;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class ElementMaxLengthValidation : IElementValidation
+internal class ElementMaxLengthValidation : StringElementValidation
 {
     public ElementMaxLengthValidation(int maxLength)
     {
@@ -22,14 +22,9 @@ internal class ElementMaxLengthValidation : IElementValidation
 
     public int MaxLength { get; }
 
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
-        if (withLeniency)
-        {
-            value = value.TrimEnd('\0');
-        }
-        Validate(value, MaxLength, dicomElement.Tag.GetFriendlyName(), dicomElement.ValueRepresentation);
+        Validate(value, MaxLength, name, vr);
     }
 
     public static void Validate(string value, int maxLength, string name, DicomVR vr)

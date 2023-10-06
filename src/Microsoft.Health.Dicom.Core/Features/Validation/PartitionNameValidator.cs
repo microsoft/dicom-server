@@ -12,7 +12,7 @@ public static class PartitionNameValidator
 {
     private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[A-Za-z0-9_.-]*$", RegexOptions.Compiled);
 
-    public static void Validate(string value, bool withLeniency = false)
+    public static void Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {

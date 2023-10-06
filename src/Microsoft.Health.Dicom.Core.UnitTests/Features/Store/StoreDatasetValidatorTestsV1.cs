@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -44,7 +45,7 @@ public class StoreDatasetValidatorTestsV1
         _queryTags = new List<QueryTag>(QueryTagService.CoreQueryTags);
         _queryTagService.GetQueryTagsAsync(Arg.Any<CancellationToken>()).Returns(_queryTags);
         _storeMeter = new StoreMeter();
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor, NullLogger<StoreDatasetValidator>.Instance);
     }
 
     [Fact]
@@ -67,7 +68,8 @@ public class StoreDatasetValidatorTestsV1
             minimumValidator,
             _queryTagService,
             _storeMeter,
-            _dicomRequestContextAccessor);
+            _dicomRequestContextAccessor,
+            NullLogger<StoreDatasetValidator>.Instance);
 
         var result = await dicomDatasetValidator.ValidateAsync(
             dicomDataset,
@@ -99,7 +101,8 @@ public class StoreDatasetValidatorTestsV1
             minimumValidator,
             _queryTagService,
             _storeMeter,
-            _dicomRequestContextAccessor);
+            _dicomRequestContextAccessor,
+            NullLogger<StoreDatasetValidator>.Instance);
 
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(
             validateItems: false,
@@ -128,7 +131,7 @@ public class StoreDatasetValidatorTestsV1
         _queryTags.Clear();
         _queryTags.Add(new QueryTag(tag.BuildExtendedQueryTagStoreEntry()));
         IElementMinimumValidator validator = Substitute.For<IElementMinimumValidator>();
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, validator, _queryTagService, _storeMeter, _dicomRequestContextAccessor, NullLogger<StoreDatasetValidator>.Instance);
 
         var result = await _dicomDatasetValidator.ValidateAsync(_dicomDataset, requiredStudyInstanceUid: null);
 
@@ -308,7 +311,7 @@ public class StoreDatasetValidatorTestsV1
         });
         var minValidator = new ElementMinimumValidator();
 
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, minValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessor, NullLogger<StoreDatasetValidator>.Instance);
 
         // LO VR, invalid characters
         _dicomDataset.Add(DicomTag.SeriesDescription, "CT1 abdomen\u0000");

@@ -14,18 +14,13 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation;
 
 public class ElementMinimumValidatorTests
 {
-    private readonly IElementMinimumValidator _validator;
-
-    public ElementMinimumValidatorTests()
-    {
-        _validator = new ElementMinimumValidator();
-    }
+    private readonly IElementMinimumValidator _validator = new ElementMinimumValidator();
 
     [Theory]
     [MemberData(nameof(SupportedDicomElements))]
     public void GivenSupportedVR_WhenValidating_ThenShouldPass(DicomElement dicomElement)
     {
-        _validator.Validate(dicomElement, false);
+        _validator.Validate(dicomElement);
     }
 
     public static IEnumerable<object[]> SupportedDicomElements()

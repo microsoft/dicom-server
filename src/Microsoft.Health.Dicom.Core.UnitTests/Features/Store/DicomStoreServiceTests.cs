@@ -126,7 +126,8 @@ public class DicomStoreServiceTests
             new ElementMinimumValidator(),
             queryTagService,
             storeMeter,
-            contextAccessor);
+            contextAccessor,
+            NullLogger<StoreDatasetValidator>.Instance);
         return validator;
     }
 

@@ -5,24 +5,18 @@
 
 using System;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
 /// <summary>
 /// Validate Dicom VR LO 
 /// </summary>
-internal class LongStringValidation : IElementValidation
+internal class LongStringValidation : StringElementValidation
 {
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
-        if (withLeniency)
-        {
-            value = value.TrimEnd('\0');
-        }
-        string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name);
     }
 

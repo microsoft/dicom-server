@@ -17,7 +17,7 @@ public interface IElementMinimumValidator
     /// Validate Dicom Element.
     /// </summary>
     /// <param name="dicomElement">The Dicom Element</param>
-    /// <param name="withLeniency">Whether or not to validate with additional leniency</param>
+    /// <param name="validationLevel">Style of validation to enforce on running rules</param>
     /// <exception cref="ElementValidationException"/>
-    void Validate(DicomElement dicomElement, bool withLeniency = false);
+    void Validate(DicomElement dicomElement, ValidationLevel validationLevel = ValidationLevel.Strict);
 }
