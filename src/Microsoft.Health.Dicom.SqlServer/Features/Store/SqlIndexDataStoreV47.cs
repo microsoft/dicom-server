@@ -4,7 +4,6 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,11 +63,9 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
         await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
-    private async Task<IReadOnlyList<long>> DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid,
+    private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid,
         string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
-        var results = new List<long>();
-
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
@@ -123,8 +120,6 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
                         throw new DataStoreException(ex);
                 }
             }
-
-            return results;
         }
     }
 }
