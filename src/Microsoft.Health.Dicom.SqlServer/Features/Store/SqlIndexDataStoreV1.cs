@@ -364,4 +364,9 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
     {
         throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
     }
+
+    public virtual Task UpdateFrameDataAsync(int partitionKey, IReadOnlyCollection<long> versions, bool hasFrameMetadata, CancellationToken cancellationToken = default)
+    {
+        throw new BadRequestException(DicomSqlServerResource.SchemaVersionNeedsToBeUpgraded);
+    }
 }
