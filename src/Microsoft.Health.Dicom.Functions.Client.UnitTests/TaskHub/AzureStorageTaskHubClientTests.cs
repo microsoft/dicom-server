@@ -9,9 +9,9 @@ using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Health.Dicom.Functions.Client.TaskHub;
 using NSubstitute;
 using Xunit;
-using Microsoft.Health.Dicom.Functions.Client.TaskHub;
 
 namespace Microsoft.Health.Dicom.Functions.Client.UnitTests.TaskHub;
 

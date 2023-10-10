@@ -24,11 +24,7 @@ public class DurableTaskHealthCheckTests
 
     public DurableTaskHealthCheckTests()
     {
-        _customerKeyHealthCache.Set(new CustomerKeyHealth
-        {
-            IsHealthy = true,
-        });
-
+        _customerKeyHealthCache.Set(new CustomerKeyHealth { IsHealthy = true });
         _healthCheck = new DurableTaskHealthCheck(_client, _customerKeyHealthCache, NullLogger<DurableTaskHealthCheck>.Instance);
     }
 

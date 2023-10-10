@@ -48,11 +48,11 @@ internal sealed class DurableTaskHealthCheck : IHealthCheck
                 new Dictionary<string, object> { { "Reason", cmkStatus.Reason } });
         }
 
-        ITaskHub taskHub = await _client.GetTaskHubAsync(cancellationToken);
+        ITaskHub taskHub = await _client.GetTaskHubAsync(cancellationToken).ConfigureAwait(false);
         if (taskHub == null)
             return HealthCheckResult.Unhealthy("Task hub not found.");
 
-        if (!await taskHub.IsHealthyAsync(cancellationToken))
+        if (!await taskHub.IsHealthyAsync(cancellationToken).ConfigureAwait(false))
             return HealthCheckResult.Unhealthy("Task hub is not ready.");
 
         _logger.LogInformation("Successfully connected to the task hub");
