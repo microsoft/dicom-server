@@ -40,18 +40,28 @@ public static class DicomSqlServerRegistrationExtensions
         IConfiguration configurationRoot,
         Action<SqlServerDataStoreConfiguration> configureAction = null)
     {
-        EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder));
-        EnsureArg.IsNotNull(configurationRoot, nameof(configurationRoot));
+        IServiceCollection services = EnsureArg.IsNotNull(dicomServerBuilder, nameof(dicomServerBuilder)).Services;
 
-        dicomServerBuilder.Services
-            .AddCommonSqlServices(sqlOptions =>
-            {
-                configurationRoot.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(sqlOptions);
-                configureAction?.Invoke(sqlOptions);
-            })
+        // Add core SQL services
+        services
+            .AddSqlServerConnection(
+                config =>
+                {
+                    configurationRoot?.GetSection(SqlServerDataStoreConfiguration.SectionName).Bind(config);
+                    configureAction?.Invoke(config);
+                })
             .AddSqlServerManagement<SchemaVersion>()
             .AddSqlServerApi()
-            .AddBackgroundSqlSchemaVersionResolver()
+            .AddBackgroundSqlSchemaVersionResolver();
+
+        // Add SQL-specific implementations
+        services
+            .AddSqlChangeFeedStores()
+            .AddSqlExtendedQueryTagStores()
+            .AddSqlExtendedQueryTagErrorStores()
+            .AddSqlIndexDataStores()
+            .AddSqlInstanceStores()
+            .AddSqlPartitionStores()
             .AddSqlQueryStores()
             .AddSqlWorkitemStores();
 
@@ -65,25 +75,14 @@ public static class DicomSqlServerRegistrationExtensions
         EnsureArg.IsNotNull(dicomFunctionsBuilder, nameof(dicomFunctionsBuilder));
         EnsureArg.IsNotNull(configureAction, nameof(configureAction));
 
-        dicomFunctionsBuilder.Services
-            .AddCommonSqlServices(configureAction)
+        IServiceCollection services = dicomFunctionsBuilder.Services;
+
+        // Add core SQL services
+        services
+            .AddSqlServerConnection(configureAction)
             .AddForegroundSqlSchemaVersionResolver();
 
-        return dicomFunctionsBuilder;
-    }
-
-    private static IServiceCollection AddCommonSqlServices(this IServiceCollection services, Action<SqlServerDataStoreConfiguration> configureAction)
-    {
-        // Add core SQL services
-        services.AddSqlServerConnection(configureAction);
-
-        // Optionally enable workload identity
-        DicomSqlServerOptions options = new();
-        configureAction(options);
-        if (options.EnableWorkloadIdentity)
-            services.EnableWorkloadManagedIdentity();
-
-        // Add SQL-specific data store implementations
+        // Add SQL-specific implementations
         services
             .AddSqlExtendedQueryTagStores()
             .AddSqlExtendedQueryTagErrorStores()
@@ -92,7 +91,7 @@ public static class DicomSqlServerRegistrationExtensions
             .AddSqlPartitionStores()
             .AddSqlChangeFeedStores();
 
-        return services;
+        return dicomFunctionsBuilder;
     }
 
     private static IServiceCollection AddBackgroundSqlSchemaVersionResolver(this IServiceCollection services)
@@ -161,6 +160,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV42>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV44>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV46>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV47>());
         return services;
     }
 
@@ -203,10 +203,5 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlWorkitemStore, SqlWorkitemStoreV22>());
 
         return services;
-    }
-
-    private sealed class DicomSqlServerOptions : SqlServerDataStoreConfiguration
-    {
-        public bool EnableWorkloadIdentity { get; set; }
     }
 }

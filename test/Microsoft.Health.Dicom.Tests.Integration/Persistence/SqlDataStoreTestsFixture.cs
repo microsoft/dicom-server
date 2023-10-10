@@ -8,6 +8,9 @@ using System.Numerics;
 using System.Threading.Tasks;
 using EnsureThat;
 using MediatR;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,6 +49,10 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
 
     private readonly string _masterConnectionString;
     private readonly SchemaInitializer _schemaInitializer;
+    private readonly TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration()
+    {
+        TelemetryChannel = Substitute.For<ITelemetryChannel>(),
+    });
 
     internal SqlDataStoreTestsFixture(string databaseName) : this(databaseName, new SchemaInformation(SchemaVersionConstants.Min, SchemaVersionConstants.Max))
     {
@@ -120,6 +127,7 @@ public class SqlDataStoreTestsFixture : IAsyncLifetime
                 new SqlIndexDataStoreV42(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV44(SqlConnectionWrapperFactory),
                 new SqlIndexDataStoreV46(SqlConnectionWrapperFactory),
+                new SqlIndexDataStoreV47(SqlConnectionWrapperFactory, NullLogger<SqlIndexDataStoreV47>.Instance, _telemetryClient),
             }),
             NullLogger<SqlIndexDataStore>.Instance);
 
