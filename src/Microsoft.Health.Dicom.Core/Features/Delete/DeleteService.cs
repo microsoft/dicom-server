@@ -31,6 +31,8 @@ public class DeleteService : IDeleteService
     private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
     private readonly ITransactionHandler _transactionHandler;
     private readonly ILogger<DeleteService> _logger;
+    private readonly bool _isExternalStoreEnabled;
+    private TimeSpan DeleteDelay => _isExternalStoreEnabled ? TimeSpan.Zero : _deletedInstanceCleanupConfiguration.DeleteDelay;
 
     public DeleteService(
         IIndexDataStore indexDataStore,
@@ -39,7 +41,8 @@ public class DeleteService : IDeleteService
         IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
         ITransactionHandler transactionHandler,
         ILogger<DeleteService> logger,
-        IDicomRequestContextAccessor contextAccessor)
+        IDicomRequestContextAccessor contextAccessor,
+        IOptions<FeatureConfiguration> featureConfiguration)
     {
         EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
         EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
@@ -48,7 +51,8 @@ public class DeleteService : IDeleteService
         EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
-
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
         _indexDataStore = indexDataStore;
         _metadataStore = metadataStore;
         _fileStore = fileStore;
@@ -60,19 +64,19 @@ public class DeleteService : IDeleteService
 
     public Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
     {
-        DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
+        DateTimeOffset cleanupAfter = GenerateCleanupAfter(DeleteDelay);
         return _indexDataStore.DeleteStudyIndexAsync(GetPartitionKey(), studyInstanceUid, cleanupAfter, cancellationToken);
     }
 
     public Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
     {
-        DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
+        DateTimeOffset cleanupAfter = GenerateCleanupAfter(DeleteDelay);
         return _indexDataStore.DeleteSeriesIndexAsync(GetPartitionKey(), studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
     }
 
     public Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
     {
-        DateTimeOffset cleanupAfter = GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.DeleteDelay);
+        DateTimeOffset cleanupAfter = GenerateCleanupAfter(DeleteDelay);
         return _indexDataStore.DeleteInstanceIndexAsync(GetPartitionKey(), studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
