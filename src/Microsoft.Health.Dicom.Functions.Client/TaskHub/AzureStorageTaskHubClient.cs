@@ -36,7 +36,6 @@ internal class AzureStorageTaskHubClient : ITaskHubClient
         DurableClientOptions clientOptions = EnsureArg.IsNotNull(options?.Value, nameof(options));
         IConfigurationSection connectionSection = EnsureArg.IsNotNull(connectionInfoProvider, nameof(connectionInfoProvider)).Resolve(clientOptions.ConnectionName);
 
-        TaskHubName = EnsureArg.IsNotNullOrWhiteSpace(clientOptions.TaskHub, nameof(clientOptions));
         _leasesContainer = new LeasesContainer(factory.CreateBlobServiceClient(connectionSection), clientOptions.TaskHub);
         _queueServiceClient = factory.CreateQueueServiceClient(connectionSection);
         _tableServiceClient = factory.CreateTableServiceClient(connectionSection);
@@ -45,21 +44,17 @@ internal class AzureStorageTaskHubClient : ITaskHubClient
     }
 
     internal AzureStorageTaskHubClient(
-        string name,
         LeasesContainer leasesContainer,
         QueueServiceClient queueServiceClient,
         TableServiceClient tableServiceClient,
         ILoggerFactory loggerFactory)
     {
-        TaskHubName = EnsureArg.IsNotNullOrWhiteSpace(name, nameof(name));
         _leasesContainer = EnsureArg.IsNotNull(leasesContainer, nameof(leasesContainer));
         _queueServiceClient = EnsureArg.IsNotNull(queueServiceClient, nameof(queueServiceClient));
         _tableServiceClient = EnsureArg.IsNotNull(tableServiceClient, nameof(tableServiceClient));
         _loggerFactory = EnsureArg.IsNotNull(loggerFactory, nameof(loggerFactory));
         _logger = _loggerFactory.CreateLogger<AzureStorageTaskHubClient>();
     }
-
-    public string TaskHubName { get; }
 
     public async ValueTask<ITaskHub> GetTaskHubAsync(CancellationToken cancellationToken = default)
     {
