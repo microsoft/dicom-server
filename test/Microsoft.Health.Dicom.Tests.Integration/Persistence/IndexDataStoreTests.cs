@@ -215,7 +215,28 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
         Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), await ValidateSingleDeletedInstance(instance));
+        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
+    }
+
+    [Fact]
+    public async Task GivenAnExistingDicomInstanceWithExternalStoreUsed_WhenDeletedByInstanceId_ThenItShouldHaveFilePropertiesAddedToDeletedInstanceTable()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string seriesInstanceUid = TestUidGenerator.Generate();
+        string sopInstanceUid = TestUidGenerator.Generate();
+        Instance instance = await CreateIndexAndVerifyInstance(studyInstanceUid, seriesInstanceUid, sopInstanceUid, filePropertiesToCreate: _defaultFileProperties);
+
+        Assert.NotEmpty(await _testHelper.GetFilePropertiesAsync(instance.Watermark));
+
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+
+        Assert.Empty(await _testHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid));
+        Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
+        Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
+
+        Assert.Collection(
+            await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid),
+            ValidateSingleDeletedInstance(instance, expectedFileProperties: _defaultFileProperties));
     }
 
     [Fact]
@@ -234,7 +255,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         Assert.Collection(
             await _testHelper.GetDeletedInstanceEntriesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid),
-            await ValidateSingleDeletedInstance(instance));
+            ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -253,7 +274,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         Assert.Collection(
             await _testHelper.GetDeletedInstanceEntriesAsync(identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid),
-            await ValidateSingleDeletedInstance(instance));
+            ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -274,7 +295,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
         Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), await ValidateSingleDeletedInstance(instance));
+        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -297,7 +318,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid2));
         Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), await ValidateSingleDeletedInstance(instance1));
+        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance1));
     }
 
     [Fact]
@@ -314,7 +335,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
         Assert.Empty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), await ValidateSingleDeletedInstance(instance));
+        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -337,8 +358,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         Assert.Collection(
             await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null),
-            await ValidateSingleDeletedInstance(instance1),
-            await ValidateSingleDeletedInstance(instance2));
+            ValidateSingleDeletedInstance(instance1),
+            ValidateSingleDeletedInstance(instance2));
     }
 
     [Fact]
@@ -361,7 +382,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.NotEmpty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid2));
         Assert.NotEmpty(await _testHelper.GetStudyMetadataAsync(studyInstanceUid));
 
-        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), await ValidateSingleDeletedInstance(instance));
+        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, null), ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -378,7 +399,7 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Empty(await _testHelper.GetSeriesMetadataAsync(seriesInstanceUid));
         Assert.Empty(await _testHelper.GetStudyMetadataAsync(seriesInstanceUid));
 
-        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), await ValidateSingleDeletedInstance(instance));
+        Assert.Collection(await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid), ValidateSingleDeletedInstance(instance));
     }
 
     [Fact]
@@ -401,8 +422,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
 
         Assert.Collection(
             await _testHelper.GetDeletedInstanceEntriesAsync(studyInstanceUid, null, null),
-            await ValidateSingleDeletedInstance(instance1),
-            await ValidateSingleDeletedInstance(instance2));
+            ValidateSingleDeletedInstance(instance1),
+            ValidateSingleDeletedInstance(instance2));
     }
 
     [Fact]
@@ -691,16 +712,8 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
         Assert.Equal(expectedPerformedProcedureStepStartDate, actual.PerformedProcedureStepStartDate);
     }
 
-    private async Task<Action<DeletedInstance>> ValidateSingleDeletedInstance(Instance instance, FileProperties expectedFileProperties = null)
+    private Action<DeletedInstance> ValidateSingleDeletedInstance(Instance instance, FileProperties expectedFileProperties = null)
     {
-        if (expectedFileProperties != null)
-        {
-            IReadOnlyList<FileProperty> fileProperties = await _testHelper.GetFilePropertiesAsync(instance.Watermark);
-            Assert.Single(fileProperties);
-            Assert.Equal(expectedFileProperties.Path, fileProperties.Single().FilePath);
-            Assert.Equal(expectedFileProperties.ETag, fileProperties.Single().ETag);
-        }
-
         return deletedInstance =>
         {
             Assert.Equal(instance.StudyInstanceUid, deletedInstance.StudyInstanceUid);
@@ -710,6 +723,11 @@ public partial class IndexDataStoreTests : IClassFixture<SqlDataStoreTestsFixtur
             Assert.InRange(deletedInstance.DeletedDateTime, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
             Assert.Equal(0, deletedInstance.RetryCount);
             Assert.InRange(deletedInstance.CleanupAfter, _startDateTime.AddSeconds(-1), Clock.UtcNow.AddSeconds(1));
+            if (expectedFileProperties != null)
+            {
+                Assert.Equal(expectedFileProperties.Path, deletedInstance.FilePath);
+                Assert.Equal(expectedFileProperties.ETag, deletedInstance.ETag);
+            }
         };
     }
 
