@@ -12,7 +12,7 @@ namespace Microsoft.Health.Dicom.Api.Features.Conventions;
 /// Don't use any attribute if you want to introduce the controller in all available versions.
 /// Did not use ApiVersionAttribute as base because it is a collection of versions and we need just one version here.
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
 internal sealed class IntroducedInApiVersionAttribute : Attribute
 {
     public int? Version { get; init; }
