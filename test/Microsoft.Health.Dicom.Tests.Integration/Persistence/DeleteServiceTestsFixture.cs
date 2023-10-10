@@ -62,6 +62,8 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
         optionsConfiguration.Value.Returns(cleanupConfiguration);
         var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
+        IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
+        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false, });
 
         DeleteService = new DeleteService(
             _sqlDataStoreTestsFixture.IndexDataStore,
@@ -70,7 +72,8 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
             optionsConfiguration,
             _sqlDataStoreTestsFixture.SqlTransactionHandler,
             NullLogger<DeleteService>.Instance,
-            dicomRequestContextAccessor);
+            dicomRequestContextAccessor,
+            _options);
     }
 
     public async Task DisposeAsync()
