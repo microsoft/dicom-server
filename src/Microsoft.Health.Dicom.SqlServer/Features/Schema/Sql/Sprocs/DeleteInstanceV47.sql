@@ -279,8 +279,12 @@ BEGIN
         AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
         AND CF.SopInstanceUid = DI.SopInstanceUid
 
-    COMMIT TRANSACTION    
-    
-    SELECT d.Watermark, d.partitionKey, d.studyInstanceUid, d.seriesInstanceUid, d.sopInstanceUid
-    FROM @deletedInstances as d
+    COMMIT TRANSACTION
+
+    SELECT d.Watermark,
+           d.partitionKey,
+           d.studyInstanceUid,
+           d.seriesInstanceUid,
+           d.sopInstanceUid
+    FROM   @deletedInstances AS d
 END
