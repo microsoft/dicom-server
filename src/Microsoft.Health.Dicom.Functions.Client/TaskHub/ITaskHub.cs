@@ -27,5 +27,5 @@ public interface ITaskHub
     /// <exception cref="OperationCanceledException">
     /// The <paramref name="cancellationToken"/> requested cancellation.
     /// </exception>
-    ValueTask<bool> IsReadyAsync(CancellationToken cancellationToken = default);
+    ValueTask<bool> IsHealthyAsync(CancellationToken cancellationToken = default);
 }
