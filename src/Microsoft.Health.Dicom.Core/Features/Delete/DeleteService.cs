@@ -37,6 +37,7 @@ public class DeleteService : IDeleteService
     private readonly ILogger<DeleteService> _logger;
     private readonly bool _isExternalStoreEnabled;
     private readonly TelemetryClient _telemetryClient;
+
     private TimeSpan DeleteDelay => _isExternalStoreEnabled ? TimeSpan.Zero : _deletedInstanceCleanupConfiguration.DeleteDelay;
 
     public DeleteService(
@@ -57,7 +58,6 @@ public class DeleteService : IDeleteService
         EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
         _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
         _indexDataStore = indexDataStore;
