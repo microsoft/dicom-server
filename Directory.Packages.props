@@ -3,7 +3,7 @@
     <PackageVersion Include="Azure.Core" Version="1.35.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.1" />
     <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
-    <PackageVersion Include="Azure.Identity" Version="1.10.1" />
+    <PackageVersion Include="Azure.Identity" Version="1.10.2" />
     <PackageVersion Include="Azure.Monitor.OpenTelemetry.Exporter" Version="1.0.0" />
     <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.18.0" />
