@@ -172,3 +172,4 @@ INCLUDE
     SeriesInstanceUid,
     SopInstanceUid
 )
+WITH (DATA_COMPRESSION = PAGE)
