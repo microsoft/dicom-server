@@ -179,7 +179,7 @@ public class DeleteService : IDeleteService
             _logger.LogInformation(
                 "Instance queued for deletion. Instance Watermark: {Watermark} , PartitionKey: {PartitionKey} , ExternalStore: {ExternalStore}",
                 identifier.Version, identifier.Partition.Key, _isExternalStoreEnabled);
-            _telemetryClient.ForwardLogTrace("Instance queued for deletion", identifier.StudyInstanceUid, identifier.SeriesInstanceUid, identifier.SopInstanceUid);
+            _telemetryClient.ForwardLogTrace("Instance queued for deletion", identifier);
         }
     }
 

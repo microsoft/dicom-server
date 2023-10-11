@@ -50,36 +50,6 @@ internal static class LogForwarderExtensions
     }
 
     /// <summary>
-    /// Emits a trace log with forwarding flag set and adds properties from instanceIdentifier as properties to telemetry.
-    /// </summary>
-    /// <param name="telemetryClient">client to use to emit the trace</param>
-    /// <param name="message">message to set on the trace log</param>
-    /// <param name="StudyInstanceUid">identifier to use to set UIDs on log and telemetry properties</param>
-    /// <param name="SeriesInstanceUid">identifier to use to set UIDs on log and telemetry properties</param>
-    /// <param name="SopInstanceUid">identifier to use to set UIDs on log and telemetry properties</param>
-    public static void ForwardLogTrace(
-        this TelemetryClient telemetryClient,
-        string message,
-        string StudyInstanceUid,
-        string SeriesInstanceUid,
-        string SopInstanceUid)
-    {
-        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        EnsureArg.IsNotNull(message, nameof(message));
-        EnsureArg.IsNotNull(StudyInstanceUid, nameof(StudyInstanceUid));
-        EnsureArg.IsNotNull(SeriesInstanceUid, nameof(SeriesInstanceUid));
-        EnsureArg.IsNotNull(SopInstanceUid, nameof(SopInstanceUid));
-
-        var telemetry = new TraceTelemetry(message);
-        telemetry.Properties.Add(StudyInstanceUID, StudyInstanceUid);
-        telemetry.Properties.Add(SeriesInstanceUID, SeriesInstanceUid);
-        telemetry.Properties.Add(SOPInstanceUID, SopInstanceUid);
-        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
-
-        telemetryClient.TrackTrace(telemetry);
-    }
-
-    /// <summary>
     /// Emits a trace log with forwarding flag set for operations and adds the required properties to telemetry.
     /// </summary>
     /// <param name="telemetryClient">client to use to emit the trace</param>
