@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.Health.Dicom.SqlServer.UnitTests.Registration;
 
+[Collection("SQL Authentication Collection")]
 public sealed class DicomSqlServerRegistrationExtensionsTests : IDisposable
 {
     [Fact]

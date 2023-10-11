@@ -15,12 +15,6 @@ namespace Microsoft.Health.Dicom.Functions.Client.TaskHub;
 public interface ITaskHubClient
 {
     /// <summary>
-    /// Gets the name of the desired task hub.
-    /// </summary>
-    /// <value>The task hub name.</value>
-    string TaskHubName { get; }
-
-    /// <summary>
     /// Asynchronously retrieves an <see cref="ITaskHub"/> from its storage provider.
     /// </summary>
     /// <param name="cancellationToken">

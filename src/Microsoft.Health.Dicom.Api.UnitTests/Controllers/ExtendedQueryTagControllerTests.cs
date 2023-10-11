@@ -14,9 +14,11 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Health.Dicom.Api.Controllers;
 using Microsoft.Health.Dicom.Api.Models;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.ExtendedQueryTag;
 using Microsoft.Health.Dicom.Core.Messages.ExtendedQueryTag;
@@ -29,12 +31,19 @@ namespace Microsoft.Health.Dicom.Api.UnitTests.Extensions;
 
 public class ExtendedQueryTagControllerTests
 {
+    private readonly IOptions<FeatureConfiguration> _featureConfiguration;
+
+    public ExtendedQueryTagControllerTests()
+    {
+        _featureConfiguration = Options.Create(new FeatureConfiguration { DisableOperations = false });
+    }
+
     [Fact]
     public void GivenNullArguments_WhenConstructing_ThenThrowArgumentNullException()
     {
         var mediator = new Mediator(null);
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(null, NullLogger<ExtendedQueryTagController>.Instance));
-        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(mediator, null));
+        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(null, NullLogger<ExtendedQueryTagController>.Instance, _featureConfiguration));
+        Assert.Throws<ArgumentNullException>(() => new ExtendedQueryTagController(mediator, null, _featureConfiguration));
     }
 
     [Fact]
@@ -43,7 +52,7 @@ public class ExtendedQueryTagControllerTests
         IMediator mediator = Substitute.For<IMediator>();
         const string path = "11330001";
 
-        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance);
+        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance, _featureConfiguration);
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         Guid id = Guid.NewGuid();
@@ -76,7 +85,7 @@ public class ExtendedQueryTagControllerTests
         IMediator mediator = Substitute.For<IMediator>();
         const string path = "11330001";
 
-        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance);
+        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance, _featureConfiguration);
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         var expected = new GetExtendedQueryTagErrorsResponse(
@@ -112,7 +121,7 @@ public class ExtendedQueryTagControllerTests
         var expected = new AddExtendedQueryTagResponse(
             new OperationReference(id, new Uri("https://dicom.contoso.io/unit/test/Operations/" + id, UriKind.Absolute)));
         IMediator mediator = Substitute.For<IMediator>();
-        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance);
+        var controller = new ExtendedQueryTagController(mediator, NullLogger<ExtendedQueryTagController>.Instance, _featureConfiguration);
         controller.ControllerContext.HttpContext = new DefaultHttpContext();
 
         var input = new List<AddExtendedQueryTagEntry>
