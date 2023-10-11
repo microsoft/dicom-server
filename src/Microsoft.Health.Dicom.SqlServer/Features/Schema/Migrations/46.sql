@@ -832,7 +832,7 @@ BEGIN
     DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @partitionKey AS INT;
     SELECT @partitionKey = PartitionKey
-    FROM   dbo.Partition
+    FROM   dbo.Partition WITH (UPDLOCK)
     WHERE  PartitionName = @partitionName;
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Partition already exists', 1;
