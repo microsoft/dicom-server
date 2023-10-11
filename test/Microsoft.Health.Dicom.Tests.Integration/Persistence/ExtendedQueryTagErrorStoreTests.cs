@@ -168,7 +168,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         IReadOnlyList<Instance> instanceBeforeDeletion = await _indexDataStoreTestHelper.GetInstancesAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
         Assert.Single(instanceBeforeDeletion);
 
-        await _indexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
+        await _indexDataStore.DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow);
 
         Assert.Empty(await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), 1, 0));
         Assert.False(await _errorStoreTestHelper.DoesExtendedQueryTagErrorExistAsync(tagKey));
@@ -206,7 +206,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
         // delete instance
-        await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyUid1, DateTime.UtcNow);
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, studyUid1, DateTime.UtcNow);
 
         // check errors
         var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -242,7 +242,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         await _extendedQueryTagErrorStore.AddExtendedQueryTagErrorAsync(tagKey, errorCode, watermark3);
 
         // delete instance
-        await _indexDataStore.DeleteSeriesIndexAsync(Partition.DefaultKey, studyUid, seriesUid1, DateTime.UtcNow);
+        await _indexDataStore.DeleteSeriesIndexAsync(Partition.Default, studyUid, seriesUid1, DateTime.UtcNow);
 
         // check errors
         var errors = await _extendedQueryTagErrorStore.GetExtendedQueryTagErrorsAsync(tag.GetPath(), int.MaxValue, 0);
@@ -471,7 +471,7 @@ public class ExtendedQueryTagErrorStoreTests : IClassFixture<SqlDataStoreTestsFi
         Assert.Equal(2, tagEntryBefore.ErrorCount);
 
         // Delete study
-        await _indexDataStore.DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, DateTimeOffset.UtcNow);
+        await _indexDataStore.DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, DateTimeOffset.UtcNow);
 
         var tagEntryAfter = await _extendedQueryTagStore.GetExtendedQueryTagAsync(tag.GetPath());
         Assert.Equal(0, tagEntryAfter.ErrorCount);

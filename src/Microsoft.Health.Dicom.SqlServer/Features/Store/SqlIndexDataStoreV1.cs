@@ -83,28 +83,28 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         }
     }
 
-    public virtual async Task DeleteInstanceIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public virtual async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
         EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-        await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public virtual async Task DeleteSeriesIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public virtual async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
-    public virtual async Task DeleteStudyIndexAsync(int partitionKey, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public virtual async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-        await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
     public virtual async Task EndCreateInstanceIndexAsync(
@@ -242,7 +242,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         }
     }
 
-    private async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    private async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -280,6 +280,8 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
                         throw new DataStoreException(ex);
                 }
             }
+
+            return Array.Empty<VersionedInstanceIdentifier>();
         }
     }
 

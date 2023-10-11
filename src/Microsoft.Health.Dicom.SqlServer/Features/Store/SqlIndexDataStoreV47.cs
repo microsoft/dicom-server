@@ -4,15 +4,15 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
-using Microsoft.ApplicationInsights;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Features.Diagnostic;
+using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Models;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
@@ -23,49 +23,40 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
 internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
 {
-    private readonly ILogger<SqlIndexDataStoreV47> _logger;
-    private readonly TelemetryClient _telemetryClient;
-
-    public SqlIndexDataStoreV47(
-        SqlConnectionWrapperFactory sqlConnectionWrapperFactory,
-        ILogger<SqlIndexDataStoreV47> logger,
-        TelemetryClient telemetryClient
-        )
+    public SqlIndexDataStoreV47(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
-    {
-        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
-        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-    }
+    { }
 
     public override SchemaVersion Version => SchemaVersion.V47;
 
-    public override async Task DeleteInstanceIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public override async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
         EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-        await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public override async Task DeleteSeriesIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public override async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
-    public override async Task DeleteStudyIndexAsync(int partitionKey, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public override async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-        await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
-    private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid,
+    private async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid,
         string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
+        var results = new List<VersionedInstanceIdentifier>();
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
@@ -73,7 +64,7 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
                 sqlCommandWrapper,
                 cleanupAfter,
                 (byte)IndexStatus.Created,
-                partitionKey,
+                partition.Key,
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid);
@@ -85,16 +76,13 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (long rWatermark, int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid) = reader.ReadRow(
+                        (long rWatermark, int rpartition, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid) = reader.ReadRow(
                             VLatest.DeletedInstance.Watermark,
                             VLatest.DeletedInstance.PartitionKey,
                             VLatest.DeletedInstance.StudyInstanceUid,
                             VLatest.DeletedInstance.SeriesInstanceUid,
                             VLatest.DeletedInstance.SopInstanceUid);
-                        _logger.LogInformation(
-                            "Instance queued for deletion. Instance Watermark: {Watermark} , PartitionKey: {PartitionKey}",
-                            rWatermark, rPartitionKey);
-                        _telemetryClient.ForwardLogTrace("Instance queued for deletion", rStudyInstanceUid, rSeriesInstanceUid, rSopInstanceUid);
+                        results.Add(new VersionedInstanceIdentifier(rStudyInstanceUid, rSeriesInstanceUid, rSopInstanceUid, rWatermark, partition));
                     }
                 }
             }
@@ -119,6 +107,8 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
                         throw new DataStoreException(ex);
                 }
             }
+
+            return results;
         }
     }
 }

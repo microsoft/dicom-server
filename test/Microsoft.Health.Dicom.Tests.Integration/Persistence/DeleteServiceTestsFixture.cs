@@ -5,6 +5,8 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -64,6 +66,7 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
         dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
         IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
         _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false, });
+        TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration());
 
         DeleteService = new DeleteService(
             _sqlDataStoreTestsFixture.IndexDataStore,
@@ -73,7 +76,8 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
             _sqlDataStoreTestsFixture.SqlTransactionHandler,
             NullLogger<DeleteService>.Instance,
             dicomRequestContextAccessor,
-            _options);
+            _options,
+            _telemetryClient);
     }
 
     public async Task DisposeAsync()

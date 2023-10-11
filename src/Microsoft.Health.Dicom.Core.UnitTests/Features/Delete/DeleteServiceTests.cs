@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Abstractions.Features.Transactions;
@@ -36,9 +38,11 @@ public class DeleteServiceTests
     private readonly DeletedInstanceCleanupConfiguration _deleteConfiguration;
     private readonly IMetadataStore _metadataStore;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
+    private readonly TelemetryClient _telemetryClient;
 
     public DeleteServiceTests()
     {
+        _telemetryClient = new TelemetryClient(new TelemetryConfiguration());
         _indexDataStore = Substitute.For<IIndexDataStore>();
         _metadataStore = Substitute.For<IMetadataStore>();
         _fileDataStore = Substitute.For<IFileStore>();
@@ -61,11 +65,11 @@ public class DeleteServiceTests
 
         IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
         _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false, });
-        _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _options);
+        _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _options, _telemetryClient);
 
         IOptions<FeatureConfiguration> _optionsExternalStoreEnabled = Substitute.For<IOptions<FeatureConfiguration>>();
         _optionsExternalStoreEnabled.Value.Returns(new FeatureConfiguration { EnableExternalStore = true, });
-        _deleteServiceWithExternalStore = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _optionsExternalStoreEnabled);
+        _deleteServiceWithExternalStore = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _optionsExternalStoreEnabled, _telemetryClient);
     }
 
     [Fact]
@@ -79,7 +83,7 @@ public class DeleteServiceTests
             await _deleteService.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                .DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
     }
 
@@ -94,7 +98,7 @@ public class DeleteServiceTests
             await _deleteServiceWithExternalStore.DeleteStudyAsync(studyInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteStudyIndexAsync(Partition.DefaultKey, studyInstanceUid, now);
+                .DeleteStudyIndexAsync(Partition.Default, studyInstanceUid, now);
         }
     }
 
@@ -110,7 +114,7 @@ public class DeleteServiceTests
             await _deleteService.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                .DeleteSeriesIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
     }
 
@@ -126,7 +130,7 @@ public class DeleteServiceTests
             await _deleteServiceWithExternalStore.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteSeriesIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, now);
+                .DeleteSeriesIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, now);
         }
     }
 
@@ -143,7 +147,7 @@ public class DeleteServiceTests
             await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
+                .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
     }
 
@@ -160,7 +164,7 @@ public class DeleteServiceTests
             await _deleteServiceWithExternalStore.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, CancellationToken.None);
             await _indexDataStore
                 .Received(1)
-                .DeleteInstanceIndexAsync(Partition.DefaultKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now);
+                .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now);
         }
     }
 

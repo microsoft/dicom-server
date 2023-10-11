@@ -131,28 +131,28 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
     }
 
     //v6
-    public override async Task DeleteInstanceIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public override async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
         EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-        await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public override async Task DeleteSeriesIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public override async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
-    public override async Task DeleteStudyIndexAsync(int partitionKey, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    public override async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-        await DeleteInstanceAsync(partitionKey, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return await DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
 
@@ -499,7 +499,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         }
     }
 
-    private async Task DeleteInstanceAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    private async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
@@ -508,7 +508,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                 sqlCommandWrapper,
                 cleanupAfter,
                 (byte)IndexStatus.Created,
-                partitionKey,
+                partition.Key,
                 studyInstanceUid,
                 seriesInstanceUid,
                 sopInstanceUid);
@@ -539,5 +539,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
                 }
             }
         }
+
+        return Array.Empty<VersionedInstanceIdentifier>();
     }
 }
