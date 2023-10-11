@@ -57,58 +57,54 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
         string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         var results = new List<VersionedInstanceIdentifier>();
-        using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
-        using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
+        using SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken);
+        using SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand();
+        VLatest.DeleteInstanceV6.PopulateCommand(
+            sqlCommandWrapper,
+            cleanupAfter,
+            (byte)IndexStatus.Created,
+            partition.Key,
+            studyInstanceUid,
+            seriesInstanceUid,
+            sopInstanceUid);
+
+        try
         {
-            VLatest.DeleteInstanceV6.PopulateCommand(
-                sqlCommandWrapper,
-                cleanupAfter,
-                (byte)IndexStatus.Created,
-                partition.Key,
-                studyInstanceUid,
-                seriesInstanceUid,
-                sopInstanceUid);
-
-            try
+            using var reader =
+                await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
             {
-                using (var reader =
-                       await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
-                {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (long rWatermark, int rpartition, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid) = reader.ReadRow(
-                            VLatest.DeletedInstance.Watermark,
-                            VLatest.DeletedInstance.PartitionKey,
-                            VLatest.DeletedInstance.StudyInstanceUid,
-                            VLatest.DeletedInstance.SeriesInstanceUid,
-                            VLatest.DeletedInstance.SopInstanceUid);
-                        results.Add(new VersionedInstanceIdentifier(rStudyInstanceUid, rSeriesInstanceUid, rSopInstanceUid, rWatermark, partition));
-                    }
-                }
+                (long rWatermark, int rpartition, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid) = reader.ReadRow(
+                    VLatest.DeletedInstance.Watermark,
+                    VLatest.DeletedInstance.PartitionKey,
+                    VLatest.DeletedInstance.StudyInstanceUid,
+                    VLatest.DeletedInstance.SeriesInstanceUid,
+                    VLatest.DeletedInstance.SopInstanceUid);
+                results.Add(new VersionedInstanceIdentifier(rStudyInstanceUid, rSeriesInstanceUid, rSopInstanceUid, rWatermark, partition));
             }
-            catch (SqlException ex)
-            {
-                switch (ex.Number)
-                {
-                    case SqlErrorCodes.NotFound:
-                        if (!string.IsNullOrEmpty(sopInstanceUid))
-                        {
-                            throw new InstanceNotFoundException();
-                        }
-
-                        if (!string.IsNullOrEmpty(seriesInstanceUid))
-                        {
-                            throw new SeriesNotFoundException();
-                        }
-
-                        throw new StudyNotFoundException();
-
-                    default:
-                        throw new DataStoreException(ex);
-                }
-            }
-
-            return results;
         }
+        catch (SqlException ex)
+        {
+            switch (ex.Number)
+            {
+                case SqlErrorCodes.NotFound:
+                    if (!string.IsNullOrEmpty(sopInstanceUid))
+                    {
+                        throw new InstanceNotFoundException();
+                    }
+
+                    if (!string.IsNullOrEmpty(seriesInstanceUid))
+                    {
+                        throw new SeriesNotFoundException();
+                    }
+
+                    throw new StudyNotFoundException();
+
+                default:
+                    throw new DataStoreException(ex);
+            }
+        }
+
+        return results;
     }
 }

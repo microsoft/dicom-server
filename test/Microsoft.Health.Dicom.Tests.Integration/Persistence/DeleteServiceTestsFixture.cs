@@ -65,7 +65,7 @@ public class DeleteServiceTestsFixture : IAsyncLifetime
         var dicomRequestContextAccessor = Substitute.For<IDicomRequestContextAccessor>();
         dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
         IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
-        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false, });
+        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false });
         TelemetryClient _telemetryClient = new TelemetryClient(new TelemetryConfiguration());
 
         DeleteService = new DeleteService(

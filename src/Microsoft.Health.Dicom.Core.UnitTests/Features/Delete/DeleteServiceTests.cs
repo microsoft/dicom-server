@@ -64,7 +64,7 @@ public class DeleteServiceTests
         _dicomRequestContextAccessor.RequestContext.DataPartition = Partition.Default;
 
         IOptions<FeatureConfiguration> _options = Substitute.For<IOptions<FeatureConfiguration>>();
-        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false, });
+        _options.Value.Returns(new FeatureConfiguration { EnableExternalStore = false });
         _deleteService = new DeleteService(_indexDataStore, _metadataStore, _fileDataStore, deletedInstanceCleanupConfigurationOptions, transactionHandler, NullLogger<DeleteService>.Instance, _dicomRequestContextAccessor, _options, _telemetryClient);
 
         IOptions<FeatureConfiguration> _optionsExternalStoreEnabled = Substitute.For<IOptions<FeatureConfiguration>>();
