@@ -94,10 +94,12 @@ public partial class DataCleanupDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            _metadataStore.IsFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+            _metadataStore.IsFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(true);
         }
 
-        _indexStore.UpdateFrameDataAsync(expected.First().Partition.Key, expected.Select(x => x.Version).ToList(), true, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+        var versions = expected.Select(x => x.Version).ToList();
+
+        _indexStore.UpdateFrameDataAsync(expected.First().Partition.Key, versions, true, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
 
         // Call the activity
         await _dataCleanupDurableFunction.CleanupFrameRangeDataAsync(args, NullLogger.Instance);
@@ -112,6 +114,55 @@ public partial class DataCleanupDurableFunctionTests
             await _metadataStore.Received(1).IsFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>());
         }
 
-        await _indexStore.Received(1).UpdateFrameDataAsync(expected.First().Partition.Key, expected.Select(x => x.Version).ToList(), true, Arg.Any<CancellationToken>());
+        await _indexStore.Received(1).UpdateFrameDataAsync(expected.First().Partition.Key, Arg.Is<IReadOnlyList<long>>(x => versions.Intersect(x).Count() == versions.Count()), true, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenBatchInDifferentPartition_WhenCleanup_ThenShouldMigrateEachInstance()
+    {
+        var args = new WatermarkRange(3, 10);
+
+        var partition = new Core.Features.Partitioning.Partition(2, "New Partition");
+
+        var expected = new List<VersionedInstanceIdentifier>
+        {
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 3),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 4),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 5),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 6),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 7),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 8, partition),
+            new VersionedInstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), 9, partition)
+        };
+
+        // Arrange input
+        _instanceStore
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args, IndexStatus.Created, Arg.Any<CancellationToken>())
+            .Returns(expected);
+
+        foreach (VersionedInstanceIdentifier identifier in expected)
+        {
+            _metadataStore.IsFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(true);
+        }
+
+        _indexStore.UpdateFrameDataAsync(Arg.Any<int>(), expected.Select(x => x.Version).ToList(), true, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _dataCleanupDurableFunction.CleanupFrameRangeDataAsync(args, NullLogger.Instance);
+
+        // Assert behavior
+        await _instanceStore
+            .Received(1)
+            .GetInstanceIdentifiersByWatermarkRangeAsync(args, IndexStatus.Created, CancellationToken.None);
+
+        foreach (VersionedInstanceIdentifier identifier in expected)
+        {
+            await _metadataStore.Received(1).IsFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>());
+        }
+
+        var expectedVersions1 = expected.Where(x => x.Partition.Key == 1).Select(x => x.Version).OrderBy(x => x).ToList();
+        var expectedVersions2 = expected.Where(x => x.Partition.Key == 2).Select(x => x.Version).OrderBy(x => x).ToList();
+        await _indexStore.Received(1).UpdateFrameDataAsync(expected.First().Partition.Key, Arg.Is<IReadOnlyList<long>>(x => expectedVersions1.Intersect(x).Count() == expectedVersions1.Count()), true, Arg.Any<CancellationToken>());
+        await _indexStore.Received(1).UpdateFrameDataAsync(partition.Key, Arg.Is<IReadOnlyList<long>>(x => expectedVersions2.Intersect(x).Count() == expectedVersions2.Count()), true, Arg.Any<CancellationToken>());
     }
 }
