@@ -58,7 +58,7 @@ public class ExportController : ControllerBase
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         FeatureConfiguration config = EnsureArg.IsNotNull(options?.Value, nameof(options));
-        _enabled = config.EnableExport && !config.DisableOperation;
+        _enabled = config.EnableExport && !config.DisableOperations;
     }
 
     /// <summary>

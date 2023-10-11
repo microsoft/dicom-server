@@ -205,7 +205,7 @@ namespace Microsoft.Health.Dicom.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following &apos;{0}&apos; operation is disabled. Please try after some time..
+        ///   Looks up a localized string similar to Asynchronous operations are temporarily disabled. Please try again later..
         /// </summary>
         internal static string DicomAsyncOperationDisabled {
             get {

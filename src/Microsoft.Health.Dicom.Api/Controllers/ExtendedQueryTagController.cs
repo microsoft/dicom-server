@@ -42,7 +42,7 @@ public class ExtendedQueryTagController : ControllerBase
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
-        _asyncOperationDisabled = featureConfiguration.Value.DisableOperation;
+        _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
     }
 
     [HttpPost]
@@ -59,7 +59,7 @@ public class ExtendedQueryTagController : ControllerBase
 
         if (_asyncOperationDisabled)
         {
-            throw new DicomAsyncOperationDisabledException(AuditEventSubType.AddExtendedQueryTag);
+            throw new DicomAsyncOperationDisabledException();
         }
 
         try

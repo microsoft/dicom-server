@@ -41,7 +41,7 @@ public class FeatureConfiguration
     public bool EnableExternalStore { get; set; }
 
     /// <summary>
-    /// Disables all async operation
+    /// Disables all async operations
     /// </summary>
-    public bool DisableOperation { get; set; }
+    public bool DisableOperations { get; set; }
 }

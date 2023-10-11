@@ -35,7 +35,7 @@ public class ExtendedQueryTagControllerTests
 
     public ExtendedQueryTagControllerTests()
     {
-        _featureConfiguration = Options.Create(new FeatureConfiguration { DisableOperation = false });
+        _featureConfiguration = Options.Create(new FeatureConfiguration { DisableOperations = false });
     }
 
     [Fact]

@@ -52,7 +52,7 @@ public class StoreController : ControllerBase
         _logger = logger;
         _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
         _dataPartitionsEnabled = featureConfiguration.Value.EnableDataPartitions;
-        _asyncOperationDisabled = featureConfiguration.Value.DisableOperation;
+        _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -112,7 +112,7 @@ public class StoreController : ControllerBase
 
         if (_asyncOperationDisabled)
         {
-            throw new DicomAsyncOperationDisabledException(AuditEventSubType.UpdateStudy);
+            throw new DicomAsyncOperationDisabledException();
         }
 
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);

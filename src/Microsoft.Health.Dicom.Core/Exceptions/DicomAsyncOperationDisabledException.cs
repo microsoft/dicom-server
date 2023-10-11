@@ -12,8 +12,8 @@ namespace Microsoft.Health.Dicom.Core.Exceptions;
 /// </summary>
 public class DicomAsyncOperationDisabledException : BadRequestException
 {
-    public DicomAsyncOperationDisabledException(string operationName)
-        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DicomAsyncOperationDisabled, operationName))
+    public DicomAsyncOperationDisabledException()
+        : base(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.DicomAsyncOperationDisabled))
     {
     }
 }
