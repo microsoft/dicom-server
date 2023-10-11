@@ -31,7 +31,7 @@ BEGIN
     DECLARE @partitionKey INT
 
     SELECT @partitionKey = PartitionKey
-    FROM dbo.Partition WITH (UPDLOCK)
+    FROM dbo.Partition
     WHERE PartitionName = @partitionName
 
     IF @@ROWCOUNT <> 0
