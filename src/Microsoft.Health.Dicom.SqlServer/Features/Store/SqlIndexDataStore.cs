@@ -48,13 +48,13 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         return await store.DeleteInstanceIndexAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.DeleteSeriesIndexAsync(partition, studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public async Task<IEnumerable<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.DeleteStudyIndexAsync(partition, studyInstanceUid, cleanupAfter, cancellationToken);

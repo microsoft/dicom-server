@@ -48,7 +48,7 @@ public interface IIndexDataStore
     /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task<IEnumerable<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="partition"/>, <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
@@ -59,7 +59,7 @@ public interface IIndexDataStore
     /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task<IEnumerable<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously deletes the indices of the instance specified by the <paramref name="partition"/>, <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
