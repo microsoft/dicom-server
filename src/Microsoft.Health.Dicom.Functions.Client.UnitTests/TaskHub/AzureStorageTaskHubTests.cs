@@ -39,7 +39,7 @@ public class AzureStorageTaskHubTests
 
         _controlQueues.ExistAsync(tokenSource.Token).Returns(false);
 
-        Assert.False(await _taskHub.IsReadyAsync(tokenSource.Token));
+        Assert.False(await _taskHub.IsHealthyAsync(tokenSource.Token));
 
         await _controlQueues.Received(1).ExistAsync(tokenSource.Token);
         await _workItemQueue.Received(1).ExistsAsync(Arg.Any<CancellationToken>());
@@ -55,7 +55,7 @@ public class AzureStorageTaskHubTests
         _controlQueues.ExistAsync(tokenSource.Token).Returns(true);
         _workItemQueue.ExistsAsync(tokenSource.Token).Returns(false);
 
-        Assert.False(await _taskHub.IsReadyAsync(tokenSource.Token));
+        Assert.False(await _taskHub.IsHealthyAsync(tokenSource.Token));
 
         await _controlQueues.Received(1).ExistAsync(tokenSource.Token);
         await _workItemQueue.Received(1).ExistsAsync(Arg.Any<CancellationToken>());
@@ -72,7 +72,7 @@ public class AzureStorageTaskHubTests
         _workItemQueue.ExistsAsync(tokenSource.Token).Returns(true);
         _instanceTable.ExistsAsync(tokenSource.Token).Returns(false);
 
-        Assert.False(await _taskHub.IsReadyAsync(tokenSource.Token));
+        Assert.False(await _taskHub.IsHealthyAsync(tokenSource.Token));
 
         await _controlQueues.Received(1).ExistAsync(tokenSource.Token);
         await _workItemQueue.Received(1).ExistsAsync(Arg.Any<CancellationToken>());
@@ -90,7 +90,7 @@ public class AzureStorageTaskHubTests
         _instanceTable.ExistsAsync(tokenSource.Token).Returns(true);
         _historyTable.ExistsAsync(tokenSource.Token).Returns(false);
 
-        Assert.False(await _taskHub.IsReadyAsync(tokenSource.Token));
+        Assert.False(await _taskHub.IsHealthyAsync(tokenSource.Token));
 
         await _controlQueues.Received(1).ExistAsync(tokenSource.Token);
         await _workItemQueue.Received(1).ExistsAsync(Arg.Any<CancellationToken>());
@@ -108,7 +108,7 @@ public class AzureStorageTaskHubTests
         _instanceTable.ExistsAsync(tokenSource.Token).Returns(true);
         _historyTable.ExistsAsync(tokenSource.Token).Returns(true);
 
-        Assert.True(await _taskHub.IsReadyAsync(tokenSource.Token));
+        Assert.True(await _taskHub.IsHealthyAsync(tokenSource.Token));
 
         await _controlQueues.Received(1).ExistAsync(tokenSource.Token);
         await _workItemQueue.Received(1).ExistsAsync(Arg.Any<CancellationToken>());
