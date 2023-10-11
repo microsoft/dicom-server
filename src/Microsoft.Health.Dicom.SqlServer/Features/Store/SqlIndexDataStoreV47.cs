@@ -69,7 +69,7 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())
         {
-            VLatest.DeleteInstanceV47.PopulateCommand(
+            VLatest.DeleteInstanceV6.PopulateCommand(
                 sqlCommandWrapper,
                 cleanupAfter,
                 (byte)IndexStatus.Created,
@@ -85,8 +85,7 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (long rWatermark, int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid,
-                            string rSopInstanceUid) = reader.ReadRow(
+                        (long rWatermark, int rPartitionKey, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid) = reader.ReadRow(
                             VLatest.DeletedInstance.Watermark,
                             VLatest.DeletedInstance.PartitionKey,
                             VLatest.DeletedInstance.StudyInstanceUid,

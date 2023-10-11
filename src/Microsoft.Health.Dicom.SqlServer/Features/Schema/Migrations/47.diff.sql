@@ -24,7 +24,7 @@ GO
     sproc updates
 **************************************************************/
 
-CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV47
+CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter DATETIMEOFFSET (0), @createdStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
     AS
 BEGIN
