@@ -119,7 +119,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance
 
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter
     ON dbo.DeletedInstance(RetryCount, CleanupAfter)
-    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark, FilePath, ETag) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey            INT           NOT NULL,

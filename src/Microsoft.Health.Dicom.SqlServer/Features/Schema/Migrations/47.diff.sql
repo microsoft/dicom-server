@@ -1,7 +1,10 @@
 ﻿SET XACT_ABORT ON
 
 BEGIN TRANSACTION
-
+/*************************************************************
+    Table Updates
+**************************************************************/
+      
 /*************************************************************
     DeletedInstance Table
     Add FilePath and ETag nullable columns
@@ -21,8 +24,23 @@ END
 GO
 
 /*************************************************************
-    sproc updates
+    SPROC Updates
 **************************************************************/
+
+/***************************************************************************************/
+-- STORED PROCEDURE
+--     DeleteInstanceV6
+--
+-- FIRST SCHEMA VERSION
+--     6
+--
+-- DESCRIPTION
+--     Removes the specified instance(s) and places them in the DeletedInstance table for later removal, along with
+--      associated blob file path and etag
+--
+-- CHANGE SUMMARY
+-- This sproc now returns values
+/***************************************************************************************/
 
 CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter DATETIMEOFFSET (0), @createdStatus TINYINT, @partitionKey INT, @studyInstanceUid VARCHAR (64), @seriesInstanceUid VARCHAR (64)=NULL, @sopInstanceUid VARCHAR (64)=NULL
@@ -232,6 +250,34 @@ SELECT d.Watermark,
        d.sopInstanceUid
 FROM   @deletedInstances AS d;
 END
-
 GO
+
 COMMIT TRANSACTION
+
+/***************************************************************************************/
+-- Index Updates
+/***************************************************************************************/
+
+/***************************************************************************************/
+-- IX_DeletedInstance_RetryCount_CleanupAfter now has FilePath and ETag included in return
+/***************************************************************************************/
+
+
+IF EXISTS (
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_DeletedInstance_RetryCount_CleanupAfter' AND object_id = OBJECT_ID('dbo.DeletedInstance'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter
+        ON dbo.DeletedInstance(RetryCount, CleanupAfter)
+        INCLUDE(
+                  PartitionKey,
+                  StudyInstanceUid,
+                  SeriesInstanceUid,
+                  SopInstanceUid,
+                  Watermark,
+                  OriginalWatermark,
+                  FilePath,
+                  ETag) 
+        WITH (DATA_COMPRESSION = PAGE, DROP_EXISTING = ON, ONLINE = ON)
+END

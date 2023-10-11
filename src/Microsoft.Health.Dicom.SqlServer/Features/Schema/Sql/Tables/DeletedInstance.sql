@@ -39,7 +39,9 @@ INCLUDE
     SeriesInstanceUid,
     SopInstanceUid,
     Watermark,
-    OriginalWatermark
+    OriginalWatermark,
+    FilePath,
+    ETag
 )
 WITH (DATA_COMPRESSION = PAGE)
 
