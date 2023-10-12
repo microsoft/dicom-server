@@ -89,7 +89,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
         EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
 
-        return DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
     public virtual Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
@@ -97,14 +97,14 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
         EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
 
-        return DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
     public virtual Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
 
-        return DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
+        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
     }
 
     public virtual async Task EndCreateInstanceIndexAsync(
@@ -242,7 +242,7 @@ internal class SqlIndexDataStoreV1 : ISqlIndexDataStore
         }
     }
 
-    private async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    protected virtual async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())

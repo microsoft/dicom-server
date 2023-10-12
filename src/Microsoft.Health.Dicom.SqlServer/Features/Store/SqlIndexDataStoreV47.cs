@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
-using EnsureThat;
 using Microsoft.Data.SqlClient;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -29,31 +28,7 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
 
     public override SchemaVersion Version => SchemaVersion.V47;
 
-    public override Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-        EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
-        EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
-
-        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
-    }
-
-    public override Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-        EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
-
-        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
-    }
-
-    public override Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-
-        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
-    }
-
-    private async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid,
+    protected override async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid,
         string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         var results = new List<VersionedInstanceIdentifier>();

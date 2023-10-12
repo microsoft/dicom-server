@@ -130,32 +130,6 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         }
     }
 
-    //v6
-    public override Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-        EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
-        EnsureArg.IsNotNullOrEmpty(sopInstanceUid, nameof(sopInstanceUid));
-
-        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
-    }
-
-    public override Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-        EnsureArg.IsNotNullOrEmpty(seriesInstanceUid, nameof(seriesInstanceUid));
-
-        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid: null, cleanupAfter, cancellationToken);
-    }
-
-    public override Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
-    {
-        EnsureArg.IsNotNullOrEmpty(studyInstanceUid, nameof(studyInstanceUid));
-
-        return DeleteInstanceAsync(partition, studyInstanceUid, seriesInstanceUid: null, sopInstanceUid: null, cleanupAfter, cancellationToken);
-    }
-
-
     public override async Task<IEnumerable<VersionedInstanceIdentifier>> RetrieveDeletedInstancesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
     {
         var results = new List<VersionedInstanceIdentifier>();
@@ -499,7 +473,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
         }
     }
 
-    private async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
+    protected override async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken)
     {
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())

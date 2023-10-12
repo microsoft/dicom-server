@@ -19,7 +19,7 @@ using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal sealed class SqlIndexDataStore : IIndexDataStore
+internal class SqlIndexDataStore : IIndexDataStore
 {
     private readonly VersionedCache<ISqlIndexDataStore> _cache;
     private readonly ILogger<SqlIndexDataStore> _logger;
@@ -42,19 +42,19 @@ internal sealed class SqlIndexDataStore : IIndexDataStore
         await store.DeleteDeletedInstanceAsync(versionedInstanceIdentifier, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.DeleteInstanceIndexAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.DeleteSeriesIndexAsync(partition, studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
     }
 
-    public async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
+    public virtual async Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default)
     {
         ISqlIndexDataStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.DeleteStudyIndexAsync(partition, studyInstanceUid, cleanupAfter, cancellationToken);
