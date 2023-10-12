@@ -7,6 +7,7 @@ using System;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Functions.DataCleanup.Models;
+
 public class DataCleanupBatchCreationArguments
 {
     /// <summary>
@@ -51,6 +52,7 @@ public class DataCleanupBatchCreationArguments
     {
         EnsureArg.IsGte(batchSize, 1, nameof(batchSize));
         EnsureArg.IsGte(maxParallelBatches, 1, nameof(maxParallelBatches));
+        EnsureArg.IsTrue(startFilterTimeStamp <= endFilterTimeStamp, nameof(startFilterTimeStamp));
 
         BatchSize = batchSize;
         MaxParallelBatches = maxParallelBatches;

@@ -17,10 +17,10 @@ public class InstanceDataCleanupConfiguration
     /// <summary>
     /// Gets or sets the start time stamp for clean up
     /// </summary>
-    public DateTimeOffset StartTimeStamp { get; set; } = new DateTime(2023, 06, 01, 0, 0, 0);
+    public DateTimeOffset StartTimeStamp { get; set; } = new DateTimeOffset(new DateTime(2023, 06, 01, 0, 0, 0), TimeSpan.Zero);
 
     /// <summary>
     /// Gets or sets the end time stamp for clean up
     /// </summary>
-    public DateTimeOffset EndTimeStamp { get; set; } = new DateTime(2023, 09, 30, 0, 0, 0);
+    public DateTimeOffset EndTimeStamp { get; set; } = new DateTimeOffset(new DateTime(2023, 09, 30, 0, 0, 0), TimeSpan.Zero);
 }

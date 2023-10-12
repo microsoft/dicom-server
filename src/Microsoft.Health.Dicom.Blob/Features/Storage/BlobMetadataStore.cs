@@ -220,7 +220,7 @@ public class BlobMetadataStore : IMetadataStore
     }
 
     /// <inheritdoc />
-    public async Task<bool> IsFrameRangeExistsAsync(long version, CancellationToken cancellationToken)
+    public async Task<bool> DoesFrameRangeExistsAsync(long version, CancellationToken cancellationToken)
     {
         BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(version);
 

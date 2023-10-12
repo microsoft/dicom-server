@@ -18,6 +18,7 @@ public enum DicomOperation
     /// <summary>
     /// Specifies an data cleanup operation that cleans up instance data.
     /// </summary>
+    [IgnoreEnum]
     DataCleanup,
 
     /// <summary>

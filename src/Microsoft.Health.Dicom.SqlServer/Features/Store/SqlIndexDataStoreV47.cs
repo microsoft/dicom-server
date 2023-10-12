@@ -27,7 +27,7 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
 
     public override async Task UpdateFrameDataAsync(int partitionKey, IReadOnlyCollection<long> versions, bool hasFrameMetadata, CancellationToken cancellationToken = default)
     {
-        var versionRows = versions.Select(i => new WatermarkTableTypeRow(i)).ToList();
+        var versionRows = versions.Select(i => new WatermarkTableTypeRow(i));
 
         using (SqlConnectionWrapper sqlConnectionWrapper = await SqlConnectionWrapperFactory.ObtainSqlConnectionWrapperAsync(cancellationToken))
         using (SqlCommandWrapper sqlCommandWrapper = sqlConnectionWrapper.CreateRetrySqlCommand())

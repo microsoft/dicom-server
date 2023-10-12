@@ -33,7 +33,7 @@ BEGIN
     UPDATE dbo.Instance
     SET HasFrameMetadata = @hasFrameMetadata
     FROM dbo.Instance i
-    JOIN @watermarkTableType input ON  i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
+    JOIN @watermarkTableType input ON i.Watermark = input.Watermark AND i.PartitionKey = @partitionKey
 
     COMMIT TRANSACTION
 END

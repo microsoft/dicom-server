@@ -86,5 +86,5 @@ public interface IMetadataStore
     /// <param name="version"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<bool> IsFrameRangeExistsAsync(long version, CancellationToken cancellationToken = default);
+    Task<bool> DoesFrameRangeExistsAsync(long version, CancellationToken cancellationToken = default);
 }

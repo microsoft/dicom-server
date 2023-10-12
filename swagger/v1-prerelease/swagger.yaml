@@ -3023,7 +3023,6 @@ components:
     DicomOperation:
       enum:
         - unknown
-        - dataCleanup
         - reindex
         - export
         - update

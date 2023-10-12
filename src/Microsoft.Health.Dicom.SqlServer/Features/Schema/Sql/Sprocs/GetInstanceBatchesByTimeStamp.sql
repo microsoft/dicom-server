@@ -15,7 +15,7 @@
 --     @startTimeStamp
 --         * The start filter timestamp.
 --     @endTimeStamp
---         * The end filter timestamp.
+--         * The inclusive end filter timestamp.
 --     @maxWatermark
 --         * The optional inclusive maximum watermark.
 --
