@@ -18,6 +18,7 @@ using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Context;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
@@ -149,6 +150,21 @@ public class DeleteServiceTests
                 .Received(1)
                 .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, now + _deleteConfiguration.DeleteDelay);
         }
+    }
+
+    [Fact]
+    public async Task GivenADeleteInstanceRequest_WhenNoInstancesFoundToDelete_ExpectNoExceptionsThrown()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        string seriesInstanceUid = TestUidGenerator.Generate();
+        string sopInstanceUid = TestUidGenerator.Generate();
+
+        _indexDataStore
+            .DeleteInstanceIndexAsync(Partition.Default, studyInstanceUid, seriesInstanceUid, sopInstanceUid, Arg.Any<DateTimeOffset>(), Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<VersionedInstanceIdentifier>());
+
+        await _deleteService.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid,
+            CancellationToken.None);
     }
 
     [Fact]
