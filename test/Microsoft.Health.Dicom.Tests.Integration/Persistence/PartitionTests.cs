@@ -48,7 +48,7 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
     [Fact]
     public async Task WhenNewPartitionIsCreatedInParallelWithSame_Then_ItThrowsException()
     {
-        string partitionName = new Guid().ToString("N");
+        string partitionName = "test" + new Guid().ToString("N");
 
         await Assert.ThrowsAsync<DataPartitionAlreadyExistsException>(() => Task.WhenAll(
                        _fixture.PartitionStore.AddPartitionAsync(partitionName),
