@@ -15,7 +15,6 @@ services:
       ASPNETCORE_URLS: "http://+:8080"
       BlobStore__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       DicomFunctions__DurableTask__ConnectionName: "AzureWebJobsStorage"
-      DicomFunctions__DurableTask__Monitor__Enabled: "true"
       DicomFunctions__Indexing__Batching__MaxParallelCount: "1"
       SqlServer__AllowDatabaseCreation: "true"
       SqlServer__ConnectionString: "Server=tcp:sql,1433;Initial Catalog=Dicom;Persist Security Info=False;User ID=sa;Password=${SAPASSWORD:-L0ca1P@ssw0rd};MultipleActiveResultSets=False;Connection Timeout=30;TrustServerCertificate=true"
