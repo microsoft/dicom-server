@@ -57,18 +57,35 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
     public async Task GivenDatasetWithNewPartitionName_WhenStoring_TheServerShouldReturnWithNewPartition()
     {
         var newPartition = new Partition(Partition.DefaultKey, TestUidGenerator.Generate());
+        await ValidateParititonCreation(newPartition);
+    }
 
+    [Fact]
+    [Trait("Category", "bvt-dp")]
+    public async Task GivenDatasetWithNewPartitionName_WhenStoringInparallel_TheServerShouldReturnWithNewPartition()
+    {
+        var newPartition = new Partition(Partition.DefaultKey, TestUidGenerator.Generate());
+
+        await Task.WhenAll(
+            ValidateParititonCreation(newPartition),
+            ValidateParititonCreation(newPartition),
+            ValidateParititonCreation(newPartition));
+    }
+
+    private async Task<DicomWebResponse<DicomDataset>> ValidateParititonCreation(Partition newPartition)
+    {
         string studyInstanceUID = TestUidGenerator.Generate();
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition);
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition);
 
         Assert.True(response.IsSuccessStatusCode);
 
         ValidationHelpers.ValidateReferencedSopSequence(
             await response.GetValueAsync(),
             ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition.Name));
+        return response;
     }
 
     [Fact]
