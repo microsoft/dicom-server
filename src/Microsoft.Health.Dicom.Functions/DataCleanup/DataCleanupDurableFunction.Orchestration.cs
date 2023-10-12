@@ -44,14 +44,14 @@ public partial class DataCleanupDurableFunction
         DataCleanupCheckPoint input = context.GetInput<DataCleanupCheckPoint>();
 
         IReadOnlyList<WatermarkRange> batches = await context.CallActivityWithRetryAsync<IReadOnlyList<WatermarkRange>>(
-                nameof(GetInstanceBatchesByTimeStampAsync),
-                _options.RetryOptions,
-                new DataCleanupBatchCreationArguments(
-                    input.Completed?.Start - 1,
-                    input.Batching.Size,
-                    input.Batching.MaxParallelCount,
-                    input.StartFilterTimeStamp,
-                    input.EndFilterTimeStamp));
+            nameof(GetInstanceBatchesByTimeStampAsync),
+            _options.RetryOptions,
+            new DataCleanupBatchCreationArguments(
+                input.Completed?.Start - 1,
+                input.Batching.Size,
+                input.Batching.MaxParallelCount,
+                input.StartFilterTimeStamp,
+                input.EndFilterTimeStamp));
 
         if (batches.Count > 0)
         {
