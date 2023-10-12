@@ -57,6 +57,7 @@ BEGIN TRANSACTION;
         Status            TINYINT        ,
         Watermark         BIGINT         ,
         InstanceKey       INT            ,
+        OriginalWatermark BIGINT         ,
         FilePath          NVARCHAR (4000) NULL,
         ETag              NVARCHAR (4000) NULL);
     DECLARE @studyKey AS BIGINT;
@@ -73,7 +74,7 @@ WHERE  PartitionKey = @partitionKey
   AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
   AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
 DELETE dbo.Instance
-    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.InstanceKey, FP.FilePath, FP.ETag INTO @deletedInstances
+    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.InstanceKey, deleted.OriginalWatermark, FP.FilePath, FP.ETag INTO @deletedInstances
     FROM   dbo.Instance AS i
            LEFT OUTER JOIN
            dbo.FileProperty AS FP
@@ -147,7 +148,7 @@ END
            AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
            AND PartitionKey = @partitionKey
            AND ResourceType = @imageResourceType;
-INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, FilePath, ETag)
+INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark, FilePath, ETag)
 SELECT PartitionKey,
        StudyInstanceUid,
        SeriesInstanceUid,
@@ -156,6 +157,7 @@ SELECT PartitionKey,
        @deletedDate,
        0,
        @cleanupAfter,
+       OriginalWatermark,
        FilePath,
        ETag
 FROM   @deletedInstances;
