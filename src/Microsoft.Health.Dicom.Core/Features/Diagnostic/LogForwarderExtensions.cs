@@ -8,6 +8,7 @@ using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
@@ -22,6 +23,7 @@ internal static class LogForwarderExtensions
     private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
     private const string SeriesInstanceUID = $"{Prefix}seriesInstanceUID";
     private const string SOPInstanceUID = $"{Prefix}sopInstanceUID";
+    private const string PartitionName = $"{Prefix}partitionName";
     private const string InputPayload = $"{Prefix}input";
     private const string OperationId = $"{Prefix}operationId";
 
@@ -44,7 +46,7 @@ internal static class LogForwarderExtensions
         telemetry.Properties.Add(StudyInstanceUID, instanceIdentifier.StudyInstanceUid);
         telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
         telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
-        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
+        telemetry.Properties.Add(PartitionName, instanceIdentifier.Partition.Name);
 
         telemetryClient.TrackTrace(telemetry);
     }
