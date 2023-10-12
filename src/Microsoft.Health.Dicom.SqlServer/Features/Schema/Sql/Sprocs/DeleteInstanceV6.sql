@@ -81,7 +81,7 @@ BEGIN
     
     -- By joining to file properties, this will capture both original and new files for any instances
     -- that had gone through the update operation with external store enabled. We still need original watermark
-    -- to alter delete original files where file properties were not used
+    -- to delete original files where file properties were not used
     DELETE  dbo.Instance
     OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.InstanceKey, deleted.OriginalWatermark, FP.FilePath, FP.ETag
         INTO @deletedInstances
