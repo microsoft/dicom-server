@@ -58,8 +58,9 @@ public class DeleteService : IDeleteService
         EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
+        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration.Value, nameof(featureConfiguration)).EnableExternalStore;
         _indexDataStore = indexDataStore;
         _metadataStore = metadataStore;
         _fileStore = fileStore;
