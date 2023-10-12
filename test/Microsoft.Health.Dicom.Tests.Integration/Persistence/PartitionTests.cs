@@ -50,12 +50,11 @@ public class PartitionTests : IClassFixture<SqlDataStoreTestsFixture>
     {
         string partitionName = new Guid().ToString("N");
 
-        await Task.WhenAll(
+        await Assert.ThrowsAsync<DataPartitionAlreadyExistsException>(() => Task.WhenAll(
                        _fixture.PartitionStore.AddPartitionAsync(partitionName),
-                       _fixture.PartitionStore.AddPartitionAsync(partitionName));
-
-        Partition partition = await _fixture.PartitionStore.GetPartitionAsync(partitionName);
-        Assert.NotNull(partition);
+                       _fixture.PartitionStore.AddPartitionAsync(partitionName),
+                       _fixture.PartitionStore.AddPartitionAsync(partitionName),
+                       _fixture.PartitionStore.AddPartitionAsync(partitionName)));
     }
 
     [Fact]
