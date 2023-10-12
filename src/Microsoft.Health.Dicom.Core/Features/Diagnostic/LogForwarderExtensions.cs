@@ -51,6 +51,24 @@ internal static class LogForwarderExtensions
     }
 
     /// <summary>
+    /// Emits a trace log with forwarding flag set.
+    /// </summary>
+    /// <param name="telemetryClient">client to use to emit the trace</param>
+    /// <param name="message">message to set on the trace log</param>
+    /// <remarks>NOTE - do not use this if reporting on any specific instance. Only use as high level remarks. Attempt to use identifiers wherever possible.</remarks>
+    public static void ForwardLogTrace(
+        this TelemetryClient telemetryClient,
+        string message)
+    {
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        EnsureArg.IsNotNull(message, nameof(message));
+
+        var telemetry = new TraceTelemetry(message);
+
+        telemetryClient.TrackTrace(telemetry);
+    }
+
+    /// <summary>
     /// Emits a trace log with forwarding flag set for operations and adds the required properties to telemetry.
     /// </summary>
     /// <param name="telemetryClient">client to use to emit the trace</param>

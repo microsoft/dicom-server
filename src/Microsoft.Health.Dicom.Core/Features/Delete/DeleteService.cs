@@ -73,21 +73,21 @@ public class DeleteService : IDeleteService
     public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
     {
         DateTimeOffset cleanupAfter = GenerateCleanupAfter(DeleteDelay);
-        IEnumerable<VersionedInstanceIdentifier> identifiers = await _indexDataStore.DeleteStudyIndexAsync(GetPartition(), studyInstanceUid, cleanupAfter, cancellationToken);
+        IReadOnlyCollection<VersionedInstanceIdentifier> identifiers = await _indexDataStore.DeleteStudyIndexAsync(GetPartition(), studyInstanceUid, cleanupAfter, cancellationToken);
         EmitTelemetry(identifiers);
     }
 
     public async Task DeleteSeriesAsync(string studyInstanceUid, string seriesInstanceUid, CancellationToken cancellationToken)
     {
         DateTimeOffset cleanupAfter = GenerateCleanupAfter(DeleteDelay);
-        IEnumerable<VersionedInstanceIdentifier> identifiers = await _indexDataStore.DeleteSeriesIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
+        IReadOnlyCollection<VersionedInstanceIdentifier> identifiers = await _indexDataStore.DeleteSeriesIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, cleanupAfter, cancellationToken);
         EmitTelemetry(identifiers);
     }
 
     public async Task DeleteInstanceAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, CancellationToken cancellationToken)
     {
         DateTimeOffset cleanupAfter = GenerateCleanupAfter(DeleteDelay);
-        IEnumerable<VersionedInstanceIdentifier> identifiers = await _indexDataStore.DeleteInstanceIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
+        IReadOnlyCollection<VersionedInstanceIdentifier> identifiers = await _indexDataStore.DeleteInstanceIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, sopInstanceUid, cleanupAfter, cancellationToken);
         EmitTelemetry(identifiers);
     }
 
@@ -173,8 +173,11 @@ public class DeleteService : IDeleteService
         return (success, retrievedInstanceCount);
     }
 
-    private void EmitTelemetry(IEnumerable<VersionedInstanceIdentifier> identifiers)
+    private void EmitTelemetry(IReadOnlyCollection<VersionedInstanceIdentifier> identifiers)
     {
+        _logger.LogInformation(
+            "Instances queued for deletion: {Count}", identifiers.Count);
+        _telemetryClient.ForwardLogTrace($"Instances queued for deletion: {identifiers.Count}");
         foreach (var identifier in identifiers)
         {
             _logger.LogInformation(
