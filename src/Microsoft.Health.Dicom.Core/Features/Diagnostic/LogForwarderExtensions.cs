@@ -16,7 +16,7 @@ namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 /// </summary>
 internal static class LogForwarderExtensions
 {
-    private const int MaxShoeboxPropertySize = 32 * 1024;
+    internal const int MaxShoeboxPropertySize = 32 * 1024;
     private const string ForwardLogFlag = "forwardLog";
     private const string Prefix = "dicomAdditionalInformation_";
     private const string StudyInstanceUID = $"{Prefix}studyInstanceUID";
