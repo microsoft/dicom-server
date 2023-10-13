@@ -41,37 +41,37 @@ public interface IIndexDataStore
     Task ReindexInstanceAsync(DicomDataset dicomDataset, long watermark, IEnumerable<QueryTag> queryTags, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="partitionKey"/>, <paramref name="studyInstanceUid"/>.
+    /// Asynchronously deletes the indices of all instances which belongs to the study specified by the <paramref name="partition"/>, <paramref name="studyInstanceUid"/>.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partition">The partition.</param>
     /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
     /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteStudyIndexAsync(int partitionKey, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteStudyIndexAsync(Partition partition, string studyInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="partitionKey"/>, <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
+    /// Asynchronously deletes the indices of all instances which belong to the series specified by the <paramref name="partition"/>, <paramref name="studyInstanceUid"/> and <paramref name="seriesInstanceUid"/>.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partition">The partition.</param>
     /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
     /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
     /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteSeriesIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteSeriesIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously deletes the indices of the instance specified by the <paramref name="partitionKey"/>, <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
+    /// Asynchronously deletes the indices of the instance specified by the <paramref name="partition"/>, <paramref name="studyInstanceUid"/>, <paramref name="seriesInstanceUid"/>, and <paramref name="sopInstanceUid"/>.
     /// </summary>
-    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="partition">The partition.</param>
     /// <param name="studyInstanceUid">The StudyInstanceUID.</param>
     /// <param name="seriesInstanceUid">The SeriesInstanceUID.</param>
     /// <param name="sopInstanceUid">The SopInstanceUID.</param>
     /// <param name="cleanupAfter">The date that the record can be cleaned up.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
-    Task DeleteInstanceIndexAsync(int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
+    Task<IReadOnlyCollection<VersionedInstanceIdentifier>> DeleteInstanceIndexAsync(Partition partition, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, DateTimeOffset cleanupAfter, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously completes the addition of a DICOM instance.
