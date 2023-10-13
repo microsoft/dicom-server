@@ -4,9 +4,7 @@
 // -------------------------------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -18,48 +16,10 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Diagnostic;
 
 public class LogForwarderExtensionsTests
 {
-    public LogForwarderExtensionsTests()
-    {
-    }
-
-    public class MockTelemetryChannel : ITelemetryChannel
-    {
-        public IList<ITelemetry> Items { get; private set; } = new List<ITelemetry>();
-
-        public void Send(ITelemetry item)
-        {
-            Items.Add(item);
-        }
-
-        public void Flush()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool? DeveloperMode { get; set; }
-        public string EndpointAddress { get; set; }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     [Fact]
     public void GivenClientUsingForwardTelemetry_ExpectForwardLogFlagIsSetWithNoAdditionalProperties()
     {
-        MockTelemetryChannel channel = new MockTelemetryChannel();
-
-        TelemetryConfiguration configuration = new TelemetryConfiguration
-        {
-            TelemetryChannel = channel,
-#pragma warning disable CS0618 // Type or member is obsolete
-            InstrumentationKey = Guid.NewGuid().ToString()
-#pragma warning restore CS0618 // Type or member is obsolete
-        };
-        configuration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
-
-        TelemetryClient telemetryClient = new TelemetryClient(configuration);
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
         telemetryClient.ForwardLogTrace("A message");
 
         Assert.Single(channel.Items);
@@ -72,18 +32,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetryWithIdentifier_ExpectForwardLogFlagIsSetWithAdditionalProperties()
     {
-        MockTelemetryChannel channel = new MockTelemetryChannel();
-
-        TelemetryConfiguration configuration = new TelemetryConfiguration
-        {
-            TelemetryChannel = channel,
-#pragma warning disable CS0618 // Type or member is obsolete
-            InstrumentationKey = Guid.NewGuid().ToString()
-#pragma warning restore CS0618 // Type or member is obsolete
-        };
-        configuration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
-
-        TelemetryClient telemetryClient = new TelemetryClient(configuration);
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
 
         var expectedIdentifier = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(),
             TestUidGenerator.Generate(), Partition.Default);
@@ -107,18 +56,7 @@ public class LogForwarderExtensionsTests
     [Fact]
     public void GivenClientUsingForwardTelemetry_whenForwardOperationLogTraceWithSizeLimit_ExpectForwardLogFlagIsSet()
     {
-        MockTelemetryChannel channel = new MockTelemetryChannel();
-
-        TelemetryConfiguration configuration = new TelemetryConfiguration
-        {
-            TelemetryChannel = channel,
-#pragma warning disable CS0618 // Type or member is obsolete
-            InstrumentationKey = Guid.NewGuid().ToString()
-#pragma warning restore CS0618 // Type or member is obsolete
-        };
-        configuration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
-
-        TelemetryClient telemetryClient = new TelemetryClient(configuration);
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
 
         var operationId = Guid.NewGuid().ToString();
         var input = "input";
@@ -135,21 +73,9 @@ public class LogForwarderExtensionsTests
     }
 
     [Fact]
-    public void
-        GivenClientUsingForwardTelemetry_whenForwardOperationLogTraceWithSizeLimitExceeded_ExpectForwardLogFlagIsSetAndMultipleTelemetriesEmitted()
+    public void GivenClientUsingForwardTelemetry_whenForwardOperationLogTraceWithSizeLimitExceeded_ExpectForwardLogFlagIsSetAndMultipleTelemetriesEmitted()
     {
-        MockTelemetryChannel channel = new MockTelemetryChannel();
-
-        TelemetryConfiguration configuration = new TelemetryConfiguration
-        {
-            TelemetryChannel = channel,
-#pragma warning disable CS0618 // Type or member is obsolete
-            InstrumentationKey = Guid.NewGuid().ToString()
-#pragma warning restore CS0618 // Type or member is obsolete
-        };
-        configuration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
-
-        TelemetryClient telemetryClient = new TelemetryClient(configuration);
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
 
         var operationId = Guid.NewGuid().ToString();
         var expectedFirstItemInput = "a".PadRight(32 * 1024); // split occurs at 32 kb
@@ -173,5 +99,21 @@ public class LogForwarderExtensionsTests
         Assert.Equal(operationId, secondItem.Context.Properties["dicomAdditionalInformation_operationId"]);
         Assert.Equal(expectedSecondItemInput, secondItem.Context.Properties["dicomAdditionalInformation_input"]);
 #pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    private static (TelemetryClient, MockTelemetryChannel) CreateTelemetryClientWithChannel()
+    {
+        MockTelemetryChannel channel = new MockTelemetryChannel();
+
+        TelemetryConfiguration configuration = new TelemetryConfiguration
+        {
+            TelemetryChannel = channel,
+#pragma warning disable CS0618 // Type or member is obsolete
+            InstrumentationKey = Guid.NewGuid().ToString()
+#pragma warning restore CS0618 // Type or member is obsolete
+        };
+        configuration.TelemetryInitializers.Add(new OperationCorrelationTelemetryInitializer());
+
+        return (new TelemetryClient(configuration), channel);
     }
 }
