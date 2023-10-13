@@ -26,7 +26,9 @@ public class DateValidationTests
 
     [Theory]
     [InlineData("20210313")]
+    [InlineData("20210313\0")]
     [InlineData(null)]
+    [InlineData("")]
     public void GivenDAValidateValue_WhenValidating_ThenShouldPass(string value)
     {
         DicomDate element = new DicomDate(DicomTag.Date, value);

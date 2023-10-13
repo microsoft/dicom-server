@@ -5,53 +5,40 @@
 
 using System;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class EncodedStringElementValidation : IElementValidation
+internal class EncodedStringElementValidation : StringElementValidation
 {
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
-        DicomVR vr = dicomElement.ValueRepresentation;
         switch (vr.Code)
         {
             case DicomVRCode.DT:
-                Validate(dicomElement, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid, withLeniency);
+                Validate(name, value, vr, buffer, DicomValidation.ValidateDT, ValidationErrorCode.DateTimeIsInvalid);
                 break;
             case DicomVRCode.IS:
-                Validate(dicomElement, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid, withLeniency);
+                Validate(name, value, vr, buffer, DicomValidation.ValidateIS, ValidationErrorCode.IntegerStringIsInvalid);
                 break;
             case DicomVRCode.TM:
-                Validate(dicomElement, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid, withLeniency);
+                Validate(name, value, vr, buffer, DicomValidation.ValidateTM, ValidationErrorCode.TimeIsInvalid);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(dicomElement));
+                throw new ArgumentOutOfRangeException(nameof(name));
         };
     }
 
-    private static void Validate(DicomElement element, Action<string> validate, ValidationErrorCode errorCode, bool withLeniency)
+    private static void Validate(string name, string value, DicomVR vr, IByteBuffer buffer, Action<string> validate, ValidationErrorCode errorCode)
     {
-        string value = element.GetFirstValueOrDefault<string>();
-
-        if (withLeniency)
-        {
-            value = value.TrimEnd('\0');
-        }
-
-        if (string.IsNullOrEmpty(value))
-        {
-            return;
-        }
-
         try
         {
             validate(value);
         }
         catch (DicomValidationException)
         {
-            throw new ElementValidationException(element.Tag.GetFriendlyName(), element.ValueRepresentation, errorCode);
+            throw new ElementValidationException(name, vr, errorCode);
         }
     }
 }

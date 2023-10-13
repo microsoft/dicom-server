@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
+using Microsoft.Health.Dicom.Api.Features.Conventions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -39,6 +40,7 @@ public class StoreController : ControllerBase
     private readonly ILogger<StoreController> _logger;
     private readonly bool _dicomUpdateEnabled;
     private readonly bool _dataPartitionsEnabled;
+    private readonly bool _asyncOperationDisabled;
 
     public StoreController(IMediator mediator, ILogger<StoreController> logger, IOptions<FeatureConfiguration> featureConfiguration)
     {
@@ -50,6 +52,7 @@ public class StoreController : ControllerBase
         _logger = logger;
         _dicomUpdateEnabled = featureConfiguration.Value.EnableUpdate;
         _dataPartitionsEnabled = featureConfiguration.Value.EnableDataPartitions;
+        _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
     }
 
     [AcceptContentFilter(new[] { KnownContentTypes.ApplicationDicomJson })]
@@ -91,6 +94,7 @@ public class StoreController : ControllerBase
     }
 
     [HttpPost]
+    [IntroducedInApiVersion(2)]
     [Consumes(KnownContentTypes.ApplicationJson)]
     [ProducesResponseType(typeof(OperationReference), (int)HttpStatusCode.Accepted)]
     [ProducesResponseType(typeof(DicomDataset), (int)HttpStatusCode.BadRequest)]
@@ -104,6 +108,11 @@ public class StoreController : ControllerBase
         if (!_dicomUpdateEnabled && !_dataPartitionsEnabled)
         {
             throw new DicomUpdateFeatureDisabledException();
+        }
+
+        if (_asyncOperationDisabled)
+        {
+            throw new DicomAsyncOperationDisabledException();
         }
 
         UpdateInstanceResponse response = await _mediator.UpdateInstanceAsync(updateSpecification);

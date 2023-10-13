@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:9c18116208ee3408c6b533fd0521d0f649c348f5a7dbe30915a520e9baff5ca9 AS az-func-runtime
+FROM mcr.microsoft.com/azure-functions/dotnet:4@sha256:9d5e421c55532cb5d74a7faca1b44b20840a6665155e5544af83444762a79924 AS az-func-runtime
 ENV ASPNETCORE_URLS=http://+:8080 \
     AzureWebJobsScriptRoot=/home/site/wwwroot \
     LANG=en_US.UTF-8 \
@@ -10,7 +10,7 @@ USER nonroot
 EXPOSE 8080
 
 # Copy the DICOM Server repository and build the Azure Functions project
-FROM mcr.microsoft.com/dotnet/sdk:7.0.401-alpine3.18-amd64@sha256:55aeaaf17d6712fe1a2d31fef97b65ee2ec1b80d5c21978c8d896c7faf1daae1 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.402-alpine3.18-amd64@sha256:1847a590df2afd9009e8679f9e574b3bd351b6948e8f1bdd55048604875e959b AS build
 ARG BUILD_CONFIGURATION=Release
 ARG CONTINUOUS_INTEGRATION_BUILD=false
 

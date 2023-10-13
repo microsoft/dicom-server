@@ -5,23 +5,18 @@
 
 using System.Text.RegularExpressions;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class UidValidation : IElementValidation
+internal class UidValidation : StringElementValidation
 {
-    private static readonly Regex ValidIdentifierCharactersFormat = new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
+    private static readonly Regex ValidIdentifierCharactersFormat =
+        new Regex("^[0-9\\.]*[0-9]$", RegexOptions.Compiled);
 
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
-        if (withLeniency)
-        {
-            value = value.TrimEnd('\0');
-        }
-        string name = dicomElement.Tag.GetFriendlyName();
         Validate(value, name, allowEmpty: true);
     }
 

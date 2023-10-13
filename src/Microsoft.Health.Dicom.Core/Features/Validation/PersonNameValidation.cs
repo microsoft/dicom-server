@@ -5,28 +5,15 @@
 
 using System.Linq;
 using FellowOakDicom;
+using FellowOakDicom.IO.Buffer;
 using Microsoft.Health.Dicom.Core.Exceptions;
-using Microsoft.Health.Dicom.Core.Extensions;
 
 namespace Microsoft.Health.Dicom.Core.Features.Validation;
 
-internal class PersonNameValidation : IElementValidation
+internal class PersonNameValidation : StringElementValidation
 {
-    public void Validate(DicomElement dicomElement, bool withLeniency = false)
+    protected override void ValidateStringElement(string name, DicomVR vr, string value, IByteBuffer buffer)
     {
-        string value = dicomElement.GetFirstValueOrDefault<string>();
-        string name = dicomElement.Tag.GetFriendlyName();
-        DicomVR vr = dicomElement.ValueRepresentation;
-        if (withLeniency)
-        {
-            value = value.TrimEnd('\0');
-        }
-        if (string.IsNullOrEmpty(value))
-        {
-            // empty values allowed
-            return;
-        }
-
         string[] groups = value.Split('=');
         if (groups.Length > 3)
         {
@@ -37,7 +24,7 @@ internal class PersonNameValidation : IElementValidation
         {
             try
             {
-                ElementMaxLengthValidation.Validate(group, 64, name, dicomElement.ValueRepresentation);
+                ElementMaxLengthValidation.Validate(group, 64, name, vr);
             }
             catch (ElementValidationException ex) when (ex.ErrorCode == ValidationErrorCode.ExceedMaxLength)
             {

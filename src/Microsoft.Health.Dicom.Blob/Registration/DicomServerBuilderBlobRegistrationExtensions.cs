@@ -84,7 +84,9 @@ public static class DicomServerBuilderBlobRegistrationExtensions
 
         serverBuilder.Services
             .AddSingleton<BlobStoreMeter>()
-            .AddSingleton<BlobRetrieveMeter>();
+            .AddSingleton<BlobRetrieveMeter>()
+            .AddSingleton<BlobFileStoreMeter>();
+
 
         return serverBuilder;
     }

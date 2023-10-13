@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FellowOakDicom;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Features.Context;
@@ -43,7 +44,7 @@ public class StoreDatasetValidatorTestsV2
         _storeMeter = new StoreMeter();
         _dicomRequestContextV2.Version.Returns(2);
         _dicomRequestContextAccessorV2.RequestContext.Returns(_dicomRequestContextV2);
-        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2);
+        _dicomDatasetValidator = new StoreDatasetValidator(featureConfiguration, _minimumValidator, _queryTagService, _storeMeter, _dicomRequestContextAccessorV2, NullLogger<StoreDatasetValidator>.Instance);
     }
 
     [Fact]
@@ -62,7 +63,8 @@ public class StoreDatasetValidatorTestsV2
             _minimumValidator,
             _queryTagService,
             _storeMeter,
-            _dicomRequestContextAccessorV2);
+            _dicomRequestContextAccessorV2,
+            NullLogger<StoreDatasetValidator>.Instance);
 
         var result = await validator.ValidateAsync(
             dicomDataset,
@@ -73,7 +75,7 @@ public class StoreDatasetValidatorTestsV2
             """does not validate VR LO: value contains invalid character""",
             result.InvalidTagErrors[DicomTag.PatientID].Error);
 
-        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>(), true);
+        _minimumValidator.DidNotReceive().Validate(Arg.Any<DicomElement>(), ValidationLevel.Default);
     }
 
     [Fact]

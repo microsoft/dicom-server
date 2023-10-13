@@ -6,6 +6,7 @@
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using EnsureThat;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -19,12 +20,17 @@ internal class InternalBlobClient : IBlobClient
 {
     private readonly BlobServiceClient _client;
     private readonly string _containerName;
+    private readonly ILogger _logger;
 
-    public InternalBlobClient(BlobServiceClient blobServiceClient,
-        IOptionsMonitor<BlobContainerConfiguration> optionsMonitor)
+    public InternalBlobClient(
+        BlobServiceClient blobServiceClient,
+        IOptionsMonitor<BlobContainerConfiguration> optionsMonitor,
+        ILogger<InternalBlobClient> logger)
     {
         _client = EnsureArg.IsNotNull(blobServiceClient, nameof(blobServiceClient));
         _containerName = EnsureArg.IsNotNull(optionsMonitor.Get(BlobConstants.BlobContainerConfigurationName).ContainerName, nameof(optionsMonitor));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _logger.LogInformation("Internal blob client registered.");
     }
 
     public bool IsExternal => false;

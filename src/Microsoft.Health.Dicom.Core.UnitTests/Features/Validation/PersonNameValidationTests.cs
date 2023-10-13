@@ -12,12 +12,15 @@ namespace Microsoft.Health.Dicom.Core.UnitTests.Features.Validation;
 
 public class PersonNameValidationTests
 {
-
-    [Fact]
-    public void GivenValidatePersonName_WhenValidating_ThenShouldPass()
+    [Theory]
+    [InlineData("abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz")]
+    [InlineData("abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz\0")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void GivenValidate_WhenValidatingNullOrEmpty_ThenShouldPass(string value)
     {
-        new PersonNameValidation().Validate(new DicomPersonName(DicomTag.PatientName, "abc^xyz=abc^xyz^xyz^xyz^xyz=abc^xyz"));
-        new PersonNameValidation().Validate(new DicomPersonName(DicomTag.PatientName, (string)null));
+        DicomElement element = new DicomPersonName(DicomTag.PatientName, value);
+        new PersonNameValidation().Validate(element);
     }
 
     [Fact]

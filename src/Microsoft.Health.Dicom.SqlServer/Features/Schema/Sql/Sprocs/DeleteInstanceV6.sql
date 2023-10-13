@@ -6,7 +6,8 @@
 --     6
 --
 -- DESCRIPTION
---     Removes the specified instance(s) and places them in the DeletedInstance table for later removal
+--     Removes the specified instance(s) and places them in the DeletedInstance table for later removal, along with
+--      associated blob file path and etag
 --
 -- PARAMETERS
 --     @partitionKey
@@ -21,6 +22,18 @@
 --         * The series instance UID.
 --     @sopInstanceUid
 --         * The SOP instance UID.
+--
+-- RETURNS
+--     studyInstanceUid
+--         * The study instance UID.
+--     seriesInstanceUid
+--         * The series instance UID.
+--     sopInstanceUid
+--         * The SOP instance UID.
+--     watermark
+--          * Version of the instance being deleted
+--     partitionKey
+--          * partition within which instance is being deleted
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.DeleteInstanceV6
     @cleanupAfter       DATETIMEOFFSET(0),
@@ -37,14 +50,16 @@ BEGIN
     BEGIN TRANSACTION
 
     DECLARE @deletedInstances AS TABLE
-           (PartitionKey INT,
-            StudyInstanceUid VARCHAR(64),
-            SeriesInstanceUid VARCHAR(64),
-            SopInstanceUid VARCHAR(64),
-            Status TINYINT,
-            Watermark BIGINT,
-            OriginalWatermark BIGINT,
-            InstanceKey INT)
+        (PartitionKey INT,
+         StudyInstanceUid VARCHAR(64),
+         SeriesInstanceUid VARCHAR(64),
+         SopInstanceUid VARCHAR(64),
+         Status TINYINT,
+         Watermark BIGINT,
+         InstanceKey INT,
+         OriginalWatermark BIGINT,
+         FilePath NVARCHAR (4000) NULL,
+         ETag NVARCHAR (4000) NULL)
 
     DECLARE @studyKey BIGINT
     DECLARE @seriesKey BIGINT
@@ -63,13 +78,21 @@ BEGIN
         AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
 
     -- Delete the instance and insert the details into DeletedInstance and ChangeFeed
+    
+    -- By joining to file properties, this will capture both original and new files for any instances
+    -- that had gone through the update operation with external store enabled. We still need original watermark
+    -- to delete original files where file properties were not used
     DELETE  dbo.Instance
-        OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey
+    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.InstanceKey, deleted.OriginalWatermark, FP.FilePath, FP.ETag
         INTO @deletedInstances
-    WHERE   PartitionKey = @partitionKey
-        AND     StudyInstanceUid = @studyInstanceUid
-        AND     SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-        AND     SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid)
+    FROM dbo.Instance as i
+        LEFT OUTER JOIN dbo.FileProperty as FP
+        ON i.InstanceKey = FP.InstanceKey
+        AND i.Watermark = FP.Watermark
+    WHERE   i.PartitionKey = @partitionKey
+        AND     i.StudyInstanceUid = @studyInstanceUid
+        AND     i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, i.SeriesInstanceUid)
+        AND     i.SopInstanceUid = ISNULL(@sopInstanceUid, i.SopInstanceUid)
 
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1
@@ -79,6 +102,7 @@ BEGIN
     FROM dbo.FileProperty as FP
     INNER JOIN @deletedInstances AS DI
     ON DI.InstanceKey = FP.InstanceKey
+    AND DI.Watermark = FP.Watermark
 
     -- Deleting tag errors
     DECLARE @deletedTags AS TABLE
@@ -157,8 +181,8 @@ BEGIN
     AND     ResourceType = @imageResourceType
 
     INSERT INTO dbo.DeletedInstance
-    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
-    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter, OriginalWatermark
+    (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark, FilePath, ETag)
+    SELECT PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, @deletedDate, 0 , @cleanupAfter, OriginalWatermark, FilePath, ETag
     FROM @deletedInstances
 
     -- If this is the last instance for a series, remove the series
@@ -270,4 +294,11 @@ BEGIN
         AND CF.SopInstanceUid = DI.SopInstanceUid
 
     COMMIT TRANSACTION
+
+    SELECT d.Watermark,
+           d.partitionKey,
+           d.studyInstanceUid,
+           d.seriesInstanceUid,
+           d.sopInstanceUid
+    FROM   @deletedInstances AS d
 END

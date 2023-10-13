@@ -202,7 +202,6 @@
             "WEBSITE_NODE_DEFAULT_VERSION": "6.9.4",
             "SqlServer__Initialize": "true",
             "DicomFunctions__DurableTask__ConnectionName": "AzureWebJobsStorage",
-            "DicomFunctions__DurableTask__Monitor__Enabled": "true",
             "DicomServer__Features__EnableOhifViewer": "[parameters('deployOhifViewer')]",
             "DicomServer__Security__Enabled": "[variables('securityAuthenticationEnabled')]",
             "DicomServer__Security__Authentication__Authority": "[parameters('securityAuthenticationAuthority')]",

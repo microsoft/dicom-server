@@ -7,11 +7,15 @@
   <ItemGroup>
     <PackageReference Include="fo-dicom" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Health.SqlServer" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="All" />
-    <PackageReference Include="System.Drawing.Common" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

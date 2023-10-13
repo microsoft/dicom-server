@@ -21,6 +21,7 @@ using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Core.Features.Identity;
 using Microsoft.Health.Dicom.Blob.Features.ExternalStore;
 using Microsoft.Health.Dicom.Blob.Features.Storage;
+using Microsoft.Health.Dicom.Blob.Features.Telemetry;
 using Microsoft.Health.Dicom.Blob.Utilities;
 using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Configs;
@@ -38,6 +39,7 @@ public class BlobFileStoreTests
 {
     private const string DefaultBlobName = "foo/123.dcm";
     private const string DefaultStorageDirectory = "/test/";
+    private static readonly BlobFileStoreMeter BlobFileStoreMeter = new BlobFileStoreMeter();
 
     private readonly FileProperties _defaultFileProperties = new FileProperties
     {
@@ -286,7 +288,10 @@ public class BlobFileStoreTests
         FrameRange range = new FrameRange(offset: 0, length: 100);
 
         var expectedResult = Substitute.For<Response<BlobDownloadResult>>();
-        expectedResult.Value.Returns(Substitute.For<BlobDownloadResult>());
+        var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(details: CreateBlobDownloadDetails(range));
+
+        expectedResult.Value.Returns(blobDownloadResult);
+
         client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).DownloadContentAsync(
             Arg.Any<BlobDownloadOptions>(),
             Arg.Any<CancellationToken>()).Returns(expectedResult);
@@ -297,6 +302,18 @@ public class BlobFileStoreTests
             Arg.Is<BlobDownloadOptions>(options =>
                 options.Conditions == null),
             Arg.Any<CancellationToken>());
+    }
+
+    private static BlobDownloadDetails CreateBlobDownloadDetails(FrameRange range)
+    {
+        return BlobsModelFactory.BlobDownloadDetails(
+            BlobType.Block, range.Length, null, null, DateTimeOffset.Now, null,
+            null, null, null, null, null,
+            -123L, DateTimeOffset.Now, null, null, null,
+            null, CopyStatus.Success, LeaseDurationType.Fixed, LeaseState.Available, LeaseStatus.Unlocked, null,
+            200, false, null, null, null,
+            5, null, false, null, null,
+            false, DateTimeOffset.Now);
     }
 
     [Fact]
@@ -331,7 +348,7 @@ public class BlobFileStoreTests
         externalBlobClient = new TestInternalBlobClient();
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
+        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, BlobFileStoreMeter, NullLogger<BlobFileStore>.Instance);
 
     }
 
@@ -355,7 +372,8 @@ public class BlobFileStoreTests
             Substitute.For<IExternalCredentialProvider>(),
             externalStoreConfig,
             clientOptions,
-            featureConfiguration);
+            featureConfiguration,
+            NullLogger<ExternalBlobClient>.Instance);
 
         var blobContainerClient = Substitute.For<BlobContainerClient>();
         blobContainerClient.GetBlockBlobClient(Arg.Any<string>()).Returns(Substitute.For<BlockBlobClient>());
@@ -363,7 +381,7 @@ public class BlobFileStoreTests
 
         var options = Substitute.For<IOptions<BlobOperationOptions>>();
         options.Value.Returns(Substitute.For<BlobOperationOptions>());
-        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, NullLogger<BlobFileStore>.Instance);
+        blobFileStore = new BlobFileStore(externalBlobClient, Substitute.For<DicomFileNameWithPrefix>(), options, BlobFileStoreMeter, NullLogger<BlobFileStore>.Instance);
     }
 
     private class TestInternalBlobClient : IBlobClient
