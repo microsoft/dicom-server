@@ -62,7 +62,7 @@ public class BlobMetadataStore : IMetadataStore
         _blobRetrieveMeter = EnsureArg.IsNotNull(blobRetrieveMeter, nameof(blobRetrieveMeter));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
-            .Get(Constants.MetadataContainerConfigurationName);
+            .Get(BlobConstants.MetadataContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
     }

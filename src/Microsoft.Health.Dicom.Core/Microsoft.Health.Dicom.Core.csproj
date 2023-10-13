@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Common primitives and utilities used by Microsoft's DICOMweb APIs.</Description>
@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.Health.Operations" />
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
