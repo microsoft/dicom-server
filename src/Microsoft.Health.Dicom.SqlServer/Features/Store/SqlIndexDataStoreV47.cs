@@ -45,8 +45,7 @@ internal class SqlIndexDataStoreV47 : SqlIndexDataStoreV46
 
         try
         {
-            using var reader =
-                await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            using var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
                 (long rWatermark, int rpartition, string rStudyInstanceUid, string rSeriesInstanceUid, string rSopInstanceUid) = reader.ReadRow(

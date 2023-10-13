@@ -175,8 +175,7 @@ public class DeleteService : IDeleteService
 
     private void EmitTelemetry(IReadOnlyCollection<VersionedInstanceIdentifier> identifiers)
     {
-        _logger.LogInformation(
-            "Instances queued for deletion: {Count}", identifiers.Count);
+        _logger.LogInformation("Instances queued for deletion: {Count}", identifiers.Count);
         _telemetryClient.ForwardLogTrace($"Instances queued for deletion: {identifiers.Count}");
         foreach (var identifier in identifiers)
         {

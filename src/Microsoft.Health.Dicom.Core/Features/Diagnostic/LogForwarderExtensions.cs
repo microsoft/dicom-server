@@ -45,6 +45,7 @@ internal static class LogForwarderExtensions
         telemetry.Properties.Add(StudyInstanceUID, instanceIdentifier.StudyInstanceUid);
         telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
         telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
+        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
         telemetry.Properties.Add(PartitionName, instanceIdentifier.Partition.Name);
 
         telemetryClient.TrackTrace(telemetry);
@@ -53,9 +54,9 @@ internal static class LogForwarderExtensions
     /// <summary>
     /// Emits a trace log with forwarding flag set.
     /// </summary>
+    /// <remarks>NOTE - do not use this if reporting on any specific instance. Only use as high level remarks. Attempt to use identifiers wherever possible</remarks>
     /// <param name="telemetryClient">client to use to emit the trace</param>
     /// <param name="message">message to set on the trace log</param>
-    /// <remarks>NOTE - do not use this if reporting on any specific instance. Only use as high level remarks. Attempt to use identifiers wherever possible.</remarks>
     public static void ForwardLogTrace(
         this TelemetryClient telemetryClient,
         string message)
@@ -64,6 +65,7 @@ internal static class LogForwarderExtensions
         EnsureArg.IsNotNull(message, nameof(message));
 
         var telemetry = new TraceTelemetry(message);
+        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
 
         telemetryClient.TrackTrace(telemetry);
     }
