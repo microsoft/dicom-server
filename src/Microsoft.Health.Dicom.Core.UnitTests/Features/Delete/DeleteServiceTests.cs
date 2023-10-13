@@ -39,6 +39,11 @@ public class DeleteServiceTests
     private readonly IMetadataStore _metadataStore;
     private readonly IDicomRequestContextAccessor _dicomRequestContextAccessor;
     private readonly TelemetryClient _telemetryClient;
+    private readonly FileProperties _defaultFileProperties = new FileProperties
+    {
+        Path = "partitionA/123.dcm",
+        ETag = "e45678"
+    };
 
     public DeleteServiceTests()
     {
@@ -223,7 +228,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(version: default, Partition.DefaultName, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, Partition.Default, _defaultFileProperties, CancellationToken.None);
 
         await _metadataStore
             .DidNotReceiveWithAnyArgs()
@@ -245,7 +250,7 @@ public class DeleteServiceTests
                 .ReturnsForAnyArgs(responseList);
 
             _fileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.DefaultName, Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -272,7 +277,7 @@ public class DeleteServiceTests
                 .ReturnsForAnyArgs(responseList);
 
             _fileDataStore
-                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.DefaultName, Arg.Any<CancellationToken>())
+                .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
                 .ThrowsForAnyArgs(new Exception("Generic exception"));
 
             (bool success, int retrievedInstanceCount) = await _deleteServiceWithExternalStore.CleanupDeletedInstancesAsync(CancellationToken.None);
@@ -319,7 +324,7 @@ public class DeleteServiceTests
             .ReturnsForAnyArgs(responseList);
 
         _fileDataStore
-            .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.DefaultName, Arg.Any<CancellationToken>())
+            .DeleteFileIfExistsAsync(Arg.Any<long>(), Partition.Default, _defaultFileProperties, Arg.Any<CancellationToken>())
             .ThrowsForAnyArgs(new Exception("Generic exception"));
 
         _indexDataStore
@@ -358,7 +363,7 @@ public class DeleteServiceTests
 
         await _fileDataStore
             .DidNotReceiveWithAnyArgs()
-            .DeleteFileIfExistsAsync(version: default, Partition.DefaultName, CancellationToken.None);
+            .DeleteFileIfExistsAsync(version: default, Partition.Default, _defaultFileProperties, CancellationToken.None);
     }
 
     [Theory]
@@ -377,12 +382,11 @@ public class DeleteServiceTests
         await ValidateSuccessfulCleanupDeletedInstanceCall(success, responseList.Select(x => x.VersionedInstanceIdentifier).ToList(), retrievedInstanceCount);
     }
 
-    [Theory]
-    [InlineData(1)]
-    [InlineData(3)]
-    public async Task GivenMultipleDeletedInstanceWithOriginalVersion_WhenCleanupCalled_ThenCorrectMethodsAreCalled(int numberOfDeletedInstances)
+    [Fact]
+    public async Task GivenMultipleDeletedInstanceWithFileProperties_WhenCleanupCalled_ThenCorrectMethodsAreCalled()
     {
-        List<InstanceMetadata> responseList = GeneratedDeletedInstanceList(numberOfDeletedInstances, new InstanceProperties { OriginalVersion = 5 });
+        List<InstanceMetadata> responseList =
+            GeneratedDeletedInstanceList(2, new InstanceProperties { fileProperties = _defaultFileProperties }, generateUniqueFileProperties: true);
 
         _indexDataStore
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -410,15 +414,15 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition.Name, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
 
             await _fileDataStore
-               .Received(numberOfDeletedInstances)
-               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.Partition.Name, CancellationToken.None);
+               .Received(1)
+               .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
 
             await _metadataStore
-                .Received(numberOfDeletedInstances)
-                .DeleteInstanceMetadataIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, CancellationToken.None);
+                .Received(1)
+                .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
         }
 
         await _indexDataStore
@@ -428,7 +432,7 @@ public class DeleteServiceTests
         _transactionScope.Received(1).Complete();
     }
 
-    private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedInstanceIdentifier> responseList, int retrievedInstanceCount)
+    private async Task ValidateSuccessfulCleanupDeletedInstanceCall(bool success, IReadOnlyCollection<VersionedInstanceIdentifier> responseList, int retrievedInstanceCount, FileProperties expectedFileProperties = null)
     {
         Assert.True(success);
         Assert.Equal(responseList.Count, retrievedInstanceCount);
@@ -449,7 +453,7 @@ public class DeleteServiceTests
 
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition.Name, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, expectedFileProperties, CancellationToken.None);
         }
 
         await _indexDataStore
@@ -459,10 +463,18 @@ public class DeleteServiceTests
         _transactionScope.Received(1).Complete();
     }
 
-    private static List<InstanceMetadata> GeneratedDeletedInstanceList(int numberOfResults, InstanceProperties instanceProperties = null, Partition partition = null)
+    private static List<InstanceMetadata> GeneratedDeletedInstanceList(int numberOfResults, InstanceProperties instanceProperties = null, Partition partition = null, FileProperties fileProperties = null, bool generateUniqueFileProperties = false)
     {
-        instanceProperties = instanceProperties ?? new InstanceProperties();
-        partition = partition ?? Partition.Default;
+        if (generateUniqueFileProperties)
+        {
+            fileProperties = new FileProperties
+            {
+                Path = Guid.NewGuid() + ".dcm",
+                ETag = "e" + Guid.NewGuid()
+            };
+        }
+        instanceProperties ??= new InstanceProperties() { fileProperties = fileProperties };
+        partition ??= Partition.Default;
         var deletedInstanceList = new List<InstanceMetadata>();
         for (int i = 0; i < numberOfResults; i++)
         {

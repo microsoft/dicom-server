@@ -27,12 +27,14 @@ public interface IUpdateInstanceService
     /// <paramref name="datasetToUpdate"/> is <see langword="null"/>.
     /// </exception>
     public Task<FileProperties> UpdateInstanceBlobAsync(InstanceMetadata instance, DicomDataset datasetToUpdate, Partition partition, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Asynchronously deletes old blob
     /// </summary>
     /// <param name="fileIdentifier">Unique file identifier, watermark</param>
     /// <param name="partition">Partition</param>
+    /// <param name="fileProperties">File properties of instance to be deleted</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A task that represents the asynchronous DeleteInstanceBlobAsync operation</returns>
-    public Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, CancellationToken cancellationToken = default);
+    public Task DeleteInstanceBlobAsync(long fileIdentifier, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 }

@@ -21,7 +21,7 @@ AS
 BEGIN
     SET NOCOUNT ON
 
-    SELECT  TOP (@count) p.PartitionName, d.PartitionKey, d.StudyInstanceUid, d.SeriesInstanceUid, d.SopInstanceUid, d.Watermark, d.OriginalWatermark
+    SELECT  TOP (@count) p.PartitionName, d.PartitionKey, d.StudyInstanceUid, d.SeriesInstanceUid, d.SopInstanceUid, d.Watermark, d.OriginalWatermark, d.FilePath, d.ETag
     FROM    dbo.DeletedInstance as d WITH (UPDLOCK, READPAST)
     INNER JOIN dbo.Partition as p
     ON p.PartitionKey = d.PartitionKey

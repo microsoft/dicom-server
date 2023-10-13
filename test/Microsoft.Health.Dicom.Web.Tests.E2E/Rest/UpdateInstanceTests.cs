@@ -91,6 +91,26 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, true);
     }
 
+    [Fact]
+    public async Task GivenInstanceUpdated_WhenDeleting_ThenItShouldDeleteBothOriginalAndNew()
+    {
+        string studyInstanceUid1 = TestUidGenerator.Generate();
+        DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUid1, rows: 200, columns: 200, frames: 10, dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian);
+
+        // Upload original file
+        Assert.True((await _instancesManager.StoreAsync(new[] { dicomFile1 })).IsSuccessStatusCode);
+
+        // Update study
+        await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
+
+        // verify both new and original metadata exist
+        await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 1).ToArray(), requestOriginalVersion: true);
+        // verify both new and original blobs exist
+        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName", requestOriginalVersion: true);
+        // call delete service and verify both new and original blobs deleted
+        await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, requestOriginalVersion: true);
+    }
+
     private async Task UpdateStudyAsync(string studyInstanceUid, string expectedPatientName)
     {
         var datasetToUpdate = new DicomDataset();
@@ -178,6 +198,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
 
     private async Task VerifyDeleteStudyAsync(string studyInstanceUid, DicomFile dicomFile, bool requestOriginalVersion = default)
     {
+        // When deleted an instance that has been updated, both new and original files must be deleted
         var seriesInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SeriesInstanceUID);
         var sopInstanceUID = dicomFile.Dataset.GetSingleValue<string>(DicomTag.SOPInstanceUID);
 
@@ -193,6 +214,11 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         DicomWebException exception2 = await Assert.ThrowsAsync<DicomWebException>(
             () => _client.RetrieveInstanceAsync(studyInstanceUid, seriesInstanceUID, sopInstanceUID, requestOriginalVersion: requestOriginalVersion));
         Assert.Equal(HttpStatusCode.NotFound, exception2.StatusCode);
+
+        await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.RetrieveStudyMetadataAsync(studyInstanceUid, requestOriginalVersion: requestOriginalVersion));
+        await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.RetrieveStudyMetadataAsync(studyInstanceUid));
     }
 
     public Task InitializeAsync() => Task.CompletedTask;

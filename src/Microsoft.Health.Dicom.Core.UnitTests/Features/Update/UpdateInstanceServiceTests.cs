@@ -110,8 +110,8 @@ public class UpdateInstanceServiceTests
     public async Task GivenValidInput_WhenDeletingBothFileAndMetadata_ThenItDeletes()
     {
         long fileIdentifier = 1234;
-        await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier, Partition.Default);
-        await _fileStore.Received(1).DeleteFileIfExistsAsync(fileIdentifier, Partition.DefaultName, CancellationToken.None);
+        await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier, Partition.Default, DefaultFileProperties);
+        await _fileStore.Received(1).DeleteFileIfExistsAsync(fileIdentifier, Partition.Default, DefaultFileProperties, CancellationToken.None);
         await _metadataStore.Received(1).DeleteInstanceMetadataIfExistsAsync(fileIdentifier, CancellationToken.None);
     }
 

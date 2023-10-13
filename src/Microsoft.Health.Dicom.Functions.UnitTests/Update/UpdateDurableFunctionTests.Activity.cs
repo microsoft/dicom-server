@@ -134,7 +134,7 @@ public partial class UpdateDurableFunctionTests
             }).Take(1).ToList();
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -145,9 +145,50 @@ public partial class UpdateDurableFunctionTests
         // Assert behavior
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
     }
 
+    [Fact]
+    public async Task GivenInstanceUpdateFails_WhenDeleteFileWithV3_ThenShouldDeleteNewVersionSuccessfullyWithoutFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1 }).Take(1).ToList();
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.CleanupNewVersionBlobV3Async(
+            new CleanupBlobArgumentsV3(identifiers, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceUpdateFails_WhenDeleteFileWithV3_ThenShouldDeleteNewVersionSuccessfullyWithFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { NewVersion = 1, fileProperties = DefaultFileProperties }).Take(1).ToList();
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.CleanupNewVersionBlobV3Async(
+            new CleanupBlobArgumentsV3(identifiers, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>());
+    }
 
     [Fact]
     public async Task GivenInstanceMetadataList_WhenDeleteFile_ThenShouldDeleteSuccessfully()
@@ -163,7 +204,7 @@ public partial class UpdateDurableFunctionTests
             }).Take(1).ToList();
 
         _updateInstanceService
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>())
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         // Call the activity
@@ -174,7 +215,49 @@ public partial class UpdateDurableFunctionTests
         // Assert behavior
         await _updateInstanceService
             .Received(1)
-            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, Arg.Any<CancellationToken>());
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenDeleteFileWithV3_ThenShouldDeleteSuccessfullyWithoutFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { OriginalVersion = 1 }).Take(1).ToList();
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.DeleteOldVersionBlobV3Async(
+            new CleanupBlobArgumentsV3(identifiers, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, null, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInstanceMetadataList_WhenDeleteFileWithV3_ThenShouldDeleteSuccessfullyWithFileProperties()
+    {
+        var studyInstanceUid = TestUidGenerator.Generate();
+        var identifiers = GetInstanceIdentifiersList(studyInstanceUid, instanceProperty: new InstanceProperties { OriginalVersion = 1, fileProperties = DefaultFileProperties }).Take(1).ToList();
+
+        _updateInstanceService
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        // Call the activity
+        await _updateDurableFunction.DeleteOldVersionBlobV3Async(
+            new CleanupBlobArgumentsV3(identifiers, Partition.Default),
+            NullLogger.Instance);
+
+        // Assert behavior
+        await _updateInstanceService
+            .Received(1)
+            .DeleteInstanceBlobAsync(Arg.Any<long>(), Partition.Default, DefaultFileProperties, Arg.Any<CancellationToken>());
     }
 
     [Fact]

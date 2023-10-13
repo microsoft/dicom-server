@@ -189,15 +189,43 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task DeleteFileIfExistsAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
+        EnsureArg.IsNotNull(partition);
 
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
-        _logger.LogInformation("Trying to delete DICOM instance file with watermark '{Version}'.", version);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
+        _logger.LogInformation("Trying to delete DICOM instance file with watermark: '{Version}' and PartitionKey: {PartitionKey}.", version, partition.Key);
 
         EmitTelemetry(nameof(DeleteFileIfExistsAsync), OperationType.Input);
 
-        await ExecuteAsync(() => blobClient.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots, conditions: null, cancellationToken));
+        await ExecuteAsync(async () =>
+        {
+            bool exists = false;
+            try
+            {
+                exists = await blobClient.DeleteIfExistsAsync(
+                    DeleteSnapshotsOption.IncludeSnapshots,
+                    conditions: _blobClient.GetConditions(fileProperties),
+                    cancellationToken);
+            }
+            catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet &&
+                                                    _blobClient.IsExternal)
+            {
+                if (exists)
+                {
+                    // when using external store and condition on etag match not met but blob exists, rethrow
+                    throw ex;
+                }
+
+                // this is currently a bug with blob acct - when file does not exist but conditions passed in, it fails on
+                // conditions not met
+                _logger.LogInformation(
+                    "Can not delete blob in external store with watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected.",
+                    version, partition.Key);
+            }
+
+            return exists;
+        });
     }
 
     private void EmitTelemetry(string operationName, OperationType operationType, long? streamLength = null)

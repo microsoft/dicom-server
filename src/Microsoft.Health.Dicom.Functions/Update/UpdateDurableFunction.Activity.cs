@@ -198,10 +198,92 @@ public partial class UpdateDurableFunction
             },
             async (fileIdentifier, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, partition, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.Version, partition, null, token);
             });
 
         logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously delete all the old blobs if it has more than 2 version.
+    /// </summary>
+    /// <param name="arguments">Activity context which has list of watermarks to cleanup</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="DeleteOldVersionBlobV3Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(DeleteOldVersionBlobV3Async))]
+    public async Task DeleteOldVersionBlobV3Async([ActivityTrigger] CleanupBlobArgumentsV3 arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(arguments.Instances, nameof(arguments.Instances));
+
+
+        IReadOnlyList<InstanceMetadata> instances = arguments.Instances;
+        Partition partition = arguments.Partition;
+        int fileCount = instances.Where(i => i.InstanceProperties.OriginalVersion.HasValue).Count();
+
+        logger.LogInformation("Begin deleting old blobs. Total size {TotalCount}", fileCount);
+
+        await Parallel.ForEachAsync(
+            instances.Where(i => i.InstanceProperties.OriginalVersion.HasValue),
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (instance, token) =>
+            {
+                await _updateInstanceService.DeleteInstanceBlobAsync(instance.VersionedInstanceIdentifier.Version, partition, instance.InstanceProperties.fileProperties, token);
+            });
+
+        logger.LogInformation("Old blobs deleted successfully. Total size {TotalCount}", fileCount);
+    }
+
+    /// <summary>
+    /// Asynchronously delete the new blob when there is a failure while updating the study instances.
+    /// </summary>
+    /// <param name="arguments">arguments which have a list of watermarks to cleanup along with partition they belong to</param>
+    /// <param name="logger">A diagnostic logger.</param>
+    /// <returns>
+    /// A task representing the <see cref="CleanupNewVersionBlobV3Async"/> operation.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="arguments"/> or <paramref name="logger"/> is <see langword="null"/>.
+    /// </exception>
+    [FunctionName(nameof(CleanupNewVersionBlobV3Async))]
+    public async Task CleanupNewVersionBlobV3Async([ActivityTrigger] CleanupBlobArgumentsV3 arguments, ILogger logger)
+    {
+        EnsureArg.IsNotNull(arguments, nameof(arguments));
+        EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
+        EnsureArg.IsNotNull(logger, nameof(logger));
+
+        EnsureArg.IsNotNull(arguments.Instances, nameof(arguments.Instances));
+
+        IReadOnlyList<InstanceMetadata> instances = arguments.Instances;
+        Partition partition = arguments.Partition;
+
+        int fileCount = instances.Where(instance => instance.InstanceProperties.NewVersion.HasValue).Count();
+        logger.LogInformation("Begin cleaning up new blobs. Total size {TotalCount}", fileCount);
+
+        await Parallel.ForEachAsync(
+            instances.Where(instance => instance.InstanceProperties.NewVersion.HasValue),
+            new ParallelOptions
+            {
+                CancellationToken = default,
+                MaxDegreeOfParallelism = _options.MaxParallelThreads,
+            },
+            async (instance, token) =>
+            {
+                await _updateInstanceService.DeleteInstanceBlobAsync(instance.InstanceProperties.NewVersion.Value, partition, instance.InstanceProperties.fileProperties, token);
+            });
+
+        logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
     }
 
     /// <summary>
@@ -237,7 +319,7 @@ public partial class UpdateDurableFunction
             },
             async (fileIdentifier, token) =>
             {
-                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, partition, token);
+                await _updateInstanceService.DeleteInstanceBlobAsync(fileIdentifier.NewVersion.Value, partition, null, token);
             });
 
         logger.LogInformation("New blobs deleted successfully. Total size {TotalCount}", fileCount);
