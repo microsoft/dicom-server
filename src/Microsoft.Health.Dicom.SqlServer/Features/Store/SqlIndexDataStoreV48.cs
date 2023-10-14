@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.SqlServer.Extensions;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema;
 using Microsoft.Health.Dicom.SqlServer.Features.Schema.Model;
 using Microsoft.Health.SqlServer.Features.Client;
@@ -45,15 +47,15 @@ internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, string filePath, string eTag) = reader.ReadRow(
+                        (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, String filePath, String eTag) = reader.ReadRow(
                             VLatest.Partition.PartitionName,
                             VLatest.DeletedInstance.PartitionKey,
                             VLatest.DeletedInstance.StudyInstanceUid,
                             VLatest.DeletedInstance.SeriesInstanceUid,
                             VLatest.DeletedInstance.SopInstanceUid,
                             VLatest.DeletedInstance.Watermark,
-                            VLatest.FileProperty.FilePath,
-                            VLatest.FileProperty.ETag);
+                            VLatest.FileProperty.FilePath.AsNullable(),
+                            VLatest.FileProperty.ETag.AsNullable());
 
                         results.Add(
                         new InstanceMetadata(
@@ -63,14 +65,8 @@ internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
                                 sopInstanceUid,
                                 watermark,
                                 new Partition(partitionKey, partitionName)),
-                            new InstanceProperties()
-                            {
-                                fileProperties = new FileProperties
-                                {
-                                    Path = filePath,
-                                    ETag = eTag
-                                }
-                            }));
+                            instanceProperties: CreateInstanceProperties(eTag, filePath)
+                            ));
                     }
                 }
                 catch (SqlException ex)
@@ -81,5 +77,22 @@ internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
         }
 
         return results;
+    }
+
+    private static InstanceProperties CreateInstanceProperties(string eTag, string filePath)
+    {
+        if (eTag != null && filePath != null)
+        {
+            return new InstanceProperties()
+            {
+                fileProperties = new FileProperties
+                {
+                    Path = filePath,
+                    ETag = eTag
+                }
+            };
+        }
+
+        return new InstanceProperties();
     }
 }
