@@ -140,7 +140,8 @@ public interface IFileStore
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
     /// <param name="partition">Partition to use when operating on file</param>
+    /// <param name="fileProperties">blob file Properties</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
-    Task SetBlobToColdAccessTierAsync(long version, Partition partition, CancellationToken cancellationToken = default);
+    Task SetBlobToColdAccessTierAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
 }

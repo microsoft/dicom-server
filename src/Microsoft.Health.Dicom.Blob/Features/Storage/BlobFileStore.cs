@@ -406,10 +406,10 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, CancellationToken cancellationToken = default)
+    public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition.Name);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
 
         await ExecuteAsync(async () =>

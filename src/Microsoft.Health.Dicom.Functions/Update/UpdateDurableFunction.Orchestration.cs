@@ -36,6 +36,7 @@ public partial class UpdateDurableFunction
     /// </exception>
     /// <exception cref="FormatException">Orchestration instance ID is invalid.</exception>
     [FunctionName(nameof(UpdateInstancesV2Async))]
+    [Obsolete("Use UpdateInstancesV3Async instead")]
     public async Task UpdateInstancesV2Async(
         [OrchestrationTrigger] IDurableOrchestrationContext context,
         ILogger logger)
@@ -245,7 +246,7 @@ public partial class UpdateDurableFunction
                     numberofStudyFailed++;
 
                     // Cleanup the new version when the update activity fails
-                    await TryCleanupActivityV2(context, instanceWatermarks, input.Partition);
+                    await TryCleanupActivityV3(context, instances, input.Partition);
                 }
 
                 if (!isFailedToUpdateStudy)
@@ -253,12 +254,12 @@ public partial class UpdateDurableFunction
                     await context.CallActivityWithRetryAsync(
                         nameof(DeleteOldVersionBlobV3Async),
                         _options.RetryOptions,
-                        new CleanupBlobArgumentsV3(instances, input.Partition));
+                        new CleanupBlobArgumentsV2(instances, input.Partition));
 
                     await context.CallActivityWithRetryAsync(
-                        nameof(SetOriginalBlobToColdAccessTierAsync),
+                        nameof(SetOriginalBlobToColdAccessTierV2Async),
                         _options.RetryOptions,
-                        new CleanupBlobArguments(instanceWatermarks, input.Partition));
+                        new CleanupBlobArgumentsV2(instances, input.Partition));
                 }
             }
 
@@ -316,6 +317,7 @@ public partial class UpdateDurableFunction
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]
+    [Obsolete("Use TryCleanupActivityV3 instead")]
     private async Task TryCleanupActivityV2(IDurableOrchestrationContext context, IReadOnlyList<InstanceFileState> instanceWatermarks, Partition partition)
     {
         try
@@ -324,6 +326,19 @@ public partial class UpdateDurableFunction
                 nameof(CleanupNewVersionBlobV2Async),
                 _options.RetryOptions,
                 new CleanupBlobArguments(instanceWatermarks, partition));
+        }
+        catch (Exception) { }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Using a generic exception to catch all scenarios.")]
+    private async Task TryCleanupActivityV3(IDurableOrchestrationContext context, IReadOnlyList<InstanceMetadata> instances, Partition partition)
+    {
+        try
+        {
+            await context.CallActivityWithRetryAsync(
+                nameof(CleanupNewVersionBlobV3Async),
+                _options.RetryOptions,
+                new CleanupBlobArgumentsV2(instances, partition));
         }
         catch (Exception) { }
     }
