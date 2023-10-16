@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading;
@@ -47,15 +46,16 @@ internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
                 {
                     while (await reader.ReadAsync(cancellationToken))
                     {
-                        (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, String filePath, String eTag) = reader.ReadRow(
+                        (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, long? originalWatermark, string filePath, string eTag) = reader.ReadRow(
                             VLatest.Partition.PartitionName,
                             VLatest.DeletedInstance.PartitionKey,
                             VLatest.DeletedInstance.StudyInstanceUid,
                             VLatest.DeletedInstance.SeriesInstanceUid,
                             VLatest.DeletedInstance.SopInstanceUid,
                             VLatest.DeletedInstance.Watermark,
-                            VLatest.FileProperty.FilePath.AsNullable(),
-                            VLatest.FileProperty.ETag.AsNullable());
+                            VLatest.DeletedInstance.OriginalWatermark,
+                            VLatest.FileProperty.ETag.AsNullable(),
+                            VLatest.FileProperty.FilePath.AsNullable());
 
                         results.Add(
                         new InstanceMetadata(
@@ -65,7 +65,7 @@ internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
                                 sopInstanceUid,
                                 watermark,
                                 new Partition(partitionKey, partitionName)),
-                            instanceProperties: CreateInstanceProperties(eTag, filePath)
+                            instanceProperties: CreateInstanceProperties(eTag, filePath, originalWatermark)
                             ));
                     }
                 }
@@ -79,12 +79,13 @@ internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
         return results;
     }
 
-    private static InstanceProperties CreateInstanceProperties(string eTag, string filePath)
+    private static InstanceProperties CreateInstanceProperties(string eTag, string filePath, long? originalWatermark)
     {
         if (eTag != null && filePath != null)
         {
             return new InstanceProperties()
             {
+                OriginalVersion = originalWatermark,
                 fileProperties = new FileProperties
                 {
                     Path = filePath,
