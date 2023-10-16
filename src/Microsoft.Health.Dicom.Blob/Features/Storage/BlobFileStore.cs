@@ -414,7 +414,7 @@ public class BlobFileStore : IFileStore
 
         await ExecuteAsync(async () =>
         {
-            Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, cancellationToken: cancellationToken);
+            Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, conditions: _blobClient.GetConditions(fileProperties), cancellationToken: cancellationToken);
             EmitTelemetry(nameof(SetBlobToColdAccessTierAsync), OperationType.Input);
             return response;
         });
