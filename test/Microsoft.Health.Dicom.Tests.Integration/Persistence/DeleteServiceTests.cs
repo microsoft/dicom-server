@@ -44,7 +44,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         await Task.Delay(3000, CancellationToken.None);
         (bool success, int retrievedInstanceCount) = await _fixture.DeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier, fileProperties: fileProperties);
+        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier, persistBlob, isExternalStore, fileProperties: fileProperties);
     }
 
     private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -105,7 +105,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         return isExternalStore ? fileProperties : null;
     }
 
-    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob = false, FileProperties fileProperties = null)
+    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob, bool isExternalStore, FileProperties fileProperties = null)
     {
         Assert.True(success);
         Assert.Equal(1, retrievedInstanceCount);
@@ -116,7 +116,7 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         await Assert.ThrowsAsync<ItemNotFoundException>(() => _fixture.FileStore.GetFileAsync(versionedInstanceIdentifier.Version, versionedInstanceIdentifier.Partition, fileProperties));
 
         Assert.Empty(await _fixture.IndexDataStoreTestHelper.GetDeletedInstanceEntriesAsync(versionedInstanceIdentifier.StudyInstanceUid, versionedInstanceIdentifier.SeriesInstanceUid, versionedInstanceIdentifier.SopInstanceUid));
-        if (persistBlob)
+        if (persistBlob && isExternalStore)
         {
             // ensure properties were deleted
             IReadOnlyList<FileProperty> retrievedFleProperties = await _fixture.IndexDataStoreTestHelper
