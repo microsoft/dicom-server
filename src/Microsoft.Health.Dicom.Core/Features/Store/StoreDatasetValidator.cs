@@ -371,7 +371,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
         new[]
         {
             new KeyValuePair<string, object>("TagKeyword", tag.DictionaryEntry.Keyword),
-            new KeyValuePair<string, object>("VR", tag.GetDefaultVR().ToString()),
+            new KeyValuePair<string, object>("VR", tag.GetDefaultVR()?.ToString()),
             new KeyValuePair<string, object>("Tag", tag.ToString()),
             new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
         };
