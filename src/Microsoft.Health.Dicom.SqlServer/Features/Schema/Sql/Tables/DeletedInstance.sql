@@ -12,7 +12,9 @@ CREATE TABLE dbo.DeletedInstance
     RetryCount          INT               NOT NULL,
     CleanupAfter        DATETIMEOFFSET(0) NOT NULL,
     PartitionKey        INT               NOT NULL DEFAULT 1,    --FK
-    OriginalWatermark   BIGINT            NULL
+    OriginalWatermark   BIGINT            NULL,
+    FilePath            NVARCHAR (4000)   NULL,
+    ETag                NVARCHAR (4000)   NULL
 ) WITH (DATA_COMPRESSION = PAGE)
 
 CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance ON dbo.DeletedInstance
@@ -37,7 +39,9 @@ INCLUDE
     SeriesInstanceUid,
     SopInstanceUid,
     Watermark,
-    OriginalWatermark
+    OriginalWatermark,
+    FilePath,
+    ETag
 )
 WITH (DATA_COMPRESSION = PAGE)
 

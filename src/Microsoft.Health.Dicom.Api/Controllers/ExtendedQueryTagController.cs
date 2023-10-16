@@ -13,11 +13,13 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Health.Api.Features.Audit;
 using Microsoft.Health.Dicom.Api.Extensions;
 using Microsoft.Health.Dicom.Api.Features.Filters;
 using Microsoft.Health.Dicom.Api.Features.Routing;
 using Microsoft.Health.Dicom.Api.Models;
+using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Audit;
@@ -33,11 +35,14 @@ public class ExtendedQueryTagController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ExtendedQueryTagController> _logger;
+    private readonly bool _asyncOperationDisabled;
 
-    public ExtendedQueryTagController(IMediator mediator, ILogger<ExtendedQueryTagController> logger)
+    public ExtendedQueryTagController(IMediator mediator, ILogger<ExtendedQueryTagController> logger, IOptions<FeatureConfiguration> featureConfiguration)
     {
         _mediator = EnsureArg.IsNotNull(mediator, nameof(mediator));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        _asyncOperationDisabled = featureConfiguration.Value.DisableOperations;
     }
 
     [HttpPost]
@@ -51,6 +56,11 @@ public class ExtendedQueryTagController : ControllerBase
     public async Task<IActionResult> PostAsync([Required][FromBody] IReadOnlyCollection<AddExtendedQueryTagEntry> extendedQueryTags)
     {
         _logger.LogInformation("DICOM Web Add Extended Query Tag request received, with extendedQueryTags {ExtendedQueryTags}.", extendedQueryTags);
+
+        if (_asyncOperationDisabled)
+        {
+            throw new DicomAsyncOperationDisabledException();
+        }
 
         try
         {

@@ -53,7 +53,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1);
 
         // delete and validate
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.Default, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2);
 
         // re-create the same instance and validate
@@ -74,7 +74,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateInsertFeedAsync(dicomInstanceIdentifier, 1, expectedFileProperties);
 
         // delete and validate - file properties are null on deletes
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.Default, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateDeleteFeedAsync(dicomInstanceIdentifier, 2, expectedFileProperties);
 
         // re-create the same instance without properties and validate properties are still null
@@ -90,7 +90,7 @@ public class ChangeFeedTests : IClassFixture<ChangeFeedTestsFixture>
         await ValidateNoChangeFeedAsync(dicomInstanceIdentifier);
 
         // delete and validate
-        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.DefaultKey, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
+        await _fixture.DicomIndexDataStore.DeleteInstanceIndexAsync(Partition.Default, dicomInstanceIdentifier.StudyInstanceUid, dicomInstanceIdentifier.SeriesInstanceUid, dicomInstanceIdentifier.SopInstanceUid, DateTime.Now, CancellationToken.None);
         await ValidateNoChangeFeedAsync(dicomInstanceIdentifier);
     }
 

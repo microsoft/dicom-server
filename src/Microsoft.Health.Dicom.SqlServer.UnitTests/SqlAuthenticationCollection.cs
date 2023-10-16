@@ -3,10 +3,11 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.SqlServer.Features.Schema;
+using Xunit;
 
-public static class SchemaVersionConstants
+namespace Microsoft.Health.Dicom.SqlServer.UnitTests;
+
+[CollectionDefinition("SQL Authentication Collection", DisableParallelization = true)]
+public class SqlAuthenticationCollection
 {
-    public const int Min = (int)SchemaVersion.V37;
-    public const int Max = (int)SchemaVersion.V48;
 }

@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
     using Microsoft.Health.SqlServer.Features.Client;
     using Microsoft.Health.SqlServer.Features.Schema.Model;
 
-    internal class VLatest
+    internal class V47
     {
         internal readonly static ChangeFeedTable ChangeFeed = new ChangeFeedTable();
         internal readonly static DeletedInstanceTable DeletedInstance = new DeletedInstanceTable();
@@ -71,7 +71,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static GetExtendedQueryTagsV36Procedure GetExtendedQueryTagsV36 = new GetExtendedQueryTagsV36Procedure();
         internal readonly static GetInstanceProcedure GetInstance = new GetInstanceProcedure();
         internal readonly static GetInstanceBatchesProcedure GetInstanceBatches = new GetInstanceBatchesProcedure();
-        internal readonly static GetInstanceBatchesByTimeStampProcedure GetInstanceBatchesByTimeStamp = new GetInstanceBatchesByTimeStampProcedure();
         internal readonly static GetInstanceV6Procedure GetInstanceV6 = new GetInstanceV6Procedure();
         internal readonly static GetInstanceWithPropertiesProcedure GetInstanceWithProperties = new GetInstanceWithPropertiesProcedure();
         internal readonly static GetInstanceWithPropertiesV32Procedure GetInstanceWithPropertiesV32 = new GetInstanceWithPropertiesV32Procedure();
@@ -94,7 +93,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
         internal readonly static RetrieveDeletedInstanceV42Procedure RetrieveDeletedInstanceV42 = new RetrieveDeletedInstanceV42Procedure();
         internal readonly static RetrieveDeletedInstanceV6Procedure RetrieveDeletedInstanceV6 = new RetrieveDeletedInstanceV6Procedure();
         internal readonly static UpdateExtendedQueryTagQueryStatusProcedure UpdateExtendedQueryTagQueryStatus = new UpdateExtendedQueryTagQueryStatusProcedure();
-        internal readonly static UpdateFrameMetadataProcedure UpdateFrameMetadata = new UpdateFrameMetadataProcedure();
         internal readonly static UpdateIndexWorkitemInstanceCoreProcedure UpdateIndexWorkitemInstanceCore = new UpdateIndexWorkitemInstanceCoreProcedure();
         internal readonly static UpdateInstanceStatusProcedure UpdateInstanceStatus = new UpdateInstanceStatusProcedure();
         internal readonly static UpdateInstanceStatusV37Procedure UpdateInstanceStatusV37 = new UpdateInstanceStatusV37Procedure();
@@ -333,7 +331,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             internal readonly Index IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark = new Index("IX_Instance_PartitionKey_Status_StudyKey_SeriesKey_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Watermark = new Index("IX_Instance_PartitionKey_Watermark");
             internal readonly Index IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark = new Index("IX_Instance_PartitionKey_Status_StudyInstanceUid_NewWatermark");
-            internal readonly Index IX_Instance_Watermark_Status_CreatedDate = new Index("IX_Instance_Watermark_Status_CreatedDate");
         }
 
         internal class PartitionTable : Table
@@ -1551,32 +1548,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
             }
         }
 
-        internal class GetInstanceBatchesByTimeStampProcedure : StoredProcedure
-        {
-            internal GetInstanceBatchesByTimeStampProcedure() : base("dbo.GetInstanceBatchesByTimeStamp")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _batchSize = new ParameterDefinition<System.Int32>("@batchSize", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Int32> _batchCount = new ParameterDefinition<System.Int32>("@batchCount", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Byte> _status = new ParameterDefinition<System.Byte>("@status", global::System.Data.SqlDbType.TinyInt, false);
-            private readonly ParameterDefinition<System.DateTimeOffset> _startTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@startTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
-            private readonly ParameterDefinition<System.DateTimeOffset> _endTimeStamp = new ParameterDefinition<System.DateTimeOffset>("@endTimeStamp", global::System.Data.SqlDbType.DateTimeOffset, false, 0);
-            private readonly ParameterDefinition<System.Nullable<System.Int64>> _maxWatermark = new ParameterDefinition<System.Nullable<System.Int64>>("@maxWatermark", global::System.Data.SqlDbType.BigInt, true);
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 batchSize, System.Int32 batchCount, System.Byte status, System.DateTimeOffset startTimeStamp, System.DateTimeOffset endTimeStamp, System.Nullable<System.Int64> maxWatermark)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.GetInstanceBatchesByTimeStamp";
-                _batchSize.AddParameter(command.Parameters, batchSize);
-                _batchCount.AddParameter(command.Parameters, batchCount);
-                _status.AddParameter(command.Parameters, status);
-                _startTimeStamp.AddParameter(command.Parameters, startTimeStamp);
-                _endTimeStamp.AddParameter(command.Parameters, endTimeStamp);
-                _maxWatermark.AddParameter(command.Parameters, maxWatermark);
-            }
-        }
-
         internal class GetInstanceV6Procedure : StoredProcedure
         {
             internal GetInstanceV6Procedure() : base("dbo.GetInstanceV6")
@@ -2218,56 +2189,6 @@ namespace Microsoft.Health.Dicom.SqlServer.Features.Schema.Model
                 _tagPath.AddParameter(command.Parameters, tagPath);
                 _queryStatus.AddParameter(command.Parameters, queryStatus);
             }
-        }
-
-        internal class UpdateFrameMetadataProcedure : StoredProcedure
-        {
-            internal UpdateFrameMetadataProcedure() : base("dbo.UpdateFrameMetadata")
-            {
-            }
-
-            private readonly ParameterDefinition<System.Int32> _partitionKey = new ParameterDefinition<System.Int32>("@partitionKey", global::System.Data.SqlDbType.Int, false);
-            private readonly ParameterDefinition<System.Boolean> _hasFrameMetadata = new ParameterDefinition<System.Boolean>("@hasFrameMetadata", global::System.Data.SqlDbType.Bit, false);
-            private readonly WatermarkTableTypeTableValuedParameterDefinition _watermarkTableType = new WatermarkTableTypeTableValuedParameterDefinition("@watermarkTableType");
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.Boolean hasFrameMetadata, global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> watermarkTableType)
-            {
-                command.CommandType = global::System.Data.CommandType.StoredProcedure;
-                command.CommandText = "dbo.UpdateFrameMetadata";
-                _partitionKey.AddParameter(command.Parameters, partitionKey);
-                _hasFrameMetadata.AddParameter(command.Parameters, hasFrameMetadata);
-                _watermarkTableType.AddParameter(command.Parameters, watermarkTableType);
-            }
-
-            public void PopulateCommand(SqlCommandWrapper command, System.Int32 partitionKey, System.Boolean hasFrameMetadata, UpdateFrameMetadataTableValuedParameters tableValuedParameters)
-            {
-                PopulateCommand(command, partitionKey: partitionKey, hasFrameMetadata: hasFrameMetadata, watermarkTableType: tableValuedParameters.WatermarkTableType);
-            }
-        }
-
-        internal class UpdateFrameMetadataTvpGenerator<TInput> : IStoredProcedureTableValuedParametersGenerator<TInput, UpdateFrameMetadataTableValuedParameters>
-        {
-            public UpdateFrameMetadataTvpGenerator(ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator)
-            {
-                this.WatermarkTableTypeRowGenerator = WatermarkTableTypeRowGenerator;
-            }
-
-            private readonly ITableValuedParameterRowGenerator<TInput, WatermarkTableTypeRow> WatermarkTableTypeRowGenerator;
-
-            public UpdateFrameMetadataTableValuedParameters Generate(TInput input)
-            {
-                return new UpdateFrameMetadataTableValuedParameters(WatermarkTableTypeRowGenerator.GenerateRows(input));
-            }
-        }
-
-        internal struct UpdateFrameMetadataTableValuedParameters
-        {
-            internal UpdateFrameMetadataTableValuedParameters(global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType)
-            {
-                this.WatermarkTableType = WatermarkTableType;
-            }
-
-            internal global::System.Collections.Generic.IEnumerable<WatermarkTableTypeRow> WatermarkTableType { get; }
         }
 
         internal class UpdateIndexWorkitemInstanceCoreProcedure : StoredProcedure

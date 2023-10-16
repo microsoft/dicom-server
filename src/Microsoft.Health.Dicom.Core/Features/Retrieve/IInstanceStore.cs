@@ -111,7 +111,6 @@ public interface IInstanceStore
         string sopInstanceUid = null,
         CancellationToken cancellationToken = default);
 
-
     /// <summary>
     /// Asynchronously retrieves the specified number of instance batches filtered by timestamp.
     /// </summary>

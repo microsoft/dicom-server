@@ -89,7 +89,7 @@ public partial class DataCleanupDurableFunction
             },
             async (instanceIdentifier, token) =>
             {
-                bool isFrameRangeExists = await _metadataStore.DoesFrameRangeExistsAsync(instanceIdentifier.Version, token);
+                bool isFrameRangeExists = await _metadataStore.DoesFrameRangeExistAsync(instanceIdentifier.Version, token);
                 if (isFrameRangeExists)
                     concurrentDictionary.TryAdd(instanceIdentifier, isFrameRangeExists);
             });

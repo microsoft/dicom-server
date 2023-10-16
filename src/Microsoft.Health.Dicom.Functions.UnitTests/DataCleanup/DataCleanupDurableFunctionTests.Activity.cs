@@ -94,7 +94,7 @@ public partial class DataCleanupDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            _metadataStore.DoesFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(true);
+            _metadataStore.DoesFrameRangeExistAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(true);
         }
 
         var versions = expected.Select(x => x.Version).ToList();
@@ -111,7 +111,7 @@ public partial class DataCleanupDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _metadataStore.Received(1).DoesFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>());
+            await _metadataStore.Received(1).DoesFrameRangeExistAsync(identifier.Version, Arg.Any<CancellationToken>());
         }
 
         await _indexStore.Received(1).UpdateFrameDataAsync(expected.First().Partition.Key, Arg.Is<IReadOnlyList<long>>(x => versions.Intersect(x).Count() == versions.Count()), true, Arg.Any<CancellationToken>());
@@ -142,7 +142,7 @@ public partial class DataCleanupDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            _metadataStore.DoesFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(true);
+            _metadataStore.DoesFrameRangeExistAsync(identifier.Version, Arg.Any<CancellationToken>()).Returns(true);
         }
 
         _indexStore.UpdateFrameDataAsync(Arg.Any<int>(), expected.Select(x => x.Version).ToList(), true, Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
@@ -157,7 +157,7 @@ public partial class DataCleanupDurableFunctionTests
 
         foreach (VersionedInstanceIdentifier identifier in expected)
         {
-            await _metadataStore.Received(1).DoesFrameRangeExistsAsync(identifier.Version, Arg.Any<CancellationToken>());
+            await _metadataStore.Received(1).DoesFrameRangeExistAsync(identifier.Version, Arg.Any<CancellationToken>());
         }
 
         var expectedVersions1 = expected.Where(x => x.Partition.Key == 1).Select(x => x.Version).OrderBy(x => x).ToList();
