@@ -203,6 +203,52 @@ public class BlobFileStoreTests
     }
 
     [Fact]
+    public async Task GivenExternalStore_WhenDeleteFileIfExistsAsync_ThenExpectConditionsUsed()
+    {
+        InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
+
+        RequestFailedException requestFailedException = new RequestFailedException(
+            status: 412,
+            message: "Condition was not met.",
+            errorCode: BlobErrorCode.ConditionNotMet.ToString(),
+            innerException: new Exception("Condition not met."));
+
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).DeleteIfExistsAsync(
+            Arg.Any<DeleteSnapshotsOption>(),
+            conditions: Arg.Any<BlobRequestConditions>(),
+            Arg.Any<CancellationToken>()).Throws(requestFailedException);
+
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.DeleteFileIfExistsAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None));
+
+        Assert.True(ex.IsExternal);
+        Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.ConditionNotMet.ToString()), ex.Message);
+
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).DeleteIfExistsAsync(
+            Arg.Is<DeleteSnapshotsOption>(options => options == DeleteSnapshotsOption.IncludeSnapshots),
+            Arg.Is<BlobRequestConditions>(conditions => conditions.IfMatch.ToString() == _defaultFileProperties.ETag),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task GivenInternalStore_WhenDeleteFileIfExistsAsync_ThenExpectNoConditionsUsed()
+    {
+        InitializeInternalBlobFileStore(out BlobFileStore blobFileStore, out TestInternalBlobClient client);
+
+        var expectedResult = Substitute.For<Response<bool>>();
+        client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).DeleteIfExistsAsync(
+            DeleteSnapshotsOption.IncludeSnapshots,
+            conditions: null,
+            Arg.Any<CancellationToken>()).Returns(expectedResult);
+
+        await blobFileStore.DeleteFileIfExistsAsync(1, Partition.Default, _defaultFileProperties, CancellationToken.None);
+
+        await client.BlobContainerClient.GetBlockBlobClient(DefaultBlobName).Received(1).DeleteIfExistsAsync(
+            Arg.Is<DeleteSnapshotsOption>(options => options == DeleteSnapshotsOption.IncludeSnapshots),
+            null,
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task GivenExternalStore_WhenCopyFileAsync_ThenExpectConditionsUsed()
     {
         InitializeExternalBlobFileStore(out BlobFileStore blobFileStore, out ExternalBlobClient client);
