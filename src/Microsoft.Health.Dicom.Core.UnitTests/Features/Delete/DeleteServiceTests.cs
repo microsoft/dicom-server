@@ -93,7 +93,7 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenADeleteStudyRequest_WhenDataStoreWithExternalStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
+    public async Task GivenADeleteStudyRequest_WhenDataStoreWithExternalStoreIsCalled_ThenNoDelayIsUsed()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
 
@@ -124,7 +124,7 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenADeleteSeriesRequest_WhenDataStoreWithExternalStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
+    public async Task GivenADeleteSeriesRequest_WhenDataStoreWithExternalStoreIsCalled_ThenNoDeleteDelayIsUsed()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         string seriesInstanceUid = TestUidGenerator.Generate();
@@ -172,7 +172,7 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenADeleteInstanceRequest_WhenDataStoreWithExternalStoreIsCalled_ThenCorrectDeleteDelayIsUsed()
+    public async Task GivenADeleteInstanceRequest_WhenDataStoreWithExternalStoreIsCalled_ThenCorrectNoDelayIsUsed()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         string seriesInstanceUid = TestUidGenerator.Generate();
@@ -383,10 +383,16 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenMultipleDeletedInstanceWithFileProperties_WhenCleanupCalled_ThenCorrectMethodsAreCalled()
+    public async Task GivenMultipleDeletedInstancePreviouslyUpdatedAndNowWithOriginalWatermark_WhenCleanupCalledWithoutExternalStore_ThenCorrectMethodsAreCalled()
     {
         List<InstanceMetadata> responseList =
-            GeneratedDeletedInstanceList(2, new InstanceProperties { fileProperties = _defaultFileProperties }, generateUniqueFileProperties: true);
+            GeneratedDeletedInstanceList(
+                2,
+                new InstanceProperties { OriginalVersion = 1, NewVersion = null },
+                generateUniqueFileProperties: false).Take(1).ToList();
+
+        // ensure no instances contain file properties
+        Assert.DoesNotContain(responseList, i => i.InstanceProperties.fileProperties != null);
 
         _indexDataStore
             .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -408,21 +414,71 @@ public class DeleteServiceTests
                 .Received(1)
                 .DeleteDeletedInstanceAsync(deletedVersion, CancellationToken.None);
 
+            // delete both original and new version's metadata
             await _metadataStore
                 .Received(1)
                 .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+            await _metadataStore
+                .Received(1)
+                .DeleteInstanceMetadataIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, CancellationToken.None);
 
+            Assert.Null(instance.InstanceProperties.fileProperties);
+
+            // delete both original and new version's blobs and fileProperties are null and not used
             await _fileDataStore
                 .Received(1)
                 .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
 
             await _fileDataStore
                .Received(1)
-               .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
+               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
+        }
+
+        await _indexDataStore
+            .DidNotReceiveWithAnyArgs()
+            .IncrementDeletedInstanceRetryAsync(versionedInstanceIdentifier: default, cleanupAfter: default, CancellationToken.None);
+
+        _transactionScope.Received(1).Complete();
+    }
+
+    [Fact]
+    public async Task GivenMultipleDeletedInstanceWithExternalStore_WhenCleanupCalled_ThenCorrectMethodsAreCalled()
+    {
+        List<InstanceMetadata> responseList =
+            GeneratedDeletedInstanceList(2, new InstanceProperties { fileProperties = _defaultFileProperties }, generateUniqueFileProperties: true);
+
+        // ensure instances contain file properties that are not null
+        Assert.DoesNotContain(responseList, i => i.InstanceProperties.fileProperties == null);
+
+        _indexDataStore
+            .RetrieveDeletedInstancesWithPropertiesAsync(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+            .ReturnsForAnyArgs(responseList);
+
+        (bool success, int retrievedInstanceCount) = await _deleteServiceWithExternalStore.CleanupDeletedInstancesAsync(CancellationToken.None);
+
+        Assert.True(success);
+        Assert.Equal(responseList.Count, retrievedInstanceCount);
+
+        await _indexDataStore
+            .ReceivedWithAnyArgs(1)
+            .RetrieveDeletedInstancesWithPropertiesAsync(default, default, CancellationToken.None);
+
+        foreach (InstanceMetadata instance in responseList)
+        {
+            var deletedVersion = instance.VersionedInstanceIdentifier;
+            await _indexDataStore
+                .Received(1)
+                .DeleteDeletedInstanceAsync(deletedVersion, CancellationToken.None);
 
             await _metadataStore
                 .Received(1)
                 .DeleteInstanceMetadataIfExistsAsync(deletedVersion.Version, CancellationToken.None);
+
+            Assert.NotNull(instance.InstanceProperties.fileProperties);
+
+            await _fileDataStore
+               .Received(1)
+               .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
         }
 
         await _indexDataStore

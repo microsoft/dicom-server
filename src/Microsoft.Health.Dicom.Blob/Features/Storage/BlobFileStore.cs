@@ -200,31 +200,33 @@ public class BlobFileStore : IFileStore
 
         await ExecuteAsync(async () =>
         {
-            bool exists = false;
             try
             {
-                exists = await blobClient.DeleteIfExistsAsync(
-                    DeleteSnapshotsOption.IncludeSnapshots,
-                    conditions: _blobClient.GetConditions(fileProperties),
-                    cancellationToken);
+                bool exists = await blobClient.ExistsAsync(cancellationToken);
+                // todo change this back to DeleteIfExistsAsync when bug fixed story#110757
+                // when file does not exist but conditions passed in, it fails on conditions not met
+                if (exists)
+                {
+                    await blobClient.DeleteAsync(
+                        DeleteSnapshotsOption.IncludeSnapshots,
+                        conditions: _blobClient.GetConditions(fileProperties),
+                        cancellationToken);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Can not delete blob in external store with watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected.",
+                        version, partition.Key);
+                }
+
+                return exists;
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet &&
                                                     _blobClient.IsExternal)
             {
-                if (exists)
-                {
-                    // when using external store and condition on etag match not met but blob exists, rethrow
-                    throw ex;
-                }
-
-                // this is currently a bug with blob acct - when file does not exist but conditions passed in, it fails on
-                // conditions not met
-                _logger.LogInformation(
-                    "Can not delete blob in external store with watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected.",
-                    version, partition.Key);
+                // when using external store and condition on etag match not met but blob exists, rethrow
+                throw ex;
             }
-
-            return exists;
         });
     }
 
