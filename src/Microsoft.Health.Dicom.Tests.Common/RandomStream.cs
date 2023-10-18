@@ -5,6 +5,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common;
@@ -12,7 +13,8 @@ namespace Microsoft.Health.Dicom.Tests.Common;
 internal sealed class RandomStream : Stream
 {
     private long _position = 0;
-    private readonly Random _random;
+    private Random _random;
+    private readonly int _seed;
 
     public override bool CanRead => true;
 
@@ -25,13 +27,29 @@ internal sealed class RandomStream : Stream
     public override long Position
     {
         get => _position;
-        set => throw new NotSupportedException();
+        set
+        {
+            // Position cannot be moved
+            if (value == 0)
+            {
+                if (_position != 0)
+                {
+                    _position = 0;
+                    _random = new Random(_seed);
+                }
+            }
+            else if (_position != value)
+            {
+                throw new InvalidOperationException();
+            }
+        }
     }
 
-    public RandomStream(long length, Random random = null)
+    public RandomStream(long length, int? seed = null)
     {
         Length = EnsureArg.IsGte(length, 0, nameof(length));
-        _random = random ?? new Random();
+        _seed = seed ?? Thread.CurrentThread.ManagedThreadId;
+        _random = new Random(_seed);
     }
 
     public override void Flush()

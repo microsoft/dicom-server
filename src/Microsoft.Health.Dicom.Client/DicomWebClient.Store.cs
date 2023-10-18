@@ -5,14 +5,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
+using FellowOakDicom.IO.Writer;
+using Microsoft.Health.Dicom.Client.Http;
 
 namespace Microsoft.Health.Dicom.Client;
 
@@ -26,35 +30,11 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(dicomFiles, nameof(dicomFiles));
 
-        var postContent = new List<Stream>();
-
-        try
-        {
-            foreach (DicomFile dicomFile in dicomFiles)
-            {
-                MemoryStream stream = GetMemoryStream();
-                await dicomFile.SaveAsync(stream).ConfigureAwait(false);
-                stream.Seek(0, SeekOrigin.Begin);
-                postContent.Add(stream);
-            }
-
-            using MultipartContent content = ConvertStreamsToMultipartContent(postContent);
-            return await StoreAsync(
-                GenerateStoreRequestUri(partitionName, studyInstanceUid),
-                content,
-                cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            foreach (Stream stream in postContent)
-            {
-#if NETSTANDARD2_0
-                stream.Dispose();
-#else
-                await stream.DisposeAsync().ConfigureAwait(false);
-#endif
-            }
-        }
+        using MultipartContent content = DicomContent.CreateMultipart(dicomFiles);
+        return await StoreAsync(
+            GenerateStoreRequestUri(partitionName, studyInstanceUid),
+            content,
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
@@ -65,11 +45,11 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(streams, nameof(streams));
 
+        using MultipartContent content = CreateMultipartDicomStreamContent(streams);
         return await StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
-            ConvertStreamsToMultipartContent(streams),
-            cancellationToken)
-            .ConfigureAwait(false);
+            content,
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
@@ -84,9 +64,8 @@ public partial class DicomWebClient : IDicomWebClient
 
         return await StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
-            ConvertStreamToStreamContent(stream),
-            cancellationToken)
-            .ConfigureAwait(false);
+            CreateDicomStreamContent(stream),
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
@@ -97,20 +76,10 @@ public partial class DicomWebClient : IDicomWebClient
     {
         EnsureArg.IsNotNull(dicomFile, nameof(dicomFile));
 
-#if NETSTANDARD2_0
-        using MemoryStream stream = GetMemoryStream();
-#else
-        await using MemoryStream stream = GetMemoryStream();
-#endif
-        await dicomFile.SaveAsync(stream).ConfigureAwait(false);
-        stream.Seek(0, SeekOrigin.Begin);
-
-        using StreamContent content = ConvertStreamToStreamContent(stream);
         return await StoreAsync(
             GenerateStoreRequestUri(partitionName, studyInstanceUid),
-            content,
-            cancellationToken)
-            .ConfigureAwait(false);
+            new DicomContent(dicomFile),
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<DicomWebResponse<DicomDataset>> StoreAsync(
@@ -121,8 +90,7 @@ public partial class DicomWebClient : IDicomWebClient
         return await StoreAsync(
             GenerateStoreRequestUri(partitionName),
             content,
-            cancellationToken)
-            .ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<DicomWebResponse<DicomDataset>> StoreAsync(Uri requestUri, HttpContent content, CancellationToken cancellationToken = default)
@@ -130,13 +98,11 @@ public partial class DicomWebClient : IDicomWebClient
         EnsureArg.IsNotNull(requestUri, nameof(requestUri));
         EnsureArg.IsNotNull(content, nameof(content));
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-
+        using HttpRequestMessage request = new(HttpMethod.Post, requestUri) { Content = content };
         request.Headers.Accept.Add(DicomWebConstants.MediaTypeApplicationDicomJson);
 
-        request.Content = content;
-
-        HttpResponseMessage response = await HttpClient.SendAsync(request, cancellationToken)
+        HttpResponseMessage response = await HttpClient
+            .SendAsync(request, cancellationToken)
             .ConfigureAwait(false);
 
         await EnsureSuccessStatusCodeAsync(
@@ -155,9 +121,28 @@ public partial class DicomWebClient : IDicomWebClient
                 }
 
                 return false;
-            })
-            .ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
         return new DicomWebResponse<DicomDataset>(response, ValueFactory<DicomDataset>);
+    }
+
+    private static StreamContent CreateDicomStreamContent(Stream stream)
+    {
+        StreamContent content = new(stream);
+        content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
+
+        return content;
+    }
+
+    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
+    private static MultipartContent CreateMultipartDicomStreamContent(IEnumerable<Stream> streams, DicomWriteOptions options = null)
+    {
+        MultipartContent content = new("related");
+        content.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
+
+        foreach (Stream stream in streams)
+            content.Add(CreateDicomStreamContent(stream));
+
+        return content;
     }
 }

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -15,10 +15,10 @@ using FellowOakDicom;
 using FellowOakDicom.IO;
 using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Client;
+using Microsoft.Health.Dicom.Client.Http;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
-using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -26,15 +26,13 @@ namespace Microsoft.Health.Dicom.Web.Tests.E2E.Rest;
 
 public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, IAsyncLifetime
 {
-    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private protected readonly IDicomWebClient _client;
     private protected readonly DicomInstancesManager _instancesManager;
     private protected readonly string _partition = TestUidGenerator.Generate();
-    public StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+
+    protected StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
-        EnsureArg.IsNotNull(fixture, nameof(fixture));
-        _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
-        _client = GetClient(fixture);
+        _client = GetClient(EnsureArg.IsNotNull(fixture, nameof(fixture)));
         _instancesManager = new DicomInstancesManager(_client);
         DicomValidationBuilderExtension.SkipValidation(null);
     }
@@ -42,22 +40,16 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     protected abstract IDicomWebClient GetClient(HttpIntegrationTestFixture<Startup> fixture);
 
     [Fact]
-    public async Task GivenRandomContent_WhenStoring_TheServerShouldReturnConflict()
+    public async Task GivenEmptyContent_WhenStoring_TheServerShouldReturnConflict()
     {
-        await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
-
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { stream }));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { Stream.Null }));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
     }
 
     [Fact]
     public async Task GivenARequestWithInvalidStudyInstanceUID_WhenStoring_TheServerShouldReturnBadRequest()
     {
-        await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
-
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { stream }, studyInstanceUid: new string('b', 65)));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { Stream.Null }, studyInstanceUid: new string('b', 65)));
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
@@ -79,7 +71,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(DicomApiVersions.Latest + DicomWebConstants.StudiesUriString, UriKind.Relative));
         request.Headers.Add(HeaderNames.Accept, DicomWebConstants.MediaTypeApplicationDicomJson.MediaType);
 
-        var multiContent = new MultipartContent("form");
+        using var multiContent = new MultipartContent("form");
         multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
         request.Content = multiContent;
 
@@ -91,7 +83,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Fact]
     public async Task GivenAMultipartRequestWithNoContent_WhenStoring_TheServerShouldReturnNoContent()
     {
-        var multiContent = new MultipartContent("related");
+        using var multiContent = new MultipartContent("related");
         multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
         using DicomWebResponse response = await _instancesManager.StoreAsync(multiContent);
@@ -102,10 +94,10 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Fact]
     public async Task GivenAMultipartRequestWithEmptyContent_WhenStoring_TheServerShouldReturnConflict()
     {
-        var multiContent = new MultipartContent("related");
+        using var multiContent = new MultipartContent("related");
         multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
-        var byteContent = new ByteArrayContent(Array.Empty<byte>());
+        using var byteContent = new ByteArrayContent(Array.Empty<byte>());
         byteContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
         multiContent.Add(byteContent);
 
@@ -118,10 +110,10 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Fact]
     public async Task GivenAMultipartRequestWithAnInvalidMultipartSection_WhenStoring_TheServerShouldReturnAccepted()
     {
-        var multiContent = new MultipartContent("related");
+        using var multiContent = new MultipartContent("related");
         multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
-        var byteContent = new ByteArrayContent(Array.Empty<byte>());
+        using var byteContent = new ByteArrayContent(Array.Empty<byte>());
         byteContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
         multiContent.Add(byteContent);
 
@@ -131,14 +123,9 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         {
             DicomFile validFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
-            {
-                await validFile.SaveAsync(stream);
-
-                var validByteContent = new ByteArrayContent(stream.ToArray());
-                validByteContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
-                multiContent.Add(validByteContent);
-            }
+            using DicomContent validContent = new(validFile);
+            validContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
+            multiContent.Add(validContent);
 
             using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(validFile));
 
@@ -157,7 +144,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Fact]
     public async Task GivenAMultipartRequestWithTypeParameterAndFirstSectionWithoutContentType_WhenStoring_TheServerShouldReturnOK()
     {
-        var multiContent = new MultipartContent("related");
+        using var multiContent = new MultipartContent("related");
         multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
         string studyInstanceUID = TestUidGenerator.Generate();
@@ -166,13 +153,9 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         {
             DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-            await using (MemoryStream stream = _recyclableMemoryStreamManager.GetStream())
-            {
-                await dicomFile.SaveAsync(stream);
-
-                var byteContent = new ByteArrayContent(stream.ToArray());
-                multiContent.Add(byteContent);
-            }
+            using DicomContent content = new(dicomFile);
+            content.Headers.ContentType = null;
+            multiContent.Add(content);
 
             using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
 
@@ -280,15 +263,12 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
             using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
             DicomDataset dataset = await response.GetValueAsync();
-
             await ResponseHelper.ValidateReferencedSopSequenceAsync(
                 response,
                 ResponseHelper.ConvertToReferencedSopSequenceEntry(
                     _client,
                     dicomFile1.Dataset));
-
             Assert.False(dataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
             DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
@@ -329,11 +309,8 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     public async Task StoreSinglepart_ServerShouldReturnOK()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
 
-        await using MemoryStream stream = _recyclableMemoryStreamManager.GetStream();
-        await dicomFile.SaveAsync(stream);
-
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(stream, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
         Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -350,7 +327,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     }
 
     [Fact]
-    public async Task GivenDicomTagWithMultipleValues_WhenStoring_ThenShouldSucceeWithWarning()
+    public async Task GivenDicomTagWithMultipleValues_WhenStoring_ThenShouldSucceedWithWarning()
     {
         DicomDataset dataset = Samples.CreateRandomInstanceDataset().NotValidated();
         DicomLongString studyDescription = new DicomLongString(DicomTag.StudyDescription, "Value1", "Value2");
@@ -419,7 +396,9 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         DicomFileWriter writer = new DicomFileWriter(DicomWriteOptions.Default);
         await writer.WriteAsync(byteTarget, dicomFile.FileMetaInfo, dicomFile.Dataset);
 
-        await _instancesManager.StoreAsync(stream);
+        using StreamContent content = new StreamContent(stream);
+        content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
+        await _instancesManager.StoreAsync(content);
 
         using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
@@ -475,8 +454,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         DicomDataset[] datasets = await response.ToArrayAsync();
 
         IEnumerable<DicomDataset> matchedInstances = datasets.Where(
-            ds =>
-                ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
+            ds => ds.GetString(DicomTag.StudyInstanceUID) == dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID));
         return matchedInstances;
     }
 }

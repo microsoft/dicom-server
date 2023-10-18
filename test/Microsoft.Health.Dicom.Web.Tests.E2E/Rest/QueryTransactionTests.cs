@@ -25,7 +25,7 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
     private readonly DicomInstancesManager _instancesManager;
     private readonly Action<QueryResource, DicomDataset, DicomDataset> _validateResponseDataset;
 
-    public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+    protected QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         _client = GetClient(fixture);
         _instancesManager = new DicomInstancesManager(_client);
