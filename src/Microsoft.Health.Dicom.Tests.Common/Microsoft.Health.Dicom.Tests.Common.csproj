@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>true</IsPackable>
     <TargetFrameworks>$(LibraryFrameworks)</TargetFrameworks>
   </PropertyGroup>
@@ -15,6 +16,7 @@
     <PackageReference Include="Microsoft.TestPlatform.ObjectModel" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="NSubstitute" />
+    <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="xunit.assert" />
   </ItemGroup>
 

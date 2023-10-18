@@ -48,6 +48,7 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     public HttpClient HttpClient { get; }
+
     public string ApiVersion { get; }
 
     /// <summary>

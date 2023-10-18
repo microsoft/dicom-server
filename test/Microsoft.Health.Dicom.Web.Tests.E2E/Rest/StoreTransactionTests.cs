@@ -16,9 +16,13 @@ using FellowOakDicom.IO;
 using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Http;
+using Microsoft.Health.Dicom.Core.Extensions;
+using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
+using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
 using Xunit;
 
@@ -28,6 +32,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
 {
     private protected readonly IDicomWebClient _client;
     private protected readonly DicomInstancesManager _instancesManager;
+    private protected readonly RecyclableMemoryStreamManager _pool = new RecyclableMemoryStreamManager();
     private protected readonly string _partition = TestUidGenerator.Generate();
 
     protected StoreTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
@@ -306,7 +311,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
 
     [Fact]
     [Trait("Category", "bvt")]
-    public async Task StoreSinglepart_ServerShouldReturnOK()
+    public async Task GivenSinglePartRequest_WhenStoring_ThenServerShouldReturnOK()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
         using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
@@ -316,7 +321,47 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     }
 
     [Fact]
-    public async Task StoreSinglepartWithStudyUID_ServerShouldReturnOK()
+    [Trait("Category", "bvt")]
+    public async Task GivenSinglePartRequest_WhenStoring_ThenShouldRetrieveEquivalentBytes()
+    {
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
+            rows: 7240,
+            columns: 7240,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~50MB
+
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
+        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
+
+        InstanceIdentifier id = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
+        using DicomWebResponse<DicomFile> wado = await _client.RetrieveInstanceAsync(
+            id.StudyInstanceUid,
+            id.SeriesInstanceUid,
+            id.SopInstanceUid,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
+
+        // Compare Streams
+        using MemoryStream before = _pool.GetStream();
+        await dicomFile.SaveAsync(before);
+        before.Seek(0, SeekOrigin.Begin);
+
+        Assert.Equal(before, await wado.Content.ReadAsStreamAsync(), BinaryComparer.Instance);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenLargeSinglePartRequest_WhenStoring_ThenServerShouldReturnOk()
+    {
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
+            rows: 46340,
+            columns: 46340,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~2GB
+
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
+        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenSinglePartRequest_WhenStoringWithStudyUid_ThenServerShouldReturnOK()
     {
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
@@ -336,6 +381,59 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         var response = await _instancesManager.StoreAsync(new DicomFile(dataset));
 
         // TODO:  Verify warning content after https://microsofthealth.visualstudio.com/Health/_workitems/edit/91168 is fixed.
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenMultiPartRequest_WhenStoring_ThenShouldRetrieveEquivalentBytes()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        DicomFile[] files = Enumerable
+            .Repeat(4000, 3)
+            .Select(p => Samples.CreateRandomDicomFileWithPixelData(
+                studyInstanceUid: studyInstanceUid,
+                rows: p,
+                columns: p,
+                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~15MB
+            .ToArray();
+
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files, studyInstanceUid: studyInstanceUid);
+        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
+
+        // Validate content using WADO
+        foreach (DicomFile expected in files)
+        {
+            InstanceIdentifier id = expected.Dataset.ToInstanceIdentifier(Partition.Default);
+            using DicomWebResponse<DicomFile> wado = await _client.RetrieveInstanceAsync(
+                id.StudyInstanceUid,
+                id.SeriesInstanceUid,
+                id.SopInstanceUid,
+                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian.UID.UID);
+
+            using MemoryStream before = _pool.GetStream();
+            await expected.SaveAsync(before);
+            before.Seek(0, SeekOrigin.Begin);
+
+            Assert.Equal(before, await wado.Content.ReadAsStreamAsync(), BinaryComparer.Instance);
+        }
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenLargeMultiPartRequest_WhenStoring_ThenServerShouldReturnOK()
+    {
+        string studyInstanceUid = TestUidGenerator.Generate();
+        DicomFile[] files = Enumerable
+            .Repeat(46340, 2)
+            .Select(p => Samples.CreateRandomDicomFileWithPixelData(
+                studyInstanceUid: studyInstanceUid,
+                rows: p,
+                columns: p,
+                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~2GB
+            .ToArray();
+
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files, studyInstanceUid: studyInstanceUid);
+        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
     }
 
     /*
