@@ -172,7 +172,7 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenADeleteInstanceRequest_WhenDataStoreWithExternalStoreIsCalled_ThenCorrectNoDelayIsUsed()
+    public async Task GivenADeleteInstanceRequest_WhenDataStoreWithExternalStoreIsCalled_ThenCorrectDelayIsUsed()
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         string seriesInstanceUid = TestUidGenerator.Generate();
@@ -383,7 +383,7 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenMultipleDeletedInstancePreviouslyUpdatedAndNowWithOriginalWatermark_WhenCleanupCalledWithoutExternalStore_ThenCorrectMethodsAreCalled()
+    public async Task GivenMultipleDeletedInstancePreviouslyUpdatedAndNowWithOriginalWatermark_WhenCleanupCalledWithoutExternalStore_ThenMethodsAreCalledWhileUsingOriginalWatermark()
     {
         List<InstanceMetadata> responseList =
             GeneratedDeletedInstanceList(
@@ -427,11 +427,11 @@ public class DeleteServiceTests
             // delete both original and new version's blobs and fileProperties are null and not used
             await _fileDataStore
                 .Received(1)
-                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
+                .DeleteFileIfExistsAsync(deletedVersion.Version, deletedVersion.Partition, fileProperties: null, cancellationToken: CancellationToken.None);
 
             await _fileDataStore
                .Received(1)
-               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.Partition, instance.InstanceProperties.fileProperties, CancellationToken.None);
+               .DeleteFileIfExistsAsync(instance.InstanceProperties.OriginalVersion.Value, deletedVersion.Partition, fileProperties: null, CancellationToken.None);
         }
 
         await _indexDataStore
@@ -442,10 +442,10 @@ public class DeleteServiceTests
     }
 
     [Fact]
-    public async Task GivenMultipleDeletedInstanceWithExternalStore_WhenCleanupCalled_ThenCorrectMethodsAreCalled()
+    public async Task GivenMultipleDeletedInstanceWithExternalStore_WhenCleanupCalled_ThenMethodsAreCalledWithNonNullFileProperties()
     {
         List<InstanceMetadata> responseList =
-            GeneratedDeletedInstanceList(2, new InstanceProperties { fileProperties = _defaultFileProperties }, generateUniqueFileProperties: true);
+            GeneratedDeletedInstanceList(2, generateUniqueFileProperties: true);
 
         // ensure instances contain file properties that are not null
         Assert.DoesNotContain(responseList, i => i.InstanceProperties.fileProperties == null);
