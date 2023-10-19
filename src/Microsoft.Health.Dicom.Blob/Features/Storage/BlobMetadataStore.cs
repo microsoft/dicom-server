@@ -219,6 +219,18 @@ public class BlobMetadataStore : IMetadataStore
         }
     }
 
+    /// <inheritdoc />
+    public async Task<bool> DoesFrameRangeExistAsync(long version, CancellationToken cancellationToken)
+    {
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(version);
+
+        return await ExecuteAsync(async t =>
+        {
+            Response<bool> response = await blobClient.ExistsAsync(cancellationToken);
+            return response.Value;
+        }, cancellationToken);
+    }
+
     private BlockBlobClient GetInstanceFramesRangeBlobClient(long version, bool fallBackClient = false)
     {
         var blobName = fallBackClient ? _nameWithPrefix.GetInstanceFramesRangeFileNameWithSpace(version) : _nameWithPrefix.GetInstanceFramesRangeFileName(version);
