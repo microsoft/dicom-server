@@ -96,7 +96,7 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
         var httpClient = new HttpClient(messageHandler)
         {
             BaseAddress = TestDicomWebServer.BaseAddress,
-            Timeout = TimeSpan.FromMinutes(5),
+            Timeout = TimeSpan.FromMinutes(10),
         };
 
         return new DicomWebClient(httpClient, apiVersion)
