@@ -79,4 +79,12 @@ public interface IMetadataStore
     Task DeleteInstanceFramesRangeAsync(
         long version,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns true if the frame range exist for the given version
+    /// </summary>
+    /// <param name="version"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<bool> DoesFrameRangeExistAsync(long version, CancellationToken cancellationToken = default);
 }

@@ -51,7 +51,7 @@ public class BlobWorkitemStore : IWorkitemStore
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
 
         var containerConfiguration = namedBlobContainerConfigurationAccessor
-            .Get(Constants.WorkitemContainerConfigurationName);
+            .Get(BlobConstants.WorkitemContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
     }

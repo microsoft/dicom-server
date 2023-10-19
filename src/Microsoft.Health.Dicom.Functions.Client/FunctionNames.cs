@@ -7,6 +7,8 @@ namespace Microsoft.Health.Dicom.Functions.Client;
 
 internal static class FunctionNames
 {
+    public const string DataCleanup = "DataCleanup";
+
     public const string ExportDicomFiles = "ExportDicomFiles";
 
     public const string ReindexInstances = "ReindexInstances";

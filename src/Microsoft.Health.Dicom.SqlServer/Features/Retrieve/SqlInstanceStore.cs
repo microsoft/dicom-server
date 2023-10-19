@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,5 +57,10 @@ internal sealed class SqlInstanceStore : IInstanceStore
     {
         ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
         return await store.GetInstanceIdentifierWithPropertiesAsync(partition, studyInstanceUid, seriesInstanceUid, sopInstanceUid, cancellationToken);
+    }
+    public async Task<IReadOnlyList<WatermarkRange>> GetInstanceBatchesByTimeStampAsync(int batchSize, int batchCount, IndexStatus indexStatus, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp, long? maxWatermark = null, CancellationToken cancellationToken = default)
+    {
+        ISqlInstanceStore store = await _cache.GetAsync(cancellationToken: cancellationToken);
+        return await store.GetInstanceBatchesByTimeStampAsync(batchSize, batchCount, indexStatus, startTimeStamp, endTimeStamp, maxWatermark, cancellationToken);
     }
 }

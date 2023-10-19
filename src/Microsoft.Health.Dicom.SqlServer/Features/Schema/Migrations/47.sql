@@ -108,7 +108,9 @@ CREATE TABLE dbo.DeletedInstance (
     RetryCount        INT                NOT NULL,
     CleanupAfter      DATETIMEOFFSET (0) NOT NULL,
     PartitionKey      INT                DEFAULT 1 NOT NULL,
-    OriginalWatermark BIGINT             NULL
+    OriginalWatermark BIGINT             NULL,
+    FilePath          NVARCHAR (4000)    NULL,
+    ETag              NVARCHAR (4000)    NULL
 )
 WITH (DATA_COMPRESSION = PAGE);
 
@@ -117,7 +119,7 @@ CREATE UNIQUE CLUSTERED INDEX IXC_DeletedInstance
 
 CREATE NONCLUSTERED INDEX IX_DeletedInstance_RetryCount_CleanupAfter
     ON dbo.DeletedInstance(RetryCount, CleanupAfter)
-    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark) WITH (DATA_COMPRESSION = PAGE);
+    INCLUDE(PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, OriginalWatermark, FilePath, ETag) WITH (DATA_COMPRESSION = PAGE);
 
 CREATE TABLE dbo.ExtendedQueryTag (
     TagKey            INT           NOT NULL,
@@ -832,7 +834,7 @@ BEGIN
     DECLARE @createdDate AS DATETIME2 (7) = SYSUTCDATETIME();
     DECLARE @partitionKey AS INT;
     SELECT @partitionKey = PartitionKey
-    FROM   dbo.Partition WITH (UPDLOCK)
+    FROM   dbo.Partition
     WHERE  PartitionName = @partitionName;
     IF @@ROWCOUNT <> 0
         THROW 50409, 'Partition already exists', 1;
@@ -1271,14 +1273,16 @@ BEGIN
     SET XACT_ABORT ON;
     BEGIN TRANSACTION;
     DECLARE @deletedInstances AS TABLE (
-        PartitionKey      INT         ,
-        StudyInstanceUid  VARCHAR (64),
-        SeriesInstanceUid VARCHAR (64),
-        SopInstanceUid    VARCHAR (64),
-        Status            TINYINT     ,
-        Watermark         BIGINT      ,
-        OriginalWatermark BIGINT      ,
-        InstanceKey       INT         );
+        PartitionKey      INT            ,
+        StudyInstanceUid  VARCHAR (64)   ,
+        SeriesInstanceUid VARCHAR (64)   ,
+        SopInstanceUid    VARCHAR (64)   ,
+        Status            TINYINT        ,
+        Watermark         BIGINT         ,
+        InstanceKey       INT            ,
+        OriginalWatermark BIGINT         ,
+        FilePath          NVARCHAR (4000) NULL,
+        ETag              NVARCHAR (4000) NULL);
     DECLARE @studyKey AS BIGINT;
     DECLARE @seriesKey AS BIGINT;
     DECLARE @instanceKey AS BIGINT;
@@ -1293,18 +1297,24 @@ BEGIN
            AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
            AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
     DELETE dbo.Instance
-    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.OriginalWatermark, deleted.InstanceKey INTO @deletedInstances
-    WHERE  PartitionKey = @partitionKey
-           AND StudyInstanceUid = @studyInstanceUid
-           AND SeriesInstanceUid = ISNULL(@seriesInstanceUid, SeriesInstanceUid)
-           AND SopInstanceUid = ISNULL(@sopInstanceUid, SopInstanceUid);
+    OUTPUT deleted.PartitionKey, deleted.StudyInstanceUid, deleted.SeriesInstanceUid, deleted.SopInstanceUid, deleted.Status, deleted.Watermark, deleted.InstanceKey, deleted.OriginalWatermark, FP.FilePath, FP.ETag INTO @deletedInstances
+    FROM   dbo.Instance AS i
+           LEFT OUTER JOIN
+           dbo.FileProperty AS FP
+           ON i.InstanceKey = FP.InstanceKey
+              AND i.Watermark = FP.Watermark
+    WHERE  i.PartitionKey = @partitionKey
+           AND i.StudyInstanceUid = @studyInstanceUid
+           AND i.SeriesInstanceUid = ISNULL(@seriesInstanceUid, i.SeriesInstanceUid)
+           AND i.SopInstanceUid = ISNULL(@sopInstanceUid, i.SopInstanceUid);
     IF @@ROWCOUNT = 0
         THROW 50404, 'Instance not found', 1;
     DELETE FP
     FROM   dbo.FileProperty AS FP
            INNER JOIN
            @deletedInstances AS DI
-           ON DI.InstanceKey = FP.InstanceKey;
+           ON DI.InstanceKey = FP.InstanceKey
+              AND DI.Watermark = FP.Watermark;
     DECLARE @deletedTags AS TABLE (
         TagKey BIGINT);
     DELETE XQTE
@@ -1361,7 +1371,7 @@ BEGIN
            AND SopInstanceKey3 = ISNULL(@instanceKey, SopInstanceKey3)
            AND PartitionKey = @partitionKey
            AND ResourceType = @imageResourceType;
-    INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark)
+    INSERT INTO dbo.DeletedInstance (PartitionKey, StudyInstanceUid, SeriesInstanceUid, SopInstanceUid, Watermark, DeletedDateTime, RetryCount, CleanupAfter, OriginalWatermark, FilePath, ETag)
     SELECT PartitionKey,
            StudyInstanceUid,
            SeriesInstanceUid,
@@ -1370,7 +1380,9 @@ BEGIN
            @deletedDate,
            0,
            @cleanupAfter,
-           OriginalWatermark
+           OriginalWatermark,
+           FilePath,
+           ETag
     FROM   @deletedInstances;
     IF NOT EXISTS (SELECT *
                    FROM   dbo.Instance WITH (HOLDLOCK, UPDLOCK)
@@ -1456,6 +1468,12 @@ BEGIN
               AND CF.SeriesInstanceUid = DI.SeriesInstanceUid
               AND CF.SopInstanceUid = DI.SopInstanceUid;
     COMMIT TRANSACTION;
+    SELECT d.Watermark,
+           d.partitionKey,
+           d.studyInstanceUid,
+           d.seriesInstanceUid,
+           d.sopInstanceUid
+    FROM   @deletedInstances AS d;
 END
 
 GO
