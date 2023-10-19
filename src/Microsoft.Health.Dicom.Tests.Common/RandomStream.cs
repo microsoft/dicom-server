@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Threading;
 using EnsureThat;
 
 namespace Microsoft.Health.Dicom.Tests.Common;
@@ -29,11 +28,13 @@ internal sealed class RandomStream : Stream
         get => _position;
         set
         {
-            // Position cannot be moved
+            // The position can only be moved back to the beginning
+            // to support Fo.Dicom's seeking behavior
             if (value == 0)
             {
                 if (_position != 0)
                 {
+                    // The same seed must be reused to ensure determinism
                     _position = 0;
                     _random = new Random(_seed);
                 }
@@ -48,7 +49,7 @@ internal sealed class RandomStream : Stream
     public RandomStream(long length, int? seed = null)
     {
         Length = EnsureArg.IsGte(length, 0, nameof(length));
-        _seed = seed ?? Thread.CurrentThread.ManagedThreadId;
+        _seed = seed ?? Environment.CurrentManagedThreadId;
         _random = new Random(_seed);
     }
 
