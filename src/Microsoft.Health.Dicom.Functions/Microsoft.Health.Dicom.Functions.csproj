@@ -44,6 +44,9 @@
     <None Include="Update\UpdateDurableFunction.*.cs">
       <DependentUpon>UpdateDurableFunction.cs</DependentUpon>
     </None>
+    <None Include="DataCleanup\DataCleanupDurableFunction.*.cs">
+      <DependentUpon>DataCleanupDurableFunction.cs</DependentUpon>
+    </None>
   </ItemGroup>
 
 </Project>

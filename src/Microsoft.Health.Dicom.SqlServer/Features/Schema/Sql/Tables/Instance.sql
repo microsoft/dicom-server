@@ -157,3 +157,19 @@ INCLUDE
     OriginalWatermark
 )
 WITH (DATA_COMPRESSION = PAGE)
+
+-- Used in GetInstanceBatchesByTimeStamp
+CREATE NONCLUSTERED INDEX IX_Instance_Watermark_Status_CreatedDate on dbo.Instance
+(
+    Watermark,
+    Status,
+    CreatedDate
+)
+INCLUDE
+(
+    PartitionKey,
+    StudyInstanceUid,
+    SeriesInstanceUid,
+    SopInstanceUid
+)
+WITH (DATA_COMPRESSION = PAGE)
