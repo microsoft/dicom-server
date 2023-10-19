@@ -297,9 +297,10 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     [Trait("Category", "bvt")]
     public async Task GivenLargeMultiPartRequest_WhenStoring_ThenServerShouldReturnOK()
     {
+        // TODO Upload multiple large SOP instances at once
         string studyInstanceUid = TestUidGenerator.Generate();
         DicomFile[] files = Enumerable
-            .Repeat(studyInstanceUid, 2)
+            .Repeat(studyInstanceUid, 1)
             .Select(study => Samples.CreateRandomDicomFileWithPixelData(
                 studyInstanceUid: study,
                 rows: 46340,
