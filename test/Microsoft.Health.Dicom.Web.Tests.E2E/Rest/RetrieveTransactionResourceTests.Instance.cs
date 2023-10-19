@@ -37,7 +37,7 @@ public partial class RetrieveTransactionResourceTests
         DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
         var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
-        await _instancesManager.StoreAsync(new[] { inputDicomFile });
+        await _instancesManager.StoreAsync(inputDicomFile);
 
         using DicomWebResponse<DicomFile> response = await _client.RetrieveInstanceAsync(instanceId.StudyInstanceUid, instanceId.SeriesInstanceUid, instanceId.SopInstanceUid, transferSyntax);
 

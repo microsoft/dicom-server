@@ -330,7 +330,10 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
     }
 
-    private async Task<InstanceIdentifier> CreateFileAsync(string studyInstanceUid = null, string seriesInstanceUid = null, string sopInstanceUid = null)
+    private async Task<InstanceIdentifier> CreateFileAsync(
+        string studyInstanceUid = null,
+        string seriesInstanceUid = null,
+        string sopInstanceUid = null)
     {
         studyInstanceUid ??= TestUidGenerator.Generate();
         seriesInstanceUid ??= TestUidGenerator.Generate();
@@ -338,7 +341,7 @@ public class ChangeFeedTests : IAsyncLifetime, IClassFixture<HttpIntegrationTest
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManagerV2.StoreAsync(new[] { dicomFile }, studyInstanceUid);
+        using DicomWebResponse<DicomDataset> response = await _instancesManagerV2.StoreAsync(dicomFile);
         DicomDataset dataset = await response.GetValueAsync();
 
         return new InstanceIdentifier(studyInstanceUid, seriesInstanceUid, sopInstanceUid, Partition.Default);

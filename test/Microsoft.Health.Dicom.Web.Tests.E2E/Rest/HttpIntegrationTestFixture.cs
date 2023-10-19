@@ -93,13 +93,16 @@ public class HttpIntegrationTestFixture<TStartup> : IDisposable
             }
         }
 
-        var httpClient = new HttpClient(messageHandler) { BaseAddress = TestDicomWebServer.BaseAddress };
-
-        var dicomWebClient = new DicomWebClient(httpClient, apiVersion)
+        var httpClient = new HttpClient(messageHandler)
         {
-            GetMemoryStream = () => RecyclableMemoryStreamManager.GetStream(),
+            BaseAddress = TestDicomWebServer.BaseAddress,
+            Timeout = TimeSpan.FromMinutes(5),
         };
-        return dicomWebClient;
+
+        return new DicomWebClient(httpClient, apiVersion)
+        {
+            GetMemoryStream = RecyclableMemoryStreamManager.GetStream,
+        };
     }
 
     public void Dispose()

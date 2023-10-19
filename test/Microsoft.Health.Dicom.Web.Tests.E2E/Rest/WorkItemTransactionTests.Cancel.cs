@@ -72,8 +72,8 @@ public partial class WorkItemTransactionTests
         Assert.True(cancelResponse1.IsSuccessStatusCode);
 
         // Cancel
-        var exception = await Assert
-            .ThrowsAsync<DicomWebException>(() => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid));
+        var exception = await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.CancelWorkitemAsync(Enumerable.Repeat(cancelDicomDataset, 1), workitemUid));
 
         // Verify
         Assert.Equal("\"" + DicomCoreResource.WorkitemIsAlreadyCanceled + "\"", exception.ResponseMessage);

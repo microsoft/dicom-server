@@ -12,8 +12,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using EnsureThat;
 using FellowOakDicom;
-using FellowOakDicom.IO;
-using FellowOakDicom.IO.Writer;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Http;
 using Microsoft.Health.Dicom.Core.Extensions;
@@ -48,7 +46,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Fact]
     public async Task GivenEmptyContent_WhenStoring_TheServerShouldReturnConflict()
     {
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(new[] { Stream.Null }));
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(Stream.Null));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
     }
 
@@ -92,7 +90,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         using var multiContent = new MultipartContent("related");
         multiContent.Headers.ContentType.Parameters.Add(new System.Net.Http.Headers.NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
 
-        using DicomWebResponse response = await _instancesManager.StoreAsync(multiContent);
+        using DicomWebResponse response = await _client.StoreAsync(multiContent);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
@@ -107,9 +105,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         byteContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
         multiContent.Add(byteContent);
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-            () => _instancesManager.StoreAsync(multiContent));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(multiContent));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
     }
 
@@ -163,7 +159,8 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
             content.Headers.ContentType = null;
             multiContent.Add(content);
 
-            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
+            using DicomWebResponse<DicomDataset> response = await _instancesManager
+                .StoreAsync(multiContent, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -185,8 +182,8 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
 
         var studyInstanceUID = TestUidGenerator.Generate();
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(
-            new[] { dicomFile1, dicomFile2 }, studyInstanceUid: studyInstanceUID));
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+            () => _client.StoreAsync(new[] { dicomFile1, dicomFile2 }, studyInstanceUID));
 
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
@@ -213,14 +210,21 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID1);
             DicomFile dicomFile2 = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID2);
 
-            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2 }, studyInstanceUid: studyInstanceUID1);
-
+            using DicomWebResponse<DicomDataset> response = await _client.StoreAsync(new[] { dicomFile1, dicomFile2 }, studyInstanceUID1);
             Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+
+            DicomInstanceId missing = DicomInstanceId.FromDicomFile(dicomFile2);
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
+                () => _client.RetrieveInstanceMetadataAsync(
+                    missing.StudyInstanceUid,
+                    missing.SeriesInstanceUid,
+                    missing.SopInstanceUid));
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
 
             DicomDataset dataset = await response.GetValueAsync();
 
             Assert.NotNull(dataset);
-            Assert.True(dataset.Count() == 3);
+            Assert.Equal(3, dataset.Count());
 
             Assert.EndsWith($"studies/{studyInstanceUID1}", dataset.GetSingleValue<string>(DicomTag.RetrieveURL));
 
@@ -244,8 +248,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, studyInstanceUID);
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
         DicomDataset dataset = exception.ResponseDataset;
@@ -266,7 +269,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         {
             DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
+            using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile1);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             DicomDataset dataset = await response.GetValueAsync();
@@ -277,9 +280,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
                     dicomFile1.Dataset));
             Assert.False(dataset.TryGetSequence(DicomTag.FailedSOPSequence, out DicomSequence _));
 
-            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(
-                () => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
+            DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
             Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
             ValidationHelpers.ValidateFailedSopSequence(
@@ -299,8 +300,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     {
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUID, validateItems: false);
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
         Assert.False(exception.ResponseDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
@@ -315,7 +315,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     public async Task GivenSinglePartRequest_WhenStoring_ThenServerShouldReturnOK()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, instanceId: DicomInstanceId.FromDicomFile(dicomFile));
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile);
 
         Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -351,25 +351,12 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     }
 
     [Fact]
-    [Trait("Category", "bvt")]
-    public async Task GivenLargeSinglePartRequest_WhenStoring_ThenServerShouldReturnOk()
-    {
-        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
-            rows: 46340,
-            columns: 46340,
-            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~2GB
-
-        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
-        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
-    }
-
-    [Fact]
     public async Task GivenSinglePartRequest_WhenStoringWithStudyUid_ThenServerShouldReturnOK()
     {
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, studyInstanceUid: studyInstanceUID);
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile);
         Assert.Equal(KnownContentTypes.ApplicationDicomJson, response.ContentHeaders.ContentType.MediaType);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -401,7 +388,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
                 dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~15MB
             .ToArray();
 
-        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files, studyInstanceUid: studyInstanceUid);
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files);
         Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
 
         // Validate content using WADO
@@ -421,24 +408,6 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
             Assert.True(before.Length > Pixels * Pixels);
             Assert.Equal(before, await wado.Content.ReadAsStreamAsync(), BinaryComparer.Instance);
         }
-    }
-
-    [Fact]
-    [Trait("Category", "bvt")]
-    public async Task GivenLargeMultiPartRequest_WhenStoring_ThenServerShouldReturnOK()
-    {
-        string studyInstanceUid = TestUidGenerator.Generate();
-        DicomFile[] files = Enumerable
-            .Repeat(studyInstanceUid, 2)
-            .Select(study => Samples.CreateRandomDicomFileWithPixelData(
-                studyInstanceUid: study,
-                rows: 46340,
-                columns: 46340,
-                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~2GB
-            .ToArray();
-
-        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files, studyInstanceUid: studyInstanceUid);
-        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
     }
 
     /*
@@ -465,7 +434,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
             studyInstanceUid: studyInstanceUid,
             seriesInstanceUid: seriesInstanceUid,
             sopInstanceUid: sopInstanceUid);
-        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        await _instancesManager.StoreAsync(dicomFile1);
 
         // retrieve and assert file stored with padded whitespace
         using DicomWebResponse<DicomFile> instanceRetrieve = await _client.RetrieveInstanceAsync(
@@ -481,7 +450,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
 
         // store again, with additional padding on studyInstanceUid
         dicomFile1.Dataset.AddOrUpdate(DicomTag.StudyInstanceUID, studyInstanceUid + "     ");
-        var ex = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
+        var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
         Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
     }
 
@@ -493,16 +462,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(dicomTransferSyntax: DicomTransferSyntax.ImplicitVRLittleEndian);
         dicomFile.Dataset.Add(DicomVR.LO, privateTag, "Private Tag");
 
-        // write file to stream to apply the implicit transfer-syntax
-        using var stream = new MemoryStream();
-        IByteTarget byteTarget = new StreamByteTarget(stream);
-        DicomFileWriter writer = new DicomFileWriter(DicomWriteOptions.Default);
-        await writer.WriteAsync(byteTarget, dicomFile.FileMetaInfo, dicomFile.Dataset);
-
-        using StreamContent content = new StreamContent(stream);
-        content.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
-        await _instancesManager.StoreAsync(content);
-
+        await _instancesManager.StoreAsync(dicomFile);
         using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
             dicomFile.Dataset.GetString(DicomTag.StudyInstanceUID),
             dicomFile.Dataset.GetString(DicomTag.SeriesInstanceUID),

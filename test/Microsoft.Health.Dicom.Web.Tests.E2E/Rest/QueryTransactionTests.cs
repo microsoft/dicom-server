@@ -382,7 +382,7 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
             dicomFile1.Dataset.AddOrUpdate(metadataItems);
         }
 
-        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        await _instancesManager.StoreAsync(dicomFile1);
         return dicomFile1.Dataset;
     }
 

@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ public partial class RetrieveTransactionResourceTests
         DicomFile inputDicomFile = await DicomFile.OpenAsync(transcoderTestData.InputDicomFile);
         var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
-        await _instancesManager.StoreAsync(new[] { inputDicomFile });
+        await _instancesManager.StoreAsync(inputDicomFile);
 
         DicomFile outputDicomFile = DicomFile.Open(transcoderTestData.ExpectedOutputDicomFile);
         DicomPixelData pixelData = DicomPixelData.Create(outputDicomFile.Dataset);
@@ -78,7 +78,7 @@ public partial class RetrieveTransactionResourceTests
             transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
             encode: false);
 
-        await _instancesManager.StoreAsync(new[] { dicomFile });
+        await _instancesManager.StoreAsync(dicomFile);
 
         // Check for series
         using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
@@ -109,7 +109,7 @@ public partial class RetrieveTransactionResourceTests
             transferSyntax: DicomTransferSyntax.HEVCH265Main10ProfileLevel51.UID.UID,
             encode: false);
 
-        await _instancesManager.StoreAsync(new[] { dicomFile });
+        await _instancesManager.StoreAsync(dicomFile);
 
         DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.RetrieveFramesAsync(
             studyInstanceUid,
@@ -130,7 +130,7 @@ public partial class RetrieveTransactionResourceTests
         DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
         InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier(Partition.Default);
 
-        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        await _instancesManager.StoreAsync(dicomFile1);
 
         using DicomWebAsyncEnumerableResponse<Stream> response = await _client.RetrieveFramesAsync(
             dicomInstance.StudyInstanceUid,
@@ -158,7 +158,7 @@ public partial class RetrieveTransactionResourceTests
         DicomPixelData pixelData = DicomPixelData.Create(dicomFile1.Dataset);
         InstanceIdentifier dicomInstance = dicomFile1.Dataset.ToInstanceIdentifier(Partition.Default);
 
-        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        await _instancesManager.StoreAsync(dicomFile1);
 
         using DicomWebResponse<Stream> response = await _client.RetrieveSingleFrameAsync(
             dicomInstance.StudyInstanceUid,

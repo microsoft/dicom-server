@@ -80,7 +80,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, studyInstanceUID, newPartition);
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, newPartition);
 
         Assert.True(response.IsSuccessStatusCode);
 

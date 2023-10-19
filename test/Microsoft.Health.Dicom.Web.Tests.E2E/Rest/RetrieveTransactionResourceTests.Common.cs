@@ -51,7 +51,7 @@ public partial class RetrieveTransactionResourceTests : IClassFixture<HttpIntegr
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: numberOfFrames);
         var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
-        await _instancesManager.StoreAsync(new[] { dicomFile });
+        await _instancesManager.StoreAsync(dicomFile);
         return (dicomInstance, dicomFile);
     }
 
