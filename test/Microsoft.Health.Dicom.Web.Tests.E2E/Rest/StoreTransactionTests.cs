@@ -21,6 +21,7 @@ using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Web;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.IO;
 using Microsoft.Net.Http.Headers;
@@ -324,9 +325,10 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Trait("Category", "bvt")]
     public async Task GivenSinglePartRequest_WhenStoring_ThenShouldRetrieveEquivalentBytes()
     {
+        const int Pixels = 7240;
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
-            rows: 7240,
-            columns: 7240,
+            rows: Pixels,
+            columns: Pixels,
             dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~50MB
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
@@ -344,6 +346,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
         await dicomFile.SaveAsync(before);
         before.Seek(0, SeekOrigin.Begin);
 
+        Assert.True(before.Length > Pixels * Pixels);
         Assert.Equal(before, await wado.Content.ReadAsStreamAsync(), BinaryComparer.Instance);
     }
 
@@ -387,13 +390,14 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     [Trait("Category", "bvt")]
     public async Task GivenMultiPartRequest_WhenStoring_ThenShouldRetrieveEquivalentBytes()
     {
+        const int Pixels = 4000;
         string studyInstanceUid = TestUidGenerator.Generate();
         DicomFile[] files = Enumerable
-            .Repeat(4000, 3)
-            .Select(p => Samples.CreateRandomDicomFileWithPixelData(
-                studyInstanceUid: studyInstanceUid,
-                rows: p,
-                columns: p,
+            .Repeat(studyInstanceUid, 3)
+            .Select(study => Samples.CreateRandomDicomFileWithPixelData(
+                studyInstanceUid: study,
+                rows: Pixels,
+                columns: Pixels,
                 dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~15MB
             .ToArray();
 
@@ -414,6 +418,7 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
             await expected.SaveAsync(before);
             before.Seek(0, SeekOrigin.Begin);
 
+            Assert.True(before.Length > Pixels * Pixels);
             Assert.Equal(before, await wado.Content.ReadAsStreamAsync(), BinaryComparer.Instance);
         }
     }
@@ -424,11 +429,11 @@ public abstract class StoreTransactionTests : IClassFixture<HttpIntegrationTestF
     {
         string studyInstanceUid = TestUidGenerator.Generate();
         DicomFile[] files = Enumerable
-            .Repeat(46340, 2)
-            .Select(p => Samples.CreateRandomDicomFileWithPixelData(
-                studyInstanceUid: studyInstanceUid,
-                rows: p,
-                columns: p,
+            .Repeat(studyInstanceUid, 2)
+            .Select(study => Samples.CreateRandomDicomFileWithPixelData(
+                studyInstanceUid: study,
+                rows: 46340,
+                columns: 46340,
                 dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~2GB
             .ToArray();
 
