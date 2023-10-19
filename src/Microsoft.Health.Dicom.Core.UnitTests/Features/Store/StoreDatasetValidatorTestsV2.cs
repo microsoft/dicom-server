@@ -95,6 +95,22 @@ public class StoreDatasetValidatorTestsV2
     }
 
     [Fact]
+    public async Task GivenV2Enabled_WhenPrivateTagInvalid_ExpectTagValidatedAndWarningProduced()
+    {
+        DicomItem item = new DicomAgeString(new DicomTag(0007, 0008), "Invalid Private Age Tag");
+        DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
+        dicomDataset.Add(item);
+
+        var result = await _dicomDatasetValidator.ValidateAsync(
+            dicomDataset,
+            null);
+
+        Assert.True(result.InvalidTagErrors.Any());
+        Assert.Single(result.InvalidTagErrors);
+        Assert.Equal("""DICOM100: (0007,0008) - Content "Invalid Private Age Tag" does not validate VR AS: value does not have pattern 000[DWMY]""", result.InvalidTagErrors[item.Tag].Error);
+    }
+
+    [Fact]
     public async Task GivenV2Enabled_WhenItemNotADicomElement_ExpectTagValidationSkippedAndErrorNotProduced()
     {
         DicomDataset dicomDataset = Samples.CreateRandomInstanceDataset(validateItems: false);
