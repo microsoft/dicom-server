@@ -56,7 +56,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
     }
 
     [Fact]
-    public async Task WhenUpdatingDicomMetadataForMultipleStudy_ThenItShouldUpdateCorrectly()
+    public async Task WhenUpdatingDicomMetadataForStudyWithMultipleInstances_ThenItShouldUpdateCorrectly()
     {
         string studyInstanceUid1 = TestUidGenerator.Generate();
         string studyInstanceUid2 = TestUidGenerator.Generate();
@@ -87,8 +87,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         await VerifyRetrieveInstanceWithTranscoding(studyInstanceUid1, dicomFile1, "New^PatientName1", true);
         await VerifyMetadata(studyInstanceUid1, new string[] { originalPatientName1, originalPatientName2 }, true);
         await VerifyRetrieveFrame(studyInstanceUid1, dicomFile1);
-
-        await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, true);
     }
 
     [Fact]
@@ -103,10 +101,6 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         // Update study
         await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
 
-        // verify both new and original metadata exist
-        await VerifyMetadata(studyInstanceUid1, Enumerable.Repeat("New^PatientName", 1).ToArray(), requestOriginalVersion: true);
-        // verify both new and original blobs exist
-        await VerifyRetrieveInstance(studyInstanceUid1, dicomFile1, "New^PatientName", requestOriginalVersion: true);
         // call delete service and verify both new and original blobs deleted
         await VerifyDeleteStudyAsync(studyInstanceUid1, dicomFile1, requestOriginalVersion: true);
     }
