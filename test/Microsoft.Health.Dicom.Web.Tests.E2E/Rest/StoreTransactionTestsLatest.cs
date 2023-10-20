@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         dicomFile.Dataset.Add(dicomDataset);
 
         // run
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile);
 
         // assertions
         using DicomWebResponse<DicomFile> retrievedInstance = await _client.RetrieveInstanceAsync(
@@ -109,7 +109,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         dicomDataset.Add(DicomTag.Modality, expectedValueWithNull);
         dicomFile.Dataset.Add(dicomDataset);
 
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile);
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
 
@@ -131,14 +131,12 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     public async Task GivenInstanceWithIndexableTagWithNullPadding_WhenStoreInstance_ThenOkAndNoWarning()
     {
         string expectedValueWithNull = "X\0";
-        DicomFile dicomFile = new DicomFile(
-            Samples.CreateRandomInstanceDataset(validateItems: false));
+        DicomFile dicomFile = new DicomFile(Samples.CreateRandomInstanceDataset(validateItems: false));
 
         DicomDataset dicomDataset = new DicomDataset().NotValidated();
         dicomDataset.Add(DicomTag.Modality, expectedValueWithNull);
         dicomFile.Dataset.Add(dicomDataset);
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
-
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         // assert on response
@@ -192,23 +190,43 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
     {
         var validUID = TestUidGenerator.Generate();
         var validWithNullPadding = validUID + "\0";
-        DicomFile dicomFile1 = new DicomFile(
+        DicomFile dicomFile = new DicomFile(
             Samples.CreateRandomInstanceDataset(studyInstanceUid: validWithNullPadding, validateItems: false));
 
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 }, studyInstanceUid: validUID);
+        try
+        {
+            DicomWebResponse<DicomDataset> response = await _client.StoreAsync(dicomFile, validUID);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        // assert on response
-        DicomDataset responseDataset = await response.GetValueAsync();
-        DicomSequence refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
-        Assert.Single(refSopSequence);
+            // assert on response
+            DicomDataset responseDataset = await response.GetValueAsync();
+            DicomSequence refSopSequence = responseDataset.GetSequence(DicomTag.ReferencedSOPSequence);
+            Assert.Single(refSopSequence);
 
-        DicomDataset firstInstance = refSopSequence.Items[0];
+            DicomDataset firstInstance = refSopSequence.Items[0];
 
-        // expect a comment sequence to be empty
-        DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
-        Assert.Empty(failedAttributesSequence);
+            // expect a comment sequence to be empty
+            DicomSequence failedAttributesSequence = firstInstance.GetSequence(DicomTag.FailedAttributesSequence);
+            Assert.Empty(failedAttributesSequence);
+
+            // ensure it can be queried with the valid uid
+            DicomInstanceId id = DicomInstanceId.FromDicomFile(dicomFile);
+            using DicomWebAsyncEnumerableResponse<DicomDataset> wadoResponse = await _client.RetrieveInstanceMetadataAsync(
+                validUID,
+                id.SeriesInstanceUid,
+                id.SopInstanceUid);
+
+            Assert.Equal(1, await wadoResponse.CountAsync());
+        }
+        finally
+        {
+            DicomInstanceId id = DicomInstanceId.FromDicomFile(dicomFile);
+            await _client.DeleteInstanceAsync(
+                validUID,
+                id.SeriesInstanceUid,
+                id.SopInstanceUid);
+        }
     }
 
     [Fact]
@@ -218,7 +236,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         DicomFile dicomFile1 = new DicomFile(
             Samples.CreateRandomInstanceDataset(patientId: validPatientIdWithNullPadding, validateItems: false));
 
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile1);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -240,8 +258,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
         DicomFile dicomFile1 = new DicomFile(
             Samples.CreateRandomInstanceDataset(patientId: "\0123\0", validateItems: false));
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
 
         Assert.False(exception.ResponseDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
@@ -258,8 +275,40 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
 
         DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithInvalidVr(studyInstanceUID);
 
-        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile1);
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenLargeSinglePartRequest_WhenStoring_ThenServerShouldReturnOk()
+    {
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
+            rows: 46340,
+            columns: 46340,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~2GB
+
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
+        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
+    public async Task GivenLargeMultiPartRequest_WhenStoring_ThenServerShouldReturnOK()
+    {
+        // TODO Upload multiple large SOP instances at once
+        string studyInstanceUid = TestUidGenerator.Generate();
+        DicomFile[] files = Enumerable
+            .Repeat(studyInstanceUid, 1)
+            .Select(study => Samples.CreateRandomDicomFileWithPixelData(
+                studyInstanceUid: study,
+                rows: 46340,
+                columns: 46340,
+                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~2GB
+            .ToArray();
+
+        using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files);
+        Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
     }
 }

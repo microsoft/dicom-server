@@ -48,6 +48,7 @@ public partial class DicomWebClient : IDicomWebClient
     }
 
     public HttpClient HttpClient { get; }
+
     public string ApiVersion { get; }
 
     /// <summary>
@@ -62,32 +63,6 @@ public partial class DicomWebClient : IDicomWebClient
     {
         string contentText = await content.ReadAsStringAsync().ConfigureAwait(false);
         return JsonSerializer.Deserialize<T>(contentText, JsonSerializerOptions);
-    }
-
-    [SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Callers will dispose of the StreamContent")]
-    private static MultipartContent ConvertStreamsToMultipartContent(IEnumerable<Stream> streams)
-    {
-        var multiContent = new MultipartContent("related");
-
-        multiContent.Headers.ContentType.Parameters.Add(new NameValueHeaderValue("type", $"\"{DicomWebConstants.MediaTypeApplicationDicom.MediaType}\""));
-
-        foreach (Stream stream in streams)
-        {
-            var streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
-            multiContent.Add(streamContent);
-        }
-
-        return multiContent;
-    }
-
-    private static StreamContent ConvertStreamToStreamContent(Stream stream)
-    {
-        var streamContent = new StreamContent(stream);
-
-        streamContent.Headers.ContentType = DicomWebConstants.MediaTypeApplicationDicom;
-
-        return streamContent;
     }
 
     private static string FormatQueryString(string queryString)

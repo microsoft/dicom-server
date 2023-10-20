@@ -19,8 +19,6 @@ namespace Microsoft.Health.Dicom.Tests.Common;
 
 public static class Samples
 {
-    private static readonly Random Rng = new Random();
-
     public static IEnumerable<DicomFile> GetDicomFilesForTranscoding()
     {
         var directory = @"TranscodingSamples";
@@ -285,10 +283,9 @@ public static class Samples
             { DicomTag.ContactURI, @"dicom-users://test-user" },
             { DicomTag.ContactDisplayName, @"Dicom Test User" },
             { DicomTag.ProcedureStepCancellationDateTime, DateTime.UtcNow },
-        };
 
-        // This is needed to show progress on the workitem before canceling it.
-        cancelRequestDataset.Add(new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
+            // This is needed to show progress on the workitem before canceling it.
+            new DicomSequence(DicomTag.UnifiedProcedureStepPerformedProcedureSequence, new DicomDataset
             {
                 new DicomSequence(DicomTag.ActualHumanPerformersSequence, new DicomDataset
                     {
@@ -300,7 +297,8 @@ public static class Samples
                 new DicomSequence(DicomTag.PerformedWorkitemCodeSequence, new DicomDataset()),
                 { DicomTag.PerformedProcedureStepEndDateTime, DateTime.UtcNow + TimeSpan.FromDays(2)},
                 new DicomSequence(DicomTag.OutputInformationSequence, new DicomDataset()),
-            }));
+            })
+        };
 
         return cancelRequestDataset;
     }
@@ -373,13 +371,7 @@ public static class Samples
 
     private static IByteBuffer CreateRandomPixelData(int pixelDataSize)
     {
-        var result = new byte[pixelDataSize];
-        for (var i = 0; i < pixelDataSize; i++)
-        {
-            result[i] = (byte)Rng.Next(0, 255);
-        }
-
-        return new MemoryByteBuffer(result);
+        return new StreamByteBuffer(new RandomStream(pixelDataSize), 0, pixelDataSize);
     }
 
     public static IEnumerable<DicomTransferSyntax> GetAllDicomTransferSyntax()

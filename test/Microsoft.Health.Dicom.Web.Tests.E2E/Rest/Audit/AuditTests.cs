@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(frames: 1);
         var dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
-        await _instancesManager.StoreAsync(new[] { dicomFile }, dicomInstance.StudyInstanceUid);
+        await _instancesManager.StoreAsync(dicomFile);
 
         await ExecuteAndValidate(
             () => _client.RetrieveFramesAsync(dicomInstance.StudyInstanceUid, dicomInstance.SeriesInstanceUid, dicomInstance.SopInstanceUid, frames: new int[] { 1 }),
@@ -192,7 +192,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
         InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
 
         await ExecuteAndValidate(
-            () => _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid),
+            () => _instancesManager.StoreAsync(dicomFile),
             AuditEventSubType.Store,
             $"studies/{dicomInstance.StudyInstanceUid}",
             HttpStatusCode.OK);
@@ -247,7 +247,7 @@ public partial class AuditTests : IClassFixture<AuditTestFixture>, IAsyncLifetim
         string studyInstanceUid = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid);
         InstanceIdentifier dicomInstance = dicomFile.Dataset.ToInstanceIdentifier(Partition.Default);
-        await _instancesManager.StoreAsync(new[] { dicomFile }, studyInstanceUid);
+        await _instancesManager.StoreAsync(dicomFile);
 
         return dicomInstance;
     }

@@ -40,8 +40,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile();
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition2);
 
         using DicomWebResponse<IEnumerable<Partition>> response3 = await _client.GetPartitionsAsync();
         Assert.True(response3.IsSuccessStatusCode);
@@ -62,7 +62,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition);
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, partition: newPartition);
 
         Assert.True(response.IsSuccessStatusCode);
 
@@ -80,7 +80,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         var studyInstanceUID = TestUidGenerator.Generate();
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUid: studyInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, studyInstanceUID, newPartition);
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile, newPartition);
 
         Assert.True(response.IsSuccessStatusCode);
 
@@ -102,8 +102,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition2);
 
         using DicomWebResponse<DicomFile> response3 = await _client.RetrieveInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1.Name);
         Assert.True(response3.IsSuccessStatusCode);
@@ -125,8 +125,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(studyInstanceUID, seriesInstanceUID, sopInstanceUID, frames: 3);
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition2);
 
         using DicomWebResponse<Stream> response3 = await _client.RetrieveRenderedInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, partitionName: newPartition1.Name);
         Assert.True(response3.IsSuccessStatusCode);
@@ -148,8 +148,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition2);
 
         using DicomWebResponse response3 = await _client.DeleteInstanceAsync(studyInstanceUID, seriesInstanceUID, sopInstanceUID, newPartition1.Name);
         Assert.True(response3.IsSuccessStatusCode);
@@ -181,8 +181,8 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
              { DicomTag.Modality, "MRI" },
         });
 
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { file1 }, partition: newPartition1);
-        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(new[] { file2 }, partition: newPartition2);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(file1, partition: newPartition1);
+        using DicomWebResponse<DicomDataset> response2 = await _instancesManager.StoreAsync(file2, partition: newPartition2);
 
         using DicomWebAsyncEnumerableResponse<DicomDataset> response = await _client.QueryStudySeriesAsync(studyUid, "Modality=MRI", newPartition1.Name);
 
@@ -202,7 +202,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         string sopInstanceUID = TestUidGenerator.Generate();
 
         DicomFile dicomFile = Samples.CreateRandomDicomFile(studyInstanceUID, seriesInstanceUID, sopInstanceUID);
-        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(new[] { dicomFile }, partition: newPartition);
+        using DicomWebResponse<DicomDataset> response1 = await _instancesManager.StoreAsync(dicomFile, partition: newPartition);
         Assert.True(response1.IsSuccessStatusCode);
 
         long initialSequence;

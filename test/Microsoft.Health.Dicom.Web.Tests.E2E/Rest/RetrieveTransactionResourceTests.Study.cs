@@ -36,7 +36,7 @@ public partial class RetrieveTransactionResourceTests
         DicomFile inputDicomFile = DicomFile.Open(transcoderTestData.InputDicomFile);
         var instanceId = RandomizeInstanceIdentifier(inputDicomFile.Dataset);
 
-        await _instancesManager.StoreAsync(new[] { inputDicomFile });
+        await _instancesManager.StoreAsync(inputDicomFile);
         using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(instanceId.StudyInstanceUid, transferSyntax);
 
         Assert.Equal(DicomWebConstants.MultipartRelatedMediaType, response.ContentHeaders.ContentType.MediaType);
@@ -159,7 +159,7 @@ public partial class RetrieveTransactionResourceTests
     {
         var studyInstanceUid = TestUidGenerator.Generate();
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid);
-        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        await _instancesManager.StoreAsync(dicomFile1);
 
         using DicomWebAsyncEnumerableResponse<DicomFile> response = await _client.RetrieveStudyAsync(studyInstanceUid, dicomTransferSyntax: "*");
 

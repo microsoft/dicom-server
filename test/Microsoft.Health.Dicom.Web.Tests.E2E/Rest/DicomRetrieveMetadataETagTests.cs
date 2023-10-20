@@ -367,7 +367,7 @@ public class DicomRetrieveMetadataETagTests : IClassFixture<HttpIntegrationTestF
             dicomFile.Dataset.AddOrUpdate(dataSet);
         }
 
-        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(new[] { dicomFile });
+        using DicomWebResponse<DicomDataset> response = await _instancesManager.StoreAsync(dicomFile);
 
         return dicomFile.Dataset;
     }

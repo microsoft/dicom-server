@@ -25,7 +25,7 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
     private readonly DicomInstancesManager _instancesManager;
     private readonly Action<QueryResource, DicomDataset, DicomDataset> _validateResponseDataset;
 
-    public QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
+    protected QueryTransactionTests(HttpIntegrationTestFixture<Startup> fixture)
     {
         _client = GetClient(fixture);
         _instancesManager = new DicomInstancesManager(_client);
@@ -382,7 +382,7 @@ public abstract class QueryTransactionTests : IClassFixture<HttpIntegrationTestF
             dicomFile1.Dataset.AddOrUpdate(metadataItems);
         }
 
-        await _instancesManager.StoreAsync(new[] { dicomFile1 });
+        await _instancesManager.StoreAsync(dicomFile1);
         return dicomFile1.Dataset;
     }
 

@@ -19,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Health.Dicom.Client;
 using Microsoft.Health.Dicom.Client.Models;
 using Microsoft.Health.Dicom.Tests.Common;
+using Microsoft.Health.Dicom.Tests.Common.Comparers;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Common;
 using Microsoft.Health.Dicom.Web.Tests.E2E.Extensions;
 using Microsoft.Health.Operations;

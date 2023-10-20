@@ -31,8 +31,7 @@ public class StoreTransactionTestsV1 : StoreTransactionTests
 
         DicomFile dicomFile1 = Samples.CreateRandomDicomFileWithInvalidVr(studyInstanceUID);
 
-        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
+        DicomWebException exception = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
         Assert.Equal(HttpStatusCode.Conflict, exception.StatusCode);
         Assert.False(exception.ResponseDataset.TryGetSequence(DicomTag.ReferencedSOPSequence, out DicomSequence _));
 
@@ -47,9 +46,7 @@ public class StoreTransactionTestsV1 : StoreTransactionTests
         DicomFile dicomFile1 = new DicomFile(
             Samples.CreateRandomInstanceDataset(patientId: "Before Null Character, \0", validateItems: false));
 
-        var ex = await Assert.ThrowsAsync<DicomWebException>(
-            () => _instancesManager.StoreAsync(new[] { dicomFile1 }));
-
+        var ex = await Assert.ThrowsAsync<DicomWebException>(() => _client.StoreAsync(dicomFile1));
         Assert.Equal(HttpStatusCode.Conflict, ex.StatusCode);
         DicomSequence failedSOPSequence = ex.ResponseDataset.GetSequence(DicomTag.FailedSOPSequence);
         DicomSequence failedAttributesSequence = failedSOPSequence.Items[0].GetSequence(DicomTag.FailedAttributesSequence);

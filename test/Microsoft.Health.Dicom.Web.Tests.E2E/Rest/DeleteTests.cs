@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         using (DicomWebResponse response = await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid))
         {
@@ -52,7 +52,7 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         using DicomWebResponse response = await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
@@ -70,8 +70,8 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var sopInstanceUid1 = TestUidGenerator.Generate();
         var sopInstanceUid2 = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
         await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
 
@@ -89,8 +89,8 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var sopInstanceUid1 = TestUidGenerator.Generate();
         var sopInstanceUid2 = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
-        await CreateFile(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
         await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
 
@@ -111,9 +111,9 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var sopInstanceUid2 = TestUidGenerator.Generate();
         var sopInstanceUid3 = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
-        await CreateFile(studyInstanceUid, seriesInstanceUid1, sopInstanceUid3);
-        await CreateFile(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid3);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
         await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
 
@@ -131,7 +131,7 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         using (DicomWebResponse response = await _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid))
         {
@@ -148,7 +148,7 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         await _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid);
 
@@ -166,8 +166,8 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var sopInstanceUid1 = TestUidGenerator.Generate();
         var sopInstanceUid2 = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid1);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid2);
 
         await _client.DeleteSeriesAsync(studyInstanceUid, seriesInstanceUid);
 
@@ -184,8 +184,8 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var sopInstanceUid1 = TestUidGenerator.Generate();
         var sopInstanceUid2 = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
-        await CreateFile(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
 
         await _client.DeleteInstanceAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
 
@@ -203,7 +203,7 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         using (DicomWebResponse response = await _client.DeleteStudyAsync(studyInstanceUid))
         {
@@ -220,7 +220,7 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var seriesInstanceUid = TestUidGenerator.Generate();
         var sopInstanceUid = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
 
         await _client.DeleteStudyAsync(studyInstanceUid);
 
@@ -240,9 +240,9 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         var sopInstanceUid2 = TestUidGenerator.Generate();
         var sopInstanceUid3 = TestUidGenerator.Generate();
 
-        await CreateFile(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
-        await CreateFile(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
-        await CreateFile(studyInstanceUid, seriesInstanceUid2, sopInstanceUid3);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid1, sopInstanceUid1);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid2);
+        await CreateFileAsync(studyInstanceUid, seriesInstanceUid2, sopInstanceUid3);
 
         await _client.DeleteStudyAsync(studyInstanceUid);
 
@@ -321,10 +321,9 @@ public class DeleteTests : IClassFixture<HttpIntegrationTestFixture<Startup>>, I
         Assert.Equal(expectedInstanceCount, await studyResult.CountAsync());
     }
 
-    private async Task CreateFile(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
+    private async Task CreateFileAsync(string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid)
     {
         DicomFile dicomFile1 = Samples.CreateRandomDicomFile(studyInstanceUid, seriesInstanceUid, sopInstanceUid);
-
-        await _instancesManager.StoreAsync(new[] { dicomFile1 }, studyInstanceUid);
+        await _instancesManager.StoreAsync(dicomFile1);
     }
 }
