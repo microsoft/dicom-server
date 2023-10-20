@@ -119,20 +119,26 @@ public class DeleteService : IDeleteService
                 {
                     try
                     {
-                        Task[] tasks = {
-                            _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken),
-                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
-                            _metadataStore.DeleteInstanceFramesRangeAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier.Version, cancellationToken),
+                        List<Task> tasks = new List<Task>()
+                        {
+                            _fileStore.DeleteFileIfExistsAsync(
+                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
+                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition,
+                                deletedInstanceIdentifier.InstanceProperties.fileProperties,
+                                cancellationToken),
+                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(
+                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
+                                cancellationToken),
+                            _metadataStore.DeleteInstanceFramesRangeAsync(
+                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
+                                cancellationToken)
                         };
 
                         // only need to delete by "original watermark" to catch updates if not IDP
                         if (!_isExternalStoreEnabled && deletedInstanceIdentifier.InstanceProperties.OriginalVersion.HasValue)
                         {
-                            tasks = tasks.Concat(new[]
-                            {
-                                _fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value,  deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken),
-                                _metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken),
-                            }).ToArray();
+                            tasks.Add(_fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken));
+                            tasks.Add(_metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken));
                         }
 
                         await Task.WhenAll(tasks);
