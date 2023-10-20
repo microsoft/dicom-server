@@ -58,14 +58,14 @@ internal class SqlIndexDataStoreV49 : SqlIndexDataStoreV47
                             VLatest.FileProperty.FilePath.AsNullable());
 
                         results.Add(
-                        new InstanceMetadata(
-                            new VersionedInstanceIdentifier(
-                                studyInstanceUid,
-                                seriesInstanceUid,
-                                sopInstanceUid,
-                                watermark,
-                                new Partition(partitionKey, partitionName)),
-                            instanceProperties: CreateInstanceProperties(eTag, filePath, originalWatermark)
+                            new InstanceMetadata(
+                                new VersionedInstanceIdentifier(
+                                    studyInstanceUid,
+                                    seriesInstanceUid,
+                                    sopInstanceUid,
+                                    watermark,
+                                    new Partition(partitionKey, partitionName)),
+                                instanceProperties: CreateInstanceProperties(eTag, filePath, originalWatermark)
                             ));
                     }
                 }
@@ -83,7 +83,7 @@ internal class SqlIndexDataStoreV49 : SqlIndexDataStoreV47
     {
         if (eTag != null && filePath != null)
         {
-            return new InstanceProperties()
+            return new InstanceProperties
             {
                 OriginalVersion = originalWatermark,
                 fileProperties = new FileProperties

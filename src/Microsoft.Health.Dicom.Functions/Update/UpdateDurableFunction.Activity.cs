@@ -224,7 +224,6 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(logger, nameof(logger));
         EnsureArg.IsNotNull(arguments.Instances, nameof(arguments.Instances));
 
-
         IReadOnlyList<InstanceMetadata> instances = arguments.Instances;
         Partition partition = arguments.Partition;
         int fileCount = instances.Where(i => i.InstanceProperties.OriginalVersion.HasValue).Count();
@@ -263,7 +262,6 @@ public partial class UpdateDurableFunction
         EnsureArg.IsNotNull(arguments, nameof(arguments));
         EnsureArg.IsNotNull(arguments.Partition, nameof(arguments.Partition));
         EnsureArg.IsNotNull(logger, nameof(logger));
-
         EnsureArg.IsNotNull(arguments.Instances, nameof(arguments.Instances));
 
         IReadOnlyList<InstanceMetadata> instances = arguments.Instances;

@@ -39,22 +39,21 @@ internal class SqlIndexDataStoreV42 : SqlIndexDataStoreV37
                 batchSize,
                 maxRetries);
 
-            using (var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken))
+            using var reader = await sqlCommandWrapper.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken);
+            try
             {
-                try
+                while (await reader.ReadAsync(cancellationToken))
                 {
-                    while (await reader.ReadAsync(cancellationToken))
-                    {
-                        (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, long? originalWatermark) = reader.ReadRow(
-                            VLatest.Partition.PartitionName,
-                            VLatest.DeletedInstance.PartitionKey,
-                            VLatest.DeletedInstance.StudyInstanceUid,
-                            VLatest.DeletedInstance.SeriesInstanceUid,
-                            VLatest.DeletedInstance.SopInstanceUid,
-                            VLatest.DeletedInstance.Watermark,
-                            VLatest.DeletedInstance.OriginalWatermark);
+                    (string partitionName, int partitionKey, string studyInstanceUid, string seriesInstanceUid, string sopInstanceUid, long watermark, long? originalWatermark) = reader.ReadRow(
+                        VLatest.Partition.PartitionName,
+                        VLatest.DeletedInstance.PartitionKey,
+                        VLatest.DeletedInstance.StudyInstanceUid,
+                        VLatest.DeletedInstance.SeriesInstanceUid,
+                        VLatest.DeletedInstance.SopInstanceUid,
+                        VLatest.DeletedInstance.Watermark,
+                        VLatest.DeletedInstance.OriginalWatermark);
 
-                        results.Add(
+                    results.Add(
                         new InstanceMetadata(
                             new VersionedInstanceIdentifier(
                                 studyInstanceUid,
@@ -66,12 +65,11 @@ internal class SqlIndexDataStoreV42 : SqlIndexDataStoreV37
                             {
                                 OriginalVersion = originalWatermark
                             }));
-                    }
                 }
-                catch (SqlException ex)
-                {
-                    throw new DataStoreException(ex);
-                }
+            }
+            catch (SqlException ex)
+            {
+                throw new DataStoreException(ex);
             }
         }
 
