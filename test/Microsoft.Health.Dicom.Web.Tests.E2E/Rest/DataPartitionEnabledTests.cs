@@ -72,7 +72,7 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
             ValidateParititonCreation(newPartition));
     }
 
-    private async Task<DicomWebResponse<DicomDataset>> ValidateParititonCreation(Partition newPartition)
+    private async Task ValidateParititonCreation(Partition newPartition)
     {
         string studyInstanceUID = TestUidGenerator.Generate();
 
@@ -85,7 +85,6 @@ public class DataPartitionEnabledTests : IClassFixture<DataPartitionEnabledHttpI
         ValidationHelpers.ValidateReferencedSopSequence(
             await response.GetValueAsync(),
             ConvertToReferencedSopSequenceEntry(dicomFile.Dataset, newPartition.Name));
-        return response;
     }
 
     [Fact]
