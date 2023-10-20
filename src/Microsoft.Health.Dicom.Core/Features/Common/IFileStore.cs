@@ -42,8 +42,8 @@ public interface IFileStore
     /// Asynchronously deletes a file from the file store if the file exists.
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
-    /// <param name="partition">partition of the instance to be deleted</param>
-    /// <param name="fileProperties">file properties of instance to be deleted</param>
+    /// <param name="partition">Partition of the instance to be deleted</param>
+    /// <param name="fileProperties">File properties of instance to be deleted</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous delete operation.</returns>
     Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
@@ -140,7 +140,7 @@ public interface IFileStore
     /// </summary>
     /// <param name="version">The DICOM instance version.</param>
     /// <param name="partition">Partition to use when operating on file</param>
-    /// <param name="fileProperties">blob file Properties</param>
+    /// <param name="fileProperties">Blob file Properties</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns></returns>
     Task SetBlobToColdAccessTierAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default);
