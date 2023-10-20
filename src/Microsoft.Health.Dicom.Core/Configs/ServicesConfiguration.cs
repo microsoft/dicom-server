@@ -22,4 +22,6 @@ public class ServicesConfiguration
     public FramesRangeCacheConfiguration FramesRangeCacheConfiguration { get; } = new FramesRangeCacheConfiguration();
 
     public UpdateConfiguration UpdateServiceSettings { get; } = new UpdateConfiguration();
+
+    public InstanceDataCleanupConfiguration DataCleanupConfiguration { get; } = new InstanceDataCleanupConfiguration();
 }

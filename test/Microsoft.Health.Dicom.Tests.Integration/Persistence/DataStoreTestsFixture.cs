@@ -70,8 +70,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         IOptionsMonitor<BlobContainerConfiguration> optionsMonitor = Substitute.For<IOptionsMonitor<BlobContainerConfiguration>>();
-        optionsMonitor.Get(Constants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
-        optionsMonitor.Get(Constants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
+        optionsMonitor.Get(BlobConstants.BlobContainerConfigurationName).Returns(_blobContainerConfiguration);
+        optionsMonitor.Get(BlobConstants.MetadataContainerConfigurationName).Returns(_metadataContainerConfiguration);
 
         _blobClient = BlobClientFactory.Create(_blobDataStoreConfiguration);
 

@@ -16,6 +16,11 @@ public enum DicomOperation
     Unknown,
 
     /// <summary>
+    /// Specifies an data cleanup operation that cleans up instance data.
+    /// </summary>
+    DataCleanup,
+
+    /// <summary>
     /// Specifies a reindexing operation that updates the indicies for previously added data based on new tags.
     /// </summary>
     Reindex,

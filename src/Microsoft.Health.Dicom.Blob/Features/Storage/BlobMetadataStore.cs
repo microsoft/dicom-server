@@ -62,7 +62,7 @@ public class BlobMetadataStore : IMetadataStore
         _blobRetrieveMeter = EnsureArg.IsNotNull(blobRetrieveMeter, nameof(blobRetrieveMeter));
 
         BlobContainerConfiguration containerConfiguration = namedBlobContainerConfigurationAccessor
-            .Get(Constants.MetadataContainerConfigurationName);
+            .Get(BlobConstants.MetadataContainerConfigurationName);
 
         _container = client.GetBlobContainerClient(containerConfiguration.ContainerName);
     }
@@ -217,6 +217,18 @@ public class BlobMetadataStore : IMetadataStore
                 return result.Content.ToObjectFromJson<IReadOnlyDictionary<int, FrameRange>>(_jsonSerializerOptions);
             }, cancellationToken);
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> DoesFrameRangeExistAsync(long version, CancellationToken cancellationToken)
+    {
+        BlockBlobClient blobClient = GetInstanceFramesRangeBlobClient(version);
+
+        return await ExecuteAsync(async t =>
+        {
+            Response<bool> response = await blobClient.ExistsAsync(cancellationToken);
+            return response.Value;
+        }, cancellationToken);
     }
 
     private BlockBlobClient GetInstanceFramesRangeBlobClient(long version, bool fallBackClient = false)

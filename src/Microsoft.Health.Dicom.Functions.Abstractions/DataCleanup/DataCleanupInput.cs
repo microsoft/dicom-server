@@ -3,15 +3,15 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Health.Dicom.Functions.Client;
+using System;
 
-internal static class FunctionNames
+namespace Microsoft.Health.Dicom.Functions.DataCleanup;
+
+public class DataCleanupInput
 {
-    public const string DataCleanup = "DataCleanup";
+    public BatchingOptions Batching { get; set; }
 
-    public const string ExportDicomFiles = "ExportDicomFiles";
+    public DateTimeOffset StartFilterTimeStamp { get; set; }
 
-    public const string ReindexInstances = "ReindexInstances";
-
-    public const string UpdateInstances = "UpdateInstances";
+    public DateTimeOffset EndFilterTimeStamp { get; set; }
 }

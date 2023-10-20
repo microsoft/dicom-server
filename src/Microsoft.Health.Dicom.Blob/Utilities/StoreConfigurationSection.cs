@@ -11,7 +11,7 @@ namespace Microsoft.Health.Dicom.Blob.Utilities;
 internal sealed class BlobStoreConfigurationSection : StoreConfigurationSection
 {
     public BlobStoreConfigurationSection()
-        : base(Constants.BlobStoreConfigurationSection, Constants.BlobContainerConfigurationName)
+        : base(BlobConstants.BlobStoreConfigurationSection, BlobConstants.BlobContainerConfigurationName)
     {
     }
 }
@@ -22,7 +22,7 @@ internal sealed class BlobStoreConfigurationSection : StoreConfigurationSection
 internal sealed class MetadataStoreConfigurationSection : StoreConfigurationSection
 {
     public MetadataStoreConfigurationSection()
-        : base(Constants.MetadataStoreConfigurationSection, Constants.MetadataContainerConfigurationName)
+        : base(BlobConstants.MetadataStoreConfigurationSection, BlobConstants.MetadataContainerConfigurationName)
     {
     }
 }
@@ -33,7 +33,7 @@ internal sealed class MetadataStoreConfigurationSection : StoreConfigurationSect
 internal sealed class WorkitemStoreConfigurationSection : StoreConfigurationSection
 {
     public WorkitemStoreConfigurationSection()
-        : base(Constants.WorkitemStoreConfigurationSection, Constants.WorkitemContainerConfigurationName)
+        : base(BlobConstants.WorkitemStoreConfigurationSection, BlobConstants.WorkitemContainerConfigurationName)
     {
     }
 }

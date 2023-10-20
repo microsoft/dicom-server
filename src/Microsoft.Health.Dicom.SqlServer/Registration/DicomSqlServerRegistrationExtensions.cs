@@ -162,6 +162,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV44>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV46>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV47>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV48>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlIndexDataStore, SqlIndexDataStoreV49>());
         return services;
     }
@@ -173,6 +174,7 @@ public static class DicomSqlServerRegistrationExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV1>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV34>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV46>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<ISqlInstanceStore, SqlInstanceStoreV48>());
 
         return services;
     }

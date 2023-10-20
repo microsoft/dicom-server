@@ -28,7 +28,7 @@ internal class InternalBlobClient : IBlobClient
         ILogger<InternalBlobClient> logger)
     {
         _client = EnsureArg.IsNotNull(blobServiceClient, nameof(blobServiceClient));
-        _containerName = EnsureArg.IsNotNull(optionsMonitor.Get(Constants.BlobContainerConfigurationName).ContainerName, nameof(optionsMonitor));
+        _containerName = EnsureArg.IsNotNull(optionsMonitor.Get(BlobConstants.BlobContainerConfigurationName).ContainerName, nameof(optionsMonitor));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _logger.LogInformation("Internal blob client registered.");
     }

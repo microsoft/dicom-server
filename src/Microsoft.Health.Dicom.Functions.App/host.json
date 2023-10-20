@@ -26,6 +26,14 @@
     }
   },
   "DicomFunctions": {
+    "DataCleanup": {
+      "MaxParallelThreads": 5,
+      "RetryOptions": {
+        "BackoffCoefficient": 3,
+        "FirstRetryInterval": "00:01:00",
+        "MaxNumberOfAttempts": 4
+      }
+    },
     "Export": {
       "BatchSize": 100,
       "MaxParallelThreads": 5,

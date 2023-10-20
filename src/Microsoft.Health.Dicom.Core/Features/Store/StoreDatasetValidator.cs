@@ -256,7 +256,7 @@ public class StoreDatasetValidator : IStoreDatasetValidator
                 validationResultBuilder.Add(ex, requiredCoreTag, isCoreTag: true);
                 _logger.LogInformation("Dicom instance validation failed with error on required core tag {Tag} with id {Id}", requiredCoreTag.DictionaryEntry.Keyword, requiredCoreTag);
                 _storeMeter.V2ValidationError.Add(1,
-                    TelemetryDimension(requiredCoreTag, IsIndexableTag(queryTags, requiredCoreTag)));
+                    TelemetryDimension(requiredCoreTag, requiredCoreTag.GetDefaultVR(), IsIndexableTag(queryTags, requiredCoreTag)));
             }
         }
     }
@@ -365,14 +365,14 @@ public class StoreDatasetValidator : IStoreDatasetValidator
     }
 
     private static KeyValuePair<string, object>[] TelemetryDimension(DicomItem item, bool isIndexableTag) =>
-        TelemetryDimension(item.Tag, isIndexableTag);
+        TelemetryDimension(item.Tag, item.ValueRepresentation, isIndexableTag);
 
-    private static KeyValuePair<string, object>[] TelemetryDimension(DicomTag tag, bool isIndexableTag) =>
+    private static KeyValuePair<string, object>[] TelemetryDimension(DicomTag tag, DicomVR vr, bool isIndexableTag) =>
         new[]
         {
-            new KeyValuePair<string, object>("TagKeyword", tag.DictionaryEntry.Keyword),
-            new KeyValuePair<string, object>("VR", tag.GetDefaultVR().ToString()),
-            new KeyValuePair<string, object>("Tag", tag.ToString()),
+            new KeyValuePair<string, object>("TagKeyword", tag?.DictionaryEntry?.Keyword),
+            new KeyValuePair<string, object>("VR", vr?.ToString()),
+            new KeyValuePair<string, object>("Tag", tag?.ToString()),
             new KeyValuePair<string, object>("IsIndexable", isIndexableTag.ToString())
         };
 

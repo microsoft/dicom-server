@@ -166,4 +166,14 @@ public interface IIndexDataStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the asynchronous add operation.</returns>
     Task EndUpdateInstanceAsync(int partitionKey, string studyInstanceUid, DicomDataset dicomDataset, IReadOnlyList<InstanceMetadata> instanceMetadataList, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously updates DICOM instance HasFrameMetadata to 1
+    /// </summary>
+    /// <param name="partitionKey">The partition key.</param>
+    /// <param name="versions">List of instances watermark to update</param>
+    /// <param name="hasFrameMetadata">Has additional frame range metadata stores.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that with list of instance metadata with new watermark.</returns>
+    Task UpdateFrameDataAsync(int partitionKey, IEnumerable<long> versions, bool hasFrameMetadata, CancellationToken cancellationToken = default);
 }

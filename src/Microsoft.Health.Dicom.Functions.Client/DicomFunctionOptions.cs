@@ -16,6 +16,9 @@ internal class DicomFunctionOptions
     public DurableClientOptions DurableTask { get; set; }
 
     [Required]
+    public FanOutFunctionOptions DataCleanup { get; set; }
+
+    [Required]
     public FanOutFunctionOptions Export { get; set; }
 
     [Required]

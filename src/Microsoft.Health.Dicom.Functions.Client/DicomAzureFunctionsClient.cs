@@ -23,6 +23,7 @@ using Microsoft.Health.Dicom.Core.Models.Export;
 using Microsoft.Health.Dicom.Core.Models.Operations;
 using Microsoft.Health.Dicom.Core.Models.Update;
 using Microsoft.Health.Dicom.Functions.Client.Extensions;
+using Microsoft.Health.Dicom.Functions.DataCleanup;
 using Microsoft.Health.Dicom.Functions.Export;
 using Microsoft.Health.Dicom.Functions.Indexing;
 using Microsoft.Health.Dicom.Functions.Update;
@@ -204,6 +205,26 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         return new OperationReference(operationId, _urlResolver.ResolveOperationStatusUri(operationId));
     }
 
+    /// <inheritdoc/>
+    public async Task StartInstanceDataCleanupOperationAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default)
+    {
+        EnsureArg.IsGt(endFilterTimeStamp, startFilterTimeStamp, nameof(endFilterTimeStamp));
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string instanceId = await _durableClient.StartNewAsync(
+            _options.DataCleanup.Name,
+            operationId.ToString(OperationId.FormatSpecifier),
+            new DataCleanupCheckPoint
+            {
+                Batching = _options.DataCleanup.Batching,
+                StartFilterTimeStamp = startFilterTimeStamp,
+                EndFilterTimeStamp = endFilterTimeStamp,
+            });
+
+        _logger.LogInformation("Successfully started data cleanup operation with ID '{InstanceId}'.", instanceId);
+    }
+
     private async Task<T> GetStateAsync<T>(
         Guid operationId,
         Func<DicomOperation, DurableOrchestrationStatus, IOrchestrationCheckpoint, CancellationToken, Task<T>> factory,
@@ -242,6 +263,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
         switch (type)
         {
             case DicomOperation.Export:
+            case DicomOperation.DataCleanup:
                 return null;
             case DicomOperation.Reindex:
                 IReadOnlyList<Uri> tagPaths = Array.Empty<Uri>();
@@ -268,6 +290,7 @@ internal class DicomAzureFunctionsClient : IDicomOperationsClient
     private static IOrchestrationCheckpoint ParseCheckpoint(DicomOperation type, DurableOrchestrationStatus status)
         => type switch
         {
+            DicomOperation.DataCleanup => status.Input?.ToObject<DataCleanupCheckPoint>() ?? new DataCleanupCheckPoint(),
             DicomOperation.Export => status.Input?.ToObject<ExportCheckpoint>() ?? new ExportCheckpoint(),
             DicomOperation.Reindex => status.Input?.ToObject<ReindexCheckpoint>() ?? new ReindexCheckpoint(),
             DicomOperation.Update => status.Input?.ToObject<UpdateCheckpoint>() ?? new UpdateCheckpoint(),

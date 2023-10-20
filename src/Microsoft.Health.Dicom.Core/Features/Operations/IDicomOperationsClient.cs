@@ -117,4 +117,17 @@ public interface IDicomOperationsClient
     /// </exception>
     /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
     Task<OperationReference> StartUpdateOperationAsync(Guid operationId, UpdateSpecification updateSpecification, Partition partition, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously begins the clean up of instance data.
+    /// </summary>
+    /// <param name="operationId">The desired ID for the cleanup operation.</param>
+    /// <param name="startFilterTimeStamp">Start timestamp to filter instances.</param>
+    /// <param name="endFilterTimeStamp">End timestamp to filter instances.</param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests. The default value is <see cref="CancellationToken.None"/>.</param>
+    /// <returns>
+    /// A task representing the <see cref="StartInstanceDataCleanupOperationAsync"/> operation.
+    /// </returns>
+    /// <exception cref="OperationCanceledException">The <paramref name="cancellationToken"/> was canceled.</exception>
+    Task StartInstanceDataCleanupOperationAsync(Guid operationId, DateTimeOffset startFilterTimeStamp, DateTimeOffset endFilterTimeStamp, CancellationToken cancellationToken = default);
 }
