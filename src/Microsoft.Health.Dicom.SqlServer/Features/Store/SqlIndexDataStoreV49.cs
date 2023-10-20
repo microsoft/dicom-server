@@ -20,13 +20,13 @@ using Microsoft.Health.SqlServer.Features.Storage;
 
 namespace Microsoft.Health.Dicom.SqlServer.Features.Store;
 
-internal class SqlIndexDataStoreV48 : SqlIndexDataStoreV47
+internal class SqlIndexDataStoreV49 : SqlIndexDataStoreV47
 {
-    public SqlIndexDataStoreV48(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
+    public SqlIndexDataStoreV49(SqlConnectionWrapperFactory sqlConnectionWrapperFactory)
         : base(sqlConnectionWrapperFactory)
     { }
 
-    public override SchemaVersion Version => SchemaVersion.V48;
+    public override SchemaVersion Version => SchemaVersion.V49;
 
     public override async Task<IReadOnlyList<InstanceMetadata>> RetrieveDeletedInstancesWithPropertiesAsync(int batchSize, int maxRetries, CancellationToken cancellationToken = default)
     {
