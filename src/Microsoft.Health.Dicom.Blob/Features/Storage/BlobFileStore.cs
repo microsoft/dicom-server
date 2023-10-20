@@ -434,9 +434,8 @@ public class BlobFileStore : IFileStore
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, Partition partition, FileProperties fileProperties)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
-        if (_blobClient.IsExternal)
+        if (_blobClient.IsExternal && fileProperties != null)
         {
-            EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
             // does not throw, just appends uri with blobName
             return _blobClient.BlobContainerClient.GetBlockBlobClient(fileProperties.Path);
         }
