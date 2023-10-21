@@ -4,94 +4,270 @@
 is_global = true
 global_level = 1
 
-# Language code styles
-# Most use "options_name = false|true : none|silent|suggestion|warning|error"
+# Note that the severities optionally expressed in the csharp_* and dotnet_* rules
+# do not affect builds by design. These values are only used to configure the entries
+# in Visual Studio's "Error List" and power its Intellisense.
+# Instead, the rules below are used to configure build-time analyzer behavior.
+# Unfortunately, some rules have been disabled due to performance reasons outside of
+# Visual Studio and can be found here:
+# https://github.com/dotnet/roslyn/blob/a3b9f0c274649870015cfe508cacde8fdc15df55/src/Analyzers/Core/Analyzers/EnforceOnBuildValues.cs#L121
 
-# .NET code style settings 
-# "This." and "Me." qualifiers
-dotnet_style_qualification_for_field    = false:error
-dotnet_style_qualification_for_property = false:error
-dotnet_style_qualification_for_method   = false:error
-dotnet_style_qualification_for_event    = false:error
+###############################################################################
+# Code quality rules
+###############################################################################
 
-# Language keywords instead of framework type names for type references
-dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
-dotnet_style_predefined_type_for_member_access             = true:suggestion
+# -----------------------------------
+# Design rules
+# -----------------------------------
 
-# Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
-csharp_preferred_modifier_order              = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
-dotnet_style_readonly_field                  = true:suggestion
+###############################################################################
+# Code style rules
+###############################################################################
 
-# Parentheses preferences
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:silent
-dotnet_style_parentheses_in_other_binary_operators      = always_for_clarity:silent
-dotnet_style_parentheses_in_other_operators             = never_if_unnecessary:silent
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:silent
+# -----------------------------------
+# Language and unnecessary code rules
+# -----------------------------------
 
-# Expression-level preferences
-dotnet_style_object_initializer                                  = true:suggestion
-dotnet_style_collection_initializer                              = true:suggestion
-dotnet_style_explicit_tuple_names                                = true:suggestion
-dotnet_style_prefer_inferred_tuple_names                         = true:suggestion
-dotnet_style_prefer_inferred_anonymous_type_member_names         = true:suggestion
-dotnet_style_prefer_auto_properties                              = true:error
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_prefer_conditional_expression_over_assignment       = true:suggestion
-dotnet_style_prefer_conditional_expression_over_return           = false:silent
+# using directive preferences
+dotnet_diagnostic.IDE0005.severity = error # Remove unnecessary using directives
+dotnet_diagnostic.IDE0065.severity = error # 'using' directive placement
+dotnet_diagnostic.IDE0073.severity = error # Require file header
 
-# "Null" checking preferences
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_null_propagation    = true:suggestion
+csharp_using_directive_placement  = outside_namespace
+file_header_template = -------------------------------------------------------------------------------------------------\nCopyright (c) Microsoft Corporation. All rights reserved.\nLicensed under the MIT License (MIT). See LICENSE in the repo root for license information.\n-------------------------------------------------------------------------------------------------
 
-# C# code style settings
-# Implicit and explicit types
-csharp_style_var_for_built_in_types    = false:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere             = false:suggestion
+# Code-block preferences
+dotnet_diagnostic.IDE0011.severity = error # Add braces
+dotnet_diagnostic.IDE0063.severity = error # Use simple 'using' statement
+dotnet_diagnostic.IDE0161.severity = error # Namespace declaration preferences
+dotnet_diagnostic.IDE0200.severity = error # Remove unnecessary lambda expression
+dotnet_diagnostic.IDE0210.severity = error # Convert to top-level statements
 
-# 'new(...)' ctor
-csharp_style_implicit_object_creation_when_type_is_apparent = false
+csharp_prefer_braces                        = when_multiline
+csharp_prefer_simple_using_statement        = true
+csharp_style_namespace_declarations         = file_scoped
+csharp_style_prefer_method_group_conversion = true
+csharp_style_prefer_top_level_statements    = true
 
 # Expression-bodied members
-csharp_style_expression_bodied_methods      = true:silent
-csharp_style_expression_bodied_constructors = true:silent
-csharp_style_expression_bodied_operators    = true:silent
-csharp_style_expression_bodied_properties   = true:suggestion
-csharp_style_expression_bodied_indexers     = true:suggestion
-csharp_style_expression_bodied_accessors    = true:suggestion
+dotnet_diagnostic.IDE0021.severity = error # Use expression body for constructors
+dotnet_diagnostic.IDE0022.severity = error # Use expression body for methods
+dotnet_diagnostic.IDE0023.severity = error # Use expression body for conversion operators
+dotnet_diagnostic.IDE0024.severity = error # Use expression body for operators
+dotnet_diagnostic.IDE0025.severity = error # Use expression body for properties
+dotnet_diagnostic.IDE0026.severity = error # Use expression body for indexers
+dotnet_diagnostic.IDE0027.severity = error # Use expression body for accessors
+dotnet_diagnostic.IDE0053.severity = error # Use expression body for lambdas
+dotnet_diagnostic.IDE0061.severity = error # Use expression body for local functions
 
-# Pattern matching
-csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
-csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
-
-# Inlined variable declarations
-csharp_style_inlined_variable_declaration = true:suggestion
+csharp_style_expression_bodied_accessors       = when_on_single_line
+csharp_style_expression_bodied_constructors    = when_on_single_line
+csharp_style_expression_bodied_indexers        = when_on_single_line
+csharp_style_expression_bodied_lambdas         = when_on_single_line
+csharp_style_expression_bodied_local_functions = false
+csharp_style_expression_bodied_methods         = when_on_single_line
+csharp_style_expression_bodied_operators       = when_on_single_line
+csharp_style_expression_bodied_properties      = when_on_single_line
 
 # Expression-level preferences
-csharp_prefer_simple_default_expression            = true:suggestion
-csharp_style_deconstructed_variable_declaration    = true:suggestion
-csharp_style_pattern_local_over_anonymous_function = false:suggestion
+dotnet_diagnostic.IDE0001.severity = error # Simplify name
+dotnet_diagnostic.IDE0002.severity = error # Simplify member access
+dotnet_diagnostic.IDE0004.severity = error # Remove unnecessary cast
+dotnet_diagnostic.IDE0010.severity = error # Add missing cases to switch statement
+dotnet_diagnostic.IDE0016.severity = error # Use throw expression
+dotnet_diagnostic.IDE0017.severity = error # Use object initializers
+dotnet_diagnostic.IDE0018.severity = error # Inline variable declaration
+dotnet_diagnostic.IDE0028.severity = error # Use collection initializers
+dotnet_diagnostic.IDE0029.severity = error # Null check can be simplified (ternary conditional check)
+dotnet_diagnostic.IDE0030.severity = error # Null check can be simplified (nullable ternary conditional check)
+dotnet_diagnostic.IDE0031.severity = error # Use null propagation
+dotnet_diagnostic.IDE0032.severity = error # Use auto-implemented property
+dotnet_diagnostic.IDE0033.severity = error # Use explicitly provided tuple name
+dotnet_diagnostic.IDE0034.severity = error # Simplify 'default' expression
+dotnet_diagnostic.IDE0035.severity = error # Remove unreachable code
+dotnet_diagnostic.IDE0037.severity = error # Use inferred member names
+dotnet_diagnostic.IDE0039.severity = error # Use local function instead of lambda
+dotnet_diagnostic.IDE0041.severity = error # Use 'is null' check
+dotnet_diagnostic.IDE0042.severity = error # Deconstruct variable declaration
+dotnet_diagnostic.IDE0045.severity = error # Use conditional expression for assignment
+dotnet_diagnostic.IDE0046.severity = error # Use conditional expression for return
+dotnet_diagnostic.IDE0051.severity = error # Remove unused private member
+dotnet_diagnostic.IDE0052.severity = error # Remove unread private member
+dotnet_diagnostic.IDE0054.severity = error # Use compound assignment
+dotnet_diagnostic.IDE0056.severity = error # Use index operator
+dotnet_diagnostic.IDE0057.severity = error # Use range operator
+dotnet_diagnostic.IDE0058.severity = error # Remove unnecessary expression value
+dotnet_diagnostic.IDE0059.severity = error # Remove unnecessary value assignment
+dotnet_diagnostic.IDE0070.severity = error # Use 'System.HashCode.Combine'
+dotnet_diagnostic.IDE0071.severity = error # Simplify interpolation
+dotnet_diagnostic.IDE0072.severity = error # Add missing cases to switch expression
+dotnet_diagnostic.IDE0074.severity = error # Use coalesce compound assignment
+dotnet_diagnostic.IDE0075.severity = error # Simplify conditional expression
+dotnet_diagnostic.IDE0080.severity = error # Remove unnecessary suppression operator
+dotnet_diagnostic.IDE0082.severity = error # Convert typeof to nameof
+dotnet_diagnostic.IDE0090.severity = error # Simplify new expression
+dotnet_diagnostic.IDE0100.severity = error # Remove unnecessary equality operator
+dotnet_diagnostic.IDE0110.severity = error # Remove unnecessary discard
+dotnet_diagnostic.IDE0120.severity = error # Simplify LINQ expression
+dotnet_diagnostic.IDE0130.severity = none  # Namespace does not match folder structure
+dotnet_diagnostic.IDE0150.severity = error # Prefer 'null' check over type check
+dotnet_diagnostic.IDE0180.severity = error # Use tuple to swap values
+dotnet_diagnostic.IDE0220.severity = error # Add explicit cast in foreach loop
+dotnet_diagnostic.IDE0230.severity = error # Use UTF-8 string literal
+dotnet_diagnostic.IDE0240.severity = error # Nullable directive is redundant
+dotnet_diagnostic.IDE0241.severity = error # Nullable directive is unnecessary
+dotnet_diagnostic.IDE0270.severity = error # Null check can be simplified (if null check)
 
-# "Null" checking preferences
-csharp_style_throw_expression          = true:suggestion
-csharp_style_conditional_delegate_call = true:suggestion
+csharp_prefer_simple_default_expression                     = true
+csharp_style_deconstructed_variable_declaration             = true
+csharp_style_implicit_object_creation_when_type_is_apparent = true
+csharp_style_inlined_variable_declaration                   = true
+csharp_style_throw_expression                               = true
+csharp_style_prefer_index_operator                          = true
+csharp_style_prefer_local_over_anonymous_function           = true
+csharp_style_prefer_null_check_over_type_check              = true
+csharp_style_prefer_range_operator                          = true
+csharp_style_prefer_tuple_swap                              = true
+csharp_style_prefer_utf8_string_literals                    = true
+csharp_style_unused_value_assignment_preference             = true
+csharp_style_unused_value_expression_statement_preference   = true
 
-# Code block preferences
-csharp_prefer_braces = when_multiline:error
+dotnet_style_coalesce_expression                                 = true
+dotnet_style_collection_initializer                              = true
+dotnet_style_explicit_tuple_names                                = true
+dotnet_style_namespace_match_folder                              = false
+dotnet_style_null_propagation                                    = true
+dotnet_style_object_initializer                                  = true
+dotnet_style_prefer_auto_properties                              = true
+dotnet_style_prefer_compound_assignment                          = true
+dotnet_style_prefer_conditional_expression_over_assignment       = true
+dotnet_style_prefer_conditional_expression_over_return           = true
+dotnet_style_prefer_foreach_explicit_cast_in_source              = always
+dotnet_style_prefer_inferred_anonymous_type_member_names         = true
+dotnet_style_prefer_inferred_tuple_names                         = true
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true
+dotnet_style_prefer_simplified_boolean_expressions               = true
+dotnet_style_prefer_simplified_interpolation                     = true
 
-# Namespaces
-csharp_style_namespace_declarations = file_scoped:error
+# Field preferences
+dotnet_diagnostic.IDE0044.severity = error # Add readonly modifier
 
-# Formatting conventions
-# Most use "rule_name = false|true"
+dotnet_style_readonly_field = true
 
-# .NET formatting settings
+# Language keyword vs. framework types preferences
+dotnet_diagnostic.IDE0049.severity = error # Use language keywords instead of framework type names for type references
+
+dotnet_style_predefined_type_for_locals_parameters_members = true
+dotnet_style_predefined_type_for_member_access             = true
+
+# Modifier preferences
+dotnet_diagnostic.IDE0036.severity = error # Order modifiers
+dotnet_diagnostic.IDE0040.severity = error # Add accessibility modifiers
+dotnet_diagnostic.IDE0062.severity = error # Make local function static
+dotnet_diagnostic.IDE0064.severity = error # Make struct fields writable
+dotnet_diagnostic.IDE0250.severity = error # Struct can be made 'readonly'
+dotnet_diagnostic.IDE0251.severity = error # Member can be made 'readonly'
+
+csharp_prefer_static_local_function        = true
+csharp_preferred_modifier_order            = public, private, protected, internal, file, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, required, volatile, async
+csharp_style_prefer_readonly_struct        = true
+csharp_style_prefer_readonly_struct_member = true
+
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
+
+# New-line preferences
+dotnet_diagnostic.IDE2000.severity = error # Allow multiple blank lines
+dotnet_diagnostic.IDE2001.severity = error # Allow embedded statements on same line
+dotnet_diagnostic.IDE2002.severity = error # Allow blank lines between consecutive braces
+dotnet_diagnostic.IDE2003.severity = error # Allow statement immediately after block
+dotnet_diagnostic.IDE2004.severity = error # Allow blank line after colon in constructor initializer
+dotnet_diagnostic.IDE2005.severity = error # Allow blank line after token in conditional expression
+dotnet_diagnostic.IDE2006.severity = error # Allow blank line after token in arrow expression
+
+# Null-checking preferences
+dotnet_diagnostic.IDE1005.severity = error # Use conditional delegate call
+
+csharp_style_conditional_delegate_call = true
+
+# Parameter preferences
+dotnet_diagnostic.IDE0060.severity = error # Remove unused parameter
+dotnet_diagnostic.IDE0280.severity = error # Use 'nameof'
+
+dotnet_code_quality_unused_parameters = all
+
+# Parentheses preferences
+dotnet_diagnostic.IDE0047.severity = error # Remove unnecessary parentheses
+dotnet_diagnostic.IDE0048.severity = error # Add parentheses for clarity
+
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
+dotnet_style_parentheses_in_other_binary_operators      = always_for_clarity
+dotnet_style_parentheses_in_other_operators             = never_if_unnecessary
+
+# Pattern-matching preferences
+dotnet_diagnostic.IDE0019.severity = error # Use pattern matching to avoid 'as' followed by a 'null' check
+dotnet_diagnostic.IDE0020.severity = error # Use pattern matching to avoid is check followed by a cast (with variable)
+dotnet_diagnostic.IDE0038.severity = error # Use pattern matching to avoid is check followed by a cast (without variable)
+dotnet_diagnostic.IDE0066.severity = error # Use switch expression
+dotnet_diagnostic.IDE0078.severity = error # Use pattern matching
+dotnet_diagnostic.IDE0083.severity = error # Use pattern matching (not operator)
+dotnet_diagnostic.IDE0170.severity = error # Simplify property pattern
+dotnet_diagnostic.IDE0260.severity = error # Use pattern matching
+
+csharp_style_pattern_matching_over_as_with_null_check = true
+csharp_style_pattern_matching_over_is_with_cast_check = true
+csharp_style_prefer_extended_property_pattern         = true
+csharp_style_prefer_not_pattern                       = true
+csharp_style_prefer_pattern_matching                  = true
+csharp_style_prefer_switch_expression                 = true
+
+# Suppression preferences
+dotnet_diagnostic.IDE0079.severity = error # Remove unnecessary suppression
+
+dotnet_remove_unnecessary_suppression_exclusions = true
+
+# This. and me. preferences
+dotnet_diagnostic.IDE0003.severity = error # Remove this or Me qualification
+dotnet_diagnostic.IDE0009.severity = none  # Add this or Me qualification
+
+dotnet_style_qualification_for_field    = false
+dotnet_style_qualification_for_property = false
+dotnet_style_qualification_for_method   = false
+dotnet_style_qualification_for_event    = false
+
+# var preferences
+dotnet_diagnostic.IDE0007.severity = none  # Use var instead of explicit type
+dotnet_diagnostic.IDE0008.severity = error # Use explicit type instead of var
+
+csharp_style_var_for_built_in_types    = false
+csharp_style_var_when_type_is_apparent = false
+csharp_style_var_elsewhere             = false
+
+# ===============================================
+# Miscellaneous rules
+# ===============================================
+
+dotnet_diagnostic.IDE0076.severity = error # Remove invalid global 'SuppressMessageAttribute'
+dotnet_diagnostic.IDE0077.severity = error # Avoid legacy format target in global 'SuppressMessageAttribute'
+
+# ===============================================
+# Formatting rules
+# ===============================================
+
+dotnet_diagnostic.IDE0055.severity = error # Formatting rule
+
+# -----------------------
+# .NET formatting options
+# -----------------------
+
 # Organize usings
 dotnet_sort_system_directives_first     = true
 dotnet_separate_import_directive_groups = false
 
+# ----------------------
 # C# formatting settings
+# ----------------------
+
 # Newline options
 csharp_new_line_before_open_brace                     = all
 csharp_new_line_before_else                           = true
@@ -102,28 +278,51 @@ csharp_new_line_before_members_in_anonymous_types     = true
 csharp_new_line_between_query_expression_clauses      = true
 
 # Indentation options
-csharp_indent_case_contents = true
-csharp_indent_switch_labels = true
-csharp_indent_labels        = no_change
+csharp_indent_block_contents           = true
+csharp_indent_case_contents            = true
+csharp_indent_case_contents_when_block = false
+csharp_indent_braces                   = false
+csharp_indent_labels                   = flush_left
+csharp_indent_switch_labels            = true
 
 # Spacing options
 csharp_space_after_cast                                                  = false
-csharp_space_after_keywords_in_control_flow_statements                   = true
-csharp_space_between_method_declaration_parameter_list_parentheses       = false
-csharp_space_between_method_call_parameter_list_parentheses              = false
-csharp_space_before_colon_in_inheritance_clause                          = true
 csharp_space_after_colon_in_inheritance_clause                           = true
+csharp_space_after_comma                                                 = true
+csharp_space_after_dot                                                   = false
+csharp_space_after_keywords_in_control_flow_statements                   = true
+csharp_space_after_semicolon_in_for_statement                            = true
 csharp_space_around_binary_operators                                     = before_and_after
-csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
-csharp_space_between_method_call_name_and_opening_parenthesis            = false
+csharp_space_around_declaration_statements                               = false
+csharp_space_before_colon_in_inheritance_clause                          = true
+csharp_space_before_comma                                                = false
+csharp_space_before_dot                                                  = false
+csharp_space_before_open_square_brackets                                 = false
+csharp_space_before_semicolon_in_for_statement                           = false
+csharp_space_between_empty_square_brackets                               = false
 csharp_space_between_method_call_empty_parameter_list_parentheses        = false
+csharp_space_between_method_call_name_and_opening_parenthesis            = false
+csharp_space_between_method_call_parameter_list_parentheses              = false
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+csharp_space_between_method_declaration_name_and_open_parenthesis        = false
+csharp_space_between_method_declaration_parameter_list_parentheses       = false
+csharp_space_between_parentheses                                         = false
+csharp_space_between_square_brackets                                     = false
 
 # Wrapping options
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks     = true
 
-# Naming conventions ("borrowed" from CoreFX)
+###############################################################################
+# Naming Rules
+###############################################################################
+
+# Naming conventions ("borrowed" from CoreFX/Runtime)
 # See https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-naming-conventions
+
+# -----------------------
+# Fields
+# -----------------------
 
 # name all constant fields using PascalCase
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error
@@ -166,53 +365,3 @@ dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = priva
 
 dotnet_naming_style.camel_case_underscore_style.required_prefix = _
 dotnet_naming_style.camel_case_underscore_style.capitalization  = camel_case
-
-# Analyzers
-# See https://github.com/dotnet/roslyn-analyzers/blob/master/docs/Analyzer%20Configuration.md
-
-# Note that the above severities do not affect builds by design. These values are only used
-# to configure the entries in Visual Studio's "Error List" and power its Intellisense.
-# Instead, the rules below are used to configure build-time analyzer behavior.
-# Unfortunately, some rules have been disabled due to performance reasons outside of
-# Visual Studio and can be found here:
-# https://github.com/dotnet/roslyn/blob/0a73f08951f408624639e1601bb828b396f154c8/src/Analyzers/Core/Analyzers/EnforceOnBuildValues.cs#L99
-
-# Code Quality Rules
-dotnet_code_quality.api_surface                           = all
-dotnet_code_quality.exclude_async_void_methods            = true
-dotnet_code_quality.exclude_single_letter_type_parameters = true
-dotnet_code_quality.dispose_analysis_kind                 = AllPaths
-dotnet_code_quality.enum_values_prefix_trigger            = AllEnumValues
-dotnet_code_quality.exclude_indirect_base_types           = false
-
-dotnet_code_quality.CA1002.api_surface = public, internal # Do not expose generic lists
-dotnet_code_quality.CA1062.api_surface = public           # Validate arguments of public methods
-dotnet_code_quality.CA1711.api_surface = public           # Identifiers should not have incorrect suffix
-dotnet_code_quality.CA1802 = static                       # Use Literals Where Appropriate
-dotnet_code_quality.CA1815.api_surface = public, internal # Override equals and operator equals on value types
-
-dotnet_diagnostic.CA1031.severity = error      # Do not catch general exception types
-dotnet_diagnostic.CA1032.severity = suggestion # Implement standard exception constructors
-dotnet_diagnostic.CA1054.severity = error      # URI parameters should not be strings
-dotnet_diagnostic.CA1305.severity = error      # Specify IFormatProvider
-dotnet_diagnostic.CA1716.severity = error      # Identifiers should not match keywords
-dotnet_diagnostic.CA1822.severity = error      # Mark members as static
-dotnet_diagnostic.CA1848.severity = none       # Do not encourage LoggerMessage delegates in every instance
-dotnet_diagnostic.CA2007.severity = none       # Do not directly await a Task
-
-# C# Compiler Rules
-dotnet_diagnostic.CS1591.severity = none # Missing XML comment for publicly visible type or member
-
-# Code Style Rules
-dotnet_diagnostic.IDE0003.severity = error # Remove this or Me qualification
-dotnet_diagnostic.IDE0004.severity = error # Remove unnecessary cast
-dotnet_diagnostic.IDE0005.severity = error # Remove unnecessary import
-dotnet_diagnostic.IDE0010.severity = none  # Add missing cases to switch statement
-dotnet_diagnostic.IDE0032.severity = error # Use auto property
-dotnet_diagnostic.IDE0044.severity = error # Add readonly modifier
-dotnet_diagnostic.IDE0055.severity = error # Fix formatting
-dotnet_diagnostic.IDE0065.severity = error # 'using' directive placement
-dotnet_diagnostic.IDE0073.severity = error # Require file header
-dotnet_diagnostic.IDE0161.severity = error # Use file-scoped namespace
-dotnet_diagnostic.IDE1005.severity = error # Use conditional delegate call
-dotnet_diagnostic.IDE1006.severity = error # Naming rule violation
