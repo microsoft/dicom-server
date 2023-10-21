@@ -20,6 +20,354 @@ global_level = 1
 # Design rules
 # -----------------------------------
 
+dotnet_diagnostic.CA1000.severity = error # Do not declare static members on generic types
+dotnet_diagnostic.CA1001.severity = error # Types that own disposable fields should be disposable
+dotnet_diagnostic.CA1002.severity = error # Do not expose generic lists
+dotnet_diagnostic.CA1003.severity = error # Use generic event handler instances
+dotnet_diagnostic.CA1005.severity = none  # Avoid excessive parameters on generic types
+dotnet_diagnostic.CA1008.severity = error # Enums should have zero value
+dotnet_diagnostic.CA1010.severity = error # Collections should implement generic interface
+dotnet_diagnostic.CA1012.severity = error # Abstract types should not have public constructors
+dotnet_diagnostic.CA1014.severity = error # Mark assemblies with CLSCompliantAttribute
+dotnet_diagnostic.CA1016.severity = error # Mark assemblies with AssemblyVersionAttribute
+dotnet_diagnostic.CA1017.severity = none  # Mark assemblies with ComVisibleAttribute
+dotnet_diagnostic.CA1018.severity = error # Mark attributes with AttributeUsageAttribute
+dotnet_diagnostic.CA1019.severity = error # Define accessors for attribute arguments
+dotnet_diagnostic.CA1021.severity = none  # Avoid out parameters
+dotnet_diagnostic.CA1024.severity = error # Use properties where appropriate
+dotnet_diagnostic.CA1027.severity = error # Mark enums with FlagsAttribute
+dotnet_diagnostic.CA1028.severity = none  # Enum storage should be Int32
+dotnet_diagnostic.CA1030.severity = error # Use events where appropriate
+dotnet_diagnostic.CA1031.severity = error # Do not catch general exception types
+dotnet_diagnostic.CA1032.severity = error # Implement standard exception constructors
+dotnet_diagnostic.CA1033.severity = none  # Interface methods should be callable by child types
+dotnet_diagnostic.CA1034.severity = error # Nested types should not be visible
+dotnet_diagnostic.CA1036.severity = error # Override methods on comparable types
+dotnet_diagnostic.CA1040.severity = error # Avoid empty interfaces
+dotnet_diagnostic.CA1041.severity = error # Provide ObsoleteAttribute message
+dotnet_diagnostic.CA1043.severity = error # Use integral or string argument for indexers
+dotnet_diagnostic.CA1044.severity = error # Properties should not be write only
+dotnet_diagnostic.CA1045.severity = none  # Do not pass types by reference
+dotnet_diagnostic.CA1046.severity = error # Do not overload operator equals on reference types
+dotnet_diagnostic.CA1047.severity = error # Do not declare protected members in sealed types
+dotnet_diagnostic.CA1050.severity = error # Declare types in namespaces
+dotnet_diagnostic.CA1051.severity = error # Do not declare visible instance fields
+dotnet_diagnostic.CA1052.severity = error # Static holder types should be Static or NotInheritable
+dotnet_diagnostic.CA1054.severity = error # URI parameters should not be strings
+dotnet_diagnostic.CA1055.severity = error # URI return values should not be strings
+dotnet_diagnostic.CA1056.severity = error # URI properties should not be strings
+dotnet_diagnostic.CA1058.severity = error # Types should not extend certain base types
+dotnet_diagnostic.CA1060.severity = error # Move P/Invokes to NativeMethods class
+dotnet_diagnostic.CA1061.severity = error # Do not hide base class methods
+dotnet_diagnostic.CA1062.severity = error # Validate arguments of public methods
+dotnet_diagnostic.CA1063.severity = error # Implement IDisposable correctly
+dotnet_diagnostic.CA1064.severity = error # Exceptions should be public
+dotnet_diagnostic.CA1065.severity = error # Do not raise exceptions in unexpected locations
+dotnet_diagnostic.CA1066.severity = error # Implement IEquatable when overriding Equals
+dotnet_diagnostic.CA1067.severity = error # Override Equals when implementing IEquatable
+dotnet_diagnostic.CA1068.severity = error # CancellationToken parameters must come last
+dotnet_diagnostic.CA1069.severity = error # Enums should not have duplicate values
+dotnet_diagnostic.CA1070.severity = error # Do not declare event fields as virtual
+
+# -----------------------------------
+# Documentation rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1200.severity = error # Avoid using cref tags with a prefix
+
+# -----------------------------------
+# Globalization rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1303.severity = error # Do not pass literals as localized parameters
+dotnet_diagnostic.CA1304.severity = error # Specify CultureInfo
+dotnet_diagnostic.CA1305.severity = error # Specify IFormatProvider
+dotnet_diagnostic.CA1307.severity = error # Specify StringComparison for clarity
+dotnet_diagnostic.CA1308.severity = error # Normalize strings to uppercase
+dotnet_diagnostic.CA1309.severity = error # Use ordinal StringComparison
+dotnet_diagnostic.CA1310.severity = error # Specify StringComparison for correctness
+dotnet_diagnostic.CA1311.severity = error # Specify a culture or use an invariant version
+dotnet_diagnostic.CA2101.severity = error # Specify marshalling for P/Invoke string arguments
+
+# -----------------------------------
+# Portability and interoperability rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1401.severity = error # P/Invokes should not be visible
+dotnet_diagnostic.CA1416.severity = error # Validate platform compatibility
+dotnet_diagnostic.CA1417.severity = error # Do not use OutAttribute on string parameters for P/Invokes
+dotnet_diagnostic.CA1418.severity = error # Validate platform compatibility
+dotnet_diagnostic.CA1419.severity = error # Provide a parameterless constructor that is as visible as the containing type for concrete types derived from 'System.Runtime.InteropServices.SafeHandle'
+dotnet_diagnostic.CA1420.severity = error # Property, type, or attribute requires runtime marshalling
+dotnet_diagnostic.CA1421.severity = error # Method uses runtime marshalling when DisableRuntimeMarshallingAttribute is applied
+dotnet_diagnostic.CA1422.severity = error # Validate platform compatibility - obsoleted APIs
+
+# -----------------------------------
+# Maintainability rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1501.severity = error # Avoid excessive inheritance
+dotnet_diagnostic.CA1502.severity = error # Avoid excessive complexity
+dotnet_diagnostic.CA1505.severity = error # Avoid unmaintainable code
+dotnet_diagnostic.CA1506.severity = error # Avoid excessive class coupling
+dotnet_diagnostic.CA1507.severity = error # Use nameof in place of string
+dotnet_diagnostic.CA1508.severity = error # Avoid dead conditional code
+dotnet_diagnostic.CA1509.severity = error # Invalid entry in code metrics configuration file
+dotnet_diagnostic.CA1514.severity = error # Avoid redundant length argument
+
+# -----------------------------------
+# Naming rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1700.severity = error # Do not name enum values 'Reserved'
+dotnet_diagnostic.CA1707.severity = error # Identifiers should not contain underscores
+dotnet_diagnostic.CA1708.severity = error # Identifiers should differ by more than case
+dotnet_diagnostic.CA1710.severity = error # Identifiers should have correct suffix
+dotnet_diagnostic.CA1711.severity = error # Identifiers should not have incorrect suffix
+dotnet_diagnostic.CA1712.severity = error # Do not prefix enum values with type name
+dotnet_diagnostic.CA1713.severity = error # Events should not have before or after prefix
+dotnet_diagnostic.CA1714.severity = error # Flags enums should have plural names
+dotnet_diagnostic.CA1715.severity = error # Identifiers should have correct prefix
+dotnet_diagnostic.CA1716.severity = error # Identifiers should not match keywords
+dotnet_diagnostic.CA1717.severity = error # Only FlagsAttribute enums should have plural names
+dotnet_diagnostic.CA1720.severity = error # Identifiers should not contain type names
+dotnet_diagnostic.CA1721.severity = error # Property names should not match get methods
+dotnet_diagnostic.CA1724.severity = error # Type names should not match namespaces
+dotnet_diagnostic.CA1725.severity = error # Parameter names should match base declaration
+dotnet_diagnostic.CA1727.severity = error # Use PascalCase for named placeholders
+
+# -----------------------------------
+# Performance rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1802.severity = error # Use Literals Where Appropriate
+dotnet_diagnostic.CA1805.severity = error # Do not initialize unnecessarily
+dotnet_diagnostic.CA1806.severity = error # Do not ignore method results
+dotnet_diagnostic.CA1810.severity = error # Initialize reference type static fields inline
+dotnet_diagnostic.CA1812.severity = error # Avoid uninstantiated internal classes
+dotnet_diagnostic.CA1813.severity = error # Avoid unsealed attributes
+dotnet_diagnostic.CA1814.severity = error # Prefer jagged arrays over multidimensional
+dotnet_diagnostic.CA1815.severity = error # Override equals and operator equals on value types
+dotnet_diagnostic.CA1819.severity = error # Properties should not return arrays
+dotnet_diagnostic.CA1820.severity = error # Test for empty strings using string length
+dotnet_diagnostic.CA1821.severity = error # Remove empty finalizers
+dotnet_diagnostic.CA1822.severity = error # Mark members as static
+dotnet_diagnostic.CA1823.severity = error # Avoid unused private fields
+dotnet_diagnostic.CA1824.severity = error # Mark assemblies with NeutralResourcesLanguageAttribute
+dotnet_diagnostic.CA1825.severity = error # Avoid zero-length array allocations
+dotnet_diagnostic.CA1826.severity = error # Use property instead of Linq Enumerable method
+dotnet_diagnostic.CA1827.severity = error # Do not use Count()/LongCount() when Any() can be used
+dotnet_diagnostic.CA1828.severity = error # Do not use CountAsync/LongCountAsync when AnyAsync can be used
+dotnet_diagnostic.CA1829.severity = error # Use Length/Count property instead of Enumerable.Count method
+dotnet_diagnostic.CA1830.severity = error # Prefer strongly-typed Append and Insert method overloads on StringBuilder
+dotnet_diagnostic.CA1831.severity = error # Use AsSpan instead of Range-based indexers for string when appropriate
+dotnet_diagnostic.CA1832.severity = error # Use AsSpan or AsMemory instead of Range-based indexers for getting ReadOnlySpan or ReadOnlyMemory portion of an array
+dotnet_diagnostic.CA1833.severity = error # Use AsSpan or AsMemory instead of Range-based indexers for getting Span or Memory portion of an array
+dotnet_diagnostic.CA1834.severity = error # Use StringBuilder.Append(char) for single character strings
+dotnet_diagnostic.CA1835.severity = error # Prefer the memory-based overloads of ReadAsync/WriteAsync methods in stream-based classes
+dotnet_diagnostic.CA1836.severity = error # Prefer IsEmpty over Count when available
+dotnet_diagnostic.CA1837.severity = error # Use Environment.ProcessId instead of Process.GetCurrentProcess().Id
+dotnet_diagnostic.CA1838.severity = error # Avoid StringBuilder parameters for P/Invokes
+dotnet_diagnostic.CA1839.severity = error # Use Environment.ProcessPath instead of Process.GetCurrentProcess().MainModule.FileName
+dotnet_diagnostic.CA1840.severity = error # Use Environment.CurrentManagedThreadId instead of Thread.CurrentThread.ManagedThreadId
+dotnet_diagnostic.CA1841.severity = error # Prefer Dictionary Contains methods
+dotnet_diagnostic.CA1842.severity = error # Do not use 'WhenAll' with a single task
+dotnet_diagnostic.CA1843.severity = error # Do not use 'WaitAll' with a single task
+dotnet_diagnostic.CA1844.severity = error # Provide memory-based overrides of async methods when subclassing 'Stream'
+dotnet_diagnostic.CA1845.severity = error # Use span-based 'string.Concat'
+dotnet_diagnostic.CA1846.severity = error # Prefer AsSpan over Substring
+dotnet_diagnostic.CA1847.severity = error # Use string.Contains(char) instead of string.Contains(string) with single characters
+dotnet_diagnostic.CA1848.severity = error # Use the LoggerMessage delegates
+dotnet_diagnostic.CA1849.severity = error # Call async methods when in an async method
+dotnet_diagnostic.CA1850.severity = error # Prefer static HashData method over ComputeHash
+dotnet_diagnostic.CA1851.severity = error # Possible multiple enumerations of IEnumerable collection
+dotnet_diagnostic.CA1852.severity = error # Seal internal types
+dotnet_diagnostic.CA1853.severity = error # Unnecessary call to 'Dictionary.ContainsKey(key)'
+dotnet_diagnostic.CA1854.severity = error # Prefer the IDictionary.TryGetValue(TKey, out TValue) method
+dotnet_diagnostic.CA1855.severity = error # Use Span<T>.Clear() instead of Span<T>.Fill()
+dotnet_diagnostic.CA1858.severity = error # Use StartsWith instead of IndexOf
+dotnet_diagnostic.CA1859.severity = error # Use concrete types when possible for improved performance
+dotnet_diagnostic.CA1860.severity = error # Avoid using 'Enumerable.Any()' extension method
+dotnet_diagnostic.CA1861.severity = error # Avoid constant arrays as arguments
+dotnet_diagnostic.CA1864.severity = error # Prefer the 'IDictionary.TryAdd(TKey, TValue)' method
+dotnet_diagnostic.CA1865.severity = error # Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char
+dotnet_diagnostic.CA1866.severity = error # Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char
+dotnet_diagnostic.CA1867.severity = error #  Use 'string.Method(char)' instead of 'string.Method(string)' for string with single char
+dotnet_diagnostic.CA1868.severity = error # Unnecessary call to 'Contains' for sets
+dotnet_diagnostic.CA1869.severity = error # Cache and reuse 'JsonSerializerOptions' instances
+dotnet_diagnostic.CA1870.severity = error # Use a cached 'SearchValues' instance
+
+# -----------------------------------
+# SingleFile rules
+# -----------------------------------
+
+dotnet_diagnostic.IL3000.severity = error # Avoid accessing Assembly file path when publishing as a single file
+dotnet_diagnostic.IL3001.severity = error # Avoid accessing Assembly file path when publishing as a single file
+dotnet_diagnostic.IL3002.severity = error # Avoid calling members annotated with 'RequiresAssemblyFilesAttribute' when publishing as a single file.
+dotnet_diagnostic.IL3003.severity = error # 'RequiresAssemblyFilesAttribute' annotations must match across all interface implementations or overrides
+
+# -----------------------------------
+# Reliability rules
+# -----------------------------------
+
+dotnet_diagnostic.CA2000.severity = error # Dispose objects before losing scope
+dotnet_diagnostic.CA2002.severity = error # Do not lock on objects with weak identity
+dotnet_diagnostic.CA2007.severity = error # Do not directly await a Task
+dotnet_diagnostic.CA2008.severity = error # Do not create tasks without passing a TaskScheduler
+dotnet_diagnostic.CA2009.severity = error # Do not call ToImmutableCollection on an ImmutableCollection value
+dotnet_diagnostic.CA2011.severity = error # Do not assign property within its setter
+dotnet_diagnostic.CA2012.severity = error # Use ValueTasks correctly
+dotnet_diagnostic.CA2013.severity = error # Do not use ReferenceEquals with value types
+dotnet_diagnostic.CA2014.severity = error # Do not use stackalloc in loops
+dotnet_diagnostic.CA2015.severity = error # Do not define finalizers for types derived from MemoryManager<T>
+dotnet_diagnostic.CA2016.severity = error # Forward the CancellationToken parameter to methods that take one
+dotnet_diagnostic.CA2017.severity = error # Parameter count mismatch
+dotnet_diagnostic.CA2018.severity = error # The count argument to Buffer.BlockCopy should specify the number of bytes to copy
+dotnet_diagnostic.CA2019.severity = error # ThreadStatic fields should not use inline initialization
+dotnet_diagnostic.CA2020.severity = error # Prevent behavioral change caused by built-in operators of IntPtr/UIntPtr
+
+# -----------------------------------
+# Security rules
+# -----------------------------------
+
+dotnet_diagnostic.CA2100.severity = error # Review SQL queries for security vulnerabilities
+dotnet_diagnostic.CA2119.severity = error # Seal methods that satisfy private interfaces
+dotnet_diagnostic.CA2153.severity = error # Avoid handling Corrupted State Exceptions
+dotnet_diagnostic.CA2300.severity = error # Do not use insecure deserializer BinaryFormatter
+dotnet_diagnostic.CA2301.severity = error # Do not call BinaryFormatter.Deserialize without first setting BinaryFormatter.Binder
+dotnet_diagnostic.CA2302.severity = error # Ensure BinaryFormatter.Binder is set before calling BinaryFormatter.Deserialize
+dotnet_diagnostic.CA2305.severity = error # Do not use insecure deserializer LosFormatter
+dotnet_diagnostic.CA2310.severity = error # Do not use insecure deserializer NetDataContractSerializer
+dotnet_diagnostic.CA2311.severity = error # Do not deserialize without first setting NetDataContractSerializer.Binder
+dotnet_diagnostic.CA2312.severity = error # Ensure NetDataContractSerializer.Binder is set before deserializing
+dotnet_diagnostic.CA2315.severity = error # Do not use insecure deserializer ObjectStateFormatter
+dotnet_diagnostic.CA2321.severity = error # Do not deserialize with JavaScriptSerializer using a SimpleTypeResolver
+dotnet_diagnostic.CA2322.severity = error # Ensure JavaScriptSerializer is not initialized with SimpleTypeResolver before deserializing
+dotnet_diagnostic.CA2326.severity = error # Do not use TypeNameHandling values other than None
+dotnet_diagnostic.CA2327.severity = error # Do not use insecure JsonSerializerSettings
+dotnet_diagnostic.CA2328.severity = error # Ensure that JsonSerializerSettings are secure
+dotnet_diagnostic.CA2329.severity = error # Do not deserialize with JsonSerializer using an insecure configuration
+dotnet_diagnostic.CA2330.severity = error # Ensure that JsonSerializer has a secure configuration when deserializing
+dotnet_diagnostic.CA2350.severity = error # Ensure DataTable.ReadXml()'s input is trusted
+dotnet_diagnostic.CA2351.severity = error # Ensure DataSet.ReadXml()'s input is trusted
+dotnet_diagnostic.CA2352.severity = error # Unsafe DataSet or DataTable in serializable type can be vulnerable to remote code execution attacks
+dotnet_diagnostic.CA2353.severity = error # Unsafe DataSet or DataTable in serializable type
+dotnet_diagnostic.CA2354.severity = error # Unsafe DataSet or DataTable in deserialized object graph can be vulnerable to remote code execution attack
+dotnet_diagnostic.CA2355.severity = error # Unsafe DataSet or DataTable in deserialized object graph
+dotnet_diagnostic.CA2356.severity = error # Unsafe DataSet or DataTable type in web deserialized object graph
+dotnet_diagnostic.CA2361.severity = error # Ensure autogenerated class containing DataSet.ReadXml() is not used with untrusted data
+dotnet_diagnostic.CA2362.severity = error # Unsafe DataSet or DataTable in autogenerated serializable type can be vulnerable to remote code execution attacks
+dotnet_diagnostic.CA3001.severity = error # Review code for SQL injection vulnerabilities
+dotnet_diagnostic.CA3002.severity = error # Review code for XSS vulnerabilities
+dotnet_diagnostic.CA3003.severity = error # Review code for file path injection vulnerabilities
+dotnet_diagnostic.CA3004.severity = error # Review code for information disclosure vulnerabilities
+dotnet_diagnostic.CA3006.severity = error # Review code for process command injection vulnerabilities
+dotnet_diagnostic.CA3007.severity = error # Review code for open redirect vulnerabilities
+dotnet_diagnostic.CA3008.severity = error # Review code for XPath injection vulnerabilities
+dotnet_diagnostic.CA3009.severity = error # Review code for XML injection vulnerabilities
+dotnet_diagnostic.CA3010.severity = error # Review code for XAML injection vulnerabilities
+dotnet_diagnostic.CA3011.severity = error # Review code for DLL injection vulnerabilities
+dotnet_diagnostic.CA3012.severity = error # Review code for regex injection vulnerabilities
+dotnet_diagnostic.CA3061.severity = error # Do not add schema by URL
+dotnet_diagnostic.CA3075.severity = error # Insecure DTD Processing
+dotnet_diagnostic.CA3076.severity = error # Insecure XSLT Script Execution
+dotnet_diagnostic.CA3077.severity = error # Insecure Processing in API Design, XML Document and XML Text Reader
+dotnet_diagnostic.CA3147.severity = error # Mark verb handlers with ValidateAntiForgeryToken
+dotnet_diagnostic.CA5350.severity = error # Do Not Use Weak Cryptographic Algorithms
+dotnet_diagnostic.CA5351.severity = error # Do Not Use Broken Cryptographic Algorithms
+dotnet_diagnostic.CA5358.severity = error # Do Not Use Unsafe Cipher Modes
+dotnet_diagnostic.CA5359.severity = error # Do not disable certificate validation
+dotnet_diagnostic.CA5360.severity = error # Do not call dangerous methods in deserialization
+dotnet_diagnostic.CA5361.severity = error # Do not disable SChannel use of strong crypto
+dotnet_diagnostic.CA5362.severity = error # Potential reference cycle in deserialized object graph
+dotnet_diagnostic.CA5363.severity = error # Do not disable request validation
+dotnet_diagnostic.CA5364.severity = error # Do not use deprecated security protocols
+dotnet_diagnostic.CA5365.severity = error # Do Not Disable HTTP Header Checking
+dotnet_diagnostic.CA5366.severity = error # Use XmlReader For DataSet Read XML
+dotnet_diagnostic.CA5367.severity = error # Do not serialize types with pointer fields
+dotnet_diagnostic.CA5368.severity = error # Set ViewStateUserKey For Classes Derived From Page
+dotnet_diagnostic.CA5369.severity = error # Use XmlReader for Deserialize
+dotnet_diagnostic.CA5370.severity = error # Use XmlReader for validating reader
+dotnet_diagnostic.CA5371.severity = error # Use XmlReader for schema read
+dotnet_diagnostic.CA5372.severity = error # Use XmlReader for XPathDocument
+dotnet_diagnostic.CA5373.severity = error # Do not use obsolete key derivation function
+dotnet_diagnostic.CA5374.severity = error # Do not use XslTransform
+dotnet_diagnostic.CA5375.severity = error # Do not use account shared access signature
+dotnet_diagnostic.CA5376.severity = error # Use SharedAccessProtocol HttpsOnly
+dotnet_diagnostic.CA5377.severity = error # Use container level access policy
+dotnet_diagnostic.CA5378.severity = error # Do not disable ServicePointManagerSecurityProtocols
+dotnet_diagnostic.CA5379.severity = error # Ensure key derivation function algorithm is sufficiently strong
+dotnet_diagnostic.CA5380.severity = error # Do not add certificates to root store
+dotnet_diagnostic.CA5381.severity = error # Ensure certificates are not added to root store
+dotnet_diagnostic.CA5382.severity = error # Use secure cookies in ASP.NET Core
+dotnet_diagnostic.CA5383.severity = error # Ensure use secure cookies in ASP.NET Core
+dotnet_diagnostic.CA5384.severity = error # Do not use digital signature algorithm (DSA)
+dotnet_diagnostic.CA5385.severity = error # Use Rivest–Shamir–Adleman (RSA) algorithm with sufficient key size
+dotnet_diagnostic.CA5386.severity = error # Avoid hardcoding SecurityProtocolType value
+dotnet_diagnostic.CA5387.severity = error # Do not use weak key derivation function with insufficient iteration count
+dotnet_diagnostic.CA5388.severity = error # Ensure sufficient iteration count when using weak key derivation function
+dotnet_diagnostic.CA5389.severity = error # Do not add archive item's path to the target file system path
+dotnet_diagnostic.CA5390.severity = error # Do not hard-code encryption key
+dotnet_diagnostic.CA5391.severity = error # Use antiforgery tokens in ASP.NET Core MVC controllers
+dotnet_diagnostic.CA5392.severity = error # Use DefaultDllImportSearchPaths attribute for P/Invokes
+dotnet_diagnostic.CA5393.severity = error # Do not use unsafe DllImportSearchPath value
+dotnet_diagnostic.CA5394.severity = error # Do not use insecure randomness
+dotnet_diagnostic.CA5395.severity = error # Miss HttpVerb attribute for action methods
+dotnet_diagnostic.CA5396.severity = error # Set HttpOnly to true for HttpCookie
+dotnet_diagnostic.CA5397.severity = error # Do not use deprecated SslProtocols values
+dotnet_diagnostic.CA5398.severity = error # Avoid hardcoded SslProtocols values
+dotnet_diagnostic.CA5399.severity = error # Enable HttpClient certificate revocation list check
+dotnet_diagnostic.CA5400.severity = error # Ensure HttpClient certificate revocation list check is not disabled
+dotnet_diagnostic.CA5401.severity = error # Do not use CreateEncryptor with non-default IV
+dotnet_diagnostic.CA5402.severity = error # Use CreateEncryptor with the default IV
+dotnet_diagnostic.CA5403.severity = error # Do not hard-code certificate
+dotnet_diagnostic.CA5404.severity = error # Do not disable token validation checks
+dotnet_diagnostic.CA5405.severity = error # Do not always skip token validation in delegates
+
+# -----------------------------------
+# Usage rules
+# -----------------------------------
+
+dotnet_diagnostic.CA1816.severity = error # Call GC.SuppressFinalize correctly
+dotnet_diagnostic.CA2200.severity = error # Rethrow to preserve stack details
+dotnet_diagnostic.CA2201.severity = error # Do not raise reserved exception types
+dotnet_diagnostic.CA2207.severity = error # Initialize value type static fields inline
+dotnet_diagnostic.CA2208.severity = error # Instantiate argument exceptions correctly
+dotnet_diagnostic.CA2211.severity = error # Non-constant fields should not be visible
+dotnet_diagnostic.CA2213.severity = error # Disposable fields should be disposed
+dotnet_diagnostic.CA2214.severity = error # Do not call overridable methods in constructors
+dotnet_diagnostic.CA2215.severity = error # Dispose methods should call base class dispose
+dotnet_diagnostic.CA2216.severity = error # Disposable types should declare finalizer
+dotnet_diagnostic.CA2217.severity = error # Do not mark enums with FlagsAttribute
+dotnet_diagnostic.CA2219.severity = error # Do not raise exceptions in exception clauses
+dotnet_diagnostic.CA2225.severity = error # Operator overloads have named alternates
+dotnet_diagnostic.CA2226.severity = error # Operators should have symmetrical overloads
+dotnet_diagnostic.CA2227.severity = error # Collection properties should be read only
+dotnet_diagnostic.CA2229.severity = error # Implement serialization constructors
+dotnet_diagnostic.CA2231.severity = error # Overload operator equals on overriding ValueType.Equals
+dotnet_diagnostic.CA2234.severity = error # Pass System.Uri objects instead of strings
+dotnet_diagnostic.CA2235.severity = error # Mark all non-serializable fields
+dotnet_diagnostic.CA2237.severity = error # Mark ISerializable types with SerializableAttribute
+dotnet_diagnostic.CA2241.severity = error # Provide correct arguments to formatting methods
+dotnet_diagnostic.CA2242.severity = error # Test for NaN correctly
+dotnet_diagnostic.CA2243.severity = error # Attribute string literals should parse correctly
+dotnet_diagnostic.CA2244.severity = error # Do not duplicate indexed element initializations
+dotnet_diagnostic.CA2245.severity = error # Do not assign a property to itself
+dotnet_diagnostic.CA2246.severity = error # Do not assign a symbol and its member in the same statement
+dotnet_diagnostic.CA2247.severity = error # Argument passed to TaskCompletionSource constructor should be TaskCreationOptions enum instead of TaskContinuationOptions enum
+dotnet_diagnostic.CA2248.severity = error # Provide correct enum argument to Enum.HasFlag
+dotnet_diagnostic.CA2249.severity = error # Consider using String.Contains instead of String.IndexOf
+dotnet_diagnostic.CA2250.severity = error # Use ThrowIfCancellationRequested
+dotnet_diagnostic.CA2251.severity = error # Use String.Equals over String.Compare
+dotnet_diagnostic.CA2252.severity = error # Opt in to preview features before using them
+dotnet_diagnostic.CA2253.severity = error # Named placeholders should not be numeric values
+dotnet_diagnostic.CA2254.severity = error # Template should be a static expression
+dotnet_diagnostic.CA2255.severity = error # The ModuleInitializer attribute should not be used in libraries
+dotnet_diagnostic.CA2256.severity = error # All members declared in parent interfaces must have an implementation in a DynamicInterfaceCastableImplementation-attributed interface
+dotnet_diagnostic.CA2257.severity = error # Members defined on an interface with the 'DynamicInterfaceCastableImplementationAttribute' should be 'static'
+dotnet_diagnostic.CA2259.severity = error # Ensure ThreadStatic is only used with static fields
+dotnet_diagnostic.CA2260.severity = error # Implement generic math interfaces correctly
+
 ###############################################################################
 # Code style rules
 ###############################################################################
