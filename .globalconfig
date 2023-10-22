@@ -735,3 +735,15 @@ dotnet_naming_style.static_prefix_style.capitalization  = camel_case
 # camelCase underscore style
 dotnet_naming_style.camel_case_underscore_style.required_prefix = _
 dotnet_naming_style.camel_case_underscore_style.capitalization  = camel_case
+
+###############################################################################
+# C# compiler messages
+###############################################################################
+
+# See here for details: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/
+
+# -----------------------------------
+# Level 4 warning messages
+# -----------------------------------
+
+dotnet_diagnostic.CS1591.severity = none
