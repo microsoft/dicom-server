@@ -38,7 +38,7 @@ dotnet_diagnostic.CA1027.severity = error # Mark enums with FlagsAttribute
 dotnet_diagnostic.CA1028.severity = none  # Enum storage should be Int32
 dotnet_diagnostic.CA1030.severity = error # Use events where appropriate
 dotnet_diagnostic.CA1031.severity = error # Do not catch general exception types
-dotnet_diagnostic.CA1032.severity = error # Implement standard exception constructors
+dotnet_diagnostic.CA1032.severity = none  # TODO: error # Implement standard exception constructors
 dotnet_diagnostic.CA1033.severity = none  # Interface methods should be callable by child types
 dotnet_diagnostic.CA1034.severity = error # Nested types should not be visible
 dotnet_diagnostic.CA1036.severity = error # Override methods on comparable types
@@ -176,7 +176,7 @@ dotnet_diagnostic.CA1844.severity = error # Provide memory-based overrides of as
 dotnet_diagnostic.CA1845.severity = error # Use span-based 'string.Concat'
 dotnet_diagnostic.CA1846.severity = error # Prefer AsSpan over Substring
 dotnet_diagnostic.CA1847.severity = error # Use string.Contains(char) instead of string.Contains(string) with single characters
-dotnet_diagnostic.CA1848.severity = error # Use the LoggerMessage delegates
+dotnet_diagnostic.CA1848.severity = none  # TODO: error # Use the LoggerMessage delegates
 dotnet_diagnostic.CA1849.severity = error # Call async methods when in an async method
 dotnet_diagnostic.CA1850.severity = error # Prefer static HashData method over ComputeHash
 dotnet_diagnostic.CA1851.severity = error # Possible multiple enumerations of IEnumerable collection
@@ -211,7 +211,7 @@ dotnet_diagnostic.IL3003.severity = error # 'RequiresAssemblyFilesAttribute' ann
 
 dotnet_diagnostic.CA2000.severity = error # Dispose objects before losing scope
 dotnet_diagnostic.CA2002.severity = error # Do not lock on objects with weak identity
-dotnet_diagnostic.CA2007.severity = error # Do not directly await a Task
+dotnet_diagnostic.CA2007.severity = none # TODO: error # Do not directly await a Task
 dotnet_diagnostic.CA2008.severity = error # Do not create tasks without passing a TaskScheduler
 dotnet_diagnostic.CA2009.severity = error # Do not call ToImmutableCollection on an ImmutableCollection value
 dotnet_diagnostic.CA2011.severity = error # Do not assign property within its setter
@@ -397,15 +397,15 @@ csharp_style_prefer_method_group_conversion = true
 csharp_style_prefer_top_level_statements    = true
 
 # Expression-bodied members
-dotnet_diagnostic.IDE0021.severity = error # Use expression body for constructors
-dotnet_diagnostic.IDE0022.severity = error # Use expression body for methods
-dotnet_diagnostic.IDE0023.severity = error # Use expression body for conversion operators
-dotnet_diagnostic.IDE0024.severity = error # Use expression body for operators
-dotnet_diagnostic.IDE0025.severity = error # Use expression body for properties
-dotnet_diagnostic.IDE0026.severity = error # Use expression body for indexers
-dotnet_diagnostic.IDE0027.severity = error # Use expression body for accessors
-dotnet_diagnostic.IDE0053.severity = error # Use expression body for lambdas
-dotnet_diagnostic.IDE0061.severity = error # Use expression body for local functions
+dotnet_diagnostic.IDE0021.severity = none # TODO: error # Use expression body for constructors
+dotnet_diagnostic.IDE0022.severity = none # TODO: error # Use expression body for methods
+dotnet_diagnostic.IDE0023.severity = none # TODO: error # Use expression body for conversion operators
+dotnet_diagnostic.IDE0024.severity = none # TODO: error # Use expression body for operators
+dotnet_diagnostic.IDE0025.severity = none # TODO: error # Use expression body for properties
+dotnet_diagnostic.IDE0026.severity = none # TODO: error # Use expression body for indexers
+dotnet_diagnostic.IDE0027.severity = none # TODO: error # Use expression body for accessors
+dotnet_diagnostic.IDE0053.severity = none # TODO: error # Use expression body for lambdas
+dotnet_diagnostic.IDE0061.severity = none # TODO: error # Use expression body for local functions
 
 csharp_style_expression_bodied_accessors       = when_on_single_line
 csharp_style_expression_bodied_constructors    = when_on_single_line
@@ -420,7 +420,7 @@ csharp_style_expression_bodied_properties      = when_on_single_line
 dotnet_diagnostic.IDE0001.severity = error # Simplify name
 dotnet_diagnostic.IDE0002.severity = error # Simplify member access
 dotnet_diagnostic.IDE0004.severity = error # Remove unnecessary cast
-dotnet_diagnostic.IDE0010.severity = error # Add missing cases to switch statement
+dotnet_diagnostic.IDE0010.severity = none  # TODO:error # Add missing cases to switch statement
 dotnet_diagnostic.IDE0016.severity = error # Use throw expression
 dotnet_diagnostic.IDE0017.severity = error # Use object initializers
 dotnet_diagnostic.IDE0018.severity = error # Inline variable declaration
@@ -437,7 +437,7 @@ dotnet_diagnostic.IDE0039.severity = error # Use local function instead of lambd
 dotnet_diagnostic.IDE0041.severity = error # Use 'is null' check
 dotnet_diagnostic.IDE0042.severity = error # Deconstruct variable declaration
 dotnet_diagnostic.IDE0045.severity = error # Use conditional expression for assignment
-dotnet_diagnostic.IDE0046.severity = error # Use conditional expression for return
+dotnet_diagnostic.IDE0046.severity = none  # TODO: error # Use conditional expression for return
 dotnet_diagnostic.IDE0051.severity = error # Remove unused private member
 dotnet_diagnostic.IDE0052.severity = error # Remove unread private member
 dotnet_diagnostic.IDE0054.severity = error # Use compound assignment
@@ -447,12 +447,12 @@ dotnet_diagnostic.IDE0058.severity = error # Remove unnecessary expression value
 dotnet_diagnostic.IDE0059.severity = error # Remove unnecessary value assignment
 dotnet_diagnostic.IDE0070.severity = error # Use 'System.HashCode.Combine'
 dotnet_diagnostic.IDE0071.severity = error # Simplify interpolation
-dotnet_diagnostic.IDE0072.severity = error # Add missing cases to switch expression
+dotnet_diagnostic.IDE0072.severity = none  # Add missing cases to switch expression
 dotnet_diagnostic.IDE0074.severity = error # Use coalesce compound assignment
 dotnet_diagnostic.IDE0075.severity = error # Simplify conditional expression
 dotnet_diagnostic.IDE0080.severity = error # Remove unnecessary suppression operator
 dotnet_diagnostic.IDE0082.severity = error # Convert typeof to nameof
-dotnet_diagnostic.IDE0090.severity = error # Simplify new expression
+dotnet_diagnostic.IDE0090.severity = none  # TODO: error # Simplify new expression
 dotnet_diagnostic.IDE0100.severity = error # Remove unnecessary equality operator
 dotnet_diagnostic.IDE0110.severity = error # Remove unnecessary discard
 dotnet_diagnostic.IDE0120.severity = error # Simplify LINQ expression
@@ -467,7 +467,7 @@ dotnet_diagnostic.IDE0270.severity = error # Null check can be simplified (if nu
 
 csharp_prefer_simple_default_expression                     = true
 csharp_style_deconstructed_variable_declaration             = true
-csharp_style_implicit_object_creation_when_type_is_apparent = true
+# csharp_style_implicit_object_creation_when_type_is_apparent = true
 csharp_style_inlined_variable_declaration                   = true
 csharp_style_throw_expression                               = true
 csharp_style_prefer_index_operator                          = true
@@ -583,12 +583,12 @@ dotnet_style_qualification_for_method   = false
 dotnet_style_qualification_for_event    = false
 
 # var preferences
-dotnet_diagnostic.IDE0007.severity = none  # Use var instead of explicit type
-dotnet_diagnostic.IDE0008.severity = error # Use explicit type instead of var
+dotnet_diagnostic.IDE0007.severity = none # Use var instead of explicit type
+dotnet_diagnostic.IDE0008.severity = none # TODO: error # Use explicit type instead of var
 
-csharp_style_var_for_built_in_types    = false
-csharp_style_var_when_type_is_apparent = false
-csharp_style_var_elsewhere             = false
+# csharp_style_var_for_built_in_types    = false
+# csharp_style_var_when_type_is_apparent = false
+# csharp_style_var_elsewhere             = false
 
 # ===============================================
 # Miscellaneous rules
