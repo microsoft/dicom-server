@@ -1,6 +1,5 @@
 # Global AnalyzerConfig file
-# For details: https://docs.microsoft.com/en-us/dotnet/fundamentals/code-analysis/configuration-files
-# For rules: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+# See more here: https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview
 is_global = true
 global_level = 1
 
@@ -661,55 +660,78 @@ csharp_space_between_square_brackets                                     = false
 csharp_preserve_single_line_statements = false
 csharp_preserve_single_line_blocks     = true
 
-###############################################################################
-# Naming Rules
-###############################################################################
+# ===============================================
+# Naming rules
+# ===============================================
 
-# Naming conventions ("borrowed" from CoreFX/Runtime)
-# See https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-naming-conventions
+# See https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/style-rules/naming-rules
 
 # -----------------------
-# Fields
+# Naming rules
 # -----------------------
 
-# name all constant fields using PascalCase
-dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = error
-dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
-dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_style
+# Public and internal symbols must use PascalCase
+dotnet_naming_rule.public_and_internal_symbols_must_be_pascal_case.severity = error
+dotnet_naming_rule.public_and_internal_symbols_must_be_pascal_case.symbols  = public_and_internal_symbols
+dotnet_naming_rule.public_and_internal_symbols_must_be_pascal_case.style    = pascal_case_style
 
+# Constant fields must use PascalCase
+dotnet_naming_rule.constant_fields_must_be_pascal_case.severity = error
+dotnet_naming_rule.constant_fields_must_be_pascal_case.symbols  = constant_fields
+dotnet_naming_rule.constant_fields_must_be_pascal_case.style    = pascal_case_style
+
+# Static read-only fields must use PascalCase
+dotnet_naming_rule.static_readonly_fields_must_be_pascal_case.severity = error
+dotnet_naming_rule.static_readonly_fields_must_be_pascal_case.symbols  = static_readonly_fields
+dotnet_naming_rule.static_readonly_fields_must_be_pascal_case.style    = pascal_case_style
+
+# Static private fields must start with the _s prefix
+dotnet_naming_rule.static_private_fields_must_start_with_prefix.severity = error
+dotnet_naming_rule.static_private_fields_must_start_with_prefix.symbols  = static_private_fields
+dotnet_naming_rule.static_private_fields_must_start_with_prefix.style    = static_prefix_style
+
+# Private instance fields must use PascalCase
+dotnet_naming_rule.private_fields_must_be_pascal_case.severity = error
+dotnet_naming_rule.private_fields_must_be_pascal_case.symbols  = private_fields
+dotnet_naming_rule.private_fields_must_be_pascal_case.style    = camel_case_underscore_style
+
+# -----------------------
+# Symbol groups
+# -----------------------
+
+# Public and internal symbols
+dotnet_naming_symbols.public_and_internal_symbols.applicable_accessibilities = public,internal
+dotnet_naming_symbols.public_and_internal_symbols.applicable_kinds           = property,method,field,event,delegate
+
+# Constant fields
 dotnet_naming_symbols.constant_fields.applicable_kinds   = field
 dotnet_naming_symbols.constant_fields.required_modifiers = const
 
-# name all static readonly fields using PascalCase
-dotnet_naming_rule.static_readonly_fields_pascal_case.severity = error
-dotnet_naming_rule.static_readonly_fields_pascal_case.symbols  = static_readonly_fields
-dotnet_naming_rule.static_readonly_fields_pascal_case.style    = pascal_case_style
-
-dotnet_naming_symbols.static_readonly_fields.applicable_kinds           = field
+# Static read-only fields
 dotnet_naming_symbols.static_readonly_fields.applicable_accessibilities = private
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds           = field
 dotnet_naming_symbols.static_readonly_fields.required_modifiers         = readonly,static
 
+# Private static fields
+dotnet_naming_symbols.static_private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.static_private_fields.applicable_kinds           = field
+dotnet_naming_symbols.static_private_fields.required_modifiers         = static
+
+# Private instance fields
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.applicable_kinds           = field
+
+# -----------------------
+# Naming styles
+# -----------------------
+
+# PascalCase style
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
-# static fields should have s_ prefix
-dotnet_naming_rule.static_private_internal_fields_should_have_prefix.severity = error
-dotnet_naming_rule.static_private_internal_fields_should_have_prefix.symbols  = static_private_internal_fields
-dotnet_naming_rule.static_private_internal_fields_should_have_prefix.style    = static_prefix_style
-
-dotnet_naming_symbols.static_private_internal_fields.applicable_kinds           = field
-dotnet_naming_symbols.static_private_internal_fields.applicable_accessibilities = private
-dotnet_naming_symbols.static_private_internal_fields.required_modifiers         = static
-
+# Static 's' prefix style
 dotnet_naming_style.static_prefix_style.required_prefix = s_
 dotnet_naming_style.static_prefix_style.capitalization  = camel_case
 
-# internal and private fields should be _camelCase
-dotnet_naming_rule.camel_case_for_private_internal_fields.severity = error
-dotnet_naming_rule.camel_case_for_private_internal_fields.symbols  = private_internal_fields
-dotnet_naming_rule.camel_case_for_private_internal_fields.style    = camel_case_underscore_style
-
-dotnet_naming_symbols.private_internal_fields.applicable_kinds           = field
-dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private
-
+# camelCase underscore style
 dotnet_naming_style.camel_case_underscore_style.required_prefix = _
 dotnet_naming_style.camel_case_underscore_style.capitalization  = camel_case
