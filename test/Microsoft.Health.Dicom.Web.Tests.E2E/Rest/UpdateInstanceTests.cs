@@ -66,7 +66,7 @@ public class UpdateInstanceTests : IClassFixture<WebJobsIntegrationTestFixture<W
         string originalPatientName2 = dicomFile2.Dataset.GetSingleValue<string>(DicomTag.PatientName);
 
         // Upload files
-        Assert.True((await _instancesManager.StoreStudyAsync(new[] { dicomFile1, dicomFile2, dicomFile3 })).IsSuccessStatusCode);
+        Assert.True((await _instancesManager.StoreAsync(new[] { dicomFile1, dicomFile2, dicomFile3 })).IsSuccessStatusCode);
 
         // Update study
         await UpdateStudyAsync(studyInstanceUid1, "New^PatientName");
