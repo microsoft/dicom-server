@@ -220,9 +220,11 @@ public class BlobFileStore : IFileStore
             {
                 string message = string.Format(
                     CultureInfo.InvariantCulture,
-                    DicomCoreResource.ExternalDataStoreOperationFailed,
-                    ex.ErrorCode);
-                message += " Failed to delete file because it has changed or no longer exists. Will not retry.";
+                    DicomCoreResource.ExternalDataStoreBlobModified,
+                    ex.ErrorCode,
+                    "delete",
+                    fileProperties.Path,
+                    fileProperties.ETag);
 
                 _telemetryClient.ForwardLogTrace(message, partition, fileProperties);
 

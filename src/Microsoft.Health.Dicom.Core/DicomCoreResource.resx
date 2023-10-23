@@ -667,6 +667,9 @@ For details on valid range queries, please refer to Search Matching section in C
   <data name="ExternalDataStoreOperationFailed" xml:space="preserve">
     <value>Error occurred during an operation on the configured storage account. Use the http://fwlink to troubleshoot the issue. Received the following error code: {0}</value>
   </data>
+  <data name="ExternalDataStoreBlobModified" xml:space="preserve">
+    <value>Received the following error code from blob storage account: {0}. Can not perform operation '{1}' because the blob '{2}' with eTag '{3}' has been modified or deleted by another process.</value>
+  </data>
   <data name="DicomAsyncOperationDisabled" xml:space="preserve">
     <value>Asynchronous operations are temporarily disabled. Please try again later.</value>
   </data>
