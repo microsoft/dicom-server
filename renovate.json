@@ -48,8 +48,8 @@
       "matchPackagePatterns": [
         "IdentityModel.Tokens"
       ],
-      "ignoreVersions": [
-        ">=7.0.0"
+      "allowedVersions": [
+        "<7.0.0"
       ]
     },
     {
