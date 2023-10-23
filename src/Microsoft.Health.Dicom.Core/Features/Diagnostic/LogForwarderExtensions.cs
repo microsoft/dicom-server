@@ -50,7 +50,10 @@ internal static class LogForwarderExtensions
         telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
         telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
-        telemetry.Properties.Add(PartitionName, instanceIdentifier.Partition.Name);
+        if (instanceIdentifier.Partition != Partition.Default)
+        {
+            telemetry.Properties.Add(PartitionName, instanceIdentifier.Partition.Name);
+        }
 
         telemetryClient.TrackTrace(telemetry);
     }
@@ -96,7 +99,10 @@ internal static class LogForwarderExtensions
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
         telemetry.Properties.Add(FilePropertiesPath, fileProperties.Path);
         telemetry.Properties.Add(FilePropertiesETag, fileProperties.ETag);
-        telemetry.Properties.Add(PartitionName, partition.Name);
+        if (partition != Partition.Default)
+        {
+            telemetry.Properties.Add(PartitionName, partition.Name);
+        }
 
         telemetryClient.TrackTrace(telemetry);
     }
