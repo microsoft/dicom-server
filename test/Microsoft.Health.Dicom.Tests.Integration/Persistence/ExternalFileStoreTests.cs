@@ -146,9 +146,22 @@ public class ExternalFileStoreTests : IClassFixture<DataStoreTestsFixture>
 
         var copyFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.CopyFileAsync(version, _getNextWatermark(), Partition.Default, badFileProperties));
         Assert.Contains(ExpectedCopyFailedSubstring(), copyFileEx.Message);
+    }
 
-        var deleteFileEx = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, badFileProperties));
-        Assert.Contains(ConditionNotMetMessage, deleteFileEx.Message);
+    [Fact]
+    public async Task GivenFileWithETag_WhenDeletingFileWithDifferentETagForCondition_ThenExpectNoExceptions()
+    {
+        // Note that modifying metadata also changes the etag of the blob
+        var version = _getNextWatermark();
+
+        // store the file with committed blocks
+        FileProperties fileProperties = await AddFileInBlocksAsync(version, new byte[] { 4, 7, 2 }, "fileDataTag");
+
+        FileProperties badFileProperties = new FileProperties { Path = fileProperties.Path, ETag = "badETag" };
+
+        Assert.NotEqual(badFileProperties.ETag, fileProperties.ETag);
+
+        await _blobDataStore.DeleteFileIfExistsAsync(version, Partition.Default, badFileProperties);
     }
 
     [Fact]
