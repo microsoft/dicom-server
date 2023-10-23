@@ -134,7 +134,9 @@ public class DeleteService : IDeleteService
                                 cancellationToken)
                         };
 
-                        // only need to delete by "original watermark" to catch updates if not IDP
+                        // NOTE: in the input deletedInstanceIdentifiers we're going to have a row for each version in IDP,
+                        // but for non-IDP we'll have a single row whose original version needs to be explicitly deleted below.
+                        // To that end, we only need to delete by "original watermark" to catch changes from Update operation if not IDP.
                         if (!_isExternalStoreEnabled && deletedInstanceIdentifier.InstanceProperties.OriginalVersion.HasValue)
                         {
                             tasks.Add(_fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken));
