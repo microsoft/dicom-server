@@ -3,6 +3,7 @@
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Features.Model;
@@ -10,6 +11,7 @@ using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Functions.Update.Models;
 
+[Obsolete("Use CleanupBlobArgumentsV2 instead")]
 public sealed class CleanupBlobArguments
 {
     public IReadOnlyList<InstanceFileState> InstanceWatermarks { get; }

@@ -7,7 +7,9 @@ using System;
 using EnsureThat;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
+using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
 namespace Microsoft.Health.Dicom.Core.Features.Diagnostic;
 
@@ -25,6 +27,8 @@ internal static class LogForwarderExtensions
     private const string PartitionName = $"{Prefix}partitionName";
     private const string InputPayload = $"{Prefix}input";
     private const string OperationId = $"{Prefix}operationId";
+    private const string FilePropertiesETag = $"{Prefix}filePropertiesETag";
+    private const string FilePropertiesPath = $"{Prefix}filePropertiesPath";
 
     /// <summary>
     /// Emits a trace log with forwarding flag set and adds properties from instanceIdentifier as properties to telemetry.
@@ -46,7 +50,10 @@ internal static class LogForwarderExtensions
         telemetry.Properties.Add(SeriesInstanceUID, instanceIdentifier.SeriesInstanceUid);
         telemetry.Properties.Add(SOPInstanceUID, instanceIdentifier.SopInstanceUid);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
-        telemetry.Properties.Add(PartitionName, instanceIdentifier.Partition.Name);
+        if (instanceIdentifier.Partition != Partition.Default)
+        {
+            telemetry.Properties.Add(PartitionName, instanceIdentifier.Partition.Name);
+        }
 
         telemetryClient.TrackTrace(telemetry);
     }
@@ -66,6 +73,36 @@ internal static class LogForwarderExtensions
 
         var telemetry = new TraceTelemetry(message);
         telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
+
+        telemetryClient.TrackTrace(telemetry);
+    }
+
+    /// <summary>
+    /// Emits a trace log regarding operations on a specified file with forwarding flag set.
+    /// </summary>
+    /// <param name="telemetryClient">client to use to emit the trace</param>
+    /// <param name="message">message to set on the trace log</param>
+    /// <param name="partition">Partition within which file is residing</param>
+    /// <param name="fileProperties">File properties of file this message is regarding</param>
+    public static void ForwardLogTrace(
+        this TelemetryClient telemetryClient,
+        string message,
+        Partition partition,
+        FileProperties fileProperties)
+    {
+        EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
+        EnsureArg.IsNotNull(message, nameof(message));
+        EnsureArg.IsNotNull(partition, nameof(partition));
+        EnsureArg.IsNotNull(fileProperties, nameof(fileProperties));
+
+        var telemetry = new TraceTelemetry(message);
+        telemetry.Properties.Add(ForwardLogFlag, bool.TrueString);
+        telemetry.Properties.Add(FilePropertiesPath, fileProperties.Path);
+        telemetry.Properties.Add(FilePropertiesETag, fileProperties.ETag);
+        if (partition != Partition.Default)
+        {
+            telemetry.Properties.Add(PartitionName, partition.Name);
+        }
 
         telemetryClient.TrackTrace(telemetry);
     }

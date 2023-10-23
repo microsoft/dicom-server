@@ -1,3 +1,13 @@
+﻿SET XACT_ABORT ON
+
+BEGIN TRANSACTION
+GO
+      
+/*************************************************************
+    SPROC Updates
+**************************************************************/
+
+      
 /***************************************************************************************/
 -- STORED PROCEDURE
 --     RetrieveDeletedInstanceV42
@@ -5,19 +15,13 @@
 -- FIRST SCHEMA VERSION
 --     6
 --
--- DESCRIPTION
---     Retrieves deleted instances where the cleanupAfter is less than the current date in and the retry count hasn't been exceeded
---
--- PARAMETERS
---     @count
---         * The number of entries to return
---     @maxRetries
---         * The maximum number of times to retry a cleanup
+-- CHANGES
+-- Retrieve additional fields for file properties
 /***************************************************************************************/
 CREATE OR ALTER PROCEDURE dbo.RetrieveDeletedInstanceV42
     @count          INT,
     @maxRetries     INT
-AS
+    AS
 BEGIN
     SET NOCOUNT ON
 
@@ -28,3 +32,6 @@ BEGIN
     WHERE   RetryCount <= @maxRetries
     AND     CleanupAfter < SYSUTCDATETIME()
 END
+GO
+
+COMMIT TRANSACTION

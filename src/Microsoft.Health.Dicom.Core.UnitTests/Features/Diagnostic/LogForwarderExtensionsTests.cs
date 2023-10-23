@@ -6,6 +6,7 @@
 using System;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -30,12 +31,48 @@ public class LogForwarderExtensionsTests
     }
 
     [Fact]
+    public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalProperties()
+    {
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456" };
+        var expectedPartition = new Partition(1, "partitionOne");
+        telemetryClient.ForwardLogTrace("A message", expectedPartition, expectedProperties);
+
+        Assert.Single(channel.Items);
+#pragma warning disable CS0618 // Type or member is obsolete
+        Assert.Equal(4, channel.Items[0].Context.Properties.Count);
+        Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
+        Assert.Equal(expectedProperties.Path, channel.Items[0].Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
+        Assert.Equal(expectedProperties.ETag, channel.Items[0].Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
+        Assert.Equal(expectedPartition.Name, channel.Items[0].Context.Properties["dicomAdditionalInformation_partitionName"]);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    [Fact]
+    public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalPropertiesWithoutPartition()
+    {
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456" };
+
+        // because a default partition is being used, we don't log it in telemetry
+        var expectedPartition = Partition.Default;
+        telemetryClient.ForwardLogTrace("A message", expectedPartition, expectedProperties);
+
+        Assert.Single(channel.Items);
+#pragma warning disable CS0618 // Type or member is obsolete
+        Assert.Equal(3, channel.Items[0].Context.Properties.Count);
+        Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
+        Assert.Equal(expectedProperties.Path, channel.Items[0].Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
+        Assert.Equal(expectedProperties.ETag, channel.Items[0].Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    [Fact]
     public void GivenClientUsingForwardTelemetryWithIdentifier_ExpectForwardLogFlagIsSetWithAdditionalProperties()
     {
         (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
 
-        var expectedIdentifier = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(),
-            TestUidGenerator.Generate(), Partition.Default);
+        var expectedIdentifier = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), new Partition(1, "partitionOne"));
         telemetryClient.ForwardLogTrace("A message", expectedIdentifier);
 
         Assert.Single(channel.Items);
@@ -49,6 +86,28 @@ public class LogForwarderExtensionsTests
             channel.Items[0].Context.Properties["dicomAdditionalInformation_studyInstanceUID"]);
         Assert.Equal(expectedIdentifier.Partition.Name,
             channel.Items[0].Context.Properties["dicomAdditionalInformation_partitionName"]);
+        Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    [Fact]
+    public void GivenClientUsingForwardTelemetryWithIdentifier_ExpectForwardLogFlagIsSetWithAdditionalPropertiesWithoutPartition()
+    {
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+
+        // because a default partition is being used, we don't log it in telemetry
+        var expectedIdentifier = new InstanceIdentifier(TestUidGenerator.Generate(), TestUidGenerator.Generate(), TestUidGenerator.Generate(), Partition.Default);
+        telemetryClient.ForwardLogTrace("A message", expectedIdentifier);
+
+        Assert.Single(channel.Items);
+#pragma warning disable CS0618 // Type or member is obsolete
+        Assert.Equal(4, channel.Items[0].Context.Properties.Count);
+        Assert.Equal(expectedIdentifier.SopInstanceUid,
+            channel.Items[0].Context.Properties["dicomAdditionalInformation_sopInstanceUID"]);
+        Assert.Equal(expectedIdentifier.SeriesInstanceUid,
+            channel.Items[0].Context.Properties["dicomAdditionalInformation_seriesInstanceUID"]);
+        Assert.Equal(expectedIdentifier.StudyInstanceUid,
+            channel.Items[0].Context.Properties["dicomAdditionalInformation_studyInstanceUID"]);
         Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
 #pragma warning restore CS0618 // Type or member is obsolete
     }
