@@ -222,12 +222,12 @@ public class BlobFileStore : IFileStore
                     CultureInfo.InvariantCulture,
                     DicomCoreResource.ExternalDataStoreOperationFailed,
                     ex.ErrorCode);
-                message += " Failed to delete instance and will not retry.";
+                message += " Failed to delete file because it has changed or no longer exists. Will not retry.";
 
                 _telemetryClient.ForwardLogTrace(message, partition, fileProperties);
 
                 _logger.LogInformation(
-                    "Can not delete blob in external store with watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected. Will not retry",
+                    "Can not delete blob in external store as it has changed or been deleted. File from watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected. Will not retry",
                     version, partition.Key);
             }
 
