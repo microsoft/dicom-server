@@ -6,6 +6,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -14,12 +15,15 @@ using Azure;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Health.Blob.Configs;
 using Microsoft.Health.Dicom.Blob.Features.Telemetry;
+using Microsoft.Health.Dicom.Core;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
+using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 
@@ -35,6 +39,7 @@ public class BlobFileStore : IFileStore
     private readonly IBlobClient _blobClient;
     private readonly DicomFileNameWithPrefix _nameWithPrefix;
     private readonly BlobFileStoreMeter _blobFileStoreMeter;
+    private readonly TelemetryClient _telemetryClient;
 
     private static readonly Action<ILogger, string, bool, Exception> LogBlobClientOperationDelegate =
         LoggerMessage.Define<string, bool>(
@@ -53,13 +58,15 @@ public class BlobFileStore : IFileStore
         DicomFileNameWithPrefix nameWithPrefix,
         IOptions<BlobOperationOptions> options,
         BlobFileStoreMeter blobFileStoreMeter,
-        ILogger<BlobFileStore> logger)
+        ILogger<BlobFileStore> logger,
+        TelemetryClient telemetryClient)
     {
         _nameWithPrefix = EnsureArg.IsNotNull(nameWithPrefix, nameof(nameWithPrefix));
         _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
         _logger = EnsureArg.IsNotNull(logger, nameof(logger));
         _blobClient = EnsureArg.IsNotNull(blobClient, nameof(blobClient));
         _blobFileStoreMeter = EnsureArg.IsNotNull(blobFileStoreMeter, nameof(blobFileStoreMeter));
+        _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
     }
 
     /// <inheritdoc />
@@ -202,31 +209,29 @@ public class BlobFileStore : IFileStore
         {
             try
             {
-                bool exists = await blobClient.ExistsAsync(cancellationToken);
-                // todo change this back to DeleteIfExistsAsync when bug fixed story#110757
-                // when file does not exist but conditions passed in, it fails on conditions not met
-                if (exists)
-                {
-                    await blobClient.DeleteAsync(
-                        DeleteSnapshotsOption.IncludeSnapshots,
-                        conditions: _blobClient.GetConditions(fileProperties),
-                        cancellationToken);
-                }
-                else
-                {
-                    _logger.LogInformation(
-                        "Can not delete blob in external store with watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected.",
-                        version, partition.Key);
-                }
-
-                return exists;
+                // NOTE - when file does not exist but conditions passed in, it fails on conditions not met
+                return await blobClient.DeleteIfExistsAsync(
+                    DeleteSnapshotsOption.IncludeSnapshots,
+                    conditions: _blobClient.GetConditions(fileProperties),
+                    cancellationToken);
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet &&
                                                     _blobClient.IsExternal)
             {
-                // when using external store and condition on etag match not met but blob exists, rethrow
-                throw ex;
+                string message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    DicomCoreResource.ExternalDataStoreOperationFailed,
+                    ex.ErrorCode);
+                message += " Failed to delete instance and will not retry.";
+
+                _telemetryClient.ForwardLogTrace(message, partition, fileProperties);
+
+                _logger.LogInformation(
+                    "Can not delete blob in external store with watermark: '{Version}' and PartitionKey: {PartitionKey}. Dangling SQL Index detected. Will not retry",
+                    version, partition.Key);
             }
+
+            return null;
         });
     }
 
