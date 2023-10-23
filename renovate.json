@@ -37,6 +37,15 @@
       ]
     },
     {
+      "groupName": "Microsoft.IdentityModel",
+      "matchPackagePrefixes": [
+        "Microsoft.IdentityModel"
+      ]
+      "ignoreVersions": [
+        ">=7.0.0"
+      ]
+    },
+    {
       "enabled": false,
       "groupName": "FHIR",
       "matchPackagePatterns": [
