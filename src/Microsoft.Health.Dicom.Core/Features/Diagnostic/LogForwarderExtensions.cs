@@ -75,9 +75,8 @@ internal static class LogForwarderExtensions
     }
 
     /// <summary>
-    /// Emits a trace log with forwarding flag set.
+    /// Emits a trace log regarding operations on a specified file with forwarding flag set.
     /// </summary>
-    /// <remarks>NOTE - do not use this if reporting on any specific instance. Only use as high level remarks. Attempt to use identifiers wherever possible</remarks>
     /// <param name="telemetryClient">client to use to emit the trace</param>
     /// <param name="message">message to set on the trace log</param>
     /// <param name="partition">Partition within which file is residing</param>

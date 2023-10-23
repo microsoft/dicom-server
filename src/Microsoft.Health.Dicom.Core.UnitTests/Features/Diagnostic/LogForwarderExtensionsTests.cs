@@ -6,6 +6,7 @@
 using System;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
@@ -26,6 +27,24 @@ public class LogForwarderExtensionsTests
 #pragma warning disable CS0618 // Type or member is obsolete
         Assert.Single(channel.Items[0].Context.Properties);
         Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
+#pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    [Fact]
+    public void GivenClientUsingForwardTelemetryWithFileProperties_ExpectForwardLogFlagIsSetWithAdditionalProperties()
+    {
+        (TelemetryClient telemetryClient, var channel) = CreateTelemetryClientWithChannel();
+        var expectedProperties = new FileProperties { Path = "123.dcm", ETag = "e456" };
+        var expectedPartition = Partition.Default;
+        telemetryClient.ForwardLogTrace("A message", expectedPartition, expectedProperties);
+
+        Assert.Single(channel.Items);
+#pragma warning disable CS0618 // Type or member is obsolete
+        Assert.Equal(4, channel.Items[0].Context.Properties.Count);
+        Assert.Equal(Boolean.TrueString, channel.Items[0].Context.Properties["forwardLog"]);
+        Assert.Equal(expectedProperties.Path, channel.Items[0].Context.Properties["dicomAdditionalInformation_filePropertiesPath"]);
+        Assert.Equal(expectedProperties.ETag, channel.Items[0].Context.Properties["dicomAdditionalInformation_filePropertiesETag"]);
+        Assert.Equal(expectedPartition.Name, channel.Items[0].Context.Properties["dicomAdditionalInformation_partitionName"]);
 #pragma warning restore CS0618 // Type or member is obsolete
     }
 
