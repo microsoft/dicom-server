@@ -318,17 +318,17 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetFileFrameAsync(long version, string partitionName, FrameRange range, CancellationToken cancellationToken)
+    public async Task<Stream> GetFileFrameAsync(long version, Partition partition, FrameRange range, FileProperties fileProperties, CancellationToken cancellationToken)
     {
         EnsureArg.IsNotNull(range, nameof(range));
 
-        BlockBlobClient blob = GetInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blob = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
         return await ExecuteAsync(async () =>
         {
             var httpRange = new HttpRange(range.Offset, range.Length);
-            Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
+            Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: _blobClient.GetConditions(fileProperties), rangeGetContentHash: false, cancellationToken);
 
             EmitTelemetry(nameof(GetFileFrameAsync), OperationType.Output, result.Value.Details.ContentLength);
 
@@ -430,6 +430,13 @@ public class BlobFileStore : IFileStore
         });
     }
 
+    /// <summary>
+    /// Gets client based on watermark/version and partition.
+    /// </summary>
+    /// <param name="version">Version of file to get</param>
+    /// <param name="partitionName">Partition within which the file should live in</param>
+    /// <remarks>Do not use for any *existing* file. Only use for new files which may not already have file properties
+    /// associated with them.</remarks>
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, string partitionName)
     {
         string blobName = _nameWithPrefix.GetInstanceFileName(version);
@@ -438,6 +445,14 @@ public class BlobFileStore : IFileStore
         return _blobClient.BlobContainerClient.GetBlockBlobClient(fullPath);
     }
 
+    /// <summary>
+    /// Get client based on watermark/version and partition when using internal store and based on file properties
+    /// when using external store.
+    /// </summary>
+    /// <param name="version">Version of file to get</param>
+    /// <param name="partition">Partition within which the file should live in</param>
+    /// <param name="fileProperties">File properties to use for external store. If not using external store, set to null.</param>
+    /// <remarks>Always use on existing files whether using for external or internal store.</remarks>
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, Partition partition, FileProperties fileProperties)
     {
         EnsureArg.IsNotNull(partition, nameof(partition));
