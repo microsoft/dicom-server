@@ -44,13 +44,12 @@
       ]
     },
     {
+      "allowedVersions": "<7.0.0"
       "groupName": "IdentityModel.Tokens",
       "matchPackagePatterns": [
         "IdentityModel.Tokens"
       ],
-      "allowedVersions": [
-        "<7.0.0"
-      ]
+      "allowedVersions": "<7.0.0"
     },
     {
       "groupName": "IdentityServer4",
