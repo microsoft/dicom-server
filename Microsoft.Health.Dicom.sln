@@ -75,6 +75,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.Dicom.SchemaManager.Console", "src\Microsoft.Health.Dicom.SchemaManager.Console\Microsoft.Health.Dicom.SchemaManager.Console.csproj", "{7AE5FC7B-CE2D-4B5A-B8BB-9B673469EA88}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "forks", "forks", "{AEDC6C96-15FF-4AFB-BD49-3549211AACCF}"
+	ProjectSection(SolutionItems) = preProject
+		forks\Directory.Build.props = forks\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Health.FellowOakDicom", "forks\Microsoft.Health.FellowOakDicom\Microsoft.Health.FellowOakDicom.csproj", "{ADD2B971-3C5C-429A-B954-A55FA0FA987D}"
 EndProject
@@ -232,7 +235,7 @@ Global
 		{A454E17D-3A0B-4EC3-85FF-B3CD56B369C8} = {176641B3-297C-4E04-A83D-8F80F80485E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_SortFileContentOnSave = True
 		SolutionGuid = {E370FB31-CF95-47D1-B1E1-863A77973FF8}
+		RESX_SortFileContentOnSave = True
 	EndGlobalSection
 EndGlobal

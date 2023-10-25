@@ -19,7 +19,6 @@
     <StsVersion>net7.0</StsVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <TrimMode>partial</TrimMode>
-    <WarningsAsErrors />
   </PropertyGroup>
 
   <!-- Currently the latest version is .NET 7 -->
