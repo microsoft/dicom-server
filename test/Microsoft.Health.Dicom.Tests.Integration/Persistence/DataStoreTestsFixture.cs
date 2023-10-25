@@ -101,6 +101,8 @@ public class DataStoreTestsFixture : IAsyncLifetime
         }
     }
 
+    public BlobContainerClient GetBlobContainerClient() => _blobClient.GetBlobContainerClient(_blobContainerConfiguration.ContainerName);
+
     private class TestInternalBlobClient : IBlobClient
     {
         public TestInternalBlobClient(BlobServiceClient blobClient, string containerName)

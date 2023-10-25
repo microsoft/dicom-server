@@ -7,6 +7,9 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Blobs.Specialized;
 using EnsureThat;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Common;
@@ -21,6 +24,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
     private readonly IFileStore _blobDataStore;
     private readonly Func<int> _getNextWatermark;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private readonly BlobContainerClient _containerClient;
 
     public FileStoreTests(DataStoreTestsFixture fixture)
     {
@@ -28,6 +32,7 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         _blobDataStore = fixture.FileStore;
         _getNextWatermark = () => fixture.NextWatermark;
         _recyclableMemoryStreamManager = fixture.RecyclableMemoryStreamManager;
+        _containerClient = fixture.GetBlobContainerClient();
     }
 
     [Fact]
@@ -116,6 +121,27 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
     public async Task GivenANonExistentFile_WhenDeleting_ThenItShouldNotThrowException()
     {
         await _blobDataStore.DeleteFileIfExistsAsync(_getNextWatermark(), Partition.Default, fileProperties: null);
+    }
+
+    [Fact]
+    public async Task GivenFileAndStored_WhenAccessTierChanged_ThenTierIsSetCorrectly()
+    {
+        var version = _getNextWatermark();
+
+        var fileData = new byte[] { 4, 7, 2 };
+
+        // Store the file.
+        await AddFileAsync(version, fileData, $"{nameof(GivenFileAndStored_WhenAccessTierChanged_ThenTierIsSetCorrectly)}.fileData");
+
+        await _blobDataStore.SetBlobToColdAccessTierAsync(version, Partition.Default, fileProperties: null);
+
+        var properties = await _blobDataStore.GetFilePropertiesAsync(version, Partition.DefaultName);
+
+        var blockBlobClient = _containerClient.GetBlockBlobClient(properties.Path);
+
+        var fullProperties = await blockBlobClient.GetPropertiesAsync();
+
+        Assert.Equal(AccessTier.Cold, fullProperties.Value.AccessTier);
     }
 
     private async Task<byte[]> ConvertStreamToByteArrayAsync(Stream stream)
