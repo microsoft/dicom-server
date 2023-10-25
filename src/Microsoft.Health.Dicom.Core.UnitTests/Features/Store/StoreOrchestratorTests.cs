@@ -116,7 +116,7 @@ public class StoreOrchestratorTests
     }
 
     [Fact]
-    public async Task GivenFilesAreSuccessfullyStored_WhenStoringFilewithFrameMetadata_ThenStatusShouldBeUpdatedToCreated()
+    public async Task GivenFilesAreSuccessfullyStored_WhenStoringFileWithFragmentPixelData_ThenStatusIsUpdatedToCreatedAndHasFrameDataSetToTrue()
     {
         var studyInstanceUid = TestUidGenerator.Generate();
         var seriesInstanceUid = TestUidGenerator.Generate();
