@@ -133,13 +133,18 @@ public class FileStoreTests : IClassFixture<DataStoreTestsFixture>
         // Store the file.
         await AddFileAsync(version, fileData, $"{nameof(GivenFileAndStored_WhenAccessTierChanged_ThenTierIsSetCorrectly)}.fileData");
 
-        await _blobDataStore.SetBlobToColdAccessTierAsync(version, Partition.Default, fileProperties: null);
-
         var properties = await _blobDataStore.GetFilePropertiesAsync(version, Partition.DefaultName);
 
         var blockBlobClient = _containerClient.GetBlockBlobClient(properties.Path);
 
         var fullProperties = await blockBlobClient.GetPropertiesAsync();
+
+        // Verify before setting to cold tier, the access tier is hot.
+        Assert.Equal(AccessTier.Hot, fullProperties.Value.AccessTier);
+
+        await _blobDataStore.SetBlobToColdAccessTierAsync(version, Partition.Default, fileProperties: null);
+
+        fullProperties = await blockBlobClient.GetPropertiesAsync();
 
         Assert.Equal(AccessTier.Cold, fullProperties.Value.AccessTier);
     }
