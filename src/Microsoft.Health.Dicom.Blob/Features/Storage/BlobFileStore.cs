@@ -446,8 +446,7 @@ public class BlobFileStore : IFileStore
     }
 
     /// <summary>
-    /// Get client based on watermark/version and partition when using internal store and based on file properties
-    /// when using external store.
+    /// Get client based on watermark/version and partition or file properties. 
     /// </summary>
     /// <param name="version">Version of file to get</param>
     /// <param name="partition">Partition within which the file should live in</param>
