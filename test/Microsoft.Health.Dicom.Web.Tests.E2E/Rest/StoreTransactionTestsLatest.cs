@@ -282,12 +282,25 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
 
     [Fact]
     [Trait("Category", "bvt")]
+    public async Task GivenTooLargeRequest_WhenStoring_ThenServerShouldReturnBadRequest()
+    {
+        DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
+            rows: 51810,
+            columns: 51810,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~2.5 GB Pixel Data
+
+        DicomWebException error = await Assert.ThrowsAsync<DicomWebException>(() => _instancesManager.StoreAsync(dicomFile));
+        Assert.Equal(HttpStatusCode.BadRequest, error.StatusCode);
+    }
+
+    [Fact]
+    [Trait("Category", "bvt")]
     public async Task GivenLargeSinglePartRequest_WhenStoring_ThenServerShouldReturnOk()
     {
         DicomFile dicomFile = Samples.CreateRandomDicomFileWithPixelData(
-            rows: 46340,
-            columns: 46340,
-            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~2GB
+            rows: 42000,
+            columns: 42000,
+            dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian); // ~1.6 GB Pixel Data
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(dicomFile);
         Assert.Equal(HttpStatusCode.OK, stow.StatusCode);
@@ -305,7 +318,7 @@ public class StoreTransactionTestsLatest : StoreTransactionTests
                 studyInstanceUid: study,
                 rows: 46340,
                 columns: 46340,
-                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~2GB
+                dicomTransferSyntax: DicomTransferSyntax.ExplicitVRLittleEndian)) // ~1.6 GB Pixel Data
             .ToArray();
 
         using DicomWebResponse<DicomDataset> stow = await _instancesManager.StoreAsync(files);
