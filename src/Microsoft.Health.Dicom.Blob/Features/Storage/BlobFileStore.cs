@@ -288,7 +288,7 @@ public class BlobFileStore : IFileStore
 
         return await ExecuteAsync(async () =>
         {
-            Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+            Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: _blobClient.GetConditions(fileProperties), rangeGetContentHash: false, cancellationToken);
 
             EmitTelemetry(nameof(GetStreamingFileAsync), OperationType.Output, result.Value.Details.ContentLength);
 
