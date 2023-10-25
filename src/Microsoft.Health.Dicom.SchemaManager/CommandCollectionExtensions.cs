@@ -30,13 +30,13 @@ public static class CommandCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddCliCommands(this IServiceCollection services)
     {
-        Type grabCommandType = typeof(ApplyCommand);
+        Type applyCommandType = typeof(ApplyCommand);
         Type commandType = typeof(Command);
 
-        IEnumerable<Type> commands = grabCommandType
+        IEnumerable<Type> commands = applyCommandType
             .Assembly
             .GetExportedTypes()
-            .Where(x => x.Namespace == grabCommandType.Namespace && commandType.IsAssignableFrom(x));
+            .Where(x => x.Namespace == applyCommandType.Namespace && commandType.IsAssignableFrom(x));
 
         foreach (Type command in commands)
         {
@@ -64,6 +64,7 @@ public static class CommandCollectionExtensions
             { OptionAliases.ManagedIdentityClientId, OptionAliases.ManagedIdentityClientId },
             { OptionAliases.AuthenticationType, OptionAliases.AuthenticationType },
             { OptionAliases.Version, OptionAliases.Version },
+            { OptionAliases.EnableWorkloadIdentityShort, OptionAliases.EnableWorkloadIdentity },
         };
 
         configurationBuilder.AddCommandLine(args, switchMappings);
@@ -73,7 +74,7 @@ public static class CommandCollectionExtensions
 
     public static IServiceCollection SetCommandLineOptions(this IServiceCollection services, IConfiguration config)
     {
-        services.AddOptions<CommandLineOptions>().Configure(x =>
+        return services.Configure<CommandLineOptions>(x =>
         {
             x.ConnectionString = config[OptionAliases.ConnectionString];
 
@@ -81,16 +82,9 @@ public static class CommandCollectionExtensions
             x.ManagedIdentityClientId = config[OptionAliases.ManagedIdentityClientId];
 
             string? authenticationTypeValue = config[OptionAliases.AuthenticationType];
-            if (!string.IsNullOrWhiteSpace(authenticationTypeValue))
-            {
-                if (Enum.TryParse(authenticationTypeValue, true, out SqlServerAuthenticationType sqlServerAuthenticationType))
-                {
-                    x.AuthenticationType = sqlServerAuthenticationType;
-                }
+            if (Enum.TryParse(authenticationTypeValue, true, out SqlServerAuthenticationType sqlServerAuthenticationType))
+                x.AuthenticationType = sqlServerAuthenticationType;
 #pragma warning restore CS0618 // Type or member is obsolete
-            }
         });
-
-        return services;
     }
 }
