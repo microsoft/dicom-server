@@ -19,4 +19,6 @@ public class CommandLineOptions
 
     [Obsolete("Use Connection String instead for different authentication types.")]
     public string? ManagedIdentityClientId { get; set; }
+
+    public bool EnableWorkloadIdentity { get; set; }
 }
