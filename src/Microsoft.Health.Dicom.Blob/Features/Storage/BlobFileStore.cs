@@ -280,9 +280,9 @@ public class BlobFileStore : IFileStore
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetStreamingFileAsync(long version, string partitionName, CancellationToken cancellationToken)
+    public async Task<Stream> GetStreamingFileAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
 
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
 

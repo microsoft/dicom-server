@@ -49,35 +49,36 @@ public class IdentifierExportSourceTests
         using var tokenSource = new CancellationTokenSource();
         await using var source = new IdentifierExportSource(_store, _partition, _options);
 
-        var expected = new VersionedInstanceIdentifier[]
+        var expected = new[]
         {
-            new VersionedInstanceIdentifier("10", "10", "10", 1, _partition),
-            new VersionedInstanceIdentifier("10", "10", "20", 3, _partition),
-            new VersionedInstanceIdentifier("10", "20", "10", 1, _partition),
-            new VersionedInstanceIdentifier("100", "200", "300", 2, _partition),
-            new VersionedInstanceIdentifier("100", "200", "400", 7, _partition),
-            new VersionedInstanceIdentifier("100", "200", "500", 2, _partition),
-            new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition),
+            new InstanceMetadata(new VersionedInstanceIdentifier("10", "10", "10", 1, _partition), new InstanceProperties()),
+            new InstanceMetadata(new VersionedInstanceIdentifier("10", "10", "20", 3, _partition), new InstanceProperties()),
+            new InstanceMetadata(new VersionedInstanceIdentifier("10", "20", "10", 1, _partition), new InstanceProperties()),
+            new InstanceMetadata(new VersionedInstanceIdentifier("100", "200", "300", 2, _partition), new InstanceProperties()),
+            new InstanceMetadata(new VersionedInstanceIdentifier("100", "200", "400", 7, _partition), new InstanceProperties()),
+            new InstanceMetadata(new VersionedInstanceIdentifier("100", "200", "500", 2, _partition), new InstanceProperties()),
+            new InstanceMetadata(new VersionedInstanceIdentifier("1000", "2000", "3000", 1, _partition), new InstanceProperties()),
         };
+        _store
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "10", null, null, tokenSource.Token)
+            .Returns(expected[..3]);
+        _store
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "11", null, null, tokenSource.Token)
+            .Returns(Array.Empty<InstanceMetadata>());
 
         _store
-            .GetInstanceIdentifiersInStudyAsync(_partition, "10", tokenSource.Token)
-            .Returns(expected[0..3]);
-        _store
-            .GetInstanceIdentifiersInStudyAsync(_partition, "11", tokenSource.Token)
-            .Returns(Array.Empty<VersionedInstanceIdentifier>());
-        _store
-            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "200", tokenSource.Token)
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "200", null, tokenSource.Token)
             .Returns(expected[3..6]);
         _store
-            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "201", tokenSource.Token)
-            .Returns(Array.Empty<VersionedInstanceIdentifier>());
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "201", null, tokenSource.Token)
+            .Returns(Array.Empty<InstanceMetadata>());
+
         _store
-            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3000", tokenSource.Token)
-            .Returns(new VersionedInstanceIdentifier[] { expected[6] });
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3000", tokenSource.Token)
+            .Returns(new[] { expected[6] });
         _store
-            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3001", tokenSource.Token)
-            .Returns(Array.Empty<VersionedInstanceIdentifier>());
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3001", tokenSource.Token)
+            .Returns(Array.Empty<InstanceMetadata>());
 
         // Enumerate
         var failures = new List<ReadFailureEventArgs>();
@@ -87,32 +88,32 @@ public class IdentifierExportSourceTests
         // Check Results
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInStudyAsync(_partition, "10", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "10", null, null, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInStudyAsync(_partition, "11", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "11", null, null, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "200", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "200", null, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifiersInSeriesAsync(_partition, "100", "201", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "100", "201", null, tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3000", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3000", tokenSource.Token);
         await _store
             .Received(1)
-            .GetInstanceIdentifierAsync(_partition, "1000", "2000", "3001", tokenSource.Token);
+            .GetInstanceIdentifierWithPropertiesAsync(_partition, "1000", "2000", "3001", tokenSource.Token);
 
-        Assert.Same(expected[0], actual[0].Identifier);
-        Assert.Same(expected[1], actual[1].Identifier);
-        Assert.Same(expected[2], actual[2].Identifier);
+        Assert.Same(expected[0], actual[0].Instance);
+        Assert.Same(expected[1], actual[1].Instance);
+        Assert.Same(expected[2], actual[2].Instance);
         Assert.Equal(DicomIdentifier.ForStudy("11"), actual[3].Failure.Identifier);
-        Assert.Same(expected[3], actual[4].Identifier);
-        Assert.Same(expected[4], actual[5].Identifier);
-        Assert.Same(expected[5], actual[6].Identifier);
+        Assert.Same(expected[3], actual[4].Instance);
+        Assert.Same(expected[4], actual[5].Instance);
+        Assert.Same(expected[5], actual[6].Instance);
         Assert.Equal(DicomIdentifier.ForSeries("100", "201"), actual[7].Failure.Identifier);
-        Assert.Same(expected[6], actual[8].Identifier);
+        Assert.Same(expected[6], actual[8].Instance);
         Assert.Equal(DicomIdentifier.ForInstance("1000", "2000", "3001"), actual[9].Failure.Identifier);
 
         // Check event

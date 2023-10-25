@@ -139,7 +139,7 @@ public class BlobFileStoreTests
             false,
             Arg.Any<CancellationToken>()).Throws(requestFailedException);
 
-        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, Partition.DefaultName, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, Partition.Default, null, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.BlobNotFound.ToString()), ex.Message);
@@ -160,7 +160,7 @@ public class BlobFileStoreTests
             false,
             Arg.Any<CancellationToken>()).Throws(requestFailedAuthException);
 
-        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, Partition.DefaultName, CancellationToken.None));
+        var ex = await Assert.ThrowsAsync<DataStoreRequestFailedException>(() => blobFileStore.GetStreamingFileAsync(1, Partition.Default, null, CancellationToken.None));
 
         Assert.True(ex.IsExternal);
         Assert.Equal(string.Format(CultureInfo.InvariantCulture, DicomCoreResource.ExternalDataStoreOperationFailed, BlobErrorCode.AuthenticationFailed.ToString()), ex.Message);

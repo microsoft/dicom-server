@@ -305,7 +305,7 @@ public class RetrieveResourceService : IRetrieveResourceService
         {
             long version = instanceMetadata.GetVersion(isOriginalVersionRequested);
             FileProperties fileProperties = await _blobDataStore.GetFilePropertiesAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
-            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartitionName(), cancellationToken);
+            Stream stream = await _blobDataStore.GetStreamingFileAsync(version, _dicomRequestContextAccessor.RequestContext.GetPartition(), instanceMetadata.InstanceProperties.fileProperties, cancellationToken);
             streamTotalLength += fileProperties.ContentLength;
             yield return
                 new RetrieveResourceInstance(
