@@ -76,14 +76,16 @@ public class BlobFileStore : IFileStore
         Stream stream,
         CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(stream, nameof(stream));
+        EnsureArg.IsNotNull(stream, nameof(stream)); // do we want to discard here?
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partitionName);
 
-        var blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload };
-        stream.Seek(0, SeekOrigin.Begin);
+        BlobUploadOptions blobUploadOptions = new BlobUploadOptions { TransferOptions = _options.Upload }; // use explicit type instead of var, good
+                                                                                                           // wants to simplify this new expression, I don't like it' suggestion as much
+                                                                                                           // new() { TransferOptions = _options.Upload }; VS new BlobUploadOptions { TransferOptions = _options.Upload };
+        stream.Seek(0, SeekOrigin.Begin); // again, wants to use discard
 
-        BlobContentInfo info = await ExecuteAsync<BlobContentInfo>(async () => await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken));
+        BlobContentInfo info = await ExecuteAsync<BlobContentInfo>(async () => await blobClient.UploadAsync(stream, blobUploadOptions, cancellationToken)); // wants us to call configure await
 
         EmitTelemetry(nameof(StoreFileAsync), OperationType.Input, stream.Length);
 
@@ -103,16 +105,16 @@ public class BlobFileStore : IFileStore
         IDictionary<string, long> blockLengths,
         CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(stream, nameof(stream));
-        EnsureArg.IsNotNull(partition, nameof(partition));
-        EnsureArg.IsNotNull(blockLengths, nameof(blockLengths));
-        EnsureArg.IsGte(blockLengths.Count, 0, nameof(blockLengths.Count));
+        _ = EnsureArg.IsNotNull(stream, nameof(stream));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNull(blockLengths, nameof(blockLengths));
+        _ = EnsureArg.IsGte(blockLengths.Count, 0, nameof(blockLengths.Count));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition.Name);
 
         int maxBufferSize = (int)blockLengths.Max(x => x.Value);
 
-        return await ExecuteAsync(async () =>
+        return await ExecuteAsync(async () => // configure await appended at bottom
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(maxBufferSize);
             FileProperties fileProperties = null;
@@ -121,14 +123,14 @@ public class BlobFileStore : IFileStore
                 foreach ((string blockId, long blockSize) in blockLengths)
                 {
 #pragma warning disable CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
-                    await stream.ReadAsync(buffer, 0, (int)blockSize, cancellationToken);
+                    _ = await stream.ReadAsync(buffer, 0, (int)blockSize, cancellationToken).ConfigureAwait(false);
 #pragma warning restore CA1835 // Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync'
 
-                    using var blockStream = new MemoryStream(buffer, 0, (int)blockSize);
-                    await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken);
+                    using MemoryStream blockStream = new(buffer, 0, (int)blockSize);
+                    _ = await blobClient.StageBlockAsync(blockId, blockStream, cancellationToken: cancellationToken).ConfigureAwait(false); // wants discard
                 }
 
-                BlobContentInfo info = await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken);
+                BlobContentInfo info = await blobClient.CommitBlockListAsync(blockLengths.Keys, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 EmitTelemetry(nameof(StoreFileInBlocksAsync), OperationType.Input, stream.Length);
 
@@ -145,7 +147,7 @@ public class BlobFileStore : IFileStore
             }
 
             return fileProperties;
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -157,33 +159,36 @@ public class BlobFileStore : IFileStore
         Stream stream,
         CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(stream, nameof(stream));
-        EnsureArg.IsNotNull(partition, nameof(partition));
-        EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
+        _ = EnsureArg.IsNotNull(stream, nameof(stream));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNullOrWhiteSpace(blockId, nameof(blockId));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to read block list for DICOM instance file with version '{Version}'.", version);
+        _logger.LogInformation("Trying to read block list for DICOM instance file with version '{Version}'.", version); // wants logger message delegate
 
         BlockList blockList = await ExecuteAsync<BlockList>(async () => await blobClient.GetBlockListAsync(
             BlockListTypes.Committed,
             snapshot: null,
             conditions: null,   // GetBlockListAsync does not support IfMatch conditions to check eTag
-            cancellationToken));
+            cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
         IEnumerable<string> blockIds = blockList.CommittedBlocks.Select(x => x.Name);
 
         string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase));
 
         if (blockToUpdate == null)
-            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal);
+            throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal); // want to coalesce if expression
+        // if allow coalesce, it would coalesce above two statements to, but I don't think this is as readable.
+        // string blockToUpdate = blockIds.FirstOrDefault(x => x.Equals(blockId, StringComparison.OrdinalIgnoreCase)) ?? throw new DataStoreException(DicomBlobResource.BlockNotFound, null, _blobClient.IsExternal);
 
-        stream.Seek(0, SeekOrigin.Begin);
+
+        _ = stream.Seek(0, SeekOrigin.Begin);
 
         BlobContentInfo info = await ExecuteAsync(async () =>
         {
-            await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken);
-            return await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken);
-        });
+            _ = await blobClient.StageBlockAsync(blockId, stream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await blobClient.CommitBlockListAsync(blockIds, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }).ConfigureAwait(false);
 
         EmitTelemetry(nameof(UpdateFileBlockAsync), OperationType.Input, stream.Length);
 
@@ -198,14 +203,14 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task DeleteFileIfExistsAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(partition);
+        _ = EnsureArg.IsNotNull(partition);
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
-        _logger.LogInformation("Trying to delete DICOM instance file with watermark: '{Version}' and PartitionKey: {PartitionKey}.", version, partition.Key);
+        _logger.LogInformation("Trying to delete DICOM instance file with watermark: '{Version}' and PartitionKey: {PartitionKey}.", version, partition.Key); // wants delegate
 
         EmitTelemetry(nameof(DeleteFileIfExistsAsync), OperationType.Input);
 
-        await ExecuteAsync(async () =>
+        _ = await ExecuteAsync(async () =>
         {
             try
             {
@@ -213,7 +218,7 @@ public class BlobFileStore : IFileStore
                 return await blobClient.DeleteIfExistsAsync(
                     DeleteSnapshotsOption.IncludeSnapshots,
                     conditions: _blobClient.GetConditions(fileProperties),
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.ConditionNotMet &&
                                                     _blobClient.IsExternal)
@@ -234,7 +239,7 @@ public class BlobFileStore : IFileStore
             }
 
             return null;
-        });
+        }).ConfigureAwait(false);
     }
 
     private void EmitTelemetry(string operationName, OperationType operationType, long? streamLength = null)
@@ -260,12 +265,14 @@ public class BlobFileStore : IFileStore
     /// <inheritdoc />
     public async Task<Stream> GetFileAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
 
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
 
-        var blobOpenReadOptions = new BlobOpenReadOptions(allowModifications: false);
-        blobOpenReadOptions.Conditions = _blobClient.GetConditions(fileProperties);
+        BlobOpenReadOptions blobOpenReadOptions = new(allowModifications: false) // simplified object initialization
+        {
+            Conditions = _blobClient.GetConditions(fileProperties)
+        };
         _logger.LogInformation("Trying to read DICOM instance file with watermark '{Version}'.", version);
         // todo: RetrievableStream is returned with no Stream.Length implement which will throw when parsing using fo-dicom for transcoding and frame retrieved.
         // We should either remove fo-dicom parsing for transcoding or make SDK change to support Length property on RetrievableStream
@@ -273,10 +280,10 @@ public class BlobFileStore : IFileStore
         //stream = result.Value.Content;
         return await ExecuteAsync(async () =>
         {
-            Stream stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken);
+            Stream stream = await blobClient.OpenReadAsync(blobOpenReadOptions, cancellationToken).ConfigureAwait(false);
             EmitTelemetry(nameof(GetFileAsync), OperationType.Output, stream.Length);
             return stream;
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -288,12 +295,12 @@ public class BlobFileStore : IFileStore
 
         return await ExecuteAsync(async () =>
         {
-            Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken);
+            Response<BlobDownloadStreamingResult> result = await blobClient.DownloadStreamingAsync(range: default, conditions: null, rangeGetContentHash: false, cancellationToken).ConfigureAwait(false);
 
             EmitTelemetry(nameof(GetStreamingFileAsync), OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -304,7 +311,7 @@ public class BlobFileStore : IFileStore
 
         return await ExecuteAsync(async () =>
         {
-            BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken);
+            BlobProperties blobProperties = await blobClient.GetPropertiesAsync(conditions: null, cancellationToken).ConfigureAwait(false);
 
             EmitTelemetry(nameof(GetFilePropertiesAsync), OperationType.Output);
 
@@ -314,37 +321,37 @@ public class BlobFileStore : IFileStore
                 ETag = blobProperties.ETag.ToString(),
                 ContentLength = blobProperties.ContentLength,
             };
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<Stream> GetFileFrameAsync(long version, string partitionName, FrameRange range, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(range, nameof(range));
+        _ = EnsureArg.IsNotNull(range, nameof(range));
 
         BlockBlobClient blob = GetInstanceBlockBlobClient(version, partitionName);
         _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
         return await ExecuteAsync(async () =>
         {
-            var httpRange = new HttpRange(range.Offset, range.Length);
-            Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken);
+            HttpRange httpRange = new HttpRange(range.Offset, range.Length);
+            Response<BlobDownloadStreamingResult> result = await blob.DownloadStreamingAsync(httpRange, conditions: null, rangeGetContentHash: false, cancellationToken).ConfigureAwait(false);
 
             EmitTelemetry(nameof(GetFileFrameAsync), OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<BinaryData> GetFileContentInRangeAsync(long version, Partition partition, FileProperties fileProperties, FrameRange range, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(range, nameof(range));
-        EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNull(range, nameof(range));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blob = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance fileContent with version '{Version}' on range {Offset}-{Length}.", version, range.Offset, range.Length);
 
-        var blobDownloadOptions = new BlobDownloadOptions
+        BlobDownloadOptions blobDownloadOptions = new()
         {
             Range = new HttpRange(range.Offset, range.Length),
             Conditions = _blobClient.GetConditions(fileProperties),
@@ -352,18 +359,18 @@ public class BlobFileStore : IFileStore
 
         return await ExecuteAsync(async () =>
         {
-            Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken);
+            Response<BlobDownloadResult> result = await blob.DownloadContentAsync(blobDownloadOptions, cancellationToken).ConfigureAwait(false);
 
             EmitTelemetry(nameof(GetFileContentInRangeAsync), OperationType.Output, result.Value.Details.ContentLength);
 
             return result.Value.Content;
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<KeyValuePair<string, long>> GetFirstBlockPropertyAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to read DICOM instance file with version '{Version}' firstBlock.", version);
 
@@ -373,7 +380,7 @@ public class BlobFileStore : IFileStore
                 BlockListTypes.Committed,
                 snapshot: null,
                 conditions: null, // GetBlockListAsync does not support IfMatch conditions to check eTag
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if (!blockList.CommittedBlocks.Any())
                 throw new DataStoreException(DicomBlobResource.BlockListNotFound, null, _blobClient.IsExternal);
@@ -382,52 +389,54 @@ public class BlobFileStore : IFileStore
 
             EmitTelemetry(nameof(GetFirstBlockPropertyAsync), OperationType.Output);
             return new KeyValuePair<string, long>(firstBlock.Name, firstBlock.Size);
-        });
+        }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task CopyFileAsync(long originalVersion, long newVersion, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
-        var blobClient = GetInstanceBlockBlobClient(originalVersion, partition, fileProperties);
-        var copyBlobClient = GetInstanceBlockBlobClient(newVersion, partition.Name);
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
+        BlockBlobClient blobClient = GetInstanceBlockBlobClient(originalVersion, partition, fileProperties);
+        BlockBlobClient copyBlobClient = GetInstanceBlockBlobClient(newVersion, partition.Name);
         _logger.LogInformation("Trying to copy DICOM instance file from original version '{Version}' to new path with new version'{NewVersion}'.", originalVersion, newVersion);
 
-        await ExecuteAsync(async () =>
+        _ = await ExecuteAsync(async () =>
            {
-               BlobCopyFromUriOptions options = new BlobCopyFromUriOptions();
-               options.SourceConditions = _blobClient.GetConditions(fileProperties);
+               BlobCopyFromUriOptions options = new()
+               {
+                   SourceConditions = _blobClient.GetConditions(fileProperties)
+               };
 
-               if (!await copyBlobClient.ExistsAsync(cancellationToken))
+               if (!await copyBlobClient.ExistsAsync(cancellationToken).ConfigureAwait(false))
                {
                    _logger.LogInformation(
                        "Operation {OperationName} processed within CopyFileAsync.",
                        "ExistsAsync");
-                   var operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: options, cancellationToken);
-                   await operation.WaitForCompletionAsync(cancellationToken);
+                   CopyFromUriOperation operation = await copyBlobClient.StartCopyFromUriAsync(blobClient.Uri, options: options, cancellationToken).ConfigureAwait(false);
+                   _ = await operation.WaitForCompletionAsync(cancellationToken).ConfigureAwait(false);
 
                    EmitTelemetry(nameof(CopyFileAsync), OperationType.Input);
                    return true;
                }
 
                return false;
-           });
+           }).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task SetBlobToColdAccessTierAsync(long version, Partition partition, FileProperties fileProperties, CancellationToken cancellationToken = default)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
         BlockBlobClient blobClient = GetInstanceBlockBlobClient(version, partition, fileProperties);
         _logger.LogInformation("Trying to set blob tier for DICOM instance file with watermark '{Version}'.", version);
 
-        await ExecuteAsync(async () =>
+        _ = await ExecuteAsync(async () =>
         {
             // SetAccessTierAsync does not support matching on etag
-            Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, conditions: null, cancellationToken: cancellationToken);
+            Response response = await blobClient.SetAccessTierAsync(AccessTier.Cold, conditions: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             EmitTelemetry(nameof(SetBlobToColdAccessTierAsync), OperationType.Input);
             return response;
-        });
+        }).ConfigureAwait(false);
     }
 
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, string partitionName)
@@ -440,7 +449,7 @@ public class BlobFileStore : IFileStore
 
     protected virtual BlockBlobClient GetInstanceBlockBlobClient(long version, Partition partition, FileProperties fileProperties)
     {
-        EnsureArg.IsNotNull(partition, nameof(partition));
+        _ = EnsureArg.IsNotNull(partition, nameof(partition));
         if (_blobClient.IsExternal && fileProperties != null)
         {
             // does not throw, just appends uri with blobName
@@ -456,7 +465,7 @@ public class BlobFileStore : IFileStore
     {
         try
         {
-            return await action();
+            return await action().ConfigureAwait(false);
         }
         catch (RequestFailedException ex) when (ex.ErrorCode == BlobErrorCode.BlobNotFound && !_blobClient.IsExternal)
         {
