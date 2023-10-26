@@ -119,7 +119,7 @@ internal class SqlIndexDataStoreV37 : SqlIndexDataStoreV1
             {
                 throw new PendingInstanceException();
             }
-            catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict || ex.Number == SqlErrorCodes.UniqueKeyConstraintVoilation)
+            catch (SqlException ex) when (ex.Number == SqlErrorCodes.Conflict || ex.Number == SqlErrorCodes.UniqueKeyConstraintViolation)
             {
                 throw new InstanceAlreadyExistsException();
             }
