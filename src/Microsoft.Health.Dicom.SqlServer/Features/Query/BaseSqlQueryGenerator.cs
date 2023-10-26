@@ -111,9 +111,28 @@ internal abstract class BaseSqlQueryGenerator : QueryFilterConditionVisitor
         AppendExtendedQueryTagKeyFilter(dicomTagSqlEntry, tableAlias, stringSingleValueMatchCondition);
 
         StringBuilder
-            .Append(dicomTagSqlEntry.SqlColumn, tableAlias)
-            .Append("=")
-            .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value))
+            .Append(dicomTagSqlEntry.SqlColumn, tableAlias);
+
+        if (stringSingleValueMatchCondition.Value.Contains('*', System.StringComparison.OrdinalIgnoreCase))
+        {
+            StringBuilder
+                .Append(" LIKE ")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value.Replace("*", "%", System.StringComparison.OrdinalIgnoreCase)));
+        }
+        else if (stringSingleValueMatchCondition.Value.Contains('?', System.StringComparison.OrdinalIgnoreCase))
+        {
+            StringBuilder
+                .Append(" LIKE ")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value.Replace("?", "_", System.StringComparison.OrdinalIgnoreCase)));
+        }
+        else
+        {
+            StringBuilder
+                .Append("=")
+                .Append(_parameters.AddParameter(dicomTagSqlEntry.SqlColumn, stringSingleValueMatchCondition.Value));
+        }
+
+        StringBuilder
             .AppendLine();
     }
 
