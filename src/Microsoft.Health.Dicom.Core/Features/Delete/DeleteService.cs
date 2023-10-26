@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnsureThat;
@@ -23,6 +22,7 @@ using Microsoft.Health.Dicom.Core.Features.Diagnostic;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
 using Microsoft.Health.Dicom.Core.Features.Store;
+using Microsoft.Health.Dicom.Core.Models.Delete;
 
 namespace Microsoft.Health.Dicom.Core.Features.Delete;
 
@@ -32,42 +32,34 @@ public class DeleteService : IDeleteService
     private readonly IIndexDataStore _indexDataStore;
     private readonly IMetadataStore _metadataStore;
     private readonly IFileStore _fileStore;
-    private readonly DeletedInstanceCleanupConfiguration _deletedInstanceCleanupConfiguration;
+    private readonly DeletedInstanceCleanupConfiguration _options;
     private readonly ITransactionHandler _transactionHandler;
     private readonly ILogger<DeleteService> _logger;
     private readonly bool _isExternalStoreEnabled;
     private readonly TelemetryClient _telemetryClient;
 
-    private TimeSpan DeleteDelay => _isExternalStoreEnabled ? TimeSpan.Zero : _deletedInstanceCleanupConfiguration.DeleteDelay;
+    private TimeSpan DeleteDelay => _isExternalStoreEnabled ? TimeSpan.Zero : _options.DeleteDelay;
 
     public DeleteService(
         IIndexDataStore indexDataStore,
         IMetadataStore metadataStore,
         IFileStore fileStore,
-        IOptions<DeletedInstanceCleanupConfiguration> deletedInstanceCleanupConfiguration,
+        IOptions<DeletedInstanceCleanupConfiguration> options,
         ITransactionHandler transactionHandler,
         ILogger<DeleteService> logger,
         IDicomRequestContextAccessor contextAccessor,
         IOptions<FeatureConfiguration> featureConfiguration,
         TelemetryClient telemetryClient)
     {
-        EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
-        EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
-        EnsureArg.IsNotNull(fileStore, nameof(fileStore));
-        EnsureArg.IsNotNull(deletedInstanceCleanupConfiguration?.Value, nameof(deletedInstanceCleanupConfiguration));
-        EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-        EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
-        EnsureArg.IsNotNull(featureConfiguration, nameof(featureConfiguration));
+        _indexDataStore = EnsureArg.IsNotNull(indexDataStore, nameof(indexDataStore));
+        _metadataStore = EnsureArg.IsNotNull(metadataStore, nameof(metadataStore));
+        _fileStore = EnsureArg.IsNotNull(fileStore, nameof(fileStore));
+        _options = EnsureArg.IsNotNull(options?.Value, nameof(options));
+        _transactionHandler = EnsureArg.IsNotNull(transactionHandler, nameof(transactionHandler));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
+        _contextAccessor = EnsureArg.IsNotNull(contextAccessor, nameof(contextAccessor));
+        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration?.Value, nameof(featureConfiguration)).EnableExternalStore;
         _telemetryClient = EnsureArg.IsNotNull(telemetryClient, nameof(telemetryClient));
-        _isExternalStoreEnabled = EnsureArg.IsNotNull(featureConfiguration.Value, nameof(featureConfiguration)).EnableExternalStore;
-        _indexDataStore = indexDataStore;
-        _metadataStore = metadataStore;
-        _fileStore = fileStore;
-        _deletedInstanceCleanupConfiguration = deletedInstanceCleanupConfiguration.Value;
-        _transactionHandler = transactionHandler;
-        _logger = logger;
-        _contextAccessor = contextAccessor;
     }
 
     public async Task DeleteStudyAsync(string studyInstanceUid, CancellationToken cancellationToken)
@@ -96,89 +88,33 @@ public class DeleteService : IDeleteService
         return _indexDataStore.DeleteInstanceIndexAsync(GetPartition(), studyInstanceUid, seriesInstanceUid, sopInstanceUid, Clock.UtcNow, cancellationToken);
     }
 
-    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
-    public async Task<(bool Success, int RetrievedInstanceCount)> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
+    public async Task<DeleteSummary> CleanupDeletedInstancesAsync(CancellationToken cancellationToken)
     {
         bool success = true;
         int retrievedInstanceCount = 0;
 
-        using (ITransactionScope transactionScope = _transactionHandler.BeginTransaction())
+        using ITransactionScope transactionScope = _transactionHandler.BeginTransaction();
+
+        IReadOnlyList<InstanceMetadata> deleted = await GetDeletedInstancesAsync(cancellationToken);
+        if (deleted != null)
         {
-            try
+            retrievedInstanceCount = deleted.Count;
+            foreach (InstanceMetadata metadata in deleted)
             {
-                var deletedInstanceIdentifiers = (await _indexDataStore
-                    .RetrieveDeletedInstancesWithPropertiesAsync(
-                        _deletedInstanceCleanupConfiguration.BatchSize,
-                        _deletedInstanceCleanupConfiguration.MaxRetries,
-                        cancellationToken))
-                    .ToList();
-
-                retrievedInstanceCount = deletedInstanceIdentifiers.Count;
-
-                foreach (InstanceMetadata deletedInstanceIdentifier in deletedInstanceIdentifiers)
-                {
-                    try
-                    {
-                        List<Task> tasks = new List<Task>()
-                        {
-                            _fileStore.DeleteFileIfExistsAsync(
-                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
-                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition,
-                                deletedInstanceIdentifier.InstanceProperties.fileProperties,
-                                cancellationToken),
-                            _metadataStore.DeleteInstanceMetadataIfExistsAsync(
-                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
-                                cancellationToken),
-                            _metadataStore.DeleteInstanceFramesRangeAsync(
-                                deletedInstanceIdentifier.VersionedInstanceIdentifier.Version,
-                                cancellationToken)
-                        };
-
-                        // NOTE: in the input deletedInstanceIdentifiers we're going to have a row for each version in IDP,
-                        // but for non-IDP we'll have a single row whose original version needs to be explicitly deleted below.
-                        // To that end, we only need to delete by "original watermark" to catch changes from Update operation if not IDP.
-                        if (!_isExternalStoreEnabled && deletedInstanceIdentifier.InstanceProperties.OriginalVersion.HasValue)
-                        {
-                            tasks.Add(_fileStore.DeleteFileIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, deletedInstanceIdentifier.VersionedInstanceIdentifier.Partition, deletedInstanceIdentifier.InstanceProperties.fileProperties, cancellationToken));
-                            tasks.Add(_metadataStore.DeleteInstanceMetadataIfExistsAsync(deletedInstanceIdentifier.InstanceProperties.OriginalVersion.Value, cancellationToken));
-                        }
-
-                        await Task.WhenAll(tasks);
-
-                        await _indexDataStore.DeleteDeletedInstanceAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier, cancellationToken);
-                    }
-                    catch (Exception cleanupException)
-                    {
-                        try
-                        {
-                            int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(deletedInstanceIdentifier.VersionedInstanceIdentifier, GenerateCleanupAfter(_deletedInstanceCleanupConfiguration.RetryBackOff), cancellationToken);
-                            if (newRetryCount > _deletedInstanceCleanupConfiguration.MaxRetries)
-                            {
-                                _logger.LogCritical(cleanupException, "Failed to cleanup instance {DeletedInstanceIdentifier}. Retry count is now {NewRetryCount} and retry will not be re-attempted.", deletedInstanceIdentifier, newRetryCount);
-                            }
-                            else
-                            {
-                                _logger.LogError(cleanupException, "Failed to cleanup instance {DeletedInstanceIdentifier}. Retry count is now {NewRetryCount}.", deletedInstanceIdentifier, newRetryCount);
-                            }
-                        }
-                        catch (Exception incrementException)
-                        {
-                            _logger.LogCritical(incrementException, "Failed to increment cleanup retry for instance {DeletedInstanceIdentifier}.", deletedInstanceIdentifier);
-                            success = false;
-                        }
-                    }
-                }
-
-                transactionScope.Complete();
+                if (!await TryDeleteInstanceDataAsync(metadata, cancellationToken))
+                    success = false;
             }
-            catch (Exception retrieveException)
-            {
-                _logger.LogCritical(retrieveException, "Failed to retrieve instances to cleanup.");
+
+            if (!TryCommit(transactionScope))
                 success = false;
-            }
         }
 
-        return (success, retrievedInstanceCount);
+        return new DeleteSummary
+        {
+            ProcessedCount = retrievedInstanceCount,
+            Metrics = await GetMetricsAsync(cancellationToken),
+            Success = deleted is not null && success,
+        };
     }
 
     private void EmitTelemetry(IReadOnlyCollection<VersionedInstanceIdentifier> identifiers)
@@ -194,13 +130,121 @@ public class DeleteService : IDeleteService
         }
     }
 
-    private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
+    private async Task<IReadOnlyList<InstanceMetadata>> GetDeletedInstancesAsync(CancellationToken cancellationToken)
     {
-        return Clock.UtcNow + delay;
+        try
+        {
+            return await _indexDataStore.RetrieveDeletedInstancesWithPropertiesAsync(
+                _options.BatchSize,
+                _options.MaxRetries,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogCritical(e, "Failed to retrieve instances to cleanup.");
+            return null;
+        }
     }
 
-    private Partition GetPartition()
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
+    private async Task<bool> TryDeleteInstanceDataAsync(InstanceMetadata metadata, CancellationToken cancellationToken)
     {
-        return _contextAccessor.RequestContext.GetPartition();
+        try
+        {
+            List<Task> tasks = new()
+            {
+                _fileStore.DeleteFileIfExistsAsync(
+                    metadata.VersionedInstanceIdentifier.Version,
+                    metadata.VersionedInstanceIdentifier.Partition,
+                    metadata.InstanceProperties.fileProperties,
+                    cancellationToken),
+                _metadataStore.DeleteInstanceMetadataIfExistsAsync(
+                    metadata.VersionedInstanceIdentifier.Version,
+                    cancellationToken),
+                _metadataStore.DeleteInstanceFramesRangeAsync(
+                    metadata.VersionedInstanceIdentifier.Version,
+                    cancellationToken)
+            };
+
+            // NOTE: in the input deleted we're going to have a row for each version in IDP,
+            // but for non-IDP we'll have a single row whose original version needs to be explicitly deleted below.
+            // To that end, we only need to delete by "original watermark" to catch changes from Update operation if not IDP.
+            if (!_isExternalStoreEnabled && metadata.InstanceProperties.OriginalVersion.HasValue)
+            {
+                tasks.Add(_fileStore.DeleteFileIfExistsAsync(metadata.InstanceProperties.OriginalVersion.Value, metadata.VersionedInstanceIdentifier.Partition, metadata.InstanceProperties.fileProperties, cancellationToken));
+                tasks.Add(_metadataStore.DeleteInstanceMetadataIfExistsAsync(metadata.InstanceProperties.OriginalVersion.Value, cancellationToken));
+            }
+
+            await Task.WhenAll(tasks);
+
+            await _indexDataStore.DeleteDeletedInstanceAsync(metadata.VersionedInstanceIdentifier, cancellationToken);
+        }
+        catch (Exception cleanupException)
+        {
+            try
+            {
+                int newRetryCount = await _indexDataStore.IncrementDeletedInstanceRetryAsync(metadata.VersionedInstanceIdentifier, GenerateCleanupAfter(_options.RetryBackOff), cancellationToken);
+                if (newRetryCount > _options.MaxRetries)
+                {
+                    _logger.LogCritical(cleanupException, "Failed to cleanup instance {DeletedInstanceIdentifier}. Retry count is now {NewRetryCount} and retry will not be re-attempted.", metadata, newRetryCount);
+                }
+                else
+                {
+                    _logger.LogError(cleanupException, "Failed to cleanup instance {DeletedInstanceIdentifier}. Retry count is now {NewRetryCount}.", metadata, newRetryCount);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Failed to increment cleanup retry for instance {DeletedInstanceIdentifier}.", metadata);
+                return false;
+            }
+        }
+
+        return true; // If we failed, but there are still retries left, we'll return true for now
     }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
+    private bool TryCommit(ITransactionScope transactionScope)
+    {
+        try
+        {
+            transactionScope.Complete();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogCritical(e, "Failed to commit transaction.");
+            return false;
+        }
+    }
+
+    [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Exceptions are captured for success return value.")]
+    private async Task<DeleteMetrics?> GetMetricsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            Task<DateTimeOffset> oldestWaitingToBeDeleted = _indexDataStore.GetOldestDeletedAsync(cancellationToken);
+            Task<int> numReachedMaxedRetry = _indexDataStore.RetrieveNumExhaustedDeletedInstanceAttemptsAsync(
+                _options.MaxRetries,
+                cancellationToken);
+
+            return new DeleteMetrics
+            {
+                OldestDeletion = await oldestWaitingToBeDeleted,
+                TotalExhaustedRetries = await numReachedMaxedRetry,
+            };
+        }
+        catch (Exception e)
+        {
+            _logger.LogCritical(e, "Failed to fetch metrics.");
+            return null;
+        }
+    }
+
+    private static DateTimeOffset GenerateCleanupAfter(TimeSpan delay)
+        => Clock.UtcNow + delay;
+
+    private Partition GetPartition()
+        => _contextAccessor.RequestContext.GetPartition();
 }

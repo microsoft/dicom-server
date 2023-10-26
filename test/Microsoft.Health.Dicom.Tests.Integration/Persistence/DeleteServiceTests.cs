@@ -13,6 +13,7 @@ using Microsoft.Health.Dicom.Core.Extensions;
 using Microsoft.Health.Dicom.Core.Features.Common;
 using Microsoft.Health.Dicom.Core.Features.Model;
 using Microsoft.Health.Dicom.Core.Features.Partitioning;
+using Microsoft.Health.Dicom.Core.Models.Delete;
 using Microsoft.Health.Dicom.Tests.Common;
 using Microsoft.Health.Dicom.Tests.Common.Extensions;
 using Microsoft.Health.Dicom.Tests.Integration.Persistence.Models;
@@ -42,9 +43,9 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         await DeleteAndValidateInstanceForCleanup(dicomInstanceIdentifier);
 
         await Task.Delay(3000, CancellationToken.None);
-        (bool success, int retrievedInstanceCount) = await _fixture.DeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
+        DeleteSummary actual = await _fixture.DeleteService.CleanupDeletedInstancesAsync(CancellationToken.None);
 
-        await ValidateRemoval(success, retrievedInstanceCount, dicomInstanceIdentifier, persistBlob, isExternalStore, fileProperties: fileProperties);
+        await ValidateRemoval(actual, dicomInstanceIdentifier, persistBlob, isExternalStore, fileProperties: fileProperties);
     }
 
     private async Task DeleteAndValidateInstanceForCleanup(VersionedInstanceIdentifier versionedInstanceIdentifier)
@@ -105,10 +106,10 @@ public class DeleteServiceTests : IClassFixture<DeleteServiceTestsFixture>
         return isExternalStore ? fileProperties : null;
     }
 
-    private async Task ValidateRemoval(bool success, int retrievedInstanceCount, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob, bool isExternalStore, FileProperties fileProperties = null)
+    private async Task ValidateRemoval(DeleteSummary actual, VersionedInstanceIdentifier versionedInstanceIdentifier, bool persistBlob, bool isExternalStore, FileProperties fileProperties = null)
     {
-        Assert.True(success);
-        Assert.Equal(1, retrievedInstanceCount);
+        Assert.True(actual.Success);
+        Assert.Equal(1, actual.ProcessedCount);
 
         fileProperties ??= new FileProperties();
 

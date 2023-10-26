@@ -1,4 +1,4 @@
-﻿// -------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License (MIT). See LICENSE in the repo root for license information.
 // -------------------------------------------------------------------------------------------------
@@ -13,26 +13,28 @@ using Microsoft.Extensions.Options;
 using Microsoft.Health.Dicom.Core.Configs;
 using Microsoft.Health.Dicom.Core.Exceptions;
 using Microsoft.Health.Dicom.Core.Features.Delete;
+using Microsoft.Health.Dicom.Core.Features.Telemetry;
+using Microsoft.Health.Dicom.Core.Models.Delete;
 
 namespace Microsoft.Health.Dicom.Api.Features.BackgroundServices;
 
 public class DeletedInstanceCleanupWorker
 {
     private readonly ILogger<DeletedInstanceCleanupWorker> _logger;
+    private readonly DeleteMeter _deleteMeter;
+    private readonly DeletedInstanceCleanupConfiguration _options;
     private readonly IDeleteService _deleteService;
-    private readonly TimeSpan _pollingInterval;
-    private readonly int _batchSize;
 
-    public DeletedInstanceCleanupWorker(IDeleteService deleteService, IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration, ILogger<DeletedInstanceCleanupWorker> logger)
+    public DeletedInstanceCleanupWorker(
+        IDeleteService deleteService,
+        DeleteMeter deleteMeter,
+        IOptions<DeletedInstanceCleanupConfiguration> backgroundCleanupConfiguration,
+        ILogger<DeletedInstanceCleanupWorker> logger)
     {
-        EnsureArg.IsNotNull(deleteService, nameof(deleteService));
-        EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
-        EnsureArg.IsNotNull(logger, nameof(logger));
-
-        _deleteService = deleteService;
-        _pollingInterval = backgroundCleanupConfiguration.Value.PollingInterval;
-        _batchSize = backgroundCleanupConfiguration.Value.BatchSize;
-        _logger = logger;
+        _deleteService = EnsureArg.IsNotNull(deleteService, nameof(deleteService));
+        _deleteMeter = EnsureArg.IsNotNull(deleteMeter, nameof(deleteMeter));
+        _options = EnsureArg.IsNotNull(backgroundCleanupConfiguration?.Value, nameof(backgroundCleanupConfiguration));
+        _logger = EnsureArg.IsNotNull(logger, nameof(logger));
     }
 
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not throw exceptions other than those for cancellation.")]
@@ -42,15 +44,17 @@ public class DeletedInstanceCleanupWorker
         {
             try
             {
-                await Task.Delay(_pollingInterval, stoppingToken);
+                await Task.Delay(_options.PollingInterval, stoppingToken);
 
-                bool success;
-                int retrievedInstanceCount;
+                DeleteSummary summary;
                 do
                 {
-                    (success, retrievedInstanceCount) = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
+                    summary = await _deleteService.CleanupDeletedInstancesAsync(stoppingToken);
+
+                    if (summary.Metrics != null)
+                        WriteDeleteMetrics(summary.Metrics.GetValueOrDefault());
                 }
-                while (success && retrievedInstanceCount == _batchSize);
+                while (summary.Success && summary.ProcessedCount == _options.BatchSize);
             }
             catch (DataStoreNotReadyException)
             {
@@ -67,5 +71,11 @@ public class DeletedInstanceCleanupWorker
                 _logger.LogCritical(ex, "Unhandled exception in the deleted instance cleanup worker.");
             }
         }
+    }
+
+    private void WriteDeleteMetrics(DeleteMetrics metrics)
+    {
+        _deleteMeter.OldestRequestedDeletion.Add(metrics.OldestDeletion.ToUnixTimeSeconds());
+        _deleteMeter.CountDeletionsMaxRetry.Add(metrics.TotalExhaustedRetries);
     }
 }
