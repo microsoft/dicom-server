@@ -243,6 +243,9 @@
           "serviceName": {
             "value": "[parameters('serviceName')]"
           },
+          "imageTag": {
+            "value": "[parameters('imageTag')]"
+          },
           "image": {
             "value": "[concat(parameters('image'), ':', parameters('imageTag'))]"
           },
