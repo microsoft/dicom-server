@@ -33,13 +33,16 @@ internal class DicomTagsManager : IAsyncDisposable
     [SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Do not throw on test clean up.")]
     public async ValueTask DisposeAsync()
     {
-        try
+        foreach (string tag in _tags)
         {
-            await Task.WhenAll(_tags.Select(t => DeleteExtendedQueryTagAsync(t)));
-        }
-        catch (Exception)
-        {
-            // Dispose should not throw for test clean up
+            try
+            {
+                await DeleteExtendedQueryTagAsync(tag);
+            }
+            catch (Exception)
+            {
+                // Dispose should not throw for test clean up
+            }
         }
     }
 

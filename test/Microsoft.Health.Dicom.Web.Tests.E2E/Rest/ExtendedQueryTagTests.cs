@@ -54,9 +54,8 @@ public class ExtendedQueryTagTests : IClassFixture<WebJobsIntegrationTestFixture
         DicomTag filmTag = DicomTag.NumberOfFilms;
 
         // Try to delete these extended query tags.
-        await Task.WhenAll(
-            _tagManager.DeleteExtendedQueryTagAsync(genderTag.GetPath()),
-            _tagManager.DeleteExtendedQueryTagAsync(filmTag.GetPath()));
+        await _tagManager.DeleteExtendedQueryTagAsync(genderTag.GetPath());
+        await _tagManager.DeleteExtendedQueryTagAsync(filmTag.GetPath());
 
         // Define DICOM files
         DicomDataset instance1 = Samples.CreateRandomInstanceDataset();
